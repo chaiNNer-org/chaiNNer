@@ -47,7 +47,8 @@ export const HandleWrapper = memo(
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
-        const edges = useMemo(() => getEdges(), [edgeChanges]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const edges = useMemo(() => getEdges(), [edgeChanges, getEdges]);
         const connectedEdge = edges.find(
             (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
         );
@@ -71,7 +72,7 @@ export const HandleWrapper = memo(
                 target: id,
                 targetHandle,
             });
-        }, [connectingFrom, definitionType, id, targetHandle]);
+        }, [connectingFrom, id, targetHandle, isValidConnection]);
 
         const { functionDefinitions } = useContext(BackendContext);
 

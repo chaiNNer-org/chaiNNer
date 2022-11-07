@@ -34,10 +34,12 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
         [schema, inputData]
     );
 
-    const [fullValidity, setValidity] = useState<Validity>(alwaysValid ? VALID : STARTING_VALIDITY);
+    const [fullValidity, setFullValidity] = useState<Validity>(
+        alwaysValid ? VALID : STARTING_VALIDITY
+    );
     useEffect(() => {
         if (!alwaysValid) {
-            setValidity(
+            setFullValidity(
                 checkNodeValidity({
                     schema,
                     inputData,
@@ -46,7 +48,7 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
                 })
             );
         }
-    }, [id, schema, inputData, edgeChanges, functionInstance]);
+    }, [alwaysValid, id, schema, inputData, edgeChanges, getEdges, functionInstance]);
 
     // The problem with `checkNodeValidity` is that is must be computed with a delay due to
     // `getEdges`. This means that the full validity we return here might be outdated. This is a

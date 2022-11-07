@@ -67,35 +67,26 @@ export const ContextMenuProvider = memo(({ children }: React.PropsWithChildren<u
     const [current, setCurrent] = useState<string | undefined>();
     const [position, setPosition] = useState<readonly [number, number]>([0, 0]);
 
-    const registerContextMenu = useCallback(
-        (id: string, render: RenderFn) => {
-            setMenus(({ map }) => {
-                map.set(id, render);
-                return { map };
-            });
-        },
-        [setMenus]
-    );
-    const unregisterContextMenu = useCallback(
-        (id: string) => {
-            setMenus(({ map }) => {
-                map.delete(id);
-                return { map };
-            });
-        },
-        [setMenus]
-    );
+    const registerContextMenu = useCallback((id: string, render: RenderFn) => {
+        setMenus(({ map }) => {
+            map.set(id, render);
+            return { map };
+        });
+    }, []);
+    const unregisterContextMenu = useCallback((id: string) => {
+        setMenus(({ map }) => {
+            map.delete(id);
+            return { map };
+        });
+    }, []);
 
-    const openContextMenu = useCallback(
-        (id: string, x: number, y: number) => {
-            setCurrent(id);
-            setPosition([x, y]);
-        },
-        [setCurrent, setPosition]
-    );
+    const openContextMenu = useCallback((id: string, x: number, y: number) => {
+        setCurrent(id);
+        setPosition([x, y]);
+    }, []);
     const closeContextMenu = useCallback(() => {
         setCurrent(undefined);
-    }, [setCurrent]);
+    }, []);
 
     const menuId = 'global-context-menu';
 

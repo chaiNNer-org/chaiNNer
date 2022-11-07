@@ -72,6 +72,7 @@ export const useInputHashes = (schemata: SchemaMap, deps: readonly unknown[]) =>
     const { getNodes, getEdges } = useReactFlow();
     useEffect(() => {
         ref.current = computeInputHashes(getNodes(), getEdges(), schemata);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps);
 
     return ref;

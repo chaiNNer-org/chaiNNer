@@ -12,5 +12,6 @@ export const useIpcRendererListener = <C extends keyof SendChannels>(
         return () => {
             ipcRenderer.removeListener(channel, listener);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps);
 };

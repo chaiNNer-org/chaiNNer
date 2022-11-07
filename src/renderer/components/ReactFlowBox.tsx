@@ -165,7 +165,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setNodesRef,
         setEdgesRef,
-        updateIteratorBounds,
     } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
@@ -210,7 +209,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         }
 
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
-    }, [nodes, edges]);
+    }, [nodes, edges, isSnapToGrid, snapToGridAmount]);
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, _node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
@@ -281,15 +280,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges();
             addEdgeChanges();
         },
-        [
-            addNodeChanges,
-            addEdgeChanges,
-            changeNodes,
-            nodes,
-            changeEdges,
-            edges,
-            updateIteratorBounds,
-        ]
+        [addNodeChanges, addEdgeChanges, changeNodes, nodes, changeEdges, edges]
     );
 
     const onSelectionDragStop = useCallback(
@@ -335,13 +326,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         setHoveredNode(null);
     }, [setHoveredNode]);
 
+    const wrapper = wrapperRef.current;
     const onDrop = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
             event.preventDefault();
-            if (!wrapperRef.current) return;
+            if (!wrapper) return;
 
             try {
-                const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
+                const reactFlowBounds = wrapper.getBoundingClientRect();
 
                 const options: DataTransferProcessorOptions = {
                     schemata,
@@ -373,7 +365,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 });
             }
         },
-        [createNode, wrapperRef.current, reactFlowInstance]
+        [createNode, wrapper, reactFlowInstance, schemata, sendAlert]
     );
 
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);

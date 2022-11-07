@@ -236,7 +236,7 @@ const EnvironmentSettings = memo(() => {
             setStartupTemplate(selectedPath);
             setLastDirectory(path.dirname(selectedPath));
         }
-    }, [startupTemplate, lastDirectory]);
+    }, [startupTemplate, lastDirectory, setStartupTemplate]);
 
     return (
         <VStack
@@ -343,7 +343,7 @@ const PythonSettings = memo(() => {
         if (isCpu && isFp16) {
             setIsFp16(false);
         }
-    }, [isCpu]);
+    }, [isCpu, isFp16, setIsFp16]);
 
     const onnxExecutionProviders = useMemo(
         () => [
@@ -379,7 +379,7 @@ const PythonSettings = memo(() => {
             setSystemPythonLocation(selectedPath);
             setLastDirectory(path.dirname(selectedPath));
         }
-    }, [systemPythonLocation, lastDirectory]);
+    }, [systemPythonLocation, lastDirectory, setSystemPythonLocation]);
 
     return (
         <Tabs isFitted>

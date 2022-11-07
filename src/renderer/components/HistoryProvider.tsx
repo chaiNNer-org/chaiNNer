@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -71,10 +71,12 @@ export const HistoryProvider = memo(
         const { changeNodes, changeEdges } = useContext(GlobalContext);
         const { getNodes, getEdges } = useReactFlow();
 
-        const [historyObj] = useState<{ history: EditHistory<HistoryState> }>(() => {
+        // eslint-disable-next-line react/hook-use-state
+        const [initialValue] = useState(() => {
             const initial: HistoryState = [getNodes(), getEdges()];
-            return { history: EditHistory.create(initial, 100) };
+            return EditHistory.create(initial, 100);
         });
+        const historyRef = useRef(initialValue);
 
         const [selfUpdate, setSelfUpdate] = useState(false);
         useEffect(() => {
@@ -100,17 +102,18 @@ export const HistoryProvider = memo(
             if (selfUpdate) return noop;
 
             const id = setTimeout(() => {
-                historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
+                historyRef.current = historyRef.current.commit([getNodes(), getEdges()]);
             }, 250);
             return () => clearTimeout(id);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [changeId]);
 
         // Handler for undo menuitem
         useIpcRendererListener(
             'history-undo',
             () => {
-                historyObj.history = historyObj.history.undo();
-                apply(historyObj.history.current);
+                historyRef.current = historyRef.current.undo();
+                apply(historyRef.current.current);
             },
             [apply]
         );
@@ -119,8 +122,8 @@ export const HistoryProvider = memo(
         useIpcRendererListener(
             'history-redo',
             () => {
-                historyObj.history = historyObj.history.redo();
-                apply(historyObj.history.current);
+                historyRef.current = historyRef.current.redo();
+                apply(historyRef.current.current);
             },
             [apply]
         );
@@ -129,8 +132,8 @@ export const HistoryProvider = memo(
         useHotkeys(
             'ctrl+z, cmd+z',
             () => {
-                historyObj.history = historyObj.history.undo();
-                apply(historyObj.history.current);
+                historyRef.current = historyRef.current.undo();
+                apply(historyRef.current.current);
             },
             [apply]
         );
@@ -139,8 +142,8 @@ export const HistoryProvider = memo(
         useHotkeys(
             'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
             () => {
-                historyObj.history = historyObj.history.redo();
-                apply(historyObj.history.current);
+                historyRef.current = historyRef.current.redo();
+                apply(historyRef.current.current);
             },
             [apply]
         );

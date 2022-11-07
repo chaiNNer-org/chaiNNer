@@ -9,7 +9,7 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
@@ -53,15 +53,17 @@ export const SliderInput = memo(
         const [sliderValue, setSliderValue] = useState(value ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
-        const precisionOutput = (val: number) =>
-            hideTrailingZeros ? String(val) : val.toFixed(precision);
+        const precisionOutput = useCallback(
+            (val: number) => (hideTrailingZeros ? String(val) : val.toFixed(precision)),
+            [hideTrailingZeros, precision]
+        );
 
         useEffect(() => {
             setSliderValue(value ?? def);
             if (!Number.isNaN(value)) {
                 setInputString(precisionOutput(value ?? def));
             }
-        }, [value]);
+        }, [value, def, precisionOutput]);
 
         const onSliderChange = (sliderInput: number) => {
             setInputString(precisionOutput(sliderInput));

@@ -59,7 +59,7 @@ export const PyTorchOutput = memo(
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value]);
+        }, [id, schemaId, value, outputId, schema, setManualOutputType]);
 
         const tagColor = 'var(--tag-bg)';
         const fontColor = 'var(--tag-fg)';

@@ -12,18 +12,19 @@ export const TextAreaInput = memo(
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
         const [size, setSize] = useInputSize();
-        const [tempText, setTempText] = useState('');
+        const [tempText, setTempText] = useState(value ?? '');
 
         useEffect(() => {
             if (!size) {
                 setSize({ width: 320, height: 240 });
             }
+        }, [size, setSize]);
+
+        useEffect(() => {
             if (!value) {
                 setValue('');
-            } else {
-                setTempText(value);
             }
-        }, []);
+        }, [value, setValue]);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
             const text = event.target.value;

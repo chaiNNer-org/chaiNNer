@@ -19,14 +19,18 @@ export const NumberInput = memo(
         const [inputString, setInputString] = useState(String(value ?? def));
 
         useEffect(() => {
-            const asNumber = parseFloat(inputString);
-            if (
-                !Number.isNaN(asNumber) &&
-                value !== undefined &&
-                !areApproximatelyEqual(asNumber, value)
-            ) {
-                setInputString(String(value));
-            }
+            setInputString((prev) => {
+                const asNumber = parseFloat(prev);
+                if (
+                    !Number.isNaN(asNumber) &&
+                    value !== undefined &&
+                    !areApproximatelyEqual(asNumber, value)
+                ) {
+                    return String(value);
+                }
+
+                return prev;
+            });
         }, [value]);
 
         const isInputConnected = useInputConnected();

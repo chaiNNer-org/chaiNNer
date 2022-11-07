@@ -89,7 +89,15 @@ export const IteratorNodeBody = memo(
                 setIteratorSize(id, size);
                 updateIteratorBounds(id, size);
             }
-        }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
+        }, [
+            resizeRef,
+            resizeRef?.resizable,
+            setIteratorSize,
+            updateIteratorBounds,
+            height,
+            width,
+            id,
+        ]);
 
         const shade = 'var(--chain-editor-bg)';
 
