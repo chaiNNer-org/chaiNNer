@@ -256,4 +256,3 @@ export interface Category {
     installHint?: string;
     excludedFromCheck: string[];
 }
-
