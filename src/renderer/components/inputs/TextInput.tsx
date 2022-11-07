@@ -31,7 +31,7 @@ export const TextInput = memo(
                     setValue('');
                 }
             }
-        }, []);
+        }, [value, def, minLength, setValue]);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLInputElement>) => {
             let text = event.target.value;

@@ -81,7 +81,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             });
             setCheckedSize(true);
         }
-    }, [checkedSize, targetRef.current?.offsetHeight, updateIteratorBounds]);
+    }, [checkedSize, targetRef.current?.offsetHeight, updateIteratorBounds, parentNode]);
 
     const fileInput = useMemo(() => getSingleFileInput(inputs), [inputs]);
 

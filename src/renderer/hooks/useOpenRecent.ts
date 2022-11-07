@@ -13,7 +13,7 @@ export const useOpenRecent = () => {
 
     useEffect(() => {
         ipcRenderer.send('update-open-recent-menu', recentlyOpen as string[]);
-    }, []);
+    }, [recentlyOpen]);
 
     const push = useCallback(
         (path: string): void =>
@@ -29,8 +29,6 @@ export const useOpenRecent = () => {
                 if (newPaths.length > MAX_ENTRIES)
                     newPaths.splice(0, newPaths.length - MAX_ENTRIES);
 
-                ipcRenderer.send('update-open-recent-menu', newPaths);
-
                 return newPaths;
             }),
         [setRecentlyOpen]
@@ -42,23 +40,12 @@ export const useOpenRecent = () => {
                 if (!prev.includes(path)) {
                     return prev;
                 }
-                const newPaths = prev.filter((p) => p !== path);
-
-                ipcRenderer.send('update-open-recent-menu', newPaths);
-
-                return newPaths;
+                return prev.filter((p) => p !== path);
             }),
         [setRecentlyOpen]
     );
 
-    useIpcRendererListener(
-        'clear-open-recent',
-        () => {
-            setRecentlyOpen([]);
-            ipcRenderer.send('update-open-recent-menu', []);
-        },
-        [setRecentlyOpen]
-    );
+    useIpcRendererListener('clear-open-recent', () => setRecentlyOpen([]), [setRecentlyOpen]);
 
     return [recentlyOpen, push, remove] as const;
 };

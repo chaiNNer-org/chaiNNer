@@ -122,7 +122,7 @@ export const Main = memo(({ port }: MainProps) => {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
-    }, [response, data, loading, error, backendReady]);
+    }, [response, data, loading, error, backendReady, sendAlert]);
 
     useLastWindowSize();
 

@@ -47,4 +47,5 @@ export const useBatchedCallback = <T extends unknown[]>(
     fn: (...args: T) => void,
     wait: number,
     deps: readonly unknown[]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
 ): ((...args: T) => void) => useMemo(() => getBatchedCallback(fn, wait), deps);

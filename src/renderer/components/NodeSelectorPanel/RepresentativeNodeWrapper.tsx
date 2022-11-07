@@ -83,7 +83,7 @@ export const RepresentativeNodeWrapper = memo(
                     schemaId: node.schemaId,
                 },
             });
-        }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper.current]);
+        }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper]);
 
         return (
             <Box

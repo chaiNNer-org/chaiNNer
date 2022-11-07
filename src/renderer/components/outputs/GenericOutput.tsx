@@ -39,7 +39,7 @@ export const GenericOutput = memo(
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value]);
+        }, [id, schemaId, value, kind, outputId, schema, setManualOutputType]);
 
         return (
             <Flex

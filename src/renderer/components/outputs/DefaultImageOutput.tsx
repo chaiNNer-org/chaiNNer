@@ -44,8 +44,9 @@ export const DefaultImageOutput = memo(
 
         const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
         const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
+        const sameHash = valueInputHash === inputHash;
         useEffect(() => {
-            if (value && valueInputHash === inputHash) {
+            if (value && sameHash) {
                 setManualOutputType(
                     id,
                     outputId,
@@ -58,7 +59,7 @@ export const DefaultImageOutput = memo(
             } else {
                 setManualOutputType(id, outputId, undefined);
             }
-        }, [id, outputId, value]);
+        }, [id, outputId, value, sameHash, setManualOutputType]);
 
         const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 

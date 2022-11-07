@@ -82,7 +82,7 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
             }
             return [undefined, getInputHash(id)];
         },
-        [outputDataEntry]
+        [outputDataEntry, getInputHash, id]
     );
 
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;

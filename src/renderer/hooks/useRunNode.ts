@@ -29,9 +29,9 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
 
     const inputs = useMemo(
         () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
-        [inputData]
+        [inputData, schema]
     );
-    const inputHash = useMemo(() => JSON.stringify(inputs), [inputData]);
+    const inputHash = useMemo(() => JSON.stringify(inputs), [inputs]);
     const lastInputHash = useRef<string>();
     useAsyncEffect(
         async (token) => {
@@ -81,5 +81,5 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
             }
         };
-    }, []);
+    }, [backend, id]);
 };

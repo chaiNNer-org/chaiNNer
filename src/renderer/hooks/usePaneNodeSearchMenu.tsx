@@ -419,7 +419,18 @@ export const usePaneNodeSearchMenu = (
             setStoppedOnIterator(null);
             closeContextMenu();
         },
-        [connectingFrom, createConnection, createNode, mousePosition, stoppedOnIterator]
+        [
+            closeContextMenu,
+            connectingFrom,
+            createConnection,
+            createNode,
+            functionDefinitions,
+            mousePosition,
+            project,
+            setGlobalConnectingFrom,
+            stoppedOnIterator,
+            wrapperRef,
+        ]
     );
 
     const menuProps: MenuProps = {
@@ -430,15 +441,12 @@ export const usePaneNodeSearchMenu = (
         categories,
     };
 
-    const menu = useContextMenu(
-        () => (
-            <Menu
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...menuProps}
-            />
-        ),
-        Object.values(menuProps)
-    );
+    const menu = useContextMenu(() => (
+        <Menu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...menuProps}
+        />
+    ));
 
     const onConnectStart = useCallback(
         (event: React.MouseEvent, handle: OnConnectStartParams) => {
@@ -499,7 +507,14 @@ export const usePaneNodeSearchMenu = (
             }
             setGlobalConnectingFrom(null);
         },
-        [setGlobalConnectingFrom, setMousePosition, menu, setStoppedOnIterator, connectingFrom]
+        [
+            connectingFrom,
+            getNode,
+            menu,
+            setGlobalConnectingFrom,
+            setMousePosition,
+            setStoppedOnIterator,
+        ]
     );
 
     const onPaneContextMenu = useCallback(
