@@ -139,6 +139,10 @@ def ImageExtensionDropdown() -> DropDownInput:
                 "value": "webp",
             },
             {
+                "option": "WEBP (Lossless)",
+                "value": "webp-lossless",
+            },
+            {
                 "option": "TGA",
                 "value": "tga",
             },

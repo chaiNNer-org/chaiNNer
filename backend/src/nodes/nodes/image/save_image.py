@@ -58,6 +58,11 @@ class ImWriteNode(NodeBase):
     ) -> None:
         """Write an image to the specified path and return write status"""
 
+        lossless = False
+        if extension == "webp-lossless":
+            extension = "webp"
+            lossless = True
+
         full_file = f"{filename}.{extension}"
         if relative_path and relative_path != ".":
             base_directory = os.path.join(base_directory, relative_path)
@@ -70,7 +75,7 @@ class ImWriteNode(NodeBase):
 
         os.makedirs(base_directory, exist_ok=True)
         # Any image not supported by cv2, will be handled by pillow.
-        if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
+        if extension not in ["png", "jpg", "gif", "tiff", "webp", "webp-lossless"]:
             channels = get_h_w_c(img)[2]
             if channels == 1:
                 # PIL supports grayscale images just fine, so we don't need to do any conversion
@@ -90,7 +95,10 @@ class ImWriteNode(NodeBase):
             if extension == "jpg":
                 params = [cv2.IMWRITE_JPEG_QUALITY, quality]
             elif extension == "webp":
-                params = [cv2.IMWRITE_WEBP_QUALITY, quality]
+                if lossless:
+                    params = [cv2.IMWRITE_WEBP_QUALITY, 101]
+                else:
+                    params = [cv2.IMWRITE_WEBP_QUALITY, quality]
             else:
                 params = []
 
