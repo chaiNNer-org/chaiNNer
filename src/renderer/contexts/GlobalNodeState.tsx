@@ -488,47 +488,22 @@ export const GlobalProvider = memo(
         ]);
 
         const performSave = useCallback(
-            (saveAs: boolean, isTemplate = false) => {
+            (saveAs: boolean) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
-                        if (isTemplate) {
-                            saveData.nodes = saveData.nodes.map((n) => {
-                                const inputData = { ...n.data.inputData } as Mutable<InputData>;
-                                const nodeSchema = schemata.get(n.data.schemaId);
-                                nodeSchema.inputs.forEach((input) => {
-                                    const clearKinds = new Set<InputKind>(['file', 'directory']);
-                                    if (clearKinds.has(input.kind)) {
-                                        delete inputData[input.id];
-                                    }
-                                });
-                                return {
-                                    ...n,
-                                    data: {
-                                        ...n.data,
-                                        inputData,
-                                    },
-                                };
-                            });
-                        }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
                         } else {
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                isTemplate
-                                    ? undefined
-                                    : savePath || (openRecent[0] && dirname(openRecent[0]))
+                                savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            if (!isTemplate) {
-                                setSavePath(result.path);
-                            }
+                            setSavePath(result.path);
                         }
-                        if (!isTemplate) {
-                            setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
-                        }
+                        setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
                     } catch (error) {
                         log.error(error);
 
@@ -546,11 +521,49 @@ export const GlobalProvider = memo(
                 nodeChangesRef,
                 openRecent,
                 savePath,
-                schemata,
                 sendToast,
                 setSavePath,
             ]
         );
+        const exportTemplate = useCallback(() => {
+            (async () => {
+                try {
+                    const saveData = dumpState();
+                    saveData.nodes = saveData.nodes.map((n) => {
+                        const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                        const nodeSchema = schemata.get(n.data.schemaId);
+                        nodeSchema.inputs.forEach((input) => {
+                            const clearKinds = new Set<InputKind>(['file', 'directory']);
+                            if (clearKinds.has(input.kind)) {
+                                delete inputData[input.id];
+                            }
+                        });
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                inputData,
+                            },
+                        };
+                    });
+
+                    const result = await ipcRenderer.invoke(
+                        'file-save-as-json',
+                        saveData,
+                        undefined
+                    );
+                    if (result.kind === 'Canceled') return;
+                } catch (error) {
+                    log.error(error);
+
+                    sendToast({
+                        status: 'error',
+                        duration: 10_000,
+                        description: `Failed to export chain`,
+                    });
+                }
+            })();
+        }, [dumpState, schemata, sendToast]);
 
         // Register New File event handler
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -592,9 +605,7 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
-        useIpcRendererListener('file-export-template', () => performSave(true, true), [
-            performSave,
-        ]);
+        useIpcRendererListener('file-export-template', exportTemplate, [exportTemplate]);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
