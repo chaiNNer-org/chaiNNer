@@ -315,3 +315,45 @@ def CaptionPositionInput() -> DropDownInput:
             },
         ],
     )
+
+
+def EdgeFilterInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="EdgeFilter",
+        label="Filter",
+        options=[
+            {
+                "option": "Sobel",
+                "value": "sobel",
+            },
+            {
+                "option": "Scharr",
+                "value": "scharr",
+            },
+        ],
+    )
+
+
+def NormalChannelInvertInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="NormalChannelInvert",
+        label="Invert",
+        options=[
+            {
+                "option": "None",
+                "value": 0,
+            },
+            {
+                "option": "Invert R",
+                "value": 1,
+            },
+            {
+                "option": "Invert G",
+                "value": 2,
+            },
+            {
+                "option": "Invert R and G",
+                "value": 3,
+            },
+        ],
+    )
