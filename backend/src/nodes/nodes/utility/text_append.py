@@ -29,7 +29,7 @@ class TextAppendNode(NodeBase):
             group("optional-list")(
                 *[
                     TextInput(f"Text {letter}").make_optional()
-                    for letter in ALPHABET[2:]
+                    for letter in ALPHABET[2:10]
                 ],
             ),
         ]
@@ -49,23 +49,8 @@ class TextAppendNode(NodeBase):
                     match Input7 { null => "", _ as s => concat(sep, toString(s)) },
                     match Input8 { null => "", _ as s => concat(sep, toString(s)) },
                     match Input9 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input10 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input11 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input12 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input13 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input14 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input15 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input16 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input17 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input18 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input19 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input20 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input21 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input22 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input23 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input24 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input25 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input26 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input10 { null => "", _ as s => concat(sep, toString(s)) }
+
                 )
                 """,
             )
@@ -76,6 +61,6 @@ class TextAppendNode(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Text"
 
-    def run(self, separator: str, str1: str, str2: str, *args: Union[str, None]) -> str:
-        inputs: List[Union[str, None]] = [str1, str2, *args]
+    def run(self, separator: str, *args: Union[str, None]) -> str:
+        inputs: List[Union[str, None]] = [*args]
         return separator.join([x for x in inputs if x is not None])
