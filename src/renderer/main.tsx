@@ -1,6 +1,6 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
@@ -128,31 +128,33 @@ export const Main = memo(({ port }: MainProps) => {
 
     useIpcRendererListener(
         'show-collected-information',
-        (_, info) => {
-            const localStorage = getLocalStorage();
-            const fullInfo = {
-                ...info,
-                settings: Object.fromEntries(
-                    getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)])
-                ),
-            };
+        useCallback(
+            (_, info) => {
+                const localStorage = getLocalStorage();
+                const fullInfo = {
+                    ...info,
+                    settings: Object.fromEntries(
+                        getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)])
+                    ),
+                };
 
-            sendAlert({
-                type: AlertType.INFO,
-                title: 'System information',
-                message: JSON.stringify(fullInfo, undefined, 2),
-                copyToClipboard: true,
-            });
-        },
-        [sendAlert]
+                sendAlert({
+                    type: AlertType.INFO,
+                    title: 'System information',
+                    message: JSON.stringify(fullInfo, undefined, 2),
+                    copyToClipboard: true,
+                });
+            },
+            [sendAlert]
+        )
     );
 
     const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
     useAsyncEffect(
-        {
+        () => ({
             supplier: () => ipcRenderer.invoke('get-python'),
             successEffect: setPythonInfo,
-        },
+        }),
         []
     );
 

@@ -4,14 +4,12 @@ import { ChannelArgs, SendChannels, ipcRenderer } from '../../common/safeIpc';
 
 export const useIpcRendererListener = <C extends keyof SendChannels>(
     channel: C,
-    listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void,
-    deps: unknown[]
+    listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
 ) => {
     useEffect(() => {
         ipcRenderer.on(channel, listener);
         return () => {
             ipcRenderer.removeListener(channel, listener);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, deps);
+    }, [channel, listener]);
 };

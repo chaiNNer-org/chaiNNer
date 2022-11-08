@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 /**
  * Returns a batched callback.
  *
@@ -8,7 +6,7 @@ import { useMemo } from 'react';
  * this first invocation that happen before `wait` milliseconds past will be added to a queue. The
  * queued invocations will be executed `wait` milliseconds after the first invocation.
  */
-const getBatchedCallback = <T extends unknown[]>(
+export const batchedCallback = <T extends unknown[]>(
     fn: (...args: T) => void,
     wait: number
 ): ((...arg: T) => void) => {
@@ -42,10 +40,3 @@ const getBatchedCallback = <T extends unknown[]>(
         }
     };
 };
-
-export const useBatchedCallback = <T extends unknown[]>(
-    fn: (...args: T) => void,
-    wait: number,
-    deps: readonly unknown[]
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-): ((...args: T) => void) => useMemo(() => getBatchedCallback(fn, wait), deps);

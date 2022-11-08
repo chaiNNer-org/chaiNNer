@@ -25,10 +25,10 @@ export const Header = memo(() => {
 
     const [appVersion, setAppVersion] = useState('#.#.#');
     useAsyncEffect(
-        {
+        () => ({
             supplier: () => ipcRenderer.invoke('get-app-version'),
             successEffect: setAppVersion,
-        },
+        }),
         []
     );
 

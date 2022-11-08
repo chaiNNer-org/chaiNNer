@@ -34,7 +34,7 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const inputHash = useMemo(() => JSON.stringify(inputs), [inputs]);
     const lastInputHash = useRef<string>();
     useAsyncEffect(
-        async (token) => {
+        () => async (token) => {
             if (inputHash === lastInputHash.current) {
                 return;
             }
@@ -72,6 +72,7 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 }
             }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [shouldRun, inputHash]
     );
 
