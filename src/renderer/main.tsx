@@ -106,7 +106,6 @@ export const Main = memo(({ port }: MainProps) => {
                     message:
                         `A critical error occurred while processing the node data returned by the backend.` +
                         `\n\n${String(e)}`,
-                    copyToClipboard: true,
                 });
             }
             setBackendReady(true);
@@ -142,7 +141,6 @@ export const Main = memo(({ port }: MainProps) => {
                     type: AlertType.INFO,
                     title: 'System information',
                     message: JSON.stringify(fullInfo, undefined, 2),
-                    copyToClipboard: true,
                 });
             },
             [sendAlert]
