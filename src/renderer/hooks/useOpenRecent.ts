@@ -45,7 +45,10 @@ export const useOpenRecent = () => {
         [setRecentlyOpen]
     );
 
-    useIpcRendererListener('clear-open-recent', () => setRecentlyOpen([]), [setRecentlyOpen]);
+    useIpcRendererListener(
+        'clear-open-recent',
+        useCallback(() => setRecentlyOpen([]), [setRecentlyOpen])
+    );
 
     return [recentlyOpen, push, remove] as const;
 };

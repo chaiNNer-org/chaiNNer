@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { WindowSize } from '../../common/common-types';
 import { debounce } from '../../common/util';
 import { useIpcRendererListener } from './useIpcRendererListener';
@@ -31,9 +31,11 @@ export const useLastWindowSize = () => {
 
     useIpcRendererListener(
         'window-maximized-change',
-        (_, maximized) => {
-            setSize((prev) => ({ ...prev, maximized }));
-        },
-        [setSize]
+        useCallback(
+            (_, maximized) => {
+                setSize((prev) => ({ ...prev, maximized }));
+            },
+            [setSize]
+        )
     );
 };

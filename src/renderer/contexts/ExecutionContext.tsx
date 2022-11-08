@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -227,65 +227,45 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
 
-    useBackendEventSourceListener(
-        eventSource,
-        'finish',
-        () => {
-            setStatus(ExecutionStatus.READY);
-        },
-        [
-            // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-            {},
-            // status isn't actually used
-            status,
-            setStatus,
-        ]
-    );
+    useBackendEventSourceListener(eventSource, 'finish', () => setStatus(ExecutionStatus.READY));
 
-    useBackendEventSourceListener(
-        eventSource,
-        'execution-error',
-        (data) => {
-            if (data) {
-                sendAlert(AlertType.ERROR, null, getExecutionErrorMessage(data, schemata));
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-            }
-        },
-        [setStatus, unAnimate, schemata, {}]
-    );
+    useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
+        if (data) {
+            sendAlert(AlertType.ERROR, null, getExecutionErrorMessage(data, schemata));
+            unAnimate();
+            setStatus(ExecutionStatus.READY);
+        }
+    });
 
     const updateNodeFinish = useBatchedCallback<
         Parameters<BackendEventSourceListener<'node-finish'>>
     >(
-        (eventData) => {
-            if (eventData) {
-                const { finished, nodeId, executionTime, data } = eventData;
+        useCallback(
+            (eventData) => {
+                if (eventData) {
+                    const { finished, nodeId, executionTime, data } = eventData;
 
-                // TODO: This is incorrect. The inputs of the node might have changed since
-                // the chain started running. However, sending the then current input hashes
-                // of the chain to the backend along with the rest of its data and then making
-                // the backend send us those hashes is incorrect too because of iterators, I
-                // think.
-                const inputHash = getInputHash(nodeId);
-                outputDataActions.set(
-                    nodeId,
-                    executionTime ?? undefined,
-                    inputHash,
-                    data ?? undefined
-                );
+                    // TODO: This is incorrect. The inputs of the node might have changed since
+                    // the chain started running. However, sending the then current input hashes
+                    // of the chain to the backend along with the rest of its data and then making
+                    // the backend send us those hashes is incorrect too because of iterators, I
+                    // think.
+                    const inputHash = getInputHash(nodeId);
+                    outputDataActions.set(
+                        nodeId,
+                        executionTime ?? undefined,
+                        inputHash,
+                        data ?? undefined
+                    );
 
-                unAnimate([nodeId, ...finished]);
-            }
-        },
-        500,
-        [unAnimate, outputDataActions, getInputHash]
+                    unAnimate([nodeId, ...finished]);
+                }
+            },
+            [unAnimate, outputDataActions, getInputHash]
+        ),
+        500
     );
-    useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        {},
-        updateNodeFinish,
-    ]);
+    useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
     const updateIteratorProgress = useThrottledCallback<
         BackendEventSourceListener<'iterator-progress-update'>
@@ -300,19 +280,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setIteratorPercent(iteratorId, percent);
         }
     }, 350);
-    useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress, [
-        animate,
-        updateIteratorProgress,
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        {},
-    ]);
+    useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
     const [ownsBackend, setOwnsBackend] = useState(true);
     useAsyncEffect(
-        {
+        () => ({
             supplier: () => ipcRenderer.invoke('owns-backend'),
             successEffect: setOwnsBackend,
-        },
+        }),
         [setOwnsBackend]
     );
 

@@ -2,7 +2,6 @@ import { FunctionCallExpression, NamedExpression, evaluate } from '@chainner/nav
 import { getChainnerScope } from '../../src/common/types/chainner-scope';
 import { assertNever } from '../../src/common/util';
 
-// eslint-disable-next-line consistent-return
 test(`Chainner scope is correct`, () => {
     const scope = getChainnerScope();
 

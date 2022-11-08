@@ -114,7 +114,7 @@ export const ContextMenuProvider = memo(({ children }: React.PropsWithChildren<u
         };
     }, [closeContextMenu]);
 
-    useIpcRendererListener('window-blur', closeContextMenu, [closeContextMenu]);
+    useIpcRendererListener('window-blur', closeContextMenu);
 
     const value = useMemoObject<ContentMenu>({
         registerContextMenu,

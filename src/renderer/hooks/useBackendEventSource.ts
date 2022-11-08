@@ -40,8 +40,7 @@ export type BackendEventSourceListener<T extends keyof BackendEventMap> = (
 export const useBackendEventSourceListener = <T extends keyof BackendEventMap>(
     source: BackendEventSource | null,
     type: T,
-    listener: BackendEventSourceListener<T>,
-    dependencies?: unknown[]
+    listener: BackendEventSourceListener<T>
 ): void => {
     useEventSourceListener(
         source,
@@ -65,6 +64,6 @@ export const useBackendEventSourceListener = <T extends keyof BackendEventMap>(
                 );
             }
         },
-        [source, ...(dependencies ?? [])]
+        [source, type, listener]
     );
 };

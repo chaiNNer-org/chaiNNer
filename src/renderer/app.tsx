@@ -28,15 +28,18 @@ export const App = memo(() => {
     const [port, setPort] = useState<number | null>(null);
     const [storageInitialized, setStorageInitialized] = useState(false);
 
-    useAsyncEffect({ supplier: () => ipcRenderer.invoke('get-port'), successEffect: setPort }, []);
     useAsyncEffect(
-        {
+        () => ({ supplier: () => ipcRenderer.invoke('get-port'), successEffect: setPort }),
+        []
+    );
+    useAsyncEffect(
+        () => ({
             supplier: () => ipcRenderer.invoke('get-localstorage-location'),
             successEffect: (location) => {
                 (global as Record<string, unknown>).customLocalStorage = new LocalStorage(location);
                 setStorageInitialized(true);
             },
-        },
+        }),
         []
     );
 

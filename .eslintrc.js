@@ -95,6 +95,7 @@ module.exports = {
                 project: './tsconfig.json',
             },
             rules: {
+                'consistent-return': 'off',
                 'max-classes-per-file': 'off',
                 'no-restricted-syntax': 'off',
                 'react/require-default-props': 'off',
@@ -132,7 +133,7 @@ module.exports = {
                 'react/hook-use-state': 'warn',
                 'react-memo/require-memo': ['error', { strict: true }],
                 'react-hooks/rules-of-hooks': 'error',
-                'react-hooks/exhaustive-deps': 'warn',
+                'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useAsyncEffect)' }],
                 'unused-imports/no-unused-imports': 'error',
             },
         },

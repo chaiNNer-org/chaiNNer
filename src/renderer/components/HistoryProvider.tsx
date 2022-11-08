@@ -111,21 +111,19 @@ export const HistoryProvider = memo(
         // Handler for undo menuitem
         useIpcRendererListener(
             'history-undo',
-            () => {
+            useCallback(() => {
                 historyRef.current = historyRef.current.undo();
                 apply(historyRef.current.current);
-            },
-            [apply]
+            }, [apply])
         );
 
         // Handler for redo menuitem
         useIpcRendererListener(
             'history-redo',
-            () => {
+            useCallback(() => {
                 historyRef.current = historyRef.current.redo();
                 apply(historyRef.current.current);
-            },
-            [apply]
+            }, [apply])
         );
 
         // Handler for undo hotkeys

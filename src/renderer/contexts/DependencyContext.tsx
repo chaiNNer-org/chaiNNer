@@ -277,43 +277,33 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
 
-    useAsyncEffect(
-        {
-            supplier: async () => {
-                if (pipList) return undefined;
-                return runPipList(pythonInfo);
-            },
-            successEffect: (list) => {
-                if (list) {
-                    setPipList(list);
-                }
-            },
-        },
-        [pythonInfo, pipList, setPipList]
-    );
+    useAsyncEffect(() => {
+        if (pipList) return;
+        return {
+            supplier: () => runPipList(pythonInfo),
+            successEffect: setPipList,
+        };
+    }, [pythonInfo, pipList, setPipList]);
 
     const [hasNvidia, setHasNvidia] = useState(false);
     useAsyncEffect(
-        {
-            supplier: async (): Promise<boolean> => {
-                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                return !!nvidiaGpu;
-            },
+        () => ({
+            supplier: async () => !!(await ipcRenderer.invoke('get-nvidia-gpu-name')),
             successEffect: setHasNvidia,
-        },
+        }),
         []
     );
 
     const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
     useAsyncEffect(
-        {
+        () => ({
             supplier: async () => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
                 const isNvidiaAvailable = nvidiaGpu !== null;
                 return getOptionalDependencies(isNvidiaAvailable);
             },
             successEffect: setAvailableDeps,
-        },
+        }),
         []
     );
 
@@ -333,10 +323,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
     const [depChanged, setDepChanged] = useState(false);
-    useAsyncEffect(async () => {
+    useEffect(() => {
         if (depChanged) {
             setIsBackendKilled(true);
-            await ipcRenderer.invoke('kill-backend');
+            ipcRenderer.invoke('kill-backend').catch((reason) => log.error(reason));
         }
     }, [depChanged, setIsBackendKilled]);
 
