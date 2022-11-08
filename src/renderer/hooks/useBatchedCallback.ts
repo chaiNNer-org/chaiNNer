@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 /**
  * Returns a batched callback.
  *
@@ -39,4 +41,11 @@ export const batchedCallback = <T extends unknown[]>(
             queue.push(args);
         }
     };
+};
+
+export const useBatchedCallback = <T extends unknown[]>(
+    fn: (...args: T) => void,
+    wait: number
+): ((...arg: T) => void) => {
+    return useMemo(() => batchedCallback(fn, wait), [fn, wait]);
 };

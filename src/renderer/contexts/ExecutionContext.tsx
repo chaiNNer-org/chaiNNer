@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -22,7 +22,6 @@ import {
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
-import { batchedCallback } from '../helpers/batchedCallback';
 import { getConnectedInputs } from '../helpers/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -33,6 +32,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -237,9 +237,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     });
 
-    const updateNodeFinish = useMemo(
-        () =>
-            batchedCallback<Parameters<BackendEventSourceListener<'node-finish'>>>((eventData) => {
+    const updateNodeFinish = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'node-finish'>>
+    >(
+        useCallback(
+            (eventData) => {
                 if (eventData) {
                     const { finished, nodeId, executionTime, data } = eventData;
 
@@ -258,8 +260,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
                     unAnimate([nodeId, ...finished]);
                 }
-            }, 500),
-        [unAnimate, outputDataActions, getInputHash]
+            },
+            [unAnimate, outputDataActions, getInputHash]
+        ),
+        500
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
