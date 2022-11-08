@@ -11,7 +11,7 @@ from PIL import Image
 from sanic.log import logger
 
 from . import category as ImageCategory
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
@@ -34,9 +34,15 @@ class ImWriteNode(NodeBase):
             DirectoryInput(has_handle=True),
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
-            ImageExtensionDropdown(),
-            SliderInput(
-                "Quality (JPEG/WEBP)", minimum=0, maximum=100, default=95, slider_step=1
+            group("conditional-enum", {"conditions": {5: ["jpg", "webp"]}})(
+                ImageExtensionDropdown(),
+                SliderInput(
+                    "Quality",
+                    minimum=0,
+                    maximum=100,
+                    default=95,
+                    slider_step=1,
+                ).with_id(5),
             ),
         ]
         self.category = ImageCategory

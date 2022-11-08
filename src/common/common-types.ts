@@ -141,8 +141,22 @@ interface OptionalListGroup extends GroupBase {
     readonly kind: 'optional-list';
     readonly options: Readonly<Record<string, never>>;
 }
+interface OptionalListGroup extends GroupBase {
+    readonly kind: 'optional-list';
+    readonly options: Readonly<Record<string, never>>;
+}
+interface ConditionalEnumGroup extends GroupBase {
+    readonly kind: 'conditional-enum';
+    readonly options: {
+        readonly conditions: Readonly<Partial<Record<InputId, null | readonly InputSchemaValue[]>>>;
+    };
+}
 export type GroupKind = Group['kind'];
-export type Group = NcnnFileInputGroup | FromToDropdownsGroup | OptionalListGroup;
+export type Group =
+    | NcnnFileInputGroup
+    | FromToDropdownsGroup
+    | OptionalListGroup
+    | ConditionalEnumGroup;
 
 export type OfKind<T, Kind extends string> = T extends { readonly kind: Kind } ? T : never;
 

@@ -7,6 +7,7 @@ import {
     InputSize,
     SchemaId,
 } from '../../../common/common-types';
+import { ConditionalEnumGroup } from './ConditionalEnumGroup';
 import { FromToDropdownsGroup } from './FromToDropdownsGroup';
 import { NcnnFileInputsGroup } from './NcnnFileInputsGroup';
 import { OptionalInputsGroup } from './OptionalInputsGroup';
@@ -15,6 +16,7 @@ import { GroupProps } from './props';
 const GroupComponents: {
     readonly [K in GroupKind]: React.MemoExoticComponent<(props: GroupProps<K>) => JSX.Element>;
 } = {
+    'conditional-enum': ConditionalEnumGroup,
     'from-to-dropdowns': FromToDropdownsGroup,
     'ncnn-file-inputs': NcnnFileInputsGroup,
     'optional-list': OptionalInputsGroup,
