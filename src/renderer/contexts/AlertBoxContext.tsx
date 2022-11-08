@@ -40,9 +40,17 @@ export interface AlertOptions {
     type: AlertType;
     title?: string;
     message: string;
+    /** Whether to show a "Copy to Clipboard" button. */
     copyToClipboard?: boolean;
     buttons?: string[];
-    defaultButton?: number;
+    /**
+     * The button to that will be selected by default. Defaults to `0`.
+     */
+    defaultId?: number;
+    /**
+     * The button that will be entered when the user escapes the popup. Defaults to `defaultId`.
+     */
+    cancelId?: number;
 }
 
 interface InternalMessage extends AlertOptions {
@@ -57,10 +65,13 @@ const EMPTY_MESSAGE: InternalMessage = {
     resolve: noop,
 };
 
+const ALERT_FOCUS_ID = 'alert-focus-button';
+
 const getButtons = (
-    { type, message, copyToClipboard, buttons, defaultButton = 0 }: InternalMessage,
+    { type, message, copyToClipboard, buttons, defaultId = 0, cancelId }: InternalMessage,
     onClose: (button: number) => void,
-    cancelRef: React.Ref<HTMLButtonElement>
+    cancelRef: React.Ref<HTMLButtonElement>,
+    focusId: string
 ): JSX.Element => {
     const buttonElements: JSX.Element[] = [];
 
@@ -78,23 +89,20 @@ const getButtons = (
     }
 
     if (buttons && buttons.length) {
-        if (
-            !Number.isInteger(defaultButton) ||
-            defaultButton < 0 ||
-            defaultButton >= buttons.length
-        ) {
-            // eslint-disable-next-line no-param-reassign
-            defaultButton = 0;
-        }
+        // eslint-disable-next-line no-param-reassign
+        defaultId = Math.min(Math.max(0, defaultId), buttons.length - 1);
+        // eslint-disable-next-line no-param-reassign
+        cancelId = Math.min(Math.max(0, cancelId ?? defaultId), buttons.length - 1);
 
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < buttons.length; i++) {
+        for (let i = 0; i < buttons.length; i += 1) {
             const button = buttons[i];
 
             buttonElements.push(
                 <Button
+                    autoFocus={i === defaultId}
+                    id={i === defaultId ? focusId : undefined}
                     key={i}
-                    ref={i === defaultButton ? cancelRef : undefined}
+                    ref={i === cancelId ? cancelRef : undefined}
                     onClick={() => onClose(i)}
                 >
                     {button}
@@ -108,6 +116,7 @@ const getButtons = (
             case AlertType.ERROR:
                 buttonElements.push(
                     <Button
+                        id={focusId}
                         key="ok"
                         ref={cancelRef}
                         onClick={() => onClose(0)}
@@ -120,6 +129,7 @@ const getButtons = (
                 buttonElements.push(
                     <Button
                         colorScheme="gray"
+                        id={focusId}
                         key="logs"
                         ml={3}
                         ref={cancelRef}
@@ -142,6 +152,7 @@ const getButtons = (
                 buttonElements.push(
                     <Button
                         colorScheme="red"
+                        id={focusId}
                         key="exit"
                         ml={3}
                         ref={cancelRef}
@@ -220,8 +231,8 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const buttons = useMemo(() => {
-        return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef);
-    }, [current, cancelRef, onClose]);
+        return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID);
+    }, [current, onClose]);
 
     const toast = useToast();
     const sendToast = useCallback(
@@ -240,6 +251,15 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const value = useMemoObject<AlertBox>({ sendAlert, showAlert, sendToast });
+
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            if (isOpen) {
+                document.querySelector<HTMLElement>(`#${ALERT_FOCUS_ID}`)?.focus();
+            }
+        }, 50);
+        return () => clearTimeout(timerId);
+    }, [isOpen, buttons]);
 
     return (
         <AlertBoxContext.Provider value={value}>

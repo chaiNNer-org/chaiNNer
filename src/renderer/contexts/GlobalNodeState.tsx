@@ -149,14 +149,14 @@ interface Global {
     getInputHash: (nodeId: string) => string;
 }
 
-const unsavedChangesWarning = {
-    type: AlertType.WARN,
-    title: 'Discard unsaved changes?',
-    message:
-        'The current chain has some unsaved changes. Do you really want to discard those changes?',
-    buttons: ['Discard changes', 'No'],
-    defaultButton: 1,
-};
+enum SaveResult {
+    /** The contents were written to disk. */
+    Saved,
+    /** The file was not saved either because the file did not chain unsaved changes or because the user said not to. */
+    NotSaved,
+    /** The user canceled the option. */
+    Canceled,
+}
 
 // TODO: Find default
 export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
@@ -365,14 +365,122 @@ export const GlobalProvider = memo(
             };
         }, [getNodes, getEdges, getViewport]);
 
+        const performSave = useCallback(
+            async (saveAs: boolean): Promise<SaveResult> => {
+                try {
+                    const saveData = dumpState();
+                    if (!saveAs && savePath) {
+                        await ipcRenderer.invoke('file-save-json', saveData, savePath);
+                    } else {
+                        const result = await ipcRenderer.invoke(
+                            'file-save-as-json',
+                            saveData,
+                            savePath || (openRecent[0] && dirname(openRecent[0]))
+                        );
+                        if (result.kind === 'Canceled') {
+                            return SaveResult.Canceled;
+                        }
+                        setSavePath(result.path);
+                    }
+                    setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
+                    return SaveResult.Saved;
+                } catch (error) {
+                    log.error(error);
+
+                    sendToast({
+                        status: 'error',
+                        duration: 10_000,
+                        description: `Failed to save chain`,
+                    });
+
+                    return SaveResult.Canceled;
+                }
+            },
+            [
+                dumpState,
+                edgeChangesRef,
+                nodeChangesRef,
+                openRecent,
+                savePath,
+                sendToast,
+                setSavePath,
+            ]
+        );
+        const exportTemplate = useCallback(async () => {
+            try {
+                const saveData = dumpState();
+                saveData.nodes = saveData.nodes.map((n) => {
+                    const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                    const nodeSchema = schemata.get(n.data.schemaId);
+                    nodeSchema.inputs.forEach((input) => {
+                        const clearKinds = new Set<InputKind>(['file', 'directory']);
+                        if (clearKinds.has(input.kind)) {
+                            delete inputData[input.id];
+                        }
+                    });
+                    return {
+                        ...n,
+                        data: {
+                            ...n.data,
+                            inputData,
+                        },
+                    };
+                });
+
+                const result = await ipcRenderer.invoke('file-save-as-json', saveData, undefined);
+                if (result.kind === 'Canceled') return;
+            } catch (error) {
+                log.error(error);
+
+                sendToast({
+                    status: 'error',
+                    duration: 10_000,
+                    description: `Failed to export chain`,
+                });
+            }
+        }, [dumpState, schemata, sendToast]);
+        const saveUnsavedChanges = useCallback(async (): Promise<SaveResult> => {
+            if (!hasRelevantUnsavedChanges) {
+                return SaveResult.NotSaved;
+            }
+
+            const resp = await showAlert({
+                type: AlertType.WARN,
+                title: 'Unsaved changes',
+                message: 'The current chain has unsaved changes.',
+                buttons: ['Save', "Don't Save", 'Cancel'],
+                defaultId: 0,
+                cancelId: 2,
+            });
+            if (resp === 1) {
+                // Don't Save
+                return SaveResult.NotSaved;
+            }
+            if (resp === 2) {
+                // cancel
+                return SaveResult.Canceled;
+            }
+
+            return performSave(false);
+        }, [hasRelevantUnsavedChanges, showAlert, performSave]);
+
+        useIpcRendererListener(
+            'save-before-exit',
+            useCallback(() => {
+                performSave(false)
+                    .then((result) => {
+                        if (result === SaveResult.Saved) {
+                            ipcRenderer.send('exit-after-save');
+                        }
+                    })
+                    .catch((reason) => log.error(reason));
+            }, [performSave])
+        );
+
         const setStateFromJSON = useCallback(
             async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
-                if (hasRelevantUnsavedChanges) {
-                    const resp = await showAlert(unsavedChangesWarning);
-                    if (resp === 1) {
-                        // abort
-                        return;
-                    }
+                if ((await saveUnsavedChanges()) === SaveResult.Canceled) {
+                    return;
                 }
 
                 const validNodes = savedData.nodes
@@ -449,7 +557,7 @@ export const GlobalProvider = memo(
                 changeEdges,
                 changeNodes,
                 edgeChangesRef,
-                hasRelevantUnsavedChanges,
+                saveUnsavedChanges,
                 nodeChangesRef,
                 outputDataActions,
                 pushOpenPath,
@@ -457,19 +565,14 @@ export const GlobalProvider = memo(
                 sendAlert,
                 setSavePath,
                 setViewport,
-                showAlert,
             ]
         );
         const setStateFromJSONRef = useRef(setStateFromJSON);
         setStateFromJSONRef.current = setStateFromJSON;
 
         const clearState = useCallback(async () => {
-            if (hasRelevantUnsavedChanges) {
-                const resp = await showAlert(unsavedChangesWarning);
-                if (resp === 1) {
-                    // abort
-                    return;
-                }
+            if ((await saveUnsavedChanges()) === SaveResult.Canceled) {
+                return;
             }
 
             changeNodes([]);
@@ -480,90 +583,11 @@ export const GlobalProvider = memo(
         }, [
             changeEdges,
             changeNodes,
-            hasRelevantUnsavedChanges,
+            saveUnsavedChanges,
             outputDataActions,
             setSavePath,
             setViewport,
-            showAlert,
         ]);
-
-        const performSave = useCallback(
-            (saveAs: boolean) => {
-                (async () => {
-                    try {
-                        const saveData = dumpState();
-                        if (!saveAs && savePath) {
-                            await ipcRenderer.invoke('file-save-json', saveData, savePath);
-                        } else {
-                            const result = await ipcRenderer.invoke(
-                                'file-save-as-json',
-                                saveData,
-                                savePath || (openRecent[0] && dirname(openRecent[0]))
-                            );
-                            if (result.kind === 'Canceled') return;
-                            setSavePath(result.path);
-                        }
-                        setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
-                    } catch (error) {
-                        log.error(error);
-
-                        sendToast({
-                            status: 'error',
-                            duration: 10_000,
-                            description: `Failed to save chain`,
-                        });
-                    }
-                })();
-            },
-            [
-                dumpState,
-                edgeChangesRef,
-                nodeChangesRef,
-                openRecent,
-                savePath,
-                sendToast,
-                setSavePath,
-            ]
-        );
-        const exportTemplate = useCallback(() => {
-            (async () => {
-                try {
-                    const saveData = dumpState();
-                    saveData.nodes = saveData.nodes.map((n) => {
-                        const inputData = { ...n.data.inputData } as Mutable<InputData>;
-                        const nodeSchema = schemata.get(n.data.schemaId);
-                        nodeSchema.inputs.forEach((input) => {
-                            const clearKinds = new Set<InputKind>(['file', 'directory']);
-                            if (clearKinds.has(input.kind)) {
-                                delete inputData[input.id];
-                            }
-                        });
-                        return {
-                            ...n,
-                            data: {
-                                ...n.data,
-                                inputData,
-                            },
-                        };
-                    });
-
-                    const result = await ipcRenderer.invoke(
-                        'file-save-as-json',
-                        saveData,
-                        undefined
-                    );
-                    if (result.kind === 'Canceled') return;
-                } catch (error) {
-                    log.error(error);
-
-                    sendToast({
-                        status: 'error',
-                        duration: 10_000,
-                        description: `Failed to export chain`,
-                    });
-                }
-            })();
-        }, [dumpState, schemata, sendToast]);
 
         // Register New File event handler
         useIpcRendererListener(
@@ -615,12 +639,15 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener(
             'file-save-as',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             useCallback(() => performSave(true), [performSave])
         );
         useIpcRendererListener(
             'file-save',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             useCallback(() => performSave(false), [performSave])
         );
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         useIpcRendererListener('file-export-template', exportTemplate);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
