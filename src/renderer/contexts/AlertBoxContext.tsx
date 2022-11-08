@@ -1,3 +1,4 @@
+import { CopyIcon } from '@chakra-ui/icons';
 import {
     AlertDialog,
     AlertDialogBody,
@@ -8,6 +9,7 @@ import {
     AlertDialogOverlay,
     Button,
     HStack,
+    IconButton,
     UseToastOptions,
     useDisclosure,
     useToast,
@@ -40,8 +42,6 @@ export interface AlertOptions {
     type: AlertType;
     title?: string;
     message: string;
-    /** Whether to show a "Copy to Clipboard" button. */
-    copyToClipboard?: boolean;
     buttons?: string[];
     /**
      * The button to that will be selected by default. Defaults to `0`.
@@ -68,25 +68,12 @@ const EMPTY_MESSAGE: InternalMessage = {
 const ALERT_FOCUS_ID = 'alert-focus-button';
 
 const getButtons = (
-    { type, message, copyToClipboard, buttons, defaultId = 0, cancelId }: InternalMessage,
+    { type, buttons, defaultId = 0, cancelId }: InternalMessage,
     onClose: (button: number) => void,
     cancelRef: React.Ref<HTMLButtonElement>,
     focusId: string
 ): JSX.Element => {
     const buttonElements: JSX.Element[] = [];
-
-    // eslint-disable-next-line no-param-reassign
-    copyToClipboard ??= type === AlertType.ERROR;
-    if (copyToClipboard) {
-        buttonElements.push(
-            <Button
-                key="copy-to-clipboard"
-                onClick={() => clipboard.writeText(message)}
-            >
-                Copy to Clipboard
-            </Button>
-        );
-    }
 
     if (buttons && buttons.length) {
         // eslint-disable-next-line no-param-reassign
@@ -272,6 +259,8 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     const progressCurrent = done + 1;
     const progressTotal = done + queue.length;
 
+    const copyText = current ? `${current.title}\n\n${current.message}` : '';
+
     return (
         <AlertBoxContext.Provider value={value}>
             <AlertDialog
@@ -291,7 +280,21 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
                     <AlertDialogCloseButton />
                     <AlertDialogBody whiteSpace="pre-wrap">{current?.message}</AlertDialogBody>
                     <AlertDialogFooter>
-                        <HStack>{buttons}</HStack>
+                        <HStack width="full">
+                            <IconButton
+                                _hover={{ background: 'var(--chakra-colors-whiteAlpha-300)' }}
+                                aria-label="Copy to Clipboard"
+                                background="transparent"
+                                icon={<CopyIcon />}
+                                onClick={() => clipboard.writeText(copyText)}
+                            />
+                            <HStack
+                                justifyContent="flex-end"
+                                width="full"
+                            >
+                                {buttons}
+                            </HStack>
+                        </HStack>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
