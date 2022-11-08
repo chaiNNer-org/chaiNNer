@@ -182,6 +182,13 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     const current = queue[0] as InternalMessage | undefined;
     const isLast = queue.length < 2;
 
+    const [done, setDone] = useState(0);
+    useEffect(() => {
+        if (current === undefined) {
+            setDone(0);
+        }
+    }, [current]);
+
     const push = useCallback(
         (message: InternalMessage) => setQueue((q) => [...q, message]),
         [setQueue]
@@ -222,6 +229,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         (button: number) => {
             current?.resolve(button);
             setQueue((q) => q.slice(1));
+            setDone((prev) => prev + 1);
             if (isLast) {
                 onDisclosureClose();
                 ipcRenderer.send('enable-menu');
@@ -261,6 +269,9 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         return () => clearTimeout(timerId);
     }, [isOpen, buttons]);
 
+    const progressCurrent = done + 1;
+    const progressTotal = done + queue.length;
+
     return (
         <AlertBoxContext.Provider value={value}>
             <AlertDialog
@@ -273,7 +284,10 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
                 <AlertDialogOverlay />
 
                 <AlertDialogContent>
-                    <AlertDialogHeader>{current?.title}</AlertDialogHeader>
+                    <AlertDialogHeader>
+                        {current?.title}
+                        {progressTotal > 1 ? ` (${progressCurrent}/${progressTotal})` : ''}
+                    </AlertDialogHeader>
                     <AlertDialogCloseButton />
                     <AlertDialogBody whiteSpace="pre-wrap">{current?.message}</AlertDialogBody>
                     <AlertDialogFooter>
