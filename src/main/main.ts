@@ -707,18 +707,37 @@ const createWindow = lazy(async () => {
     ipcMain.on('update-has-unsaved-changes', (_, value) => {
         hasUnsavedChanges = value;
     });
+    let forceExit = false;
+    ipcMain.on('exit-after-save', () => {
+        forceExit = true;
+        mainWindow.close();
+    });
 
     mainWindow.on('close', (event) => {
+        if (forceExit) {
+            // we want to exit and nothing in here may stop this
+            return;
+        }
         if (hasUnsavedChanges) {
             const choice = dialog.showMessageBoxSync(mainWindow, {
                 type: 'question',
-                buttons: ['Yes', 'No'],
-                defaultId: 1,
-                title: 'Discard unsaved changes?',
-                message:
-                    'The current chain has some unsaved changes. Do you really want to quit without saving?',
+                title: 'Unsaved changes',
+                message: 'The current chain has unsaved changes.',
+                buttons: ['&Save', "Do&n't Save", 'Cancel'],
+                defaultId: 0,
+                cancelId: 2,
+                noLink: true,
             });
-            if (choice === 1) event.preventDefault();
+            if (choice === 1) {
+                // Don't save, so do nothing
+            } else if (choice === 2) {
+                // Cancel
+                event.preventDefault();
+            } else {
+                // Save
+                event.preventDefault();
+                mainWindow.webContents.send('save-before-exit');
+            }
         }
     });
 

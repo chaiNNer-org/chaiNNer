@@ -83,6 +83,8 @@ export interface SendChannels {
     'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
     'disable-menu': SendChannelInfo;
     'enable-menu': SendChannelInfo;
+    'save-before-exit': SendChannelInfo;
+    'exit-after-save': SendChannelInfo;
 
     // history
     'history-undo': SendChannelInfo;

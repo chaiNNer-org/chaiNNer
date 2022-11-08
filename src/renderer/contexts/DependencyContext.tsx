@@ -457,7 +457,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 title: 'Uninstall',
                                                 message: `Are you sure you want to uninstall ${dep.name}?`,
                                                 buttons: ['Cancel', 'Uninstall'],
-                                                defaultButton: 0,
+                                                defaultId: 0,
                                             })
                                                 .then((button) => {
                                                     if (button === 1) {
