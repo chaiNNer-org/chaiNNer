@@ -1,9 +1,10 @@
 import { exec as _exec } from 'child_process';
+import log from 'electron-log';
 import os from 'os-utils';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import util from 'util';
 import { ipcRenderer } from '../../common/safeIpc';
-import { useAsyncInterval } from './useInterval';
+import { useInterval } from './useInterval';
 import { useMemoObject } from './useMemo';
 
 const exec = util.promisify(_exec);
@@ -49,7 +50,14 @@ const getSystemUsage = async (): Promise<SystemUsage> => {
 export const useSystemUsage = (delay: number): SystemUsage => {
     const [usage, setUsage] = useState<SystemUsage>({ cpu: 0, ram: 0, vram: null });
 
-    useAsyncInterval({ supplier: getSystemUsage, successEffect: setUsage }, delay);
+    useInterval(
+        useCallback(() => {
+            getSystemUsage()
+                .then(setUsage)
+                .catch((reason) => log.error(reason));
+        }, []),
+        delay
+    );
 
     return useMemoObject(usage);
 };

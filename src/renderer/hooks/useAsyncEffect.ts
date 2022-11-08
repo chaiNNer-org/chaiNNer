@@ -78,6 +78,8 @@ interface ObjectUseAsyncEffectOptions<T> {
     finallyEffect?: () => void;
 }
 
+const noopPromise = async (): Promise<void> => {};
+
 /**
  * This is an async replacement for `useEffect`.
  *
@@ -92,9 +94,10 @@ interface ObjectUseAsyncEffectOptions<T> {
  * ```
  */
 export const useAsyncEffect = <T>(
-    options: UseAsyncEffectOptions<T>,
+    optionsFn: () => UseAsyncEffectOptions<T> | void | undefined,
     dependencies: readonly unknown[]
 ) => {
+    const options = optionsFn() ?? (noopPromise as () => Promise<T & void>);
     const objOptions: ObjectUseAsyncEffectOptions<T> =
         typeof options === 'function' ? { supplier: options, successEffect: noop } : options;
     const { supplier, successEffect, catchEffect, finallyEffect } = objOptions;

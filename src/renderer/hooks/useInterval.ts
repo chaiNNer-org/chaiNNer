@@ -1,31 +1,13 @@
-import { useEffect, useState } from 'react';
-import { UseAsyncEffectOptions, useAsyncEffect } from './useAsyncEffect';
+import { useEffect } from 'react';
 
-export const useInterval = (
-    callback: () => void,
-    delay: number,
-    dependencies: readonly unknown[] = []
-) => {
+/**
+ * Executes the given effect indefinitely every `delay` ms.
+ *
+ * The interval gets reset every time the callback changes.
+ */
+export const useInterval = (callback: () => void, delay: number) => {
     useEffect(() => {
         const id = setInterval(callback, delay);
         return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [delay, ...dependencies]);
-};
-
-/**
- * Executes the given async effect indefinitely every `delay` ms.
- *
- * If the async effect takes longer than `delay` ms to execute, it will be canceled.
- */
-export const useAsyncInterval = <T>(
-    options: UseAsyncEffectOptions<T>,
-    delay: number,
-    dependencies: readonly unknown[] = []
-) => {
-    const [counter, setCounter] = useState(0);
-
-    useInterval(() => setCounter((prev) => (prev + 1) % 1000), delay, dependencies);
-
-    useAsyncEffect(options, [counter]);
+    }, [delay, callback]);
 };

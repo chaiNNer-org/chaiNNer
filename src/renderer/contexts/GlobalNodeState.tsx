@@ -466,7 +466,7 @@ export const GlobalProvider = memo(
 
         useIpcRendererListener(
             'save-before-exit',
-            () => {
+            useCallback(() => {
                 performSave(false)
                     .then((result) => {
                         if (result === SaveResult.Saved) {
@@ -474,8 +474,7 @@ export const GlobalProvider = memo(
                         }
                     })
                     .catch((reason) => log.error(reason));
-            },
-            [performSave]
+            }, [performSave])
         );
 
         const setStateFromJSON = useCallback(
@@ -591,74 +590,93 @@ export const GlobalProvider = memo(
         ]);
 
         // Register New File event handler
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        useIpcRendererListener('file-new', () => clearState(), [clearState]);
+        useIpcRendererListener(
+            'file-new',
+            useCallback(() => {
+                clearState().catch((reason) => log.error(reason));
+            }, [clearState])
+        );
 
-        useAsyncEffect(async () => {
-            const result = await ipcRenderer.invoke('get-cli-open');
-            if (result) {
-                if (result.kind === 'Success') {
-                    await setStateFromJSONRef.current(result.saveData, result.path, true);
-                } else {
-                    removeRecentPath(result.path);
-                    sendAlert({
-                        type: AlertType.ERROR,
-                        message: `Unable to open file ${result.path}`,
-                    });
+        useAsyncEffect(
+            () => async () => {
+                const result = await ipcRenderer.invoke('get-cli-open');
+                if (result) {
+                    if (result.kind === 'Success') {
+                        await setStateFromJSONRef.current(result.saveData, result.path, true);
+                    } else {
+                        removeRecentPath(result.path);
+                        sendAlert({
+                            type: AlertType.ERROR,
+                            message: `Unable to open file ${result.path}`,
+                        });
+                    }
                 }
-            }
-        }, [removeRecentPath, sendAlert]);
+            },
+            [removeRecentPath, sendAlert]
+        );
 
         // Register Open File event handler
         useIpcRendererListener(
             'file-open',
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            async (event, result) => {
-                if (result.kind === 'Success') {
-                    await setStateFromJSONRef.current(result.saveData, result.path, true);
-                } else {
-                    removeRecentPath(result.path);
-                    sendAlert({
-                        type: AlertType.ERROR,
-                        message: `Unable to open file ${result.path}`,
-                    });
-                }
-            },
-            [removeRecentPath]
+            useCallback(
+                (_, result) => {
+                    if (result.kind === 'Success') {
+                        setStateFromJSONRef
+                            .current(result.saveData, result.path, true)
+                            .catch((reason) => log.error(reason));
+                    } else {
+                        removeRecentPath(result.path);
+                        sendAlert({
+                            type: AlertType.ERROR,
+                            message: `Unable to open file ${result.path}`,
+                        });
+                    }
+                },
+                [removeRecentPath, sendAlert]
+            )
         );
 
         // Register Save/Save-As event handlers
+        useIpcRendererListener(
+            'file-save-as',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            useCallback(() => performSave(true), [performSave])
+        );
+        useIpcRendererListener(
+            'file-save',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            useCallback(() => performSave(false), [performSave])
+        );
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        useIpcRendererListener('file-save', () => performSave(false), [performSave]);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        useIpcRendererListener('file-export-template', exportTemplate, [exportTemplate]);
+        useIpcRendererListener('file-export-template', exportTemplate);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
-        useAsyncEffect(async () => {
-            if (firstLoad && startupTemplate) {
-                try {
-                    const saveFile = await openSaveFile(startupTemplate);
-                    if (saveFile.kind === 'Success') {
-                        await setStateFromJSONRef.current(saveFile.saveData, '', true);
-                    } else {
+        useAsyncEffect(
+            () => async () => {
+                if (firstLoad && startupTemplate) {
+                    try {
+                        const saveFile = await openSaveFile(startupTemplate);
+                        if (saveFile.kind === 'Success') {
+                            await setStateFromJSONRef.current(saveFile.saveData, '', true);
+                        } else {
+                            sendAlert({
+                                type: AlertType.ERROR,
+                                message: `Unable to open file ${startupTemplate}: ${saveFile.error}`,
+                            });
+                        }
+                    } catch (error) {
+                        log.error(error);
                         sendAlert({
                             type: AlertType.ERROR,
-                            message: `Unable to open file ${startupTemplate}: ${saveFile.error}`,
+                            message: `Unable to open file ${startupTemplate}`,
                         });
                     }
-                } catch (error) {
-                    log.error(error);
-                    sendAlert({
-                        type: AlertType.ERROR,
-                        message: `Unable to open file ${startupTemplate}`,
-                    });
+                    setFirstLoad(false);
                 }
-                setFirstLoad(false);
-            }
-        }, [firstLoad, sendAlert, setFirstLoad, startupTemplate]);
+            },
+            [firstLoad, sendAlert, setFirstLoad, startupTemplate]
+        );
 
         const removeNodeById = useCallback(
             (id: string) => {
@@ -1111,11 +1129,11 @@ export const GlobalProvider = memo(
         }, [changeNodes, changeEdges]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn, [cutFn]);
-        useIpcRendererListener('cut', cutFn, [cutFn]);
+        useIpcRendererListener('cut', cutFn);
         useHotkeys('ctrl+c, cmd+c', copyFn, [copyFn]);
-        useIpcRendererListener('copy', copyFn, [copyFn]);
+        useIpcRendererListener('copy', copyFn);
         useHotkeys('ctrl+v, cmd+v', pasteFn, [pasteFn]);
-        useIpcRendererListener('paste', pasteFn, [pasteFn]);
+        useIpcRendererListener('paste', pasteFn);
         useHotkeys('ctrl+a, cmd+a', selectAllFn, [selectAllFn]);
 
         const [zoom, setZoom] = useState(1);
