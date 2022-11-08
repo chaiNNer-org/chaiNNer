@@ -202,7 +202,9 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         writer = {"out": None}
 
         probe = ffmpeg.probe(path, cmd=ffprobe_path)
-        video_format = probe["format"]
+        video_format = probe.get("format", None)
+        if video_format is None:
+            raise Exception("Failed to get video format. Please report.")
         video_stream = next(
             (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
             None,
