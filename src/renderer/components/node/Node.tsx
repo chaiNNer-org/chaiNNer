@@ -123,10 +123,11 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, disabled);
+    const startingNode = isStartingNode(schema);
+    const reload = useRunNode(data, validity.isValid && startingNode);
 
-    useRunNode(data, validity.isValid && isStartingNode(schema));
+    const disabled = useDisabled(data);
+    const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });
 
     return (
         <Center

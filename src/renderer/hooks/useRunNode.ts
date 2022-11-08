@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { delay, getInputValues } from '../../common/util';
@@ -9,7 +9,15 @@ import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
 
-export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
+/**
+ * Runs the given node as soon as it should.
+ *
+ * Calling the returned function will try to re-run the node.
+ */
+export const useRunNode = (
+    { inputData, id, schemaId }: NodeData,
+    shouldRun: boolean
+): (() => void) => {
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
@@ -23,6 +31,9 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const [onnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider] = useOnnxExecutionProvider;
 
+    const [reloadCounter, setReloadCounter] = useState(0);
+    const reload = useCallback(() => setReloadCounter((c) => c + 1), []);
+
     const schema = schemata.get(schemaId);
 
     const didEverRun = useRef(false);
@@ -31,7 +42,10 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
         () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
         [inputData, schema]
     );
-    const inputHash = useMemo(() => JSON.stringify(inputs), [inputs]);
+    const inputHash = useMemo(
+        () => `${reloadCounter};${JSON.stringify(inputs)}`,
+        [reloadCounter, inputs]
+    );
     const lastInputHash = useRef<string>();
     useAsyncEffect(
         () => async (token) => {
@@ -83,4 +97,6 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
             }
         };
     }, [backend, id]);
+
+    return reload;
 };
