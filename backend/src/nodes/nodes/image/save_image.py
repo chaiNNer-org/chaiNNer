@@ -75,7 +75,7 @@ class ImWriteNode(NodeBase):
 
         os.makedirs(base_directory, exist_ok=True)
         # Any image not supported by cv2, will be handled by pillow.
-        if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
+        if extension not in ["png", "jpg", "tiff", "webp"]:
             channels = get_h_w_c(img)[2]
             if channels == 1:
                 # PIL supports grayscale images just fine, so we don't need to do any conversion
