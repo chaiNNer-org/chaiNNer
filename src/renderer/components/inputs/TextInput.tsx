@@ -63,6 +63,9 @@ export const TextInput = memo(
                     setTempText(event.target.value);
                     handleChange(event);
                 }}
+                onKeyDown={(event) => {
+                    event.stopPropagation();
+                }}
             />
         );
     }

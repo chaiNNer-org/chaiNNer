@@ -70,6 +70,9 @@ export const TextAreaInput = memo(
                         setTempText(event.target.value);
                         handleChange(event);
                     }}
+                    onKeyDown={(event) => {
+                        event.stopPropagation();
+                    }}
                 />
             </Resizable>
         );
