@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
@@ -97,7 +98,6 @@ const toV03 = (data) => {
                 delete newElement.data.subcategory;
                 // Move the contrast data to a B&C node at the right index
                 if (newElement.data.type === 'Adjust::Contrast') {
-                    // eslint-disable-next-line prefer-destructuring
                     newElement.data.inputData[1] = newElement.data.inputData[0];
                     delete newElement.data.inputData[0];
                 } else if (newElement.data.type.includes('Concat')) {
@@ -173,9 +173,7 @@ const toV052 = (data) => {
         // Update any connections and inputs to Save Image Node
         if (node.data.type === 'Save Image') {
             // Shift text input values >=2 down one place and set Relative Path to empty string
-            // eslint-disable-next-line prefer-destructuring
             node.data.inputData[4] = node.data.inputData[3];
-            // eslint-disable-next-line prefer-destructuring
             node.data.inputData[3] = node.data.inputData[2];
             node.data.inputData[2] = '';
             // Move Image Name connection if it exists
@@ -608,7 +606,6 @@ const onnxConvertUpdate = (data) => {
                                     const inputDataIndex = loadEdge.targetHandle
                                         .split('-')
                                         .slice(-1)[0];
-                                    // eslint-disable-next-line prefer-destructuring
                                     modelNameAsInputNode.data.inputData[inputDataIndex] =
                                         node.data.inputData[2];
 
@@ -816,6 +813,23 @@ const convertColorRGBLikeDetector = (data) => {
     return data;
 };
 
+const convertNormalGenerator = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:normal_generator') {
+            const old = { ...node.data.inputData };
+            node.data.inputData[1] = 0;
+            node.data.inputData[2] = old[1];
+            node.data.inputData[3] = 0;
+            node.data.inputData[4] = 1;
+            node.data.inputData[5] = old[3];
+            node.data.inputData[6] = old[4];
+            node.data.inputData[7] = 'none';
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -858,6 +872,7 @@ const migrations = [
     brightnessImplementationChange,
     convertColorSpaceFromTo,
     convertColorRGBLikeDetector,
+    convertNormalGenerator,
 ];
 
 export const currentMigration = migrations.length;
