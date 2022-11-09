@@ -70,6 +70,7 @@ struct EdgeFilter;
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
+struct HeightMapSource;
 struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }
@@ -86,6 +87,7 @@ struct VideoPreset;
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }
+enum NormalMappingAlpha { None, Unchanged, Height, One }
 enum Orientation { Horizontal, Vertical }
 enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }

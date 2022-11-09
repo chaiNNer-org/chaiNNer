@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 import cv2
 import numpy as np
 
@@ -13,9 +11,13 @@ from ...properties.inputs import (
     SliderInput,
     EdgeFilterInput,
     NormalChannelInvertInput,
+    HeightMapSourceInput,
+    NormalMappingAlphaInput,
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
+from ...utils.edge_filter import EdgeFilter, get_filter_kernels
+from ...utils.height import get_height_map
 from ...utils.image_utils import get_h_w_c
 
 
@@ -28,28 +30,12 @@ def as_grayscale(img: np.ndarray) -> np.ndarray:
     assert False, "Only grayscale and RGB images are supported."
 
 
-def normalize(x: np.ndarray, y: np.ndarray, z: float):
+def normalize(x: np.ndarray, y: np.ndarray):
     h, w, _ = get_h_w_c(x)
+    # No idea why, but that's the value NvTT uses
+    z = 2
     l = np.sqrt(np.square(x) + np.square(y) + z * z)
     return x / l, y / l, np.ones((h, w), dtype=np.float32) * z / l
-
-
-filters_x: Dict[str, np.ndarray] = {
-    "sobel": np.array(
-        [
-            [+1, 0, -1],
-            [+2, 0, -2],
-            [+1, 0, -1],
-        ]
-    ),
-    "scharr": np.array(
-        [
-            [+3, 0, -3],
-            [+10, 0, -10],
-            [+3, 0, -3],
-        ]
-    ),
-}
 
 
 @NodeFactory.register("chainner:image:normal_generator")
@@ -58,17 +44,44 @@ class NormalMapGenerator(NodeBase):
         super().__init__()
         self.description = """Generate a normal map from a given image."""
         self.inputs = [
-            ImageInput("Image", channels=[1, 3]),
-            SliderInput("Blur/Sharp", minimum=-20, maximum=20, default=0, precision=1),
-            SliderInput("Strength", minimum=-10, maximum=10, default=0, precision=1),
+            ImageInput("Image", channels=[1, 3, 4]),
+            HeightMapSourceInput(),
+            SliderInput(
+                "Blur/Sharp",
+                minimum=-20,
+                maximum=20,
+                default=0,
+                precision=1,
+            ),
+            SliderInput(
+                "Min Z",
+                minimum=0,
+                maximum=1,
+                default=0,
+                precision=3,
+                slider_step=0.01,
+                controls_step=0.05,
+            ),
+            SliderInput(
+                "Scale",
+                minimum=0,
+                maximum=100,
+                default=1,
+                precision=3,
+                controls_step=0.1,
+                scale="log-offset",
+            ),
             EdgeFilterInput(),
             NormalChannelInvertInput(),
+            NormalMappingAlphaInput(),
         ]
         self.outputs = [
             ImageOutput(
                 "Normal Map",
-                image_type=expression.Image(size_as="Input0"),
-                channels=3,
+                image_type=expression.Image(
+                    size_as="Input0",
+                    channels="match Input7 { NormalMappingAlpha::None => 3, _ => 4 }",
+                ),
             ),
         ]
         self.category = ImageFilterCategory
@@ -79,37 +92,61 @@ class NormalMapGenerator(NodeBase):
     def run(
         self,
         img: np.ndarray,
+        height_source: int,
         blur_sharp: float,
-        strength: float,
-        filter_name: str,
+        min_z: float,
+        scale: float,
+        edge_filter: EdgeFilter,
         invert: int,
+        alpha_output: str,
     ) -> np.ndarray:
-        img = as_grayscale(img)
+        h, w, c = get_h_w_c(img)
+        height = get_height_map(img, height_source)
 
         if blur_sharp < 0:
             # blur
-            img = cv2.GaussianBlur(img, (0, 0), sigmaX=-blur_sharp, sigmaY=-blur_sharp)
+            height = cv2.GaussianBlur(
+                height, (0, 0), sigmaX=-blur_sharp, sigmaY=-blur_sharp
+            )
         elif blur_sharp > 0:
             # sharpen
             blurred = cv2.GaussianBlur(
-                img, (0, 0), sigmaX=blur_sharp, sigmaY=blur_sharp
+                height, (0, 0), sigmaX=blur_sharp, sigmaY=blur_sharp
             )
-            img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
+            height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
 
-        filter_x = filters_x.get(filter_name, None)
-        assert filter_x is not None, f"Unknown filter '{filter_name}'"
-        filter_y = np.rot90(filter_x, -1)
+        if min_z > 0:
+            height = np.maximum(min_z, height)
+        if scale != 0:
+            height = height * scale
 
-        dx = cv2.filter2D(img, -1, filter_x)
-        dy = cv2.filter2D(img, -1, filter_y)
+        filter_x, filter_y = get_filter_kernels(edge_filter)
 
-        z_bias = 1 / (strength + 1) if strength > 0 else 1 - strength
-        x, y, z = normalize(dx, dy, z_bias)
+        dx = cv2.filter2D(height, -1, filter_x)
+        dy = cv2.filter2D(height, -1, filter_y)
+
+        x, y, z = normalize(dx, dy)
 
         if invert & 1 != 0:
             x = -x
         if invert & 2 != 0:
             y = -y
 
-        bgr = np.abs(z), (y + 1) * 0.5, (x + 1) * 0.5
-        return np.clip(cv2.merge(bgr), 0, 1)
+        if alpha_output == "none":
+            a = None
+        elif alpha_output == "height":
+            a = height
+        elif alpha_output == "unchanged":
+            a = np.ones((h, w), dtype=np.float32) if c < 4 else img[:, :, 3]
+        elif alpha_output == "one":
+            a = np.ones((h, w), dtype=np.float32)
+        else:
+            assert False, f"Invalid alpha output '{alpha_output}'"
+
+        r = (x + 1) * 0.5
+        g = (y + 1) * 0.5
+        b = np.abs(z)
+
+        channels = (b, g, r) if a is None else (b, g, r, a)
+
+        return np.clip(cv2.merge(channels), 0, 1)

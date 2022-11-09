@@ -2615,8 +2615,11 @@ Object {
         "inputData": Object {
           "1": 0,
           "2": 0,
-          "3": "sobel",
-          "4": 0,
+          "3": 0,
+          "4": 1,
+          "5": "sobel",
+          "6": 0,
+          "7": "none",
         },
         "schemaId": "chainner:image:normal_generator",
       },
@@ -6045,7 +6048,7 @@ Object {
 
 exports[`Write save file normal-map-generator.chn 1`] = `
 Object {
-  "checksum": "da28de9780627d4253323e4352518421",
+  "checksum": "df23731f0484d07c4b073660c366645d",
   "content": Object {
     "edges": Array [
       Object {
@@ -6095,8 +6098,11 @@ Object {
           "inputData": Object {
             "1": 0,
             "2": 0,
-            "3": "sobel",
-            "4": 0,
+            "3": 0,
+            "4": 1,
+            "5": "sobel",
+            "6": 0,
+            "7": "none",
           },
           "schemaId": "chainner:image:normal_generator",
         },
