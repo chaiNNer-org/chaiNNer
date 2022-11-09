@@ -1,4 +1,4 @@
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Literal
 
 from .base_input import BaseInput, InputKind
 from ...utils.utils import round_half_up
@@ -117,6 +117,7 @@ class SliderInput(NumberInput):
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
         hide_trailing_zeros: bool = False,
         gradient: Union[List[str], None] = None,
+        scale: Literal["linear", "log", "log-offset"] = "linear",
     ):
         super().__init__(
             label,
@@ -137,6 +138,7 @@ class SliderInput(NumberInput):
             else (controls_step if controls_step is not None else 10**-precision)
         )
         self.gradient = gradient
+        self.scale = scale
 
     def toDict(self):
         return {
@@ -144,4 +146,5 @@ class SliderInput(NumberInput):
             "ends": self.ends,
             "sliderStep": self.slider_step,
             "gradient": self.gradient,
+            "scale": self.scale,
         }

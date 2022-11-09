@@ -90,6 +90,7 @@ export interface SliderInput extends InputBase {
     readonly ends: readonly [string | null, string | null];
     readonly sliderStep: number;
     readonly gradient?: readonly string[] | null;
+    readonly scale: 'linear' | 'log' | 'log-offset';
 }
 export type InputKind = Input['kind'];
 export type Input =
@@ -158,7 +159,11 @@ export type Group =
     | OptionalListGroup
     | ConditionalEnumGroup;
 
-export type OfKind<T, Kind extends string> = T extends { readonly kind: Kind } ? T : never;
+export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
+    readonly kind: Kind;
+}
+    ? T
+    : never;
 
 export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 
