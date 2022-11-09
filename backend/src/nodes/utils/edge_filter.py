@@ -95,7 +95,7 @@ def get_filter_kernels(edge_filter: EdgeFilter) -> Tuple[np.ndarray, np.ndarray]
 
     # normalize filter
     _h, w = filter_x.shape
-    left = filter_x[:, :w // 2]
+    left = filter_x[:, : w // 2]
     filter_x = filter_x / np.sum(left)
 
     filter_y = np.rot90(filter_x, -1)
