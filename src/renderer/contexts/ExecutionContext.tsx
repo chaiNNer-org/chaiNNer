@@ -231,7 +231,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
         if (data) {
-            sendAlert(AlertType.ERROR, null, getExecutionErrorMessage(data, schemata));
+            sendAlert({ type: AlertType.ERROR, message: getExecutionErrorMessage(data, schemata) });
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
@@ -293,11 +293,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     useEffect(() => {
         if (ownsBackend && !isBackendKilled && eventSourceStatus === 'error') {
-            sendAlert(
-                AlertType.ERROR,
-                null,
-                'An unexpected error occurred. You may need to restart chaiNNer.'
-            );
+            sendAlert({
+                type: AlertType.ERROR,
+                message: 'An unexpected error occurred. You may need to restart chaiNNer.',
+            });
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
@@ -356,7 +355,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             } else {
                 message = 'There are no nodes to run.';
             }
-            sendAlert(AlertType.ERROR, null, message);
+            sendAlert({ type: AlertType.ERROR, message });
             return;
         }
 
@@ -377,11 +376,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         });
         if (invalidNodes.length > 0) {
             const reasons = invalidNodes.join('\n');
-            sendAlert(
-                AlertType.ERROR,
-                null,
-                `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
-            );
+            sendAlert({
+                type: AlertType.ERROR,
+                message: `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`,
+            });
             return;
         }
 
@@ -403,14 +401,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 // no need to alert here, because the error has already been handled by the queue
             }
             if (response.type === 'already-running') {
-                sendAlert(
-                    AlertType.ERROR,
-                    null,
-                    `Cannot start because a previous executor is still running.`
-                );
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Cannot start because a previous executor is still running.`,
+                });
             }
         } catch (err: unknown) {
-            sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
+            sendAlert({
+                type: AlertType.ERROR,
+                message: `An unexpected error occurred: ${String(err)}`,
+            });
         } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
@@ -421,7 +421,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         try {
             const response = await backend.resume();
             if (response.type === 'error') {
-                sendAlert(AlertType.ERROR, null, response.exception);
+                sendAlert({ type: AlertType.ERROR, message: response.exception });
                 return;
             }
             if (response.type === 'no-executor') {
@@ -429,7 +429,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             }
             setStatus(ExecutionStatus.RUNNING);
         } catch (err) {
-            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+            sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
     };
 
@@ -445,7 +445,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         try {
             const response = await backend.pause();
             if (response.type === 'error') {
-                sendAlert(AlertType.ERROR, null, response.exception);
+                sendAlert({ type: AlertType.ERROR, message: response.exception });
                 return;
             }
             if (response.type === 'no-executor') {
@@ -453,7 +453,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             }
             setStatus(ExecutionStatus.PAUSED);
         } catch (err) {
-            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+            sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
     };
 
@@ -461,10 +461,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         try {
             const response = await backend.kill();
             if (response.type === 'error') {
-                sendAlert(AlertType.ERROR, null, response.exception);
+                sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
         } catch (err) {
-            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+            sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
     };
 
