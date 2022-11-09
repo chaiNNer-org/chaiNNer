@@ -113,11 +113,10 @@ export const Main = memo(({ port }: MainProps) => {
         }
 
         if (error) {
-            sendAlert(
-                AlertType.CRIT_ERROR,
-                null,
-                `A critical error occurred while processing the node data returned by the backend. Error: ${error.message}`
-            );
+            sendAlert({
+                type: AlertType.CRIT_ERROR,
+                message: `A critical error occurred while processing the node data returned by the backend. Error: ${error.message}`,
+            });
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }

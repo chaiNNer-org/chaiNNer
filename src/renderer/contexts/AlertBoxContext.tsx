@@ -26,8 +26,7 @@ import { ContextMenuContext } from './ContextMenuContext';
 
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
-    sendAlert: ((alertType: AlertType, title: string | null, message: string) => void) &
-        ((message: AlertOptions) => void);
+    sendAlert: (message: Pick<AlertOptions, 'type' | 'title' | 'message'>) => void;
     showAlert: (message: AlertOptions) => Promise<number>;
 }
 
@@ -189,15 +188,9 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         },
         [push, closeContextMenu]
     );
-    const sendAlert = useCallback<AlertBox['sendAlert']>(
-        (type: AlertType | AlertOptions, title?: string | null, message?: string) => {
-            if (typeof type === 'object') {
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                showAlert(type);
-            } else {
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                showAlert({ type, title: title ?? undefined, message: message! });
-            }
+    const sendAlert = useCallback(
+        (message: AlertOptions) => {
+            showAlert(message).catch((reason) => log.error(reason));
         },
         [showAlert]
     );
