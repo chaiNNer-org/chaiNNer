@@ -9,10 +9,53 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Input, OfKind } from '../../../common/common-types';
+import { assertNever } from '../../../common/util';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
+
+type ScaledNumber = number & { readonly __scaled: never };
+interface Scale {
+    toScale(value: number): ScaledNumber;
+    fromScale(scaledValue: ScaledNumber): number;
+}
+const LINEAR_SCALE: Scale = { toScale: (n) => n as ScaledNumber, fromScale: (n) => n };
+class LogScale implements Scale {
+    public readonly min: number;
+
+    public readonly precision: number;
+
+    constructor(min: number, precision: number) {
+        this.min = min;
+        this.precision = precision;
+    }
+
+    toScale(value: number): ScaledNumber {
+        return Math.log1p(value - this.min) as ScaledNumber;
+    }
+
+    fromScale(scaledValue: ScaledNumber): number {
+        const value = Math.expm1(scaledValue) + this.min;
+        return Number(value.toFixed(this.precision));
+    }
+}
+
+const parseScale = (
+    input: Pick<OfKind<Input, 'slider'>, 'scale' | 'min' | 'max' | 'precision'>
+): Scale => {
+    switch (input.scale) {
+        case 'linear':
+            return LINEAR_SCALE;
+        case 'log':
+            return new LogScale(input.min, input.precision);
+        case 'log-offset':
+            return new LogScale(input.min + 0.66, input.precision);
+        default:
+            return assertNever(input.scale);
+    }
+};
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
     try {
@@ -49,6 +92,8 @@ export const SliderInput = memo(
             gradient,
         } = input;
 
+        const scale = useMemo(() => parseScale(input), [input]);
+
         const [inputString, setInputString] = useState(String(value));
         const [sliderValue, setSliderValue] = useState(value ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
@@ -65,9 +110,13 @@ export const SliderInput = memo(
             }
         }, [value, def, precisionOutput]);
 
-        const onSliderChange = (sliderInput: number) => {
-            setInputString(precisionOutput(sliderInput));
-            setSliderValue(sliderInput);
+        const onSliderChange = (sliderInput: ScaledNumber) => {
+            const unscaled = scale.fromScale(sliderInput);
+            setInputString(precisionOutput(unscaled));
+            setSliderValue(unscaled);
+        };
+        const onSliderChangeEnd = (sliderInput: ScaledNumber) => {
+            setValue(scale.fromScale(sliderInput));
         };
 
         const onNumberInputChange = (numberAsString: string) => {
@@ -97,15 +146,15 @@ export const SliderInput = memo(
                 <HStack w="full">
                     {ends[0] && <Text fontSize="xs">{ends[0]}</Text>}
                     <Slider
-                        defaultValue={def}
+                        defaultValue={scale.toScale(def)}
                         focusThumbOnChange={false}
                         isDisabled={isLocked || isInputConnected}
-                        max={max}
-                        min={min}
-                        step={sliderStep}
-                        value={displaySliderValue}
+                        max={scale.toScale(max)}
+                        min={scale.toScale(min)}
+                        step={scale === LINEAR_SCALE ? sliderStep : 1e-10}
+                        value={scale.toScale(displaySliderValue)}
                         onChange={onSliderChange}
-                        onChangeEnd={setValue}
+                        onChangeEnd={onSliderChangeEnd}
                         onDoubleClick={() => setValue(def)}
                         onMouseEnter={() => setShowTooltip(true)}
                         onMouseLeave={() => setShowTooltip(false)}
