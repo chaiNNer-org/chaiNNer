@@ -18,8 +18,8 @@ class NcnnLoadModelNode(NodeBase):
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [
             group("ncnn-file-inputs")(
-                ParamFileInput(),
-                BinFileInput(),
+                ParamFileInput(primary_input=True),
+                BinFileInput(primary_input=True),
             )
         ]
         self.outputs = [

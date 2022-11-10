@@ -22,7 +22,7 @@ class ImReadNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Load image from specified file."
-        self.inputs = [ImageFileInput()]
+        self.inputs = [ImageFileInput(primary_input=True)]
         self.outputs = [
             LargeImageOutput(),
             DirectoryOutput("Image Directory"),
@@ -50,7 +50,7 @@ class ImReadNode(NodeBase):
                 ) from e
 
         if img is None:
-            raise RuntimeError(  # pylint: disable=raise-missing-from
+            raise RuntimeError(
                 f'Error reading image image from path "{path}". Image may be corrupt.'
             )
 
