@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { SetState } from '../helpers/types';
 
 export type ChangeCounter = number & { __changeCounter: true };
 
@@ -20,19 +21,16 @@ export const useChangeCounter = () => {
     return [counter as ChangeCounter, change, counterRef] as const;
 };
 
-export const wrapChanges = <T>(
-    setter: React.Dispatch<React.SetStateAction<T>>,
-    addChange: () => void
-): React.Dispatch<React.SetStateAction<T>> => {
+export const wrapChanges = <T>(setter: SetState<T>, addChange: () => void): SetState<T> => {
     return (value) => {
         setter(value);
         addChange();
     };
 };
 export const wrapRefChanges = <T>(
-    setter: Readonly<React.MutableRefObject<React.Dispatch<React.SetStateAction<T>>>>,
+    setter: Readonly<React.MutableRefObject<SetState<T>>>,
     addChange: () => void
-): React.Dispatch<React.SetStateAction<T>> => {
+): SetState<T> => {
     return (value) => {
         setter.current(value);
         addChange();

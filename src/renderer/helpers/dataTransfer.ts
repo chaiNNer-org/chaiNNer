@@ -8,8 +8,7 @@ import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { PresetFile } from '../components/NodeSelectorPanel/presets';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
-
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+import { SetState } from './types';
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
