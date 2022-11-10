@@ -51,6 +51,7 @@ export interface FileInput extends InputBase {
     readonly kind: 'file';
     readonly fileKind: FileInputKind;
     readonly filetypes: readonly string[];
+    readonly primaryInput: boolean;
 }
 export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';

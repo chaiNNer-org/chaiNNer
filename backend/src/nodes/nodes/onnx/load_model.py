@@ -21,7 +21,7 @@ class OnnxLoadModelNode(NodeBase):
         self.description = (
             """Load ONNX model file (.onnx). Theoretically supports any ONNX model."""
         )
-        self.inputs = [OnnxFileInput()]
+        self.inputs = [OnnxFileInput(primary_input=True)]
         self.outputs = [
             OnnxModelOutput(),
             DirectoryOutput("Model Directory").with_id(2),

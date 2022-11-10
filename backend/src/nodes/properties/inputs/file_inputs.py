@@ -30,16 +30,19 @@ class FileInput(BaseInput):
         file_kind: FileInputKind,
         filetypes: list[str],
         has_handle: bool = False,
+        primary_input: bool = False,
     ):
         super().__init__(input_type, label, kind="file", has_handle=has_handle)
         self.filetypes = filetypes
         self.file_kind = file_kind
+        self.primary_input = primary_input
 
     def toDict(self):
         return {
             **super().toDict(),
             "filetypes": self.filetypes,
             "fileKind": self.file_kind,
+            "primaryInput": self.primary_input,
         }
 
     def enforce(self, value) -> str:
@@ -49,7 +52,7 @@ class FileInput(BaseInput):
         return value
 
 
-def ImageFileInput() -> FileInput:
+def ImageFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
         input_type="ImageFile",
@@ -57,6 +60,7 @@ def ImageFileInput() -> FileInput:
         file_kind="image",
         filetypes=get_available_image_formats(),
         has_handle=False,
+        primary_input=primary_input,
     )
 
 
@@ -81,23 +85,14 @@ def VideoFileInput() -> FileInput:
     )
 
 
-def PthFileInput() -> FileInput:
+def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
         input_type="PthFile",
         label="Pretrained Model",
         file_kind="pth",
         filetypes=[".pth"],
-    )
-
-
-def TorchFileInput() -> FileInput:
-    """Input for submitting a local .pth or .pt file"""
-    return FileInput(
-        input_type="PtFile",
-        label="Pretrained Model",
-        file_kind="pt",
-        filetypes=[".pt"],
+        primary_input=primary_input,
     )
 
 
@@ -150,31 +145,34 @@ def ImageExtensionDropdown() -> DropDownInput:
     )
 
 
-def BinFileInput() -> FileInput:
+def BinFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput(
         input_type="NcnnBinFile",
         label="NCNN Bin File",
         file_kind="bin",
         filetypes=[".bin"],
+        primary_input=primary_input,
     )
 
 
-def ParamFileInput() -> FileInput:
+def ParamFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput(
         input_type="NcnnParamFile",
         label="NCNN Param File",
         file_kind="param",
         filetypes=[".param"],
+        primary_input=primary_input,
     )
 
 
-def OnnxFileInput() -> FileInput:
+def OnnxFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .onnx file"""
     return FileInput(
         input_type="OnnxFile",
         label="ONNX Model File",
         file_kind="onnx",
         filetypes=[".onnx"],
+        primary_input=primary_input,
     )
