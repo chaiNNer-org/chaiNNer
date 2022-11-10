@@ -224,3 +224,7 @@ export const delay = (ms: number): Promise<void> => {
 
 export const getInputValues = <T>(schema: NodeSchema, getValue: (inputId: InputId) => T): T[] =>
     schema.inputs.map((input) => getValue(input.id));
+
+export const stopPropagation = (event: { readonly stopPropagation: () => void }): void => {
+    event.stopPropagation();
+};
