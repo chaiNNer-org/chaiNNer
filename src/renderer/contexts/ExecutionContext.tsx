@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -33,6 +32,7 @@ import {
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
+import { useHotkeys } from '../hooks/useHotkeys';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -332,7 +332,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         previousStatus.current = status;
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
-    const runNodes = async () => {
+    const runNodes = useCallback(async () => {
         const allNodes = getNodes();
         const allEdges = getEdges();
 
@@ -415,9 +415,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
-    };
+    }, [
+        animate,
+        backend,
+        getEdges,
+        getNodes,
+        schemata,
+        typeStateRef,
+        sendAlert,
+        unAnimate,
+        isCpu,
+        isFp16,
+        ncnnGPU,
+        onnxExecutionProvider,
+        onnxGPU,
+        pytorchGPU,
+    ]);
 
-    const resume = async () => {
+    const resume = useCallback(async () => {
         try {
             const response = await backend.resume();
             if (response.type === 'error') {
@@ -431,17 +446,17 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
-    const run = async () => {
+    const run = useCallback(async () => {
         if (status === ExecutionStatus.PAUSED) {
             await resume();
         } else {
             await runNodes();
         }
-    };
+    }, [resume, runNodes, status]);
 
-    const pause = async () => {
+    const pause = useCallback(async () => {
         try {
             const response = await backend.pause();
             if (response.type === 'error') {
@@ -455,9 +470,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
-    const kill = async () => {
+    const kill = useCallback(async () => {
         try {
             const response = await backend.kill();
             if (response.type === 'error') {
@@ -466,11 +481,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
     useHotkeys(
         'F5',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.READY:
                 case ExecutionStatus.PAUSED:
@@ -482,13 +497,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [run, pause, status]
+        }, [run, status])
     );
 
     useHotkeys(
         'F6',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.RUNNING:
                     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -500,13 +514,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [run, pause, status]
+        }, [pause, status])
     );
 
     useHotkeys(
         'F7',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.RUNNING:
                 case ExecutionStatus.PAUSED:
@@ -518,8 +531,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [kill]
+        }, [kill, status])
     );
 
     const statusValue = useMemoObject<ExecutionStatusContextValue>({
