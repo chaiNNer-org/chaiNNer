@@ -3,6 +3,7 @@ import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
@@ -70,9 +71,7 @@ export const TextAreaInput = memo(
                         setTempText(event.target.value);
                         handleChange(event);
                     }}
-                    onKeyDown={(event) => {
-                        event.stopPropagation();
-                    }}
+                    onKeyDown={stopPropagation}
                 />
             </Resizable>
         );
