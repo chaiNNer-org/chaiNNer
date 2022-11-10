@@ -13,6 +13,15 @@ def create_ncnn_net(
 ) -> ncnn.Net:
     net = ncnn.Net()
 
+    if model.fp == "fp16":
+        net.opt.use_fp16_packed = True
+        net.opt.use_fp16_storage = True
+        net.opt.use_fp16_arithmetic = True
+    else:
+        net.opt.use_fp16_packed = False
+        net.opt.use_fp16_storage = False
+        net.opt.use_fp16_arithmetic = False
+
     # Use vulkan compute
     net.opt.use_vulkan_compute = True
     net.set_vulkan_device(exec_options.ncnn_gpu_index)
