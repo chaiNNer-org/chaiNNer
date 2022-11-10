@@ -2,41 +2,36 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
+import { GetSetState, SetState } from '../helpers/types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
 interface Settings {
     // Global settings
-    useIsCpu: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    useIsFp16: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    usePyTorchGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
-    useNcnnGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
-    useOnnxGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
-    useOnnxExecutionProvider: readonly [string, React.Dispatch<React.SetStateAction<string>>];
-    useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    useSystemPythonLocation: readonly [
-        string | null,
-        React.Dispatch<React.SetStateAction<string | null>>
-    ];
-    useDisHwAccel: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    useCheckUpdOnStrtUp: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useIsCpu: GetSetState<boolean>;
+    useIsFp16: GetSetState<boolean>;
+    usePyTorchGPU: GetSetState<number>;
+    useNcnnGPU: GetSetState<number>;
+    useOnnxGPU: GetSetState<number>;
+    useOnnxExecutionProvider: GetSetState<string>;
+    useIsSystemPython: GetSetState<boolean>;
+    useSystemPythonLocation: GetSetState<string | null>;
+    useDisHwAccel: GetSetState<boolean>;
+    useCheckUpdOnStrtUp: GetSetState<boolean>;
     useSnapToGrid: readonly [
         snapToGrid: boolean,
-        setSnapToGrid: React.Dispatch<React.SetStateAction<boolean>>,
+        setSnapToGrid: SetState<boolean>,
         snapToGridAmount: number,
-        setSnapToGridAmount: React.Dispatch<React.SetStateAction<number>>
+        setSnapToGridAmount: SetState<number>
     ];
-    useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
-    useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    useAnimateChain: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-    useExperimentalFeatures: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useStartupTemplate: GetSetState<string>;
+    useIsDarkMode: GetSetState<boolean>;
+    useAnimateChain: GetSetState<boolean>;
+    useExperimentalFeatures: GetSetState<boolean>;
 
     // Node Settings
-    useNodeFavorites: readonly [
-        readonly SchemaId[],
-        React.Dispatch<React.SetStateAction<readonly SchemaId[]>>
-    ];
-    useNodeSelectorCollapsed: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useNodeFavorites: GetSetState<readonly SchemaId[]>;
+    useNodeSelectorCollapsed: GetSetState<boolean>;
 }
 
 // TODO: create context requires default values

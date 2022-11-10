@@ -25,6 +25,7 @@ import {
 import { getConnectedInputs } from '../helpers/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
+import { SetState } from '../helpers/types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventMap,
@@ -56,7 +57,7 @@ interface ExecutionContextValue {
     kill: () => Promise<void>;
     status: ExecutionStatus;
     isBackendKilled: boolean;
-    setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsBackendKilled: SetState<boolean>;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({

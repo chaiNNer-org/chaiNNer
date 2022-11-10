@@ -54,6 +54,7 @@ import {
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
+import { GetSetState, SetState } from '../helpers/types';
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
@@ -84,8 +85,6 @@ function getNodeInputValue<T extends NonNullable<InputValue>>(
     return (inputData[inputId] ?? undefined) as T | undefined;
 }
 
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
-
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
@@ -100,10 +99,7 @@ interface GlobalVolatile {
     isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
-    useConnectingFrom: readonly [
-        OnConnectStartParams | null,
-        SetState<OnConnectStartParams | null>
-    ];
+    useConnectingFrom: GetSetState<OnConnectStartParams | null>;
 }
 interface Global {
     reactFlowWrapper: React.RefObject<Element>;
