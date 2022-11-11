@@ -25,6 +25,12 @@ export const TextInput = memo(
         const [tempText, setTempText] = useState(value ?? '');
 
         useEffect(() => {
+            if (value !== undefined) {
+                setTempText(value);
+            }
+        }, [value]);
+
+        useEffect(() => {
             if (value === undefined) {
                 if (def != null) {
                     setValue(def);
