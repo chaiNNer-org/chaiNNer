@@ -2,6 +2,7 @@ import {
     IntIntervalType,
     NonNeverType,
     NumericLiteralType,
+    StringPrimitive,
     StructType,
     Type,
     UnionType,
@@ -23,6 +24,15 @@ export const isImage = (
     ];
 } => {
     return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
+};
+
+export const isDirectory = (
+    type: Type
+): type is StructType & {
+    readonly name: 'Directory';
+    readonly fields: readonly [{ readonly name: 'path'; readonly type: StringPrimitive }];
+} => {
+    return type.type === 'struct' && type.name === 'Directory' && type.fields.length === 1;
 };
 
 export const getField = (struct: StructType, field: string): NonNeverType | undefined => {
