@@ -211,7 +211,7 @@
     "react-hotkeys-hook": "^3.4.6",
     "react-icons": "^4.4.0",
     "react-markdown": "^8.0.3",
-    "reactflow": "^11.1.1",
+    "reactflow": "^11.2.0",
     "rregex": "^1.5.1",
     "scheduler": "^0.22.0",
     "semver": "^7.3.7",
