@@ -55,7 +55,10 @@ class NcnnOptimizer:
 
     def __fuse_convolution_batchnorm(self):
         for i, layer in enumerate(self.model.layers):
-            if layer.op_type == "Convolution":
+            if (
+                layer.op_type == "Convolution"
+                or layer.op_type == "ConvolutionDepthWise"
+            ):
                 # Convolution - BatchNorm
                 output = layer.outputs[0]
 
@@ -118,7 +121,7 @@ class NcnnOptimizer:
     def __fuse_convolution_mul(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "Convolution":
-                # Convolution - BatchNorm
+                # Convolution - BinaryOp
                 output = layer.outputs[0]
 
                 j = i
@@ -143,14 +146,13 @@ class NcnnOptimizer:
 
                 # MemoryData - ..... - BinaryOp
                 k = 0
-                while k < j:
+                for k in range(j):
                     if self.model.layers[k].op_type != "MemoryData":
-                        j += 1
                         continue
                     if self.model.layers[k].outputs[0] == binaryop.inputs[1]:
                         break
-
-                    j += 1
+                else:
+                    k += 1
 
                 if k == j:
                     continue
@@ -180,6 +182,77 @@ class NcnnOptimizer:
                         bias[i] = (
                             bias[i] * memorydata.weight_data["data"].weight[i]
                         )  # type: ignore
+
+                self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                binaryop.op_type = "ncnnfused"
+
+    def __fuse_convolution_add(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Convolution":
+                # Convolution - Add
+                output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "BinaryOp":
+                        continue
+                    if self.model.layers[j].num_inputs != 2:
+                        continue
+                    if self.model.layers[j].inputs[0] == output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                # fuse Convolution - BinaryOp to Convolution
+                binaryop = self.model.layers[j]
+
+                if binaryop.params[0].value != BOT.ADD or binaryop.params[1].value:
+                    continue
+
+                # MemoryData - ..... - BinaryOp
+                k = 0
+                for k in range(j):
+                    if self.model.layers[k].op_type != "MemoryData":
+                        continue
+                    if self.model.layers[k].outputs[0] == binaryop.inputs[1]:
+                        break
+                else:
+                    k += 1
+
+                if k == j:
+                    continue
+
+                memorydata = self.model.layers[k]
+
+                channels = layer.params[0].value
+
+                if (
+                    memorydata.params[0].value == channels
+                    and memorydata.params[1].value == 0
+                    and memorydata.params[2].value == 0
+                ) or (
+                    memorydata.params[0].value == 1
+                    and memorydata.params[1].value == 1
+                    and memorydata.params[2].value == channels
+                ):
+                    # not bias-like broadcasting type
+                    continue
+
+                bias_data = memorydata.weight_data["data"].weight.reshape(channels)  # type: ignore
+
+                if layer.params[5].value == 0:
+                    # init bias
+                    layer.params[5] = 1
+                    layer.add_weight(bias_data, "bias")
+                else:
+                    bias = layer.weight_data["bias"].weight
+                    for c in range(channels):  # type: ignore
+                        bias[c] = bias[c] + bias_data[c]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -310,6 +383,8 @@ class NcnnOptimizer:
         self.__fuse_batchnorm_scale()
         self.__fuse_convolution_batchnorm()
         self.__fuse_convolution_mul()
+        self.__fuse_convolution_add()
+
         self.__fuse_convolution_activation()
         self.__fuse_binaryop_eltwise()
 
