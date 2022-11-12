@@ -4,14 +4,15 @@ import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { EdgeData, NodeData } from '../../common/common-types';
-import { parseSourceHandle } from '../../common/util';
-import { BackendContext } from '../contexts/BackendContext';
-import { ExecutionStatusContext } from '../contexts/ExecutionContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { SettingsContext } from '../contexts/SettingsContext';
-import { shadeColor } from '../helpers/colorTools';
-import { getTypeAccentColors } from '../helpers/getTypeAccentColors';
+import { EdgeData, NodeData } from '../../../common/common-types';
+import { parseSourceHandle } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
+import { ExecutionStatusContext } from '../../contexts/ExecutionContext';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { SettingsContext } from '../../contexts/SettingsContext';
+import { shadeColor } from '../../helpers/colorTools';
+import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import './styles.scss';
 
 export const CustomEdge = memo(
     ({
@@ -76,7 +77,7 @@ export const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
-        const showRunning = animated && !paused;
+        const showRunning = true; // animated && !paused;
 
         return (
             <g
@@ -92,67 +93,42 @@ export const CustomEdge = memo(
                 onMouseOver={() => hoverTimeout()}
             >
                 <path
-                    className="edge-chain-links"
+                    className={useMemo(
+                        () =>
+                            `edge-chain-links ${isHovered ? 'hovered' : ''} ${
+                                showRunning && animateChain ? 'running' : ''
+                            }`,
+                        [isHovered, showRunning, animateChain]
+                    )}
                     d={edgePath}
                     fill="none"
                     id={id}
-                    strokeDasharray="0 !important"
-                    style={{
-                        ...style,
-                        strokeWidth: isHovered ? '4px' : '2px',
-                        stroke: currentColor,
-                        transitionDuration: '0.15s',
-                        transitionProperty: 'stroke-width, stroke',
-                        transitionTimingFunction: 'ease-in-out',
-                        cursor: 'pointer',
-                        strokeDasharray: '0 !important',
-                    }}
+                    stroke={currentColor}
                 />
                 <path
-                    className="edge-chain"
+                    className={useMemo(
+                        () =>
+                            `edge-chain ${isHovered ? 'hovered' : ''} ${
+                                showRunning && animateChain ? 'running' : ''
+                            }`,
+                        [isHovered, showRunning, animateChain]
+                    )}
                     d={edgePath}
                     fill="none"
                     id={id}
-                    strokeDasharray="1 10"
-                    strokeDashoffset="2"
-                    strokeLinecap="round"
-                    style={{
-                        ...style,
-                        strokeWidth: isHovered ? '8px' : '6px',
-                        stroke: currentColor,
-                        transitionDuration: '0.15s',
-                        transitionProperty: 'stroke-width, stroke',
-                        transitionTimingFunction: 'ease-in-out',
-                        cursor: 'pointer',
-                        animation:
-                            showRunning && animateChain
-                                ? 'dashdraw-chain 0.5s linear infinite'
-                                : 'none',
-                        opacity: showRunning ? 1 : 0,
-                    }}
+                    stroke={currentColor}
                 />
                 <path
-                    className="edge-chain"
+                    className={useMemo(
+                        () =>
+                            `edge-chain dot ${isHovered ? 'hovered' : ''} ${
+                                showRunning && animateChain ? 'running' : ''
+                            }`,
+                        [isHovered, showRunning, animateChain]
+                    )}
                     d={edgePath}
                     fill="none"
                     id={id}
-                    strokeDasharray="1 10"
-                    strokeDashoffset="2"
-                    strokeLinecap="round"
-                    style={{
-                        ...style,
-                        strokeWidth: isHovered ? '4px' : '3px',
-                        stroke: 'var(--chain-hole-color)',
-                        transitionDuration: '0.15s',
-                        transitionProperty: 'stroke-width, stroke',
-                        transitionTimingFunction: 'ease-in-out',
-                        cursor: 'pointer',
-                        animation:
-                            showRunning && animateChain
-                                ? 'dashdraw-chain 0.5s linear infinite'
-                                : 'none',
-                        opacity: showRunning ? 1 : 0,
-                    }}
                 />
                 <path
                     d={edgePath}

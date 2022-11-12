@@ -1,0 +1,71 @@
+@keyframes dashdraw-chain {
+    from {
+        stroke-dashoffset: 13;
+    }
+}
+
+:not(.no-chain-animation) .edge-chain.running {
+    animation: dashdraw-chain 0.5s linear infinite !important;
+}
+
+.no-chain-animation .react-flow__edge.running path {
+    animation: none !important;
+}
+
+.edge-chain-links {
+    stroke-width: 2px;
+    transition-duration: 0.15s;
+    transition-property: stroke-width, stroke;
+    transition-timing-function: ease-in-out;
+    cursor: pointer;
+    stroke-dasharray: 0 !important;
+
+    &.hovered {
+        stroke-width: 4px;
+    }
+
+    &.animated {
+        stroke-dasharray: 0 !important;
+    }
+}
+
+.edge-chain {
+    stroke-width: 6px;
+    transition-duration: 0.15s;
+    transition-property: stroke-width, stroke;
+    transition-timing-function: ease-in-out;
+    cursor: pointer;
+    stroke-dasharray: 1 10 !important;
+    stroke-dashoffset: 2;
+    stroke-linecap: round;
+    animation: 'none';
+    opacity: 0%;
+
+    &.animated {
+        stroke-dasharray: 1 10 !important;
+    }
+
+    &.hovered {
+        stroke-width: 8px;
+    }
+
+    &.running {
+        animation: 'dashdraw-chain 0.5s linear infinite';
+        opacity: 100%;
+    }
+
+    &.dot {
+        stroke: var(--chain-hole-color) !important;
+        stroke-width: 3px;
+        opacity: 100%;
+
+        &.hovered {
+            stroke-width: 4px;
+        }
+
+        &.running {
+            animation: 'dashdraw-chain 0.5s linear infinite';
+            opacity: 100%;
+        }
+    }
+}

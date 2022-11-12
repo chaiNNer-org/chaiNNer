@@ -5,6 +5,7 @@ import { DragEvent, memo, useCallback, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
+    Connection,
     Controls,
     CoordinateExtent,
     Edge,
@@ -14,6 +15,7 @@ import ReactFlow, {
     OnEdgesChange,
     OnNodesChange,
     Viewport,
+    updateEdge,
     useEdgesState,
     useNodesState,
     useReactFlow,
@@ -370,6 +372,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [createNode, wrapper, reactFlowInstance, schemata, sendAlert, setEdges, setNodes]
     );
 
+    const onEdgeUpdate = useCallback(
+        (oldEdge: Edge, newConnection: Connection) => {
+            console.log('🚀 ~ file: ReactFlowBox.tsx ~ line 377 ~ ReactFlowBox ~ oldEdge', {
+                oldEdge,
+                newConnection,
+            });
+            return setEdges((els) => updateEdge(oldEdge, newConnection, els));
+        },
+        [setEdges]
+    );
+
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
 
     return (
@@ -404,6 +417,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
+                onEdgeUpdate={onEdgeUpdate}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}

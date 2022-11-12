@@ -34,30 +34,6 @@ body {
     }
 }
 
-@keyframes dashdraw-chain {
-    from {
-        stroke-dashoffset: 13;
-    }
-}
-
-.edge-chain-links,
-.edge-chain-links.animated {
-    stroke-dasharray: 0 !important;
-}
-
-.edge-chain,
-.edge-chain.animated {
-    stroke-dasharray: 1 10 !important;
-}
-
-:not(.no-chain-animation) .edge-chain.animated {
-    animation: dashdraw-chain 0.5s linear infinite !important;
-}
-
-.no-chain-animation .react-flow__edge.animated path {
-    animation: none !important;
-}
-
 .react-flow__handle-left {
     left: 0 !important;
     top: 0% !important;
