@@ -239,7 +239,7 @@ class NcnnParamCollection:
     def __str__(self) -> str:
         output = ""
         param_dict = param_schema[self.op]
-        for k, v in self.param_dict.items():
+        for v in self.param_dict.values():
             if v.value == v.default:
                 continue
             if isinstance(v.default, str):
@@ -278,7 +278,7 @@ class NcnnParamCollection:
 
             output += v_str + " "
 
-        return output
+        return output.rstrip()
 
     def set_op(self, op: str) -> None:
         self.op = op
@@ -601,17 +601,19 @@ class NcnnModel:
 
             for layer in self.layers:
                 p.write(
-                    f"{layer.op_type:<16} "
-                    f"{layer.name:<24} "
-                    f"{layer.num_inputs} "
-                    f"{layer.num_outputs}"
+                    f"{layer.op_type:<16}"
+                    f" {layer.name:<24}"
+                    f" {layer.num_inputs}"
+                    f" {layer.num_outputs}"
                 )
                 if layer.inputs:
                     p.write(f" {' '.join(layer.inputs)}")
                 if layer.outputs:
                     p.write(f" {' '.join(layer.outputs)}")
-                if layer.params:
-                    p.write(f" {str(layer.params)}")
+                if layer.params.param_dict:
+                    param_str = str(layer.params)
+                    if param_str:
+                        p.write(f" {param_str}")
                 p.write("\n")
 
             if filename:
