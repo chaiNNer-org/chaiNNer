@@ -15,11 +15,19 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
         setValue(options[Number(event.target.value)]?.value ?? def);
     };
 
+    // set default
     useEffect(() => {
         if (value === undefined) {
             setValue(def);
         }
     }, [value, setValue, def]);
+
+    // reset invalid values to default
+    useEffect(() => {
+        if (value !== undefined && options.every((o) => o.value !== value)) {
+            setValue(def);
+        }
+    }, [value, setValue, options, def]);
 
     let selection = options.findIndex((o) => o.value === value);
     if (selection === -1) selection = 0;
