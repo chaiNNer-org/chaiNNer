@@ -31,7 +31,7 @@ const getColorMode = (channels: number) => {
 };
 
 export const NcnnModelOutput = memo(
-    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
+    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
         const [value] = useOutputData<NcnnModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
