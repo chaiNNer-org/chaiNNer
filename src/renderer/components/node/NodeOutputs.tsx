@@ -5,7 +5,7 @@ import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
@@ -57,6 +57,8 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
     );
 };
 
+const NO_OUTPUT_DATA = [undefined, undefined] as const;
+
 interface NodeOutputProps {
     outputs: readonly Output[];
     id: string;
@@ -65,7 +67,6 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: NodeOutputProps) => {
-    const { getInputHash } = useContext(GlobalContext);
     const { functionDefinitions } = useContext(BackendContext);
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
@@ -73,16 +74,20 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
 
     const useOutputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T>(outputId: OutputId): readonly [value: T | undefined, inputHash: string] {
+        function <T>(
+            outputId: OutputId
+        ):
+            | readonly [value: T, inputHash: string]
+            | readonly [value: undefined, inputHash: undefined] {
             if (outputDataEntry) {
-                return [
-                    outputDataEntry.data?.[outputId] as T | undefined,
-                    outputDataEntry.inputHash,
-                ];
+                const value = outputDataEntry.data?.[outputId] as T | undefined;
+                if (value !== undefined) {
+                    return [value, outputDataEntry.inputHash];
+                }
             }
-            return [undefined, getInputHash(id)];
+            return NO_OUTPUT_DATA;
         },
-        [outputDataEntry, getInputHash, id]
+        [outputDataEntry]
     );
 
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;

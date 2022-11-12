@@ -10,7 +10,7 @@ export interface OutputProps {
     readonly hasHandle: boolean;
     readonly useOutputData: <T>(
         outputId: OutputId
-    ) => readonly [value: T | undefined, inputHash: string];
+    ) => readonly [value: T, inputHash: string] | readonly [value: undefined, inputHash: undefined];
     readonly animated: boolean;
     readonly kind: OutputKind;
 }
