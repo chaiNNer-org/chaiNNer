@@ -45,6 +45,7 @@ export const DefaultImageOutput = memo(
         const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
         const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
         const sameHash = valueInputHash === inputHash;
+
         useEffect(() => {
             if (value && sameHash) {
                 setManualOutputType(

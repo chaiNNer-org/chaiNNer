@@ -26,11 +26,12 @@ export const LargeImageOutput = memo(
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
         const [value, valueInputHash] = useOutputData<LargeImageBroadcastData>(outputId);
-        const stale = value !== undefined && valueInputHash !== inputHash;
+        const sameHash = valueInputHash === inputHash;
+        const stale = value !== undefined && !sameHash;
 
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value) {
+                if (value && sameHash) {
                     setManualOutputType(
                         id,
                         outputId,
@@ -44,7 +45,7 @@ export const LargeImageOutput = memo(
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value, outputId, schema, setManualOutputType]);
+        }, [id, schemaId, value, sameHash, outputId, schema, setManualOutputType]);
 
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';
