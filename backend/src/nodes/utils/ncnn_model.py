@@ -238,7 +238,25 @@ class NcnnParamCollection:
 
     def __str__(self) -> str:
         output = ""
-        for v in self.param_dict.values():
+        param_dict = param_schema[self.op]
+        for k, v in self.param_dict.items():
+            if v.value == v.default:
+                continue
+            if isinstance(v.default, str):
+                pid = None
+                for key, val in list(param_dict.items())[:-1]:
+                    if v.default == val["paramPhase"]:
+                        pid = int(key)
+                        break
+                else:
+                    logger.error("What happened here?")
+                    raise KeyError
+                if (
+                    v.value == self.param_dict[pid].value
+                    or v.value == self.param_dict[pid].default
+                ):
+                    continue
+
             if isinstance(v.value, list):
                 output += "-233" + v.id.zfill(2) + "="
             else:
@@ -247,7 +265,14 @@ class NcnnParamCollection:
             if isinstance(v.value, float) or (isinstance(v.value, np.float32)):  # type: ignore
                 v_str = np.format_float_scientific(v.value, 6, False, exp_digits=2)
             elif isinstance(v.value, list):
-                v_str = ",".join([str(n) for n in v.value])
+                v_str = ",".join(
+                    [
+                        np.format_float_scientific(n, 6, False, exp_digits=2)
+                        if (isinstance(n, float) or isinstance(n, np.float32))  # type: ignore
+                        else str(n)
+                        for n in v.value
+                    ]
+                )
             else:
                 v_str = str(v.value)
 
@@ -324,7 +349,7 @@ class NcnnModel:
     ) -> None:
         self.node_count: int = node_count
         self.blob_count: int = blob_count
-        self.layer_list: List[NcnnLayer] = []
+        self.layers: List[NcnnLayer] = []
         self.bin_length = 0
 
     @property
@@ -428,7 +453,7 @@ class NcnnModel:
         )
 
     def add_layer(self, layer: NcnnLayer) -> None:
-        self.layer_list.append(layer)
+        self.layers.append(layer)
 
     def parse_param_layer(self, layer_str: str) -> Tuple[str, NcnnLayer]:
         param_list = layer_str.strip().split()
@@ -574,7 +599,7 @@ class NcnnModel:
         with StringIO() as p:
             p.write(f"{self.magic}\n{self.node_count} {self.blob_count}\n")
 
-            for layer in self.layer_list:
+            for layer in self.layers:
                 p.write(
                     f"{layer.op_type:<16} "
                     f"{layer.name:<24} "
@@ -599,7 +624,7 @@ class NcnnModel:
     def serialize_weights(self) -> bytes:
         layer_weights = [
             b"".join((w.quantize_tag, np.ndarray.tobytes(w.weight)))
-            for l in self.layer_list
+            for l in self.layers
             for w in l.weight_data.values()
             if l.weight_data
         ]
@@ -613,11 +638,9 @@ class NcnnModel:
     def interpolate(self, model_b: "NcnnModel", alpha: float) -> "NcnnModel":
         interp_model = deepcopy(self)
 
-        layer_a_weights = [
-            (i, l) for i, l in enumerate(self.layer_list) if l.weight_data
-        ]
+        layer_a_weights = [(i, l) for i, l in enumerate(self.layers) if l.weight_data]
         layer_b_weights = [
-            (i, l) for i, l in enumerate(model_b.layer_list) if l.weight_data
+            (i, l) for i, l in enumerate(model_b.layers) if l.weight_data
         ]
 
         assert len(layer_a_weights) == len(
@@ -629,7 +652,7 @@ class NcnnModel:
             interp_layer, layer_bytes = NcnnModel.interp_layers(
                 layer_a[1], layer_b[1], alpha
             )
-            interp_model.layer_list[layer_a[0]] = interp_layer
+            interp_model.layers[layer_a[0]] = interp_layer
             weight_bytes_list.append(layer_bytes)
 
         return interp_model
@@ -660,12 +683,12 @@ class NcnnModelWrapper:
         found_first_conv = False
         current_conv = None
 
-        for i, layer in enumerate(model.layer_list):
+        for i, layer in enumerate(model.layers):
             if layer.op_type == "Interp":
                 try:
                     if (
-                        model.layer_list[i + 1].op_type != "BinaryOp"
-                        and model.layer_list[i + 1].params[0].value != 0
+                        model.layers[i + 1].op_type != "BinaryOp"
+                        and model.layers[i + 1].params[0].value != 0
                     ):
                         scale *= layer.params[1].value  # type: ignore
                 except IndexError:

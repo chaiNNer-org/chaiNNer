@@ -124,8 +124,8 @@ class NcnnUpscaleImageNode(NodeBase):
             i = self.upscale(
                 i,
                 model,
-                model.model.layer_list[0].outputs[0],
-                model.model.layer_list[-1].outputs[0],
+                model.model.layers[0].outputs[0],
+                model.model.layers[-1].outputs[0],
                 tile_size,
             )
             if ic == 3:
