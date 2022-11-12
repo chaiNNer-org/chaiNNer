@@ -22,30 +22,27 @@ export const LargeImageOutput = memo(
         const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
 
-        const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        const [value, valueInputHash] = useOutputData<LargeImageBroadcastData>(outputId);
-        const sameHash = valueInputHash === inputHash;
-        const stale = value !== undefined && !sameHash;
+        const { current, last, stale } = useOutputData<LargeImageBroadcastData>(outputId);
 
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value && sameHash) {
+                if (current) {
                     setManualOutputType(
                         id,
                         outputId,
                         new NamedExpression('Image', [
-                            new NamedExpressionField('width', literal(value.width)),
-                            new NamedExpressionField('height', literal(value.height)),
-                            new NamedExpressionField('channels', literal(value.channels)),
+                            new NamedExpressionField('width', literal(current.width)),
+                            new NamedExpressionField('height', literal(current.height)),
+                            new NamedExpressionField('channels', literal(current.channels)),
                         ])
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value, sameHash, outputId, schema, setManualOutputType]);
+        }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';
@@ -108,7 +105,7 @@ export const LargeImageOutput = memo(
                         overflow="hidden"
                         w="200px"
                     >
-                        {value ? (
+                        {last ? (
                             <Center
                                 maxH="200px"
                                 maxW="200px"
@@ -116,14 +113,14 @@ export const LargeImageOutput = memo(
                                 <Image
                                     alt="Image preview failed to load, probably unsupported file type."
                                     backgroundImage={
-                                        value.channels === 4
+                                        last.channels === 4
                                             ? 'data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQABAACMCWJaQAA3AA/u11j//aQAAA'
                                             : ''
                                     }
                                     draggable={false}
                                     maxH="200px"
                                     maxW="200px"
-                                    src={value.image}
+                                    src={last.image}
                                     sx={{
                                         imageRendering: zoom > 2 ? 'pixelated' : 'auto',
                                     }}

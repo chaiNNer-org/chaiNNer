@@ -19,21 +19,18 @@ export const GenericOutput = memo(
 
         const schema = schemata.get(schemaId);
 
-        const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
-        const [value, valueInputHash] = useOutputData(outputId);
-        const sameHash = valueInputHash === inputHash;
-
+        const { current } = useOutputData(outputId);
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value !== undefined && sameHash) {
+                if (current !== undefined) {
                     if (kind === 'text') {
-                        setManualOutputType(id, outputId, literal(value as string));
+                        setManualOutputType(id, outputId, literal(current as string));
                     } else if (kind === 'directory') {
                         setManualOutputType(
                             id,
                             outputId,
                             new NamedExpression('Directory', [
-                                new NamedExpressionField('path', literal(value as string)),
+                                new NamedExpressionField('path', literal(current as string)),
                             ])
                         );
                     }
@@ -41,7 +38,7 @@ export const GenericOutput = memo(
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value, sameHash, kind, outputId, schema, setManualOutputType]);
+        }, [id, schemaId, current, kind, outputId, schema, setManualOutputType]);
 
         return (
             <Flex
