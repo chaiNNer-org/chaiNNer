@@ -32,7 +32,7 @@ const getColorMode = (channels: number) => {
 };
 
 export const PyTorchOutput = memo(
-    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
+    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
         const [value] = useOutputData<PyTorchModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);

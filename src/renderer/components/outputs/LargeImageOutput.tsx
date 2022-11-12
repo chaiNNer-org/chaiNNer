@@ -17,7 +17,7 @@ interface LargeImageBroadcastData {
 }
 
 export const LargeImageOutput = memo(
-    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
+    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
