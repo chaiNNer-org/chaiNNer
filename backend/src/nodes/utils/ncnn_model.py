@@ -600,6 +600,9 @@ class NcnnModel:
             p.write(f"{self.magic}\n{self.node_count} {self.blob_count}\n")
 
             for layer in self.layers:
+                if layer.op_type == "ncnnfused":
+                    continue
+
                 p.write(
                     f"{layer.op_type:<16}"
                     f" {layer.name:<24}"

@@ -1,24 +1,23 @@
 from math import sqrt
 
 import numpy as np
-from ncnn_model import BinaryOpTypes as BOT
-from ncnn_model import EltwiseOpTypes as EOT
-from ncnn_model import NcnnLayer, NcnnModel, NcnnParamCollection
+from .ncnn_model import BinaryOpTypes as BOT
+from .ncnn_model import EltwiseOpTypes as EOT
+from .ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
     def __init__(self, model: NcnnModel) -> None:
         self.model = model
 
-    def fuse_batchnorm_scale(self):
-        layers_to_remove = set()
+    def __fuse_batchnorm_scale(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "BatchNorm":
                 # BatchNorm - Scale
                 output = layer.outputs[0]
 
-                j = i + 1
-                for j in range(len(self.model.layers)):
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
                     if self.model.layers[j].op_type != "Scale":
                         continue
                     if len(self.model.layers[j].inputs) != 1:
@@ -28,7 +27,7 @@ class NcnnOptimizer:
                 else:
                     j += 1
 
-                if j >= len(self.model.layers):
+                if j == len(self.model.layers):
                     continue
 
                 # fuse BatchNorm - Scale to BatchNorm
@@ -41,7 +40,7 @@ class NcnnOptimizer:
 
                 for c in range(channels):  # type: ignore
                     slope[c] = slope[c] * scale.weight_data["scale"]
-                    if scale.params[1]:
+                    if scale.params[1].value:
                         bias[c] = (
                             bias[c] * scale.weight_data["scale"]
                             + scale.weight_data["bias"]
@@ -52,20 +51,16 @@ class NcnnOptimizer:
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
-                layers_to_remove.add(j)
+                scale.op_type = "ncnnfused"
 
-        for i in sorted(list(layers_to_remove), reverse=True):
-            self.model.layers.pop(i)
-
-    def fuse_convolution_batchnorm(self):
-        layers_to_remove = set()
+    def __fuse_convolution_batchnorm(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "Convolution":
                 # Convolution - BatchNorm
                 output = layer.outputs[0]
 
-                j = i + 1
-                for j in range(len(self.model.layers)):
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
                     if self.model.layers[j].op_type != "BatchNorm":
                         continue
                     if len(self.model.layers[j].inputs) != 1:
@@ -75,7 +70,7 @@ class NcnnOptimizer:
                 else:
                     j += 1
 
-                if j >= len(self.model.layers):
+                if j == len(self.model.layers):
                     continue
 
                 # fuse Convolution - BatchNorm to Convolution
@@ -118,19 +113,15 @@ class NcnnOptimizer:
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
-                layers_to_remove.add(j)
+                batchnorm.op_type = "ncnnfused"
 
-        for i in sorted(list(layers_to_remove), reverse=True):
-            self.model.layers.pop(i)
-
-    def fuse_convolution_mul(self):
-        layers_to_remove = set()
+    def __fuse_convolution_mul(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "Convolution":
                 # Convolution - BatchNorm
                 output = layer.outputs[0]
 
-                j = i + 1
+                j = i
                 for j in range(i + 1, len(self.model.layers)):
                     if self.model.layers[j].op_type != "BinaryOp":
                         continue
@@ -141,7 +132,7 @@ class NcnnOptimizer:
                 else:
                     j += 1
 
-                if j >= len(self.model.layers):
+                if j == len(self.model.layers):
                     continue
 
                 # fuse Convolution - BinaryOp to Convolution
@@ -193,19 +184,15 @@ class NcnnOptimizer:
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
-                layers_to_remove.add(j)
+                binaryop.op_type = "ncnnfused"
 
-        for i in sorted(list(layers_to_remove), reverse=True):
-            self.model.layers.pop(i)
-
-    def fuse_convolution_activation(self):
-        layers_to_remove = set()
+    def __fuse_convolution_activation(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "Convolution":
                 # Convolution - Activation
                 output = layer.outputs[0]
 
-                j = i + 1
+                j = i
                 for j in range(i + 1, len(self.model.layers)):
                     if self.model.layers[j].op_type not in (
                         "ReLU",
@@ -222,7 +209,7 @@ class NcnnOptimizer:
                 else:
                     j += 1
 
-                if j >= len(self.model.layers):
+                if j == len(self.model.layers):
                     continue
 
                 # fuse Convolution - Activation to Convolution
@@ -238,13 +225,9 @@ class NcnnOptimizer:
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
-                layers_to_remove.add(j)
+                act.op_type = "ncnnfused"
 
-        for i in sorted(list(layers_to_remove), reverse=True):
-            self.model.layers.pop(i)
-
-    def fuse_binaryop_eltwise(self):
-        layers_to_remove = set()
+    def __fuse_binaryop_eltwise(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "BinaryOp":
                 if layer.num_inputs != 2:
@@ -304,33 +287,31 @@ class NcnnOptimizer:
                     eltwise.inputs[1] = binaryop1.inputs[0]
                     self.model.node_count -= 2
                     self.model.blob_count -= 2
-                    layers_to_remove.add(j0)
-                    layers_to_remove.add(j1)
+                    binaryop0.op_type = "ncnnfused"
+                    binaryop1.op_type = "ncnnfused"
                 elif j0 != i and j1 == i:
                     # fuse BinaryOp - X - BinaryOp to Eltwise
                     eltwise.add_param(1, [2, binaryop0.params[2].value, 1.0])  # type: ignore
                     eltwise.inputs[0] = binaryop0.inputs[0]
                     self.model.node_count -= 1
                     self.model.blob_count -= 1
-                    layers_to_remove.add(j0)
+                    binaryop0.op_type = "ncnnfused"
                 else:
                     # fuse X - BinaryOp - BinaryOp to Eltwise
                     eltwise.add_param(1, [2, 1.0, binaryop1.params[2].value])  # type: ignore
                     eltwise.inputs[1] = binaryop1.inputs[0]
                     self.model.node_count -= 1
                     self.model.blob_count -= 1
-                    layers_to_remove.add(j1)
+                    binaryop1.op_type = "ncnnfused"
 
                 self.model.layers[i] = eltwise
 
-        for i in sorted(list(layers_to_remove), reverse=True):
-            self.model.layers.pop(i)
-
     def optimize(self):
-        self.fuse_convolution_batchnorm()
-        self.fuse_convolution_mul()
-        self.fuse_convolution_activation()
-        self.fuse_binaryop_eltwise()
+        self.__fuse_batchnorm_scale()
+        self.__fuse_convolution_batchnorm()
+        self.__fuse_convolution_mul()
+        self.__fuse_convolution_activation()
+        self.__fuse_binaryop_eltwise()
 
         return self.model
 

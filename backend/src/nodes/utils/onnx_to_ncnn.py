@@ -25,6 +25,7 @@ from .ncnn_model import (
     ReductionOpTypes,
     UnaryOpTypes,
 )
+from .ncnn_optimizer import NcnnOptimizer
 from .onnx_tensor_utils import *
 
 UOT = UnaryOpTypes
@@ -3910,5 +3911,6 @@ class Onnx2NcnnConverter:
                         internal_split += 1
 
         ncnn_model.bin_length = bin_length
+        ncnn_model = NcnnOptimizer(ncnn_model).optimize()
 
         return ncnn_model
