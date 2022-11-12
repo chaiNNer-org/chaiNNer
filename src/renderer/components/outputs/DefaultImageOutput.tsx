@@ -42,24 +42,22 @@ export const DefaultImageOutput = memo(
             c.schemata.get(schemaId).outputs.findIndex((o) => o.id === outputId)
         );
 
-        const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
-        const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
-        const sameHash = valueInputHash === inputHash;
+        const { current } = useOutputData<ImageBroadcastData>(outputId);
         useEffect(() => {
-            if (value && sameHash) {
+            if (current) {
                 setManualOutputType(
                     id,
                     outputId,
                     new NamedExpression('Image', [
-                        new NamedExpressionField('width', literal(value.width)),
-                        new NamedExpressionField('height', literal(value.height)),
-                        new NamedExpressionField('channels', literal(value.channels)),
+                        new NamedExpressionField('width', literal(current.width)),
+                        new NamedExpressionField('height', literal(current.height)),
+                        new NamedExpressionField('channels', literal(current.channels)),
                     ])
                 );
             } else {
                 setManualOutputType(id, outputId, undefined);
             }
-        }, [id, outputId, value, sameHash, setManualOutputType]);
+        }, [id, outputId, current, setManualOutputType]);
 
         const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 

@@ -11,7 +11,7 @@ import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { NcnnModelOutput } from '../outputs/NcnnModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
-import { OutputProps } from '../outputs/props';
+import { OutputProps, UseOutputData } from '../outputs/props';
 import { PyTorchOutput } from '../outputs/PyTorchOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
@@ -57,7 +57,7 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
     );
 };
 
-const NO_OUTPUT_DATA = [undefined, undefined] as const;
+const NO_OUTPUT_DATA: UseOutputData<never> = { current: undefined, last: undefined, stale: false };
 
 interface NodeOutputProps {
     outputs: readonly Output[];
@@ -71,23 +71,21 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
     );
+    const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
 
     const useOutputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T>(
-            outputId: OutputId
-        ):
-            | readonly [value: T, inputHash: string]
-            | readonly [value: undefined, inputHash: undefined] {
+        function <T>(outputId: OutputId): UseOutputData<T> {
             if (outputDataEntry) {
-                const value = outputDataEntry.data?.[outputId] as T | undefined;
-                if (value !== undefined) {
-                    return [value, outputDataEntry.inputHash];
+                const last = outputDataEntry.data?.[outputId] as T | undefined;
+                if (last !== undefined) {
+                    const stale = inputHash !== outputDataEntry.inputHash;
+                    return { current: stale ? undefined : last, last, stale };
                 }
             }
             return NO_OUTPUT_DATA;
         },
-        [outputDataEntry]
+        [outputDataEntry, inputHash]
     );
 
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;
