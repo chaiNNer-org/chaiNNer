@@ -144,9 +144,8 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
                     textAlign="center"
                 >
                     <TypeTag>
-                        <Punctuation>&quot;</Punctuation>
                         {value.slice(0, maxLength)}
-                        <Punctuation>{value.length > maxLength && '…'}&quot;</Punctuation>
+                        {value.length > maxLength && <Punctuation>…</Punctuation>}
                     </TypeTag>
                 </Tooltip>
             );
