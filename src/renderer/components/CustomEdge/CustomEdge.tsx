@@ -24,7 +24,6 @@ export const CustomEdge = memo(
         targetY,
         sourcePosition,
         targetPosition,
-        style = {},
         selected,
         sourceHandleId,
         animated,
