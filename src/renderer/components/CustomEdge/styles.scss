@@ -57,7 +57,10 @@
     &.dot {
         stroke: var(--chain-hole-color) !important;
         stroke-width: 3px;
-        opacity: 100%;
+
+        &.animated {
+            opacity: 100%;
+        }
 
         &.hovered {
             stroke-width: 4px;

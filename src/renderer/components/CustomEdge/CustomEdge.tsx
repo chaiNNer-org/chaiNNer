@@ -77,7 +77,7 @@ export const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
-        const showRunning = true; // animated && !paused;
+        const showRunning = animated && !paused;
 
         return (
             <g

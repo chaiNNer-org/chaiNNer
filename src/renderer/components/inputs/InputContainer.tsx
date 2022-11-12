@@ -122,13 +122,12 @@ export const HandleWrapper = memo(
                             content: '" "',
                             position: 'absolute',
                             top: '50%',
-                            left: '75%',
+                            left: '50%',
                             height: '45px',
-                            width: '35px',
+                            width: '45px',
                             cursor: 'crosshair',
                             transform: 'translate(-50%, -50%)',
                             borderRadius: '100%',
-                            background: 'var(--chakra-colors-whiteAlpha-200)',
                         }}
                         _hover={{
                             width: '22px',
