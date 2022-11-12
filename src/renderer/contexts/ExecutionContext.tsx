@@ -200,10 +200,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
         useContext(SettingsContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
-    const { nodeChanges, edgeChanges } = useContextSelector(GlobalVolatileContext, (c) => ({
-        nodeChanges: c.nodeChanges,
-        edgeChanges: c.edgeChanges,
-    }));
+    const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
+    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
