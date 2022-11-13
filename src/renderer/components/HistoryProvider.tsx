@@ -1,10 +1,10 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { noop } from '../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { useHotkeys } from '../hooks/useHotkeys';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 
 /**
@@ -108,43 +108,19 @@ export const HistoryProvider = memo(
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [changeId]);
 
-        // Handler for undo menuitem
-        useIpcRendererListener(
-            'history-undo',
-            useCallback(() => {
-                historyRef.current = historyRef.current.undo();
-                apply(historyRef.current.current);
-            }, [apply])
-        );
+        const undo = useCallback(() => {
+            historyRef.current = historyRef.current.undo();
+            apply(historyRef.current.current);
+        }, [apply]);
+        const redo = useCallback(() => {
+            historyRef.current = historyRef.current.redo();
+            apply(historyRef.current.current);
+        }, [apply]);
 
-        // Handler for redo menuitem
-        useIpcRendererListener(
-            'history-redo',
-            useCallback(() => {
-                historyRef.current = historyRef.current.redo();
-                apply(historyRef.current.current);
-            }, [apply])
-        );
-
-        // Handler for undo hotkeys
-        useHotkeys(
-            'ctrl+z, cmd+z',
-            () => {
-                historyRef.current = historyRef.current.undo();
-                apply(historyRef.current.current);
-            },
-            [apply]
-        );
-
-        // Handler for redo hotkeys
-        useHotkeys(
-            'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
-            () => {
-                historyRef.current = historyRef.current.redo();
-                apply(historyRef.current.current);
-            },
-            [apply]
-        );
+        useIpcRendererListener('history-undo', undo);
+        useIpcRendererListener('history-redo', redo);
+        useHotkeys('ctrl+z, cmd+z', undo);
+        useHotkeys('ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z', redo);
 
         // eslint-disable-next-line react/jsx-no-useless-fragment
         return <>{children}</>;

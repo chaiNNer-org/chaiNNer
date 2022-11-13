@@ -171,7 +171,7 @@ export const FileInput = memo(
                             cursor="pointer"
                             disabled={isLocked || isInputConnected}
                             draggable={false}
-                            placeholder="Select a file..."
+                            placeholder="Click to select a file..."
                             textOverflow="ellipsis"
                             value={filePath ? path.parse(filePath).base : ''}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises

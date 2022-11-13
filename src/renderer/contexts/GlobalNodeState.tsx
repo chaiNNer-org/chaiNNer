@@ -2,7 +2,6 @@ import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import {
     Connection,
     Edge,
@@ -54,6 +53,7 @@ import {
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
+import { GetSetState, SetState } from '../helpers/types';
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
@@ -62,6 +62,7 @@ import {
     useChangeCounter,
     wrapRefChanges,
 } from '../hooks/useChangeCounter';
+import { useHotkeys } from '../hooks/useHotkeys';
 import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
@@ -84,8 +85,6 @@ function getNodeInputValue<T extends NonNullable<InputValue>>(
     return (inputData[inputId] ?? undefined) as T | undefined;
 }
 
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
-
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
@@ -100,10 +99,7 @@ interface GlobalVolatile {
     isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
-    useConnectingFrom: readonly [
-        OnConnectStartParams | null,
-        SetState<OnConnectStartParams | null>
-    ];
+    useConnectingFrom: GetSetState<OnConnectStartParams | null>;
 }
 interface Global {
     reactFlowWrapper: React.RefObject<Element>;
@@ -1128,13 +1124,13 @@ export const GlobalProvider = memo(
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
         }, [changeNodes, changeEdges]);
 
-        useHotkeys('ctrl+x, cmd+x', cutFn, [cutFn]);
+        useHotkeys('ctrl+x, cmd+x', cutFn);
         useIpcRendererListener('cut', cutFn);
-        useHotkeys('ctrl+c, cmd+c', copyFn, [copyFn]);
+        useHotkeys('ctrl+c, cmd+c', copyFn);
         useIpcRendererListener('copy', copyFn);
-        useHotkeys('ctrl+v, cmd+v', pasteFn, [pasteFn]);
+        useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
-        useHotkeys('ctrl+a, cmd+a', selectAllFn, [selectAllFn]);
+        useHotkeys('ctrl+a, cmd+a', selectAllFn);
 
         const [zoom, setZoom] = useState(1);
 

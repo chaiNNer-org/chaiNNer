@@ -32,8 +32,8 @@ const getColorMode = (channels: number) => {
 };
 
 export const PyTorchOutput = memo(
-    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const [value] = useOutputData<PyTorchModelData>(outputId);
+    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+        const { current } = useOutputData<PyTorchModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
@@ -42,24 +42,24 @@ export const PyTorchOutput = memo(
 
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value) {
+                if (current) {
                     setManualOutputType(
                         id,
                         outputId,
                         new NamedExpression('PyTorchModel', [
-                            new NamedExpressionField('scale', literal(value.scale)),
-                            new NamedExpressionField('inputChannels', literal(value.inNc)),
-                            new NamedExpressionField('outputChannels', literal(value.outNc)),
-                            new NamedExpressionField('arch', literal(value.arch)),
-                            new NamedExpressionField('size', literal(value.size.join('x'))),
-                            new NamedExpressionField('subType', literal(value.subType)),
+                            new NamedExpressionField('scale', literal(current.scale)),
+                            new NamedExpressionField('inputChannels', literal(current.inNc)),
+                            new NamedExpressionField('outputChannels', literal(current.outNc)),
+                            new NamedExpressionField('arch', literal(current.arch)),
+                            new NamedExpressionField('size', literal(current.size.join('x'))),
+                            new NamedExpressionField('subType', literal(current.subType)),
                         ])
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value, outputId, schema, setManualOutputType]);
+        }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
         const tagColor = 'var(--tag-bg)';
         const fontColor = 'var(--tag-fg)';
@@ -72,7 +72,7 @@ export const PyTorchOutput = memo(
                 verticalAlign="middle"
                 w="full"
             >
-                {value && !animated ? (
+                {current && !animated ? (
                     <Center mt={1}>
                         <Wrap
                             justify="center"
@@ -84,7 +84,7 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.arch}
+                                    {current.arch}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -92,7 +92,7 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.subType}
+                                    {current.subType}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -100,7 +100,7 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.scale}x
+                                    {current.scale}x
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -108,10 +108,10 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
+                                    {getColorMode(current.inNc)}→{getColorMode(current.outNc)}
                                 </Tag>
                             </WrapItem>
-                            {value.size.map((size) => (
+                            {current.size.map((size) => (
                                 <WrapItem key={size}>
                                     <Tag
                                         bgColor={tagColor}

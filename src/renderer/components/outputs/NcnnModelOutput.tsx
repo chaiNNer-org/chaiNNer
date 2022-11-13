@@ -31,8 +31,8 @@ const getColorMode = (channels: number) => {
 };
 
 export const NcnnModelOutput = memo(
-    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const [value] = useOutputData<NcnnModelData>(outputId);
+    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+        const { current } = useOutputData<NcnnModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
@@ -41,23 +41,23 @@ export const NcnnModelOutput = memo(
 
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value) {
+                if (current) {
                     setManualOutputType(
                         id,
                         outputId,
                         new NamedExpression('NcnnNetwork', [
-                            new NamedExpressionField('scale', literal(value.scale)),
-                            new NamedExpressionField('inputChannels', literal(value.inNc)),
-                            new NamedExpressionField('outputChannels', literal(value.outNc)),
-                            new NamedExpressionField('nf', literal(value.nf)),
-                            new NamedExpressionField('fp', literal(value.fp)),
+                            new NamedExpressionField('scale', literal(current.scale)),
+                            new NamedExpressionField('inputChannels', literal(current.inNc)),
+                            new NamedExpressionField('outputChannels', literal(current.outNc)),
+                            new NamedExpressionField('nf', literal(current.nf)),
+                            new NamedExpressionField('fp', literal(current.fp)),
                         ])
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value, outputId, schema, setManualOutputType]);
+        }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
         const tagColor = 'var(--tag-bg)';
         const fontColor = 'var(--tag-fg)';
@@ -70,7 +70,7 @@ export const NcnnModelOutput = memo(
                 verticalAlign="middle"
                 w="full"
             >
-                {value && !animated ? (
+                {current && !animated ? (
                     <Center mt={1}>
                         <Wrap
                             justify="center"
@@ -82,7 +82,7 @@ export const NcnnModelOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.scale}x
+                                    {current.scale}x
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -90,7 +90,7 @@ export const NcnnModelOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
+                                    {getColorMode(current.inNc)}→{getColorMode(current.outNc)}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -98,7 +98,7 @@ export const NcnnModelOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.nf}nf
+                                    {current.nf}nf
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
@@ -106,7 +106,7 @@ export const NcnnModelOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.fp}
+                                    {current.fp}
                                 </Tag>
                             </WrapItem>
                         </Wrap>

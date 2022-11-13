@@ -1,7 +1,15 @@
-import { NeverType, StructType, Type, isNumericLiteral, without } from '@chainner/navi';
-import { Tag } from '@chakra-ui/react';
+import {
+    NeverType,
+    StructType,
+    Type,
+    isNumericLiteral,
+    isStringLiteral,
+    without,
+} from '@chainner/navi';
+import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { getField, isImage } from '../../common/types/util';
+import { getField, isDirectory, isImage } from '../../common/types/util';
+import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
     switch (channels) {
@@ -18,28 +26,45 @@ const getColorMode = (channels: number) => {
 
 const nullType = new StructType('null');
 
-const getTypeText = (type: Type): string[] => {
-    if (isNumericLiteral(type)) return [type.toString()];
+type TagValue =
+    | { kind: 'literal'; value: string }
+    | { kind: 'string'; value: string }
+    | { kind: 'path'; value: string };
 
-    const tags: string[] = [];
+const getTypeText = (type: Type): TagValue[] => {
+    if (isNumericLiteral(type)) return [{ kind: 'literal', value: type.toString() }];
+    if (isStringLiteral(type)) return [{ kind: 'string', value: type.value }];
+
+    const tags: TagValue[] = [];
     if (type.type === 'struct') {
         if (isImage(type)) {
             const [width, height, channels] = type.fields;
             if (isNumericLiteral(width.type) && isNumericLiteral(height.type)) {
-                tags.push(`${width.type.toString()}x${height.type.toString()}`);
+                tags.push({
+                    kind: 'literal',
+                    value: `${width.type.toString()}x${height.type.toString()}`,
+                });
             }
             if (isNumericLiteral(channels.type)) {
                 const mode = getColorMode(channels.type.value);
                 if (mode) {
-                    tags.push(mode);
+                    tags.push({ kind: 'literal', value: mode });
                 }
+            }
+        }
+
+        if (isDirectory(type)) {
+            const [path] = type.fields;
+
+            if (isStringLiteral(path.type)) {
+                tags.push({ kind: 'path', value: path.type.value });
             }
         }
 
         if (type.name === 'PyTorchModel' || type.name === 'NcnnNetwork') {
             const scale = getField(type, 'scale') ?? NeverType.instance;
             if (isNumericLiteral(scale)) {
-                tags.push(`${scale.toString()}x`);
+                tags.push({ kind: 'literal', value: `${scale.toString()}x` });
             }
         }
     }
@@ -50,39 +75,99 @@ export interface TypeTagProps {
     isOptional?: boolean;
 }
 
-export const TypeTag = memo(({ children, isOptional }: React.PropsWithChildren<TypeTagProps>) => {
-    return (
-        <Tag
-            bgColor="var(--tag-bg)"
-            color="var(--tag-fg)"
-            fontSize="x-small"
-            fontStyle={isOptional ? 'italic' : undefined}
-            height="15px"
-            lineHeight="auto"
-            minHeight="15px"
-            minWidth={0}
-            ml={1}
-            px={1}
-            size="sm"
-            variant="subtle"
-        >
-            {children}
-        </Tag>
-    );
-});
+export const TypeTag = memo(
+    forwardRef<TypeTagProps, 'span'>((props, ref) => {
+        const { isOptional, ...rest } = props;
+        return (
+            <Tag
+                bgColor="var(--tag-bg)"
+                color="var(--tag-fg)"
+                fontSize="x-small"
+                fontStyle={isOptional ? 'italic' : undefined}
+                height="15px"
+                lineHeight="auto"
+                minHeight="15px"
+                minWidth={0}
+                ml={1}
+                px={1}
+                ref={ref}
+                size="sm"
+                variant="subtle"
+                whiteSpace="pre"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            />
+        );
+    })
+);
 
 export interface TypeTagsProps {
     type: Type;
     isOptional: boolean;
 }
 
+const Punctuation = memo(({ children }: React.PropsWithChildren<unknown>) => {
+    return <span style={{ opacity: '50%' }}>{children}</span>;
+});
+
+const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
+    const { kind, value } = tag;
+
+    switch (kind) {
+        case 'path': {
+            const maxLength = 16;
+            return (
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    label={value}
+                    openDelay={500}
+                    px={2}
+                    textAlign="center"
+                >
+                    <TypeTag>
+                        {value.length > maxLength && <Punctuation>…</Punctuation>}
+                        {value.slice(value.length - maxLength)}
+                    </TypeTag>
+                </Tooltip>
+            );
+        }
+        case 'string': {
+            const maxLength = 16;
+            return (
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    label={value}
+                    openDelay={500}
+                    px={2}
+                    textAlign="center"
+                >
+                    <TypeTag>
+                        {value.slice(0, maxLength)}
+                        {value.length > maxLength && <Punctuation>…</Punctuation>}
+                    </TypeTag>
+                </Tooltip>
+            );
+        }
+        case 'literal': {
+            return <TypeTag>{value}</TypeTag>;
+        }
+        default:
+            return assertNever(kind);
+    }
+});
+
 export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
     const tags = getTypeText(without(type, nullType));
 
     return (
         <>
-            {tags.map((text) => (
-                <TypeTag key={text}>{text}</TypeTag>
+            {tags.map((tag) => (
+                <TagRenderer
+                    key={`${tag.kind};${tag.value}`}
+                    tag={tag}
+                />
             ))}
             {isOptional && <TypeTag isOptional>optional</TypeTag>}
         </>

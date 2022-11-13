@@ -4,6 +4,7 @@ import { memo, useState } from 'react';
 import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { ContextMenuProvider } from './contexts/ContextMenuContext';
+import { HotkeysProvider } from './contexts/HotKeyContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
 import { theme } from './theme';
@@ -46,15 +47,17 @@ export const App = memo(() => {
     return (
         <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-            <ContextMenuProvider>
-                <AlertBoxProvider>
-                    {!port || !storageInitialized ? (
-                        <LoadingComponent />
-                    ) : (
-                        <MainComponent port={port} />
-                    )}
-                </AlertBoxProvider>
-            </ContextMenuProvider>
+            <HotkeysProvider>
+                <ContextMenuProvider>
+                    <AlertBoxProvider>
+                        {!port || !storageInitialized ? (
+                            <LoadingComponent />
+                        ) : (
+                            <MainComponent port={port} />
+                        )}
+                    </AlertBoxProvider>
+                </ContextMenuProvider>
+            </HotkeysProvider>
         </ChakraProvider>
     );
 });

@@ -18,11 +18,12 @@ import { app, clipboard, shell } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { assertNever, noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
 import { ContextMenuContext } from './ContextMenuContext';
+import { HotkeysContext } from './HotKeyContext';
 
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
@@ -163,6 +164,7 @@ export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox)
 
 export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const { closeContextMenu } = useContext(ContextMenuContext);
+    const setHotkeysEnabled = useContextSelector(HotkeysContext, (c) => c.setHotkeysEnabled);
 
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);
     const current = queue[0] as InternalMessage | undefined;
@@ -200,10 +202,10 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     useEffect(() => {
         if (current && !isOpen) {
-            ipcRenderer.send('disable-menu');
+            setHotkeysEnabled(false);
             onOpen();
         }
-    }, [current, isOpen, onOpen]);
+    }, [current, isOpen, onOpen, setHotkeysEnabled]);
 
     const onClose = useCallback(
         (button: number) => {
@@ -212,10 +214,10 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             setDone((prev) => prev + 1);
             if (isLast) {
                 onDisclosureClose();
-                ipcRenderer.send('enable-menu');
+                setHotkeysEnabled(true);
             }
         },
-        [current, isLast, setQueue, onDisclosureClose]
+        [current, isLast, setQueue, onDisclosureClose, setHotkeysEnabled]
     );
 
     const buttons = useMemo(() => {

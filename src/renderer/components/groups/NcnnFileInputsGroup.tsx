@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { checkFileExists } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -16,6 +16,13 @@ const ifExists = (file: string, then: () => void) => {
         .catch((reason) => log.error(reason));
 };
 
+const ifOtherExists = (file: string, extension: string, then: (other: string) => void) => {
+    const other = file.replace(/\.[a-z]+$/i, extension);
+    if (other !== file) {
+        ifExists(other, () => then(other));
+    }
+};
+
 export const NcnnFileInputsGroup = memo(
     ({
         inputs,
@@ -27,7 +34,23 @@ export const NcnnFileInputsGroup = memo(
     }: GroupProps<'ncnn-file-inputs'>) => {
         const [paramInput, binInput] = inputs;
 
-        const { setNodeInputValue } = useContext(GlobalContext);
+        const { getNodeInputValue, setNodeInputValue } = useContext(GlobalContext);
+
+        useEffect(() => {
+            const paramPath = getNodeInputValue(paramInput.id, inputData);
+            const binPath = getNodeInputValue(binInput.id, inputData);
+
+            if (typeof paramPath === 'string' && binPath === undefined) {
+                ifOtherExists(paramPath, '.bin', (bin) =>
+                    setNodeInputValue(nodeId, binInput.id, bin)
+                );
+            }
+            if (typeof binPath === 'string' && paramPath === undefined) {
+                ifOtherExists(binPath, '.param', (param) =>
+                    setNodeInputValue(nodeId, paramInput.id, param)
+                );
+            }
+        }, [paramInput, binInput, inputData, nodeId, getNodeInputValue, setNodeInputValue]);
 
         return (
             <>
@@ -40,12 +63,9 @@ export const NcnnFileInputsGroup = memo(
                     schemaId={schemaId}
                     onSetValue={(file) => {
                         if (typeof file === 'string') {
-                            const bin = file.replace(/\.param$/i, '.bin');
-                            if (bin !== file) {
-                                ifExists(file, () => {
-                                    setNodeInputValue(nodeId, binInput.id, bin);
-                                });
-                            }
+                            ifOtherExists(file, '.bin', (bin) =>
+                                setNodeInputValue(nodeId, binInput.id, bin)
+                            );
                         }
                     }}
                 />
@@ -58,12 +78,9 @@ export const NcnnFileInputsGroup = memo(
                     schemaId={schemaId}
                     onSetValue={(file) => {
                         if (typeof file === 'string') {
-                            const param = file.replace(/\.bin$/i, '.param');
-                            if (param !== file) {
-                                ifExists(file, () => {
-                                    setNodeInputValue(nodeId, paramInput.id, param);
-                                });
-                            }
+                            ifOtherExists(file, '.param', (param) =>
+                                setNodeInputValue(nodeId, paramInput.id, param)
+                            );
                         }
                     }}
                 />

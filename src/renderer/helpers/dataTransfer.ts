@@ -1,15 +1,14 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
-import { EdgeData, Input, InputId, NodeData, SchemaId } from '../../common/common-types';
+import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { PresetFile } from '../components/NodeSelectorPanel/presets';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
-
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+import { SetState } from './types';
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
@@ -133,32 +132,31 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
     return false;
 };
 
-const openImageFileProcessor: DataTransferProcessor = (
+const openFileProcessor: DataTransferProcessor = (
     dataTransfer,
     { schemata, getNodePosition, createNode }
 ) => {
-    const LOAD_IMAGE_ID = 'chainner:image:load' as SchemaId;
-    if (!schemata.has(LOAD_IMAGE_ID)) return false;
-    const schema = schemata.get(LOAD_IMAGE_ID);
-    const input = schema.inputs[0] as Input | undefined;
-    const fileTypes = input && input.kind === 'file' && input.filetypes;
-    if (!fileTypes) return false;
+    for (const schema of schemata.schemata) {
+        for (const input of schema.inputs) {
+            if (input.kind === 'file' && input.primaryInput) {
+                const path = getSingleFileWithExtension(dataTransfer, input.filetypes);
+                if (path) {
+                    // found a supported file type
 
-    const path = getSingleFileWithExtension(dataTransfer, fileTypes);
-    if (path) {
-        // found a supported image file
+                    createNode({
+                        // hard-coded offset because it looks nicer
+                        position: getNodePosition(100, 100),
+                        data: {
+                            schemaId: schema.schemaId,
+                            inputData: { [input.id]: path },
+                        },
+                        nodeType: schema.nodeType,
+                    });
 
-        createNode({
-            // hard-coded offset because it looks nicer
-            position: getNodePosition(100, 100),
-            data: {
-                schemaId: LOAD_IMAGE_ID,
-                inputData: { [0 as InputId]: path },
-            },
-            nodeType: schema.nodeType,
-        });
-
-        return true;
+                    return true;
+                }
+            }
+        }
     }
     return false;
 };
@@ -167,5 +165,5 @@ export const dataTransferProcessors: readonly DataTransferProcessor[] = [
     chainnerSchemaProcessor,
     chainnerPresetProcessor,
     openChainnerFileProcessor,
-    openImageFileProcessor,
+    openFileProcessor,
 ];

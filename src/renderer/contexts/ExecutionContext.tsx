@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -25,6 +24,7 @@ import {
 import { getConnectedInputs } from '../helpers/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
+import { SetState } from '../helpers/types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventMap,
@@ -33,6 +33,7 @@ import {
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
+import { useHotkeys } from '../hooks/useHotkeys';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -56,7 +57,7 @@ interface ExecutionContextValue {
     kill: () => Promise<void>;
     status: ExecutionStatus;
     isBackendKilled: boolean;
-    setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsBackendKilled: SetState<boolean>;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -199,10 +200,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
         useContext(SettingsContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
-    const { nodeChanges, edgeChanges } = useContextSelector(GlobalVolatileContext, (c) => ({
-        nodeChanges: c.nodeChanges,
-        edgeChanges: c.edgeChanges,
-    }));
+    const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
+    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
@@ -302,12 +301,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend, sendAlert]);
 
-    const previousStatus = useRef(status);
+    const lastChangesRef = useRef(`${nodeChanges} ${edgeChanges}`);
     useEffect(() => {
-        if (
-            status === ExecutionStatus.RUNNING &&
-            previousStatus.current === ExecutionStatus.RUNNING
-        ) {
+        const currentChanges = `${nodeChanges} ${edgeChanges}`;
+        if (lastChangesRef.current === currentChanges) return;
+        lastChangesRef.current = currentChanges;
+
+        if (status === ExecutionStatus.RUNNING) {
             sendToast({
                 status: 'warning',
                 description:
@@ -316,10 +316,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 variant: 'subtle',
                 position: 'bottom',
             });
-        } else if (
-            status === ExecutionStatus.PAUSED &&
-            previousStatus.current === ExecutionStatus.PAUSED
-        ) {
+        } else if (status === ExecutionStatus.PAUSED) {
             sendToast({
                 status: 'warning',
                 description:
@@ -329,10 +326,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 position: 'bottom',
             });
         }
-        previousStatus.current = status;
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
-    const runNodes = async () => {
+    const runNodes = useCallback(async () => {
         const allNodes = getNodes();
         const allEdges = getEdges();
 
@@ -415,9 +411,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
-    };
+    }, [
+        animate,
+        backend,
+        getEdges,
+        getNodes,
+        schemata,
+        typeStateRef,
+        sendAlert,
+        unAnimate,
+        isCpu,
+        isFp16,
+        ncnnGPU,
+        onnxExecutionProvider,
+        onnxGPU,
+        pytorchGPU,
+    ]);
 
-    const resume = async () => {
+    const resume = useCallback(async () => {
         try {
             const response = await backend.resume();
             if (response.type === 'error') {
@@ -431,17 +442,17 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
-    const run = async () => {
+    const run = useCallback(async () => {
         if (status === ExecutionStatus.PAUSED) {
             await resume();
         } else {
             await runNodes();
         }
-    };
+    }, [resume, runNodes, status]);
 
-    const pause = async () => {
+    const pause = useCallback(async () => {
         try {
             const response = await backend.pause();
             if (response.type === 'error') {
@@ -455,9 +466,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
-    const kill = async () => {
+    const kill = useCallback(async () => {
         try {
             const response = await backend.kill();
             if (response.type === 'error') {
@@ -466,11 +477,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    };
+    }, [backend, sendAlert]);
 
     useHotkeys(
         'F5',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.READY:
                 case ExecutionStatus.PAUSED:
@@ -482,13 +493,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [run, pause, status]
+        }, [run, status])
     );
 
     useHotkeys(
         'F6',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.RUNNING:
                     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -500,13 +510,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [run, pause, status]
+        }, [pause, status])
     );
 
     useHotkeys(
         'F7',
-        () => {
+        useCallback(() => {
             switch (status) {
                 case ExecutionStatus.RUNNING:
                 case ExecutionStatus.PAUSED:
@@ -518,8 +527,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 default:
                     assertNever(status);
             }
-        },
-        [kill]
+        }, [kill, status])
     );
 
     const statusValue = useMemoObject<ExecutionStatusContextValue>({

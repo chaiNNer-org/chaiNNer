@@ -25,7 +25,7 @@ class LoadModelNode(NodeBase):
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
             Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT."""
-        self.inputs = [PthFileInput()]
+        self.inputs = [PthFileInput(primary_input=True)]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
             DirectoryOutput("Model Directory").with_id(2),

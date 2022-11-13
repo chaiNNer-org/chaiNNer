@@ -3,6 +3,7 @@ import { Input } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
+import { stopPropagation } from '../../../common/util';
 import { InputProps } from './props';
 
 const typeToString = (type: Type): Type => {
@@ -22,6 +23,12 @@ export const TextInput = memo(
         const { label, minLength, maxLength, def, placeholder } = input;
 
         const [tempText, setTempText] = useState(value ?? '');
+
+        useEffect(() => {
+            if (value !== undefined) {
+                setTempText(value);
+            }
+        }, [value]);
 
         useEffect(() => {
             if (value === undefined) {
@@ -63,9 +70,7 @@ export const TextInput = memo(
                     setTempText(event.target.value);
                     handleChange(event);
                 }}
-                onKeyDown={(event) => {
-                    event.stopPropagation();
-                }}
+                onKeyDown={stopPropagation}
             />
         );
     }

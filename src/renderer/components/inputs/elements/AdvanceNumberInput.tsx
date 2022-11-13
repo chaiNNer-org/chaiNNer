@@ -8,7 +8,7 @@ import {
     NumberInputStepper,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import { areApproximatelyEqual } from '../../../../common/util';
+import { areApproximatelyEqual, stopPropagation } from '../../../../common/util';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
     if (min != null && value < min) return min;
@@ -104,6 +104,7 @@ export const AdvancedNumberInput = memo(
                         value={inputString}
                         onBlur={onBlur}
                         onChange={setInputString}
+                        onKeyDown={stopPropagation}
                     >
                         <NumberInputField
                             borderLeftRadius={unit ? 0 : 'xs'}
@@ -142,6 +143,7 @@ export const AdvancedNumberInput = memo(
                     value={inputString}
                     onBlur={onBlur}
                     onChange={setInputString}
+                    onKeyDown={stopPropagation}
                 >
                     <NumberInputField
                         borderLeftRadius={unit ? 0 : 'md'}
