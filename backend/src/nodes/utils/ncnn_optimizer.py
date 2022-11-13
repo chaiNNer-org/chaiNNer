@@ -1,7 +1,7 @@
 from math import sqrt
 
 import numpy as np
-from typing import cast
+from checked_cast import checked_cast
 from ncnn_model import BinaryOpTypes as BOT
 from ncnn_model import EltwiseOpTypes as EOT
 from ncnn_model import NcnnLayer, NcnnModel
@@ -35,7 +35,7 @@ class NcnnOptimizer:
                 batchnorm = self.model.layers[i]
                 scale = self.model.layers[j]
 
-                channels = cast(int, batchnorm.params[0].value)
+                channels = checked_cast(int, batchnorm.params[0].value)
                 slope = batchnorm.weight_data["slope"].weight
                 bias = batchnorm.weight_data["bias"].weight
 
@@ -80,7 +80,7 @@ class NcnnOptimizer:
                 # fuse Convolution - BatchNorm to Convolution
                 batchnorm = self.model.layers[j]
 
-                channels = cast(int, batchnorm.params[0].value)
+                channels = checked_cast(int, batchnorm.params[0].value)
                 eps = batchnorm.params[1].value
 
                 # a = bias - slope * mean / sqrt(var + eps)
@@ -103,7 +103,7 @@ class NcnnOptimizer:
                     layer.params[5] = 1
                     layer.add_weight(np.zeros(channels, np.float32), "bias")
 
-                weight_per_outch = cast(int, layer.params[6].value) // channels
+                weight_per_outch = checked_cast(int, layer.params[6].value) // channels
                 weight = layer.weight_data["weight"].weight
                 bias = layer.weight_data["bias"].weight
 
@@ -160,7 +160,7 @@ class NcnnOptimizer:
 
                 memorydata = self.model.layers[k]
 
-                channels = cast(int, layer.params[0].value)
+                channels = checked_cast(int, layer.params[0].value)
 
                 if (
                     memorydata.params[0].value != channels
@@ -170,7 +170,7 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
-                weight_per_outch = cast(int, layer.params[6].value) // channels
+                weight_per_outch = checked_cast(int, layer.params[6].value) // channels
                 weight = layer.weight_data["weight"].weight
                 bias = layer.weight_data["bias"].weight
 
@@ -228,7 +228,7 @@ class NcnnOptimizer:
 
                 memorydata = self.model.layers[k]
 
-                channels = cast(int, layer.params[0].value)
+                channels = checked_cast(int, layer.params[0].value)
 
                 if (
                     memorydata.params[0].value == channels
@@ -292,7 +292,7 @@ class NcnnOptimizer:
                         layer.params[9] = 1
                     else:
                         layer.params[9] = 2
-                        layer.params[10] = [1, cast(float, act.params[0].value)]
+                        layer.params[10] = [1, checked_cast(float, act.params[0].value)]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -358,8 +358,8 @@ class NcnnOptimizer:
                         1,
                         [
                             2,
-                            cast(float, binaryop0.params[2].value),
-                            cast(float, binaryop1.params[2].value),
+                            checked_cast(float, binaryop0.params[2].value),
+                            checked_cast(float, binaryop1.params[2].value),
                         ],
                     )
                     eltwise.inputs[0] = binaryop0.inputs[0]
@@ -371,7 +371,7 @@ class NcnnOptimizer:
                 elif j0 != i and j1 == i:
                     # fuse BinaryOp - X - BinaryOp to Eltwise
                     eltwise.add_param(
-                        1, [2, cast(float, binaryop0.params[2].value), 1.0]
+                        1, [2, checked_cast(float, binaryop0.params[2].value), 1.0]
                     )
                     eltwise.inputs[0] = binaryop0.inputs[0]
                     self.model.node_count -= 1
@@ -380,7 +380,7 @@ class NcnnOptimizer:
                 else:
                     # fuse X - BinaryOp - BinaryOp to Eltwise
                     eltwise.add_param(
-                        1, [2, 1.0, cast(float, binaryop1.params[2].value)]
+                        1, [2, 1.0, checked_cast(float, binaryop1.params[2].value)]
                     )
                     eltwise.inputs[1] = binaryop1.inputs[0]
                     self.model.node_count -= 1
