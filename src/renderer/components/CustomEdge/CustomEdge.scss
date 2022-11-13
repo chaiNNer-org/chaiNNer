@@ -1,3 +1,5 @@
+@use 'colors.scss';
+
 @keyframes dashdraw-chain {
     from {
         stroke-dashoffset: 13;

@@ -12,7 +12,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { shadeColor } from '../../helpers/colorTools';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
-import './styles.scss';
+import './CustomEdge.scss';
 
 export const CustomEdge = memo(
     ({
