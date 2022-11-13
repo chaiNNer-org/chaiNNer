@@ -301,12 +301,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend, sendAlert]);
 
-    const previousStatus = useRef(status);
+    const lastChangesRef = useRef(`${nodeChanges} ${edgeChanges}`);
     useEffect(() => {
-        if (
-            status === ExecutionStatus.RUNNING &&
-            previousStatus.current === ExecutionStatus.RUNNING
-        ) {
+        const currentChanges = `${nodeChanges} ${edgeChanges}`;
+        if (lastChangesRef.current === currentChanges) return;
+        lastChangesRef.current = currentChanges;
+
+        if (status === ExecutionStatus.RUNNING) {
             sendToast({
                 status: 'warning',
                 description:
@@ -315,10 +316,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 variant: 'subtle',
                 position: 'bottom',
             });
-        } else if (
-            status === ExecutionStatus.PAUSED &&
-            previousStatus.current === ExecutionStatus.PAUSED
-        ) {
+        } else if (status === ExecutionStatus.PAUSED) {
             sendToast({
                 status: 'warning',
                 description:
@@ -328,7 +326,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 position: 'bottom',
             });
         }
-        previousStatus.current = status;
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = useCallback(async () => {
