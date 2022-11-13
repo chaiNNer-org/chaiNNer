@@ -2,7 +2,7 @@ import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
 from json import load as jload
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, cast
 
 import numpy as np
 from sanic.log import logger
@@ -208,7 +208,7 @@ class NcnnParamCollection:
                     msg = f"Op {self.op} does not have param {value}, please report"
                     raise KeyError(msg) from exc
 
-            return NcnnParam(idstr, param["paramPhase"], value, defaultValue)  # type: ignore
+            return NcnnParam(idstr, param["paramPhase"], value, defaultValue)
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]
@@ -249,8 +249,11 @@ class NcnnParamCollection:
                         pid = int(key)
                         break
                 else:
-                    logger.error("What happened here?")
-                    raise KeyError
+                    msg = f"Op {self.op} does not have param {v.default}, please report"
+                    raise KeyError(msg)
+
+                # If a param that defaults to the value of another param, if it's value
+                # equals that of the second param or its default, skip writing it
                 if (
                     v.value == self.param_dict[pid].value
                     or v.value == self.param_dict[pid].default
@@ -258,17 +261,17 @@ class NcnnParamCollection:
                     continue
 
             if isinstance(v.value, list):
-                output += "-233" + v.id.zfill(2) + "="
+                output += " -233" + v.id.zfill(2) + "="
             else:
-                output += v.id + "="
+                output += " " + v.id + "="
 
-            if isinstance(v.value, float) or (isinstance(v.value, np.float32)):  # type: ignore
+            if isinstance(v.value, (float, np.floating)):
                 v_str = np.format_float_scientific(v.value, 6, False, exp_digits=2)
             elif isinstance(v.value, list):
                 v_str = ",".join(
                     [
                         np.format_float_scientific(n, 6, False, exp_digits=2)
-                        if (isinstance(n, float) or isinstance(n, np.float32))  # type: ignore
+                        if isinstance(n, (float, np.floating))
                         else str(n)
                         for n in v.value
                     ]
@@ -276,9 +279,9 @@ class NcnnParamCollection:
             else:
                 v_str = str(v.value)
 
-            output += v_str + " "
+            output += v_str
 
-        return output.rstrip()
+        return output
 
     def set_op(self, op: str) -> None:
         self.op = op
@@ -321,14 +324,14 @@ class NcnnLayer:
         weight_name: str,
         quantize_tag: bytes = b"",
     ) -> int:
-        if isinstance(data, TensorProto):  # type: ignore
-            data_array = onph.to_array(data)  # type: ignore
+        if isinstance(data, np.ndarray):
+            data_array = data
         elif isinstance(data, float):
             data_array = np.array(data, np.float32)
         elif isinstance(data, int):
             data_array = np.array(data, np.int32)
         else:
-            data_array = data
+            data_array = onph.to_array(data)  # type: ignore
 
         if quantize_tag == DTYPE_FP16:
             data_array = data_array.astype(np.float16)
@@ -509,8 +512,7 @@ class NcnnModel:
         if op_type == "Convolution":
             quantize_tag = binf.read(4)
             dtype = DTYPE_DICT[quantize_tag]
-            weight_data_length = layer.params[6].value
-            assert isinstance(weight_data_length, int), "Data size must be int"
+            weight_data_length = cast(int, layer.params[6].value)
             weight_data_size = (
                 weight_data_length * 2
                 if quantize_tag == DTYPE_FP16
@@ -519,25 +521,24 @@ class NcnnModel:
 
             has_bias = layer.params[5].value
 
-            num_filters = layer.params[0].value
-            kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value
-            num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
+            num_filters = cast(int, layer.params[0].value)
+            kernel_w = cast(int, layer.params[1].value)
+            kernel_h = cast(int, layer.params[11].value)
+            num_input = weight_data_length // num_filters // kernel_w // kernel_h
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
             weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
-            weight_data = weight_data.reshape(shape)  # type: ignore
+            weight_data = weight_data.reshape(shape)
             weight_dict["weight"] = NcnnWeight(weight_data, quantize_tag)
 
             if has_bias:
                 bias_data_size = num_filters * 4
-                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
+                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)
                 weight_dict["bias"] = NcnnWeight(bias_data)
         elif op_type == "Deconvolution":
             quantize_tag = binf.read(4)
             dtype = DTYPE_DICT[quantize_tag]
-            weight_data_length = layer.params[6].value
-            assert isinstance(weight_data_length, int), "Data size must be int"
+            weight_data_length = cast(int, layer.params[6].value)
             weight_data_size = (
                 weight_data_length * 2
                 if quantize_tag == DTYPE_FP16
@@ -546,19 +547,19 @@ class NcnnModel:
 
             has_bias = layer.params[5].value
 
-            num_filters = layer.params[0].value
-            kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value
-            num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
+            num_filters = cast(int, layer.params[0].value)
+            kernel_w = cast(int, layer.params[1].value)
+            kernel_h = cast(int, layer.params[11].value)
+            num_input = weight_data_length // num_filters // kernel_w // kernel_h
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
             weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
-            weight_data = weight_data.reshape(shape)  # type: ignore
+            weight_data = weight_data.reshape(shape)
             weight_dict["weight"] = NcnnWeight(weight_data, quantize_tag)
 
             if has_bias:
                 bias_data_size = num_filters * 4
-                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
+                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)
                 weight_dict["bias"] = NcnnWeight(bias_data)
         elif op_type == "InnerProduct":
             quantize_tag = binf.read(4)
@@ -616,7 +617,7 @@ class NcnnModel:
                 if layer.params.param_dict:
                     param_str = str(layer.params)
                     if param_str:
-                        p.write(f" {param_str}")
+                        p.write(f"{param_str}")
                 p.write("\n")
 
             if filename:
@@ -695,12 +696,12 @@ class NcnnModelWrapper:
                         model.layers[i + 1].op_type != "BinaryOp"
                         and model.layers[i + 1].params[0].value != 0
                     ):
-                        scale *= layer.params[1].value  # type: ignore
+                        scale *= cast(int, layer.params[1].value)
                 except IndexError:
                     pass
             elif layer.op_type == "PixelShuffle":
-                scale *= layer.params[0].value  # type: ignore
-                pixel_shuffle *= int(layer.params[0].value)  # type: ignore
+                scale *= cast(int, layer.params[0].value)
+                pixel_shuffle *= cast(int, layer.params[0].value)
             elif layer.op_type in (
                 "Convolution",
                 "Convolution1D",
@@ -712,19 +713,23 @@ class NcnnModelWrapper:
                         fp = "fp16"
                     found_first_conv = True
 
-                scale /= layer.params[3].value  # type: ignore
+                scale /= cast(int, layer.params[3].value)
                 current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
                 if found_first_conv is not True:
                     nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
                     found_first_conv = True
 
-                scale *= layer.params[3].value  # type: ignore
+                scale *= cast(int, layer.params[3].value)
                 current_conv = layer
 
-        out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
+        assert (
+            current_conv is not None
+        ), "Cannot broadcast; model has no Convolution layers"
 
-        return int(scale), in_nc, out_nc, nf, fp  # type: ignore
+        out_nc = cast(int, current_conv.params[0].value) // pixel_shuffle**2
+
+        return int(scale), in_nc, out_nc, nf, fp
 
     @staticmethod
     def get_nf_and_in_nc(layer: NcnnLayer) -> Tuple[int, int]:

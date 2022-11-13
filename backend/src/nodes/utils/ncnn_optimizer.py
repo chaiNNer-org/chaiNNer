@@ -1,9 +1,10 @@
 from math import sqrt
 
 import numpy as np
-from .ncnn_model import BinaryOpTypes as BOT
-from .ncnn_model import EltwiseOpTypes as EOT
-from .ncnn_model import NcnnLayer, NcnnModel
+from typing import cast
+from ncnn_model import BinaryOpTypes as BOT
+from ncnn_model import EltwiseOpTypes as EOT
+from ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -34,11 +35,11 @@ class NcnnOptimizer:
                 batchnorm = self.model.layers[i]
                 scale = self.model.layers[j]
 
-                channels = batchnorm.params[0].value
+                channels = cast(int, batchnorm.params[0].value)
                 slope = batchnorm.weight_data["slope"].weight
                 bias = batchnorm.weight_data["bias"].weight
 
-                for c in range(channels):  # type: ignore
+                for c in range(channels):
                     slope[c] = slope[c] * scale.weight_data["scale"]
                     if scale.params[1].value:
                         bias[c] = (
@@ -79,15 +80,15 @@ class NcnnOptimizer:
                 # fuse Convolution - BatchNorm to Convolution
                 batchnorm = self.model.layers[j]
 
-                channels = batchnorm.params[0].value
+                channels = cast(int, batchnorm.params[0].value)
                 eps = batchnorm.params[1].value
 
                 # a = bias - slope * mean / sqrt(var + eps)
                 # b = slope / sqrt(var + eps)
                 # value = value * b + a
-                a = list(range(channels))  # type: ignore
-                b = list(range(channels))  # type: ignore
-                for c in range(channels):  # type: ignore
+                a = list(range(channels))
+                b = list(range(channels))
+                for c in range(channels):
                     sqrt_var = sqrt(batchnorm.weight_data["variance"].weight[i] + eps)
                     a[i] = (
                         batchnorm.weight_data["bias"].weight[i]
@@ -100,13 +101,13 @@ class NcnnOptimizer:
                 if layer.params[5].value == 0:
                     # init bias as zero
                     layer.params[5] = 1
-                    layer.weight_data["bias"] = np.zeros(channels, np.float32)  # type: ignore
+                    layer.add_weight(np.zeros(channels, np.float32), "bias")
 
-                weight_per_outch = layer.params[6].value / channels  # type: ignore
+                weight_per_outch = cast(int, layer.params[6].value) // channels
                 weight = layer.weight_data["weight"].weight
                 bias = layer.weight_data["bias"].weight
 
-                for c in range(channels):  # type: ignore
+                for c in range(channels):
                     conv_weight_outch = weight + weight_per_outch * c
                     for w in range(weight_per_outch):
                         conv_weight_outch[w] *= b[c]
@@ -159,7 +160,7 @@ class NcnnOptimizer:
 
                 memorydata = self.model.layers[k]
 
-                channels = layer.params[0].value
+                channels = cast(int, layer.params[0].value)
 
                 if (
                     memorydata.params[0].value != channels
@@ -169,19 +170,17 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
-                weight_per_outch = layer.params[6].value / channels  # type: ignore
+                weight_per_outch = cast(int, layer.params[6].value) // channels
                 weight = layer.weight_data["weight"].weight
                 bias = layer.weight_data["bias"].weight
 
-                for c in range(channels):  # type: ignore
+                for c in range(channels):
                     conv_weight_outch = weight + weight_per_outch * c
                     for w in range(weight_per_outch):
                         conv_weight_outch[w] *= memorydata.weight_data["data"].weight[c]
 
                     if bias:
-                        bias[i] = (
-                            bias[i] * memorydata.weight_data["data"].weight[i]
-                        )  # type: ignore
+                        bias[i] = bias[i] * memorydata.weight_data["data"].weight[i]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -229,7 +228,7 @@ class NcnnOptimizer:
 
                 memorydata = self.model.layers[k]
 
-                channels = layer.params[0].value
+                channels = cast(int, layer.params[0].value)
 
                 if (
                     memorydata.params[0].value == channels
@@ -243,7 +242,7 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
-                bias_data = memorydata.weight_data["data"].weight.reshape(channels)  # type: ignore
+                bias_data = memorydata.weight_data["data"].weight.reshape(channels)
 
                 if layer.params[5].value == 0:
                     # init bias
@@ -251,7 +250,7 @@ class NcnnOptimizer:
                     layer.add_weight(bias_data, "bias")
                 else:
                     bias = layer.weight_data["bias"].weight
-                    for c in range(channels):  # type: ignore
+                    for c in range(channels):
                         bias[c] = bias[c] + bias_data[c]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
@@ -293,7 +292,7 @@ class NcnnOptimizer:
                         layer.params[9] = 1
                     else:
                         layer.params[9] = 2
-                        layer.params[10] = [1, act.params[0].value]  # type: ignore
+                        layer.params[10] = [1, cast(float, act.params[0].value)]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -355,7 +354,14 @@ class NcnnOptimizer:
                 eltwise.add_param(0, EOT.SUM)
                 if j0 != i and j1 != i:
                     # fuse BinaryOp - BinaryOp - BinaryOp to Eltwise
-                    eltwise.add_param(1, [2, binaryop0.params[2].value, binaryop1.params[2].value])  # type: ignore
+                    eltwise.add_param(
+                        1,
+                        [
+                            2,
+                            cast(float, binaryop0.params[2].value),
+                            cast(float, binaryop1.params[2].value),
+                        ],
+                    )
                     eltwise.inputs[0] = binaryop0.inputs[0]
                     eltwise.inputs[1] = binaryop1.inputs[0]
                     self.model.node_count -= 2
@@ -364,14 +370,18 @@ class NcnnOptimizer:
                     binaryop1.op_type = "ncnnfused"
                 elif j0 != i and j1 == i:
                     # fuse BinaryOp - X - BinaryOp to Eltwise
-                    eltwise.add_param(1, [2, binaryop0.params[2].value, 1.0])  # type: ignore
+                    eltwise.add_param(
+                        1, [2, cast(float, binaryop0.params[2].value), 1.0]
+                    )
                     eltwise.inputs[0] = binaryop0.inputs[0]
                     self.model.node_count -= 1
                     self.model.blob_count -= 1
                     binaryop0.op_type = "ncnnfused"
                 else:
                     # fuse X - BinaryOp - BinaryOp to Eltwise
-                    eltwise.add_param(1, [2, 1.0, binaryop1.params[2].value])  # type: ignore
+                    eltwise.add_param(
+                        1, [2, 1.0, cast(float, binaryop1.params[2].value)]
+                    )
                     eltwise.inputs[1] = binaryop1.inputs[0]
                     self.model.node_count -= 1
                     self.model.blob_count -= 1
