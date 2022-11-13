@@ -10,10 +10,20 @@ from .utils import denorm, MAX_VALUES_BY_DTYPE
 
 
 def to_pytorch_execution_options(options: ExecutionOptions):
+    # CPU override
+    if options.full_device == "cpu":
+        device = "cpu"
+    # Check for Nvidia CUDA
+    elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
+        device = "cuda"
+    # Check for Apple MPS
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
+        device = "mps"
+    else:
+        device = "cpu"
+
     return ExecutionOptions(
-        device="cuda"
-        if torch.cuda.is_available() and options.device != "cpu"
-        else "cpu",
+        device=device,
         fp16=options.fp16,
         pytorch_gpu_index=options.pytorch_gpu_index,
         ncnn_gpu_index=options.ncnn_gpu_index,

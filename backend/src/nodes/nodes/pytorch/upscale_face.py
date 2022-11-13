@@ -75,7 +75,7 @@ class FaceUpscaleNode(NodeBase):
     ):
         exec_options = to_pytorch_execution_options(get_execution_options())
 
-        device = torch.device(exec_options.device)
+        device = torch.device(exec_options.full_device)
         face_helper.clean_all()
 
         face_helper.read_image(img)
@@ -148,7 +148,7 @@ class FaceUpscaleNode(NodeBase):
             img = self.denormalize(img)
 
             exec_options = to_pytorch_execution_options(get_execution_options())
-            device = torch.device(exec_options.device)
+            device = torch.device(exec_options.full_device)
 
             weight = 0.5
 

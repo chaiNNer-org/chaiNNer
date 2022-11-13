@@ -50,14 +50,14 @@ class LoadModelNode(NodeBase):
         try:
             logger.debug(f"Reading state dict from path: {path}")
             state_dict = torch.load(
-                path, map_location=torch.device(exec_options.device)
+                path, map_location=torch.device(exec_options.full_device)
             )
             model = load_state_dict(state_dict)
 
             for _, v in model.named_parameters():
                 v.requires_grad = False
             model.eval()
-            model = model.to(torch.device(exec_options.device))
+            model = model.to(torch.device(exec_options.full_device))
             should_use_fp16 = exec_options.fp16 and model.supports_fp16
             if should_use_fp16:
                 model = model.half()
