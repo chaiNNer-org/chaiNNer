@@ -66,10 +66,10 @@ class ImageUpscaleNode(NodeBase):
 
             # TODO: use bfloat16 if RTX
             use_fp16 = options.fp16 and model.supports_fp16
-            device = torch.device(options.device)
+            device = torch.device(options.full_device)
 
             def estimate():
-                if "cuda" in options.device and tile_size is not None:
+                if "cuda" in options.full_device and tile_size is not None:
                     mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                     free, _total = mem_info
                     element_size = 2 if use_fp16 else 4
