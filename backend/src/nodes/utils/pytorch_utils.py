@@ -17,7 +17,7 @@ def to_pytorch_execution_options(options: ExecutionOptions):
     elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
         device = "cuda"
     # Check for Apple MPS
-    elif torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
         device = "mps"
     else:
         device = "cpu"
