@@ -57,7 +57,8 @@
           "config": {
             "name": "chainner",
             "iconUrl": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico",
-            "setupIcon": "./src/public/icons/win/icon.ico"
+            "setupIcon": "./src/public/icons/win/icon.ico",
+            "loadingGif": "./src/public/icons/win/installing_loop.gif"
           }
         },
         {
