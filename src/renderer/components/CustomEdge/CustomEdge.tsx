@@ -78,6 +78,10 @@ export const CustomEdge = memo(
 
         const showRunning = animated && !paused;
 
+        const classModifier = `${isHovered ? 'hovered' : ''} ${
+            showRunning && animateChain ? 'running' : ''
+        }`;
+
         return (
             <g
                 className="edge-chain-group"
@@ -92,39 +96,21 @@ export const CustomEdge = memo(
                 onMouseOver={() => hoverTimeout()}
             >
                 <path
-                    className={useMemo(
-                        () =>
-                            `edge-chain-links ${isHovered ? 'hovered' : ''} ${
-                                showRunning && animateChain ? 'running' : ''
-                            }`,
-                        [isHovered, showRunning, animateChain]
-                    )}
+                    className={`edge-chain-links ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
                     stroke={currentColor}
                 />
                 <path
-                    className={useMemo(
-                        () =>
-                            `edge-chain ${isHovered ? 'hovered' : ''} ${
-                                showRunning && animateChain ? 'running' : ''
-                            }`,
-                        [isHovered, showRunning, animateChain]
-                    )}
+                    className={`edge-chain ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
                     stroke={currentColor}
                 />
                 <path
-                    className={useMemo(
-                        () =>
-                            `edge-chain dot ${isHovered ? 'hovered' : ''} ${
-                                showRunning && animateChain ? 'running' : ''
-                            }`,
-                        [isHovered, showRunning, animateChain]
-                    )}
+                    className={`edge-chain dot ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
