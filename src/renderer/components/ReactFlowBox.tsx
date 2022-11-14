@@ -184,7 +184,7 @@ interface ReactFlowBoxProps {
 export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { createNode, createConnection, typeState } = useContext(GlobalVolatileContext);
+    const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
         setZoom,
         setHoveredNode,
@@ -400,7 +400,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges();
             addEdgeChanges();
         },
-        [addNodeChanges, addEdgeChanges, changeNodes, nodes, changeEdges, edges]
+        [
+            nodes,
+            addNodeChanges,
+            addEdgeChanges,
+            edges,
+            functionDefinitions,
+            removeEdgeById,
+            createConnection,
+            changeNodes,
+            changeEdges,
+        ]
     );
 
     const onSelectionDragStop = useCallback(
