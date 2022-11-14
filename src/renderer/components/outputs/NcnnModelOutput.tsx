@@ -82,14 +82,6 @@ export const NcnnModelOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.scale}x
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
                                     {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
                                 </Tag>
                             </WrapItem>
