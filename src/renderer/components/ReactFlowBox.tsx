@@ -257,20 +257,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            // Line from top left to bottom right of node
-            const nodeLineTLBR: Line = {
-                sourceX: node.position.x,
-                sourceY: node.position.y,
-                targetX: (node.position.x || 0) + (node.width || 0),
-                targetY: (node.position.y || 0) + (node.height || 0),
-            };
-            // Line from top right to bottom left of node
-            const nodeLineTRBL: Line = {
-                sourceX: (node.position.x || 0) + (node.width || 0),
-                sourceY: node.position.y,
-                targetX: node.position.x,
-                targetY: (node.position.y || 0) + (node.height || 0),
-            };
             // Finds the first edge that intersects with the node
             const intersectingEdge = edges.find((e) => {
                 if (
@@ -303,6 +289,22 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 ) {
                     return false;
                 }
+
+                // Line from top left to bottom right of node
+                const nodeLineTLBR: Line = {
+                    sourceX: node.position.x,
+                    sourceY: node.position.y,
+                    targetX: (node.position.x || 0) + (node.width || 0),
+                    targetY: (node.position.y || 0) + (node.height || 0),
+                };
+                // Line from top right to bottom left of node
+                const nodeLineTRBL: Line = {
+                    sourceX: (node.position.x || 0) + (node.width || 0),
+                    sourceY: node.position.y,
+                    targetX: node.position.x,
+                    targetY: (node.position.y || 0) + (node.height || 0),
+                };
+
                 // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
                 return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
             });
