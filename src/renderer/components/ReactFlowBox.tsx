@@ -241,98 +241,111 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
     }, [nodes, edges, isSnapToGrid, snapToGridAmount]);
 
-    const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+    const performNodeOnEdgeCollisionDetection = useCallback(
+        (node: Node<NodeData>) => {
             // Node-on-edge collision detection
             // On each edge, perform collision detection
             // We just check an intersection between two lines on the node and one line for the edge, for simplicity
             // One line is the straight line from one handle to another, the others are a diagonal lines representing the node
             // I believe it will have much better performance this way, plus the math is just simpler to comprehend
-            if (node) {
-                // But first, we need to make sure this node is an orphan. We can do a find so it stops early
-                const hasConnectedEdge = !!edges.find(
-                    (e) => e.source === node.id || e.target === node.id
-                );
-                if (!hasConnectedEdge) {
-                    // Line from top left to bottom right of node
-                    const nodeLineTLBR: Line = {
-                        sourceX: node.position.x,
-                        sourceY: node.position.y,
-                        targetX: (node.position.x || 0) + (node.width || 0),
-                        targetY: (node.position.y || 0) + (node.height || 0),
-                    };
-                    // Line from top right to bottom left of node
-                    const nodeLineTRBL: Line = {
-                        sourceX: (node.position.x || 0) + (node.width || 0),
-                        sourceY: node.position.y,
-                        targetX: node.position.x,
-                        targetY: (node.position.y || 0) + (node.height || 0),
-                    };
-                    // Finds the first edge that intersects with the node
-                    const intersectingEdge = edges.find((e) => {
-                        if (
-                            !e.data ||
-                            !e.data.sourceX ||
-                            !e.data.sourceY ||
-                            !e.data.targetX ||
-                            !e.data.targetY
-                        ) {
-                            return false;
-                        }
-                        const edgeLine: Line = {
-                            sourceX: e.data.sourceX,
-                            sourceY: e.data.sourceY,
-                            targetX: e.data.targetX,
-                            targetY: e.data.targetY,
-                        };
-                        // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
-                        return (
-                            intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine)
-                        );
-                    });
-                    if (intersectingEdge) {
-                        // Check if the node has valid connections it can make
-                        const edgeType = intersectingEdge.data?.type;
-                        const fn = functionDefinitions.get(node.data.schemaId);
-                        if (fn && edgeType) {
-                            const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                            if (firstPossibleInput !== undefined) {
-                                const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
-                                if (firstPossibleOutput !== undefined) {
-                                    const fromNode = nodes.find(
-                                        (n) => n.id === intersectingEdge.source
-                                    );
-                                    const toNode = nodes.find(
-                                        (n) => n.id === intersectingEdge.target
-                                    );
-                                    if (fromNode && toNode) {
-                                        removeEdgeById(intersectingEdge.id);
-                                        createConnection({
-                                            source: fromNode.id,
-                                            sourceHandle: intersectingEdge.sourceHandle!,
-                                            target: node.id,
-                                            targetHandle: stringifyTargetHandle({
-                                                nodeId: node.id,
-                                                inputId: firstPossibleInput,
-                                            }),
-                                        });
-                                        createConnection({
-                                            source: node.id,
-                                            sourceHandle: stringifySourceHandle({
-                                                nodeId: node.id,
-                                                outputId: firstPossibleOutput,
-                                            }),
-                                            target: toNode.id,
-                                            targetHandle: intersectingEdge.targetHandle!,
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            // But first, we need to make sure this node is an orphan. We can do a find so it stops early
+            const hasConnectedEdge = !!edges.find(
+                (e) => e.source === node.id || e.target === node.id
+            );
+
+            if (hasConnectedEdge) {
+                return;
             }
 
+            // Line from top left to bottom right of node
+            const nodeLineTLBR: Line = {
+                sourceX: node.position.x,
+                sourceY: node.position.y,
+                targetX: (node.position.x || 0) + (node.width || 0),
+                targetY: (node.position.y || 0) + (node.height || 0),
+            };
+            // Line from top right to bottom left of node
+            const nodeLineTRBL: Line = {
+                sourceX: (node.position.x || 0) + (node.width || 0),
+                sourceY: node.position.y,
+                targetX: node.position.x,
+                targetY: (node.position.y || 0) + (node.height || 0),
+            };
+            // Finds the first edge that intersects with the node
+            const intersectingEdge = edges.find((e) => {
+                if (
+                    !e.data ||
+                    !e.data.sourceX ||
+                    !e.data.sourceY ||
+                    !e.data.targetX ||
+                    !e.data.targetY
+                ) {
+                    return false;
+                }
+                const edgeLine: Line = {
+                    sourceX: e.data.sourceX,
+                    sourceY: e.data.sourceY,
+                    targetX: e.data.targetX,
+                    targetY: e.data.targetY,
+                };
+                // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
+                return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
+            });
+
+            if (!intersectingEdge) {
+                return;
+            }
+
+            // Check if the node has valid connections it can make
+            const edgeType = intersectingEdge.data?.type;
+            const fn = functionDefinitions.get(node.data.schemaId);
+            if (!(fn && edgeType)) {
+                return;
+            }
+
+            const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+            if (firstPossibleInput === undefined) {
+                return;
+            }
+            const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+            if (firstPossibleOutput === undefined) {
+                return;
+            }
+
+            const fromNode = nodes.find((n) => n.id === intersectingEdge.source);
+            const toNode = nodes.find((n) => n.id === intersectingEdge.target);
+            if (!(fromNode && toNode)) {
+                return;
+            }
+
+            removeEdgeById(intersectingEdge.id);
+            createConnection({
+                source: fromNode.id,
+                sourceHandle: intersectingEdge.sourceHandle!,
+                target: node.id,
+                targetHandle: stringifyTargetHandle({
+                    nodeId: node.id,
+                    inputId: firstPossibleInput,
+                }),
+            });
+            createConnection({
+                source: node.id,
+                sourceHandle: stringifySourceHandle({
+                    nodeId: node.id,
+                    outputId: firstPossibleOutput,
+                }),
+                target: toNode.id,
+                targetHandle: intersectingEdge.targetHandle!,
+            });
+        },
+        [createConnection, edges, functionDefinitions, nodes, removeEdgeById]
+    );
+
+    const onNodeDragStop = useCallback(
+        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+            if (node) {
+                performNodeOnEdgeCollisionDetection(node);
+            }
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');
@@ -404,10 +417,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             nodes,
             addNodeChanges,
             addEdgeChanges,
+            performNodeOnEdgeCollisionDetection,
             edges,
-            functionDefinitions,
-            removeEdgeById,
-            createConnection,
             changeNodes,
             changeEdges,
         ]
