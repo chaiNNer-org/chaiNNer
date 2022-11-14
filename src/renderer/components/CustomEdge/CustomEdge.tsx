@@ -95,6 +95,8 @@ export const CustomEdge = memo(
             data.targetX = targetX;
             // eslint-disable-next-line no-param-reassign
             data.targetY = targetY;
+            // eslint-disable-next-line no-param-reassign
+            data.edgePath = edgePath;
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [sourceX, sourceY, targetX, targetY]);
 
@@ -104,6 +106,8 @@ export const CustomEdge = memo(
             data.type = type;
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [type]);
+
+        const DEBUG_LINE = true;
 
         return (
             <g
@@ -118,6 +122,16 @@ export const CustomEdge = memo(
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
+                {DEBUG_LINE && (
+                    <line
+                        stroke="red"
+                        strokeWidth={2}
+                        x1={sourceX}
+                        x2={targetX}
+                        y1={sourceY}
+                        y2={targetY}
+                    />
+                )}
                 <path
                     className={`edge-chain-links ${classModifier}`}
                     d={edgePath}

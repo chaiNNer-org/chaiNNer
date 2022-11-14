@@ -274,8 +274,33 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     targetX: e.data.targetX,
                     targetY: e.data.targetY,
                 };
+                const { edgePath } = e.data;
+                const edgeLines: Line[] = [];
+                if (edgePath) {
+                    const [sourcePos, sourceControlVals, targetControlVals, targetPos] =
+                        edgePath.split(' ');
+                    const [sourceControlX, sourceControlY] = sourceControlVals
+                        .replace('C', '')
+                        .split(',')
+                        .map(Number);
+                    const [targetControlX, targetControlY] = targetControlVals
+                        .split(',')
+                        .map(Number);
+                    const [targetX, targetY] = targetPos.split(',').map(Number);
+                    const [sourceX, sourceY] = sourcePos.replace('M', '').split(',').map(Number);
+                    console.log({
+                        sourceX,
+                        sourceY,
+                        sourceControlX,
+                        sourceControlY,
+                        targetControlX,
+                        targetControlY,
+                        targetX,
+                        targetY,
+                    });
+                }
+
                 // If not is not in the axis-aligned bounding box of the edge, we can skip it
-                // TODO: This doesnt account for negatives
                 const aabb = {
                     minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
                     maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
