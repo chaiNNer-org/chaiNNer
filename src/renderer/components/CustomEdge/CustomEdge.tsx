@@ -95,10 +95,8 @@ export const CustomEdge = memo(
             data.targetX = targetX;
             // eslint-disable-next-line no-param-reassign
             data.targetY = targetY;
-            // eslint-disable-next-line no-param-reassign
-            data.type = type;
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [sourceX, sourceY, targetX, targetY, type]);
+        }, [sourceX, sourceY, targetX, targetY]);
 
         // Handling this one separately since it happens far less often
         useEffect(() => {
