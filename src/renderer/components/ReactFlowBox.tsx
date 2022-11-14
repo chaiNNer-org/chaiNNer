@@ -275,6 +275,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     targetY: e.data.targetY,
                 };
                 // If not is not in the axis-aligned bounding box of the edge, we can skip it
+                // TODO: This doesnt account for negatives
                 const aabb = {
                     minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
                     maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
