@@ -288,6 +288,21 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     targetX: e.data.targetX,
                     targetY: e.data.targetY,
                 };
+                // If not is not in the axis-aligned bounding box of the edge, we can skip it
+                const aabb = {
+                    minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
+                    maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
+                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY),
+                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY),
+                };
+                if (
+                    node.position.x > aabb.maxX || // node is to the right of the edge
+                    node.position.x + (node.width || 0) < aabb.minX || // node is to the left of the edge
+                    node.position.y > aabb.maxY || // node is below the edge
+                    node.position.y + (node.height || 0) < aabb.minY // node is above the edge
+                ) {
+                    return false;
+                }
                 // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
                 return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
             });
