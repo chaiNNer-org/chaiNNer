@@ -54,11 +54,18 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 scale.op_type = "ncnnfused"
 
-    def __fuse_convolution_batchnorm(self):
+    def __fuse_x_batchnorm(self):
+        """Combines fuse_convolution_batchnorm, fuse_convolutiondepthwise_batchnorm,
+        fuse_deconvolution_batchnorm, fuse_deconvolutiondepthwise_batchnorm, and
+        fuse_innerproduct_batchnorm"""
+
         for i, layer in enumerate(self.model.layers):
-            if (
-                layer.op_type == "Convolution"
-                or layer.op_type == "ConvolutionDepthWise"
+            if layer.op_type in (
+                "Convolution",
+                "ConvolutionDepthWise",
+                "Deconvolution",
+                "DeconvolutionDepthWise",
+                "InnerProduct",
             ):
                 # Convolution - BatchNorm
                 output = layer.outputs[0]
@@ -98,12 +105,17 @@ class NcnnOptimizer:
                     )
                     b[i] = batchnorm.weight_data["slope"].weight[i] / sqrt_var
 
-                if layer.params[5].value == 0:
+                bias_term = 1 if layer.op_type == "InnerProduct" else 5
+                weight_size_term = 2 if layer.op_type == "InnerProduct" else 6
+
+                if layer.params[bias_term].value == 0:
                     # init bias as zero
-                    layer.params[5] = 1
+                    layer.params[bias_term] = 1
                     layer.add_weight("bias", np.zeros(channels, np.float32))
 
-                weight_per_outch = checked_cast(int, layer.params[6].value) // channels
+                weight_per_outch = (
+                    checked_cast(int, layer.params[weight_size_term].value) // channels
+                )
                 weight = layer.weight_data["weight"].weight
                 bias = layer.weight_data["bias"].weight
 
@@ -119,9 +131,16 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 batchnorm.op_type = "ncnnfused"
 
-    def __fuse_convolution_mul(self):
+    def __fuse_x_mul(self):
+        """Combines fuse_convolution_mul, fuse_convolutiondepthwise_mul,
+        and fuse_deconvolution_mul"""
+
         for i, layer in enumerate(self.model.layers):
-            if layer.op_type == "Convolution":
+            if layer.op_type in (
+                "Convolution",
+                "ConvolutionDepthWise",
+                "Deconvolution",
+            ):
                 # Convolution - BinaryOp
                 output = layer.outputs[0]
 
@@ -187,9 +206,17 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 binaryop.op_type = "ncnnfused"
 
-    def __fuse_convolution_add(self):
+    def __fuse_x_add(self):
+        """Combines fuse_convolution_add, fuse_convolutiondepthwise_add,
+        fuse_deconvolution_add, and fuse_innerproduct_add"""
+
         for i, layer in enumerate(self.model.layers):
-            if layer.op_type == "Convolution":
+            if layer.op_type in (
+                "Convolution",
+                "ConvolutionDepthWise",
+                "Deconvolution",
+                "InnerProduct",
+            ):
                 # Convolution - Add
                 output = layer.outputs[0]
 
@@ -230,7 +257,7 @@ class NcnnOptimizer:
 
                 channels = checked_cast(int, layer.params[0].value)
 
-                if (
+                if not (
                     memorydata.params[0].value == channels
                     and memorydata.params[1].value == 0
                     and memorydata.params[2].value == 0
@@ -242,11 +269,12 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
+                bias_term = 1 if layer.op_type == "InnerProduct" else 5
                 bias_data = memorydata.weight_data["data"].weight.reshape(channels)
 
-                if layer.params[5].value == 0:
+                if layer.params[bias_term].value == 0:
                     # init bias
-                    layer.params[5] = 1
+                    layer.params[bias_term] = 1
                     layer.add_weight("bias", bias_data)
                 else:
                     bias = layer.weight_data["bias"].weight
@@ -258,9 +286,66 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 binaryop.op_type = "ncnnfused"
 
-    def __fuse_convolution_activation(self):
+    def __fuse_innerproduct_dropout(self):
         for i, layer in enumerate(self.model.layers):
-            if layer.op_type == "Convolution":
+            if layer == "InnerProduct":
+                # InnerProduct - Dropout
+                output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Dropout":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs[0] == output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                # fuse InnerProduct - Dropout to InnerProduct
+                dropout = self.model.layers[j]
+
+                scale = checked_cast(float, dropout.params[0].value)
+                if scale != 1:
+                    num_output = checked_cast(int, layer.params[0].value)
+                    weight_per_outch = (
+                        checked_cast(int, layer.params[2].value) // num_output
+                    )
+
+                    weight = layer.weight_data["weight"].weight
+                    for n in range(num_output):
+                        conv_weight_outch = weight + weight_per_outch * n
+                        for w in range(weight_per_outch):
+                            conv_weight_outch[w] *= scale
+
+                    if layer.params[1].value == 1:
+                        bias = layer.weight_data["bias"].weight
+                        for n in range(num_output):
+                            bias[n] *= scale
+
+                self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                dropout.op_type = "ncnnfused"
+
+    def __fuse_x_activation(self):
+        """Combines fuse_convolution_activation, fuse_convolution1d_activation,
+        fuse_convolutiondepthwise_activation, fuse_deconvolution_activation,
+        fuse_deconvolutiondepthwise_activation, and fuse_innerproduct_activation"""
+
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type in (
+                "Convolution",
+                "Convolution1D",
+                "ConvolutionDepthWise",
+                "Deconvolution",
+                "DeconvolutionDepthWise",
+                "InnerProduct",
+            ):
                 # Convolution - Activation
                 output = layer.outputs[0]
 
@@ -272,6 +357,19 @@ class NcnnOptimizer:
                         "Sigmoid",
                         "Mish",
                         "Hardswish",
+                    ):
+                        continue
+                    if (
+                        self.model.layers[j].op_type == "Mish"
+                        and layer.op_type in ("Deconvolution", "DeconvolutionDepthWise")
+                    ) or (
+                        self.model.layers[j].op_type == "HardSwish"
+                        and layer.op_type
+                        in (
+                            "Convolution1D",
+                            "Deconvolution",
+                            "DeconvolutionDepthWise",
+                        )
                     ):
                         continue
                     if self.model.layers[j].num_inputs != 1:
@@ -293,6 +391,24 @@ class NcnnOptimizer:
                     else:
                         layer.params[9] = 2
                         layer.params[10] = [1, checked_cast(float, act.params[0].value)]
+                elif act.op_type == "Clip":
+                    layer.params[9] = 3
+                    layer.params[10] = [
+                        2,
+                        checked_cast(float, act.params[0].value),
+                        checked_cast(float, act.params[1].value),
+                    ]
+                elif act.op_type == "Sigmoid":
+                    layer.params[9] = 4
+                elif act.op_type == "Mish":
+                    layer.params[9] = 5
+                elif act.op_type == "HardSwish":
+                    layer.params[9] = 6
+                    layer.params[10] = [
+                        2,
+                        checked_cast(float, act.params[0].value),
+                        checked_cast(float, act.params[1].value),
+                    ]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -391,11 +507,11 @@ class NcnnOptimizer:
 
     def optimize(self):
         self.__fuse_batchnorm_scale()
-        self.__fuse_convolution_batchnorm()
-        self.__fuse_convolution_mul()
-        self.__fuse_convolution_add()
+        self.__fuse_x_batchnorm()
+        self.__fuse_x_mul()
+        self.__fuse_x_add()
 
-        self.__fuse_convolution_activation()
+        self.__fuse_x_activation()
         self.__fuse_binaryop_eltwise()
 
         return self.model
