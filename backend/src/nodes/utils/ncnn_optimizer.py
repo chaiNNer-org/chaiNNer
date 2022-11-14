@@ -1,10 +1,10 @@
 from math import sqrt
 
 import numpy as np
-from checked_cast import checked_cast
-from ncnn_model import BinaryOpTypes as BOT
-from ncnn_model import EltwiseOpTypes as EOT
-from ncnn_model import NcnnLayer, NcnnModel
+from .checked_cast import checked_cast
+from .ncnn_model import BinaryOpTypes as BOT
+from .ncnn_model import EltwiseOpTypes as EOT
+from .ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -101,7 +101,7 @@ class NcnnOptimizer:
                 if layer.params[5].value == 0:
                     # init bias as zero
                     layer.params[5] = 1
-                    layer.add_weight(np.zeros(channels, np.float32), "bias")
+                    layer.add_weight("bias", np.zeros(channels, np.float32))
 
                 weight_per_outch = checked_cast(int, layer.params[6].value) // channels
                 weight = layer.weight_data["weight"].weight
@@ -247,7 +247,7 @@ class NcnnOptimizer:
                 if layer.params[5].value == 0:
                     # init bias
                     layer.params[5] = 1
-                    layer.add_weight(bias_data, "bias")
+                    layer.add_weight("bias", bias_data)
                 else:
                     bias = layer.weight_data["bias"].weight
                     for c in range(channels):

@@ -56,6 +56,18 @@ class Onnx2NcnnConverter:
         self.blob_names: Dict[str, None] = {}
 
     @staticmethod
+    def add_weight(
+        layer: NcnnLayer,
+        weight_name: str,
+        data: Union[float, int, np.ndarray, onnx.TensorProto],
+        quantize_tag: bytes = b"",
+    ) -> int:
+        if isinstance(data, onnx.TensorProto):
+            data = onph.to_array(data)
+
+        return layer.add_weight(weight_name, data, quantize_tag)
+
+    @staticmethod
     def clear_container(
         container: Union[RepeatedCompositeFieldContainer, RepeatedScalarFieldContainer],
     ) -> None:
@@ -2612,7 +2624,7 @@ class Onnx2NcnnConverter:
                         layer.add_param(1, M.dims[2])
                         layer.add_param(2, M.dims[1])
 
-                    bin_length += layer.add_weight(M, "MemoryData")
+                    bin_length += self.add_weight(layer, "MemoryData", M)
 
                     ncnn_model.add_layer(layer)
 
@@ -2906,27 +2918,27 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, pool)
 
                 if kernel_shape.size == 1:
-                    layer.add_param(1, kernel_shape[0])
+                    layer.add_param(1, int(kernel_shape[0]))
                 elif kernel_shape.size == 2:
-                    layer.add_param(1, kernel_shape[1])
-                    layer.add_param(11, kernel_shape[0])
+                    layer.add_param(1, int(kernel_shape[1]))
+                    layer.add_param(11, int(kernel_shape[0]))
 
                 if strides.size == 1:
-                    layer.add_param(2, strides[0])
+                    layer.add_param(2, int(strides[0]))
                 elif strides.size == 2:
-                    layer.add_param(2, strides[1])
-                    layer.add_param(12, strides[0])
+                    layer.add_param(2, int(strides[1]))
+                    layer.add_param(12, int(strides[0]))
 
                 if pads.size == 1:
-                    layer.add_param(3, pads[0])
+                    layer.add_param(3, int(pads[0]))
                 elif pads.size == 2:
-                    layer.add_param(3, pads[1])
-                    layer.add_param(13, pads[0])
+                    layer.add_param(3, int(pads[1]))
+                    layer.add_param(13, int(pads[0]))
                 elif pads.size == 4:
-                    layer.add_param(3, pads[1])
-                    layer.add_param(13, pads[0])
-                    layer.add_param(14, pads[3])
-                    layer.add_param(15, pads[2])
+                    layer.add_param(3, int(pads[1]))
+                    layer.add_param(13, int(pads[0]))
+                    layer.add_param(14, int(pads[3]))
+                    layer.add_param(15, int(pads[2]))
 
                 layer.add_param(5, pad_mode)
 
@@ -2945,20 +2957,20 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, channels)
 
-                bin_length += layer.add_weight(scale, "slope")
-                bin_length += layer.add_weight(mean, "mean")
+                bin_length += self.add_weight(layer, "slope", scale)
+                bin_length += self.add_weight(layer, "mean", mean)
 
                 # apply epsilon to var
                 v = onph.to_array(var)
                 ve = np.array([v[i] + epsilon for i in range(channels)], np.float32)
-                bin_length += layer.add_weight(ve, "variance")
-                bin_length += layer.add_weight(B, "bias")
+                bin_length += self.add_weight(layer, "variance", ve)
+                bin_length += self.add_weight(layer, "bias", B)
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
                 layer.add_param(0, get_tensor_proto_data_size(B, B.data_type))
 
-                bin_length += layer.add_weight(B, "bias")
+                bin_length += self.add_weight(layer, "bias", B)
             elif op == "Ceil":
                 layer.add_param(0, UOT.CEIL)
             elif op == "Clip":
@@ -3006,16 +3018,16 @@ class Onnx2NcnnConverter:
                     layer.add_param(11, int(kernel_shape[0]))
 
                 if dilations.size == 1:
-                    layer.add_param(2, dilations[0])
+                    layer.add_param(2, int(dilations[0]))
                 elif dilations.size == 2:
-                    layer.add_param(2, dilations[1])
-                    layer.add_param(12, dilations[0])
+                    layer.add_param(2, int(dilations[1]))
+                    layer.add_param(12, int(dilations[0]))
 
                 if strides.size == 1:
-                    layer.add_param(3, strides[0])
+                    layer.add_param(3, int(strides[0]))
                 elif strides.size == 2:
-                    layer.add_param(3, strides[1])
-                    layer.add_param(13, strides[0])
+                    layer.add_param(3, int(strides[1]))
+                    layer.add_param(13, int(strides[0]))
 
                 if auto_pad == "SAME_UPPER":
                     layer.add_param(4, -233)
@@ -3023,29 +3035,29 @@ class Onnx2NcnnConverter:
                     layer.add_param(4, -234)
                 else:
                     if pads.size == 1:
-                        layer.add_param(4, pads[0])
+                        layer.add_param(4, int(pads[0]))
                     elif pads.size == 2:
-                        layer.add_param(4, pads[1])
-                        layer.add_param(14, pads[0])
+                        layer.add_param(4, int(pads[1]))
+                        layer.add_param(14, int(pads[0]))
                     elif pads.size == 4:
-                        layer.add_param(4, pads[1])
-                        layer.add_param(14, pads[0])
-                        layer.add_param(15, pads[3])
-                        layer.add_param(16, pads[2])
+                        layer.add_param(4, int(pads[1]))
+                        layer.add_param(14, int(pads[0]))
+                        layer.add_param(15, int(pads[3]))
+                        layer.add_param(16, int(pads[2]))
 
                 layer.add_param(5, has_bias)
 
                 layer.add_param(6, get_tensor_proto_data_size(W, W.data_type))
 
                 if group > 1:
-                    layer.add_param(7, group)
+                    layer.add_param(7, int(group))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                bin_length += layer.add_weight(W, "weight", quantize_tag)
+                bin_length += self.add_weight(layer, "weight", W, quantize_tag)
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    bin_length += layer.add_weight(B, "bias")
+                    bin_length += self.add_weight(layer, "bias", B)
             elif op == "ConvTranspose":
                 W = self.weights[node.input[1]]
 
@@ -3064,22 +3076,22 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, num_filter)
 
                 if kernel_shape.size == 1:
-                    layer.add_param(1, kernel_shape[0])
+                    layer.add_param(1, int(kernel_shape[0]))
                 elif kernel_shape.size == 2:
-                    layer.add_param(1, kernel_shape[1])
-                    layer.add_param(11, kernel_shape[0])
+                    layer.add_param(1, int(kernel_shape[1]))
+                    layer.add_param(11, int(kernel_shape[0]))
 
                 if dilations.size == 1:
-                    layer.add_param(2, dilations[0])
+                    layer.add_param(2, int(dilations[0]))
                 elif dilations.size == 2:
-                    layer.add_param(2, dilations[1])
-                    layer.add_param(12, dilations[0])
+                    layer.add_param(2, int(dilations[1]))
+                    layer.add_param(12, int(dilations[0]))
 
                 if strides.size == 1:
-                    layer.add_param(3, strides[0])
+                    layer.add_param(3, int(strides[0]))
                 elif strides.size == 2:
-                    layer.add_param(3, strides[1])
-                    layer.add_param(13, strides[0])
+                    layer.add_param(3, int(strides[1]))
+                    layer.add_param(13, int(strides[0]))
 
                 if auto_pad == "SAME_UPPER":
                     layer.add_param(4, -233)
@@ -3087,27 +3099,27 @@ class Onnx2NcnnConverter:
                     layer.add_param(4, -234)
                 else:
                     if pads.size == 1:
-                        layer.add_param(4, pads[0])
+                        layer.add_param(4, int(pads[0]))
                     elif pads.size == 2:
-                        layer.add_param(4, pads[1])
-                        layer.add_param(14, pads[0])
+                        layer.add_param(4, int(pads[1]))
+                        layer.add_param(14, int(pads[0]))
                     elif pads.size == 4:
-                        layer.add_param(4, pads[1])
-                        layer.add_param(14, pads[0])
-                        layer.add_param(15, pads[3])
-                        layer.add_param(16, pads[2])
+                        layer.add_param(4, int(pads[1]))
+                        layer.add_param(14, int(pads[0]))
+                        layer.add_param(15, int(pads[3]))
+                        layer.add_param(16, int(pads[2]))
 
                 if output_padding.size == 1:
-                    layer.add_param(18, output_padding[0])
+                    layer.add_param(18, int(output_padding[0]))
                 elif output_padding.size == 2:
-                    layer.add_param(18, output_padding[1])
-                    layer.add_param(19, output_padding[0])
+                    layer.add_param(18, int(output_padding[1]))
+                    layer.add_param(19, int(output_padding[0]))
 
                 if output_shape.size == 1:
-                    layer.add_param(20, output_shape[0])
+                    layer.add_param(20, int(output_shape[0]))
                 elif output_shape == 2:
-                    layer.add_param(20, output_shape[1])
-                    layer.add_param(21, output_shape[0])
+                    layer.add_param(20, int(output_shape[1]))
+                    layer.add_param(21, int(output_shape[0]))
 
                 layer.add_param(5, has_bias)
 
@@ -3119,13 +3131,13 @@ class Onnx2NcnnConverter:
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_data = onph.to_array(W)
-                bin_length += layer.add_weight(
-                    weight_data.swapaxes(0, 1), "weight", quantize_tag
+                bin_length += self.add_weight(
+                    layer, "weight", weight_data.swapaxes(0, 1), quantize_tag
                 )
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    bin_length += layer.add_weight(B, "bias")
+                    bin_length += self.add_weight(layer, "bias", B)
             elif op == "Cos":
                 layer.add_param(0, UOT.COS)
             elif op == "Crop":
@@ -3165,10 +3177,10 @@ class Onnx2NcnnConverter:
                 )
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                bin_length += layer.add_weight(words, "words", DTYPE_FP32)
-                bin_length += layer.add_weight(positions, "positions", DTYPE_FP32)
-                bin_length += layer.add_weight(W, "weight", quantize_tag)
-                bin_length += layer.add_weight(B, "bias")
+                bin_length += self.add_weight(layer, "words", words, DTYPE_FP32)
+                bin_length += self.add_weight(layer, "positions", positions, DTYPE_FP32)
+                bin_length += self.add_weight(layer, "weight", W, quantize_tag)
+                bin_length += self.add_weight(layer, "bias", B)
             elif op == "Exp":
                 layer.add_param(0, UOT.EXP)
             elif op == "Flatten":
@@ -3194,8 +3206,8 @@ class Onnx2NcnnConverter:
                     layer.add_param(1, 1)
                     layer.add_param(2, get_tensor_proto_data_size(B, B.data_type))
 
-                    bin_length += layer.add_weight(B, "B", DTYPE_FP32)
-                    bin_length += layer.add_weight(C, "C")
+                    bin_length += self.add_weight(layer, "B", B, DTYPE_FP32)
+                    bin_length += self.add_weight(layer, "C", C)
                 else:
                     # gemm
                     layer.add_param(0, alpha)
@@ -3212,10 +3224,10 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, int(op == "adaptive_avg_pool2d"))
                 layer.add_param(7, 1)
                 if out_shape.size == 1:
-                    layer.add_param(8, out_shape[0])
+                    layer.add_param(8, int(out_shape[0]))
                 elif out_shape.size == 2:
-                    layer.add_param(8, out_shape[1])  # out_w
-                    layer.add_param(18, out_shape[0])  # out_h
+                    layer.add_param(8, int(out_shape[1]))  # out_w
+                    layer.add_param(18, int(out_shape[0]))  # out_h
             elif op == "GroupNorm":
                 groups = get_node_attr_i(node, "groups", 1)
                 channels = get_node_attr_i(node, "channels", 1)
@@ -3249,8 +3261,8 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    bin_length += layer.add_weight(scale, "scale")
-                    bin_length += layer.add_weight(B, "bias")
+                    bin_length += self.add_weight(layer, "scale", scale)
+                    bin_length += self.add_weight(layer, "bias", B)
             elif op == "GRU":
                 # W = self.weights[node.input[1]]
                 # R = self.weights[node.input[2]]
@@ -3286,7 +3298,7 @@ class Onnx2NcnnConverter:
                 # W_array = np.stack(
                 #    (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
                 # )
-                # bin_length += layer.add_weight(W_array, "weight_xc_data", quantize_tag, is_fp16)
+                # bin_length += self.add_weight(layer, W_array, "weight_xc_data", quantize_tag, is_fp16)
 
                 # reduce U and R bias except N
                 # reorder num_directions-URN-hidden to num_directions-RUN-hidden
@@ -3312,8 +3324,8 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, channels)
                 layer.add_param(1, 1)
 
-                bin_length += layer.add_weight(np.array((scale,) * 3), "scale")
-                bin_length += layer.add_weight(bias, "bias")
+                bin_length += self.add_weight(layer, "scale", np.array((scale,) * 3))
+                bin_length += self.add_weight(layer, "bias", bias)
             elif op == "InstanceNormalization":
                 eps = get_node_attr_f(node, "epsilon", 0.00001)
 
@@ -3334,8 +3346,8 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    bin_length += layer.add_weight(scale, "scale")
-                    bin_length += layer.add_weight(B, "bias")
+                    bin_length += self.add_weight(layer, "scale", scale)
+                    bin_length += self.add_weight(layer, "bias", B)
             elif op == "LayerNorm":
                 eps = get_node_attr_f(node, "epsilon", 0.00001)
                 affine = get_node_attr_i(node, "affine", 1)
@@ -3363,8 +3375,8 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    bin_length += layer.add_weight(scale, "scale")
-                    bin_length += layer.add_weight(B, "bias")
+                    bin_length += self.add_weight(layer, "scale", scale)
+                    bin_length += self.add_weight(layer, "bias", B)
             elif op == "LeakyRelu":
                 alpha = get_node_attr_f(node, "alpha", 0.01)
                 layer.add_param(0, alpha)
@@ -3405,7 +3417,7 @@ class Onnx2NcnnConverter:
                     layer.add_param(2, weight_data_size)
 
                     B_array = onph.to_array(B)
-                    bin_length += layer.add_weight(B_array.T, "bias", DTYPE_FP32)
+                    bin_length += self.add_weight(layer, "bias", B_array.T, DTYPE_FP32)
                 # There is a dead else here, not sure if this was incomplete code
             elif op == "MultiHeadAttention":
                 # embed_dim = get_node_attr_i(node, "embed_dim", 0)
@@ -3438,7 +3450,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, 1)  # scale_data_size
                 layer.add_param(9, NEM.PYTORCH)
 
-                bin_length += layer.add_weight(1, "scale")
+                bin_length += self.add_weight(layer, "scale", 1)
             elif op == "Pad":
                 mode = get_node_attr_s(node, "mode")
                 value = get_node_attr_f(node, "value", 0)
@@ -3476,14 +3488,14 @@ class Onnx2NcnnConverter:
                     left = pads[1]
                     right = pads[3]
 
-                layer.add_param(0, top)
-                layer.add_param(1, bottom)
-                layer.add_param(2, left)
-                layer.add_param(3, right)
-                layer.add_param(4, ptype)
-                layer.add_param(5, value)
-                layer.add_param(7, front)
-                layer.add_param(8, behind)
+                layer.add_param(0, int(top))
+                layer.add_param(1, int(bottom))
+                layer.add_param(2, int(left))
+                layer.add_param(3, int(right))
+                layer.add_param(4, int(ptype))
+                layer.add_param(5, int(value))
+                layer.add_param(7, int(front))
+                layer.add_param(8, int(behind))
             elif op == "PixelShuffle":
                 layer.add_param(0, get_node_attr_i(node, "scale_factor", 1))
             elif op == "PRelu":
@@ -3492,7 +3504,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, num_slope)
 
-                bin_length += layer.add_weight(slope, "slope")
+                bin_length += self.add_weight(layer, "slope", slope)
             elif op == "Reciprocal":
                 layer.add_param(0, UOT.RECIPROCAL)
             elif op in [
@@ -3564,20 +3576,20 @@ class Onnx2NcnnConverter:
                 shape_size = shape.size
                 if shape_size == 1:
                     logger.error("Should never reach shape.size == 1 in Reshape")
-                    layer.add_param(0, shape[0])
+                    layer.add_param(0, int(shape[0]))
                 elif shape_size == 2:
-                    layer.add_param(0, shape[1])
+                    layer.add_param(0, int(shape[1]))
                 elif shape_size == 3:
-                    layer.add_param(0, shape[2])
-                    layer.add_param(1, shape[1])
+                    layer.add_param(0, int(shape[2]))
+                    layer.add_param(1, int(shape[1]))
                 elif shape_size == 4:
-                    layer.add_param(0, shape[3])
-                    layer.add_param(1, shape[2])
-                    layer.add_param(2, shape[1])
+                    layer.add_param(0, int(shape[3]))
+                    layer.add_param(1, int(shape[2]))
+                    layer.add_param(2, int(shape[1]))
                 elif shape_size == 5:
-                    layer.add_param(0, shape[3] * shape[3])
-                    layer.add_param(1, shape[2])
-                    layer.add_param(2, shape[1])
+                    layer.add_param(0, int(shape[3] * shape[3]))
+                    layer.add_param(1, int(shape[2]))
+                    layer.add_param(2, int(shape[1]))
             elif op == "Resize":
                 mode = get_node_attr_s(node, "mode")
                 align = get_node_attr_s(node, "coordinate_transformation_mode")
@@ -3637,10 +3649,10 @@ class Onnx2NcnnConverter:
                 align_corner = int(align == "align_corners")
 
                 layer.add_param(0, resize_type)
-                layer.add_param(1, h_scale)
-                layer.add_param(2, w_scale)
-                layer.add_param(3, output_height)
-                layer.add_param(4, output_width)
+                layer.add_param(1, float(h_scale))
+                layer.add_param(2, float(w_scale))
+                layer.add_param(3, int(output_height))
+                layer.add_param(4, int(output_width))
                 layer.add_param(6, align_corner)
             elif op == "RNN":
                 W = self.weights[node.input[1]]
@@ -3664,13 +3676,13 @@ class Onnx2NcnnConverter:
                 layer.add_param(2, direction_type)
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                bin_length += layer.add_weight(W, "weight", quantize_tag)
+                bin_length += self.add_weight(layer, "weight", W, quantize_tag)
 
                 # reduce xc and hc bias
                 reduced_B = np.sum(onph.to_array(B), 1)
-                bin_length += layer.add_weight(reduced_B, "bias", quantize_tag)
+                bin_length += self.add_weight(layer, "bias", reduced_B, quantize_tag)
 
-                bin_length += layer.add_weight(R, "R", quantize_tag)
+                bin_length += self.add_weight(layer, "R", R, quantize_tag)
             elif op == "ShuffleChannel":
                 layer.add_param(0, get_node_attr_i(node, "group", 1))
                 layer.add_param(1, get_node_attr_i(node, "reverse", 0))
@@ -3687,9 +3699,9 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, get_tensor_proto_data_size(B, B.data_type))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                bin_length += layer.add_weight(W, "weight", quantize_tag)
-                bin_length += layer.add_weight(B, "bias1", DTYPE_FP32)
-                bin_length += layer.add_weight(B2, "bias2", DTYPE_FP32)
+                bin_length += self.add_weight(layer, "weight", W, quantize_tag)
+                bin_length += self.add_weight(layer, "bias1", B, DTYPE_FP32)
+                bin_length += self.add_weight(layer, "bias2", B2, DTYPE_FP32)
             elif op == "Slice":
                 input_size = len(node.input)
                 if input_size == 1:
@@ -3857,8 +3869,8 @@ class Onnx2NcnnConverter:
                 align_corner = int(align == "align_corners")
 
                 layer.add_param(0, resize_type)
-                layer.add_param(1, h_scale)
-                layer.add_param(2, w_scale)
+                layer.add_param(1, float(h_scale))
+                layer.add_param(2, float(w_scale))
                 layer.add_param(6, align_corner)
             elif op == "Unsqueeze":
                 axes = get_node_attr_ai(node, "axes")

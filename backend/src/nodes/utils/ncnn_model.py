@@ -7,15 +7,8 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 from sanic.log import logger
 
-from checked_cast import checked_cast
+from .checked_cast import checked_cast
 
-# Don't want not having onnx to crash this
-try:
-    import onnx.numpy_helper as onph
-    from onnx import TensorProto
-except:
-    TensorProto = None
-    onph = None
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
@@ -267,13 +260,13 @@ class NcnnParamCollection:
             else:
                 output += " " + v.id + "="
 
-            if isinstance(v.value, (float, np.floating)):
+            if isinstance(v.value, float):
                 v_str = np.format_float_scientific(v.value, 6, False, exp_digits=2)
             elif isinstance(v.value, list):
                 v_str = ",".join(
                     [
                         np.format_float_scientific(n, 6, False, exp_digits=2)
-                        if isinstance(n, (float, np.floating))
+                        if isinstance(n, float)
                         else str(n)
                         for n in v.value
                     ]
@@ -322,18 +315,16 @@ class NcnnLayer:
 
     def add_weight(
         self,
-        data: Union[float, int, np.ndarray, TensorProto],  # type: ignore
         weight_name: str,
+        data: Union[float, int, np.ndarray],
         quantize_tag: bytes = b"",
     ) -> int:
-        if isinstance(data, np.ndarray):
-            data_array = data
-        elif isinstance(data, float):
+        if isinstance(data, float):
             data_array = np.array(data, np.float32)
         elif isinstance(data, int):
             data_array = np.array(data, np.int32)
         else:
-            data_array = onph.to_array(data)  # type: ignore
+            data_array = data
 
         if quantize_tag == DTYPE_FP16:
             data_array = data_array.astype(np.float16)
@@ -674,20 +665,20 @@ class NcnnModelWrapper:
     def __init__(self, model: NcnnModel) -> None:
         self.model: NcnnModel = model
         scale, in_nc, out_nc, nf, fp = NcnnModelWrapper.get_broadcast_data(model)
-        self.scale: int = scale
+        self.scale: float = scale
         self.nf: int = nf
         self.in_nc: int = in_nc
         self.out_nc: int = out_nc
         self.fp: str = fp
 
     @staticmethod
-    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int, str]:
-        scale = 1
+    def get_broadcast_data(model: NcnnModel) -> Tuple[float, int, int, int, str]:
+        scale = 1.0
         in_nc = 0
         out_nc = 0
         nf = 0
         fp = "fp32"
-        pixel_shuffle = 1
+        pixel_shuffle = 1.0
         found_first_conv = False
         current_conv = None
 
@@ -698,12 +689,12 @@ class NcnnModelWrapper:
                         model.layers[i + 1].op_type != "BinaryOp"
                         and model.layers[i + 1].params[0].value != 0
                     ):
-                        scale *= checked_cast(int, layer.params[1].value)
+                        scale *= checked_cast(float, layer.params[1].value)
                 except IndexError:
                     pass
             elif layer.op_type == "PixelShuffle":
-                scale *= checked_cast(int, layer.params[0].value)
-                pixel_shuffle *= checked_cast(int, layer.params[0].value)
+                scale *= checked_cast(float, layer.params[0].value)
+                pixel_shuffle *= checked_cast(float, layer.params[0].value)
             elif layer.op_type in (
                 "Convolution",
                 "Convolution1D",
@@ -715,21 +706,23 @@ class NcnnModelWrapper:
                         fp = "fp16"
                     found_first_conv = True
 
-                scale //= checked_cast(int, layer.params[3].value)
+                scale /= checked_cast(float, layer.params[3].value)
                 current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
                 if found_first_conv is not True:
                     nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
                     found_first_conv = True
 
-                scale *= checked_cast(int, layer.params[3].value)
+                scale *= checked_cast(float, layer.params[3].value)
                 current_conv = layer
 
         assert (
             current_conv is not None
         ), "Cannot broadcast; model has no Convolution layers"
 
-        out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
+        out_nc = checked_cast(
+            int, checked_cast(int, current_conv.params[0].value) / pixel_shuffle**2
+        )
 
         return scale, in_nc, out_nc, nf, fp
 
