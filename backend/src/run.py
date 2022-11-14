@@ -221,7 +221,7 @@ async def run(request: Request):
 
         logger.info("Running new executor...")
         exec_opts = ExecutionOptions(
-            device="cpu" if full_data["isCpu"] else "cuda",
+            device="cpu" if full_data["isCpu"] else "gpu",
             fp16=full_data["isFp16"],
             pytorch_gpu_index=full_data["pytorchGPU"],
             ncnn_gpu_index=full_data["ncnnGPU"],
@@ -229,7 +229,7 @@ async def run(request: Request):
             onnx_execution_provider=full_data["onnxExecutionProvider"],
         )
         set_execution_options(exec_opts)
-        logger.debug(f"Using device: {exec_opts.device}")
+        logger.debug(f"Using device: {exec_opts.full_device}")
         executor = Executor(
             chain,
             inputs,
@@ -293,7 +293,7 @@ async def run_individual(request: Request):
             del ctx.cache[full_data["id"]]
         logger.debug(full_data)
         exec_opts = ExecutionOptions(
-            device="cpu" if full_data["isCpu"] else "cuda",
+            device="cpu" if full_data["isCpu"] else "gpu",
             fp16=full_data["isFp16"],
             pytorch_gpu_index=full_data["pytorchGPU"],
             ncnn_gpu_index=full_data["ncnnGPU"],
@@ -301,7 +301,7 @@ async def run_individual(request: Request):
             onnx_execution_provider=full_data["onnxExecutionProvider"],
         )
         set_execution_options(exec_opts)
-        logger.debug(f"Using device: {exec_opts.device}")
+        logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
         node_instance = NodeFactory.get_node(full_data["schemaId"])
 

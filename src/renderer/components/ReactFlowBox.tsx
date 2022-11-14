@@ -370,6 +370,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [createNode, wrapper, reactFlowInstance, schemata, sendAlert, setEdges, setNodes]
     );
 
+    // TODO: I want to get this to work at some point but for now it needs to not exist
+    // const onEdgeUpdate = useCallback(
+    //     (oldEdge: Edge, newConnection: Connection) => {
+    //         return setEdges((els) => updateEdge(oldEdge, newConnection, els));
+    //     },
+    //     [setEdges]
+    // );
+
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
 
     return (
@@ -404,6 +412,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
+                // onEdgeUpdate={onEdgeUpdate}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}

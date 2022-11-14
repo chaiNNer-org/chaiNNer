@@ -19,9 +19,9 @@ class ExecutionOptions:
         self.__onnx_execution_provider = onnx_execution_provider
 
     @property
-    def device(self) -> str:
-        if self.__device == "cuda":
-            return f"cuda:{self.__pytorch_gpu_index}"
+    def full_device(self) -> str:
+        if self.__device != "cpu" and self.__pytorch_gpu_index is not None:
+            return f"{self.__device}:{self.__pytorch_gpu_index}"
         return self.__device
 
     @property
@@ -50,7 +50,7 @@ __global_exec_options = ExecutionOptions("cpu", False, 0, 0, 0, "CPUExecutionPro
 
 def get_execution_options() -> ExecutionOptions:
     logger.info(
-        f"PyTorch execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.device} | NCNN execution options: gpu_index: {__global_exec_options.ncnn_gpu_index} | ONNX execution options: gpu_index: {__global_exec_options.onnx_gpu_index}, execution_provider: {__global_exec_options.onnx_execution_provider}"
+        f"PyTorch execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.full_device} | NCNN execution options: gpu_index: {__global_exec_options.ncnn_gpu_index} | ONNX execution options: gpu_index: {__global_exec_options.onnx_gpu_index}, execution_provider: {__global_exec_options.onnx_execution_provider}"
     )
     return __global_exec_options
 

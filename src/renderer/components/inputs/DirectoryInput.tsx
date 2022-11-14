@@ -103,7 +103,7 @@ export const DirectoryInput = memo(
                         cursor="pointer"
                         disabled={isLocked || isInputConnected}
                         draggable={false}
-                        placeholder="Select a directory..."
+                        placeholder="Click to select..."
                         textOverflow="ellipsis"
                         value={displayDirectory ?? ''}
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises

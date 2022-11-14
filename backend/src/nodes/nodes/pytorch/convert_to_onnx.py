@@ -45,14 +45,14 @@ class ConvertTorchToONNXNode(NodeBase):
             ), "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
         model = model.eval()
-        model = model.to(torch.device(exec_options.device))
+        model = model.to(torch.device(exec_options.full_device))
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
             "input": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
-        dummy_input = dummy_input.to(torch.device(exec_options.device))
+        dummy_input = dummy_input.to(torch.device(exec_options.full_device))
 
         should_use_fp16 = exec_options.fp16 and model.supports_fp16 and fp16
         if should_use_fp16:
