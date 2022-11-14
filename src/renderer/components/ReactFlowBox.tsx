@@ -243,11 +243,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+            // Node-on-edge collision detection
             // On each edge, perform collision detection
-            // We just check an intersection between two lines for simplicity
-            // One line is the straight line from one handle to another, the other is a diagonal line representing the node
+            // We just check an intersection between two lines on the node and one line for the edge, for simplicity
+            // One line is the straight line from one handle to another, the others are a diagonal lines representing the node
             // I believe it will have much better performance this way, plus the math is just simpler to comprehend
-
             if (node) {
                 // But first, we need to make sure this node is an orphan. We can do a find so it stops early
                 const hasConnectedEdge = !!edges.find(
