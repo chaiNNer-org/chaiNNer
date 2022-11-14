@@ -20,17 +20,46 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { stringifySourceHandle, stringifyTargetHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
+
+// From https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+// Modified by me
+interface Line {
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+}
+// returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+const intersects = (a: Line, b: Line) => {
+    const det =
+        (a.targetX - a.sourceX) * (b.targetY - b.sourceY) -
+        (b.targetX - b.sourceX) * (a.targetY - a.sourceY);
+    if (det === 0) {
+        return false;
+    }
+    const lambda =
+        ((b.targetY - b.sourceY) * (b.targetX - a.sourceX) +
+            (b.sourceX - b.targetX) * (b.targetY - a.sourceY)) /
+        det;
+    const gamma =
+        ((a.sourceY - a.targetY) * (b.targetX - a.sourceX) +
+            (a.targetX - a.sourceX) * (b.targetY - a.sourceY)) /
+        det;
+    return lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1;
+};
 
 const STARTING_Z_INDEX = 50;
 /**
@@ -155,7 +184,7 @@ interface ReactFlowBoxProps {
 export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { createNode, createConnection } = useContext(GlobalVolatileContext);
+    const { createNode, createConnection, typeState } = useContext(GlobalVolatileContext);
     const {
         setZoom,
         setHoveredNode,
@@ -165,8 +194,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setNodesRef,
         setEdgesRef,
+        removeEdgeById,
     } = useContext(GlobalContext);
-    const { schemata } = useContext(BackendContext);
+    const { schemata, functionDefinitions } = useContext(BackendContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
@@ -212,7 +242,97 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [nodes, edges, isSnapToGrid, snapToGridAmount]);
 
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, _node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+            // On each edge, perform collision detection
+            // We just check an intersection between two lines for simplicity
+            // One line is the straight line from one handle to another, the other is a diagonal line representing the node
+            // I believe it will have much better performance this way, plus the math is just simpler to comprehend
+
+            if (node) {
+                // But first, we need to make sure this node is an orphan. We can do a find so it stops early
+                const hasConnectedEdge = !!edges.find(
+                    (e) => e.source === node.id || e.target === node.id
+                );
+                if (!hasConnectedEdge) {
+                    // Line from top left to bottom right of node
+                    const nodeLineTLBR: Line = {
+                        sourceX: node.position.x,
+                        sourceY: node.position.y,
+                        targetX: (node.position.x || 0) + (node.width || 0),
+                        targetY: (node.position.y || 0) + (node.height || 0),
+                    };
+                    // Line from top right to bottom left of node
+                    const nodeLineTRBL: Line = {
+                        sourceX: (node.position.x || 0) + (node.width || 0),
+                        sourceY: node.position.y,
+                        targetX: node.position.x,
+                        targetY: (node.position.y || 0) + (node.height || 0),
+                    };
+                    // Finds the first edge that intersects with the node
+                    const intersectingEdge = edges.find((e) => {
+                        if (
+                            !e.data ||
+                            !e.data.sourceX ||
+                            !e.data.sourceY ||
+                            !e.data.targetX ||
+                            !e.data.targetY
+                        ) {
+                            return false;
+                        }
+                        const edgeLine: Line = {
+                            sourceX: e.data.sourceX,
+                            sourceY: e.data.sourceY,
+                            targetX: e.data.targetX,
+                            targetY: e.data.targetY,
+                        };
+                        // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
+                        return (
+                            intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine)
+                        );
+                    });
+                    if (intersectingEdge) {
+                        // Check if the node has valid connections it can make
+                        const edgeType = intersectingEdge.data?.type;
+                        const fn = functionDefinitions.get(node.data.schemaId);
+                        if (fn && edgeType) {
+                            const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                            if (firstPossibleInput !== undefined) {
+                                const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+                                if (firstPossibleOutput !== undefined) {
+                                    const fromNode = nodes.find(
+                                        (n) => n.id === intersectingEdge.source
+                                    );
+                                    const toNode = nodes.find(
+                                        (n) => n.id === intersectingEdge.target
+                                    );
+                                    if (fromNode && toNode) {
+                                        removeEdgeById(intersectingEdge.id);
+                                        createConnection({
+                                            source: fromNode.id,
+                                            sourceHandle: intersectingEdge.sourceHandle!,
+                                            target: node.id,
+                                            targetHandle: stringifyTargetHandle({
+                                                nodeId: node.id,
+                                                inputId: firstPossibleInput,
+                                            }),
+                                        });
+                                        createConnection({
+                                            source: node.id,
+                                            sourceHandle: stringifySourceHandle({
+                                                nodeId: node.id,
+                                                outputId: firstPossibleOutput,
+                                            }),
+                                            target: toNode.id,
+                                            targetHandle: intersectingEdge.targetHandle!,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');

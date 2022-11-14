@@ -1,3 +1,4 @@
+import { NonNeverType } from '@chainner/navi';
 import { ExpressionJson } from './types/json';
 
 export interface JsonObject {
@@ -212,6 +213,11 @@ export interface NodeData {
 }
 export interface EdgeData {
     readonly complete?: boolean;
+    sourceX?: number;
+    sourceY?: number;
+    targetX?: number;
+    targetY?: number;
+    type?: NonNeverType;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -27,6 +27,7 @@ export const CustomEdge = memo(
         selected,
         sourceHandleId,
         animated,
+        data = {},
     }: EdgeProps<EdgeData>) => {
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
@@ -81,6 +82,30 @@ export const CustomEdge = memo(
         const classModifier = `${isHovered ? 'hovered' : ''} ${
             showRunning && animateChain ? 'running' : ''
         }`;
+
+        // NOTE: I know that technically speaking this is bad
+        // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
+        // This is a tradeoff I'm willing to make
+        useEffect(() => {
+            // eslint-disable-next-line no-param-reassign
+            data.sourceX = sourceX;
+            // eslint-disable-next-line no-param-reassign
+            data.sourceY = sourceY;
+            // eslint-disable-next-line no-param-reassign
+            data.targetX = targetX;
+            // eslint-disable-next-line no-param-reassign
+            data.targetY = targetY;
+            // eslint-disable-next-line no-param-reassign
+            data.type = type;
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [sourceX, sourceY, targetX, targetY, type]);
+
+        // Handling this one separately since it happens far less often
+        useEffect(() => {
+            // eslint-disable-next-line no-param-reassign
+            data.type = type;
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [type]);
 
         return (
             <g
