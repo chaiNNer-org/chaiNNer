@@ -451,12 +451,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const onNodeDrag = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (event: React.MouseEvent, node: Node, _nodes: Node[]) => {
-            const collisionResp = performNodeOnEdgeCollisionDetection(node);
-            if (collisionResp?.status === 'success') {
-                log.info('collision detected');
+            if (altPressed) {
+                const collisionResp = performNodeOnEdgeCollisionDetection(node);
+                if (collisionResp?.status === 'success') {
+                    log.info('collision detected');
+                }
             }
         },
-        [performNodeOnEdgeCollisionDetection]
+        [performNodeOnEdgeCollisionDetection, altPressed]
     );
 
     const onNodeDragStop = useCallback(
