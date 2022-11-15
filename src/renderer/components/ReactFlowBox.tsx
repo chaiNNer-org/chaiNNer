@@ -303,6 +303,18 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     return false;
                 }
 
+                // Determine if the center of the edge is within the node bounds
+                if (
+                    e.data.edgeCenterX &&
+                    e.data.edgeCenterY &&
+                    e.data.edgeCenterX >= nodeBounds.TL.x &&
+                    e.data.edgeCenterX <= nodeBounds.TR.x &&
+                    e.data.edgeCenterY >= nodeBounds.TL.y &&
+                    e.data.edgeCenterY <= nodeBounds.BL.y
+                ) {
+                    return true;
+                }
+
                 const { edgePath } = e.data;
                 // If we have the edge path (which we should) we can do a full bezier intersection check
                 if (edgePath) {
@@ -333,27 +345,32 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             p1: nodeBounds.TL,
                             p2: nodeBounds.BL,
                         }).length > 0;
+                    if (curveIntersectsLeft) {
+                        return true;
+                    }
                     const curveIntersectsRight =
                         curve.lineIntersects({
                             p1: nodeBounds.TR,
                             p2: nodeBounds.BR,
                         }).length > 0;
+                    if (curveIntersectsRight) {
+                        return true;
+                    }
                     const curveIntersectsTop =
                         curve.lineIntersects({
                             p1: nodeBounds.TL,
                             p2: nodeBounds.TR,
                         }).length > 0;
+                    if (curveIntersectsTop) {
+                        return true;
                     const curveIntersectsBottom =
                         curve.lineIntersects({
                             p1: nodeBounds.BL,
                             p2: nodeBounds.BR,
                         }).length > 0;
-                    return [
-                        curveIntersectsLeft,
-                        curveIntersectsRight,
-                        curveIntersectsTop,
-                        curveIntersectsBottom,
-                    ].some(Boolean);
+                    if (curveIntersectsBottom) {
+                        return true;
+                    }
                 }
                 // Line from top left to bottom right of node
                 const nodeLineTLBR: Line = {

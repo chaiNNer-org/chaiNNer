@@ -86,19 +86,26 @@ export const CustomEdge = memo(
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
         // This is a tradeoff I'm willing to make
-        useEffect(() => {
-            // eslint-disable-next-line no-param-reassign
-            data.sourceX = sourceX;
-            // eslint-disable-next-line no-param-reassign
-            data.sourceY = sourceY;
-            // eslint-disable-next-line no-param-reassign
-            data.targetX = targetX;
-            // eslint-disable-next-line no-param-reassign
-            data.targetY = targetY;
-            // eslint-disable-next-line no-param-reassign
-            data.edgePath = edgePath;
+        useEffect(
+            () => {
+                // eslint-disable-next-line no-param-reassign
+                data.sourceX = sourceX;
+                // eslint-disable-next-line no-param-reassign
+                data.sourceY = sourceY;
+                // eslint-disable-next-line no-param-reassign
+                data.targetX = targetX;
+                // eslint-disable-next-line no-param-reassign
+                data.targetY = targetY;
+                // eslint-disable-next-line no-param-reassign
+                data.edgePath = edgePath;
+                // eslint-disable-next-line no-param-reassign
+                data.edgeCenterX = edgeCenterX;
+                // eslint-disable-next-line no-param-reassign
+                data.edgeCenterY = edgeCenterY;
+            },
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [sourceX, sourceY, targetX, targetY]);
+            [sourceX, sourceY, targetX, targetY, edgeCenterX, edgeCenterY]
+        );
 
         // Handling this one separately since it happens far less often
         useEffect(() => {

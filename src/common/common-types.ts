@@ -219,6 +219,8 @@ export interface EdgeData {
     targetY?: number;
     type?: NonNeverType;
     edgePath?: string;
+    edgeCenterX?: number;
+    edgeCenterY?: number;
 }
 
 /**
