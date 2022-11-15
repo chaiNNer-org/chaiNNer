@@ -16,6 +16,7 @@ import ReactFlow, {
     OnNodesChange,
     Viewport,
     useEdgesState,
+    useKeyPress,
     useNodesState,
     useReactFlow,
 } from 'reactflow';
@@ -209,6 +210,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
     setNodesRef.current = setNodes;
     setEdgesRef.current = setEdges;
+
+    const altPressed = useKeyPress(['Alt', 'Option']);
 
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => {
@@ -461,7 +464,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             if (node) {
                 const collisionResp = performNodeOnEdgeCollisionDetection(node);
                 if (collisionResp?.status === 'success') {
-                    // collisionResp.performCombine();
+                    if (altPressed) {
+                        collisionResp.performCombine();
+                    }
                     log.info('collision detected, would combine');
                 }
             }
