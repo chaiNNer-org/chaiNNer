@@ -290,8 +290,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 const edgeBounds = {
                     minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
                     maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
-                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY),
-                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY),
+                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY) - (node.height || 0),
+                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY) + (node.height || 0),
                 };
                 // Determine if the node is in the bounding box of the edge
                 const isNodeInEdgeBounds =
