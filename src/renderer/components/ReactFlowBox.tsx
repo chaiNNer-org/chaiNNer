@@ -542,6 +542,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges,
             addEdgeChanges,
             performNodeOnEdgeCollisionDetection,
+            altPressed,
             edges,
             changeNodes,
             changeEdges,
