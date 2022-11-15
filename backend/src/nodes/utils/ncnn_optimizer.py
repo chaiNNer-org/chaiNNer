@@ -415,6 +415,149 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 act.op_type = "ncnnfused"
 
+    def __fuse_memorydata_binaryop(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type != "MemoryData":
+                # MemoryData - BinaryOp
+                output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "BinaryOp":
+                        continue
+                    if self.model.layers[j].num_inputs != 2:
+                        continue
+                    if (
+                        self.model.layers[j].inputs[0] == output
+                        or self.model.layers[j].inputs[1] == output
+                    ):
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                # fuse MemoryData - BinaryOp to BinaryOp
+                binaryop = self.model.layers[j]
+
+                if (
+                    layer.params[0].value != 1
+                    or layer.params[1].value != 0
+                    or layer.params[2].value != 0
+                ):
+                    # not a scalar
+                    continue
+
+                memorydata_index = 1
+                if binaryop.inputs[0] == output:
+                    op_type = checked_cast(int, binaryop.params[0].value)
+                    if op_type == BOT.ADD:
+                        memorydata_index = 0
+                    elif op_type == BOT.SUB:
+                        binaryop.params[0] = BOT.RSUB
+                        memorydata_index = 0
+                    elif op_type == BOT.DIV:
+                        binaryop.params[0] = BOT.RDIV
+                        memorydata_index = 0
+                    else:
+                        # non-interchangeable binaryop
+                        continue
+
+                scalar = layer.weight_data["data"].weight[0]
+
+                binaryop.params[1] = 1
+                binaryop.params[2] = scalar
+
+                binaryop.inputs.pop(memorydata_index)
+                layer.op_type = "ncnnfused"
+
+        i = 0
+        while i in range(len(self.model.layers)):
+            if self.model.layers[i].op_type != "MemoryData":
+                # MemoryData - Split - BinaryOp
+                output = self.model.layers[i].outputs[0]
+
+                j0 = i
+                for j0 in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j0].op_type != "Split":
+                        continue
+                    if self.model.layers[j0].num_inputs != 1:
+                        continue
+                    if self.model.layers[j0].inputs[0] == output:
+                        break
+                else:
+                    j0 += 1
+
+                if j0 == len(self.model.layers):
+                    continue
+
+                split_output_index = -1
+                j1 = i
+                for j1 in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j1].op_type != "BinaryOp":
+                        continue
+                    if self.model.layers[j1].num_inputs != 2:
+                        continue
+                    for k in range(self.model.layers[j0].num_outputs):
+                        if (
+                            self.model.layers[j1].inputs[0]
+                            == self.model.layers[j0].outputs[k]
+                            or self.model.layers[j1].inputs[1]
+                            == self.model.layers[j0].outputs[k]
+                        ):
+                            split_output_index = k
+                            break
+                    if split_output_index != -1:
+                        break
+                else:
+                    j1 += 1
+
+                if j1 == len(self.model.layers):
+                    continue
+
+                # fuse MemoryData - Split - BinaryOp to BinaryOp
+                split = self.model.layers[j0]
+                binaryop = self.model.layers[j1]
+
+                if (
+                    self.model.layers[i].params[0].value != 1
+                    or self.model.layers[i].params[1].value != 0
+                    or self.model.layers[i].params[2].value != 0
+                ):
+                    # not a scalar
+                    continue
+
+                memorydata_index = 1
+                if binaryop.inputs[0] == split.outputs[split_output_index]:
+                    op_type = checked_cast(int, binaryop.params[0].value)
+                    if op_type in (BOT.ADD, BOT.MUL, BOT.MAX, BOT.MIN):
+                        memorydata_index = 0
+                    elif op_type == BOT.SUB:
+                        binaryop.params[0] = BOT.RSUB
+                        memorydata_index = 0
+                    elif op_type == BOT.DIV:
+                        binaryop.params[0] = BOT.RDIV
+                        memorydata_index = 0
+                    else:
+                        # non-interchangeable binaryop
+                        continue
+
+                scalar = self.model.layers[i].weight_data["data"].weight[0]
+
+                binaryop.params[1] = 1
+                binaryop.params[2] = scalar
+
+                binaryop.inputs.pop(memorydata_index)
+                binaryop.num_inputs -= 1
+                split.outputs.pop(split_output_index)
+                split.num_outputs -= 1
+                if split.num_outputs == 0:
+                    split.op_type = "ncnnfused"
+                    self.model.layers[i].op_type = "ncnnfused"
+
+                i -= 1
+
     def __fuse_binaryop_eltwise(self):
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "BinaryOp":
@@ -510,8 +653,10 @@ class NcnnOptimizer:
         self.__fuse_x_batchnorm()
         self.__fuse_x_mul()
         self.__fuse_x_add()
+        self.__fuse_innerproduct_dropout()
 
         self.__fuse_x_activation()
+        self.__fuse_memorydata_binaryop()
         self.__fuse_binaryop_eltwise()
 
         return self.model
