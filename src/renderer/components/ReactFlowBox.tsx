@@ -446,10 +446,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     );
 
     const onNodeDrag = useCallback(
-        (event: React.MouseEvent, node: Node, nodes: Node[]) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (event: React.MouseEvent, node: Node, _nodes: Node[]) => {
             const collisionResp = performNodeOnEdgeCollisionDetection(node);
             if (collisionResp?.status === 'success') {
-                console.log('collision detected');
+                log.info('collision detected');
             }
         },
         [performNodeOnEdgeCollisionDetection]
@@ -461,7 +462,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 const collisionResp = performNodeOnEdgeCollisionDetection(node);
                 if (collisionResp?.status === 'success') {
                     // collisionResp.performCombine();
-                    console.log('collision detected, would combine');
+                    log.info('collision detected, would combine');
                 }
             }
             const newNodes: Node<NodeData>[] = [];
