@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
+import { Bezier } from 'bezier-js';
 import log from 'electron-log';
 import { DragEvent, memo, useCallback, useMemo } from 'react';
 import ReactFlow, {
@@ -257,6 +258,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
+            const nodeBounds = {
+                TL: { x: node.position.x || 0, y: node.position.y || 0 },
+                TR: { x: (node.position.x || 0) + (node.width || 0), y: node.position.y || 0 },
+                BL: { x: node.position.x || 0, y: (node.position.y || 0) + (node.height || 0) },
+                BR: {
+                    x: (node.position.x || 0) + (node.width || 0),
+                    y: (node.position.y || 0) + (node.height || 0),
+                },
+            };
+
             // Finds the first edge that intersects with the node
             const intersectingEdge = edges.find((e) => {
                 if (
@@ -274,8 +285,26 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     targetX: e.data.targetX,
                     targetY: e.data.targetY,
                 };
+
+                // If not is not in the bounding box of the edge, we can skip it
+                const edgeBounds = {
+                    minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
+                    maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
+                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY),
+                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY),
+                };
+                // Determine if the node is in the bounding box of the edge
+                const isNodeInEdgeBounds =
+                    edgeBounds.minX <= nodeBounds.TL.x &&
+                    edgeBounds.maxX >= nodeBounds.TR.x &&
+                    edgeBounds.minY <= nodeBounds.TL.y &&
+                    edgeBounds.maxY >= nodeBounds.BL.y;
+                if (!isNodeInEdgeBounds) {
+                    return false;
+                }
+
                 const { edgePath } = e.data;
-                const edgeLines: Line[] = [];
+                // If we have the edge path (which we should) we can do a full bezier intersection check
                 if (edgePath) {
                     const [sourcePos, sourceControlVals, targetControlVals, targetPos] =
                         edgePath.split(' ');
@@ -288,7 +317,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         .map(Number);
                     const [targetX, targetY] = targetPos.split(',').map(Number);
                     const [sourceX, sourceY] = sourcePos.replace('M', '').split(',').map(Number);
-                    console.log({
+                    const coords: number[] = [
                         sourceX,
                         sourceY,
                         sourceControlX,
@@ -297,25 +326,35 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         targetControlY,
                         targetX,
                         targetY,
-                    });
+                    ];
+                    const curve = new Bezier(coords);
+                    const curveIntersectsLeft =
+                        curve.lineIntersects({
+                            p1: nodeBounds.TL,
+                            p2: nodeBounds.BL,
+                        }).length > 0;
+                    const curveIntersectsRight =
+                        curve.lineIntersects({
+                            p1: nodeBounds.TR,
+                            p2: nodeBounds.BR,
+                        }).length > 0;
+                    const curveIntersectsTop =
+                        curve.lineIntersects({
+                            p1: nodeBounds.TL,
+                            p2: nodeBounds.TR,
+                        }).length > 0;
+                    const curveIntersectsBottom =
+                        curve.lineIntersects({
+                            p1: nodeBounds.BL,
+                            p2: nodeBounds.BR,
+                        }).length > 0;
+                    return [
+                        curveIntersectsLeft,
+                        curveIntersectsRight,
+                        curveIntersectsTop,
+                        curveIntersectsBottom,
+                    ].some(Boolean);
                 }
-
-                // If not is not in the axis-aligned bounding box of the edge, we can skip it
-                const aabb = {
-                    minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
-                    maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
-                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY),
-                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY),
-                };
-                if (
-                    node.position.x > aabb.maxX || // node is to the right of the edge
-                    node.position.x + (node.width || 0) < aabb.minX || // node is to the left of the edge
-                    node.position.y > aabb.maxY || // node is below the edge
-                    node.position.y + (node.height || 0) < aabb.minY // node is above the edge
-                ) {
-                    return false;
-                }
-
                 // Line from top left to bottom right of node
                 const nodeLineTLBR: Line = {
                     sourceX: node.position.x,
@@ -330,7 +369,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     targetX: node.position.x,
                     targetY: (node.position.y || 0) + (node.height || 0),
                 };
-
                 // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
                 return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
             });
@@ -361,33 +399,52 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            removeEdgeById(intersectingEdge.id);
-            createConnection({
-                source: fromNode.id,
-                sourceHandle: intersectingEdge.sourceHandle!,
-                target: node.id,
-                targetHandle: stringifyTargetHandle({
-                    nodeId: node.id,
-                    inputId: firstPossibleInput,
-                }),
-            });
-            createConnection({
-                source: node.id,
-                sourceHandle: stringifySourceHandle({
-                    nodeId: node.id,
-                    outputId: firstPossibleOutput,
-                }),
-                target: toNode.id,
-                targetHandle: intersectingEdge.targetHandle!,
-            });
+            return {
+                status: 'success',
+                performCombine: () => {
+                    removeEdgeById(intersectingEdge.id);
+                    createConnection({
+                        source: fromNode.id,
+                        sourceHandle: intersectingEdge.sourceHandle!,
+                        target: node.id,
+                        targetHandle: stringifyTargetHandle({
+                            nodeId: node.id,
+                            inputId: firstPossibleInput,
+                        }),
+                    });
+                    createConnection({
+                        source: node.id,
+                        sourceHandle: stringifySourceHandle({
+                            nodeId: node.id,
+                            outputId: firstPossibleOutput,
+                        }),
+                        target: toNode.id,
+                        targetHandle: intersectingEdge.targetHandle!,
+                    });
+                },
+            };
         },
         [createConnection, edges, functionDefinitions, nodes, removeEdgeById]
+    );
+
+    const onNodeDrag = useCallback(
+        (event: React.MouseEvent, node: Node, nodes: Node[]) => {
+            const collisionResp = performNodeOnEdgeCollisionDetection(node);
+            if (collisionResp?.status === 'success') {
+                console.log('collision detected');
+            }
+        },
+        [performNodeOnEdgeCollisionDetection]
     );
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
             if (node) {
-                performNodeOnEdgeCollisionDetection(node);
+                const collisionResp = performNodeOnEdgeCollisionDetection(node);
+                if (collisionResp?.status === 'success') {
+                    // collisionResp.performCombine();
+                    console.log('collision detected, would combine');
+                }
             }
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
@@ -602,6 +659,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onMoveEnd={onMoveEnd}
                 onMoveStart={closeContextMenu}
                 onNodeClick={closeContextMenu}
+                onNodeDrag={onNodeDrag}
                 onNodeDragStart={closeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}

@@ -107,8 +107,6 @@ export const CustomEdge = memo(
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [type]);
 
-        const DEBUG_LINE = true;
-
         return (
             <g
                 className="edge-chain-group"
@@ -122,16 +120,6 @@ export const CustomEdge = memo(
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
-                {DEBUG_LINE && (
-                    <line
-                        stroke="red"
-                        strokeWidth={2}
-                        x1={sourceX}
-                        x2={targetX}
-                        y1={sourceY}
-                        y2={targetY}
-                    />
-                )}
                 <path
                     className={`edge-chain-links ${classModifier}`}
                     d={edgePath}
