@@ -461,13 +461,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
-            if (node) {
+            if (node && altPressed) {
                 const collisionResp = performNodeOnEdgeCollisionDetection(node);
                 if (collisionResp?.status === 'success') {
-                    if (altPressed) {
-                        collisionResp.performCombine();
-                    }
-                    log.info('collision detected, would combine');
+                    collisionResp.performCombine();
                 }
             }
             const newNodes: Node<NodeData>[] = [];
