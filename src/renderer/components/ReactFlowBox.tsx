@@ -363,6 +363,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         }).length > 0;
                     if (curveIntersectsTop) {
                         return true;
+                    }
                     const curveIntersectsBottom =
                         curve.lineIntersects({
                             p1: nodeBounds.BL,
