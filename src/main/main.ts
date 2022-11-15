@@ -82,33 +82,39 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 // Check for update
 const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
-if (app.isPackaged && checkUpdateOnStartup) {
-    hasUpdate(version)
-        .then(async (latest) => {
-            if (!latest) return;
+const checkForUpdate = () => {
+    if (app.isPackaged && checkUpdateOnStartup) {
+        hasUpdate(version)
+            .then(async (latest) => {
+                if (!latest) return;
 
-            const splitBody = latest.body.split('\n');
-            const changelogItems = splitBody.filter(
-                (line) => line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')
-            );
+                const splitBody = latest.body.split('\n');
+                const changelogItems = splitBody.filter(
+                    (line) =>
+                        line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')
+                );
 
-            const buttonResult = await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
-                type: 'info',
-                title: 'An update is available for chaiNNer!',
-                message: `Version ${latest.version} is available for download from GitHub.`,
-                detail: `Currently installed: ${version}\n\nRelease notes:\n\n${changelogItems.join(
-                    '\n'
-                )}`,
-                buttons: [`Get version ${latest.version}`, 'Ok'],
-                defaultId: 1,
-            });
-            if (buttonResult.response === 0) {
-                await shell.openExternal(latest.releaseUrl);
-                app.exit();
-            }
-        })
-        .catch((reason) => log.error(reason));
-}
+                const buttonResult = await dialog.showMessageBox(
+                    BrowserWindow.getFocusedWindow()!,
+                    {
+                        type: 'info',
+                        title: 'An update is available for chaiNNer!',
+                        message: `Version ${latest.version} is available for download from GitHub.`,
+                        detail: `Currently installed: ${version}\n\nRelease notes:\n\n${changelogItems.join(
+                            '\n'
+                        )}`,
+                        buttons: [`Get version ${latest.version}`, 'Ok'],
+                        defaultId: 1,
+                    }
+                );
+                if (buttonResult.response === 0) {
+                    await shell.openExternal(latest.releaseUrl);
+                    app.exit();
+                }
+            })
+            .catch((reason) => log.error(reason));
+    }
+};
 
 const ownsBackend = !getArguments().noBackend;
 ipcMain.handle('owns-backend', () => ownsBackend);
@@ -651,6 +657,7 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
             }
+            checkForUpdate();
         });
     });
 
