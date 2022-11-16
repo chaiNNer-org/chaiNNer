@@ -245,22 +245,18 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
     }, [nodes, edges, isSnapToGrid, snapToGridAmount]);
 
+    // Node-on-edge collision detection
     const performNodeOnEdgeCollisionDetection = useCallback(
-        (node: Node<NodeData>) => {
-            // Node-on-edge collision detection
-            // On each edge, perform collision detection
-            // We just check an intersection between two lines on the node and one line for the edge, for simplicity
-            // One line is the straight line from one handle to another, the others are a diagonal lines representing the node
-            // I believe it will have much better performance this way, plus the math is just simpler to comprehend
-            // But first, we need to make sure this node is an orphan. We can do a find so it stops early
+        (node: Node<NodeData>, quick = true) => {
+            // First, we need to make sure this node is an orphan. We can do a find so it stops early
             const hasConnectedEdge = !!edges.find(
                 (e) => e.source === node.id || e.target === node.id
             );
-
             if (hasConnectedEdge) {
                 return;
             }
 
+            // Corner positions of node
             const nodeBounds = {
                 TL: { x: node.position.x || 0, y: node.position.y || 0 },
                 TR: { x: (node.position.x || 0) + (node.width || 0), y: node.position.y || 0 },
@@ -273,6 +269,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
             // Finds the first edge that intersects with the node
             const intersectingEdge = edges.find((e) => {
+                // Return false if we don't have necessary information
                 if (
                     !e.data ||
                     !e.data.sourceX ||
@@ -282,19 +279,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 ) {
                     return false;
                 }
-                const edgeLine: Line = {
-                    sourceX: e.data.sourceX,
-                    sourceY: e.data.sourceY,
-                    targetX: e.data.targetX,
-                    targetY: e.data.targetY,
-                };
 
-                // If not is not in the bounding box of the edge, we can skip it
+                // If the node is not within the bounding box of the edge, we can skip it
                 const edgeBounds = {
-                    minX: Math.min(edgeLine.sourceX, edgeLine.targetX),
-                    maxX: Math.max(edgeLine.sourceX, edgeLine.targetX),
-                    minY: Math.min(edgeLine.sourceY, edgeLine.targetY) - (node.height || 0),
-                    maxY: Math.max(edgeLine.sourceY, edgeLine.targetY) + (node.height || 0),
+                    minX: Math.min(e.data.sourceX, e.data.targetX),
+                    maxX: Math.max(e.data.sourceX, e.data.targetX),
+                    minY: Math.min(e.data.sourceY, e.data.targetY) - (node.height || 0),
+                    maxY: Math.max(e.data.sourceY, e.data.targetY) + (node.height || 0),
                 };
                 // Determine if the node is in the bounding box of the edge
                 const isNodeInEdgeBounds =
@@ -307,6 +298,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 }
 
                 // Determine if the center of the edge is within the node bounds
+                // This is a quick check that guarantees collision
                 if (
                     e.data.edgeCenterX &&
                     e.data.edgeCenterY &&
@@ -319,8 +311,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 }
 
                 const { edgePath } = e.data;
-                // If we have the edge path (which we should) we can do a full bezier intersection check
+                // If we have the edge path (which we should), we can do a full bezier intersection check
                 if (edgePath) {
+                    // Here we convert the SVG path into coordinate pairs
                     const [sourcePos, sourceControlVals, targetControlVals, targetPos] =
                         edgePath.split(' ');
                     const [sourceControlX, sourceControlY] = sourceControlVals
@@ -342,6 +335,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         targetX,
                         targetY,
                     ];
+
+                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
+                    // TODO: there might be a way to select the order in which to check base don the position of the node relative to the edge
+                    // However, I don't want to figure that out right now, and this works well enough.
                     const curve = new Bezier(coords);
                     const curveIntersectsLeft =
                         curve.lineIntersects({
@@ -376,6 +373,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return true;
                     }
                 }
+                // If we don't have the actual edge path for some reason, we can do a rough check
+                // This way approximates collision using a straight line (for the edge) and two diagonal lines (for the node)
+                // This probably doesn't need to be here any more, but I figured it would be worth leaving in just in case
+                const edgeLine: Line = {
+                    sourceX: e.data.sourceX,
+                    sourceY: e.data.sourceY,
+                    targetX: e.data.targetX,
+                    targetY: e.data.targetY,
+                };
                 // Line from top left to bottom right of node
                 const nodeLineTLBR: Line = {
                     sourceX: node.position.x,
@@ -394,6 +400,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
             });
 
+            // Early exit if there is not an intersecting edge
             if (!intersectingEdge) {
                 return;
             }
@@ -418,6 +425,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             const toNode = nodes.find((n) => n.id === intersectingEdge.target);
             if (!(fromNode && toNode)) {
                 return;
+            }
+
+            // We don't need to bother setting up the combination function if we're just detecting the collision for visualization
+            if (quick) {
+                return {
+                    status: 'success',
+                    performCombine: () => {},
+                };
             }
 
             return {
@@ -452,9 +467,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (event: React.MouseEvent, node: Node, _nodes: Node[]) => {
             if (altPressed) {
-                const collisionResp = performNodeOnEdgeCollisionDetection(node);
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, true);
                 if (collisionResp?.status === 'success') {
                     log.info('collision detected');
+                    // TODO: Here is where we would do something to visualize the collision on the node, somehow
                 }
             }
         },
