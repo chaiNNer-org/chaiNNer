@@ -282,8 +282,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
                 // If the node is not within the bounding box of the edge, we can skip it
                 const edgeBounds = {
-                    minX: Math.min(e.data.sourceX, e.data.targetX),
-                    maxX: Math.max(e.data.sourceX, e.data.targetX),
+                    minX: Math.min(e.data.sourceX, e.data.targetX) - (node.width || 0),
+                    maxX: Math.max(e.data.sourceX, e.data.targetX) + (node.width || 0),
                     minY: Math.min(e.data.sourceY, e.data.targetY) - (node.height || 0),
                     maxY: Math.max(e.data.sourceY, e.data.targetY) + (node.height || 0),
                 };
