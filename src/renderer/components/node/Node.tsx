@@ -11,6 +11,7 @@ import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
@@ -53,7 +54,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId, colliding } = data;
+    const { id, inputData, inputSize, isLocked, parentNode, schemaId, collidingEdge } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -72,6 +73,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
+
+    const collidingAccentColor = collidingEdge?.data?.type
+        ? getTypeAccentColors(collidingEdge.data.type)
+        : undefined;
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
@@ -132,7 +137,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     return (
         <Center
             bg="var(--node-bg-color)"
-            borderColor={colliding ? 'white' : borderColor}
+            borderColor={collidingAccentColor || borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"

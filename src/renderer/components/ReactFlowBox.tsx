@@ -432,6 +432,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return {
                     status: 'success',
                     performCombine: () => {},
+                    intersectingEdge,
                 };
             }
 
@@ -458,13 +459,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         targetHandle: intersectingEdge.targetHandle!,
                     });
                 },
+                intersectingEdge,
             };
         },
         [createConnection, edges, functionDefinitions, nodes, removeEdgeById]
     );
 
-    const setNodeColliding = useCallback(
-        (node: Node, colliding: boolean) => {
+    const setNodeCollidingEdge = useCallback(
+        (node: Node<NodeData>, collidingEdge?: Edge<EdgeData>) => {
             setNodes((sNodes) => {
                 const thisNode = sNodes.find((n) => n.id === node.id);
                 if (!thisNode) {
@@ -476,7 +478,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         ...thisNode,
                         data: {
                             ...thisNode.data,
-                            colliding,
+                            collidingEdge,
                         },
                     },
                 ];
@@ -492,15 +494,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 const collisionResp = performNodeOnEdgeCollisionDetection(node, true);
                 if (collisionResp?.status === 'success') {
                     log.info('collision detected');
-                    if (!node.data.colliding) {
-                        setNodeColliding(node, true);
+                    if (!node.data.collidingEdge) {
+                        setNodeCollidingEdge(node, collisionResp.intersectingEdge);
                     }
-                } else if (node.data.colliding) {
-                    setNodeColliding(node, false);
+                } else if (node.data.collidingEdge) {
+                    setNodeCollidingEdge(node, undefined);
                 }
             }
         },
-        [altPressed, performNodeOnEdgeCollisionDetection, setNodeColliding]
+        [altPressed, performNodeOnEdgeCollisionDetection, setNodeCollidingEdge]
     );
 
     useEffect(() => {
@@ -517,11 +519,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 const collisionResp = performNodeOnEdgeCollisionDetection(node, false);
                 if (collisionResp?.status === 'success') {
                     collisionResp.performCombine();
-                    if (node.data.colliding) {
-                        setNodeColliding(node, false);
+                    if (node.data.collidingEdge) {
+                        setNodeCollidingEdge(node, undefined);
                     }
-                } else if (node.data.colliding) {
-                    setNodeColliding(node, false);
+                } else if (node.data.collidingEdge) {
+                    setNodeCollidingEdge(node, undefined);
                 }
             }
             const newNodes: Node<NodeData>[] = [];
@@ -597,7 +599,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges,
             addEdgeChanges,
             performNodeOnEdgeCollisionDetection,
-            setNodeColliding,
+            setNodeCollidingEdge,
             edges,
             changeNodes,
             changeEdges,

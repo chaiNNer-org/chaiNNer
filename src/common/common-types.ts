@@ -1,4 +1,5 @@
 import { NonNeverType } from '@chainner/navi';
+import { Edge } from 'reactflow';
 import { ExpressionJson } from './types/json';
 
 export interface JsonObject {
@@ -210,7 +211,7 @@ export interface NodeData {
     readonly percentComplete?: number;
     readonly minWidth?: number;
     readonly minHeight?: number;
-    colliding?: boolean;
+    readonly collidingEdge?: Edge<EdgeData>;
 }
 export interface EdgeData {
     readonly complete?: boolean;
