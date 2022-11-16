@@ -53,7 +53,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
+    const { id, inputData, inputSize, isLocked, parentNode, schemaId, colliding } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -132,7 +132,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     return (
         <Center
             bg="var(--node-bg-color)"
-            borderColor={borderColor}
+            borderColor={colliding ? 'white' : borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"

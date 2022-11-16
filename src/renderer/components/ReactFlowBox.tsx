@@ -2,7 +2,7 @@
 import { Box } from '@chakra-ui/react';
 import { Bezier } from 'bezier-js';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -463,26 +463,65 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [createConnection, edges, functionDefinitions, nodes, removeEdgeById]
     );
 
+    const setNodeColliding = useCallback(
+        (node: Node, colliding: boolean) => {
+            setNodes((sNodes) => {
+                const thisNode = sNodes.find((n) => n.id === node.id);
+                if (!thisNode) {
+                    return nodes;
+                }
+                return [
+                    ...sNodes,
+                    {
+                        ...thisNode,
+                        data: {
+                            ...thisNode.data,
+                            colliding,
+                        },
+                    },
+                ];
+            });
+        },
+        [nodes, setNodes]
+    );
+
     const onNodeDrag = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (event: React.MouseEvent, node: Node, _nodes: Node[]) => {
+        (event: React.MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
             if (altPressed) {
                 const collisionResp = performNodeOnEdgeCollisionDetection(node, true);
                 if (collisionResp?.status === 'success') {
                     log.info('collision detected');
-                    // TODO: Here is where we would do something to visualize the collision on the node, somehow
+                    if (!node.data.colliding) {
+                        setNodeColliding(node, true);
+                    }
+                } else if (node.data.colliding) {
+                    setNodeColliding(node, false);
                 }
             }
         },
-        [performNodeOnEdgeCollisionDetection, altPressed]
+        [altPressed, performNodeOnEdgeCollisionDetection, setNodeColliding]
     );
+
+    useEffect(() => {
+        if (!altPressed) {
+            setNodes((sNodes) =>
+                sNodes.map((n) => ({ ...n, data: { ...n.data, colliding: false } }))
+            );
+        }
+    }, [altPressed, nodes, setNodes]);
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
             if (node && altPressed) {
-                const collisionResp = performNodeOnEdgeCollisionDetection(node);
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, false);
                 if (collisionResp?.status === 'success') {
                     collisionResp.performCombine();
+                    if (node.data.colliding) {
+                        setNodeColliding(node, false);
+                    }
+                } else if (node.data.colliding) {
+                    setNodeColliding(node, false);
                 }
             }
             const newNodes: Node<NodeData>[] = [];
@@ -553,11 +592,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addEdgeChanges();
         },
         [
+            altPressed,
             nodes,
             addNodeChanges,
             addEdgeChanges,
             performNodeOnEdgeCollisionDetection,
-            altPressed,
+            setNodeColliding,
             edges,
             changeNodes,
             changeEdges,
