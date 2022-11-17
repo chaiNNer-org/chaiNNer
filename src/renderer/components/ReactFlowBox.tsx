@@ -2,7 +2,7 @@
 import { Box } from '@chakra-ui/react';
 import { Bezier } from 'bezier-js';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -541,14 +541,18 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         ]
     );
 
+    const lastAltPressed = useRef<boolean>(altPressed);
     useEffect(() => {
-        if (!altPressed) {
-            setNodes((sNodes) =>
-                sNodes.map((n) => ({ ...n, data: { ...n.data, colliding: false } }))
-            );
-            setEdges((sEdges) =>
-                sEdges.map((e) => ({ ...e, data: { ...e.data, colliding: false } }))
-            );
+        if (lastAltPressed.current !== altPressed) {
+            lastAltPressed.current = altPressed;
+            if (!altPressed) {
+                setNodes((sNodes) =>
+                    sNodes.map((n) => ({ ...n, data: { ...n.data, colliding: false } }))
+                );
+                setEdges((sEdges) =>
+                    sEdges.map((e) => ({ ...e, data: { ...e.data, colliding: false } }))
+                );
+            }
         }
     }, [altPressed, nodes, setEdges, setNodes]);
 
