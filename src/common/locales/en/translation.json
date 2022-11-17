@@ -1,0 +1,21 @@
+{
+  "CHECKING_DEPS": "Checking dependencies",
+  "CHECKING_PORT": "Checking for available port",
+  "CHECKING_PYTHON": "Checking system environment for valid Python",
+  "DOWNLOADING_FFMPEG": "Downloading ffmpeg",
+  "DOWNLOADING_PYTHON": "Downloading Integrated Python",
+  "EXTRACTING_FFMPEG": "Extracting downloaded files",
+  "EXTRACTING_PYTHON": "Extracting downloaded files",
+  "Error": {
+    "CRITICAL_BACKEND": "A critical error occurred while processing the node data returned by the backend"
+  },
+  "INSTALLING_DEPS": "Installing required dependencies",
+  "LOADING": "Loading",
+  "LOADING_APP": "Loading main application",
+  "STARTING_BACKEND": "Starting up backend process",
+  "SYS_INFO": "System information",
+  "Title": {
+    "UNABLE_PROCESS_NODES": "Unable to process backend nodes"
+  },
+  "UPDATING_DEPS": "Updating dependencies"
+}

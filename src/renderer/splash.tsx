@@ -1,11 +1,15 @@
 import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 import { ipcRenderer } from '../common/safeIpc';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { theme } from './splashTheme';
 
 const Splash = memo(() => {
+    const { t } = useTranslation();
+
     const [status, setStatus] = useState('Loading...');
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [overallProgressPercentage, setOverallProgressPercentage] = useState(0);
@@ -16,81 +20,83 @@ const Splash = memo(() => {
         ipcRenderer.on('checking-port', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.1);
-            setStatus('Checking for available port...');
+            setStatus(`${t('CHECKING_PORT', 'Checking for available port')}...`);
         });
 
         ipcRenderer.on('checking-python', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.2);
-            setStatus('Checking system environment for valid Python...');
+            setStatus(`${t('CHECKING_PYTHON', 'Checking system environment for valid Python')}...`);
         });
 
         ipcRenderer.on('checking-deps', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.6);
-            setStatus('Checking dependencies...');
+            setStatus(`${t('CHECKING_DEPS', 'Checking dependencies')}...`);
         });
 
         ipcRenderer.on('installing-deps', (event, onlyUpdating) => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.7);
             setStatus(
-                onlyUpdating ? 'Updating dependencies...' : 'Installing required dependencies...'
+                onlyUpdating
+                    ? `${t('UPDATING_DEPS', 'Updating dependencies')}...`
+                    : `${t('INSTALLING_DEPS', 'Installing required dependencies')}...`
             );
         });
 
         ipcRenderer.on('spawning-backend', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.8);
-            setStatus('Starting up backend process...');
+            setStatus(`${t('STARTING_BACKEND', 'Starting up backend process')}...`);
         });
 
         ipcRenderer.on('splash-finish', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.9);
-            setStatus('Loading main application...');
+            setStatus(`${t('LOADING_APP', 'Loading main application')}...`);
         });
 
         ipcRenderer.on('downloading-python', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.3);
-            setStatus('Downloading Integrated Python...');
+            setStatus(`${t('DOWNLOADING_PYTHON', 'Downloading Integrated Python')}...`);
         });
 
         ipcRenderer.on('extracting-python', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.4);
-            setStatus('Extracting downloaded files...');
+            setStatus(`${t('EXTRACTING_PYTHON', 'Extracting downloaded files')}...`);
         });
 
         ipcRenderer.on('downloading-ffmpeg', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.5);
-            setStatus('Downloading ffmpeg...');
+            setStatus(`${t('DOWNLOADING_FFMPEG', 'Downloading ffmpeg')}...`);
         });
 
         ipcRenderer.on('extracting-ffmpeg', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.6);
-            setStatus('Extracting downloaded files...');
+            setStatus(`${t('EXTRACTING_FFMPEG', 'Extracting downloaded files')}...`);
         });
 
         ipcRenderer.on('installing-main-deps', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.7);
-            setStatus('Installing required dependencies...');
+            setStatus(`${t('INSTALLING_DEPS', 'Installing required dependencies')}...`);
         });
 
         ipcRenderer.on('finish-loading', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(1);
-            setStatus('Loading main application...');
+            setStatus(`${t('LOADING_APP', 'Loading main application')}...`);
         });
 
         ipcRenderer.on('progress', (event, percentage) => {
             setProgressPercentage(percentage);
         });
-    }, []);
+    }, [t]);
 
     return (
         <ChakraProvider theme={theme}>

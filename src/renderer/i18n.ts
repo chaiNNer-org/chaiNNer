@@ -1,7 +1,7 @@
 import log from 'electron-log';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from '../common/locales/en.json';
+import en from '../common/locales/en/translation.json';
 
 // the translations
 // (tip move them in a JSON file and import them,

@@ -105,8 +105,11 @@ export const Main = memo(({ port }: MainProps) => {
                 log.error(e);
                 sendAlert({
                     type: AlertType.CRIT_ERROR,
-                    title: t('ERR_UNABLE_TO_PROCESS_NODES').toString(),
-                    message: `${t('ERR_CRIT__BACKEND')}\n\n${String(e)}`,
+                    title: `${t('Title.UNABLE_PROCESS_NODES', 'Unable to process backend nodes')}.`,
+                    message: `${t(
+                        'Error.CRITICAL_BACKEND',
+                        'A critical error occurred while processing the node data returned by the backend'
+                    )}.\n\n${String(e)}`,
                 });
             }
             setBackendReady(true);
@@ -116,7 +119,10 @@ export const Main = memo(({ port }: MainProps) => {
         if (error) {
             sendAlert({
                 type: AlertType.CRIT_ERROR,
-                message: `${t('ERR_CRIT__BACKEND')}. Error: ${error.message}`,
+                message: `${t(
+                    'Error.CRITICAL_BACKEND',
+                    'A critical error occurred while processing the node data returned by the backend'
+                )}. Error: ${error.message}`,
             });
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
@@ -139,7 +145,7 @@ export const Main = memo(({ port }: MainProps) => {
 
                 sendAlert({
                     type: AlertType.INFO,
-                    title: t('System information').toString(),
+                    title: t('SYS_INFO', 'System information').toString(),
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },
@@ -173,7 +179,7 @@ export const Main = memo(({ port }: MainProps) => {
                             percent={0}
                             size={256}
                         />
-                        <Text>{t('Loading')}...</Text>
+                        <Text>{t('LOADING', 'Loading')}...</Text>
                     </VStack>
                 </Center>
             </Box>
