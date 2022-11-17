@@ -495,7 +495,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     return sEdges;
                 }
                 return [
-                    ...sEdges.filter((e) => e.id !== edge.id),
+                    ...sEdges
+                        .filter((e) => e.id !== edge.id)
+                        .map((e) => ({
+                            ...e,
+                            data: {
+                                ...e.data,
+                                colliding: false,
+                            },
+                        })),
                     {
                         ...thisEdge,
                         data: {
