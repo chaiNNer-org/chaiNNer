@@ -1,0 +1,6 @@
+{
+    "Loading": "Loading",
+    "System information": "System information",
+    "ERR_UNABLE_TO_PROCESS_NODES": "Unable to process backend nodes.",
+    "ERR_CRIT__BACKEND": "A critical error occurred while processing the node data returned by the backend."
+}
