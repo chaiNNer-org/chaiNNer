@@ -81,7 +81,7 @@ export const CustomEdge = memo(
 
         const classModifier = `${isHovered ? 'hovered' : ''} ${
             showRunning && animateChain ? 'running' : ''
-        }`;
+        } ${data.colliding ? 'colliding' : ''}`;
 
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array

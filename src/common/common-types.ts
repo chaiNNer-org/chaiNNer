@@ -223,6 +223,7 @@ export interface EdgeData {
     edgePath?: string;
     edgeCenterX?: number;
     edgeCenterY?: number;
+    colliding?: boolean;
 }
 
 /**
