@@ -18,9 +18,9 @@ export const CustomEdge = memo(
     ({
         id,
         source,
-        sourceX,
+        sourceX: _sourceX,
         sourceY,
-        targetX,
+        targetX: _targetX,
         targetY,
         sourcePosition,
         targetPosition,
@@ -29,6 +29,9 @@ export const CustomEdge = memo(
         animated,
         data = {},
     }: EdgeProps<EdgeData>) => {
+        const sourceX = _sourceX - 8;
+        const targetX = _targetX + 8;
+
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
