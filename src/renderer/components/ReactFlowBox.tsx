@@ -183,7 +183,7 @@ const updateZIndexes = (
         } else if (connectedNodes.some((n) => n.selected)) {
             // If an edge is connectec to a selected node, we need to make the other node it is connected to the same zIndex
             connectedNodes.forEach((n) => {
-                if (!n.selected) {
+                if (!n.selected && n.type !== 'iterator') {
                     // We need to wait until after the loop to adjust the zIndex
                     nodesToAdjust.push({ node: n, zIndex });
                 }
