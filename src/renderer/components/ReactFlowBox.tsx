@@ -197,6 +197,33 @@ const updateZIndexes = (
     for (const { node, zIndex } of nodesToAdjust) {
         node.zIndex = zIndex;
     }
+
+    // Now we have to adjust iterators that are connected to any edges, to make sure they are above them
+    for (const n of nodes) {
+        if (n.type === 'iterator') {
+            const connectedEdges = edges.filter((e) => e.source === n.id || e.target === n.id);
+            if (connectedEdges.length > 0) {
+                const zIndexToUpdateTo =
+                    Math.max(n.zIndex || 0, ...connectedEdges.map((e) => e.zIndex || 0)) + 1;
+                // We also have to do to all children nodes and edges...
+                const iConnectedNodes = nodes.filter((node) => node.parentNode === n.id);
+                const iConnectedNodeIds = iConnectedNodes.map((node) => node.id);
+                const iConnectedEdges = edges.filter(
+                    (e) =>
+                        iConnectedNodeIds.includes(e.source) || iConnectedNodeIds.includes(e.target)
+                );
+                for (const node of iConnectedNodes) {
+                    const offset = (node.zIndex || 0) - (n.zIndex || 0);
+                    node.zIndex = zIndexToUpdateTo + offset;
+                }
+                for (const edge of iConnectedEdges) {
+                    const offset = (edge.zIndex || 0) - (n.zIndex || 0);
+                    edge.zIndex = zIndexToUpdateTo + offset;
+                }
+                n.zIndex = zIndexToUpdateTo;
+            }
+        }
+    }
 };
 
 interface ReactFlowBoxProps {
