@@ -163,6 +163,7 @@ const updateZIndexes = (
         }
     }
 
+    const nodesToAdjust: { node: Node<NodeData>; zIndex: number }[] = [];
     // set the zIndex of all edges
     for (const e of edges) {
         let zIndex = Math.max(
@@ -170,11 +171,31 @@ const updateZIndexes = (
             byId.get(e.target)?.zIndex ?? STARTING_Z_INDEX
         );
 
+        const connectedNodes = nodes.filter((n) => n.id === e.source || n.id === e.target);
+
         if (e.selected && zIndex < MIN_SELECTED_INDEX) {
             zIndex += SELECTED_ADD;
+            // If an edge is selected, make the connected nodes the same zIndex
+            connectedNodes.forEach((n) => {
+                // We need to wait until after the loop to adjust the zIndex
+                nodesToAdjust.push({ node: n, zIndex });
+            });
+        } else if (connectedNodes.some((n) => n.selected)) {
+            // If an edge is connectec to a selected node, we need to make the other node it is connected to the same zIndex
+            connectedNodes.forEach((n) => {
+                if (!n.selected) {
+                    // We need to wait until after the loop to adjust the zIndex
+                    nodesToAdjust.push({ node: n, zIndex });
+                }
+            });
         }
 
         e.zIndex = zIndex - 1;
+    }
+
+    // Adjust the zIndex of the nodes that were connected to selected edges
+    for (const { node, zIndex } of nodesToAdjust) {
+        node.zIndex = zIndex;
     }
 };
 
@@ -786,6 +807,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
+                elevateEdgesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
@@ -802,8 +824,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
-                onDrop={onDrop}
                 // onEdgeUpdate={onEdgeUpdate}
+                onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}

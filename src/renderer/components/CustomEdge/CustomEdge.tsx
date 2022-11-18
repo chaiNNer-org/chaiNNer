@@ -28,6 +28,7 @@ export const CustomEdge = memo(
         sourceHandleId,
         animated,
         data = {},
+        style,
     }: EdgeProps<EdgeData>) => {
         const sourceX = _sourceX - 8;
         const targetX = _targetX + 8;
@@ -123,6 +124,7 @@ export const CustomEdge = memo(
                 style={{
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
+                    ...style,
                 }}
                 onDoubleClick={() => removeEdgeById(id)}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
