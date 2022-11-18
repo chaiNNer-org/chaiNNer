@@ -1,5 +1,6 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
+import { toPng } from 'html-to-image';
 import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -138,6 +139,7 @@ interface Global {
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
+    exportViewportScreenshot: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
@@ -166,7 +168,7 @@ export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { schemata, functionDefinitions, backend } = useContext(BackendContext);
-        const { useStartupTemplate } = useContext(SettingsContext);
+        const { useStartupTemplate, useViewportExportPadding } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -183,6 +185,7 @@ export const GlobalProvider = memo(
         } = useReactFlow<NodeData, EdgeData>();
 
         const currentViewport = useViewport();
+        const currentReactFlowInstance = useReactFlow();
 
         const setNodesRef = useRef<SetState<Node<NodeData>[]>>(rfSetNodes);
         const setEdgesRef = useRef<SetState<Edge<EdgeData>[]>>(rfSetEdges);
@@ -1136,6 +1139,85 @@ export const GlobalProvider = memo(
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
+        const _getNodesBoundingBox = useCallback(() => {
+            const nodes = getNodes().filter((n) => !n.parentNode);
+
+            const minX = Math.min(...nodes.map((n) => n.position.x));
+            const minY = Math.min(...nodes.map((n) => n.position.y));
+            const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
+            const maxY = Math.max(...nodes.map((n) => n.position.y + (n.height ?? 0)));
+
+            return {
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+            };
+        }, [getNodes]);
+
+        const _downloadImage = (dataUrl: string, fileName: string) => {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        const [viewportExportPadding] = useViewportExportPadding;
+        const exportViewportScreenshot = useCallback(async () => {
+            if (!reactFlowWrapper.current) return;
+
+            const oldViewport = currentReactFlowInstance.getViewport();
+
+            const reactFlowViewport = reactFlowWrapper.current.getBoundingClientRect();
+            const { x, y, width, height } = _getNodesBoundingBox();
+            const paddedBoundingBox = {
+                x: x - viewportExportPadding,
+                y: y - viewportExportPadding,
+                width: width + viewportExportPadding * 2,
+                height: height + viewportExportPadding * 2,
+            };
+
+            const zoom = Math.min(
+                reactFlowViewport.width / paddedBoundingBox.width,
+                reactFlowViewport.height / paddedBoundingBox.height,
+            );
+
+            currentReactFlowInstance.setViewport({
+                x: paddedBoundingBox.x * -1 * zoom,
+                y: paddedBoundingBox.y * -1 * zoom,
+                zoom,
+            })
+
+            // wait for the viewport to be updated
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            toPng(reactFlowWrapper.current as HTMLDivElement, {
+                style: {
+                    padding: '0',
+                    margin: '0',
+                    pointerEvents: 'none',
+                },
+                pixelRatio: 1 / zoom,
+                width: paddedBoundingBox.width * zoom,
+                height: paddedBoundingBox.height * zoom,
+                filter: (node) => {
+                    if (
+                        node?.classList?.contains('react-flow__minimap') ||
+                        node?.classList?.contains('react-flow__controls')
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                },
+            }).then((dataUrl) => {
+                currentReactFlowInstance.setViewport(oldViewport);
+                _downloadImage(dataUrl, 'chaiNNer-Viewport.png');
+            });
+        }, [reactFlowWrapper.current, currentReactFlowInstance, viewportExportPadding]);
+
         const globalVolatileValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
             edgeChanges,
@@ -1179,6 +1261,7 @@ export const GlobalProvider = memo(
             setHoveredNode,
             setNodeDisabled,
             setZoom,
+            exportViewportScreenshot,
             setManualOutputType,
             typeStateRef,
             releaseNodeFromParent,

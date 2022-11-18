@@ -149,10 +149,11 @@ const Dropdown = memo(
 );
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
+    const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } = useContext(SettingsContext);
 
     const [isDarkMode, setIsDarkMode] = useIsDarkMode;
     const [animateChain, setAnimateChain] = useAnimateChain;
+    const [viewportExportPadding, setViewportExportPadding] = useViewportExportPadding;
 
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
 
@@ -198,6 +199,25 @@ const AppearanceSettings = memo(() => {
                     min={1}
                     value={Number(snapToGridAmount || 1)}
                     onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+            </SettingsItem>
+
+            <SettingsItem
+                description="The amount of padding for the viewport PNG export."
+                title="Viewport PNG export padding"
+            >
+                <NumberInput
+                    defaultValue={viewportExportPadding || 20}
+                    max={100}
+                    min={0}
+                    value={Number(viewportExportPadding || 0)}
+                    onChange={(number: string) => setViewportExportPadding(Number(number || 0))}
                 >
                     <NumberInputField />
                     <NumberInputStepper>
