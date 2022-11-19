@@ -214,11 +214,16 @@ const AppearanceSettings = memo(() => {
                 title="Viewport PNG export padding"
             >
                 <NumberInput
-                    defaultValue={viewportExportPadding || 20}
                     max={100}
                     min={0}
-                    value={Number(viewportExportPadding || 0)}
-                    onChange={(number: string) => setViewportExportPadding(Number(number || 0))}
+                    value={viewportExportPadding}
+                    onChange={(number: string) => {
+                        const value = Number(number);
+
+                        if (!Number.isNaN(value)) {
+                            setViewportExportPadding(value);
+                        }
+                    }}
                 >
                     <NumberInputField />
                     <NumberInputStepper>

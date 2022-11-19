@@ -436,6 +436,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 />
                 <Controls>
                     <ControlButton
+                        disabled={nodes.length === 0}
                         title="Export viewport as PNG"
                         onClick={exportViewportScreenshot}
                     >

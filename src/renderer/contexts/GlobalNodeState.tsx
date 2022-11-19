@@ -1,7 +1,7 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
 import { toPng } from 'html-to-image';
-import { dirname } from 'path';
+import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -1142,6 +1142,8 @@ export const GlobalProvider = memo(
         const getNodesBoundingBox = useCallback(() => {
             const nodes = getNodes().filter((n) => !n.parentNode);
 
+            if (nodes.length === 0) return;
+
             const minX = Math.min(...nodes.map((n) => n.position.x));
             const minY = Math.min(...nodes.map((n) => n.position.y));
             const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
@@ -1166,17 +1168,21 @@ export const GlobalProvider = memo(
 
         const [viewportExportPadding] = useViewportExportPadding;
         const exportViewportScreenshot = useCallback(() => {
-            if (!reactFlowWrapper.current) return;
+            const currentFlowWrapper = reactFlowWrapper.current;
+            if (!(currentFlowWrapper instanceof HTMLElement)) return;
 
             const oldViewport = currentReactFlowInstance.getViewport();
 
-            const reactFlowViewport = reactFlowWrapper.current.getBoundingClientRect();
-            const { x, y, width, height } = getNodesBoundingBox();
+            const reactFlowViewport = currentFlowWrapper.getBoundingClientRect();
+            const nodesBoundingBox = getNodesBoundingBox();
+
+            if (!nodesBoundingBox) return;
+
             const paddedBoundingBox = {
-                x: x - viewportExportPadding,
-                y: y - viewportExportPadding,
-                width: width + viewportExportPadding * 2,
-                height: height + viewportExportPadding * 2,
+                x: nodesBoundingBox.x - viewportExportPadding,
+                y: nodesBoundingBox.y - viewportExportPadding,
+                width: nodesBoundingBox.width + viewportExportPadding * 2,
+                height: nodesBoundingBox.height + viewportExportPadding * 2,
             };
 
             const exportZoom = Math.min(
@@ -1189,9 +1195,6 @@ export const GlobalProvider = memo(
                 y: paddedBoundingBox.y * -1 * exportZoom,
                 zoom: exportZoom,
             });
-
-            const currentFlowWrapper = reactFlowWrapper.current;
-            if (!(currentFlowWrapper instanceof HTMLElement)) return;
 
             // wait for the viewport to be updated
             setTimeout(() => {
@@ -1218,7 +1221,20 @@ export const GlobalProvider = memo(
                 })
                     .then((dataUrl: string) => {
                         currentReactFlowInstance.setViewport(oldViewport);
-                        downloadImage(dataUrl, 'chaiNNer-Viewport.png');
+
+                        const currentNodename = savePath ? parse(savePath).name : 'Untitled';
+
+                        const date = new Date();
+                        const dateString = `${date.getFullYear()}-${
+                            date.getMonth() + 1
+                        }-${date.getDate()}`;
+
+                        const hourString = date.getHours().toString().padStart(2, '0');
+                        const minuteString = date.getMinutes().toString().padStart(2, '0');
+                        const timeString = `${hourString}-${minuteString}`;
+
+                        const fileName = `chaiNNer-${currentNodename}-${dateString}_${timeString}.png`;
+                        downloadImage(dataUrl, fileName);
                     })
                     .catch((error) => {
                         log.error(error);
@@ -1229,6 +1245,7 @@ export const GlobalProvider = memo(
             currentReactFlowInstance,
             getNodesBoundingBox,
             viewportExportPadding,
+            savePath,
         ]);
 
         const globalVolatileValue = useMemoObject<GlobalVolatile>({

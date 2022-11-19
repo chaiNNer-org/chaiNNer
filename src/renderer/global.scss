@@ -58,6 +58,14 @@ body {
 .react-flow__controls-button {
     transition: 0.15s background ease-in-out !important;
     transition: 0.15s border ease-in-out;
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &:disabled > svg {
+        fill: var(--gray-600);
+    }
 }
 
 .react-flow__controls-zoomin {
@@ -77,9 +85,13 @@ body {
         border: 0 solid rgb(113 128 150 / 66%) !important;
         background: rgb(203 213 224 / 66%) !important;
 
-        &:hover {
+        &:not(:disabled):hover {
             background: var(--gray-400) !important;
             border: 0 solid var(--gray-500) !important;
+        }
+
+        &:disabled > svg {
+            fill: var(--gray-400);
         }
     }
 }
@@ -93,12 +105,12 @@ body {
         border: 0 solid rgb(74 85 104 / 66%) !important;
         background: rgb(45 55 72 / 66%) !important;
 
-        &:hover {
+        &:not(:disabled):hover {
             background: var(--gray-600) !important;
             border: 0 solid var(--gray-600) !important;
         }
 
-        svg {
+        &:not(:disabled) > svg {
             fill: white;
         }
     }
