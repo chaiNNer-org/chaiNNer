@@ -1220,7 +1220,7 @@
   "Pooling": {
     "0": {
       "paramId": "0",
-      "paramPhase": "pooling_type(0: max 1: avg)",
+      "paramPhase": "pooling_type",
       "defaultValue": 0
     },
     "1": {

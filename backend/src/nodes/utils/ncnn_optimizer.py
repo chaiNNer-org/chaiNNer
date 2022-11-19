@@ -1,10 +1,10 @@
 from math import sqrt
 
 import numpy as np
-from .checked_cast import checked_cast
-from .ncnn_model import BinaryOpTypes as BOT
-from .ncnn_model import EltwiseOpTypes as EOT
-from .ncnn_model import NcnnLayer, NcnnModel
+from checked_cast import checked_cast
+from ncnn_model import BinaryOpTypes as BOT
+from ncnn_model import EltwiseOpTypes as EOT
+from ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -49,7 +49,7 @@ class NcnnOptimizer:
                     else:
                         bias[c] = bias[c] * scale.weight_data["scale"]
 
-                self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
+                self.model.layers[i].outputs[0] = scale.outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 scale.op_type = "ncnnfused"
@@ -470,6 +470,8 @@ class NcnnOptimizer:
                 binaryop.params[2] = scalar
 
                 binaryop.inputs.pop(memorydata_index)
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
 
         i = 0
@@ -553,6 +555,8 @@ class NcnnOptimizer:
                 split.outputs.pop(split_output_index)
                 split.num_outputs -= 1
                 if split.num_outputs == 0:
+                    self.model.node_count -= 2
+                    self.model.blob_count -= 2
                     split.op_type = "ncnnfused"
                     self.model.layers[i].op_type = "ncnnfused"
 
@@ -648,6 +652,338 @@ class NcnnOptimizer:
 
                 self.model.layers[i] = eltwise
 
+    def __eliminate_dropout(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Dropout":
+                if layer.params[0].value != 1:
+                    continue
+
+                # Any - Dropout
+                dropout_input = layer.inputs[0]
+
+                j = i - 1
+                for j in range(i - 1, -1, -1):
+                    if self.model.layers[j].op_type == "ncnnfused":
+                        continue
+                    if self.model.layers[j].num_outputs != 1:
+                        continue
+                    if self.model.layers[j].outputs == dropout_input:
+                        break
+                else:
+                    j -= 1
+
+                if j == -1:
+                    continue
+
+                layer_any = self.model.layers[j]
+
+                layer_any.outputs[0] = layer.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __eliminate_pooling1x1(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Pooling":
+                if (
+                    layer.params[3].value != 0
+                    or layer.params[13].value != 0
+                    or layer.params[14].value != 0
+                    or layer.params[15].value != 0
+                ):
+                    continue
+                if (
+                    layer.params[1].value != 1
+                    or layer.params[11].value != 1
+                    or layer.params[2].value != 1
+                    or layer.params[12].value != 1
+                ):
+                    continue
+                if layer.params[4].value != 0:
+                    continue
+
+                # Any - Pooling
+                pooling_input = layer.inputs[0]
+
+                top_i = -1
+                j = i - 1
+                for j in range(i - 1, -1, -1):
+                    if self.model.layers[j].op_type == "ncnnfused":
+                        continue
+
+                    for k in range(self.model.layers[j].num_outputs):
+                        if self.model.layers[j].outputs[k] == pooling_input:
+                            top_i = k
+                            break
+
+                    if top_i != -1:
+                        break
+                else:
+                    j -= 1
+
+                if j == -1:
+                    continue
+
+                layer_any = self.model.layers[j]
+
+                layer_any.outputs[top_i] = layer.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __eliminate_noop(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer == "Noop":
+                if layer.num_inputs == 0:
+                    # Noop
+                    for j in range(layer.num_outputs):
+                        # Do I need to look for all layers that input this output
+                        # and remove those inputs?
+                        pass
+                    layer.op_type = "ncnnfused"
+
+                    continue
+
+                # Any - Noop
+                noop_input = layer.inputs[0]
+
+                j = i - 1
+                any_k = -1
+                for j in range(i - 1, -1, -1):
+                    if self.model.layers[j].op_type == "ncnnfused":
+                        continue
+
+                    link_noop = False
+                    for k in range(self.model.layers[j].num_outputs):
+                        if self.model.layers[j].outputs[k] == noop_input:
+                            link_noop = True
+                            any_k = k
+                            break
+
+                    if link_noop:
+                        break
+                else:
+                    j -= 1
+
+                if j == -1 or any_k == -1:
+                    continue
+
+                any_layer = self.model.layers[j]
+
+                any_layer.outputs[any_k] = layer.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __eliminate_split(self):
+        blob_input_references = []
+        for i, layer in enumerate(self.model.layers):
+            for input_name in layer.inputs:
+                blob_input_references.append(input_name)
+
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Split":
+                real_split_output_count = 0
+                real_split_output_index = -1
+                for j in range(layer.num_outputs):
+                    if layer.outputs[j] in blob_input_references:
+                        real_split_output_count += 1
+                        real_split_output_index = j
+
+                if real_split_output_count > 1:
+                    continue
+
+                # Any - Pooling
+                split_input = layer.inputs[0]
+
+                top_i = -1
+                j = i - 1
+                for j in range(i - 1, -1, -1):
+                    if self.model.layers[j].op_type == "ncnnfused":
+                        continue
+
+                    for k in range(self.model.layers[j].num_outputs):
+                        if self.model.layers[j].outputs[k] == split_input:
+                            top_i = k
+                            break
+
+                    if top_i != -1:
+                        break
+                else:
+                    j -= 1
+
+                if j == -1:
+                    continue
+
+                any_layer = self.model.layers[j]
+
+                any_layer.outputs[top_i] = layer.outputs[real_split_output_index]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __eliminate_orphaned_memorydata(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "MemoryData":
+                # MemoryData - X
+                memdata_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type == "ncnnfused":
+                        continue
+
+                    orphaned = True
+                    for k in range(self.model.layers[j].num_inputs):
+                        if self.model.layers[j].inputs[k] == memdata_output:
+                            orphaned = False
+                            break
+
+                    if not orphaned:
+                        break
+
+                if j < len(self.model.layers):
+                    continue
+
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __eliminate_reshape_after_global_pooling(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Pooling":
+                if layer.params[4].value == 0:
+                    continue
+
+                # Pooling - Reshape
+                pooling_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Reshape":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs[0] == pooling_output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                reshape = self.model.layers[j]
+
+                if (
+                    reshape.params[1].value != -233
+                    or reshape.params[2].value != -233
+                    or reshape.params[3].value != 0
+                ):
+                    continue
+
+                layer.outputs[0] = reshape.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                reshape.op_type = "ncnnfused"
+
+    def __eliminate_flatten_after_global_pooling(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Pooling":
+                if layer.params[4].value == 0:
+                    continue
+
+                # Pooling - Flatten
+                pooling_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Flatten":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs[0] == pooling_output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                flatten = self.model.layers[j]
+
+                layer.outputs[0] = flatten.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                flatten.op_type = "ncnnfused"
+
+    def __eliminate_flatten_after_innerproduct(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "InnerProduct":
+                # InnerProduct - Flatten
+                inprod_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Flatten":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs[0] == inprod_output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                flatten = self.model.layers[j]
+
+                layer.outputs[0] = flatten.outputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                flatten.op_type = "ncnnfused"
+
+    def __eliminate_reshape_before_binaryop(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Reshape":
+                if (
+                    layer.params[0].value != 1
+                    or layer.params[1].value != 1
+                    or layer.params[3].value != 1
+                ):
+                    continue
+
+                # Reshape - BinaryOp
+                reshape_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "BinaryOp":
+                        continue
+                    if self.model.layers[j].num_inputs != 2:
+                        continue
+                    if (
+                        self.model.layers[j].inputs[0] == reshape_output
+                        or self.model.layers[j].inputs[1] == reshape_output
+                    ):
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                binaryop = self.model.layers[j]
+
+                input_blob_final = layer.inputs[0]
+                if binaryop.inputs[0] == reshape_output:
+                    binaryop.inputs[0] = input_blob_final
+                if binaryop.inputs[1] == reshape_output:
+                    binaryop.inputs[1] = input_blob_final
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
     def optimize(self):
         self.__fuse_batchnorm_scale()
         self.__fuse_x_batchnorm()
@@ -655,9 +991,26 @@ class NcnnOptimizer:
         self.__fuse_x_add()
         self.__fuse_innerproduct_dropout()
 
+        self.__replace_reduction_with_global_pooling()
+        self.__replace_prelu_with_leaky_relu()
+
         self.__fuse_x_activation()
         self.__fuse_memorydata_binaryop()
         self.__fuse_binaryop_eltwise()
+
+        self.__eliminate_dropout()
+        self.__eliminate_pooling1x1()
+        self.__eliminate_noop()
+        self.__eliminate_split()
+        self.__eliminate_flatten_after_global_pooling()
+        self.__eliminate_reshape_after_global_pooling()
+        self.__eliminate_reshape_before_binaryop()
+
+        self.__replace_convolution_with_innerproduct_after_global_pooling()
+        self.__replace_convolution_with_innerproduct_after_innerproduct()
+
+        self.__eliminate_flatten_after_innerproduct()
+        self.__eliminate_orphaned_memorydata()
 
         return self.model
 
