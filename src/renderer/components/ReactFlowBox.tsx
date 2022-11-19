@@ -6,6 +6,7 @@ import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
     Background,
     BackgroundVariant,
+    ControlButton,
     Controls,
     CoordinateExtent,
     Edge,
@@ -18,7 +19,6 @@ import ReactFlow, {
     useEdgesState,
     useNodesState,
     useReactFlow,
-    ControlButton,
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -435,7 +435,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     variant={BackgroundVariant.Dots}
                 />
                 <Controls>
-                    <ControlButton title='Export viewport as PNG' onClick={exportViewportScreenshot}>
+                    <ControlButton
+                        title="Export viewport as PNG"
+                        onClick={exportViewportScreenshot}
+                    >
                         <FaFileExport />
                     </ControlButton>
                 </Controls>

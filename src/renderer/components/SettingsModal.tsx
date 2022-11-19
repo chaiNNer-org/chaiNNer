@@ -149,7 +149,8 @@ const Dropdown = memo(
 );
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } = useContext(SettingsContext);
+    const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } =
+        useContext(SettingsContext);
 
     const [isDarkMode, setIsDarkMode] = useIsDarkMode;
     const [animateChain, setAnimateChain] = useAnimateChain;
