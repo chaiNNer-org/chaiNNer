@@ -16,10 +16,8 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, preset: Preset) => {
         changedPreset.chain.migration
     );
 
-    // Get the node with the minimum x value
-    const nodeWithMinX = changedPreset.chain.content.nodes.reduce((prev, current) =>
-        prev.position.x < current.position.x ? prev : current
-    );
+    const minX = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.x));
+    const minY = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.y));
 
     // Subtract the minimum x and y values from all nodes
     // We don't need to use the mouse offset here, it feels kinda weird (doesn't scale with zoom)
@@ -27,8 +25,8 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, preset: Preset) => {
     changedPreset.chain.content.nodes = changedPreset.chain.content.nodes.map((node) => ({
         ...node,
         position: {
-            x: node.position.x - nodeWithMinX.position.x, // - offsetX,
-            y: node.position.y - nodeWithMinX.position.y, // - offsetY,
+            x: node.position.x - minX,
+            y: node.position.y - minY,
         },
     }));
 
