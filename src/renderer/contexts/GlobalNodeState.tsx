@@ -1204,10 +1204,11 @@ export const GlobalProvider = memo(
                     pixelRatio: 1 / exportZoom,
                     width: paddedBoundingBox.width * exportZoom,
                     height: paddedBoundingBox.height * exportZoom,
-                    filter: (node: HTMLElement | null | undefined) => {
+                    filter: (node: unknown) => {
                         if (
-                            node?.classList.contains('react-flow__minimap') ||
-                            node?.classList.contains('react-flow__controls')
+                            node instanceof HTMLElement &&
+                            (node.classList.contains('react-flow__minimap') ||
+                                node.classList.contains('react-flow__controls'))
                         ) {
                             return false;
                         }
