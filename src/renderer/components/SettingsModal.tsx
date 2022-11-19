@@ -195,11 +195,16 @@ const AppearanceSettings = memo(() => {
                 title="Snap to grid amount"
             >
                 <NumberInput
-                    defaultValue={snapToGridAmount || 1}
                     max={45}
                     min={1}
-                    value={Number(snapToGridAmount || 1)}
-                    onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
+                    value={snapToGridAmount}
+                    onChange={(number: string) => {
+                        const value = Number(number);
+
+                        if (!Number.isNaN(value)) {
+                            setSnapToGridAmount(value);
+                        }
+                    }}
                 >
                     <NumberInputField />
                     <NumberInputStepper>
