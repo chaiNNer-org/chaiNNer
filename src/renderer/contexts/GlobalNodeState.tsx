@@ -1222,7 +1222,7 @@ export const GlobalProvider = memo(
                     .then((dataUrl: string) => {
                         currentReactFlowInstance.setViewport(oldViewport);
 
-                        const currentNodename = savePath ? parse(savePath).name : 'Untitled';
+                        const currentChainName = savePath ? parse(savePath).name : 'Untitled';
 
                         const date = new Date();
                         const dateString = `${date.getFullYear()}-${
@@ -1233,7 +1233,7 @@ export const GlobalProvider = memo(
                         const minuteString = date.getMinutes().toString().padStart(2, '0');
                         const timeString = `${hourString}-${minuteString}`;
 
-                        const fileName = `chaiNNer-${currentNodename}-${dateString}_${timeString}.png`;
+                        const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
                         downloadImage(dataUrl, fileName);
                     })
                     .catch((error) => {
