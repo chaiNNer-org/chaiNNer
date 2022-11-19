@@ -596,7 +596,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # reduce
-                node.op_type("noop_reducedncnn")
+                node.op_type = "noop_reducedncnn"
 
                 self.node_reference[node.input[0]] -= 1
                 self.node_reference[node.output[0]] -= 1
