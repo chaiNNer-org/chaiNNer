@@ -1,4 +1,7 @@
 import { Edge, Node } from 'reactflow';
+import basicNcnnUpscale from './PRESET -- basic_ncnn_upscale.json';
+import basicOnnxUpscale from './PRESET -- basic_onnx_upscale.json';
+import basicPytorchUpscale from './PRESET -- basic_pytorch_upscale.json';
 import batchUpscale from './PRESET -- batch_upscale.json';
 import captionedMultiUpscaleComparison from './PRESET -- captioned_multi_upscale_comparison.json';
 import captionedUpscale from './PRESET -- captioned_upscale.json';
@@ -23,6 +26,24 @@ export interface Preset {
 }
 
 export const presets = [
+    {
+        name: 'Basic PyTorch Upscale',
+        author: 'chaiNNer',
+        description: 'Upscale an image using a PyTorch model.',
+        chain: basicPytorchUpscale,
+    },
+    {
+        name: 'Basic NCNN Upscale',
+        author: 'chaiNNer',
+        description: 'Upscale an image using an NCNN model.',
+        chain: basicNcnnUpscale,
+    },
+    {
+        name: 'Basic ONNX Upscale',
+        author: 'chaiNNer',
+        description: 'Upscale an image using an ONNX model.',
+        chain: basicOnnxUpscale,
+    },
     {
         name: 'Separated Transparency Upscale',
         author: 'chaiNNer',
