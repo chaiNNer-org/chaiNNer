@@ -132,6 +132,8 @@ class FaceUpscaleNode(NodeBase):
         del face_helper
         torch.cuda.empty_cache()
 
+        restored_img = np.clip(restored_img.astype("float32") / 255.0, 0, 1)
+
         return restored_img
 
     def run(
