@@ -127,7 +127,7 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
                 >
                     <TypeTag>
                         {value.length > maxLength && <Punctuation>…</Punctuation>}
-                        {value.slice(value.length - maxLength)}
+                        {value.slice(Math.max(0, value.length - maxLength))}
                     </TypeTag>
                 </Tooltip>
             );

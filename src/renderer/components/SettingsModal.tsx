@@ -149,10 +149,12 @@ const Dropdown = memo(
 );
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
+    const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } =
+        useContext(SettingsContext);
 
     const [isDarkMode, setIsDarkMode] = useIsDarkMode;
     const [animateChain, setAnimateChain] = useAnimateChain;
+    const [viewportExportPadding, setViewportExportPadding] = useViewportExportPadding;
 
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
 
@@ -193,11 +195,40 @@ const AppearanceSettings = memo(() => {
                 title="Snap to grid amount"
             >
                 <NumberInput
-                    defaultValue={snapToGridAmount || 1}
                     max={45}
                     min={1}
-                    value={Number(snapToGridAmount || 1)}
-                    onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
+                    value={snapToGridAmount}
+                    onChange={(number: string) => {
+                        const value = Number(number);
+
+                        if (!Number.isNaN(value)) {
+                            setSnapToGridAmount(value);
+                        }
+                    }}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+            </SettingsItem>
+
+            <SettingsItem
+                description="The amount of padding for the viewport PNG export."
+                title="Viewport PNG export padding"
+            >
+                <NumberInput
+                    max={100}
+                    min={0}
+                    value={viewportExportPadding}
+                    onChange={(number: string) => {
+                        const value = Number(number);
+
+                        if (!Number.isNaN(value)) {
+                            setViewportExportPadding(value);
+                        }
+                    }}
                 >
                     <NumberInputField />
                     <NumberInputStepper>
