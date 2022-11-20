@@ -1535,7 +1535,7 @@
     },
     "1": {
       "paramId": "1",
-      "paramPhase": "dim",
+      "paramPhase": "reduce_all",
       "defaultValue": 0
     },
     "2": {
@@ -1746,7 +1746,7 @@
     "1": {
       "paramID": "1",
       "paramPhase": "fixbug0",
-      "defaultValue": 0
+      "defaultValue": 1
     },
     "weightOrder": {}
   },

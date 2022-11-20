@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 from sanic.log import logger
 
-from checked_cast import checked_cast
+from .checked_cast import checked_cast
 
 
 param_schema_file = os.path.join(
@@ -502,7 +502,17 @@ class NcnnModel:
         self, binf: BufferedReader, op_type: str, layer: NcnnLayer
     ) -> Dict[str, NcnnWeight]:
         weight_dict = {}
-        if op_type == "Convolution":
+        if op_type == "BatchNorm":
+            channels_data = checked_cast(int, layer.params[0].value) * 4
+            slope = np.frombuffer(binf.read(channels_data), np.float32)
+            weight_dict["slope"] = NcnnWeight(slope)
+            mean = np.frombuffer(binf.read(channels_data), np.float32)
+            weight_dict["mean"] = NcnnWeight(mean)
+            variance = np.frombuffer(binf.read(channels_data), np.float32)
+            weight_dict["variance"] = NcnnWeight(variance)
+            bias = np.frombuffer(binf.read(channels_data), np.float32)
+            weight_dict["bias"] = NcnnWeight(bias)
+        elif op_type in ("Convolution", "ConvolutionDepthWise"):
             quantize_tag = binf.read(4)
             dtype = DTYPE_DICT[quantize_tag]
             weight_data_length = checked_cast(int, layer.params[6].value)
@@ -517,8 +527,21 @@ class NcnnModel:
             num_filters = checked_cast(int, layer.params[0].value)
             kernel_w = checked_cast(int, layer.params[1].value)
             kernel_h = checked_cast(int, layer.params[11].value)
-            num_input = weight_data_length // num_filters // kernel_w // kernel_h
-            shape = (num_filters, num_input, kernel_h, kernel_w)
+            if op_type == "ConvolutionDepthWise":
+                group = checked_cast(int, layer.params[7].value)
+                num_input = (
+                    weight_data_length // (num_filters // group) // kernel_w // kernel_h
+                )
+                shape = (
+                    group,
+                    num_filters // group,
+                    num_input // group,
+                    kernel_h,
+                    kernel_w,
+                )
+            else:
+                num_input = weight_data_length // num_filters // kernel_w // kernel_h
+                shape = (num_filters, num_input, kernel_h, kernel_w)
 
             weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
             weight_data = weight_data.reshape(shape)

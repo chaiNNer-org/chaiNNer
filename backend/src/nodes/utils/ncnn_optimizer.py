@@ -1,10 +1,11 @@
 from math import sqrt
+from typing import List, Union
 
 import numpy as np
-from checked_cast import checked_cast
-from ncnn_model import BinaryOpTypes as BOT
-from ncnn_model import EltwiseOpTypes as EOT
-from ncnn_model import NcnnLayer, NcnnModel
+from .checked_cast import checked_cast
+from .ncnn_model import BinaryOpTypes as BOT
+from .ncnn_model import EltwiseOpTypes as EOT
+from .ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -60,6 +61,7 @@ class NcnnOptimizer:
         fuse_innerproduct_batchnorm"""
 
         for i, layer in enumerate(self.model.layers):
+            print(i)
             if layer.op_type in (
                 "Convolution",
                 "ConvolutionDepthWise",
@@ -93,17 +95,15 @@ class NcnnOptimizer:
                 # a = bias - slope * mean / sqrt(var + eps)
                 # b = slope / sqrt(var + eps)
                 # value = value * b + a
-                a = list(range(channels))
-                b = list(range(channels))
-                for c in range(channels):
-                    sqrt_var = sqrt(batchnorm.weight_data["variance"].weight[i] + eps)
-                    a[i] = (
-                        batchnorm.weight_data["bias"].weight[i]
-                        - batchnorm.weight_data["slope"].weight[i]
-                        * batchnorm.weight_data["mean"].weight[i]
-                        / sqrt_var
-                    )
-                    b[i] = batchnorm.weight_data["slope"].weight[i] / sqrt_var
+                a = np.ndarray((channels,))
+                b = np.ndarray((channels,))
+                sqrt_var = np.sqrt(batchnorm.weight_data["variance"].weight + eps)
+                a = batchnorm.weight_data["bias"].weight - batchnorm.weight_data[
+                    "slope"
+                ].weight * batchnorm.weight_data["mean"].weight / sqrt(
+                    batchnorm.weight_data["variance"].weight + eps
+                )
+                b = batchnorm.weight_data["slope"].weight / sqrt_var
 
                 bias_term = 1 if layer.op_type == "InnerProduct" else 5
                 weight_size_term = 2 if layer.op_type == "InnerProduct" else 6
@@ -121,10 +121,9 @@ class NcnnOptimizer:
 
                 for c in range(channels):
                     conv_weight_outch = weight + weight_per_outch * c
-                    for w in range(weight_per_outch):
-                        conv_weight_outch[w] *= b[c]
+                    conv_weight_outch *= b[c]
 
-                    bias[i] = bias[i] * b[i] + a[i]
+                    bias[c] = bias[c] * b[c] + a[c]
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -417,7 +416,7 @@ class NcnnOptimizer:
 
     def __fuse_memorydata_binaryop(self):
         for i, layer in enumerate(self.model.layers):
-            if layer.op_type != "MemoryData":
+            if layer.op_type == "MemoryData":
                 # MemoryData - BinaryOp
                 output = layer.outputs[0]
 
@@ -492,6 +491,7 @@ class NcnnOptimizer:
                     j0 += 1
 
                 if j0 == len(self.model.layers):
+                    i += 1
                     continue
 
                 split_output_index = -1
@@ -516,6 +516,7 @@ class NcnnOptimizer:
                     j1 += 1
 
                 if j1 == len(self.model.layers):
+                    i += 1
                     continue
 
                 # fuse MemoryData - Split - BinaryOp to BinaryOp
@@ -528,6 +529,7 @@ class NcnnOptimizer:
                     or self.model.layers[i].params[2].value != 0
                 ):
                     # not a scalar
+                    i += 1
                     continue
 
                 memorydata_index = 1
@@ -543,6 +545,7 @@ class NcnnOptimizer:
                         memorydata_index = 0
                     else:
                         # non-interchangeable binaryop
+                        i += 1
                         continue
 
                 scalar = self.model.layers[i].weight_data["data"].weight[0]
@@ -561,6 +564,8 @@ class NcnnOptimizer:
                     self.model.layers[i].op_type = "ncnnfused"
 
                 i -= 1
+
+            i += 1
 
     def __fuse_binaryop_eltwise(self):
         for i, layer in enumerate(self.model.layers):
@@ -984,6 +989,221 @@ class NcnnOptimizer:
                 self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
 
+    def __replace_reduction_with_global_pooling(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Reduction":
+                if (
+                    layer.params[0].value != 3
+                    or layer.params[1].value != 0
+                    or layer.params[2].value != 1
+                ):
+                    continue
+
+                axes = checked_cast(List[int], layer.params[3].value)
+                if len(axes) != 1:
+                    continue
+                if axes[0] != 2 and axes[0] != 3:
+                    continue
+
+                # Reduction(2/3) - Reduction(2)
+                reduction1_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Reduction":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs == reduction1_output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                reduction2 = self.model.layers[j]
+
+                if (
+                    reduction2.params[0].value != 3
+                    or reduction2.params[1].value != 0
+                    or reduction2.params[2].value != 1
+                ):
+                    continue
+
+                axes2 = checked_cast(List[int], layer.params[3].value)
+                if len(axes2) != 1:
+                    continue
+                if axes2[0] != 2:
+                    continue
+
+                pooling = NcnnLayer(
+                    "Pooling",
+                    reduction2.name,
+                    reduction2.num_inputs,
+                    reduction2.num_outputs,
+                    reduction2.inputs,
+                    reduction2.outputs,
+                )
+                pooling.add_param(0, 1)
+                pooling.add_param(4, 1)
+
+                self.model.layers[j] = pooling
+
+                pooling.inputs[0] = layer.inputs[0]
+                self.model.node_count -= 1
+                self.model.blob_count -= 1
+                layer.op_type = "ncnnfused"
+
+    def __replace_prelu_with_leaky_relu(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "PReLU":
+                if layer.params[0].value != 1:
+                    continue
+
+                relu_layer = NcnnLayer(
+                    "ReLU",
+                    layer.name,
+                    layer.num_inputs,
+                    layer.num_outputs,
+                    layer.inputs,
+                    layer.outputs,
+                )
+                relu_layer.add_param(
+                    0, checked_cast(float, layer.weight_data["slope"].weight[0])
+                )
+
+                self.model.layers[i] = relu_layer
+
+    def __replace_convolution_with_innerproduct_after_global_pooling(self):
+        for i, layer in enumerate(self.model.layers):
+            if layer.op_type == "Pooling":
+                if layer.params[4].value == 0:
+                    continue
+
+                # Pooling - Convolution
+                pooling_output = layer.outputs[0]
+
+                j = i
+                for j in range(i + 1, len(self.model.layers)):
+                    if self.model.layers[j].op_type != "Convolution":
+                        continue
+                    if self.model.layers[j].num_inputs != 1:
+                        continue
+                    if self.model.layers[j].inputs[0] == pooling_output:
+                        break
+                else:
+                    j += 1
+
+                if j == len(self.model.layers):
+                    continue
+
+                convolution = self.model.layers[j]
+
+                innerproduct = NcnnLayer(
+                    "InnerProduct",
+                    convolution.name,
+                    convolution.num_inputs,
+                    convolution.num_outputs,
+                    convolution.inputs,
+                    convolution.outputs,
+                )
+                innerproduct.add_param(
+                    0, checked_cast(int, convolution.params[0].value)
+                )
+                innerproduct.add_param(
+                    1, checked_cast(int, convolution.params[5].value)
+                )
+                innerproduct.add_param(
+                    2, checked_cast(int, convolution.params[6].value)
+                )
+                innerproduct.add_param(
+                    8, checked_cast(int, convolution.params[8].value)
+                )
+                innerproduct.add_param(
+                    9, checked_cast(int, convolution.params[9].value)
+                )
+                innerproduct.add_param(
+                    10,
+                    checked_cast(List[Union[float, int]], convolution.params[10].value),
+                )
+                innerproduct.add_weight(
+                    "weight",
+                    convolution.weight_data["weight"].weight,
+                    convolution.weight_data["weight"].quantize_tag,
+                )
+                innerproduct.add_weight("bias", convolution.weight_data["bias"].weight)
+
+                self.model.layers[j] = innerproduct
+
+    def __replace_convolution_with_innerproduct_after_innerproduct(self):
+        while True:
+            replaced = False
+            for i, layer in enumerate(self.model.layers):
+                if layer.op_type == "InnerProduct":
+                    # InnerProduct - Convolution
+                    inprod_output = layer.outputs[0]
+
+                    j = i
+                    for j in range(i + 1, len(self.model.layers)):
+                        if self.model.layers[j] != "Convolution":
+                            continue
+                        if self.model.layers[j].num_inputs != 1:
+                            continue
+                        if self.model.layers[j].inputs[0] == inprod_output:
+                            break
+                    else:
+                        j += 1
+
+                    if j == len(self.model.layers):
+                        continue
+
+                    convolution = self.model.layers[j]
+                    innerproduct2 = NcnnLayer(
+                        "InnerProduct",
+                        convolution.name,
+                        convolution.num_inputs,
+                        convolution.num_outputs,
+                        convolution.inputs,
+                        convolution.outputs,
+                    )
+                    innerproduct2.add_param(
+                        0, checked_cast(int, convolution.params[0].value)
+                    )
+                    innerproduct2.add_param(
+                        1, checked_cast(int, convolution.params[5].value)
+                    )
+                    innerproduct2.add_param(
+                        2, checked_cast(int, convolution.params[6].value)
+                    )
+                    innerproduct2.add_param(
+                        8, checked_cast(int, convolution.params[8].value)
+                    )
+                    innerproduct2.add_param(
+                        9, checked_cast(int, convolution.params[9].value)
+                    )
+                    innerproduct2.add_param(
+                        10,
+                        checked_cast(
+                            List[Union[float, int]], convolution.params[10].value
+                        ),
+                    )
+                    innerproduct2.add_weight(
+                        "weight",
+                        convolution.weight_data["weight"].weight,
+                        convolution.weight_data["weight"].quantize_tag,
+                    )
+                    innerproduct2.add_weight(
+                        "bias", convolution.weight_data["bias"].weight
+                    )
+
+                    self.model.layers[j] = innerproduct2
+
+                    replaced = True
+
+            if not replaced:
+                break
+
     def optimize(self):
         self.__fuse_batchnorm_scale()
         self.__fuse_x_batchnorm()
@@ -1017,7 +1237,7 @@ class NcnnOptimizer:
 
 if __name__ == "__main__":
     model = NcnnModel().load_from_file(
-        "D:/Desktop/onnx_test_models/4x_BSRGAN_old_arch.param"
+        "D:/Desktop/onnx_test_models/ResNet101-DUC-7.param"
     )
     optimizer = NcnnOptimizer(model)
     model = optimizer.optimize()
