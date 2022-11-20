@@ -139,6 +139,23 @@ class ReductionOpTypes:
     LOGSUMEXP = 10
 
 
+class GridSampleSampleTypes:
+    NEAREST = 1
+    BILINEAR = 2
+    BICUBIC = 3
+
+
+class GridSamplePadModes:
+    ZEROS = 1
+    BORDER = 2
+    REFLECTION = 3
+
+
+class LrnRegionTypes:
+    ACROSS_CHANNELS = 0
+    WITH_CHANNEL = 1
+
+
 class NcnnWeight:
     def __init__(self, weight: np.ndarray, quantize_tag: bytes = b""):
         self.quantize_tag = quantize_tag
