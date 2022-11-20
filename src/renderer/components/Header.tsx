@@ -10,6 +10,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -21,6 +22,8 @@ import { SettingsButton } from './SettingsModal';
 import { SystemStats } from './SystemStats';
 
 export const Header = memo(() => {
+    const { t } = useTranslation();
+
     const { run, pause, kill, status } = useContext(ExecutionContext);
 
     const [appVersion, setAppVersion] = useState('#.#.#');
@@ -63,12 +66,16 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label={status === ExecutionStatus.PAUSED ? 'Resume (F5)' : 'Run (F5)'}
+                        label={
+                            status === ExecutionStatus.PAUSED
+                                ? `${t('RESUME', 'Resume')} (F5)`
+                                : `${t('RUN', 'Run')} (F5)`
+                        }
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Run button"
+                            aria-label={t('RUN_BUTTON', 'Run button')}
                             colorScheme="green"
                             disabled={
                                 !(
@@ -89,12 +96,12 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Pause (F6)"
+                        label={`${t('PAUSE', 'Pause')} (F6)`}
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Pause button"
+                            aria-label={t('PAUSE_BUTTON', 'Pause button')}
                             colorScheme="yellow"
                             disabled={status !== ExecutionStatus.RUNNING}
                             icon={<IoPause />}
@@ -110,12 +117,12 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Stop (F7)"
+                        label={`${t('STOP', 'Stop')} (F7)`}
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Stop button"
+                            aria-label={t('STOP_BUTTON', 'Stop button')}
                             colorScheme="red"
                             disabled={
                                 !(

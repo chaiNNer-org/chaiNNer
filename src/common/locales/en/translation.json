@@ -12,7 +12,14 @@
   "INSTALLING_DEPS": "Installing required dependencies",
   "LOADING": "Loading",
   "LOADING_APP": "Loading main application",
+  "PAUSE": "Pause",
+  "PAUSE_BUTTON": "Pause button",
+  "RESUME": "Resume",
+  "RUN": "Run",
+  "RUN_BUTTON": "Run button",
   "STARTING_BACKEND": "Starting up backend process",
+  "STOP": "Stop",
+  "STOP_BUTTON": "Stop button",
   "SYS_INFO": "System information",
   "Title": {
     "UNABLE_PROCESS_NODES": "Unable to process backend nodes"
