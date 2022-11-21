@@ -5,6 +5,7 @@
     }
   },
   "error": {
+    "error": "Error",
     "message": {
       "criticalBackend": "A critical error occurred while processing the node data returned by the backend"
     },
