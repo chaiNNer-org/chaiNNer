@@ -1,10 +1,13 @@
 import { HStack, IconButton, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useContext } from 'use-context-selector';
 import { ExecutionContext, ExecutionStatus } from '../../contexts/ExecutionContext';
 
 export const ExecutionButtons = memo(() => {
+    const { t } = useTranslation();
+
     const { run, pause, kill, status } = useContext(ExecutionContext);
 
     return (
@@ -13,12 +16,16 @@ export const ExecutionButtons = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label={status === ExecutionStatus.PAUSED ? 'Resume (F5)' : 'Run (F5)'}
+                label={
+                    status === ExecutionStatus.PAUSED
+                        ? `${t('header.resume', 'Resume')} (F5)`
+                        : `${t('header.run', 'Run')} (F5)`
+                }
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label="Run button"
+                    aria-label={t('header.runButton', 'Run button')}
                     colorScheme="green"
                     disabled={
                         !(status === ExecutionStatus.READY || status === ExecutionStatus.PAUSED)
@@ -36,12 +43,12 @@ export const ExecutionButtons = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label="Pause (F6)"
+                label={`${t('header.pause', 'Pause')} (F6)`}
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label="Pause button"
+                    aria-label={t('header.pauseButton', 'Pause button')}
                     colorScheme="yellow"
                     disabled={status !== ExecutionStatus.RUNNING}
                     icon={<IoPause />}
@@ -57,12 +64,12 @@ export const ExecutionButtons = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label="Stop (F7)"
+                label={`${t('header.stop', 'Stop')} (F7)`}
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label="Stop button"
+                    aria-label={t('header.stopButton', 'Stop button')}
                     colorScheme="red"
                     disabled={
                         !(status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED)
