@@ -105,14 +105,14 @@ export const Main = memo(({ port }: MainProps) => {
                 log.error(e);
                 sendAlert({
                     type: AlertType.CRIT_ERROR,
-                    title: `${t(
+                    title: t(
                         'error.title.unableToProcessNodes',
-                        'Unable to process backend nodes'
-                    )}.`,
+                        'Unable to process backend nodes.'
+                    ),
                     message: `${t(
                         'error.message.criticalBackend',
-                        'A critical error occurred while processing the node data returned by the backend'
-                    )}.\n\n${String(e)}`,
+                        'A critical error occurred while processing the node data returned by the backend.'
+                    )}\n\n${String(e)}`,
                 });
             }
             setBackendReady(true);
@@ -124,8 +124,8 @@ export const Main = memo(({ port }: MainProps) => {
                 type: AlertType.CRIT_ERROR,
                 message: `${t(
                     'error.message.criticalBackend',
-                    'A critical error occurred while processing the node data returned by the backend'
-                )}. Error: ${error.message}`,
+                    'A critical error occurred while processing the node data returned by the backend.'
+                )} ${t('error.error', 'Error')}: ${error.message}`,
             });
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
@@ -148,7 +148,7 @@ export const Main = memo(({ port }: MainProps) => {
 
                 sendAlert({
                     type: AlertType.INFO,
-                    title: t('alert.title.systemInformation', 'System information').toString(),
+                    title: t('alert.title.systemInformation', 'System information'),
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },

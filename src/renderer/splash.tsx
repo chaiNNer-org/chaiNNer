@@ -10,7 +10,7 @@ import { theme } from './splashTheme';
 const Splash = memo(() => {
     const { t } = useTranslation();
 
-    const [status, setStatus] = useState(t('splash.loading', 'Loading...').toString());
+    const [status, setStatus] = useState(t('splash.loading', 'Loading...'));
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [overallProgressPercentage, setOverallProgressPercentage] = useState(0);
     const [showProgressBar, setShowProgressBar] = useState(false);
@@ -20,24 +20,21 @@ const Splash = memo(() => {
         ipcRenderer.on('checking-port', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.1);
-            setStatus(t('splash.checkingPort', 'Checking for available port...').toString());
+            setStatus(t('splash.checkingPort', 'Checking for available port...'));
         });
 
         ipcRenderer.on('checking-python', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.2);
             setStatus(
-                t(
-                    'splash.checkingPython',
-                    'Checking system environment for valid Python...'
-                ).toString()
+                t('splash.checkingPython', 'Checking system environment for valid Python...')
             );
         });
 
         ipcRenderer.on('checking-deps', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.6);
-            setStatus(t('splash.checkingDeps', 'Checking dependencies...').toString());
+            setStatus(t('splash.checkingDeps', 'Checking dependencies...'));
         });
 
         ipcRenderer.on('installing-deps', (event, onlyUpdating) => {
@@ -45,57 +42,57 @@ const Splash = memo(() => {
             setOverallProgressPercentage(0.7);
             setStatus(
                 onlyUpdating
-                    ? t('splash.updatingDeps', 'Updating dependencies...').toString()
-                    : t('splash.installingDeps', 'Installing required dependencies...').toString()
+                    ? t('splash.updatingDeps', 'Updating dependencies...')
+                    : t('splash.installingDeps', 'Installing required dependencies...')
             );
         });
 
         ipcRenderer.on('spawning-backend', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.8);
-            setStatus(t('splash.startingBackend', 'Starting up backend process...').toString());
+            setStatus(t('splash.startingBackend', 'Starting up backend process...'));
         });
 
         ipcRenderer.on('splash-finish', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.9);
-            setStatus(t('splash.loadingApp', 'Loading main application...').toString());
+            setStatus(t('splash.loadingApp', 'Loading main application...'));
         });
 
         ipcRenderer.on('downloading-python', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.3);
-            setStatus(t('splash.downloadingPython', 'Downloading Integrated Python...').toString());
+            setStatus(t('splash.downloadingPython', 'Downloading Integrated Python...'));
         });
 
         ipcRenderer.on('extracting-python', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.4);
-            setStatus(t('splash.extractingPython', 'Extracting downloaded files...').toString());
+            setStatus(t('splash.extractingPython', 'Extracting downloaded files...'));
         });
 
         ipcRenderer.on('downloading-ffmpeg', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.5);
-            setStatus(t('splash.downloadingFfmpeg', 'Downloading ffmpeg...').toString());
+            setStatus(t('splash.downloadingFfmpeg', 'Downloading ffmpeg...'));
         });
 
         ipcRenderer.on('extracting-ffmpeg', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.6);
-            setStatus(t('splash.extractingFfmpeg', 'Extracting downloaded files...').toString());
+            setStatus(t('splash.extractingFfmpeg', 'Extracting downloaded files...'));
         });
 
         ipcRenderer.on('installing-main-deps', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.7);
-            setStatus(t('splash.installingDeps', 'Installing required dependencies...').toString());
+            setStatus(t('splash.installingDeps', 'Installing required dependencies...'));
         });
 
         ipcRenderer.on('finish-loading', () => {
             setShowProgressBar(false);
             setOverallProgressPercentage(1);
-            setStatus(t('splash.loadingApp', 'Loading main application...').toString());
+            setStatus(t('splash.loadingApp', 'Loading main application...'));
         });
 
         ipcRenderer.on('progress', (event, percentage) => {
