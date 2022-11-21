@@ -83,6 +83,7 @@ struct TileMode;
 struct TransferColorspace;
 struct VideoType;
 struct VideoPreset;
+struct NoiseType;
 
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }

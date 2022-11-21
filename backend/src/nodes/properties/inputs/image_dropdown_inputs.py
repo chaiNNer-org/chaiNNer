@@ -445,3 +445,28 @@ def NormalMappingAlphaInput() -> DropDownInput:
             },
         ],
     )
+
+
+def NoiseTypeDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="NoiseType",
+        label="Noise Type",
+        options=[
+            {
+                "option": "Gaussian",
+                "value": "gauss",
+            },
+            {
+                "option": "Salt and Pepper",
+                "value": "s&p",
+            },
+            {
+                "option": "Speckle",
+                "value": "speckle",
+            },
+            {
+                "option": "Poisson",
+                "value": "poisson",
+            },
+        ],
+    )
