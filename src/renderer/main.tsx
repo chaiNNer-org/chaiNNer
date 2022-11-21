@@ -105,9 +105,12 @@ export const Main = memo(({ port }: MainProps) => {
                 log.error(e);
                 sendAlert({
                     type: AlertType.CRIT_ERROR,
-                    title: `${t('Title.UNABLE_PROCESS_NODES', 'Unable to process backend nodes')}.`,
+                    title: `${t(
+                        'error.title.unableToProcessNodes',
+                        'Unable to process backend nodes'
+                    )}.`,
                     message: `${t(
-                        'Error.CRITICAL_BACKEND',
+                        'error.message.criticalBackend',
                         'A critical error occurred while processing the node data returned by the backend'
                     )}.\n\n${String(e)}`,
                 });
@@ -120,7 +123,7 @@ export const Main = memo(({ port }: MainProps) => {
             sendAlert({
                 type: AlertType.CRIT_ERROR,
                 message: `${t(
-                    'Error.CRITICAL_BACKEND',
+                    'error.message.criticalBackend',
                     'A critical error occurred while processing the node data returned by the backend'
                 )}. Error: ${error.message}`,
             });
@@ -145,7 +148,7 @@ export const Main = memo(({ port }: MainProps) => {
 
                 sendAlert({
                     type: AlertType.INFO,
-                    title: t('SYS_INFO', 'System information').toString(),
+                    title: t('alert.title.systemInformation', 'System information').toString(),
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },
@@ -179,7 +182,7 @@ export const Main = memo(({ port }: MainProps) => {
                             percent={0}
                             size={256}
                         />
-                        <Text>{t('LOADING', 'Loading')}...</Text>
+                        <Text>{t('loading', 'Loading...')}</Text>
                     </VStack>
                 </Center>
             </Box>

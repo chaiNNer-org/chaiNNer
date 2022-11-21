@@ -1,28 +1,39 @@
 {
-  "CHECKING_DEPS": "Checking dependencies",
-  "CHECKING_PORT": "Checking for available port",
-  "CHECKING_PYTHON": "Checking system environment for valid Python",
-  "DOWNLOADING_FFMPEG": "Downloading ffmpeg",
-  "DOWNLOADING_PYTHON": "Downloading Integrated Python",
-  "EXTRACTING_FFMPEG": "Extracting downloaded files",
-  "EXTRACTING_PYTHON": "Extracting downloaded files",
-  "Error": {
-    "CRITICAL_BACKEND": "A critical error occurred while processing the node data returned by the backend"
+  "alert": {
+    "title": {
+      "systemInformation": "System information"
+    }
   },
-  "INSTALLING_DEPS": "Installing required dependencies",
-  "LOADING": "Loading",
-  "LOADING_APP": "Loading main application",
-  "PAUSE": "Pause",
-  "PAUSE_BUTTON": "Pause button",
-  "RESUME": "Resume",
-  "RUN": "Run",
-  "RUN_BUTTON": "Run button",
-  "STARTING_BACKEND": "Starting up backend process",
-  "STOP": "Stop",
-  "STOP_BUTTON": "Stop button",
-  "SYS_INFO": "System information",
-  "Title": {
-    "UNABLE_PROCESS_NODES": "Unable to process backend nodes"
+  "error": {
+    "message": {
+      "criticalBackend": "A critical error occurred while processing the node data returned by the backend"
+    },
+    "title": {
+      "unableToProcessNodes": "Unable to process backend nodes"
+    }
   },
-  "UPDATING_DEPS": "Updating dependencies"
+  "header": {
+    "pause": "Pause",
+    "pauseButton": "Pause button",
+    "resume": "Resume",
+    "run": "Run",
+    "runButton": "Run button",
+    "stop": "Stop",
+    "stopButton": "Stop button"
+  },
+  "loading": "Loading...",
+  "splash": {
+    "checkingDeps": "Checking dependencies...",
+    "checkingPort": "Checking for available port...",
+    "checkingPython": "Checking system environment for valid Python...",
+    "downloadingFfmpeg": "Downloading ffmpeg...",
+    "downloadingPython": "Downloading Integrated Python...",
+    "extractingFfmpeg": "Extracting downloaded files...",
+    "extractingPython": "Extracting downloaded files...",
+    "installingDeps": "Installing required dependencies...",
+    "loading": "Loading...",
+    "loadingApp": "Loading main application...",
+    "startingBackend": "Starting up backend process...",
+    "updatingDeps": "Updating dependencies..."
+  }
 }

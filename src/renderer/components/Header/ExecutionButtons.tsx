@@ -18,14 +18,14 @@ export const ExecutionButtons = memo(() => {
                 borderRadius={8}
                 label={
                     status === ExecutionStatus.PAUSED
-                        ? `${t('RESUME', 'Resume')} (F5)`
-                        : `${t('RUN', 'Run')} (F5)`
+                        ? `${t('header.resume', 'Resume')} (F5)`
+                        : `${t('header.run', 'Run')} (F5)`
                 }
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label={t('RUN_BUTTON', 'Run button')}
+                    aria-label={t('header.runButton', 'Run button')}
                     colorScheme="green"
                     disabled={
                         !(status === ExecutionStatus.READY || status === ExecutionStatus.PAUSED)
@@ -43,12 +43,12 @@ export const ExecutionButtons = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label={`${t('PAUSE', 'Pause')} (F6)`}
+                label={`${t('header.pause', 'Pause')} (F6)`}
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label={t('PAUSE_BUTTON', 'Pause button')}
+                    aria-label={t('header.pauseButton', 'Pause button')}
                     colorScheme="yellow"
                     disabled={status !== ExecutionStatus.RUNNING}
                     icon={<IoPause />}
@@ -64,12 +64,12 @@ export const ExecutionButtons = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label={`${t('STOP', 'Stop')} (F7)`}
+                label={`${t('header.stop', 'Stop')} (F7)`}
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label={t('STOP_BUTTON', 'Stop button')}
+                    aria-label={t('header.stopButton', 'Stop button')}
                     colorScheme="red"
                     disabled={
                         !(status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED)
