@@ -1145,7 +1145,7 @@ export const GlobalProvider = memo(
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
-        useHotkeys('ctrl+d', duplFn);
+        useHotkeys('ctrl+d, cmd+d', duplFn);
 
         const [zoom, setZoom] = useState(1);
 
