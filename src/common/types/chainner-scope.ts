@@ -84,6 +84,7 @@ struct TransferColorspace;
 struct VideoType;
 struct VideoPreset;
 struct NoiseType;
+struct NoiseColor;
 
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }

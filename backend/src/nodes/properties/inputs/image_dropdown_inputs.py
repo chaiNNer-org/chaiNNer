@@ -454,11 +454,15 @@ def NoiseTypeDropdown() -> DropDownInput:
         options=[
             {
                 "option": "Gaussian",
-                "value": "gauss",
+                "value": "gaussian",
             },
             {
-                "option": "Salt and Pepper",
-                "value": "s&p",
+                "option": "Uniform",
+                "value": "uniform",
+            },
+            {
+                "option": "Salt & Pepper",
+                "value": "salt_and_pepper",
             },
             {
                 "option": "Speckle",
@@ -467,6 +471,23 @@ def NoiseTypeDropdown() -> DropDownInput:
             {
                 "option": "Poisson",
                 "value": "poisson",
+            },
+        ],
+    )
+
+
+def NoiseColorDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="NoiseColor",
+        label="Noise Color",
+        options=[
+            {
+                "option": "Color",
+                "value": "rgb",
+            },
+            {
+                "option": "Monochrome",
+                "value": "gray",
             },
         ],
     )

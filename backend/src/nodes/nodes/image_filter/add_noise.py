@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 
 from math import ceil
 
@@ -8,8 +9,20 @@ import numpy as np
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, NoiseTypeDropdown
+from ...properties.inputs import (
+    ImageInput,
+    SliderInput,
+    NoiseTypeDropdown,
+    NoiseColorDropdown,
+)
 from ...properties.outputs import ImageOutput
+from ...utils.noise_utils import (
+    gaussian_noise,
+    uniform_noise,
+    salt_and_pepper_noise,
+    poisson_noise,
+    speckle_noise,
+)
 
 
 @NodeFactory.register("chainner:image:add_noise")
@@ -20,6 +33,7 @@ class AddNoiseNode(NodeBase):
         self.inputs = [
             ImageInput(),
             NoiseTypeDropdown(),
+            NoiseColorDropdown(),
             SliderInput("Amount", minimum=0, maximum=100, default=50),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
@@ -28,53 +42,24 @@ class AddNoiseNode(NodeBase):
         self.icon = "MdBlurOn"  # TODO: this
         self.sub = "Noise"
 
-    def add_noise(self, img: np.ndarray, noise_type: str, amt: int) -> np.ndarray:
-        if noise_type == "gauss":
-            amount = 1 - (amt / 100)
-            row, col, ch = img.shape
-            mean = 0
-            var = 0.1
-            sigma = var**amount
-            gauss = np.random.normal(mean, sigma, (row, col, ch))
-            gauss = gauss.reshape(row, col, ch)
-            noisy = img + gauss
-            return noisy
-        elif noise_type == "s&p":
-            row, col, ch = img.shape
-            s_vs_p = 0.5
-            amount = 0.004
-            out = np.copy(img)
-            # Salt mode
-            num_salt = np.ceil(amount * img.size * s_vs_p)
-            coords = [np.random.randint(0, i - 1, int(num_salt)) for i in img.shape]
-            out[coords] = 1
-
-            # Pepper mode
-            num_pepper = np.ceil(amount * img.size * (1.0 - s_vs_p))
-            coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in img.shape]
-            out[coords] = 0
-            return out
-        elif noise_type == "poisson":
-            vals = len(np.unique(img))
-            vals = 2 ** np.ceil(np.log2(vals))
-            noisy = np.random.poisson(img * vals) / float(vals)
-            return noisy  # type: ignore
-        elif noise_type == "speckle":
-            row, col, ch = img.shape
-            gauss = np.random.randn(row, col, ch)
-            gauss = gauss.reshape(row, col, ch)
-            noisy = img + img * gauss
-            return noisy
-        else:
-            return img
-
     def run(
         self,
         img: np.ndarray,
         noise_type: str,
+        noise_color: Literal["gray", "rgb"],
         amount: int,
     ) -> np.ndarray:
-        result = self.add_noise(img, noise_type, amount)
+        if noise_type == "gaussian":
+            result = gaussian_noise(img, amount / 100, noise_color)
+        elif noise_type == "uniform":
+            result = uniform_noise(img, amount / 100, noise_color)
+        elif noise_type == "salt_and_pepper":
+            result = salt_and_pepper_noise(img, amount / 100, noise_color)
+        elif noise_type == "poisson":
+            result = poisson_noise(img, amount / 100, noise_color)
+        elif noise_type == "speckle":
+            result = speckle_noise(img, amount / 100, noise_color)
+        else:
+            raise ValueError(f"Unknown noise type: {noise_type}")
 
-        # Linear filter with reflected padding
         return np.clip(result, 0, 1)
