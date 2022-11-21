@@ -1,9 +1,6 @@
 from __future__ import annotations
 from typing import Literal
 
-from math import ceil
-
-import cv2
 import numpy as np
 
 from . import category as ImageFilterCategory
@@ -23,6 +20,7 @@ from ...utils.noise_utils import (
     poisson_noise,
     speckle_noise,
 )
+from ...utils.image_utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:add_noise")
@@ -44,11 +42,15 @@ class AddNoiseNode(NodeBase):
 
     def run(
         self,
-        img: np.ndarray,
+        image: np.ndarray,
         noise_type: str,
         noise_color: Literal["gray", "rgb"],
         amount: int,
     ) -> np.ndarray:
+        img = image
+        _, _, c = get_h_w_c(img)
+        if c == 4:
+            img = img[:, :, :3]
         if noise_type == "gaussian":
             result = gaussian_noise(img, amount / 100, noise_color)
         elif noise_type == "uniform":
@@ -61,5 +63,7 @@ class AddNoiseNode(NodeBase):
             result = speckle_noise(img, amount / 100, noise_color)
         else:
             raise ValueError(f"Unknown noise type: {noise_type}")
+        if c == 4:
+            result = np.concatenate([result, image[:, :, 3:]], axis=2)
 
         return np.clip(result, 0, 1)
