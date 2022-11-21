@@ -39,7 +39,7 @@ class AddNoiseNode(NodeBase):
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
         self.name = "Add Noise"
-        self.icon = "MdBlurOn"  # TODO: this
+        self.icon = "CgEditNoise"
         self.sub = "Noise"
 
     def run(
