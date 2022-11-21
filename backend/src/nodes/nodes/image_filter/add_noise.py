@@ -34,7 +34,19 @@ class AddNoiseNode(NodeBase):
             NoiseColorDropdown(),
             SliderInput("Amount", minimum=0, maximum=100, default=50),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                Image { 
+                    width: Input0.width, 
+                    height: Input0.height, 
+                    channels: max(
+                        Input0.channels, 
+                        match Input2 { NoiseColor::Rgb => 3, NoiseColor::Gray => 1 }
+                    )
+                }"""
+            )
+        ]
         self.category = ImageFilterCategory
         self.name = "Add Noise"
         self.icon = "CgEditNoise"

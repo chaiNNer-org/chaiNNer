@@ -484,10 +484,12 @@ def NoiseColorDropdown() -> DropDownInput:
             {
                 "option": "Color",
                 "value": "rgb",
+                "type": "NoiseColor::Rgb",
             },
             {
                 "option": "Monochrome",
                 "value": "gray",
+                "type": "NoiseColor::Gray",
             },
         ],
     )
