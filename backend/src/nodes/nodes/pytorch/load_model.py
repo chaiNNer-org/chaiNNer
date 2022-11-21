@@ -15,6 +15,7 @@ from ...utils.exec_options import get_execution_options
 from ...utils.torch_types import PyTorchModel
 from ...utils.pytorch_model_loading import load_state_dict
 from ...utils.pytorch_utils import to_pytorch_execution_options
+from ...utils.unpickler import RestrictedUnpickle
 
 
 @NodeFactory.register("chainner:pytorch:load_model")
@@ -50,7 +51,9 @@ class LoadModelNode(NodeBase):
         try:
             logger.debug(f"Reading state dict from path: {path}")
             state_dict = torch.load(
-                path, map_location=torch.device(exec_options.full_device)
+                path,
+                map_location=torch.device(exec_options.full_device),
+                pickle_module=RestrictedUnpickle,  # type: ignore
             )
             model = load_state_dict(state_dict)
 
