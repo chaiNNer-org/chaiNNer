@@ -126,7 +126,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNode: (id: string) => void;
+    duplicateElements: (nodeIds: string[], edgeIds: string[]) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
@@ -1053,9 +1053,9 @@ export const GlobalProvider = memo(
             [rfSetNodes]
         );
 
-        const duplicateNode = useCallback(
-            (id: string) => {
-                const nodesToCopy = expandSelection(getNodes(), [id]);
+        const duplicateElements = useCallback(
+            (nodeIds: string[], edgeIds: string[]) => {
+                const nodesToCopy = expandSelection(getNodes(), nodeIds);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>
@@ -1067,10 +1067,10 @@ export const GlobalProvider = memo(
                         deriveId,
                         deriveId
                     );
-                    const derivedId = deriveId(id);
+                    const derivedIds = nodeIds.map((id) => deriveId(id));
                     newNodes.forEach((n) => {
                         // eslint-disable-next-line no-param-reassign
-                        n.selected = n.id === derivedId;
+                        n.selected = derivedIds.includes(n.id);
                     });
                     return [...setSelected(nodes, false), ...newNodes];
                 });
@@ -1078,7 +1078,10 @@ export const GlobalProvider = memo(
                 changeEdges((edges) => {
                     const newEdge = copyEdges(
                         edges.filter((e) => {
-                            return nodesToCopy.has(e.target) && nodesToCopy.has(e.source);
+                            return (
+                                (nodesToCopy.has(e.target) && nodesToCopy.has(e.source)) ||
+                                edgeIds.includes(e.id)
+                            );
                         }),
                         deriveId
                     );
@@ -1126,6 +1129,14 @@ export const GlobalProvider = memo(
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
         }, [changeNodes, changeEdges]);
+        const duplFn = useCallback(() => {
+            const nodesToCopy = getNodes().filter((n) => n.selected);
+            const edgesToCopy = getEdges().filter((e) => e.selected);
+            duplicateElements(
+                nodesToCopy.map((n) => n.id),
+                edgesToCopy.map((e) => e.id)
+            );
+        }, [getNodes, getEdges, duplicateElements]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn);
         useIpcRendererListener('cut', cutFn);
@@ -1134,6 +1145,7 @@ export const GlobalProvider = memo(
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
+        useHotkeys('ctrl+d', duplFn);
 
         const [zoom, setZoom] = useState(1);
 
@@ -1284,7 +1296,7 @@ export const GlobalProvider = memo(
             clearNode,
             removeNodeById,
             removeEdgeById,
-            duplicateNode,
+            duplicateElements,
             updateIteratorBounds,
             setIteratorPercent,
             setIteratorSize,
