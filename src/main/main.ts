@@ -663,8 +663,8 @@ const createWindow = lazy(async () => {
         width: lastWindowSize?.width ?? 1280,
         height: lastWindowSize?.height ?? 720,
         backgroundColor: '#1A202C',
-        minWidth: 840,
-        minHeight: 720,
+        minWidth: 720,
+        minHeight: 640,
         darkTheme: nativeTheme.shouldUseDarkColors,
         roundedCorners: true,
         webPreferences: {
