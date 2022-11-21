@@ -14,7 +14,7 @@ import { FunctionDefinition } from '../common/types/function';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
-import { Header } from './components/Header';
+import { Header } from './components/Header/Header';
 import { HistoryProvider } from './components/HistoryProvider';
 import { IteratorHelperNode } from './components/node/IteratorHelperNode';
 import { IteratorNode } from './components/node/IteratorNode';
