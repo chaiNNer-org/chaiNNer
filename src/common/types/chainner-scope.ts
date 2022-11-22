@@ -73,6 +73,7 @@ struct GammaOption;
 struct HeightMapSource;
 struct ImageExtension;
 struct InterpolationMode;
+struct KernelType;
 struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct OverflowMethod;
@@ -93,8 +94,6 @@ enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
 enum SideSelection { Width, Height, Shorter, Longer }
-enum KernelType { Normal, Strong }
-
 def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
     match fill {
         FillColor::Transparent => 4,

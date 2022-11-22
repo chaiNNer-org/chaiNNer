@@ -22,9 +22,9 @@ class GaussianBlurNode(NodeBase):
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
-        self.name = "Blur (Gaussian)"
+        self.name = "Guassian Blur"
         self.icon = "MdBlurOn"
-        self.sub = "Blur/Sharpen"
+        self.sub = "Blur"
 
     def run(
         self,

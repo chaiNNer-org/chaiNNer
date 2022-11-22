@@ -21,9 +21,9 @@ class SharpenNode(NodeBase):
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
-        self.name = "Sharpen (Unsharp)"
+        self.name = "Unsharp Mask"
         self.icon = "MdBlurOff"
-        self.sub = "Blur/Sharpen"
+        self.sub = "Sharpen"
 
     def run(
         self,
