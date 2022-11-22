@@ -2,9 +2,11 @@
 import { Box } from '@chakra-ui/react';
 import log from 'electron-log';
 import { DragEvent, memo, useCallback, useMemo } from 'react';
+import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
     Background,
     BackgroundVariant,
+    ControlButton,
     Controls,
     CoordinateExtent,
     Edge,
@@ -165,6 +167,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setNodesRef,
         setEdgesRef,
+        exportViewportScreenshot,
     } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
@@ -431,7 +434,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     size={1}
                     variant={BackgroundVariant.Dots}
                 />
-                <Controls />
+                <Controls>
+                    <ControlButton
+                        disabled={nodes.length === 0}
+                        title="Export viewport as PNG"
+                        onClick={exportViewportScreenshot}
+                    >
+                        <FaFileExport />
+                    </ControlButton>
+                </Controls>
             </ReactFlow>
         </Box>
     );
