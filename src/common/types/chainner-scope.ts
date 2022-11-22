@@ -73,6 +73,7 @@ struct GammaOption;
 struct HeightMapSource;
 struct ImageExtension;
 struct InterpolationMode;
+struct KernelType;
 struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct OverflowMethod;
