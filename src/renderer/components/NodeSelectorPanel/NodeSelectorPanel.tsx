@@ -215,13 +215,13 @@ export const NodeSelector = memo(() => {
                                             const categoryIsMissingNodes =
                                                 categoriesMissingNodes.includes(category.name);
 
-                                            const subcategoryMap = categoryNodes
-                                                ? getSubcategories(categoryNodes)
-                                                : null;
-
                                             if (!categoryNodes && !categoryIsMissingNodes) {
                                                 return null;
                                             }
+
+                                            const subcategoryMap = categoryNodes
+                                                ? getSubcategories(categoryNodes)
+                                                : null;
 
                                             return (
                                                 <RegularAccordionItem
