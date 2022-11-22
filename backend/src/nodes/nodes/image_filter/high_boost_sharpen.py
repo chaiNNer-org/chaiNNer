@@ -36,15 +36,15 @@ class HbfSharpenNode(NodeBase):
         if amount == 0:
             return img
 
-        center_one = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
+        delta = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
         if kernel_type == KernelType.STRONG:
             # 8-neighbor kernel
-            kernel = center_one - np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9
+            kernel = delta - np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9
         else:
             # 4-neighbor kernel
             kernel = np.array([[0, -0.2, 0], [-0.2, 0.8, -0.2], [0, -0.2, 0]])
 
-        kernel = kernel * amount + center_one
+        kernel = kernel * amount + delta
         filtered_img = cv2.filter2D(img, -1, kernel)
 
         return np.clip(filtered_img, 0, 1)
