@@ -6,8 +6,12 @@ from .image_utils import as_target_channels
 
 # Applies gaussian noise to an image
 def gaussian_noise(
-    image: np.ndarray, amount: float, noise_type: Literal["gray", "rgb"] = "rgb"
+    image: np.ndarray,
+    amount: float,
+    noise_type: Literal["gray", "rgb"] = "rgb",
+    seed: int = 0,
 ) -> np.ndarray:
+    np.random.seed(seed)
     img = image
     h, w, c = get_h_w_c(img)
     if noise_type == "rgb":
@@ -21,8 +25,12 @@ def gaussian_noise(
 
 # Applies uniform noise to an image
 def uniform_noise(
-    image: np.ndarray, amount: float, noise_type: Literal["gray", "rgb"] = "rgb"
+    image: np.ndarray,
+    amount: float,
+    noise_type: Literal["gray", "rgb"] = "rgb",
+    seed: int = 0,
 ) -> np.ndarray:
+    np.random.seed(seed)
     img = image
     h, w, c = get_h_w_c(img)
     if noise_type == "rgb":
@@ -36,8 +44,12 @@ def uniform_noise(
 
 # Applies salt and pepper noise to an image
 def salt_and_pepper_noise(
-    image: np.ndarray, amount: float, noise_type: Literal["gray", "rgb"] = "rgb"
+    image: np.ndarray,
+    amount: float,
+    noise_type: Literal["gray", "rgb"] = "rgb",
+    seed: int = 0,
 ) -> np.ndarray:
+    np.random.seed(seed)
     img = image
     h, w, c = get_h_w_c(img)
     if noise_type == "rgb":
@@ -59,8 +71,12 @@ def salt_and_pepper_noise(
 
 # Applies poisson noise to an image
 def poisson_noise(
-    image: np.ndarray, amount: float, noise_type: Literal["gray", "rgb"] = "rgb"
+    image: np.ndarray,
+    amount: float,
+    noise_type: Literal["gray", "rgb"] = "rgb",
+    seed: int = 0,
 ) -> np.ndarray:
+    np.random.seed(seed)
     img = image
     h, w, c = get_h_w_c(img)
     if noise_type == "rgb":
@@ -74,8 +90,12 @@ def poisson_noise(
 
 # Applies speckle noise to an image
 def speckle_noise(
-    image: np.ndarray, amount: float, noise_type: Literal["gray", "rgb"] = "rgb"
+    image: np.ndarray,
+    amount: float,
+    noise_type: Literal["gray", "rgb"] = "rgb",
+    seed: int = 0,
 ) -> np.ndarray:
+    np.random.seed(seed)
     img = image
     h, w, c = get_h_w_c(img)
     if noise_type == "rgb":
