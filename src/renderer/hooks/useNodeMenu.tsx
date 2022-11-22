@@ -27,7 +27,7 @@ export const useNodeMenu = (
 ): UseContextMenu => {
     const { id, isLocked = false, parentNode } = data;
 
-    const { removeNodeById, clearNode, duplicateNode, toggleNodeLock, releaseNodeFromParent } =
+    const { removeNodeById, clearNode, duplicateNodes, toggleNodeLock, releaseNodeFromParent } =
         useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
@@ -36,7 +36,7 @@ export const useNodeMenu = (
             <MenuItem
                 icon={<CopyIcon />}
                 onClick={() => {
-                    duplicateNode(id);
+                    duplicateNodes([id]);
                 }}
             >
                 Duplicate

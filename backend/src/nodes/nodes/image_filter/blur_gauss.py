@@ -24,7 +24,7 @@ class GaussianBlurNode(NodeBase):
         self.category = ImageFilterCategory
         self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
-        self.sub = "Blur/Sharpen"
+        self.sub = "Blur"
 
     def run(
         self,

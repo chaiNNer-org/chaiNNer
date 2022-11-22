@@ -73,6 +73,7 @@ struct GammaOption;
 struct HeightMapSource;
 struct ImageExtension;
 struct InterpolationMode;
+struct KernelType;
 struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct OverflowMethod;
@@ -83,6 +84,7 @@ struct TileMode;
 struct TransferColorspace;
 struct VideoType;
 struct VideoPreset;
+struct NoiseType;
 
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }
@@ -93,6 +95,7 @@ enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
 enum SideSelection { Width, Height, Shorter, Longer }
+enum NoiseColor { Rgb, Gray }
 
 def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
     match fill {

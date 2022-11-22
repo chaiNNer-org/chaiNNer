@@ -30,6 +30,11 @@ class BorderType:
     TRANSPARENT = 5
 
 
+class KernelType:
+    NORMAL = 0
+    STRONG = 1
+
+
 def get_opencv_formats():
     available_formats = [
         # Bitmaps

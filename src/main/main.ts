@@ -730,6 +730,7 @@ const createWindow = lazy(async () => {
                 defaultId: 0,
                 cancelId: 2,
                 noLink: true,
+                normalizeAccessKeys: true,
             });
             if (choice === 1) {
                 // Don't save, so do nothing

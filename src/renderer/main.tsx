@@ -1,6 +1,7 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
@@ -13,7 +14,7 @@ import { FunctionDefinition } from '../common/types/function';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
-import { Header } from './components/Header';
+import { Header } from './components/Header/Header';
 import { HistoryProvider } from './components/HistoryProvider';
 import { IteratorHelperNode } from './components/node/IteratorHelperNode';
 import { IteratorNode } from './components/node/IteratorNode';
@@ -80,6 +81,8 @@ interface MainProps {
 }
 
 export const Main = memo(({ port }: MainProps) => {
+    const { t, ready } = useTranslation();
+
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo | null>(null);
@@ -102,10 +105,14 @@ export const Main = memo(({ port }: MainProps) => {
                 log.error(e);
                 sendAlert({
                     type: AlertType.CRIT_ERROR,
-                    title: 'Unable to process backend nodes',
-                    message:
-                        `A critical error occurred while processing the node data returned by the backend.` +
-                        `\n\n${String(e)}`,
+                    title: t(
+                        'error.title.unableToProcessNodes',
+                        'Unable to process backend nodes.'
+                    ),
+                    message: `${t(
+                        'error.message.criticalBackend',
+                        'A critical error occurred while processing the node data returned by the backend.'
+                    )}\n\n${String(e)}`,
                 });
             }
             setBackendReady(true);
@@ -115,12 +122,15 @@ export const Main = memo(({ port }: MainProps) => {
         if (error) {
             sendAlert({
                 type: AlertType.CRIT_ERROR,
-                message: `A critical error occurred while processing the node data returned by the backend. Error: ${error.message}`,
+                message: `${t(
+                    'error.message.criticalBackend',
+                    'A critical error occurred while processing the node data returned by the backend.'
+                )} ${t('error.error', 'Error')}: ${error.message}`,
             });
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
-    }, [response, data, loading, error, backendReady, sendAlert]);
+    }, [response, data, loading, error, backendReady, sendAlert, t]);
 
     useLastWindowSize();
 
@@ -138,11 +148,11 @@ export const Main = memo(({ port }: MainProps) => {
 
                 sendAlert({
                     type: AlertType.INFO,
-                    title: 'System information',
+                    title: t('alert.title.systemInformation', 'System information'),
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },
-            [sendAlert]
+            [sendAlert, t]
         )
     );
 
@@ -157,7 +167,7 @@ export const Main = memo(({ port }: MainProps) => {
 
     if (error) return null;
 
-    if (!nodesInfo || !data || !pythonInfo) {
+    if (!nodesInfo || !data || !pythonInfo || !ready) {
         return (
             <Box
                 h="100vh"
@@ -172,7 +182,7 @@ export const Main = memo(({ port }: MainProps) => {
                             percent={0}
                             size={256}
                         />
-                        <Text>Loading...</Text>
+                        <Text>{t('loading', 'Loading...')}</Text>
                     </VStack>
                 </Center>
             </Box>

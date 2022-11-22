@@ -215,6 +215,10 @@ export const NodeSelector = memo(() => {
                                             const categoryIsMissingNodes =
                                                 categoriesMissingNodes.includes(category.name);
 
+                                            if (!categoryNodes && !categoryIsMissingNodes) {
+                                                return null;
+                                            }
+
                                             const subcategoryMap = categoryNodes
                                                 ? getSubcategories(categoryNodes)
                                                 : null;

@@ -12,6 +12,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { shadeColor } from '../../helpers/colorTools';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
 export const CustomEdge = memo(
@@ -118,6 +119,8 @@ export const CustomEdge = memo(
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [type]);
 
+        const menu = useEdgeMenu(id);
+
         return (
             <g
                 className="edge-chain-group"
@@ -126,6 +129,7 @@ export const CustomEdge = memo(
                     opacity: isSourceEnabled ? 1 : 0.5,
                     ...style,
                 }}
+                onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}

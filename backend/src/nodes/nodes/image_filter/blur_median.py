@@ -23,7 +23,7 @@ class MedianBlurNode(NodeBase):
         self.category = ImageFilterCategory
         self.name = "Median Blur"
         self.icon = "MdBlurOn"
-        self.sub = "Blur/Sharpen"
+        self.sub = "Blur"
 
     def run(
         self,

@@ -8,6 +8,7 @@ import { HotkeysProvider } from './contexts/HotKeyContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
 import { theme } from './theme';
+import './i18n';
 
 const LoadingComponent = memo(() => (
     <Box

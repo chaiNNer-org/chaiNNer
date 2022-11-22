@@ -26,7 +26,7 @@ class BlurNode(NodeBase):
         self.category = ImageFilterCategory
         self.name = "Box Blur"
         self.icon = "MdBlurOn"
-        self.sub = "Blur/Sharpen"
+        self.sub = "Blur"
 
     def run(
         self,
