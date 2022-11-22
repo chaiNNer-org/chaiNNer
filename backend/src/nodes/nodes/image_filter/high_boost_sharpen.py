@@ -42,7 +42,7 @@ class HbfSharpenNode(NodeBase):
             kernel = delta - np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9
         else:
             # 4-neighbor kernel
-            kernel = np.array([[0, -0.2, 0], [-0.2, 0.8, -0.2], [0, -0.2, 0]])
+            kernel = delta - np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) / 5
 
         kernel = kernel * amount + delta
         filtered_img = cv2.filter2D(img, -1, kernel)
