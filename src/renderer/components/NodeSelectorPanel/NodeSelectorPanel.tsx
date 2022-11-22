@@ -219,6 +219,10 @@ export const NodeSelector = memo(() => {
                                                 ? getSubcategories(categoryNodes)
                                                 : null;
 
+                                            if (!categoryNodes && !categoryIsMissingNodes) {
+                                                return null;
+                                            }
+
                                             return (
                                                 <RegularAccordionItem
                                                     category={category}
