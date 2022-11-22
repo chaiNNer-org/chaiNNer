@@ -12,6 +12,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { shadeColor } from '../../helpers/colorTools';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
 export const CustomEdge = memo(
@@ -82,6 +83,8 @@ export const CustomEdge = memo(
             showRunning && animateChain ? 'running' : ''
         }`;
 
+        const menu = useEdgeMenu(id);
+
         return (
             <g
                 className="edge-chain-group"
@@ -89,6 +92,7 @@ export const CustomEdge = memo(
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
                 }}
+                onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
