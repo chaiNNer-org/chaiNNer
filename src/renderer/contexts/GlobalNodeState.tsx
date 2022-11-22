@@ -126,7 +126,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNodes: (nodeIds: string[], edgeIds: string[]) => void;
+    duplicateNodes: (nodeIds: string[]) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
