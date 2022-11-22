@@ -1,6 +1,7 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
-import { dirname } from 'path';
+import { toPng } from 'html-to-image';
+import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -125,7 +126,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNode: (id: string) => void;
+    duplicateNodes: (nodeIds: string[]) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
@@ -138,6 +139,7 @@ interface Global {
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
+    exportViewportScreenshot: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
@@ -166,7 +168,7 @@ export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { schemata, functionDefinitions, backend } = useContext(BackendContext);
-        const { useStartupTemplate } = useContext(SettingsContext);
+        const { useStartupTemplate, useViewportExportPadding } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -183,6 +185,7 @@ export const GlobalProvider = memo(
         } = useReactFlow<NodeData, EdgeData>();
 
         const currentViewport = useViewport();
+        const currentReactFlowInstance = useReactFlow();
 
         const setNodesRef = useRef<SetState<Node<NodeData>[]>>(rfSetNodes);
         const setEdgesRef = useRef<SetState<Edge<EdgeData>[]>>(rfSetEdges);
@@ -1050,9 +1053,9 @@ export const GlobalProvider = memo(
             [rfSetNodes]
         );
 
-        const duplicateNode = useCallback(
-            (id: string) => {
-                const nodesToCopy = expandSelection(getNodes(), [id]);
+        const duplicateNodes = useCallback(
+            (nodeIds: string[]) => {
+                const nodesToCopy = expandSelection(getNodes(), nodeIds);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>
@@ -1064,10 +1067,10 @@ export const GlobalProvider = memo(
                         deriveId,
                         deriveId
                     );
-                    const derivedId = deriveId(id);
+                    const derivedIds = nodeIds.map((id) => deriveId(id));
                     newNodes.forEach((n) => {
                         // eslint-disable-next-line no-param-reassign
-                        n.selected = n.id === derivedId;
+                        n.selected = derivedIds.includes(n.id);
                     });
                     return [...setSelected(nodes, false), ...newNodes];
                 });
@@ -1123,6 +1126,10 @@ export const GlobalProvider = memo(
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
         }, [changeNodes, changeEdges]);
+        const duplFn = useCallback(() => {
+            const nodesToCopy = getNodes().filter((n) => n.selected);
+            duplicateNodes(nodesToCopy.map((n) => n.id));
+        }, [getNodes, duplicateNodes]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn);
         useIpcRendererListener('cut', cutFn);
@@ -1131,10 +1138,120 @@ export const GlobalProvider = memo(
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
+        useHotkeys('ctrl+d, cmd+d', duplFn);
 
         const [zoom, setZoom] = useState(1);
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
+
+        const getNodesBoundingBox = useCallback(() => {
+            const nodes = getNodes().filter((n) => !n.parentNode);
+
+            if (nodes.length === 0) return;
+
+            const minX = Math.min(...nodes.map((n) => n.position.x));
+            const minY = Math.min(...nodes.map((n) => n.position.y));
+            const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
+            const maxY = Math.max(...nodes.map((n) => n.position.y + (n.height ?? 0)));
+
+            return {
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+            };
+        }, [getNodes]);
+
+        const downloadImage = (dataUrl: string, fileName: string) => {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        const [viewportExportPadding] = useViewportExportPadding;
+        const exportViewportScreenshot = useCallback(() => {
+            const currentFlowWrapper = reactFlowWrapper.current;
+            if (!(currentFlowWrapper instanceof HTMLElement)) return;
+
+            const oldViewport = currentReactFlowInstance.getViewport();
+
+            const reactFlowViewport = currentFlowWrapper.getBoundingClientRect();
+            const nodesBoundingBox = getNodesBoundingBox();
+
+            if (!nodesBoundingBox) return;
+
+            const paddedBoundingBox = {
+                x: nodesBoundingBox.x - viewportExportPadding,
+                y: nodesBoundingBox.y - viewportExportPadding,
+                width: nodesBoundingBox.width + viewportExportPadding * 2,
+                height: nodesBoundingBox.height + viewportExportPadding * 2,
+            };
+
+            const exportZoom = Math.min(
+                reactFlowViewport.width / paddedBoundingBox.width,
+                reactFlowViewport.height / paddedBoundingBox.height
+            );
+
+            currentReactFlowInstance.setViewport({
+                x: paddedBoundingBox.x * -1 * exportZoom,
+                y: paddedBoundingBox.y * -1 * exportZoom,
+                zoom: exportZoom,
+            });
+
+            // wait for the viewport to be updated
+            setTimeout(() => {
+                toPng(currentFlowWrapper, {
+                    style: {
+                        padding: '0',
+                        margin: '0',
+                        pointerEvents: 'none',
+                    },
+                    pixelRatio: 1 / exportZoom,
+                    width: paddedBoundingBox.width * exportZoom,
+                    height: paddedBoundingBox.height * exportZoom,
+                    filter: (node: unknown) => {
+                        if (
+                            node instanceof HTMLElement &&
+                            (node.classList.contains('react-flow__minimap') ||
+                                node.classList.contains('react-flow__controls'))
+                        ) {
+                            return false;
+                        }
+
+                        return true;
+                    },
+                })
+                    .then((dataUrl: string) => {
+                        currentReactFlowInstance.setViewport(oldViewport);
+
+                        const currentChainName = savePath ? parse(savePath).name : 'Untitled';
+
+                        const date = new Date();
+                        const dateString = `${date.getFullYear()}-${
+                            date.getMonth() + 1
+                        }-${date.getDate()}`;
+
+                        const hourString = date.getHours().toString().padStart(2, '0');
+                        const minuteString = date.getMinutes().toString().padStart(2, '0');
+                        const timeString = `${hourString}-${minuteString}`;
+
+                        const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
+                        downloadImage(dataUrl, fileName);
+                    })
+                    .catch((error) => {
+                        log.error(error);
+                    });
+            }, 10);
+        }, [
+            reactFlowWrapper,
+            currentReactFlowInstance,
+            getNodesBoundingBox,
+            viewportExportPadding,
+            savePath,
+        ]);
 
         const globalVolatileValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
@@ -1172,13 +1289,14 @@ export const GlobalProvider = memo(
             clearNode,
             removeNodeById,
             removeEdgeById,
-            duplicateNode,
+            duplicateNodes,
             updateIteratorBounds,
             setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
             setNodeDisabled,
             setZoom,
+            exportViewportScreenshot,
             setManualOutputType,
             typeStateRef,
             releaseNodeFromParent,

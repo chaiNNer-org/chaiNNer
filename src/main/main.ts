@@ -81,8 +81,7 @@ log.catchErrors({
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 // Check for update
-const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
-if (app.isPackaged && checkUpdateOnStartup) {
+const checkForUpdate = () => {
     hasUpdate(version)
         .then(async (latest) => {
             if (!latest) return;
@@ -108,7 +107,7 @@ if (app.isPackaged && checkUpdateOnStartup) {
             }
         })
         .catch((reason) => log.error(reason));
-}
+};
 
 const ownsBackend = !getArguments().noBackend;
 ipcMain.handle('owns-backend', () => ownsBackend);
@@ -651,6 +650,10 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
             }
+            const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
+            if (app.isPackaged && checkUpdateOnStartup) {
+                checkForUpdate();
+            }
         });
     });
 
@@ -727,6 +730,7 @@ const createWindow = lazy(async () => {
                 defaultId: 0,
                 cancelId: 2,
                 noLink: true,
+                normalizeAccessKeys: true,
             });
             if (choice === 1) {
                 // Don't save, so do nothing

@@ -28,6 +28,7 @@ interface Settings {
     useIsDarkMode: GetSetState<boolean>;
     useAnimateChain: GetSetState<boolean>;
     useExperimentalFeatures: GetSetState<boolean>;
+    useViewportExportPadding: GetSetState<number>;
 
     // Node Settings
     useNodeFavorites: GetSetState<readonly SchemaId[]>;
@@ -76,6 +77,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         setSnapToGridAmount,
     ] as const);
 
+    const useViewportExportPadding = useMemoArray(useLocalStorage('viewport-export-padding', 20));
+
     // Node Settings
     const useNodeFavorites = useMemoArray(
         useLocalStorage<readonly SchemaId[]>('node-favorites', [])
@@ -105,6 +108,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useIsDarkMode,
         useAnimateChain,
         useExperimentalFeatures,
+        useViewportExportPadding,
 
         // Node
         useNodeFavorites,
