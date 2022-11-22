@@ -126,7 +126,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    duplicateElements: (nodeIds: string[], edgeIds: string[]) => void;
+    duplicateNodes: (nodeIds: string[], edgeIds: string[]) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
@@ -1053,8 +1053,8 @@ export const GlobalProvider = memo(
             [rfSetNodes]
         );
 
-        const duplicateElements = useCallback(
-            (nodeIds: string[], edgeIds: string[]) => {
+        const duplicateNodes = useCallback(
+            (nodeIds: string[]) => {
                 const nodesToCopy = expandSelection(getNodes(), nodeIds);
 
                 const duplicationId = createUniqueId();
@@ -1078,10 +1078,7 @@ export const GlobalProvider = memo(
                 changeEdges((edges) => {
                     const newEdge = copyEdges(
                         edges.filter((e) => {
-                            return (
-                                (nodesToCopy.has(e.target) && nodesToCopy.has(e.source)) ||
-                                edgeIds.includes(e.id)
-                            );
+                            return nodesToCopy.has(e.target) && nodesToCopy.has(e.source);
                         }),
                         deriveId
                     );
@@ -1131,12 +1128,8 @@ export const GlobalProvider = memo(
         }, [changeNodes, changeEdges]);
         const duplFn = useCallback(() => {
             const nodesToCopy = getNodes().filter((n) => n.selected);
-            const edgesToCopy = getEdges().filter((e) => e.selected);
-            duplicateElements(
-                nodesToCopy.map((n) => n.id),
-                edgesToCopy.map((e) => e.id)
-            );
-        }, [getNodes, getEdges, duplicateElements]);
+            duplicateNodes(nodesToCopy.map((n) => n.id));
+        }, [getNodes, duplicateNodes]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn);
         useIpcRendererListener('cut', cutFn);
@@ -1296,7 +1289,7 @@ export const GlobalProvider = memo(
             clearNode,
             removeNodeById,
             removeEdgeById,
-            duplicateElements,
+            duplicateNodes,
             updateIteratorBounds,
             setIteratorPercent,
             setIteratorSize,
