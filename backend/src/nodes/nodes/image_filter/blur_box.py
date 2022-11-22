@@ -24,7 +24,7 @@ class BlurNode(NodeBase):
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
-        self.name = "Box Blur"
+        self.name = "Blur (Box)"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
 

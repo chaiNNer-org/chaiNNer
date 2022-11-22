@@ -21,7 +21,7 @@ class SharpenNode(NodeBase):
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
-        self.name = "Sharpen"
+        self.name = "Sharpen (Unsharp)"
         self.icon = "MdBlurOff"
         self.sub = "Blur/Sharpen"
 
@@ -30,8 +30,6 @@ class SharpenNode(NodeBase):
         img: np.ndarray,
         amount: float,
     ) -> np.ndarray:
-        """Adjusts the sharpening of an image"""
-
         if amount == 0:
             return img
 

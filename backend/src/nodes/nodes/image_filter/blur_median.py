@@ -21,7 +21,7 @@ class MedianBlurNode(NodeBase):
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
-        self.name = "Median Blur"
+        self.name = "Blur (Median)"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
 
