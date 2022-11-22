@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Literal
 
 import numpy as np
 
@@ -19,8 +18,8 @@ from ...utils.noise_utils import (
     salt_and_pepper_noise,
     poisson_noise,
     speckle_noise,
+    NoiseType,
 )
-from ...utils.image_utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:add_noise")
@@ -29,7 +28,7 @@ class AddNoiseNode(NodeBase):
         super().__init__()
         self.description = "Add various kinds of noise to an image."
         self.inputs = [
-            ImageInput(),
+            ImageInput(channels=[1, 3, 4]),
             NoiseTypeDropdown(),
             NoiseColorDropdown(),
             SliderInput("Amount", minimum=0, maximum=100, default=50),
@@ -37,11 +36,11 @@ class AddNoiseNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type="""
-                Image { 
-                    width: Input0.width, 
-                    height: Input0.height, 
+                Image {
+                    width: Input0.width,
+                    height: Input0.height,
                     channels: max(
-                        Input0.channels, 
+                        Input0.channels,
                         match Input2 { NoiseColor::Rgb => 3, NoiseColor::Gray => 1 }
                     )
                 }"""
@@ -54,28 +53,20 @@ class AddNoiseNode(NodeBase):
 
     def run(
         self,
-        image: np.ndarray,
+        img: np.ndarray,
         noise_type: str,
-        noise_color: Literal["gray", "rgb"],
+        noise_color: NoiseType,
         amount: int,
     ) -> np.ndarray:
-        img = image
-        _, _, c = get_h_w_c(img)
-        if c == 4:
-            img = img[:, :, :3]
         if noise_type == "gaussian":
-            result = gaussian_noise(img, amount / 100, noise_color)
+            return gaussian_noise(img, amount / 100, noise_color)
         elif noise_type == "uniform":
-            result = uniform_noise(img, amount / 100, noise_color)
+            return uniform_noise(img, amount / 100, noise_color)
         elif noise_type == "salt_and_pepper":
-            result = salt_and_pepper_noise(img, amount / 100, noise_color)
+            return salt_and_pepper_noise(img, amount / 100, noise_color)
         elif noise_type == "poisson":
-            result = poisson_noise(img, amount / 100, noise_color)
+            return poisson_noise(img, amount / 100, noise_color)
         elif noise_type == "speckle":
-            result = speckle_noise(img, amount / 100, noise_color)
+            return speckle_noise(img, amount / 100, noise_color)
         else:
             raise ValueError(f"Unknown noise type: {noise_type}")
-        if c == 4:
-            result = np.concatenate([result, image[:, :, 3:]], axis=2)
-
-        return np.clip(result, 0, 1)
