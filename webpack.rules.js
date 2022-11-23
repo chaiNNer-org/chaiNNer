@@ -18,14 +18,16 @@ module.exports = [
                             runtime: 'automatic',
                         },
                     ],
-                    [
-                        'i18next-extract',
-                        {
-                            outputPath: './src/common/locales/{{locale}}/{{ns}}.json',
-                            keyAsDefaultValueForDerivedKeys: true,
-                            discardOldKeys: true,
-                        },
-                    ],
+                    ...(isDevelopment
+                        ? [
+                              'i18next-extract',
+                              {
+                                  outputPath: './src/common/locales/{{locale}}/{{ns}}.json',
+                                  keyAsDefaultValueForDerivedKeys: true,
+                                  discardOldKeys: true,
+                              },
+                          ]
+                        : []),
                 ],
             },
         },
