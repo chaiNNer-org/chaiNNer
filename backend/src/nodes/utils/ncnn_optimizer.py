@@ -1,8 +1,8 @@
 import numpy as np
-from checked_cast import checked_cast
-from ncnn_model import BinaryOpTypes as BOT
-from ncnn_model import EltwiseOpTypes as EOT
-from ncnn_model import NcnnLayer, NcnnModel
+from .checked_cast import checked_cast
+from .ncnn_model import BinaryOpTypes as BOT
+from .ncnn_model import EltwiseOpTypes as EOT
+from .ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -454,10 +454,8 @@ class NcnnOptimizer:
                         # non-interchangeable binaryop
                         continue
 
-                scalar = layer.weight_data["data"].weight[0]
-
                 binaryop.params[1] = 1
-                binaryop.params[2] = scalar
+                binaryop.params[2] = layer.weight_data["data"].weight[0]
 
                 binaryop.inputs.pop(memorydata_index)
                 self.model.node_count -= 1
@@ -669,9 +667,7 @@ class NcnnOptimizer:
                 if j == -1:
                     continue
 
-                layer_any = self.model.layers[j]
-
-                layer_any.outputs[0] = layer.outputs[0]
+                self.model.layers[j].outputs[0] = layer.outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
@@ -718,9 +714,7 @@ class NcnnOptimizer:
                 if j == -1:
                     continue
 
-                layer_any = self.model.layers[j]
-
-                layer_any.outputs[top_i] = layer.outputs[0]
+                self.model.layers[j].outputs[top_i] = layer.outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
@@ -730,12 +724,7 @@ class NcnnOptimizer:
             if layer == "Noop":
                 if layer.num_inputs == 0:
                     # Noop
-                    for j in range(layer.num_outputs):
-                        # Do I need to look for all layers that input this output
-                        # and remove those inputs?
-                        pass
                     layer.op_type = "ncnnfused"
-
                     continue
 
                 # Any - Noop
@@ -762,9 +751,7 @@ class NcnnOptimizer:
                 if j == -1 or any_k == -1:
                     continue
 
-                any_layer = self.model.layers[j]
-
-                any_layer.outputs[any_k] = layer.outputs[0]
+                self.model.layers[j].outputs[any_k] = layer.outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
@@ -809,9 +796,9 @@ class NcnnOptimizer:
                 if j == -1:
                     continue
 
-                any_layer = self.model.layers[j]
-
-                any_layer.outputs[top_i] = layer.outputs[real_split_output_index]
+                self.model.layers[j].outputs[top_i] = layer.outputs[
+                    real_split_output_index
+                ]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 layer.op_type = "ncnnfused"
@@ -1220,13 +1207,3 @@ class NcnnOptimizer:
         self.__eliminate_orphaned_memorydata()
 
         return self.model
-
-
-if __name__ == "__main__":
-    model = NcnnModel().load_from_file(
-        "D:/Desktop/onnx_test_models/ResNet101-DUC-7.param"
-    )
-    optimizer = NcnnOptimizer(model)
-    model = optimizer.optimize()
-    model.write_param("D:/Desktop/onnx_test_models/opt_test.param")
-    model.write_bin("D:/Desktop/onnx_test_models/opt_test.bin")

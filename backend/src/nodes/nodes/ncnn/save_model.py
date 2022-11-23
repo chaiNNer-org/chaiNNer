@@ -6,6 +6,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import DirectoryInput, NcnnModelInput, TextInput
 from ...utils.ncnn_model import NcnnModelWrapper
+from ...utils.ncnn_optimizer import NcnnOptimizer
 from . import category as NCNNCategory
 
 
@@ -33,6 +34,8 @@ class NcnnSaveNode(NodeBase):
         full_param = f"{name}.param"
         full_bin_path = os.path.join(directory, full_bin)
         full_param_path = os.path.join(directory, full_param)
+
+        model.model = NcnnOptimizer(model.model).optimize()
 
         logger.debug(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
         model.model.write_bin(full_bin_path)
