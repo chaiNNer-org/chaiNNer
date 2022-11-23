@@ -3876,8 +3876,8 @@ class Onnx2NcnnConverter:
             elif op == "Unsqueeze":
                 axes = get_node_attr_ai(node, "axes")
 
-                assert np.all(
-                    axes != 0 and axes <= 4 and axes >= -4
+                assert (
+                    np.all(axes != 0) and np.all(axes <= 4) and np.all(axes >= -4)
                 ), f"Unsupported axes {axes} in Unsqueeze"
 
                 layer.add_param(
