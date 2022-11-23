@@ -36,10 +36,10 @@ class ConvertOnnxToNcnnNode(NodeBase):
         fp16 = bool(is_fp16)
 
         model_proto = onnx.load_model_from_string(model.bytes)
-        passes = onnxoptimizer.get_fuse_and_elimination_passes()
-        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+        # passes = onnxoptimizer.get_fuse_and_elimination_passes()
+        # opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
 
-        converter = Onnx2NcnnConverter(opt_model)
+        converter = Onnx2NcnnConverter(model_proto)
         ncnn_model = NcnnModelWrapper(converter.convert(fp16, False))
 
         fp_mode = "fp16" if fp16 else "fp32"

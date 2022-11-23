@@ -1,11 +1,8 @@
-from math import sqrt
-from typing import List, Union
-
 import numpy as np
-from .checked_cast import checked_cast
-from .ncnn_model import BinaryOpTypes as BOT
-from .ncnn_model import EltwiseOpTypes as EOT
-from .ncnn_model import NcnnLayer, NcnnModel
+from checked_cast import checked_cast
+from ncnn_model import BinaryOpTypes as BOT
+from ncnn_model import EltwiseOpTypes as EOT
+from ncnn_model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:
@@ -16,7 +13,7 @@ class NcnnOptimizer:
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "BatchNorm":
                 # BatchNorm - Scale
-                output = layer.outputs[0]
+                batchnorm_output = layer.outputs[0]
 
                 j = i
                 for j in range(i + 1, len(self.model.layers)):
@@ -24,7 +21,7 @@ class NcnnOptimizer:
                         continue
                     if len(self.model.layers[j].inputs) != 1:
                         continue
-                    if self.model.layers[j].inputs[0] == output:
+                    if self.model.layers[j].inputs[0] == batchnorm_output:
                         break
                 else:
                     j += 1
@@ -33,24 +30,20 @@ class NcnnOptimizer:
                     continue
 
                 # fuse BatchNorm - Scale to BatchNorm
-                batchnorm = self.model.layers[i]
                 scale = self.model.layers[j]
 
-                channels = checked_cast(int, batchnorm.params[0].value)
-                slope = batchnorm.weight_data["slope"].weight
-                bias = batchnorm.weight_data["bias"].weight
+                slope = layer.weight_data["slope"].weight.copy()
+                bias = layer.weight_data["bias"].weight.copy()
 
-                for c in range(channels):
-                    slope[c] = slope[c] * scale.weight_data["scale"]
-                    if scale.params[1].value:
-                        bias[c] = (
-                            bias[c] * scale.weight_data["scale"]
-                            + scale.weight_data["bias"]
-                        )
-                    else:
-                        bias[c] = bias[c] * scale.weight_data["scale"]
+                slope *= scale.weight_data["scale"].weight
+                layer.weight_data["slope"].weight = slope
 
-                self.model.layers[i].outputs[0] = scale.outputs[0]
+                bias *= scale.weight_data["scale"].weight
+                if scale.params[1].value:
+                    bias += scale.weight_data["bias"].weight
+                layer.weight_data["bias"].weight = bias
+
+                layer.outputs[0] = scale.outputs[0]
                 self.model.node_count -= 1
                 self.model.blob_count -= 1
                 scale.op_type = "ncnnfused"
@@ -61,7 +54,6 @@ class NcnnOptimizer:
         fuse_innerproduct_batchnorm"""
 
         for i, layer in enumerate(self.model.layers):
-            print(i)
             if layer.op_type in (
                 "Convolution",
                 "ConvolutionDepthWise",
@@ -70,7 +62,7 @@ class NcnnOptimizer:
                 "InnerProduct",
             ):
                 # Convolution - BatchNorm
-                output = layer.outputs[0]
+                conv_output = layer.outputs[0]
 
                 j = i
                 for j in range(i + 1, len(self.model.layers)):
@@ -78,7 +70,7 @@ class NcnnOptimizer:
                         continue
                     if len(self.model.layers[j].inputs) != 1:
                         continue
-                    if self.model.layers[j].inputs[0] == output:
+                    if self.model.layers[j].inputs[0] == conv_output:
                         break
                 else:
                     j += 1
@@ -90,7 +82,7 @@ class NcnnOptimizer:
                 batchnorm = self.model.layers[j]
 
                 channels = checked_cast(int, batchnorm.params[0].value)
-                eps = batchnorm.params[1].value
+                eps = checked_cast(float, batchnorm.params[1].value)
 
                 # a = bias - slope * mean / sqrt(var + eps)
                 # b = slope / sqrt(var + eps)
@@ -98,32 +90,29 @@ class NcnnOptimizer:
                 a = np.ndarray((channels,))
                 b = np.ndarray((channels,))
                 sqrt_var = np.sqrt(batchnorm.weight_data["variance"].weight + eps)
-                a = batchnorm.weight_data["bias"].weight - batchnorm.weight_data[
-                    "slope"
-                ].weight * batchnorm.weight_data["mean"].weight / sqrt(
-                    batchnorm.weight_data["variance"].weight + eps
+                a = (
+                    batchnorm.weight_data["bias"].weight
+                    - batchnorm.weight_data["slope"].weight
+                    * batchnorm.weight_data["mean"].weight
+                    / sqrt_var
                 )
                 b = batchnorm.weight_data["slope"].weight / sqrt_var
 
                 bias_term = 1 if layer.op_type == "InnerProduct" else 5
-                weight_size_term = 2 if layer.op_type == "InnerProduct" else 6
 
                 if layer.params[bias_term].value == 0:
                     # init bias as zero
                     layer.params[bias_term] = 1
                     layer.add_weight("bias", np.zeros(channels, np.float32))
 
-                weight_per_outch = (
-                    checked_cast(int, layer.params[weight_size_term].value) // channels
+                weight = layer.weight_data["weight"].weight.copy()
+                weight *= (
+                    np.broadcast_to(b, weight.shape[::-1]).swapaxes(0, 3).swapaxes(1, 2)
                 )
-                weight = layer.weight_data["weight"].weight
-                bias = layer.weight_data["bias"].weight
+                layer.weight_data["weight"].weight = weight
 
-                for c in range(channels):
-                    conv_weight_outch = weight + weight_per_outch * c
-                    conv_weight_outch *= b[c]
-
-                    bias[c] = bias[c] * b[c] + a[c]
+                bias = layer.weight_data["bias"].weight.copy()
+                layer.weight_data["bias"].weight = bias * b + a
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -188,17 +177,21 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
-                weight_per_outch = checked_cast(int, layer.params[6].value) // channels
-                weight = layer.weight_data["weight"].weight
-                bias = layer.weight_data["bias"].weight
+                mem_data = memorydata.weight_data["data"].weight
 
-                for c in range(channels):
-                    conv_weight_outch = weight + weight_per_outch * c
-                    for w in range(weight_per_outch):
-                        conv_weight_outch[w] *= memorydata.weight_data["data"].weight[c]
+                weight = layer.weight_data["weight"].weight.copy()
+                weight *= (
+                    np.broadcast_to(mem_data, weight.shape[::-1])
+                    .swapaxes(0, 3)
+                    .swapaxes(1, 2)
+                )
+                layer.weight_data["weight"].weight = weight
 
-                    if bias:
-                        bias[i] = bias[i] * memorydata.weight_data["data"].weight[i]
+                try:
+                    bias = layer.weight_data["bias"].weight.copy()
+                    layer.weight_data["bias"].weight = bias * mem_data
+                except KeyError:
+                    pass
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -999,7 +992,7 @@ class NcnnOptimizer:
                 ):
                     continue
 
-                axes = checked_cast(List[int], layer.params[3].value)
+                axes = checked_cast(list, layer.params[3].value)
                 if len(axes) != 1:
                     continue
                 if axes[0] != 2 and axes[0] != 3:
@@ -1031,7 +1024,7 @@ class NcnnOptimizer:
                 ):
                     continue
 
-                axes2 = checked_cast(List[int], layer.params[3].value)
+                axes2 = checked_cast(list, layer.params[3].value)
                 if len(axes2) != 1:
                     continue
                 if axes2[0] != 2:
@@ -1125,7 +1118,7 @@ class NcnnOptimizer:
                 )
                 innerproduct.add_param(
                     10,
-                    checked_cast(List[Union[float, int]], convolution.params[10].value),
+                    checked_cast(list, convolution.params[10].value),
                 )
                 innerproduct.add_weight(
                     "weight",
@@ -1184,9 +1177,7 @@ class NcnnOptimizer:
                     )
                     innerproduct2.add_param(
                         10,
-                        checked_cast(
-                            List[Union[float, int]], convolution.params[10].value
-                        ),
+                        checked_cast(list, convolution.params[10].value),
                     )
                     innerproduct2.add_weight(
                         "weight",

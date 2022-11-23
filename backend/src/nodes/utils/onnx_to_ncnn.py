@@ -3206,7 +3206,8 @@ class Onnx2NcnnConverter:
                     layer.add_param(1, 1)
                     layer.add_param(2, get_tensor_proto_data_size(B, B.data_type))
 
-                    bin_length += self.add_weight(layer, "B", B, DTYPE_FP32)
+                    quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                    bin_length += self.add_weight(layer, "B", B, quantize_tag)
                     bin_length += self.add_weight(layer, "C", C)
                 else:
                     # gemm
@@ -3923,6 +3924,6 @@ class Onnx2NcnnConverter:
                         internal_split += 1
 
         ncnn_model.bin_length = bin_length
-        ncnn_model = NcnnOptimizer(ncnn_model).optimize()
+        # ncnn_model = NcnnOptimizer(ncnn_model).optimize()
 
         return ncnn_model

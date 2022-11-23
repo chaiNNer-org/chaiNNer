@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 from sanic.log import logger
 
-from .checked_cast import checked_cast
+from checked_cast import checked_cast
 
 
 param_schema_file = os.path.join(
@@ -251,6 +251,7 @@ class NcnnParamCollection:
     def __str__(self) -> str:
         output = ""
         param_dict = param_schema[self.op]
+        self.param_dict = dict(sorted(self.param_dict.items()))
         for v in self.param_dict.values():
             if v.value == v.default:
                 continue
@@ -665,7 +666,7 @@ class NcnnModel:
             b"".join((w.quantize_tag, np.ndarray.tobytes(w.weight)))
             for l in self.layers
             for w in l.weight_data.values()
-            if l.weight_data
+            if l.weight_data and l.op_type != "ncnnfused"
         ]
 
         return b"".join(layer_weights)
