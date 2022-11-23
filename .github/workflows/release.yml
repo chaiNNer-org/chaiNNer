@@ -8,6 +8,8 @@ on:
     push:
         tags:
             - 'v*'
+    pull_request:
+        branches: ['*']
 
     # Triggers on creation of a release
     # release:
