@@ -1,18 +1,9 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Release
+name: Build
 
 # Controls when the workflow will run
 on:
-    # Triggers the workflow on push with a tag
-    push:
-        tags:
-            - 'v*'
-
-    # Triggers on creation of a release
-    # release:
-    #     types:
-    #         - created
+    pull_request:
+        branches: ['*']
 
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
@@ -33,7 +24,5 @@ jobs:
                   node-version: 16
             - name: install dependencies
               run: npm ci --force
-            - name: publish
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: npm run publish
+            - name: build
+              run: npm run make
