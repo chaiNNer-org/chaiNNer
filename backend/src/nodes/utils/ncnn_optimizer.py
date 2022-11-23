@@ -32,13 +32,14 @@ class NcnnOptimizer:
                 # fuse BatchNorm - Scale to BatchNorm
                 scale = self.model.layers[j]
 
-                slope = layer.weight_data["slope"].weight.copy()
-                bias = layer.weight_data["bias"].weight.copy()
+                bias = layer.weight_data["bias"].weight
 
-                slope *= scale.weight_data["scale"].weight
-                layer.weight_data["slope"].weight = slope
+                layer.weight_data["slope"].weight = (
+                    layer.weight_data["slope"].weight
+                    * scale.weight_data["scale"].weight
+                )
 
-                bias *= scale.weight_data["scale"].weight
+                bias = bias * scale.weight_data["scale"].weight
                 if scale.params[1].value:
                     bias += scale.weight_data["bias"].weight
                 layer.weight_data["bias"].weight = bias
@@ -105,14 +106,17 @@ class NcnnOptimizer:
                     layer.params[bias_term] = 1
                     layer.add_weight("bias", np.zeros(channels, np.float32))
 
-                weight = layer.weight_data["weight"].weight.copy()
-                weight *= (
-                    np.broadcast_to(b, weight.shape[::-1]).swapaxes(0, 3).swapaxes(1, 2)
+                weight = layer.weight_data["weight"].weight
+                layer.weight_data["weight"].weight = weight * (
+                    np.broadcast_to(b, weight.shape[::-1])
+                    .swapaxes(0, 3)
+                    .swapaxes(1, 2)
+                    .astype(weight.dtype)
                 )
-                layer.weight_data["weight"].weight = weight
 
-                bias = layer.weight_data["bias"].weight.copy()
-                layer.weight_data["bias"].weight = bias * b + a
+                layer.weight_data["bias"].weight = (
+                    layer.weight_data["bias"].weight * b + a
+                )
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -179,17 +183,18 @@ class NcnnOptimizer:
 
                 mem_data = memorydata.weight_data["data"].weight
 
-                weight = layer.weight_data["weight"].weight.copy()
-                weight *= (
+                weight = layer.weight_data["weight"].weight
+                layer.weight_data["weight"].weight = weight * (
                     np.broadcast_to(mem_data, weight.shape[::-1])
                     .swapaxes(0, 3)
                     .swapaxes(1, 2)
+                    .astype(weight.dtype)
                 )
-                layer.weight_data["weight"].weight = weight
 
                 try:
-                    bias = layer.weight_data["bias"].weight.copy()
-                    layer.weight_data["bias"].weight = bias * mem_data
+                    layer.weight_data["bias"].weight = (
+                        layer.weight_data["bias"].weight * mem_data
+                    )
                 except KeyError:
                     pass
 
@@ -269,9 +274,9 @@ class NcnnOptimizer:
                     layer.params[bias_term] = 1
                     layer.add_weight("bias", bias_data)
                 else:
-                    bias = layer.weight_data["bias"].weight
-                    for c in range(channels):
-                        bias[c] = bias[c] + bias_data[c]
+                    layer.weight_data["bias"].weight = (
+                        layer.weight_data["bias"].weight + bias_data
+                    )
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -303,21 +308,14 @@ class NcnnOptimizer:
 
                 scale = checked_cast(float, dropout.params[0].value)
                 if scale != 1:
-                    num_output = checked_cast(int, layer.params[0].value)
-                    weight_per_outch = (
-                        checked_cast(int, layer.params[2].value) // num_output
+                    layer.weight_data["weight"].weight = (
+                        layer.weight_data["weight"].weight * scale
                     )
 
-                    weight = layer.weight_data["weight"].weight
-                    for n in range(num_output):
-                        conv_weight_outch = weight + weight_per_outch * n
-                        for w in range(weight_per_outch):
-                            conv_weight_outch[w] *= scale
-
                     if layer.params[1].value == 1:
-                        bias = layer.weight_data["bias"].weight
-                        for n in range(num_output):
-                            bias[n] *= scale
+                        layer.weight_data["bias"].weight = (
+                            layer.weight_data["bias"].weight * scale
+                        )
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1
@@ -541,10 +539,8 @@ class NcnnOptimizer:
                         i += 1
                         continue
 
-                scalar = self.model.layers[i].weight_data["data"].weight[0]
-
                 binaryop.params[1] = 1
-                binaryop.params[2] = scalar
+                binaryop.params[2] = self.model.layers[i].weight_data["data"].weight[0]
 
                 binaryop.inputs.pop(memorydata_index)
                 binaryop.num_inputs -= 1
