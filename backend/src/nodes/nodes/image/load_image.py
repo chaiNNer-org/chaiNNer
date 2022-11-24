@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
+from typing import Tuple, Union
+import platform
 
 import cv2
 import numpy as np
@@ -13,6 +14,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageFileInput
 from ...properties.outputs import LargeImageOutput, DirectoryOutput, TextOutput
+from ...utils.dds import dds_to_png_texconv
 from ...utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from ...utils.utils import get_h_w_c
 
@@ -66,6 +68,17 @@ class ImReadNode(NodeBase):
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
         return img
 
+    def read_dds(self, path: str) -> Union[np.ndarray, None]:
+        if platform.system() != "Windows":
+            # texconv is only supported on Windows.
+            return None
+
+        png = dds_to_png_texconv(path)
+        try:
+            return self.read_cv(png)
+        finally:
+            os.remove(png)
+
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
@@ -90,6 +103,11 @@ class ImReadNode(NodeBase):
         if img is None and supported_by_pil:
             try:
                 img = self.read_pil(path)
+            except Exception as e:
+                error = e
+        if img is None and ext.lower() == ".dds":
+            try:
+                img = self.read_dds(path)
             except Exception as e:
                 error = e
 
