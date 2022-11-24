@@ -321,137 +321,144 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             };
 
             // Finds the first edge that intersects with the node
-            const intersectingEdge = edges.find((e) => {
-                // Return false if we don't have necessary information
-                if (
-                    !e.data ||
-                    !e.data.sourceX ||
-                    !e.data.sourceY ||
-                    !e.data.targetX ||
-                    !e.data.targetY
-                ) {
-                    return false;
-                }
+            const intersectingEdge = edges
+                .sort((a, b) => {
+                    return (a.data?.edgeCenterY || 0) - (b.data?.edgeCenterY || 0);
+                })
+                .find((e) => {
+                    // Return false if we don't have necessary information
+                    if (
+                        !e.data ||
+                        !e.data.sourceX ||
+                        !e.data.sourceY ||
+                        !e.data.targetX ||
+                        !e.data.targetY
+                    ) {
+                        return false;
+                    }
 
-                // If the node is not within the bounding box of the edge, we can skip it
-                const edgeBounds = {
-                    minX: Math.min(e.data.sourceX, e.data.targetX) - (node.width || 0),
-                    maxX: Math.max(e.data.sourceX, e.data.targetX) + (node.width || 0),
-                    minY: Math.min(e.data.sourceY, e.data.targetY) - (node.height || 0),
-                    maxY: Math.max(e.data.sourceY, e.data.targetY) + (node.height || 0),
-                };
-                // Determine if the node is in the bounding box of the edge
-                const isNodeInEdgeBounds =
-                    edgeBounds.minX <= nodeBounds.TL.x &&
-                    edgeBounds.maxX >= nodeBounds.TR.x &&
-                    edgeBounds.minY <= nodeBounds.TL.y &&
-                    edgeBounds.maxY >= nodeBounds.BL.y;
-                if (!isNodeInEdgeBounds) {
-                    return false;
-                }
+                    // If the node is not within the bounding box of the edge, we can skip it
+                    const edgeBounds = {
+                        minX: Math.min(e.data.sourceX, e.data.targetX) - (node.width || 0),
+                        maxX: Math.max(e.data.sourceX, e.data.targetX) + (node.width || 0),
+                        minY: Math.min(e.data.sourceY, e.data.targetY) - (node.height || 0),
+                        maxY: Math.max(e.data.sourceY, e.data.targetY) + (node.height || 0),
+                    };
+                    // Determine if the node is in the bounding box of the edge
+                    const isNodeInEdgeBounds =
+                        edgeBounds.minX <= nodeBounds.TL.x &&
+                        edgeBounds.maxX >= nodeBounds.TR.x &&
+                        edgeBounds.minY <= nodeBounds.TL.y &&
+                        edgeBounds.maxY >= nodeBounds.BL.y;
+                    if (!isNodeInEdgeBounds) {
+                        return false;
+                    }
 
-                // Determine if the center of the edge is within the node bounds
-                // This is a quick check that guarantees collision
-                if (
-                    e.data.edgeCenterX &&
-                    e.data.edgeCenterY &&
-                    e.data.edgeCenterX >= nodeBounds.TL.x &&
-                    e.data.edgeCenterX <= nodeBounds.TR.x &&
-                    e.data.edgeCenterY >= nodeBounds.TL.y &&
-                    e.data.edgeCenterY <= nodeBounds.BL.y
-                ) {
-                    return true;
-                }
-
-                const { edgePath } = e.data;
-                // If we have the edge path (which we should), we can do a full bezier intersection check
-                if (edgePath) {
-                    // Here we convert the SVG path into coordinate pairs
-                    const [sourcePos, sourceControlVals, targetControlVals, targetPos] =
-                        edgePath.split(' ');
-                    const [sourceControlX, sourceControlY] = sourceControlVals
-                        .replace('C', '')
-                        .split(',')
-                        .map(Number);
-                    const [targetControlX, targetControlY] = targetControlVals
-                        .split(',')
-                        .map(Number);
-                    const [targetX, targetY] = targetPos.split(',').map(Number);
-                    const [sourceX, sourceY] = sourcePos.replace('M', '').split(',').map(Number);
-                    const coords: number[] = [
-                        sourceX,
-                        sourceY,
-                        sourceControlX,
-                        sourceControlY,
-                        targetControlX,
-                        targetControlY,
-                        targetX,
-                        targetY,
-                    ];
-
-                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    // TODO: there might be a way to select the order in which to check base don the position of the node relative to the edge
-                    // However, I don't want to figure that out right now, and this works well enough.
-                    const curve = new Bezier(coords);
-                    const curveIntersectsLeft =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TL,
-                            p2: nodeBounds.BL,
-                        }).length > 0;
-                    if (curveIntersectsLeft) {
+                    // Determine if the center of the edge is within the node bounds
+                    // This is a quick check that guarantees collision
+                    if (
+                        e.data.edgeCenterX &&
+                        e.data.edgeCenterY &&
+                        e.data.edgeCenterX >= nodeBounds.TL.x &&
+                        e.data.edgeCenterX <= nodeBounds.TR.x &&
+                        e.data.edgeCenterY >= nodeBounds.TL.y &&
+                        e.data.edgeCenterY <= nodeBounds.BL.y
+                    ) {
                         return true;
                     }
-                    const curveIntersectsRight =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TR,
-                            p2: nodeBounds.BR,
-                        }).length > 0;
-                    if (curveIntersectsRight) {
-                        return true;
+
+                    const { edgePath } = e.data;
+                    // If we have the edge path (which we should), we can do a full bezier intersection check
+                    if (edgePath) {
+                        // Here we convert the SVG path into coordinate pairs
+                        const [sourcePos, sourceControlVals, targetControlVals, targetPos] =
+                            edgePath.split(' ');
+                        const [sourceControlX, sourceControlY] = sourceControlVals
+                            .replace('C', '')
+                            .split(',')
+                            .map(Number);
+                        const [targetControlX, targetControlY] = targetControlVals
+                            .split(',')
+                            .map(Number);
+                        const [targetX, targetY] = targetPos.split(',').map(Number);
+                        const [sourceX, sourceY] = sourcePos
+                            .replace('M', '')
+                            .split(',')
+                            .map(Number);
+                        const coords: number[] = [
+                            sourceX,
+                            sourceY,
+                            sourceControlX,
+                            sourceControlY,
+                            targetControlX,
+                            targetControlY,
+                            targetX,
+                            targetY,
+                        ];
+
+                        // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
+                        // TODO: there might be a way to select the order in which to check base don the position of the node relative to the edge
+                        // However, I don't want to figure that out right now, and this works well enough.
+                        const curve = new Bezier(coords);
+                        const curveIntersectsLeft =
+                            curve.lineIntersects({
+                                p1: nodeBounds.TL,
+                                p2: nodeBounds.BL,
+                            }).length > 0;
+                        if (curveIntersectsLeft) {
+                            return true;
+                        }
+                        const curveIntersectsRight =
+                            curve.lineIntersects({
+                                p1: nodeBounds.TR,
+                                p2: nodeBounds.BR,
+                            }).length > 0;
+                        if (curveIntersectsRight) {
+                            return true;
+                        }
+                        const curveIntersectsTop =
+                            curve.lineIntersects({
+                                p1: nodeBounds.TL,
+                                p2: nodeBounds.TR,
+                            }).length > 0;
+                        if (curveIntersectsTop) {
+                            return true;
+                        }
+                        const curveIntersectsBottom =
+                            curve.lineIntersects({
+                                p1: nodeBounds.BL,
+                                p2: nodeBounds.BR,
+                            }).length > 0;
+                        if (curveIntersectsBottom) {
+                            return true;
+                        }
                     }
-                    const curveIntersectsTop =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TL,
-                            p2: nodeBounds.TR,
-                        }).length > 0;
-                    if (curveIntersectsTop) {
-                        return true;
-                    }
-                    const curveIntersectsBottom =
-                        curve.lineIntersects({
-                            p1: nodeBounds.BL,
-                            p2: nodeBounds.BR,
-                        }).length > 0;
-                    if (curveIntersectsBottom) {
-                        return true;
-                    }
-                }
-                // If we don't have the actual edge path for some reason, we can do a rough check
-                // This way approximates collision using a straight line (for the edge) and two diagonal lines (for the node)
-                // This probably doesn't need to be here any more, but I figured it would be worth leaving in just in case
-                const edgeLine: Line = {
-                    sourceX: e.data.sourceX,
-                    sourceY: e.data.sourceY,
-                    targetX: e.data.targetX,
-                    targetY: e.data.targetY,
-                };
-                // Line from top left to bottom right of node
-                const nodeLineTLBR: Line = {
-                    sourceX: node.position.x,
-                    sourceY: node.position.y,
-                    targetX: (node.position.x || 0) + (node.width || 0),
-                    targetY: (node.position.y || 0) + (node.height || 0),
-                };
-                // Line from top right to bottom left of node
-                const nodeLineTRBL: Line = {
-                    sourceX: (node.position.x || 0) + (node.width || 0),
-                    sourceY: node.position.y,
-                    targetX: node.position.x,
-                    targetY: (node.position.y || 0) + (node.height || 0),
-                };
-                // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
-                return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
-            });
+                    // If we don't have the actual edge path for some reason, we can do a rough check
+                    // This way approximates collision using a straight line (for the edge) and two diagonal lines (for the node)
+                    // This probably doesn't need to be here any more, but I figured it would be worth leaving in just in case
+                    const edgeLine: Line = {
+                        sourceX: e.data.sourceX,
+                        sourceY: e.data.sourceY,
+                        targetX: e.data.targetX,
+                        targetY: e.data.targetY,
+                    };
+                    // Line from top left to bottom right of node
+                    const nodeLineTLBR: Line = {
+                        sourceX: node.position.x,
+                        sourceY: node.position.y,
+                        targetX: (node.position.x || 0) + (node.width || 0),
+                        targetY: (node.position.y || 0) + (node.height || 0),
+                    };
+                    // Line from top right to bottom left of node
+                    const nodeLineTRBL: Line = {
+                        sourceX: (node.position.x || 0) + (node.width || 0),
+                        sourceY: node.position.y,
+                        targetX: node.position.x,
+                        targetY: (node.position.y || 0) + (node.height || 0),
+                    };
+                    // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
+                    return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
+                });
 
             // Early exit if there is not an intersecting edge
             if (!intersectingEdge) {
