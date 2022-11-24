@@ -3,10 +3,9 @@ import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
-import { openSaveFile } from '../../common/SaveFile';
+import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { PresetFile } from '../components/NodeSelectorPanel/presets';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 
@@ -79,7 +78,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
 ) => {
     if (!dataTransfer.getData(TransferTypes.Preset)) return false;
 
-    const { content: chain } = JSON.parse(dataTransfer.getData(TransferTypes.Preset)) as PresetFile;
+    const chain = JSON.parse(dataTransfer.getData(TransferTypes.Preset)) as ParsedSaveData;
 
     const duplicationId = createUniqueId();
     const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
@@ -89,7 +88,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
         const newIds = new Set(chain.nodes.map((n) => n.id));
 
         let newNodes = copyNodes(
-            chain.nodes as Node<NodeData>[],
+            chain.nodes,
             deriveId,
             (oldId) => {
                 if (newIds.has(oldId)) return deriveId(oldId);
@@ -111,7 +110,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
         return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
     });
     setEdges((edges) => {
-        const newEdges = copyEdges(chain.edges as Edge<EdgeData>[], deriveId);
+        const newEdges = copyEdges(chain.edges, deriveId);
         return [...setSelected(edges, false), ...setSelected(newEdges, true)];
     });
     return true;
