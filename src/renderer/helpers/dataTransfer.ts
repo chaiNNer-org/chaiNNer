@@ -25,8 +25,8 @@ export interface DataTransferProcessorOptions {
     createNode: (proto: NodeProto) => void;
     getNodePosition: (offsetX?: number, offsetY?: number) => XYPosition;
     schemata: SchemaMap;
-    setNodes: SetState<Node<NodeData>[]>;
-    setEdges: SetState<Edge<EdgeData>[]>;
+    changeNodes: SetState<Node<NodeData>[]>;
+    changeEdges: SetState<Edge<EdgeData>[]>;
 }
 
 export const getSingleFileWithExtension = (
@@ -75,7 +75,7 @@ const chainnerSchemaProcessor: DataTransferProcessor = (
 
 const chainnerPresetProcessor: DataTransferProcessor = (
     dataTransfer,
-    { setNodes, setEdges, getNodePosition }
+    { changeNodes, changeEdges, getNodePosition }
 ) => {
     if (!dataTransfer.getData(TransferTypes.Preset)) return false;
 
@@ -84,7 +84,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
     const duplicationId = createUniqueId();
     const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
 
-    setNodes((nodes) => {
+    changeNodes((nodes) => {
         const currentIds = new Set(nodes.map((n) => n.id));
         const newIds = new Set(chain.nodes.map((n) => n.id));
 
@@ -110,7 +110,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
 
         return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
     });
-    setEdges((edges) => {
+    changeEdges((edges) => {
         const newEdges = copyEdges(chain.edges as Edge<EdgeData>[], deriveId);
         return [...setSelected(edges, false), ...setSelected(newEdges, true)];
     });

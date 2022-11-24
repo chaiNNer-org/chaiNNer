@@ -348,8 +348,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             y: event.clientY - reactFlowBounds.top - offsetY * zoom,
                         });
                     },
-                    setNodes,
-                    setEdges,
+                    changeNodes,
+                    changeEdges,
                 };
 
                 for (const processor of dataTransferProcessors) {
