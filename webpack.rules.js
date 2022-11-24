@@ -20,12 +20,14 @@ module.exports = [
                     ],
                     ...(isDevelopment
                         ? [
-                              'i18next-extract',
-                              {
-                                  outputPath: './src/common/locales/{{locale}}/{{ns}}.json',
-                                  keyAsDefaultValueForDerivedKeys: true,
-                                  discardOldKeys: true,
-                              },
+                              [
+                                  'i18next-extract',
+                                  {
+                                      outputPath: './src/common/locales/{{locale}}/{{ns}}.json',
+                                      keyAsDefaultValueForDerivedKeys: true,
+                                      discardOldKeys: true,
+                                  },
+                              ],
                           ]
                         : []),
                 ],
