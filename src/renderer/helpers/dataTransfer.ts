@@ -99,10 +99,14 @@ const chainnerPresetProcessor: DataTransferProcessor = (
             false
         );
 
-        newNodes = newNodes.map((node) => ({
-            ...node,
-            position: getNodePosition(-node.position.x, -node.position.y),
-        }));
+        newNodes = newNodes.map((node) =>
+            node.parentNode
+                ? node
+                : {
+                      ...node,
+                      position: getNodePosition(-node.position.x, -node.position.y),
+                  }
+        );
 
         return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
     });
