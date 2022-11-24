@@ -30,13 +30,8 @@ export const DefaultImageOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
-        const createConnection = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.createConnection
-        );
-
-        const { selectNode, setManualOutputType } = useContext(GlobalContext);
+        const { selectNode, setManualOutputType, createNode, createConnection } =
+            useContext(GlobalContext);
 
         const outputIndex = useContextSelector(BackendContext, (c) =>
             c.schemata.get(schemaId).outputs.findIndex((o) => o.id === outputId)

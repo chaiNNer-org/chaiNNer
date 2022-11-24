@@ -3,9 +3,9 @@ import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra
 import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useReactFlow } from 'reactflow';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
@@ -30,8 +30,7 @@ interface RepresentativeNodeWrapperProps {
 
 export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
-        const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
-        const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
+        const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
         const reactFlowInstance = useReactFlow();
 
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
@@ -129,12 +128,12 @@ export const RepresentativeNodeWrapper = memo(
                                     createNodeFromSelector();
                                 }}
                                 onDragEnd={() => {
-                                    setHoveredNode(null);
+                                    setHoveredNode(undefined);
                                 }}
                                 onDragStart={(event) => {
                                     setDidSingleClick(false);
                                     onDragStart(event, node);
-                                    setHoveredNode(null);
+                                    setHoveredNode(undefined);
                                 }}
                             >
                                 <RepresentativeNode
