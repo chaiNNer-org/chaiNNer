@@ -151,7 +151,7 @@ export const IteratorNodeBody = memo(
                         setHoveredNode(id);
                     }}
                     onDragLeave={() => {
-                        setHoveredNode(null);
+                        setHoveredNode(undefined);
                     }}
                 >
                     <Box

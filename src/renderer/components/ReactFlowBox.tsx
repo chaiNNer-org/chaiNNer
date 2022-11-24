@@ -25,7 +25,7 @@ import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
@@ -157,7 +157,6 @@ interface ReactFlowBoxProps {
 export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
         setZoom,
         setHoveredNode,
@@ -165,6 +164,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         addEdgeChanges,
         changeNodes,
         changeEdges,
+        createNode,
+        createConnection,
         setNodesRef,
         setEdgesRef,
         exportViewportScreenshot,
@@ -326,7 +327,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, []);
 
     const onDragStart = useCallback(() => {
-        setHoveredNode(null);
+        setHoveredNode(undefined);
     }, [setHoveredNode]);
 
     const wrapper = wrapperRef.current;

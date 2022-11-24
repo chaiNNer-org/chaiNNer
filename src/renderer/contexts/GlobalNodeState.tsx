@@ -90,13 +90,11 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    createNode: (proto: NodeProto, parentId?: string) => void;
-    createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
-    hoveredNode: string | null | undefined;
+    hoveredNode: string | undefined;
     isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
@@ -114,6 +112,8 @@ interface Global {
     selectNode: (nodeId: string) => void;
     animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
+    createNode: (proto: NodeProto, parentId?: string) => void;
+    createConnection: (connection: Connection) => void;
     getNodeInputValue: <T extends NonNullable<InputValue>>(
         inputId: InputId,
         inputData: InputData
@@ -137,7 +137,7 @@ interface Global {
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
-    setHoveredNode: SetState<string | null | undefined>;
+    setHoveredNode: (value: string | undefined) => void;
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
@@ -310,7 +310,13 @@ export const GlobalProvider = memo(
             [setSavePathInternal, pushOpenPath]
         );
 
-        const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
+        const hoveredNodeRef = useRef<string>();
+        // eslint-disable-next-line react/hook-use-state
+        const [hoveredNode, setHoveredNodeImpl] = useState<string | undefined>();
+        const setHoveredNode = useCallback((value: string | undefined) => {
+            hoveredNodeRef.current = value;
+            setHoveredNodeImpl(value);
+        }, []);
 
         const [lastSavedChanges, setLastSavedChanges] = useState<
             readonly [nodeChanges: number, edgeChanges: number]
@@ -719,7 +725,7 @@ export const GlobalProvider = memo(
         const createNode = useCallback(
             (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
-                    const searchId = parentId ?? hoveredNode;
+                    const searchId = parentId ?? hoveredNodeRef.current;
                     const parent = searchId ? nodes.find((n) => n.id === searchId) : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
                     return [
@@ -728,7 +734,7 @@ export const GlobalProvider = memo(
                     ];
                 });
             },
-            [changeNodes, schemata, hoveredNode]
+            [changeNodes, schemata]
         );
 
         const createConnection = useCallback(
@@ -1257,8 +1263,6 @@ export const GlobalProvider = memo(
             nodeChanges,
             edgeChanges,
             typeState,
-            createNode,
-            createConnection,
             isNodeInputLocked,
             effectivelyDisabledNodes,
             isValidConnection,
@@ -1282,6 +1286,8 @@ export const GlobalProvider = memo(
             selectNode,
             animate,
             unAnimate,
+            createNode,
+            createConnection,
             getNodeInputValue,
             setNodeInputValue,
             useInputSize,

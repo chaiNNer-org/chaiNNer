@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'reactflow';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import {
     Category,
     InputId,
@@ -35,7 +35,7 @@ import {
 import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
@@ -331,8 +331,9 @@ interface Position {
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
-    const { createNode, createConnection, typeState, useConnectingFrom } =
-        useContext(GlobalVolatileContext);
+    const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
+    const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
 
