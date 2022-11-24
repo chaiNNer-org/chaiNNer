@@ -370,7 +370,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 });
             }
         },
-        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, setEdges, setNodes]
+        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, changeEdges, changeNodes]
     );
 
     // TODO: I want to get this to work at some point but for now it needs to not exist
