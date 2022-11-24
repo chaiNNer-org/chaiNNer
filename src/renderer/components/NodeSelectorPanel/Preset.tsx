@@ -22,13 +22,17 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, preset: Preset) => {
     // Subtract the minimum x and y values from all nodes
     // We don't need to use the mouse offset here, it feels kinda weird (doesn't scale with zoom)
     // const { offsetX, offsetY } = event.nativeEvent;
-    changedPreset.chain.content.nodes = changedPreset.chain.content.nodes.map((node) => ({
-        ...node,
-        position: {
-            x: node.position.x - minX,
-            y: node.position.y - minY,
-        },
-    }));
+    changedPreset.chain.content.nodes = changedPreset.chain.content.nodes.map((node) =>
+        node.parentNode
+            ? node
+            : {
+                  ...node,
+                  position: {
+                      x: node.position.x - minX,
+                      y: node.position.y - minY,
+                  },
+              }
+    );
 
     event.dataTransfer.setData(TransferTypes.Preset, JSON.stringify(changedPreset.chain));
     // eslint-disable-next-line no-param-reassign
