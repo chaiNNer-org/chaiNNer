@@ -6,6 +6,7 @@ safe_list = {
     ("collections", "OrderedDict"),
     ("torch._utils", "_rebuild_tensor_v2"),
     ("torch", "FloatStorage"),
+    ("torch", "LongStorage"),
 }
 
 
