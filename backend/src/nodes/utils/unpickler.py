@@ -5,7 +5,10 @@ from types import SimpleNamespace
 safe_list = {
     ("collections", "OrderedDict"),
     ("torch._utils", "_rebuild_tensor_v2"),
+    ("torch", "BFloat16Storage"),
     ("torch", "FloatStorage"),
+    ("torch", "HalfStorage"),
+    ("torch", "IntStorage"),
     ("torch", "LongStorage"),
 }
 
