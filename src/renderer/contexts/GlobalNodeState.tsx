@@ -203,16 +203,30 @@ export const GlobalProvider = memo(
             map: new Map<string, Map<OutputId, Type>>(),
         }));
         const setManualOutputType = useCallback(
-            (nodeId: string, outputId: OutputId, type: Expression | undefined): void => {
+            (nodeId: string, outputId: OutputId, expression: Expression | undefined): void => {
+                const getType = () => {
+                    if (expression === undefined) {
+                        return undefined;
+                    }
+
+                    try {
+                        return evaluate(expression, getChainnerScope());
+                    } catch (error) {
+                        log.error(error);
+                        return undefined;
+                    }
+                };
+
                 setManualOutputTypes(({ map }) => {
                     let inner = map.get(nodeId);
+                    const type = getType();
                     if (type) {
                         if (!inner) {
                             inner = new Map();
                             map.set(nodeId, inner);
                         }
 
-                        inner.set(outputId, evaluate(type, getChainnerScope()));
+                        inner.set(outputId, type);
                     } else {
                         inner?.delete(outputId);
                     }
