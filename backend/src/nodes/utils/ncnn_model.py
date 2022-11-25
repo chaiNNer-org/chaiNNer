@@ -763,8 +763,8 @@ class NcnnModelWrapper:
 
         out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
 
-        if scale % 1 != 0:
-            logger.warning(f"Scale {scale} is not integer. Investigate model.")
+        assert scale >= 1, "Models with scale less than 1x not supported"
+        assert scale % 1 == 0, f"Model not supported, scale {scale} is not an integer"
 
         return int(scale), in_nc, out_nc, nf, fp
 
