@@ -1,36 +1,10 @@
 import { Box, Center, Heading, Text, VStack } from '@chakra-ui/react';
 import React, { DragEvent, memo } from 'react';
-import { migrate } from '../../../common/migrations';
-import { deepCopy } from '../../../common/util';
 import { TransferTypes } from '../../helpers/dataTransfer';
 import { Preset } from './presets';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, preset: Preset) => {
-    const changedPreset = deepCopy({ ...preset });
-
-    // Migrate preset to latest version
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    changedPreset.chain.content = migrate(
-        changedPreset.chain.version,
-        changedPreset.chain.content,
-        changedPreset.chain.migration
-    );
-
-    const minX = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.x));
-    const minY = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.y));
-
-    // Subtract the minimum x and y values from all nodes
-    // We don't need to use the mouse offset here, it feels kinda weird (doesn't scale with zoom)
-    // const { offsetX, offsetY } = event.nativeEvent;
-    changedPreset.chain.content.nodes = changedPreset.chain.content.nodes.map((node) => ({
-        ...node,
-        position: {
-            x: node.position.x - minX,
-            y: node.position.y - minY,
-        },
-    }));
-
-    event.dataTransfer.setData(TransferTypes.Preset, JSON.stringify(changedPreset.chain));
+    event.dataTransfer.setData(TransferTypes.Preset, JSON.stringify(preset.chain));
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.effectAllowed = 'move';
 };
