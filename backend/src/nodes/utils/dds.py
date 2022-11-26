@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import uuid
+from tempfile import mkdtemp
 
 from sanic.log import logger
 
@@ -28,6 +29,8 @@ def dds_to_png_texconv(path: str) -> str:
     prefix = uuid.uuid4().hex
     _, basename = os.path.split(os.path.splitext(path)[0])
 
+    tempdir = mkdtemp(prefix="chaiNNer-")
+
     result = subprocess.run(
         [
             __TEXCONV_EXE,
@@ -37,7 +40,7 @@ def dds_to_png_texconv(path: str) -> str:
             "-px",
             prefix,
             "-o",
-            __TEXCONV_DIR,
+            tempdir,
             path,
         ],
         check=False,
@@ -58,4 +61,4 @@ def dds_to_png_texconv(path: str) -> str:
         )
         raise ValueError(f"Unable to convert DDS: Code {result.returncode}: {output}")
 
-    return os.path.join(__TEXCONV_DIR, prefix + basename + ".png")
+    return os.path.join(tempdir, prefix + basename + ".png")
