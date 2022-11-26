@@ -108,10 +108,10 @@ class NcnnOptimizer:
 
                 weight = layer.weight_data["weight"].weight
                 layer.weight_data["weight"].weight = weight * (
-                    np.broadcast_to(b, weight.shape[::-1])
-                    .swapaxes(0, 3)
-                    .swapaxes(1, 2)
-                    .astype(weight.dtype)
+                    np.transpose(
+                        np.broadcast_to(b, weight.shape[::-1]).astype(weight.dtype),
+                        (3, 2, 1, 0),
+                    )
                 )
 
                 layer.weight_data["bias"].weight = (
@@ -181,19 +181,19 @@ class NcnnOptimizer:
                     # not bias-like broadcasting type
                     continue
 
-                mem_data = memorydata.weight_data["data"].weight
+                data = memorydata.weight_data["data"].weight
 
                 weight = layer.weight_data["weight"].weight
                 layer.weight_data["weight"].weight = weight * (
-                    np.broadcast_to(mem_data, weight.shape[::-1])
-                    .swapaxes(0, 3)
-                    .swapaxes(1, 2)
-                    .astype(weight.dtype)
+                    np.transpose(
+                        np.broadcast_to(data, weight.shape[::-1]).astype(weight.dtype),
+                        (3, 2, 1, 0),
+                    )
                 )
 
                 try:
                     layer.weight_data["bias"].weight = (
-                        layer.weight_data["bias"].weight * mem_data
+                        layer.weight_data["bias"].weight * data
                     )
                 except KeyError:
                     pass
