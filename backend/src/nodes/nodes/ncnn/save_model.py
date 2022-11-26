@@ -35,8 +35,6 @@ class NcnnSaveNode(NodeBase):
         full_bin_path = os.path.join(directory, full_bin)
         full_param_path = os.path.join(directory, full_param)
 
-        model.model = NcnnOptimizer(model.model).optimize()
-
         logger.debug(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
         model.model.write_bin(full_bin_path)
         model.model.write_param(full_param_path)
