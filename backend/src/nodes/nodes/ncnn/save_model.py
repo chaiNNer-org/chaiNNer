@@ -6,7 +6,6 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import DirectoryInput, NcnnModelInput, TextInput
 from ...utils.ncnn_model import NcnnModelWrapper
-from ...utils.ncnn_optimizer import NcnnOptimizer
 from . import category as NCNNCategory
 
 
