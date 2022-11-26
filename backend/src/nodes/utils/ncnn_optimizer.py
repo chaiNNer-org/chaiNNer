@@ -1178,7 +1178,7 @@ class NcnnOptimizer:
             if not replaced:
                 break
 
-    def optimize(self):
+    def optimize(self) -> None:
         self.__fuse_batchnorm_scale()
         self.__fuse_x_batchnorm()
         self.__fuse_x_mul()
@@ -1205,5 +1205,3 @@ class NcnnOptimizer:
 
         self.__eliminate_flatten_after_innerproduct()
         self.__eliminate_orphaned_memorydata()
-
-        return self.model

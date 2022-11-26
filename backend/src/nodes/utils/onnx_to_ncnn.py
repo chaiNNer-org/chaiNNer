@@ -3924,6 +3924,6 @@ class Onnx2NcnnConverter:
                         internal_split += 1
 
         ncnn_model.bin_length = bin_length
-        ncnn_model = NcnnOptimizer(ncnn_model).optimize()
+        NcnnOptimizer(ncnn_model).optimize()
 
         return ncnn_model
