@@ -84,9 +84,14 @@ export const CustomEdge = memo(
 
         const showRunning = animated && !paused;
 
+        const isColliding = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.collidingEdge?.id === id
+        );
+
         const classModifier = `${isHovered ? 'hovered' : ''} ${
             showRunning && animateChain ? 'running' : ''
-        } ${data.colliding ? 'colliding' : ''}`;
+        } ${isColliding ? 'colliding' : ''}`;
 
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
@@ -102,15 +107,9 @@ export const CustomEdge = memo(
                 data.targetX = targetX;
                 // eslint-disable-next-line no-param-reassign
                 data.targetY = targetY;
-                // eslint-disable-next-line no-param-reassign
-                data.edgePath = edgePath;
-                // eslint-disable-next-line no-param-reassign
-                data.edgeCenterX = edgeCenterX;
-                // eslint-disable-next-line no-param-reassign
-                data.edgeCenterY = edgeCenterY;
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            [sourceX, sourceY, targetX, targetY, edgeCenterX, edgeCenterY]
+            [sourceX, sourceY, targetX, targetY]
         );
 
         const menu = useEdgeMenu(id);

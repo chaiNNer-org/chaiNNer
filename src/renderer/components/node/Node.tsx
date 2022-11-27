@@ -3,7 +3,7 @@ import path from 'path';
 import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
-import { isStartingNode } from '../../../common/util';
+import { isStartingNode, parseSourceHandle } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -54,7 +54,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId, collidingEdge } = data;
+    const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -74,9 +74,18 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
 
-    const collidingAccentColor = collidingEdge?.data?.type
-        ? getTypeAccentColors(collidingEdge.data.type)
-        : undefined;
+    const collidingEdge = useContextSelector(GlobalVolatileContext, (c) => c.collidingEdge);
+    const collidingNode = useContextSelector(GlobalVolatileContext, (c) => c.collidingNode);
+    const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    let collidingAccentColor;
+    if (collidingNode && collidingNode.id === id && collidingEdge && collidingEdge.sourceHandle) {
+        const edgeType = typeState.functions
+            .get(collidingEdge.source)
+            ?.outputs.get(parseSourceHandle(collidingEdge.sourceHandle).outputId);
+        if (edgeType) {
+            [collidingAccentColor] = getTypeAccentColors(edgeType);
+        }
+    }
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {

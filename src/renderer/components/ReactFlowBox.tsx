@@ -217,6 +217,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const {
         setZoom,
         setHoveredNode,
+        setCollidingEdge,
+        setCollidingNode,
         addNodeChanges,
         addEdgeChanges,
         changeNodes,
@@ -235,6 +237,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    const collidingEdge = useContextSelector(GlobalVolatileContext, (c) => c.collidingEdge);
 
     const reactFlowInstance = useReactFlow();
 
@@ -462,13 +465,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
             // Check if the node has valid connections it can make
             if (!intersectingEdge.sourceHandle) {
-                return false;
+                return;
             }
             const edgeType = typeState.functions
                 .get(intersectingEdge.source)
                 ?.outputs.get(parseSourceHandle(intersectingEdge.sourceHandle).outputId);
             if (!edgeType) {
-                return false;
+                return;
             }
 
             const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
@@ -524,59 +527,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
     );
 
-    const setNodeCollidingEdge = useCallback(
-        (node: Node<NodeData>, collidingEdge?: Edge<EdgeData>) => {
-            setNodes((sNodes) => {
-                const thisNode = sNodes.find((n) => n.id === node.id);
-                if (!thisNode) {
-                    return nodes;
-                }
-                return [
-                    ...sNodes,
-                    {
-                        ...thisNode,
-                        data: {
-                            ...thisNode.data,
-                            collidingEdge,
-                        },
-                    },
-                ];
-            });
-        },
-        [nodes, setNodes]
-    );
-
-    const setEdgeColliding = useCallback(
-        (edge: Edge<EdgeData>, colliding?: boolean) => {
-            setEdges((sEdges) => {
-                const thisEdge = sEdges.find((e) => e.id === edge.id);
-                if (!thisEdge) {
-                    return sEdges;
-                }
-                return [
-                    ...sEdges
-                        .filter((e) => e.id !== edge.id)
-                        .map((e) => ({
-                            ...e,
-                            data: {
-                                ...e.data,
-                                colliding: false,
-                            },
-                        })),
-                    {
-                        ...thisEdge,
-                        data: {
-                            ...thisEdge.data,
-                            colliding,
-                        },
-                    },
-                ];
-            });
-        },
-        [setEdges]
-    );
-
-    const lastEdgeCollisionState = useRef<boolean>(false);
     const onNodeDrag = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (event: React.MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
@@ -592,33 +542,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     true
                 );
                 if (collisionResp?.status === 'success') {
-                    if (!collisionResp.intersectingEdge.data?.colliding) {
-                        setEdgeColliding(collisionResp.intersectingEdge, true);
-                        lastEdgeCollisionState.current = true;
-                    }
-                    if (!node.data.collidingEdge) {
-                        setNodeCollidingEdge(node, collisionResp.intersectingEdge);
-                    }
+                    setCollidingEdge(collisionResp.intersectingEdge);
+                    setCollidingNode(node);
                 } else {
-                    if (node.data.collidingEdge) {
-                        setNodeCollidingEdge(node, undefined);
-                    }
-                    if (lastEdgeCollisionState.current) {
-                        setEdges((sEdges) =>
-                            sEdges.map((e) => ({ ...e, data: { ...e.data, colliding: false } }))
-                        );
-                        lastEdgeCollisionState.current = false;
-                    }
+                    setCollidingEdge(undefined);
+                    setCollidingNode(undefined);
                 }
             }
         },
-        [
-            altPressed,
-            performNodeOnEdgeCollisionDetection,
-            setEdgeColliding,
-            setEdges,
-            setNodeCollidingEdge,
-        ]
+        [altPressed, performNodeOnEdgeCollisionDetection, setCollidingEdge, setCollidingNode]
     );
 
     const lastAltPressed = useRef<boolean>(altPressed);
@@ -626,15 +558,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         if (lastAltPressed.current !== altPressed) {
             lastAltPressed.current = altPressed;
             if (!altPressed) {
-                setNodes((sNodes) =>
-                    sNodes.map((n) => ({ ...n, data: { ...n.data, collidingEdge: undefined } }))
-                );
-                setEdges((sEdges) =>
-                    sEdges.map((e) => ({ ...e, data: { ...e.data, colliding: false } }))
-                );
+                setCollidingEdge(undefined);
+                setCollidingNode(undefined);
             }
         }
-    }, [altPressed, nodes, setEdges, setNodes]);
+    }, [altPressed, setCollidingEdge, setCollidingNode]);
 
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
@@ -651,22 +579,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 );
                 if (collisionResp?.status === 'success') {
                     collisionResp.performCombine();
-                    if (node.data.collidingEdge) {
-                        setNodeCollidingEdge(node, undefined);
-                    }
-                    if (collisionResp.intersectingEdge.data?.colliding) {
-                        setEdgeColliding(collisionResp.intersectingEdge, false);
-                    }
+                    setCollidingEdge(collisionResp.intersectingEdge);
+                    setCollidingNode(node);
                 } else {
-                    if (node.data.collidingEdge) {
-                        setNodeCollidingEdge(node, undefined);
-                    }
-                    if (lastEdgeCollisionState.current) {
-                        setEdges((sEdges) =>
-                            sEdges.map((e) => ({ ...e, data: { ...e.data, colliding: false } }))
-                        );
-                        lastEdgeCollisionState.current = false;
-                    }
+                    setCollidingEdge(undefined);
+                    setCollidingNode(undefined);
                 }
             }
             const newNodes: Node<NodeData>[] = [];
@@ -742,9 +659,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges,
             addEdgeChanges,
             performNodeOnEdgeCollisionDetection,
-            setNodeCollidingEdge,
-            setEdgeColliding,
-            setEdges,
+            setCollidingEdge,
+            setCollidingNode,
             edges,
             changeNodes,
             changeEdges,

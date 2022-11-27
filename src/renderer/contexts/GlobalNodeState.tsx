@@ -95,6 +95,8 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | undefined;
+    collidingEdge: Edge | undefined;
+    collidingNode: Node | undefined;
     isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
@@ -138,6 +140,8 @@ interface Global {
     setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: (value: string | undefined) => void;
+    setCollidingEdge: (value: Edge | undefined) => void;
+    setCollidingNode: (value: Node | undefined) => void;
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
@@ -330,6 +334,22 @@ export const GlobalProvider = memo(
         const setHoveredNode = useCallback((value: string | undefined) => {
             hoveredNodeRef.current = value;
             setHoveredNodeImpl(value);
+        }, []);
+
+        const collidingEdgeRef = useRef<Edge<EdgeData>>();
+        // eslint-disable-next-line react/hook-use-state
+        const [collidingEdge, setCollidingEdgeImpl] = useState<Edge<EdgeData> | undefined>();
+        const setCollidingEdge = useCallback((value: Edge<EdgeData> | undefined) => {
+            collidingEdgeRef.current = value;
+            setCollidingEdgeImpl(value);
+        }, []);
+
+        const collidingNodeRef = useRef<Node<NodeData>>();
+        // eslint-disable-next-line react/hook-use-state
+        const [collidingNode, setCollidingNodeImpl] = useState<Node<NodeData> | undefined>();
+        const setCollidingNode = useCallback((value: Node<NodeData> | undefined) => {
+            collidingNodeRef.current = value;
+            setCollidingNodeImpl(value);
         }, []);
 
         const [lastSavedChanges, setLastSavedChanges] = useState<
@@ -1282,6 +1302,8 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            collidingEdge,
+            collidingNode,
             isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
             inputHashes: inputHashesRef.current,
             outputDataMap,
@@ -1314,6 +1336,8 @@ export const GlobalProvider = memo(
             setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
+            setCollidingEdge,
+            setCollidingNode,
             setNodeDisabled,
             setZoom,
             exportViewportScreenshot,
