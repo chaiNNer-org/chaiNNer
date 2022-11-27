@@ -3,10 +3,9 @@ import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
-import { openSaveFile } from '../../common/SaveFile';
+import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { PresetFile } from '../components/NodeSelectorPanel/presets';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 
@@ -25,8 +24,8 @@ export interface DataTransferProcessorOptions {
     createNode: (proto: NodeProto) => void;
     getNodePosition: (offsetX?: number, offsetY?: number) => XYPosition;
     schemata: SchemaMap;
-    setNodes: SetState<Node<NodeData>[]>;
-    setEdges: SetState<Edge<EdgeData>[]>;
+    changeNodes: SetState<Node<NodeData>[]>;
+    changeEdges: SetState<Edge<EdgeData>[]>;
 }
 
 export const getSingleFileWithExtension = (
@@ -75,21 +74,21 @@ const chainnerSchemaProcessor: DataTransferProcessor = (
 
 const chainnerPresetProcessor: DataTransferProcessor = (
     dataTransfer,
-    { setNodes, setEdges, getNodePosition }
+    { changeNodes, changeEdges, getNodePosition }
 ) => {
     if (!dataTransfer.getData(TransferTypes.Preset)) return false;
 
-    const { content: chain } = JSON.parse(dataTransfer.getData(TransferTypes.Preset)) as PresetFile;
+    const chain = JSON.parse(dataTransfer.getData(TransferTypes.Preset)) as ParsedSaveData;
 
     const duplicationId = createUniqueId();
     const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
 
-    setNodes((nodes) => {
+    changeNodes((nodes) => {
         const currentIds = new Set(nodes.map((n) => n.id));
         const newIds = new Set(chain.nodes.map((n) => n.id));
 
         let newNodes = copyNodes(
-            chain.nodes as Node<NodeData>[],
+            chain.nodes,
             deriveId,
             (oldId) => {
                 if (newIds.has(oldId)) return deriveId(oldId);
@@ -99,15 +98,19 @@ const chainnerPresetProcessor: DataTransferProcessor = (
             false
         );
 
-        newNodes = newNodes.map((node) => ({
-            ...node,
-            position: getNodePosition(-node.position.x, -node.position.y),
-        }));
+        newNodes = newNodes.map((node) =>
+            node.parentNode
+                ? node
+                : {
+                      ...node,
+                      position: getNodePosition(-node.position.x, -node.position.y),
+                  }
+        );
 
         return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
     });
-    setEdges((edges) => {
-        const newEdges = copyEdges(chain.edges as Edge<EdgeData>[], deriveId);
+    changeEdges((edges) => {
+        const newEdges = copyEdges(chain.edges, deriveId);
         return [...setSelected(edges, false), ...setSelected(newEdges, true)];
     });
     return true;
