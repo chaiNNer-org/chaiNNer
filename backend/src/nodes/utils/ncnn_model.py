@@ -787,3 +787,12 @@ class NcnnModelWrapper:
         in_nc = weight_data_size // nf // kernel_w // kernel_h
 
         return nf, in_nc
+
+    @staticmethod
+    def get_input_dims(model: NcnnModel) -> Tuple[int, int, int]:
+        input_layer = model.layers[0]
+        w = checked_cast(int, input_layer.params[0].value)
+        h = checked_cast(int, input_layer.params[1].value)
+        c = checked_cast(int, input_layer.params[2].value)
+
+        return h, w, c
