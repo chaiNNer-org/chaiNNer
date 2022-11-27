@@ -339,13 +339,22 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
                     // Check if the node has valid connections it can make
                     // If it doesn't, we don't need to bother checking collision
-                    if (!e.sourceHandle) {
+                    if (!e.sourceHandle || !e.targetHandle) {
                         return false;
                     }
-                    const edgeType = typeState.functions
-                        .get(e.source)
-                        ?.outputs.get(parseSourceHandle(e.sourceHandle).outputId);
+                    const { outputId } = parseSourceHandle(e.sourceHandle);
+                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
+
                     if (!edgeType) {
+                        return false;
+                    }
+
+                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    if (firstPossibleInput === undefined) {
+                        return false;
+                    }
+                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+                    if (firstPossibleOutput === undefined) {
                         return false;
                     }
 
@@ -360,15 +369,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         edgeCenterY <= nodeBounds.BL.y
                     ) {
                         return true;
-                    }
-
-                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    if (firstPossibleInput === undefined) {
-                        return false;
-                    }
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
-                    if (firstPossibleOutput === undefined) {
-                        return false;
                     }
 
                     const bezierPathCoordinates = getBezierPathValues({
