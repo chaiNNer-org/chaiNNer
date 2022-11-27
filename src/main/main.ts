@@ -116,7 +116,7 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
-            properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+            properties: ['openDirectory', 'createDirectory'],
         })
     );
 
