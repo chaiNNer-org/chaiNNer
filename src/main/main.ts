@@ -215,8 +215,16 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     let pythonInfo: PythonInfo;
 
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
-    const systemPythonLocation = localStorage.getItem('system-python-location');
-    const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+    let systemPythonLocation = localStorage.getItem('system-python-location');
+    let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+
+    if (systemPythonLocation) {
+        systemPythonLocation = path.normalize(systemPythonLocation);
+    }
+
+    if (integratedPythonFolderPath) {
+        integratedPythonFolderPath = path.normalize(integratedPythonFolderPath);
+    }
 
     if (useSystemPython) {
         try {
