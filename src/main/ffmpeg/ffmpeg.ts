@@ -64,6 +64,9 @@ export const getIntegratedFfmpeg = async (
 ): Promise<FfmpegInfo> => {
     const platform = getPlatform();
     const { ffmpeg, ffprobe } = getExecutableRelativePath(platform);
+    if (!ffmpeg || !ffprobe) {
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
     const ffmpegPath = path.resolve(path.join(directory, ffmpeg));
     const ffprobePath = path.resolve(path.join(directory, ffprobe));
 
