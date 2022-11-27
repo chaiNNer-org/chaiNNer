@@ -324,18 +324,17 @@ const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
         splashWindow.hide();
         const messageBoxOptions = {
-            type: 'error',
+            type: 'warning',
             title: 'Unable to install integrated Ffmpeg',
-            buttons: ['Exit'],
-            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+            buttons: ['Ok'],
+            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
         };
         await dialog.showMessageBox(messageBoxOptions);
-        app.exit(1);
-        throw new Error();
+        ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
     }
 
-    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg}`);
-    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe}`);
+    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
+    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
 
     ipcMain.handle('get-ffmpeg', () => ffmpegInfo);
     return ffmpegInfo;

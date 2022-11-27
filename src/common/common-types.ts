@@ -228,8 +228,8 @@ export interface PythonInfo {
 }
 
 export interface FfmpegInfo {
-    readonly ffmpeg: string;
-    readonly ffprobe: string;
+    readonly ffmpeg?: string;
+    readonly ffprobe?: string;
 }
 
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
