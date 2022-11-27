@@ -303,9 +303,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
             // Finds the first edge that intersects with the node
             const intersectingEdges = edges
-                .sort((a, b) => {
-                    return (a.data?.edgeCenterY || 0) - (b.data?.edgeCenterY || 0);
-                })
                 .filter((e) => {
                     // Return false if we don't have necessary information
                     if (
@@ -471,7 +468,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         !b.data.targetX ||
                         !b.data.targetY
                     ) {
-                        return -0;
+                        return 0;
                     }
 
                     const edgeLineA: Line = {
