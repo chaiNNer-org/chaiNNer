@@ -17,8 +17,11 @@ def to_pytorch_execution_options(options: ExecutionOptions):
     elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
         device = "cuda"
     # Check for Apple MPS
-    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
+    elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
         device = "mps"
+    # Check for DirectML
+    elif hasattr(torch, "dml") and torch.dml.is_available():  # type: ignore
+        device = "dml"
     else:
         device = "cpu"
 
