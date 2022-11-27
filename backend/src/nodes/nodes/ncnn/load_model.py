@@ -8,6 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
 from ...utils.ncnn_model import NcnnModel, NcnnModelWrapper
+from ...utils.ncnn_optimizer import NcnnOptimizer
 from . import category as NCNNCategory
 
 
@@ -33,7 +34,9 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModelWrapper, str]:
-        model = NcnnModelWrapper(NcnnModel.load_from_file(param_path, bin_path))
+        model = NcnnModel.load_from_file(param_path, bin_path)
+        NcnnOptimizer(model).optimize()
+
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
-        return model, model_name
+        return NcnnModelWrapper(model), model_name
