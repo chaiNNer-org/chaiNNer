@@ -914,6 +914,7 @@ class HAT(nn.Module):
         self.sub_type = "SR"
         self.supports_fp16 = False
         self.support_bf16 = True
+        self.min_size_restriction = 16
 
         state_keys = list(state_dict.keys())
 

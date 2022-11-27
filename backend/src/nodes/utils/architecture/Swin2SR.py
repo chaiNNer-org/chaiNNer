@@ -1043,6 +1043,7 @@ class Swin2SR(nn.Module):
 
         self.supports_fp16 = False  # Too much weirdness to support this at the moment
         self.supports_bfp16 = True
+        self.min_size_restriction = 16
 
         ## END AUTO DETECTION
 

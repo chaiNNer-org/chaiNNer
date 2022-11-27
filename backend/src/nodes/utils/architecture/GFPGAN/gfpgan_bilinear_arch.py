@@ -187,6 +187,7 @@ class GFPGANBilinear(nn.Module):
         self.input_is_latent = input_is_latent
         self.different_w = different_w
         self.num_style_feat = num_style_feat
+        self.min_size_restriction = 512
 
         unet_narrow = narrow * 0.5  # by default, use a half of input channels
         channels = {

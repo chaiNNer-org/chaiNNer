@@ -81,6 +81,7 @@ class RRDBNet(nn.Module):
 
         self.supports_fp16 = True
         self.supports_bfp16 = True
+        self.min_size_restriction = None
 
         # Detect if pixelunshuffle was used (Real-ESRGAN)
         if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (
