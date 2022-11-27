@@ -91,6 +91,7 @@ export const CustomEdge = memo(
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
         // This is a tradeoff I'm willing to make
+        // This is necessary because RF does not expose source/target X/Y on the edge
         useEffect(
             () => {
                 // eslint-disable-next-line no-param-reassign
@@ -111,13 +112,6 @@ export const CustomEdge = memo(
             // eslint-disable-next-line react-hooks/exhaustive-deps
             [sourceX, sourceY, targetX, targetY, edgeCenterX, edgeCenterY]
         );
-
-        // Handling this one separately since it happens far less often
-        useEffect(() => {
-            // eslint-disable-next-line no-param-reassign
-            data.type = type;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [type]);
 
         const menu = useEdgeMenu(id);
 

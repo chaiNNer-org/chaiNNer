@@ -1,4 +1,3 @@
-import { NonNeverType } from '@chainner/navi';
 import { Edge } from 'reactflow';
 import { ExpressionJson } from './types/json';
 
@@ -219,11 +218,6 @@ export interface EdgeData {
     sourceY?: number;
     targetX?: number;
     targetY?: number;
-    type?: NonNeverType;
-    edgePath?: string;
-    edgeCenterX?: number;
-    edgeCenterY?: number;
-    colliding?: boolean;
 }
 
 /**
