@@ -13,12 +13,12 @@ from ...properties.outputs import ImageOutput
 from ...properties import expression
 
 
-@NodeFactory.register("chainner:image:create_color")
+@NodeFactory.register("chainner:image:create_color_rgb")
 class CreateColorNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
-            "Create an image of specified dimensions filled with a specified color."
+            "Create an image of specified dimensions filled with a specified RGB color."
         )
         self.inputs = [
             NumberInput("Width", minimum=1, unit="px", default=1),
@@ -27,18 +27,21 @@ class CreateColorNode(NodeBase):
                 "Red",
                 minimum=0,
                 maximum=255,
+                default=126,
                 gradient=["#000000", "#ff0000"],
             ),
             SliderInput(
                 "Green",
                 minimum=0,
                 maximum=255,
+                default=126,
                 gradient=["#000000", "#00ff00"],
             ),
             SliderInput(
                 "Blue",
                 minimum=0,
                 maximum=255,
+                default=126,
                 gradient=["#000000", "#0000ff"],
             ),
         ]
@@ -52,9 +55,9 @@ class CreateColorNode(NodeBase):
             )
         ]
         self.category = ImageUtilityCategory
-        self.name = "Create Color"
+        self.name = "Create Color (RGB)"
         self.icon = "MdFormatColorFill"
-        self.sub = "Miscellaneous"
+        self.sub = "Create Images"
 
     def run(
         self, width: int, height: int, red: int, green: int, blue: int
