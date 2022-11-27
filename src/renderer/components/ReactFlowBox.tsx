@@ -612,11 +612,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const lastEdgeCollisionState = useRef<boolean>(false);
     const onNodeDrag = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (event: MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
+        (event: React.MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
             if (altPressed) {
                 const mousePosition = {
-                    x: node.position.x + event.offsetX,
-                    y: node.position.y + event.offsetY,
+                    // React flow's type for the event is incorrect. This value exists.
+                    x: node.position.x + (event as unknown as MouseEvent).offsetX,
+                    y: node.position.y + (event as unknown as MouseEvent).offsetY,
                 };
                 const collisionResp = performNodeOnEdgeCollisionDetection(
                     node,
@@ -669,11 +670,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [altPressed, nodes, setEdges, setNodes]);
 
     const onNodeDragStop = useCallback(
-        (event: MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
             if (node && altPressed) {
                 const mousePosition = {
-                    x: node.position.x + event.offsetX,
-                    y: node.position.y + event.offsetY,
+                    // React flow's type for the event is incorrect. This value exists.
+                    x: node.position.x + (event as unknown as MouseEvent).offsetX,
+                    y: node.position.y + (event as unknown as MouseEvent).offsetY,
                 };
                 const collisionResp = performNodeOnEdgeCollisionDetection(
                     node,
