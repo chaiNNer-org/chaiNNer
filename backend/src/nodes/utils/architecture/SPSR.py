@@ -65,6 +65,7 @@ class SPSRNet(nn.Module):
 
         self.supports_fp16 = True
         self.supports_bfp16 = True
+        self.min_size_restriction = None
 
         n_upscale = int(math.log(self.scale, 2))
         if self.scale == 3:

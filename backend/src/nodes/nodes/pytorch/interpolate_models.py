@@ -74,11 +74,17 @@ class InterpolateNode(NodeBase):
             return False
         interp_50 = self.perform_interp(model_a, model_b, 50)
         model = load_state_dict(interp_50).cpu()
-        fake_img = np.ones((3, 3, model.in_nc), dtype=np.float32)
+        size = (
+            model.min_size_restriction if model.min_size_restriction is not None else 3
+        )
+        assert isinstance(size, int), "min_size_restriction must be an int"
+        fake_img = np.ones((size, size, model.in_nc), dtype=np.float32)
         del interp_50
         with torch.no_grad():
             img_tensor = np2tensor(fake_img, change_range=True).cpu()
             t_out = model(img_tensor)
+            if isinstance(t_out, tuple):
+                t_out = t_out[0]
             result = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         del model, img_tensor, t_out, fake_img
         mean_color = np.mean(result)
