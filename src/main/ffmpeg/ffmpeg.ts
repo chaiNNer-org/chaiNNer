@@ -129,3 +129,12 @@ export const getIntegratedFfmpeg = async (
 
     return { ffmpeg: ffmpegPath, ffprobe: ffprobePath };
 };
+
+export const hasSystemFfmpeg = async () => {
+    try {
+        await exec('ffmpeg -version');
+        return true;
+    } catch (error) {
+        return false;
+    }
+};

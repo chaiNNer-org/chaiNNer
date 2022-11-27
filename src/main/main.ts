@@ -17,7 +17,7 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
 import { getArguments } from './arguments';
-import { getIntegratedFfmpeg } from './ffmpeg/ffmpeg';
+import { getIntegratedFfmpeg, hasSystemFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { checkPythonPaths } from './python/checkPythonPaths';
@@ -330,7 +330,12 @@ const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
         };
         await dialog.showMessageBox(messageBoxOptions);
-        ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
+
+        if (await hasSystemFfmpeg()) {
+            ffmpegInfo = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
+        } else {
+            ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
+        }
     }
 
     log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
