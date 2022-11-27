@@ -381,7 +381,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     });
 
                     // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    // TODO: there might be a way to select the order in which to check base don the position of the node relative to the edge
+                    // TODO: there might be a way to select the order in which to check based on the position of the node relative to the edge
                     // However, I don't want to figure that out right now, and this works well enough.
                     const curve = new Bezier(bezierPathCoordinates);
                     const curveIntersectsLeft =
