@@ -34,7 +34,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import log from 'electron-log';
-import { readdir,unlink } from 'fs/promises';
+import { readdir, unlink } from 'fs/promises';
 import path from 'path';
 import {
     PropsWithChildren,
