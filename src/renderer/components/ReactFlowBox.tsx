@@ -296,8 +296,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 },
             };
 
+            const fn = functionDefinitions.get(node.data.schemaId);
+            if (!fn) {
+                return;
+            }
+
             // Finds the first edge that intersects with the node
             const intersectingEdges = edges
+                .sort((a, b) => {
+                    return (a.data?.edgeCenterY || 0) - (b.data?.edgeCenterY || 0);
+                })
                 .filter((e) => {
                     // Return false if we don't have necessary information
                     if (
@@ -338,6 +346,22 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         e.data.edgeCenterY <= nodeBounds.BL.y
                     ) {
                         return true;
+                    }
+
+                    // Check if the node has valid connections it can make
+                    // If it doesn't, we don't need to bother checking collision
+                    const edgeType = e.data.type;
+                    if (!edgeType) {
+                        return false;
+                    }
+
+                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    if (firstPossibleInput === undefined) {
+                        return false;
+                    }
+                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+                    if (firstPossibleOutput === undefined) {
+                        return false;
                     }
 
                     const { edgePath } = e.data;
@@ -405,6 +429,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         if (curveIntersectsBottom) {
                             return true;
                         }
+                        return false;
                     }
                     // If we don't have the actual edge path for some reason, we can do a rough check
                     // This way approximates collision using a straight line (for the edge) and two diagonal lines (for the node)
@@ -478,8 +503,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
             // Check if the node has valid connections it can make
             const edgeType = intersectingEdge.data?.type;
-            const fn = functionDefinitions.get(node.data.schemaId);
-            if (!(fn && edgeType)) {
+            if (!edgeType) {
                 return;
             }
 
