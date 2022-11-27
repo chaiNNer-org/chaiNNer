@@ -17,6 +17,7 @@ import ReactFlow, {
     OnEdgesChange,
     OnNodesChange,
     Viewport,
+    XYPosition,
     useEdgesState,
     useKeyPress,
     useNodesState,
@@ -32,38 +33,12 @@ import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
+import { Line, intersects, pDistance } from '../helpers/graphUtils';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
-
-// From https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
-// Modified by me
-interface Line {
-    sourceX: number;
-    sourceY: number;
-    targetX: number;
-    targetY: number;
-}
-// returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
-const intersects = (a: Line, b: Line) => {
-    const det =
-        (a.targetX - a.sourceX) * (b.targetY - b.sourceY) -
-        (b.targetX - b.sourceX) * (a.targetY - a.sourceY);
-    if (det === 0) {
-        return false;
-    }
-    const lambda =
-        ((b.targetY - b.sourceY) * (b.targetX - a.sourceX) +
-            (b.sourceX - b.targetX) * (b.targetY - a.sourceY)) /
-        det;
-    const gamma =
-        ((a.sourceY - a.targetY) * (b.targetX - a.sourceX) +
-            (a.targetX - a.sourceX) * (b.targetY - a.sourceY)) /
-        det;
-    return lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1;
-};
 
 const STARTING_Z_INDEX = 50;
 /**
@@ -301,7 +276,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     // Node-on-edge collision detection
     const performNodeOnEdgeCollisionDetection = useCallback(
-        (node: Node<NodeData>, quick = true) => {
+        (node: Node<NodeData>, mousePosition: XYPosition, quick = true) => {
             // First, we need to make sure this node is an orphan. We can do a find so it stops early
             const hasConnectedEdge = !!edges.find(
                 (e) => e.source === node.id || e.target === node.id
@@ -322,11 +297,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             };
 
             // Finds the first edge that intersects with the node
-            const intersectingEdge = edges
-                .sort((a, b) => {
-                    return (a.data?.edgeCenterY || 0) - (b.data?.edgeCenterY || 0);
-                })
-                .find((e) => {
+            const intersectingEdges = edges
+                .filter((e) => {
                     // Return false if we don't have necessary information
                     if (
                         !e.data ||
@@ -459,12 +431,50 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     };
                     // If both lines intersect with the edge line, we can assume the node is intersecting with the edge
                     return intersects(nodeLineTLBR, edgeLine) && intersects(nodeLineTRBL, edgeLine);
+                })
+                // Sort the edges by their distance from the mouse position
+                .sort((a, b) => {
+                    if (
+                        !a.data ||
+                        !a.data.sourceX ||
+                        !a.data.sourceY ||
+                        !a.data.targetX ||
+                        !a.data.targetY ||
+                        !b.data ||
+                        !b.data.sourceX ||
+                        !b.data.sourceY ||
+                        !b.data.targetX ||
+                        !b.data.targetY
+                    ) {
+                        return -0;
+                    }
+
+                    const edgeLineA: Line = {
+                        sourceX: a.data.sourceX,
+                        sourceY: a.data.sourceY,
+                        targetX: a.data.targetX,
+                        targetY: a.data.targetY,
+                    };
+                    const edgeLineB: Line = {
+                        sourceX: b.data.sourceX,
+                        sourceY: b.data.sourceY,
+                        targetX: b.data.targetX,
+                        targetY: b.data.targetY,
+                    };
+
+                    const distanceA = pDistance(mousePosition, edgeLineA);
+                    const distanceB = pDistance(mousePosition, edgeLineB);
+                    if (distanceA > distanceB) return 1;
+                    if (distanceA < distanceB) return -1;
+                    return 0;
                 });
 
             // Early exit if there is not an intersecting edge
-            if (!intersectingEdge) {
+            if (intersectingEdges.length === 0) {
                 return;
             }
+
+            const intersectingEdge = intersectingEdges[0];
 
             // Check if the node has valid connections it can make
             const edgeType = intersectingEdge.data?.type;
@@ -581,9 +591,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const lastEdgeCollisionState = useRef<boolean>(false);
     const onNodeDrag = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (event: React.MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
+        (event: MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
             if (altPressed) {
-                const collisionResp = performNodeOnEdgeCollisionDetection(node, true);
+                const mousePosition = {
+                    x: node.position.x + event.offsetX,
+                    y: node.position.y + event.offsetY,
+                };
+                const collisionResp = performNodeOnEdgeCollisionDetection(
+                    node,
+                    mousePosition,
+                    true
+                );
                 if (collisionResp?.status === 'success') {
                     if (!collisionResp.intersectingEdge.data?.colliding) {
                         setEdgeColliding(collisionResp.intersectingEdge, true);
@@ -630,9 +648,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [altPressed, nodes, setEdges, setNodes]);
 
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+        (event: MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
             if (node && altPressed) {
-                const collisionResp = performNodeOnEdgeCollisionDetection(node, false);
+                const mousePosition = {
+                    x: node.position.x + event.offsetX,
+                    y: node.position.y + event.offsetY,
+                };
+                const collisionResp = performNodeOnEdgeCollisionDetection(
+                    node,
+                    mousePosition,
+                    false
+                );
                 if (collisionResp?.status === 'success') {
                     collisionResp.performCombine();
                     if (node.data.collidingEdge) {
