@@ -337,6 +337,18 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return false;
                     }
 
+                    // Check if the node has valid connections it can make
+                    // If it doesn't, we don't need to bother checking collision
+                    if (!e.sourceHandle) {
+                        return false;
+                    }
+                    const edgeType = typeState.functions
+                        .get(e.source)
+                        ?.outputs.get(parseSourceHandle(e.sourceHandle).outputId);
+                    if (!edgeType) {
+                        return false;
+                    }
+
                     // Determine if the center of the edge is within the node bounds
                     // This is a quick check that guarantees collision
                     const edgeCenterX = (e.data.sourceX + e.data.targetX) / 2;
@@ -348,18 +360,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         edgeCenterY <= nodeBounds.BL.y
                     ) {
                         return true;
-                    }
-
-                    // Check if the node has valid connections it can make
-                    // If it doesn't, we don't need to bother checking collision
-                    if (!e.sourceHandle) {
-                        return false;
-                    }
-                    const edgeType = typeState.functions
-                        .get(e.source)
-                        ?.outputs.get(parseSourceHandle(e.sourceHandle).outputId);
-                    if (!edgeType) {
-                        return false;
                     }
 
                     const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
