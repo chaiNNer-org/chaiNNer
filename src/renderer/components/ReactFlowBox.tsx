@@ -237,7 +237,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
-    const collidingEdge = useContextSelector(GlobalVolatileContext, (c) => c.collidingEdge);
 
     const reactFlowInstance = useReactFlow();
 
