@@ -14,6 +14,7 @@ interface Settings {
     useNcnnGPU: GetSetState<number>;
     useOnnxGPU: GetSetState<number>;
     useOnnxExecutionProvider: GetSetState<string>;
+    useOnnxShouldTensorRtCache: GetSetState<boolean>;
     useIsSystemPython: GetSetState<boolean>;
     useSystemPythonLocation: GetSetState<string | null>;
     useDisHwAccel: GetSetState<boolean>;
@@ -47,6 +48,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useOnnxGPU = useMemoArray(useLocalStorage('onnx-gpu', 0));
     const useOnnxExecutionProvider = useMemoArray(
         useLocalStorage('onnx-execution-provider', 'CUDAExecutionProvider')
+    );
+    const useOnnxShouldTensorRtCache = useMemoArray(
+        useLocalStorage('onnx-should-tensorrt-cache', false)
     );
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
@@ -97,6 +101,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useNcnnGPU,
         useOnnxGPU,
         useOnnxExecutionProvider,
+        useOnnxShouldTensorRtCache,
 
         // Globals
         useIsSystemPython,

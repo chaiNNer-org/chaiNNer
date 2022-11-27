@@ -15,6 +15,8 @@ def create_inference_session(
                 "TensorrtExecutionProvider",
                 {
                     "device_id": exec_options.onnx_gpu_index,
+                    "trt_engine_cache_enable": exec_options.onnx_should_tensorrt_cache,
+                    "trt_engine_cache_path": exec_options.onnx_tensorrt_cache_path,
                 },
             ),
             (

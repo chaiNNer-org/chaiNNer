@@ -46,6 +46,8 @@ export interface BackendRunRequest {
     ncnnGPU: number;
     onnxGPU: number;
     onnxExecutionProvider: string;
+    onnxShouldTensorRtCache: boolean;
+    onnxTensorRtCachePath: string;
 }
 export interface BackendRunIndividualRequest {
     id: string;
@@ -56,6 +58,8 @@ export interface BackendRunIndividualRequest {
     ncnnGPU: number;
     onnxGPU: number;
     onnxExecutionProvider: string;
+    onnxShouldTensorRtCache: boolean;
+    onnxTensorRtCachePath: string;
     schemaId: SchemaId;
 }
 

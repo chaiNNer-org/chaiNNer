@@ -29,6 +29,8 @@ def to_pytorch_execution_options(options: ExecutionOptions):
         ncnn_gpu_index=options.ncnn_gpu_index,
         onnx_gpu_index=options.onnx_gpu_index,
         onnx_execution_provider=options.onnx_execution_provider,
+        onnx_should_tensorrt_cache=options.onnx_should_tensorrt_cache,
+        onnx_tensorrt_cache_path=options.onnx_tensorrt_cache_path,
     )
 
 

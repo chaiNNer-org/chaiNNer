@@ -2,6 +2,8 @@ import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
+import { getOnnxTensorRtCacheLocation } from '../../common/env';
+import { ipcRenderer } from '../../common/safeIpc';
 import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
@@ -21,8 +23,15 @@ export const useRunNode = (
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
-        useContext(SettingsContext);
+    const {
+        useIsCpu,
+        useIsFp16,
+        usePyTorchGPU,
+        useNcnnGPU,
+        useOnnxGPU,
+        useOnnxExecutionProvider,
+        useOnnxShouldTensorRtCache,
+    } = useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
@@ -30,6 +39,7 @@ export const useRunNode = (
     const [ncnnGPU] = useNcnnGPU;
     const [onnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider] = useOnnxExecutionProvider;
+    const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
 
     const [reloadCounter, setReloadCounter] = useState(0);
     const reload = useCallback(() => setReloadCounter((c) => c + 1), []);
@@ -72,6 +82,10 @@ export const useRunNode = (
                     ncnnGPU,
                     onnxGPU,
                     onnxExecutionProvider,
+                    onnxShouldTensorRtCache,
+                    onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(
+                        await ipcRenderer.invoke('get-appdata')
+                    ),
                 });
 
                 if (!result.success) {
