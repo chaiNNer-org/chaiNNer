@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useMemo, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
     Background,
@@ -30,6 +30,7 @@ import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
+import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
@@ -384,6 +385,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
 
+    const [selectedNodes, setSelectedNodes] = useState<Node<NodeData>[]>([]);
+    const selectionMenu = useNodesMenu(selectedNodes);
+    const onSelectionContextMenu = useCallback(
+        (event: React.MouseEvent, nodes: Node<NodeData>[]) => {
+            setSelectedNodes(nodes);
+            selectionMenu.onContextMenu(event);
+        },
+        [selectionMenu, setSelectedNodes]
+    );
+
     return (
         <Box
             bg="var(--chain-editor-bg)"
@@ -428,6 +439,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onNodesDelete={onNodesDelete}
                 onPaneClick={closeContextMenu}
                 onPaneContextMenu={onPaneContextMenu}
+                onSelectionContextMenu={onSelectionContextMenu}
                 onSelectionDragStop={onSelectionDragStop}
             >
                 <Background
