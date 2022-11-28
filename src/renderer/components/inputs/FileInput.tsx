@@ -11,6 +11,7 @@ import {
 import { clipboard, shell } from 'electron';
 import path from 'path';
 import { DragEvent, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
@@ -30,6 +31,8 @@ export const FileInput = memo(
         useInputConnected,
         isLocked,
     }: InputProps<'file', string>) => {
+        const { t } = useTranslation();
+
         const { label, filetypes } = input;
 
         const isInputConnected = useInputConnected();
@@ -104,7 +107,7 @@ export const FileInput = memo(
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
                 >
-                    Select a file...
+                    {t('inputs.file.selectFile', 'Select a file...')}
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem
@@ -116,7 +119,7 @@ export const FileInput = memo(
                         }
                     }}
                 >
-                    Open in File Explorer
+                    {t('inputs.file.openInFileExplorer', 'Open in File Explorer')}
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem
@@ -128,7 +131,7 @@ export const FileInput = memo(
                         }
                     }}
                 >
-                    Copy File Name
+                    {t('inputs.file.copyFileName', 'Copy File Name')}
                 </MenuItem>
                 <MenuItem
                     icon={<MdContentCopy />}
@@ -139,7 +142,7 @@ export const FileInput = memo(
                         }
                     }}
                 >
-                    Copy Full File Path
+                    {t('inputs.file.copyFullFilePath', 'Copy Full File Path')}
                 </MenuItem>
             </MenuList>
         ));

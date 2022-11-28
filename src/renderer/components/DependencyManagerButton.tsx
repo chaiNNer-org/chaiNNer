@@ -1,10 +1,13 @@
 import { DownloadIcon } from '@chakra-ui/icons';
 import { IconButton, Tag, TagLabel, Tooltip, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
 import { DependencyContext } from '../contexts/DependencyContext';
 
 export const DependencyManagerButton = memo(() => {
+    const { t } = useTranslation();
+
     const { openDependencyManager, availableUpdates } = useContext(DependencyContext);
 
     return (
@@ -12,7 +15,7 @@ export const DependencyManagerButton = memo(() => {
             closeOnClick
             closeOnMouseDown
             borderRadius={8}
-            label="Manage Dependencies"
+            label={t('dependencyManager.manageDependencies', 'Manage Dependencies')}
             px={2}
             py={1}
         >
@@ -33,7 +36,7 @@ export const DependencyManagerButton = memo(() => {
                     </Tag>
                 ) : null}
                 <IconButton
-                    aria-label="Download button"
+                    aria-label={t('dependencyManager.manageDependencies', 'Manage Dependencies')}
                     icon={<DownloadIcon />}
                     position="relative"
                     size="md"
