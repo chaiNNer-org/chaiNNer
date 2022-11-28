@@ -1,4 +1,5 @@
 import os from 'os';
+import path from 'path';
 
 export const isWindows = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';
@@ -24,3 +25,7 @@ export const hasTensorRt = !isMac && (hasTensorRtWindows || hasTensorRtLinux);
 const env = { ...process.env };
 delete env.PYTHONHOME;
 export const sanitizedEnv = env;
+
+export const getOnnxTensorRtCacheLocation = (userDataPath: string) => {
+    return path.join(userDataPath, 'onnx-tensorrt-cache');
+};

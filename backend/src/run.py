@@ -198,6 +198,8 @@ class RunRequest(TypedDict):
     ncnnGPU: int
     onnxGPU: int
     onnxExecutionProvider: str
+    onnxShouldTensorRtCache: bool
+    onnxTensorRtCachePath: str
 
 
 @app.route("/run", methods=["POST"])
@@ -227,6 +229,8 @@ async def run(request: Request):
             ncnn_gpu_index=full_data["ncnnGPU"],
             onnx_gpu_index=full_data["onnxGPU"],
             onnx_execution_provider=full_data["onnxExecutionProvider"],
+            onnx_should_tensorrt_cache=full_data["onnxShouldTensorRtCache"],
+            onnx_tensorrt_cache_path=full_data["onnxTensorRtCachePath"],
         )
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
@@ -280,6 +284,8 @@ class RunIndividualRequest(TypedDict):
     ncnnGPU: int
     onnxGPU: int
     onnxExecutionProvider: str
+    onnxShouldTensorRtCache: bool
+    onnxTensorRtCachePath: str
     schemaId: str
 
 
@@ -299,6 +305,8 @@ async def run_individual(request: Request):
             ncnn_gpu_index=full_data["ncnnGPU"],
             onnx_gpu_index=full_data["onnxGPU"],
             onnx_execution_provider=full_data["onnxExecutionProvider"],
+            onnx_should_tensorrt_cache=full_data["onnxShouldTensorRtCache"],
+            onnx_tensorrt_cache_path=full_data["onnxTensorRtCachePath"],
         )
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")

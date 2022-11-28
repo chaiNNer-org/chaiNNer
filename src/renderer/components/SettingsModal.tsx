@@ -33,6 +33,8 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
+import log from 'electron-log';
+import { readdir, unlink } from 'fs/promises';
 import path from 'path';
 import {
     PropsWithChildren,
@@ -46,7 +48,7 @@ import {
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { hasTensorRt } from '../../common/env';
+import { getOnnxTensorRtCacheLocation, hasTensorRt } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -329,6 +331,7 @@ const PythonSettings = memo(() => {
         useNcnnGPU,
         useOnnxGPU,
         useOnnxExecutionProvider,
+        useOnnxShouldTensorRtCache,
     } = useContext(SettingsContext);
     const { backend } = useContext(BackendContext);
 
@@ -342,6 +345,9 @@ const PythonSettings = memo(() => {
     const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
     const [onnxGPU, setOnnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
+    const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
+
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
     useAsyncEffect(
         () => ({
@@ -580,6 +586,43 @@ const PythonSettings = memo(() => {
                                 setOnnxExecutionProvider(String(e.target.value));
                             }}
                         />
+                        {isUsingTensorRt && (
+                            <HStack>
+                                <Toggle
+                                    description="Whether or not to cache the converted TensorRT engines to disk. This can speed up inference times immensely once you have converted once."
+                                    title="Cache TensorRT engines"
+                                    value={onnxShouldTensorRtCache}
+                                    onToggle={() => {
+                                        setOnnxShouldTensorRtCache((prev) => !prev);
+                                    }}
+                                />
+                                <Button
+                                    onClick={() => {
+                                        ipcRenderer
+                                            .invoke('get-appdata')
+                                            .then(async (appDataPath: string) => {
+                                                const onnxTensorRtCacheLocation =
+                                                    getOnnxTensorRtCacheLocation(appDataPath);
+                                                const files = await readdir(
+                                                    onnxTensorRtCacheLocation
+                                                );
+                                                for (const file of files) {
+                                                    unlink(
+                                                        path.join(onnxTensorRtCacheLocation, file)
+                                                    ).catch((error) => {
+                                                        log.error(error);
+                                                    });
+                                                }
+                                            })
+                                            .catch((err) => {
+                                                log.error(err);
+                                            });
+                                    }}
+                                >
+                                    Clear Cache
+                                </Button>
+                            </HStack>
+                        )}
                     </VStack>
                 </TabPanel>
             </TabPanels>
