@@ -789,9 +789,12 @@ class NcnnModelWrapper:
         return nf, in_nc
 
     @staticmethod
-    def get_input_dims(model: NcnnModel) -> Tuple[int, int, int]:
+    def get_input_dims(model: NcnnModel) -> Union[Tuple[int, int, int], None]:
         input_layer = model.layers[0]
         w = checked_cast(int, input_layer.params[0].value)
+        if w == 0:
+            return None
+
         h = checked_cast(int, input_layer.params[1].value)
         c = checked_cast(int, input_layer.params[2].value)
 
