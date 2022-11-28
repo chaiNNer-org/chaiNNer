@@ -3,6 +3,7 @@ import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -18,6 +19,8 @@ interface LargeImageBroadcastData {
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+        const { t } = useTranslation();
+
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
@@ -135,7 +138,10 @@ export const LargeImageOutput = memo(
                                     fontSize="sm"
                                     lineHeight="0.5rem"
                                 >
-                                    Image not available.
+                                    {t(
+                                        'outputs.largeImage.imageNotAvailable',
+                                        'Image not available.'
+                                    )}
                                 </Text>
                             </HStack>
                         )}

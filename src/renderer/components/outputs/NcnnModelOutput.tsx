@@ -3,6 +3,7 @@ import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
 import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -32,6 +33,8 @@ const getColorMode = (channels: number) => {
 
 export const NcnnModelOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+        const { t } = useTranslation();
+
         const { current } = useOutputData<NcnnModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -112,7 +115,7 @@ export const NcnnModelOutput = memo(
                             fontSize="sm"
                             lineHeight="0.5rem"
                         >
-                            Model data not available.
+                            {t('outputs.ncnn.modelNotAvailable', 'Model data not available.')}
                         </Text>
                     </HStack>
                 )}
