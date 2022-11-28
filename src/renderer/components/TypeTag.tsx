@@ -8,6 +8,7 @@ import {
 } from '@chainner/navi';
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getField, isDirectory, isImage } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
@@ -159,6 +160,7 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
 });
 
 export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
+    const { t } = useTranslation();
     const tags = getTypeText(without(type, nullType));
 
     return (
@@ -169,7 +171,7 @@ export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
                     tag={tag}
                 />
             ))}
-            {isOptional && <TypeTag isOptional>optional</TypeTag>}
+            {isOptional && <TypeTag isOptional>{t('typeTags.optional', 'optional')}</TypeTag>}
         </>
     );
 });

@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { shell } from 'electron';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
 import { ipcRenderer } from '../../../common/safeIpc';
@@ -41,6 +42,8 @@ export const DirectoryInput = memo(
         useInputConnected,
         useInputType,
     }: InputProps<'directory', string>) => {
+        const { t } = useTranslation();
+
         const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
@@ -67,7 +70,7 @@ export const DirectoryInput = memo(
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
                 >
-                    Select a directory...
+                    {t('inputs.directory.selectDirectory', 'Select a directory...')}
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem
@@ -79,7 +82,7 @@ export const DirectoryInput = memo(
                         }
                     }}
                 >
-                    Open in File Explorer
+                    {t('inputs.directory.openInFileExplorer', 'Open in File Explorer')}
                 </MenuItem>
             </MenuList>
         ));

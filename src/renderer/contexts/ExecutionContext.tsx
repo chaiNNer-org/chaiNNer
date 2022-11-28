@@ -12,6 +12,7 @@ import {
     NodeData,
     OutputId,
 } from '../../common/common-types';
+import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import {
@@ -197,8 +198,15 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         getInputHash,
     } = useContext(GlobalContext);
     const { schemata, port, backend } = useContext(BackendContext);
-    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
-        useContext(SettingsContext);
+    const {
+        useIsCpu,
+        useIsFp16,
+        usePyTorchGPU,
+        useNcnnGPU,
+        useOnnxGPU,
+        useOnnxExecutionProvider,
+        useOnnxShouldTensorRtCache,
+    } = useContext(SettingsContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -209,6 +217,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [ncnnGPU] = useNcnnGPU;
     const [onnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider] = useOnnxExecutionProvider;
+    const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -392,6 +401,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 ncnnGPU,
                 onnxGPU,
                 onnxExecutionProvider,
+                onnxShouldTensorRtCache,
+                onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(
+                    await ipcRenderer.invoke('get-appdata')
+                ),
             });
             if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue
@@ -412,20 +425,21 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setStatus(ExecutionStatus.READY);
         }
     }, [
+        getNodes,
+        getEdges,
+        schemata,
+        sendAlert,
+        typeStateRef,
         animate,
         backend,
-        getEdges,
-        getNodes,
-        schemata,
-        typeStateRef,
-        sendAlert,
-        unAnimate,
         isCpu,
         isFp16,
-        ncnnGPU,
-        onnxExecutionProvider,
-        onnxGPU,
         pytorchGPU,
+        ncnnGPU,
+        onnxGPU,
+        onnxExecutionProvider,
+        onnxShouldTensorRtCache,
+        unAnimate,
     ]);
 
     const resume = useCallback(async () => {

@@ -5,7 +5,7 @@ import numpy as np
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import HbfTypeDropdown, ImageInput, NumberInput
+from ...properties.inputs import HbfTypeDropdown, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.image_utils import KernelType
 from . import category as ImageFilterCategory
@@ -19,7 +19,15 @@ class HbfSharpenNode(NodeBase):
         self.inputs = [
             ImageInput(),
             HbfTypeDropdown(),
-            NumberInput("Amount"),
+            SliderInput(
+                "Amount",
+                minimum=0,
+                maximum=100,
+                default=2,
+                precision=1,
+                controls_step=1,
+                scale="log",
+            ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -31,20 +39,20 @@ class HbfSharpenNode(NodeBase):
         self,
         img: np.ndarray,
         kernel_type: int,
-        amount: int,
+        amount: float,
     ) -> np.ndarray:
         if amount == 0:
             return img
 
-        delta = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
+        identity = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
         if kernel_type == KernelType.STRONG:
             # 8-neighbor kernel
-            kernel = delta - np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9
+            kernel = identity - np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9
         else:
             # 4-neighbor kernel
-            kernel = delta - np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) / 5
+            kernel = identity - np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) / 5
 
-        kernel = kernel * amount + delta
+        kernel = kernel * amount + identity
         filtered_img = cv2.filter2D(img, -1, kernel)
 
         return np.clip(filtered_img, 0, 1)

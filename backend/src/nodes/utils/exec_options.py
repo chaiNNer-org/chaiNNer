@@ -1,3 +1,4 @@
+import os
 from sanic.log import logger
 
 
@@ -10,6 +11,8 @@ class ExecutionOptions:
         ncnn_gpu_index: int,
         onnx_gpu_index: int,
         onnx_execution_provider: str,
+        onnx_should_tensorrt_cache: bool,
+        onnx_tensorrt_cache_path: str,
     ) -> None:
         self.__device = device
         self.__fp16 = fp16
@@ -17,6 +20,20 @@ class ExecutionOptions:
         self.__ncnn_gpu_index = ncnn_gpu_index
         self.__onnx_gpu_index = onnx_gpu_index
         self.__onnx_execution_provider = onnx_execution_provider
+        self.__onnx_should_tensorrt_cache = onnx_should_tensorrt_cache
+        self.__onnx_tensorrt_cache_path = onnx_tensorrt_cache_path
+
+        print(onnx_tensorrt_cache_path)
+
+        if (
+            not os.path.exists(onnx_tensorrt_cache_path)
+            and onnx_tensorrt_cache_path != ""
+        ):
+            os.makedirs(onnx_tensorrt_cache_path)
+
+        logger.info(
+            f"PyTorch execution options: fp16: {fp16}, device: {self.full_device} | NCNN execution options: gpu_index: {ncnn_gpu_index} | ONNX execution options: gpu_index: {onnx_gpu_index}, execution_provider: {onnx_execution_provider}, should_tensorrt_cache: {onnx_should_tensorrt_cache}, tensorrt_cache_path: {onnx_tensorrt_cache_path}"
+        )
 
     @property
     def full_device(self) -> str:
@@ -44,14 +61,21 @@ class ExecutionOptions:
     def onnx_execution_provider(self):
         return self.__onnx_execution_provider
 
+    @property
+    def onnx_should_tensorrt_cache(self):
+        return self.__onnx_should_tensorrt_cache
 
-__global_exec_options = ExecutionOptions("cpu", False, 0, 0, 0, "CPUExecutionProvider")
+    @property
+    def onnx_tensorrt_cache_path(self):
+        return self.__onnx_tensorrt_cache_path
+
+
+__global_exec_options = ExecutionOptions(
+    "cpu", False, 0, 0, 0, "CPUExecutionProvider", False, ""
+)
 
 
 def get_execution_options() -> ExecutionOptions:
-    logger.info(
-        f"PyTorch execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.full_device} | NCNN execution options: gpu_index: {__global_exec_options.ncnn_gpu_index} | ONNX execution options: gpu_index: {__global_exec_options.onnx_gpu_index}, execution_provider: {__global_exec_options.onnx_execution_provider}"
-    )
     return __global_exec_options
 
 

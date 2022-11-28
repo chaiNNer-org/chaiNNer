@@ -27,7 +27,7 @@ export const useNodeMenu = (
 ): UseContextMenu => {
     const { id, isLocked = false, parentNode } = data;
 
-    const { removeNodeById, clearNode, duplicateNodes, toggleNodeLock, releaseNodeFromParent } =
+    const { removeNodesById, clearNodes, duplicateNodes, toggleNodeLock, releaseNodeFromParent } =
         useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
@@ -44,7 +44,7 @@ export const useNodeMenu = (
             <MenuItem
                 icon={<CloseIcon />}
                 onClick={() => {
-                    clearNode(id);
+                    clearNodes([id]);
                 }}
             >
                 Clear
@@ -81,7 +81,7 @@ export const useNodeMenu = (
             <MenuItem
                 icon={<DeleteIcon />}
                 onClick={() => {
-                    removeNodeById(id);
+                    removeNodesById([id]);
                 }}
             >
                 Delete
