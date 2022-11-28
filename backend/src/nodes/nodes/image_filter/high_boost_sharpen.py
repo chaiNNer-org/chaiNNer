@@ -22,11 +22,11 @@ class HbfSharpenNode(NodeBase):
             SliderInput(
                 "Amount",
                 minimum=0,
-                maximum=20,
+                maximum=100,
                 default=2,
                 precision=1,
                 controls_step=1,
-                slider_step=0.5,
+                scale="log",
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]

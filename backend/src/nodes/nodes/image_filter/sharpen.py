@@ -6,7 +6,7 @@ import numpy as np
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput
+from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
 
 
@@ -17,7 +17,16 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image using an unsharp mask."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount", precision=1, controls_step=1),
+            NumberInput("Radius", minimum=0, default=3, precision=1, controls_step=1),
+            SliderInput(
+                "Amount",
+                minimum=0,
+                maximum=100,
+                default=1,
+                precision=1,
+                controls_step=1,
+                scale="log",
+            ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -28,12 +37,13 @@ class SharpenNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
+        radius: float,
         amount: float,
     ) -> np.ndarray:
-        if amount == 0:
+        if radius == 0 or amount == 0:
             return img
 
-        blurred = cv2.GaussianBlur(img, (0, 0), amount)
-        img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
+        blurred = cv2.GaussianBlur(img, (0, 0), radius)
+        img = cv2.addWeighted(img, amount + 1, blurred, -amount, 0)
 
         return np.clip(img, 0, 1)
