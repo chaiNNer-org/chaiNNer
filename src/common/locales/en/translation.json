@@ -42,10 +42,7 @@
     "largeImage": {
       "imageNotAvailable": "Image not available."
     },
-    "ncnn": {
-      "modelNotAvailable": "Model data not available."
-    },
-    "pytorch": {
+    "model": {
       "modelNotAvailable": "Model data not available."
     }
   },

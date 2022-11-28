@@ -137,7 +137,7 @@ export const PyTorchOutput = memo(
                             fontSize="sm"
                             lineHeight="0.5rem"
                         >
-                            {t('outputs.pytorch.modelNotAvailable', 'Model data not available.')}
+                            {t('outputs.model.modelNotAvailable', 'Model data not available.')}
                         </Text>
                     </HStack>
                 )}

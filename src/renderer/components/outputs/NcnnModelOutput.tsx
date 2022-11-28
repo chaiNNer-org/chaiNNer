@@ -115,7 +115,7 @@ export const NcnnModelOutput = memo(
                             fontSize="sm"
                             lineHeight="0.5rem"
                         >
-                            {t('outputs.ncnn.modelNotAvailable', 'Model data not available.')}
+                            {t('outputs.model.modelNotAvailable', 'Model data not available.')}
                         </Text>
                     </HStack>
                 )}
