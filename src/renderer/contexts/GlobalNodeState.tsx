@@ -124,11 +124,11 @@ interface Global {
         inputId: InputId,
         inputSize: InputSize | undefined
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
-    removeNodesById: (ids: string[]) => void;
+    removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNodes: (nodeIds: string[]) => void;
+    duplicateNodes: (nodeIds: readonly string[]) => void;
     toggleNodeLock: (id: string) => void;
-    clearNodes: (ids: string[]) => void;
+    clearNodes: (ids: readonly string[]) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
     updateIteratorBounds: (
         id: string,
@@ -698,7 +698,7 @@ export const GlobalProvider = memo(
         );
 
         const removeNodesById = useCallback(
-            (ids: string[]) => {
+            (ids: readonly string[]) => {
                 const filteredIds = ids.filter((id) => {
                     const node = getNode(id);
                     return !(!node || node.type === 'iteratorHelper');
@@ -1076,8 +1076,8 @@ export const GlobalProvider = memo(
         );
 
         const duplicateNodes = useCallback(
-            (nodeIds: string[]) => {
-                const nodesToCopy = expandSelection(getNodes(), nodeIds);
+            (ids: readonly string[]) => {
+                const nodesToCopy = expandSelection(getNodes(), ids);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>
@@ -1089,7 +1089,7 @@ export const GlobalProvider = memo(
                         deriveId,
                         deriveId
                     );
-                    const derivedIds = nodeIds.map((id) => deriveId(id));
+                    const derivedIds = ids.map((id) => deriveId(id));
                     newNodes.forEach((n) => {
                         // eslint-disable-next-line no-param-reassign
                         n.selected = derivedIds.includes(n.id);
@@ -1111,7 +1111,7 @@ export const GlobalProvider = memo(
         );
 
         const clearNodes = useCallback(
-            (ids: string[]) => {
+            (ids: readonly string[]) => {
                 ids.forEach((id) => {
                     modifyNode(id, (old) => {
                         const newNode = copyNode(old);
