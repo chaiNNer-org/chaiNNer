@@ -19,8 +19,8 @@ class BlurNode(NodeBase):
         self.inputs = [
             ImageInput(),
             NumberInput("Radius", controls_step=1),
-            NumberInput("Color Sigma", controls_step=1, default=75),
-            NumberInput("Space Sigma", controls_step=1, default=75),
+            NumberInput("Color Sigma", controls_step=1, default=75, maximum=100),
+            NumberInput("Space Sigma", controls_step=1, default=75, maximum=100),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -46,15 +46,15 @@ class BlurNode(NodeBase):
             rgb = cv2.bilateralFilter(
                 rgb,
                 radius,
-                sigma_color,
-                sigma_space,
+                sigma_color / 100,
+                sigma_space / 100,
                 borderType=cv2.BORDER_REFLECT_101,
             )
             alpha = cv2.bilateralFilter(
                 alpha,
                 radius,
-                sigma_color,
-                sigma_space,
+                sigma_color / 100,
+                sigma_space / 100,
                 borderType=cv2.BORDER_REFLECT_101,
             )
             result = np.dstack((rgb, alpha))
