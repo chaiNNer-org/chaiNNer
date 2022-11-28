@@ -124,11 +124,11 @@ interface Global {
         inputId: InputId,
         inputSize: InputSize | undefined
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
-    removeNodeById: (id: string) => void;
+    removeNodesById: (ids: string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: string[]) => void;
     toggleNodeLock: (id: string) => void;
-    clearNode: (id: string) => void;
+    clearNodes: (ids: string[]) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
     updateIteratorBounds: (
         id: string,
@@ -697,14 +697,16 @@ export const GlobalProvider = memo(
             [firstLoad, sendAlert, setFirstLoad, startupTemplate]
         );
 
-        const removeNodeById = useCallback(
-            (id: string) => {
-                const node = getNode(id);
-                if (!node || node.type === 'iteratorHelper') return;
+        const removeNodesById = useCallback(
+            (ids: string[]) => {
+                const filteredIds = ids.filter((id) => {
+                    const node = getNode(id);
+                    return !(!node || node.type === 'iteratorHelper');
+                });
                 const toRemove = new Set([
-                    id,
+                    ...filteredIds,
                     ...getNodes()
-                        .filter((n) => n.parentNode === id)
+                        .filter((n) => n.parentNode && filteredIds.includes(n.parentNode))
                         .map((n) => n.id),
                 ]);
                 changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
@@ -1108,16 +1110,18 @@ export const GlobalProvider = memo(
             [getNodes, changeNodes, changeEdges]
         );
 
-        const clearNode = useCallback(
-            (id: string) => {
-                modifyNode(id, (old) => {
-                    const newNode = copyNode(old);
-                    newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
-                    return newNode;
+        const clearNodes = useCallback(
+            (ids: string[]) => {
+                ids.forEach((id) => {
+                    modifyNode(id, (old) => {
+                        const newNode = copyNode(old);
+                        newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
+                        return newNode;
+                    });
+                    outputDataActions.delete(id);
+                    addInputDataChanges();
+                    backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
                 });
-                outputDataActions.delete(id);
-                addInputDataChanges();
-                backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
             },
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
         );
@@ -1306,8 +1310,8 @@ export const GlobalProvider = memo(
             setNodeInputValue,
             useInputSize,
             toggleNodeLock,
-            clearNode,
-            removeNodeById,
+            clearNodes,
+            removeNodesById,
             removeEdgeById,
             duplicateNodes,
             updateIteratorBounds,
