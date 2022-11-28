@@ -96,7 +96,7 @@ class LargeImageOutput(ImageOutput):
         img = value
         h, w, c = get_h_w_c(img)
 
-        base64_img = preview_encode(img, 512)
+        base64_img = preview_encode(img, 2048)
 
         return {
             "image": base64_img,
