@@ -705,6 +705,7 @@ class RestoreFormer(nn.Module):
 
         self.supports_fp16 = False
         self.supports_bf16 = True
+        self.min_size_restriction = 16
 
         self.encoder = MultiHeadEncoder(
             ch=ch,

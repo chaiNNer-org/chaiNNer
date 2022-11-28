@@ -215,6 +215,7 @@ class GFPGANv1Clean(nn.Module):
 
         self.supports_fp16 = False
         self.supports_bf16 = True
+        self.min_size_restriction = 512
 
         self.input_is_latent = input_is_latent
         self.different_w = different_w

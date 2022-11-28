@@ -47,6 +47,7 @@ class SRVGGNetCompact(nn.Module):
 
         self.supports_fp16 = True
         self.supports_bfp16 = True
+        self.min_size_restriction = None
 
         self.body = nn.ModuleList()
         # the first conv

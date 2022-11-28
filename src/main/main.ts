@@ -17,7 +17,7 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
 import { getArguments } from './arguments';
-import { getIntegratedFfmpeg } from './ffmpeg/ffmpeg';
+import { getIntegratedFfmpeg, hasSystemFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { checkPythonPaths } from './python/checkPythonPaths';
@@ -116,7 +116,7 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
-            properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+            properties: ['openDirectory', 'createDirectory'],
         })
     );
 
@@ -215,8 +215,16 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     let pythonInfo: PythonInfo;
 
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
-    const systemPythonLocation = localStorage.getItem('system-python-location');
-    const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+    let systemPythonLocation = localStorage.getItem('system-python-location');
+    let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+
+    if (systemPythonLocation) {
+        systemPythonLocation = path.normalize(systemPythonLocation);
+    }
+
+    if (integratedPythonFolderPath) {
+        integratedPythonFolderPath = path.normalize(integratedPythonFolderPath);
+    }
 
     if (useSystemPython) {
         try {
@@ -324,18 +332,22 @@ const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
         splashWindow.hide();
         const messageBoxOptions = {
-            type: 'error',
+            type: 'warning',
             title: 'Unable to install integrated Ffmpeg',
-            buttons: ['Exit'],
-            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+            buttons: ['Ok'],
+            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
         };
         await dialog.showMessageBox(messageBoxOptions);
-        app.exit(1);
-        throw new Error();
+
+        if (await hasSystemFfmpeg()) {
+            ffmpegInfo = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
+        } else {
+            ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
+        }
     }
 
-    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg}`);
-    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe}`);
+    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
+    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
 
     ipcMain.handle('get-ffmpeg', () => ffmpegInfo);
     return ffmpegInfo;

@@ -451,7 +451,7 @@ const PythonSettings = memo(() => {
                         />
                         <SettingsItem
                             description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
-                            title="System Python location"
+                            title="System Python location (optional)"
                         >
                             <HStack>
                                 <Tooltip
