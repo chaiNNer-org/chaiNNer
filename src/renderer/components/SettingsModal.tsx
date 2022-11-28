@@ -600,25 +600,19 @@ const PythonSettings = memo(() => {
                                     onClick={() => {
                                         ipcRenderer
                                             .invoke('get-appdata')
-                                            .then((appDataPath: string) => {
+                                            .then(async (appDataPath: string) => {
                                                 const onnxTensorRtCacheLocation =
                                                     getOnnxTensorRtCacheLocation(appDataPath);
-                                                readdir(onnxTensorRtCacheLocation)
-                                                    .then((files) => {
-                                                        for (const file of files) {
-                                                            unlink(
-                                                                path.join(
-                                                                    onnxTensorRtCacheLocation,
-                                                                    file
-                                                                )
-                                                            ).catch((error) => {
-                                                                log.error(error);
-                                                            });
-                                                        }
-                                                    })
-                                                    .catch((err) => {
-                                                        log.error(err);
+                                                const files = await readdir(
+                                                    onnxTensorRtCacheLocation
+                                                );
+                                                for (const file of files) {
+                                                    unlink(
+                                                        path.join(onnxTensorRtCacheLocation, file)
+                                                    ).catch((error) => {
+                                                        log.error(error);
                                                     });
+                                                }
                                             })
                                             .catch((err) => {
                                                 log.error(err);
