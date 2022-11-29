@@ -812,7 +812,12 @@ export const GlobalProvider = memo(
         );
 
         const isValidConnection = useCallback(
-            ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
+            ({
+                target,
+                targetHandle,
+                source,
+                sourceHandle,
+            }: Readonly<Connection>): [boolean, string] => {
                 if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                     return [false, 'Invalid connection data.'];
                 }
