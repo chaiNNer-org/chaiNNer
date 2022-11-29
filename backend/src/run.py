@@ -19,7 +19,12 @@ from sanic.response import json
 from sanic_cors import CORS
 
 from nodes.node_factory import NodeFactory
-from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+from nodes.utils.exec_options import (
+    set_execution_options,
+    ExecutionOptions,
+    parse_execution_options,
+    JsonExecutionOptions,
+)
 from nodes.nodes.builtin_categories import category_order
 
 from base_types import NodeId, InputId, OutputId
@@ -192,14 +197,7 @@ async def nodes(_):
 
 class RunRequest(TypedDict):
     data: List[JsonNode]
-    isCpu: bool
-    isFp16: bool
-    pytorchGPU: int
-    ncnnGPU: int
-    onnxGPU: int
-    onnxExecutionProvider: str
-    onnxShouldTensorRtCache: bool
-    onnxTensorRtCachePath: str
+    options: JsonExecutionOptions
 
 
 @app.route("/run", methods=["POST"])
@@ -222,16 +220,7 @@ async def run(request: Request):
         optimize(chain)
 
         logger.info("Running new executor...")
-        exec_opts = ExecutionOptions(
-            device="cpu" if full_data["isCpu"] else "gpu",
-            fp16=full_data["isFp16"],
-            pytorch_gpu_index=full_data["pytorchGPU"],
-            ncnn_gpu_index=full_data["ncnnGPU"],
-            onnx_gpu_index=full_data["onnxGPU"],
-            onnx_execution_provider=full_data["onnxExecutionProvider"],
-            onnx_should_tensorrt_cache=full_data["onnxShouldTensorRtCache"],
-            onnx_tensorrt_cache_path=full_data["onnxTensorRtCachePath"],
-        )
+        exec_opts = parse_execution_options(full_data["options"])
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
         executor = Executor(
@@ -278,15 +267,8 @@ async def run(request: Request):
 class RunIndividualRequest(TypedDict):
     id: NodeId
     inputs: List[Any]
-    isCpu: bool
-    isFp16: bool
-    pytorchGPU: int
-    ncnnGPU: int
-    onnxGPU: int
-    onnxExecutionProvider: str
-    onnxShouldTensorRtCache: bool
-    onnxTensorRtCachePath: str
     schemaId: str
+    options: JsonExecutionOptions
 
 
 @app.route("/run/individual", methods=["POST"])
@@ -298,16 +280,7 @@ async def run_individual(request: Request):
         if ctx.cache.get(full_data["id"], None) is not None:
             del ctx.cache[full_data["id"]]
         logger.debug(full_data)
-        exec_opts = ExecutionOptions(
-            device="cpu" if full_data["isCpu"] else "gpu",
-            fp16=full_data["isFp16"],
-            pytorch_gpu_index=full_data["pytorchGPU"],
-            ncnn_gpu_index=full_data["ncnnGPU"],
-            onnx_gpu_index=full_data["onnxGPU"],
-            onnx_execution_provider=full_data["onnxExecutionProvider"],
-            onnx_should_tensorrt_cache=full_data["onnxShouldTensorRtCache"],
-            onnx_tensorrt_cache_path=full_data["onnxTensorRtCachePath"],
-        )
+        exec_opts = parse_execution_options(full_data["options"])
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
