@@ -182,6 +182,8 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
             blockerId = undefined;
         }
     });
+
+    ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
 };
 
 const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
