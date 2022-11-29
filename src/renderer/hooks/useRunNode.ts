@@ -2,14 +2,12 @@ import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
-import { getOnnxTensorRtCacheLocation } from '../../common/env';
-import { ipcRenderer } from '../../common/safeIpc';
 import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
-import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
+import { useBackendExecutionOptions } from './useBackendExecutionOptions';
 
 /**
  * Runs the given node as soon as it should.
@@ -23,23 +21,8 @@ export const useRunNode = (
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const {
-        useIsCpu,
-        useIsFp16,
-        usePyTorchGPU,
-        useNcnnGPU,
-        useOnnxGPU,
-        useOnnxExecutionProvider,
-        useOnnxShouldTensorRtCache,
-    } = useContext(SettingsContext);
 
-    const [isCpu] = useIsCpu;
-    const [isFp16] = useIsFp16;
-    const [pytorchGPU] = usePyTorchGPU;
-    const [ncnnGPU] = useNcnnGPU;
-    const [onnxGPU] = useOnnxGPU;
-    const [onnxExecutionProvider] = useOnnxExecutionProvider;
-    const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    const options = useBackendExecutionOptions();
 
     const [reloadCounter, setReloadCounter] = useState(0);
     const reload = useCallback(() => setReloadCounter((c) => c + 1), []);
@@ -76,16 +59,7 @@ export const useRunNode = (
                     schemaId,
                     id,
                     inputs,
-                    isCpu,
-                    isFp16,
-                    pytorchGPU,
-                    ncnnGPU,
-                    onnxGPU,
-                    onnxExecutionProvider,
-                    onnxShouldTensorRtCache,
-                    onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(
-                        await ipcRenderer.invoke('get-appdata')
-                    ),
+                    options,
                 });
 
                 if (!result.success) {

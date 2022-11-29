@@ -1,4 +1,5 @@
 import os
+from typing import TypedDict
 from sanic.log import logger
 
 
@@ -84,3 +85,27 @@ def set_execution_options(value: ExecutionOptions):
     # pylint: disable=global-statement
     global __global_exec_options
     __global_exec_options = value
+
+
+class JsonExecutionOptions(TypedDict):
+    isCpu: bool
+    isFp16: bool
+    pytorchGPU: int
+    ncnnGPU: int
+    onnxGPU: int
+    onnxExecutionProvider: str
+    onnxShouldTensorRtCache: bool
+    onnxTensorRtCachePath: str
+
+
+def parse_execution_options(json: JsonExecutionOptions) -> ExecutionOptions:
+    return ExecutionOptions(
+        device="cpu" if json["isCpu"] else "gpu",
+        fp16=json["isFp16"],
+        pytorch_gpu_index=json["pytorchGPU"],
+        ncnn_gpu_index=json["ncnnGPU"],
+        onnx_gpu_index=json["onnxGPU"],
+        onnx_execution_provider=json["onnxExecutionProvider"],
+        onnx_should_tensorrt_cache=json["onnxShouldTensorRtCache"],
+        onnx_tensorrt_cache_path=json["onnxTensorRtCachePath"],
+    )
