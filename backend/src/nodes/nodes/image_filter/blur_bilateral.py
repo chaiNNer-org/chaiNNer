@@ -18,9 +18,9 @@ class BlurNode(NodeBase):
         self.description = "Apply surface/bilateral blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Radius", controls_step=1),
-            NumberInput("Color Sigma", controls_step=1, default=75, maximum=100),
-            NumberInput("Space Sigma", controls_step=1, default=75, maximum=100),
+            NumberInput("Diameter", controls_step=1),
+            NumberInput("Color Sigma", controls_step=1, default=75),
+            NumberInput("Space Sigma", controls_step=1, default=75),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -31,15 +31,15 @@ class BlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        radius: int,
+        diameter: int,
         sigma_color: int,
         sigma_space: int,
     ) -> np.ndarray:
 
-        if radius == 0:
+        if diameter == 0:
             return img
 
-        img = (img * 255.0).astype(np.uint8)
+        sigma_color_adjusted = sigma_color / 255
 
         _, _, c = get_h_w_c(img)
         if c == 4:
@@ -47,22 +47,24 @@ class BlurNode(NodeBase):
             alpha = img[:, :, 3]
             rgb = cv2.bilateralFilter(
                 rgb,
-                radius,
-                sigma_color,
+                diameter,
+                sigma_color_adjusted,
                 sigma_space,
                 borderType=cv2.BORDER_REFLECT_101,
             )
             alpha = cv2.bilateralFilter(
                 alpha,
-                radius,
-                sigma_color,
+                diameter,
+                sigma_color_adjusted,
                 sigma_space,
                 borderType=cv2.BORDER_REFLECT_101,
             )
-            result = np.dstack((rgb, alpha))
+            return np.dstack((rgb, alpha))
 
-        else:
-            result = cv2.bilateralFilter(
-                img, radius, sigma_color, sigma_space, borderType=cv2.BORDER_REFLECT_101
-            )
-        return np.clip(result.astype(np.float32) / 255, 0, 1)
+        return cv2.bilateralFilter(
+            img,
+            diameter,
+            sigma_color_adjusted,
+            sigma_space,
+            borderType=cv2.BORDER_REFLECT_101,
+        )
