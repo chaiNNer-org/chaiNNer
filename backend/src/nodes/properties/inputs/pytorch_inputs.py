@@ -49,7 +49,7 @@ class SrModelInput(ModelInput):
 
 class FaceModelInput(ModelInput):
     def __init__(
-        self, label: str = "Face SR Model", input_type: ExpressionJson = "PyTorchModel"
+        self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"
     ):
         super().__init__(
             label,
