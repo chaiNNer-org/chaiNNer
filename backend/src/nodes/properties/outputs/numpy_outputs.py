@@ -96,10 +96,18 @@ class LargeImageOutput(ImageOutput):
         img = value
         h, w, c = get_h_w_c(img)
 
-        base64_img = preview_encode(img, 2048)
+        # Encode for multiple scales. Use the preceding scale to save time encoding the smaller sizes.
+        base64_2048, np_2048 = preview_encode(img, 2048)
+        base64_1024, np_1024 = preview_encode(np_2048, 1024)
+        base64_512, np_512 = preview_encode(np_1024, 512)
+        base64_256, _ = preview_encode(np_512, 256)
+        del np_2048, np_1024, np_512
 
         return {
-            "image": base64_img,
+            "256": base64_256,
+            "512": base64_512,
+            "1024": base64_1024,
+            "2048": base64_2048,
             "height": h,
             "width": w,
             "channels": c,

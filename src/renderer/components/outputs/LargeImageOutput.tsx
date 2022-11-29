@@ -10,11 +10,21 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { OutputProps } from './props';
 
 interface LargeImageBroadcastData {
-    image: string;
+    '256': string;
+    '512': string;
+    '1024': string;
+    '2048': string;
     width: number;
     height: number;
     channels: number;
 }
+
+const pickImage = (last: LargeImageBroadcastData, zoom: number) => {
+    if (zoom < 1) return last['256'];
+    if (zoom < 2) return last['512'];
+    if (zoom < 4) return last['1024'];
+    return last['2048'];
+};
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
@@ -120,9 +130,12 @@ export const LargeImageOutput = memo(
                                     draggable={false}
                                     maxH="200px"
                                     maxW="200px"
-                                    src={last.image}
+                                    src={pickImage(last, zoom)}
                                     sx={{
-                                        imageRendering: zoom > 2 ? 'pixelated' : 'auto',
+                                        imageRendering:
+                                            zoom > 2 && !(last.height >= 1024 || last.width >= 1024)
+                                                ? 'pixelated'
+                                                : 'auto',
                                     }}
                                 />
                             </Center>
