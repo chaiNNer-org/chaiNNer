@@ -38,8 +38,7 @@ export interface BackendNodesResponse {
     categories: Category[];
     categoriesMissingNodes: string[];
 }
-export interface BackendRunRequest {
-    data: JsonNode[];
+export interface BackendExecutionOptions {
     isCpu: boolean;
     isFp16: boolean;
     pytorchGPU: number;
@@ -49,18 +48,15 @@ export interface BackendRunRequest {
     onnxShouldTensorRtCache: boolean;
     onnxTensorRtCachePath: string;
 }
+export interface BackendRunRequest {
+    data: JsonNode[];
+    options: BackendExecutionOptions;
+}
 export interface BackendRunIndividualRequest {
     id: string;
     inputs: (InputValue | null)[];
-    isCpu: boolean;
-    isFp16: boolean;
-    pytorchGPU: number;
-    ncnnGPU: number;
-    onnxGPU: number;
-    onnxExecutionProvider: string;
-    onnxShouldTensorRtCache: boolean;
-    onnxTensorRtCachePath: string;
     schemaId: SchemaId;
+    options: BackendExecutionOptions;
 }
 
 export type BackendResult<T> = BackendSuccess<T> | BackendError;
