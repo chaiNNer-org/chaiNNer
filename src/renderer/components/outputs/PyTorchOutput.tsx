@@ -103,14 +103,6 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {current.scale}x
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
                                     {getColorMode(current.inNc)}→{getColorMode(current.outNc)}
                                 </Tag>
                             </WrapItem>
