@@ -3,6 +3,7 @@ import { Menu, MenuItemConstructorOptions, app, dialog, shell } from 'electron';
 import os from 'os';
 import path from 'path';
 import { isMac } from '../common/env';
+import { links } from '../common/links';
 import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
 import { openSaveFile } from '../common/SaveFile';
 import { getCpuInfo, getGpuInfo } from './systemInfo';
@@ -228,7 +229,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                             buttons: ['Open Ko-Fi', 'Close'],
                         });
                         if (response.response === 0) {
-                            await shell.openExternal('https://ko-fi.com/jballentine');
+                            await shell.openExternal(links.kofi);
                         }
                     },
                 },
