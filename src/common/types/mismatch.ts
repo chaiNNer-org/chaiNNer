@@ -8,6 +8,7 @@ import {
     evaluate,
     isDisjointWith,
 } from '@chainner/navi';
+import { assertNever } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { prettyPrintType } from './pretty';
 import { IntNumberType, isImage } from './util';
@@ -61,24 +62,42 @@ export const generateAssignmentErrorTrace = (
     return { type: 'General', assigned, definition };
 };
 
+const shortTypeNames = (t: Type): Set<string> => {
+    switch (t.underlying) {
+        case 'any':
+        case 'number':
+        case 'string':
+            return new Set([t.underlying]);
+        case 'never':
+            return new Set();
+        case 'struct':
+            return new Set([t.name]);
+        case 'union':
+            return new Set(t.items.flatMap((i) => [...shortTypeNames(i)]));
+        default:
+            return assertNever(t);
+    }
+};
+
+const areSetsDisjoint = <T>(a: Iterable<T>, b: ReadonlySet<T>): boolean => {
+    for (const item of a) {
+        if (b.has(item)) return false;
+    }
+    return true;
+};
+
 const shortTypeComparison = (
     a: Type,
     b: Type,
     toString: (t: Type) => string
 ): [a: string, b: string] => {
-    if (a.type === 'struct') {
-        if (b.type === 'struct' && b.name !== a.name) {
-            return [a.name, b.name];
-        }
-        if (b.type === 'union' && b.items.every((i) => i.type !== 'struct' || i.name !== a.name)) {
-            return [a.name, toString(b)];
-        }
+    const aNames = shortTypeNames(a);
+    const bNames = shortTypeNames(b);
+
+    if (aNames.size > 0 && bNames.size > 0 && areSetsDisjoint(aNames, bNames)) {
+        return [[...aNames].join(' | '), [...bNames].join(' | ')];
     }
-    if (b.type === 'struct') {
-        if (a.type === 'union' && a.items.every((i) => i.type !== 'struct' || i.name !== b.name)) {
-            return [toString(a), b.name];
-        }
-    }
+
     return [toString(a), toString(b)];
 };
 
