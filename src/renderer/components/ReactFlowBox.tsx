@@ -335,16 +335,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     }
                     const { outputId } = parseSourceHandle(e.sourceHandle);
                     const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
-                    if (!edgeType) {
-                        return EMPTY_ARRAY;
-                    }
-
-                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    if (firstPossibleInput === undefined) {
-                        return EMPTY_ARRAY;
-                    }
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
-                    if (firstPossibleOutput === undefined) {
+                    if (
+                        !edgeType ||
+                        getFirstPossibleInput(fn, edgeType) === undefined ||
+                        getFirstPossibleOutput(fn, edgeType) === undefined
+                    ) {
                         return EMPTY_ARRAY;
                     }
 
@@ -368,10 +363,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
                     return { e, mouseDist } as const;
                 })
-                .sort((a, b) => {
-                    // Sort the edges by their distance from the mouse position
-                    return a.mouseDist - b.mouseDist;
-                })
+                // Sort the edges by their distance from the mouse position
+                .sort((a, b) => a.mouseDist - b.mouseDist)
                 .map(({ e }) => e);
 
             // Early exit if there is not an intersecting edge

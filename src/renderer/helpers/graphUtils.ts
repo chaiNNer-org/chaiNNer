@@ -1,5 +1,6 @@
 import { Bezier } from 'bezier-js';
 import { Position } from 'reactflow';
+import { assertNever } from '../../common/util';
 
 export interface Point {
     readonly x: number;
@@ -116,7 +117,7 @@ const getControlWithCurvature = ({
         case Position.Bottom:
             return [x1, y1 + calculateControlOffset(y2 - y1, c)];
         default:
-            return [0, 0];
+            return assertNever(pos);
     }
 };
 
