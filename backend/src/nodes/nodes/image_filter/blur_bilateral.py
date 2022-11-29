@@ -39,6 +39,8 @@ class BlurNode(NodeBase):
         if radius == 0:
             return img
 
+        img = (img * 255.0).astype(np.uint8)
+
         _, _, c = get_h_w_c(img)
         if c == 4:
             rgb = img[:, :, :3]
@@ -46,25 +48,21 @@ class BlurNode(NodeBase):
             rgb = cv2.bilateralFilter(
                 rgb,
                 radius,
-                sigma_color / 100,
-                sigma_space / 100,
+                sigma_color,
+                sigma_space,
                 borderType=cv2.BORDER_REFLECT_101,
             )
             alpha = cv2.bilateralFilter(
                 alpha,
                 radius,
-                sigma_color / 100,
-                sigma_space / 100,
+                sigma_color,
+                sigma_space,
                 borderType=cv2.BORDER_REFLECT_101,
             )
             result = np.dstack((rgb, alpha))
-            return np.clip(result, 0, 1)
 
-        # Bilateral filter with reflected padding
-        return np.clip(
-            cv2.bilateralFilter(
+        else:
+            result = cv2.bilateralFilter(
                 img, radius, sigma_color, sigma_space, borderType=cv2.BORDER_REFLECT_101
-            ),
-            0,
-            1,
-        )
+            )
+        return np.clip(result.astype(np.float32) / 255, 0, 1)
