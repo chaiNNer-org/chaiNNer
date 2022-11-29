@@ -10,7 +10,7 @@ export const KoFiButton = memo(() => {
             closeOnClick
             closeOnMouseDown
             borderRadius={8}
-            label="Support chaiNNer on Ko-Fi"
+            label="Support chaiNNer on Ko-fi"
             px={2}
             py={1}
         >
@@ -21,7 +21,7 @@ export const KoFiButton = memo(() => {
                 variant="outline"
                 onClick={() => {
                     ipcRenderer.invoke('open-url', 'https://ko-fi.com/jballentine').catch(() => {
-                        log.error('Failed to open ko-fi url');
+                        log.error('Failed to open Ko-fi url');
                     });
                 }}
             >
