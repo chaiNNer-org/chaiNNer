@@ -1,66 +1,73 @@
-import { Position, XYPosition } from 'reactflow';
+import { Bezier } from 'bezier-js';
+import { Position } from 'reactflow';
 
-export interface Line {
-    sourceX: number;
-    sourceY: number;
-    targetX: number;
-    targetY: number;
+export interface Point {
+    readonly x: number;
+    readonly y: number;
 }
 
-// From https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
-// Modified by me
-// returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
-export const intersects = (a: Line, b: Line) => {
-    const det =
-        (a.targetX - a.sourceX) * (b.targetY - b.sourceY) -
-        (b.targetX - b.sourceX) * (a.targetY - a.sourceY);
-    if (det === 0) {
-        return false;
-    }
-    const lambda =
-        ((b.targetY - b.sourceY) * (b.targetX - a.sourceX) +
-            (b.sourceX - b.targetX) * (b.targetY - a.sourceY)) /
-        det;
-    const gamma =
-        ((a.sourceY - a.targetY) * (b.targetX - a.sourceX) +
-            (a.targetX - a.sourceX) * (b.targetY - a.sourceY)) /
-        det;
-    return lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1;
-};
+export const pointDist = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
-// https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-// Modified by me
-export const pDistance = (point: XYPosition, line: Line) => {
-    const A = point.x - line.sourceX;
-    const B = point.y - line.sourceY;
-    const C = line.targetX - line.sourceX;
-    const D = line.targetY - line.sourceY;
+export class AABB {
+    readonly min: Point;
 
-    const dot = A * C + B * D;
-    const lenSq = C * C + D * D;
-    let param = -1;
-    if (lenSq !== 0)
-        // in case of 0 length line
-        param = dot / lenSq;
+    readonly max: Point;
 
-    let xx;
-    let yy;
-
-    if (param < 0) {
-        xx = line.sourceX;
-        yy = line.sourceY;
-    } else if (param > 1) {
-        xx = line.targetX;
-        yy = line.targetY;
-    } else {
-        xx = line.sourceX + param * C;
-        yy = line.sourceY + param * D;
+    private constructor(min: Point, max: Point) {
+        this.min = min;
+        this.max = max;
     }
 
-    const dx = point.x - xx;
-    const dy = point.y - yy;
-    return Math.sqrt(dx * dx + dy * dy);
-};
+    static fromPoints(...points: Point[]): AABB {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const { x, y } of points) {
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+        }
+
+        return new AABB({ x: minX, y: minY }, { x: maxX, y: maxY });
+    }
+
+    contains({ x, y }: Point): boolean {
+        return this.min.x <= x && x <= this.max.x && this.min.y <= y && y <= this.max.y;
+    }
+
+    intersects(other: AABB): boolean {
+        const minX = Math.max(this.min.x, other.min.x);
+        const minY = Math.max(this.min.y, other.min.y);
+        const maxX = Math.min(this.max.x, other.max.x);
+        const maxY = Math.min(this.max.y, other.max.y);
+        return minX <= maxX && minY <= maxY;
+    }
+
+    intersectsCurve(curve: Bezier): boolean {
+        // check if we contain either end point
+        if (
+            this.contains(curve.points[0]) ||
+            this.contains(curve.points[curve.points.length - 1])
+        ) {
+            return true;
+        }
+
+        // check the side of the AABB
+        const TL: Point = this.min;
+        const TR: Point = { x: this.max.x, y: this.min.y };
+        const BL: Point = { x: this.min.x, y: this.max.y };
+        const BR: Point = this.max;
+
+        return (
+            curve.lineIntersects({ p1: TL, p2: TR }).length > 0 ||
+            curve.lineIntersects({ p1: TR, p2: BR }).length > 0 ||
+            curve.lineIntersects({ p1: BR, p2: BL }).length > 0 ||
+            curve.lineIntersects({ p1: BL, p2: TL }).length > 0
+        );
+    }
+}
 
 // Modified from https://github.com/wbkd/react-flow/blob/674127a3eb6d2a70ca5894dffa7c5bad9d9769d5/packages/core/src/components/Edges/BezierEdge.tsx
 
