@@ -1,4 +1,4 @@
-import { Center, Text, VStack } from '@chakra-ui/react';
+import { Box, Center, Text, VStack } from '@chakra-ui/react';
 import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
@@ -79,7 +79,10 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                 opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
                 spacing={0}
             >
-                <VStack w="full">
+                <VStack
+                    spacing={1}
+                    w="full"
+                >
                     <IteratorNodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
@@ -88,19 +91,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         percentComplete={percentComplete}
                         selected={selected}
                     />
-                    {inputs.length && (
-                        <Center>
-                            <Text
-                                fontSize="xs"
-                                m={0}
-                                mb={-1}
-                                mt={-1}
-                                p={0}
-                            >
-                                INPUTS
-                            </Text>
-                        </Center>
-                    )}
+                    {inputs.length && <Box />}
                     <NodeInputs
                         id={id}
                         inputData={inputData}
@@ -113,7 +104,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                             m={0}
                             mb={-1}
                             mt={-1}
-                            p={0}
+                            p={1}
                         >
                             ITERATION
                         </Text>
@@ -131,19 +122,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                             minWidth={minWidth}
                         />
                     </Center>
-                    {outputs.length > 0 && (
-                        <Center>
-                            <Text
-                                fontSize="xs"
-                                m={0}
-                                mb={-1}
-                                mt={-1}
-                                p={0}
-                            >
-                                OUTPUTS
-                            </Text>
-                        </Center>
-                    )}
+                    {outputs.length > 0 && <Box />}
                     <NodeOutputs
                         id={id}
                         outputs={outputs}

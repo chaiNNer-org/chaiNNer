@@ -154,7 +154,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
                 spacing={0}
             >
-                <VStack w="full">
+                <VStack
+                    spacing={1}
+                    w="full"
+                >
                     <NodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
