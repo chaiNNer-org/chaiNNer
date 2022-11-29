@@ -43,6 +43,7 @@ import {
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
+import { VALID, Validity, invalid } from '../../common/Validity';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
@@ -96,7 +97,7 @@ interface GlobalVolatile {
     edgeChanges: ChangeCounter;
     typeState: TypeState;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
-    isValidConnection: (connection: Readonly<Connection>) => [boolean, string];
+    isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | undefined;
@@ -817,18 +818,13 @@ export const GlobalProvider = memo(
         );
 
         const isValidConnection = useCallback(
-            ({
-                target,
-                targetHandle,
-                source,
-                sourceHandle,
-            }: Readonly<Connection>): [boolean, string] => {
+            ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>): Validity => {
                 if (source === target) {
-                    return [false, 'Cannot connect a node to itself.'];
+                    return invalid('Cannot connect a node to itself.');
                 }
 
                 if (!source || !target || !sourceHandle || !targetHandle) {
-                    return [false, 'Invalid connection data.'];
+                    return invalid('Invalid connection data.');
                 }
                 const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
                 const targetHandleId = parseTargetHandle(targetHandle).inputId;
@@ -837,13 +833,13 @@ export const GlobalProvider = memo(
                 const targetFn = typeState.functions.get(target);
 
                 if (!sourceFn || !targetFn) {
-                    return [false, 'Invalid connection data.'];
+                    return invalid('Invalid connection data.');
                 }
 
                 const sourceNode = getNode(source);
                 const targetNode = getNode(target);
                 if (!sourceNode || !targetNode) {
-                    return [false, 'Invalid node data.'];
+                    return invalid('Invalid node data.');
                 }
 
                 const outputType = sourceFn.outputs.get(sourceHandleId);
@@ -854,21 +850,19 @@ export const GlobalProvider = memo(
 
                     const error = simpleError(outputType, inputType);
                     if (error) {
-                        return [
-                            false,
-                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`,
-                        ];
+                        return invalid(
+                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
+                        );
                     }
 
                     const traceTree = generateAssignmentErrorTrace(outputType, inputType);
                     if (!traceTree) throw new Error('Cannot determine assignment error');
                     const trace = printErrorTrace(traceTree);
-                    return [
-                        false,
+                    return invalid(
                         `Input ${
                             input.label
-                        } cannot be connected with an incompatible value. ${trace.join(' ')}`,
-                    ];
+                        } cannot be connected with an incompatible value. ${trace.join(' ')}`
+                    );
                 }
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
@@ -884,15 +878,16 @@ export const GlobalProvider = memo(
                     });
                 };
                 const isLoop = checkTargetChildren(targetNode);
-                if (isLoop) return [false, 'Connection would create an infinite loop.'];
+                if (isLoop) return invalid('Connection would create an infinite loop.');
 
                 const iteratorLock =
                     !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
-                if (!iteratorLock)
-                    return [false, 'Cannot create a connection to/from an iterator in this way.'];
+                if (!iteratorLock) {
+                    return invalid('Cannot create a connection to/from an iterator in this way.');
+                }
 
-                return [true, ''];
+                return VALID;
             },
             [typeState.functions, getNode, getNodes, getEdges, schemata]
         );

@@ -1,12 +1,7 @@
 import { Input, InputData, InputId, NodeSchema } from './common-types';
 import { FunctionInstance } from './types/function';
 import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from './types/mismatch';
-
-export type Validity =
-    | { readonly isValid: true }
-    | { readonly isValid: false; readonly reason: string };
-
-export const VALID: Validity = { isValid: true };
+import { VALID, Validity, invalid } from './Validity';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
@@ -39,10 +34,7 @@ export const checkNodeValidity = ({
     });
 
     if (missingInputs.length) {
-        return {
-            isValid: false,
-            reason: formatMissingInputs(missingInputs),
-        };
+        return invalid(formatMissingInputs(missingInputs));
     }
 
     if (functionInstance) {
@@ -51,10 +43,9 @@ export const checkNodeValidity = ({
 
             const error = simpleError(assignedType, inputType);
             if (error) {
-                return {
-                    isValid: false,
-                    reason: `Input ${input.label} requires ${error.definition} but was connected with ${error.assigned}.`,
-                };
+                return invalid(
+                    `Input ${input.label} requires ${error.definition} but was connected with ${error.assigned}.`
+                );
             }
         }
 
@@ -64,22 +55,18 @@ export const checkNodeValidity = ({
             const traceTree = generateAssignmentErrorTrace(assignedType, inputType);
             if (!traceTree) throw new Error('Cannot determine assignment error');
             const trace = printErrorTrace(traceTree);
-            return {
-                isValid: false,
-                reason: `Input ${
-                    input.label
-                } was connected with an incompatible value. ${trace.join(' ')}`,
-            };
+            return invalid(
+                `Input ${input.label} was connected with an incompatible value. ${trace.join(' ')}`
+            );
         }
 
         // eslint-disable-next-line no-unreachable-loop
         for (const { outputId } of functionInstance.outputErrors) {
             const output = schema.outputs.find((o) => o.id === outputId)!;
 
-            return {
-                isValid: false,
-                reason: `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`,
-            };
+            return invalid(
+                `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`
+            );
         }
     }
 

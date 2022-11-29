@@ -1,20 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
-import {
-    VALID,
-    Validity,
-    checkNodeValidity,
-    checkRequiredInputs,
-} from '../../common/checkNodeValidity';
+import { checkNodeValidity, checkRequiredInputs } from '../../common/checkNodeValidity';
 import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
+import { VALID, Validity, invalid } from '../../common/Validity';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { getConnectedInputs } from '../helpers/connectedInputs';
 
-const STARTING_VALIDITY: Validity = {
-    isValid: false,
-    reason: 'Validating nodes...',
-};
+const STARTING_VALIDITY: Validity = invalid('Validating nodes...');
 
 export interface UseValidity {
     validity: Validity;
