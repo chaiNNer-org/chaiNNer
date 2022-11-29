@@ -1,6 +1,6 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
-import React, { memo, useMemo } from 'react';
+import { Box, Center, HStack, Text, Tooltip, chakra } from '@chakra-ui/react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
@@ -13,22 +13,42 @@ import { TypeTag } from '../TypeTag';
 
 interface LeftHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
+    showHandle: boolean;
+    showHandleReason: string;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
 const LeftHandle = memo(
-    ({ children, isValidConnection, ...props }: React.PropsWithChildren<LeftHandleProps>) => (
-        <Handle
-            isConnectable
-            className="input-handle"
-            isValidConnection={isValidConnection}
-            position={Position.Left}
-            type="target"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+    ({
+        children,
+        isValidConnection,
+        showHandle,
+        showHandleReason,
+        ...props
+    }: React.PropsWithChildren<LeftHandleProps>) => (
+        <Tooltip
+            hasArrow
+            borderRadius={8}
+            display={showHandle ? 'none' : 'block'}
+            label={`Unable to connect: ${showHandleReason}`}
+            mt={1}
+            opacity={showHandle ? 0 : 1}
+            openDelay={500}
+            px={2}
+            py={1}
         >
-            {children}
-        </Handle>
+            <Handle
+                isConnectable
+                className="input-handle"
+                isValidConnection={isValidConnection}
+                position={Position.Left}
+                type="target"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {children}
+            </Handle>
+        </Tooltip>
     )
 );
 
@@ -57,13 +77,23 @@ export const HandleWrapper = memo(
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
 
-        const showHandle = useMemo(() => {
+        const isValidConnectionForRf = useCallback(
+            (connection: Readonly<Connection>): boolean => {
+                return isValidConnection(connection)[0];
+            },
+            [isValidConnection]
+        );
+
+        const [showHandle, showHandleReason] = useMemo(() => {
             // no active connection
-            if (!connectingFrom) return true;
+            if (!connectingFrom) return [true, ''];
 
             // We only want to display the connectingFrom target handle
             if (connectingFrom.handleType === 'target')
-                return connectingFrom.handleId === targetHandle;
+                return [
+                    connectingFrom.handleId === targetHandle,
+                    'Cannot create an input-to-input connection',
+                ];
 
             // Show same types
             return isValidConnection({
@@ -138,7 +168,9 @@ export const HandleWrapper = memo(
                         as={LeftHandle}
                         className="input-handle"
                         id={targetHandle}
-                        isValidConnection={isValidConnection}
+                        isValidConnection={isValidConnectionForRf}
+                        showHandle={showHandle}
+                        showHandleReason={showHandleReason}
                         sx={{
                             width: '16px',
                             height: '16px',
