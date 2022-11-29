@@ -2,6 +2,7 @@ import { IconButton, Tooltip } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo } from 'react';
 import { SiKofi } from 'react-icons/si';
+import { links } from '../../../common/links';
 import { ipcRenderer } from '../../../common/safeIpc';
 
 export const KoFiButton = memo(() => {
@@ -20,7 +21,7 @@ export const KoFiButton = memo(() => {
                 size="md"
                 variant="outline"
                 onClick={() => {
-                    ipcRenderer.invoke('open-url', 'https://ko-fi.com/T6T46KTTW').catch(() => {
+                    ipcRenderer.invoke('open-url', links.kofi).catch(() => {
                         log.error('Failed to open Ko-fi url');
                     });
                 }}
