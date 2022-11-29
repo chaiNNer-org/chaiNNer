@@ -6,7 +6,7 @@ import numpy as np
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput
+from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
 
@@ -18,9 +18,23 @@ class BlurNode(NodeBase):
         self.description = "Apply surface/bilateral blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Diameter", controls_step=1),
-            NumberInput("Color Sigma", controls_step=1, default=75),
-            NumberInput("Space Sigma", controls_step=1, default=75),
+            NumberInput("Diameter", controls_step=1, default=12),
+            SliderInput(
+                "Color Sigma",
+                controls_step=1,
+                default=25,
+                scale="log",
+                minimum=0,
+                maximum=1000,
+            ),
+            SliderInput(
+                "Space Sigma",
+                controls_step=1,
+                default=25,
+                scale="log",
+                minimum=0,
+                maximum=1000,
+            ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
