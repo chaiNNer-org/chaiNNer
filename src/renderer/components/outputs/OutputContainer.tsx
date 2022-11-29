@@ -6,6 +6,7 @@ import { Connection, Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
 import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
+import { VALID, Validity, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
@@ -22,8 +23,7 @@ interface OutputContainerProps {
 
 interface RightHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    showHandle: boolean;
-    showHandleReason: string;
+    validity: Validity;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -31,17 +31,20 @@ const RightHandle = memo(
     ({
         children,
         isValidConnection,
-        showHandle,
-        showHandleReason,
+        validity,
         ...props
     }: React.PropsWithChildren<RightHandleProps>) => (
         <Tooltip
             hasArrow
             borderRadius={8}
-            display={showHandle ? 'none' : 'block'}
-            label={<ReactMarkdown>{`Unable to connect: ${showHandleReason}`}</ReactMarkdown>}
+            display={validity.isValid ? 'none' : 'block'}
+            label={
+                validity.isValid ? undefined : (
+                    <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
+                )
+            }
             mt={1}
-            opacity={showHandle ? 0 : 1}
+            opacity={validity.isValid ? 0 : 1}
             openDelay={500}
             px={2}
             py={1}
@@ -92,23 +95,23 @@ export const OutputContainer = memo(
 
         const isValidConnectionForRf = useCallback(
             (connection: Readonly<Connection>): boolean => {
-                return isValidConnection(connection)[0];
+                return isValidConnection(connection).isValid;
             },
             [isValidConnection]
         );
 
-        const [showHandle, showHandleReason] = useMemo(() => {
+        const validity = useMemo(() => {
             // no active connection
-            if (!connectingFrom) return [true, ''];
+            if (!connectingFrom) return VALID;
 
             const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
 
             // We only want to display the connectingFrom source handle
-            if (connectingFrom.handleType === 'source')
-                return [
-                    connectingFrom.handleId === sourceHandle,
-                    'Cannot create an output-to-output connection',
-                ];
+            if (connectingFrom.handleType === 'source') {
+                return connectingFrom.handleId === sourceHandle
+                    ? VALID
+                    : invalid('Cannot create an output-to-output connection');
+            }
 
             return isValidConnection({
                 source: id,
@@ -145,14 +148,12 @@ export const OutputContainer = memo(
                                 width: '22px',
                                 height: '22px',
                                 marginRight: '-3px',
-                                opacity: showHandle ? 1 : 0,
+                                opacity: validity.isValid ? 1 : 0,
                             }}
                             as={RightHandle}
                             className="output-handle"
                             id={stringifySourceHandle({ nodeId: id, outputId })}
                             isValidConnection={isValidConnectionForRf}
-                            showHandle={showHandle}
-                            showHandleReason={showHandleReason}
                             sx={{
                                 width: '16px',
                                 height: '16px',
@@ -161,10 +162,11 @@ export const OutputContainer = memo(
                                 transition: '0.15s ease-in-out',
                                 background: isConnected ? connectedColor : handleColor,
                                 boxShadow: '-2px 2px 2px #00000014',
-                                filter: showHandle ? undefined : 'grayscale(100%)',
-                                opacity: showHandle ? 1 : 0.3,
+                                filter: validity.isValid ? undefined : 'grayscale(100%)',
+                                opacity: validity.isValid ? 1 : 0.3,
                                 position: 'relative',
                             }}
+                            validity={validity}
                             onContextMenu={noContextMenu}
                         />
                     </Center>

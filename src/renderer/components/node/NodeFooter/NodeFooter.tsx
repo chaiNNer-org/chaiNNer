@@ -1,7 +1,7 @@
 import { Center, SimpleGrid } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
-import { Validity } from '../../../../common/checkNodeValidity';
+import { Validity } from '../../../../common/Validity';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { UseDisabled } from '../../../hooks/useDisabled';
 import { DisableToggle } from './DisableToggle';
