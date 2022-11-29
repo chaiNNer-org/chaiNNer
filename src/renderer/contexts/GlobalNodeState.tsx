@@ -31,6 +31,11 @@ import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import {
+    generateAssignmentErrorTrace,
+    printErrorTrace,
+    simpleError,
+} from '../../common/types/mismatch';
+import {
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -838,16 +843,29 @@ export const GlobalProvider = memo(
                 }
 
                 const outputType = sourceFn.outputs.get(sourceHandleId);
-                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
+                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
+                    const schema = schemata.get(targetNode.data.schemaId);
+                    const input = schema.inputs.find((i) => i.id === targetHandleId)!;
+                    const inputType = targetFn.definition.inputDefaults.get(targetHandleId)!;
+
+                    const error = simpleError(outputType, inputType);
+                    if (error) {
+                        return [
+                            false,
+                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`,
+                        ];
+                    }
+
+                    const traceTree = generateAssignmentErrorTrace(outputType, inputType);
+                    if (!traceTree) throw new Error('Cannot determine assignment error');
+                    const trace = printErrorTrace(traceTree);
                     return [
                         false,
-                        `Cannot assign ${outputType.toString()} to ${
-                            functionDefinitions
-                                .get(targetNode.data.schemaId)
-                                ?.inputDefaults.get(targetHandleId)
-                                ?.toString() ?? 'unknown'
-                        }`,
+                        `Input ${
+                            input.label
+                        } cannot be connected with an incompatible value. ${trace.join(' ')}`,
                     ];
+                }
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
                     const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
@@ -872,7 +890,7 @@ export const GlobalProvider = memo(
 
                 return [true, ''];
             },
-            [typeState.functions, getNode, functionDefinitions, getNodes, getEdges]
+            [typeState.functions, getNode, getNodes, getEdges, schemata]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();

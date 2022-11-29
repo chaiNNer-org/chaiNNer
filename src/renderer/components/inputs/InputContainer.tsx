@@ -1,6 +1,7 @@
 import { Type } from '@chainner/navi';
 import { Box, Center, HStack, Text, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Connection, Handle, Node, Position, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
@@ -30,7 +31,7 @@ const LeftHandle = memo(
             hasArrow
             borderRadius={8}
             display={showHandle ? 'none' : 'block'}
-            label={`Unable to connect: ${showHandleReason}`}
+            label={<ReactMarkdown>{`Unable to connect: ${showHandleReason}`}</ReactMarkdown>}
             mt={1}
             opacity={showHandle ? 0 : 1}
             openDelay={500}
