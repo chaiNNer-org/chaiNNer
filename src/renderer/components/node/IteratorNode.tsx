@@ -47,7 +47,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon, category, name } = schema;
+    const { outputs, icon, category, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
@@ -91,7 +91,6 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         percentComplete={percentComplete}
                         selected={selected}
                     />
-                    {inputs.length && <Box />}
                     <NodeInputs
                         id={id}
                         inputData={inputData}

@@ -34,7 +34,7 @@ export const NodeBody = memo(
                     />
                 )}
 
-                {outputs.length > 0 && <Box />}
+                {!autoInput && outputs.length > 0 && <Box />}
                 <NodeOutputs
                     animated={animated}
                     id={id}
