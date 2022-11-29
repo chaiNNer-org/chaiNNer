@@ -823,7 +823,11 @@ export const GlobalProvider = memo(
                 source,
                 sourceHandle,
             }: Readonly<Connection>): [boolean, string] => {
-                if (source === target || !source || !target || !sourceHandle || !targetHandle) {
+                if (source === target) {
+                    return [false, 'Cannot connect a node to itself.'];
+                }
+
+                if (!source || !target || !sourceHandle || !targetHandle) {
                     return [false, 'Invalid connection data.'];
                 }
                 const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
