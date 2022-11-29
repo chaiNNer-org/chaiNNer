@@ -1,4 +1,7 @@
 {
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": false,
+  "files.trimTrailingWhitespace": true,
   "python.formatting.provider": "black",
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.words": [
