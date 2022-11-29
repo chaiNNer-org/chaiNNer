@@ -20,7 +20,7 @@ export const KoFiButton = memo(() => {
                 size="md"
                 variant="outline"
                 onClick={() => {
-                    ipcRenderer.invoke('open-url', 'https://ko-fi.com/jballentine').catch(() => {
+                    ipcRenderer.invoke('open-url', 'https://ko-fi.com/T6T46KTTW').catch(() => {
                         log.error('Failed to open Ko-fi url');
                     });
                 }}

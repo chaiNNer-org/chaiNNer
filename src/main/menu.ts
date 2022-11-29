@@ -228,7 +228,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                             buttons: ['Open Ko-Fi', 'Close'],
                         });
                         if (response.response === 0) {
-                            await shell.openExternal('https://ko-fi.com/jballentine');
+                            await shell.openExternal('https://ko-fi.com/T6T46KTTW');
                         }
                     },
                 },
