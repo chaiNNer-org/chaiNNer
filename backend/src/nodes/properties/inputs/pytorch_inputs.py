@@ -37,9 +37,7 @@ class SrModelInput(ModelInput):
     ):
         super().__init__(
             label,
-            intersect(
-                input_type, "PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
-            ),
+            intersect(input_type, "PyTorchSRModel"),
         )
 
     def enforce(self, value):
@@ -55,7 +53,7 @@ class FaceModelInput(ModelInput):
     ):
         super().__init__(
             label,
-            intersect(input_type, "PyTorchModel { arch: PyTorchModel::FaceArchs }"),
+            intersect(input_type, "PyTorchFaceModel"),
         )
 
     def enforce(self, value):

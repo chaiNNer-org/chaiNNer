@@ -67,6 +67,10 @@ const getTypeText = (type: Type): TagValue[] => {
             if (isNumericLiteral(scale)) {
                 tags.push({ kind: 'literal', value: `${scale.toString()}x` });
             }
+            const subType = getField(type, 'subType') ?? NeverType.instance;
+            if (isStringLiteral(subType)) {
+                tags.push({ kind: 'literal', value: subType.value });
+            }
         }
     }
     return tags;

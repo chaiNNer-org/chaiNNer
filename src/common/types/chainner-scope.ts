@@ -43,7 +43,14 @@ struct PyTorchModel {
     size: string,
     subType: string,
 }
-let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
+let PyTorchFaceModel = PyTorchModel {
+    arch: "GFPGAN" | "RestoreFormer",
+    subType: "Face SR"
+};
+let PyTorchSRModel = PyTorchModel {
+    arch: invStrSet(PyTorchFaceModel.arch),
+    subType: "SR"
+};
 
 struct NcnnBinFile;
 struct NcnnParamFile;
