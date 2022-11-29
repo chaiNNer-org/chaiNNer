@@ -48,8 +48,8 @@ class ConvertTorchToONNXNode(NodeBase):
         model = model.to(torch.device(exec_options.full_device))
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
-            "input": {0: "batch_size", 2: "width", 3: "height"},
-            "output": {0: "batch_size", 2: "width", 3: "height"},
+            "input": {0: "batch_size", 2: "height", 3: "width"},
+            "output": {0: "batch_size", 2: "height", 3: "width"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         dummy_input = dummy_input.to(torch.device(exec_options.full_device))
