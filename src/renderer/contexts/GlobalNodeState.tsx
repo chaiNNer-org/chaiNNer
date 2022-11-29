@@ -867,7 +867,7 @@ export const GlobalProvider = memo(
 
                 return [true, ''];
             },
-            [getNode, getNodes, getEdges, typeState]
+            [typeState.functions, getNode, functionDefinitions, getNodes, getEdges]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();
