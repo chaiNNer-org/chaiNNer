@@ -95,7 +95,6 @@ export const OutputContainer = memo(
                 <HStack h="full">
                     {children}
                     <Center
-                        id={stringifySourceHandle({ nodeId: id, outputId })}
                         position="absolute"
                         right="-6px"
                     >
