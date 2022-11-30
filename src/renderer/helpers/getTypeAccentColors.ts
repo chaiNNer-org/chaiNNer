@@ -24,9 +24,11 @@ const colorList = lazy(() => {
     ];
 });
 
-export const getTypeAccentColors = (inputType: Type): string[] => {
+const defaultColorList = [defaultColor] as const;
+
+export const getTypeAccentColors = (inputType: Type): readonly [string, ...string[]] => {
     if (inputType.type === 'any') {
-        return [defaultColor];
+        return defaultColorList;
     }
 
     const colors: string[] = [];
@@ -35,5 +37,5 @@ export const getTypeAccentColors = (inputType: Type): string[] => {
             colors.push(color);
         }
     }
-    return colors.length > 0 ? colors : [defaultColor];
+    return colors.length > 0 ? (colors as [string, ...string[]]) : defaultColorList;
 };
