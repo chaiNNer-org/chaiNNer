@@ -221,7 +221,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
     if (systemPythonLocation) {
-        systemPythonLocation = path.normalize(systemPythonLocation);
+        systemPythonLocation = path.normalize(String(JSON.parse(systemPythonLocation)));
     }
 
     if (integratedPythonFolderPath) {
