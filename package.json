@@ -223,7 +223,6 @@
     "systeminformation": "^5.11.16",
     "use-context-selector": "^1.4.0",
     "use-debounce": "^8.0.1",
-    "use-device-pixel-ratio": "^1.1.0",
     "use-http": "^1.0.26",
     "uuid": "^8.3.2",
     "yargs": "^17.5.1"

@@ -4,10 +4,10 @@ import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { useDevicePixelRatio } from 'use-device-pixel-ratio';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
 import { OutputProps } from './props';
 
 const IMAGE_PREVIEW_SIZE = 200;
@@ -24,9 +24,11 @@ interface LargeImageBroadcastData {
 }
 
 const pickImage = (last: LargeImageBroadcastData, realSize: number) => {
-    const found = last.previews.find((preview) => {
-        return preview.size >= realSize;
-    });
+    const found = last.previews
+        .sort((a, b) => a.size - b.size)
+        .find((preview) => {
+            return preview.size >= realSize;
+        });
     return found ?? last.previews[last.previews.length - 1];
 };
 
