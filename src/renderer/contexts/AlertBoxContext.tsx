@@ -67,7 +67,7 @@ const EMPTY_MESSAGE: InternalMessage = {
 
 const ALERT_FOCUS_ID = 'alert-focus-button';
 
-const pickAlertIcon = (type: AlertType) => {
+const pickAlertIcon = (type: AlertType): JSX.Element => {
     switch (type) {
         case AlertType.INFO:
             return (
