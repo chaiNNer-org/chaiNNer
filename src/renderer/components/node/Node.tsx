@@ -1,6 +1,7 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
 import { isStartingNode, parseSourceHandle } from '../../../common/util';
@@ -57,6 +58,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
+    const { getEdge } = useReactFlow();
+
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
@@ -78,12 +81,15 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const collidingNode = useContextSelector(GlobalVolatileContext, (c) => c.collidingNode);
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     let collidingAccentColor;
-    if (collidingNode && collidingNode.id === id && collidingEdge && collidingEdge.sourceHandle) {
-        const edgeType = typeState.functions
-            .get(collidingEdge.source)
-            ?.outputs.get(parseSourceHandle(collidingEdge.sourceHandle).outputId);
-        if (edgeType) {
-            [collidingAccentColor] = getTypeAccentColors(edgeType);
+    if (collidingNode && collidingNode === id && collidingEdge) {
+        const collidingEdgeActual = getEdge(collidingEdge);
+        if (collidingEdgeActual && collidingEdgeActual.sourceHandle) {
+            const edgeType = typeState.functions
+                .get(collidingEdgeActual.source)
+                ?.outputs.get(parseSourceHandle(collidingEdgeActual.sourceHandle).outputId);
+            if (edgeType) {
+                [collidingAccentColor] = getTypeAccentColors(edgeType);
+            }
         }
     }
 

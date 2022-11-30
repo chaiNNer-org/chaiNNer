@@ -101,8 +101,8 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | undefined;
-    collidingEdge: Edge<EdgeData> | undefined;
-    collidingNode: Node<NodeData> | undefined;
+    collidingEdge: string | undefined;
+    collidingNode: string | undefined;
     isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
@@ -146,8 +146,8 @@ interface Global {
     setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: (value: string | undefined) => void;
-    setCollidingEdge: (value: Edge<EdgeData> | undefined) => void;
-    setCollidingNode: (value: Node<NodeData> | undefined) => void;
+    setCollidingEdge: (value: string | undefined) => void;
+    setCollidingNode: (value: string | undefined) => void;
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
@@ -342,8 +342,8 @@ export const GlobalProvider = memo(
             setHoveredNodeImpl(value);
         }, []);
 
-        const [collidingEdge, setCollidingEdge] = useState<Edge<EdgeData> | undefined>();
-        const [collidingNode, setCollidingNode] = useState<Node<NodeData> | undefined>();
+        const [collidingEdge, setCollidingEdge] = useState<string | undefined>();
+        const [collidingNode, setCollidingNode] = useState<string | undefined>();
 
         const [lastSavedChanges, setLastSavedChanges] = useState<
             readonly [nodeChanges: number, edgeChanges: number]

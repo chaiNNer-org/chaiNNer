@@ -86,7 +86,7 @@ export const CustomEdge = memo(
 
         const isColliding = useContextSelector(
             GlobalVolatileContext,
-            (c) => c.collidingEdge?.id === id
+            (c) => c.collidingEdge === id
         );
 
         const classModifier = `${isHovered ? 'hovered' : ''} ${

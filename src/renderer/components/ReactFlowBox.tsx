@@ -453,8 +453,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     true
                 );
                 if (collisionResp?.status === 'success') {
-                    setCollidingEdge(collisionResp.intersectingEdge);
-                    setCollidingNode(node);
+                    setCollidingEdge(collisionResp.intersectingEdge.id);
+                    setCollidingNode(node.id);
                 } else {
                     setCollidingEdge(undefined);
                     setCollidingNode(undefined);
@@ -490,8 +490,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 );
                 if (collisionResp?.status === 'success') {
                     collisionResp.performCombine();
-                    setCollidingEdge(collisionResp.intersectingEdge);
-                    setCollidingNode(node);
+                    setCollidingEdge(collisionResp.intersectingEdge.id);
+                    setCollidingNode(node.id);
                 } else {
                     setCollidingEdge(undefined);
                     setCollidingNode(undefined);
