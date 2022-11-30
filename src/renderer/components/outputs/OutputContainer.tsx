@@ -1,10 +1,12 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
-import React, { memo, useMemo } from 'react';
+import { Box, Center, HStack, Text, Tooltip, chakra } from '@chakra-ui/react';
+import React, { memo, useCallback, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Connection, Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
 import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
+import { VALID, Validity, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
@@ -21,22 +23,44 @@ interface OutputContainerProps {
 
 interface RightHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
+    validity: Validity;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
 const RightHandle = memo(
-    ({ children, isValidConnection, ...props }: React.PropsWithChildren<RightHandleProps>) => (
-        <Handle
-            isConnectable
-            className="output-handle"
-            isValidConnection={isValidConnection}
-            position={Position.Right}
-            type="source"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+    ({
+        children,
+        isValidConnection,
+        validity,
+        ...props
+    }: React.PropsWithChildren<RightHandleProps>) => (
+        <Tooltip
+            hasArrow
+            borderRadius={8}
+            display={validity.isValid ? 'none' : 'block'}
+            label={
+                validity.isValid ? undefined : (
+                    <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
+                )
+            }
+            mt={1}
+            opacity={validity.isValid ? 0 : 1}
+            openDelay={500}
+            px={2}
+            py={1}
         >
-            {children}
-        </Handle>
+            <Handle
+                isConnectable
+                className="output-handle"
+                isValidConnection={isValidConnection}
+                position={Position.Right}
+                type="source"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {children}
+            </Handle>
+        </Tooltip>
     )
 );
 
@@ -69,15 +93,25 @@ export const OutputContainer = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const showHandle = useMemo(() => {
+        const isValidConnectionForRf = useCallback(
+            (connection: Readonly<Connection>): boolean => {
+                return isValidConnection(connection).isValid;
+            },
+            [isValidConnection]
+        );
+
+        const validity = useMemo(() => {
             // no active connection
-            if (!connectingFrom) return true;
+            if (!connectingFrom) return VALID;
 
             const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
 
             // We only want to display the connectingFrom source handle
-            if (connectingFrom.handleType === 'source')
-                return connectingFrom.handleId === sourceHandle;
+            if (connectingFrom.handleType === 'source') {
+                return connectingFrom.handleId === sourceHandle
+                    ? VALID
+                    : invalid('Cannot create an output-to-output connection');
+            }
 
             return isValidConnection({
                 source: id,
@@ -114,12 +148,12 @@ export const OutputContainer = memo(
                                 width: '22px',
                                 height: '22px',
                                 marginRight: '-3px',
-                                opacity: showHandle ? 1 : 0,
+                                opacity: validity.isValid ? 1 : 0,
                             }}
                             as={RightHandle}
                             className="output-handle"
                             id={stringifySourceHandle({ nodeId: id, outputId })}
-                            isValidConnection={isValidConnection}
+                            isValidConnection={isValidConnectionForRf}
                             sx={{
                                 width: '16px',
                                 height: '16px',
@@ -128,10 +162,11 @@ export const OutputContainer = memo(
                                 transition: '0.15s ease-in-out',
                                 background: isConnected ? connectedColor : handleColor,
                                 boxShadow: '-2px 2px 2px #00000014',
-                                filter: showHandle ? undefined : 'grayscale(100%)',
-                                opacity: showHandle ? 1 : 0.3,
+                                filter: validity.isValid ? undefined : 'grayscale(100%)',
+                                opacity: validity.isValid ? 1 : 0.3,
                                 position: 'relative',
                             }}
+                            validity={validity}
                             onContextMenu={noContextMenu}
                         />
                     </Center>

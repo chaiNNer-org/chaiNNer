@@ -50,6 +50,7 @@ export interface InvokeChannels {
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
+    'open-url': ChannelInfo<void, [url: string]>;
 }
 
 export interface SendChannels {

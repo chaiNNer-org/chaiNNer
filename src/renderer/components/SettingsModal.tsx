@@ -413,7 +413,10 @@ const PythonSettings = memo(() => {
     }, [systemPythonLocation, lastDirectory, setSystemPythonLocation]);
 
     return (
-        <Tabs isFitted>
+        <Tabs
+            isFitted
+            px={0}
+        >
             <TabList>
                 <Tab>
                     <HStack cursor="pointer">
@@ -441,8 +444,8 @@ const PythonSettings = memo(() => {
                 </Tab>
             </TabList>
 
-            <TabPanels>
-                <TabPanel>
+            <TabPanels px={0}>
+                <TabPanel px={0}>
                     <VStack
                         divider={<StackDivider />}
                         w="full"
@@ -501,7 +504,7 @@ const PythonSettings = memo(() => {
                         </SettingsItem>
                     </VStack>
                 </TabPanel>
-                <TabPanel>
+                <TabPanel px={0}>
                     <VStack
                         divider={<StackDivider />}
                         w="full"
@@ -539,7 +542,7 @@ const PythonSettings = memo(() => {
                         />
                     </VStack>
                 </TabPanel>
-                <TabPanel>
+                <TabPanel px={0}>
                     <VStack
                         divider={<StackDivider />}
                         w="full"
@@ -559,7 +562,7 @@ const PythonSettings = memo(() => {
                         />
                     </VStack>
                 </TabPanel>
-                <TabPanel>
+                <TabPanel px={0}>
                     <VStack
                         divider={<StackDivider />}
                         w="full"
@@ -680,13 +683,14 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
         <Modal
             isCentered
             isOpen={isOpen}
+            // scrollBehavior="inside"
             returnFocusOnClose={false}
-            scrollBehavior="inside"
             size="xl"
             onClose={onClose}
         >
             <ModalOverlay />
             <ModalContent
+                bgColor="var(--chain-editor-bg)"
                 maxH="500px"
                 maxW="750px"
                 minH="500px"
@@ -694,7 +698,7 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
             >
                 <ModalHeader>Settings</ModalHeader>
                 <ModalCloseButton />
-                <ModalBody>
+                <ModalBody px={0}>
                     <Tabs isFitted>
                         <TabList>
                             <Tab>
@@ -722,7 +726,12 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                                 </HStack>
                             </Tab>
                         </TabList>
-                        <TabPanels>
+                        <TabPanels
+                            maxH="300px"
+                            minH="300px"
+                            overflowY="scroll"
+                            px={4}
+                        >
                             <TabPanel>
                                 <AppearanceSettings />
                             </TabPanel>

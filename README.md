@@ -4,6 +4,7 @@
 [![GitHub Total Downloads](https://img.shields.io/github/downloads/chaiNNer-org/chaiNNer/total)](https://github.com/chaiNNer-org/chaiNNer/releases)
 [![License](https://img.shields.io/github/license/chaiNNer-org/chaiNNer)](./LICENSE)
 [![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)](https://discord.gg/pzvAKPKyHM)
+[![ko-fi](https://img.shields.io/badge/Ko--fi-Support%20chaiNNer%20-hotpink?logo=kofi&logoColor=white)](https://ko-fi.com/T6T46KTTW)
 
 <p align="center">
   <a href="https://github.com/chaiNNer-org/chaiNNer/releases" target="_blank">

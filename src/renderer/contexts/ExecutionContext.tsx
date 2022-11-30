@@ -12,7 +12,6 @@ import {
     NodeData,
     OutputId,
 } from '../../common/common-types';
-import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import {
@@ -33,13 +32,13 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useBackendExecutionOptions } from '../hooks/useBackendExecutionOptions';
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
-import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
     READY,
@@ -198,26 +197,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         getInputHash,
     } = useContext(GlobalContext);
     const { schemata, port, backend } = useContext(BackendContext);
-    const {
-        useIsCpu,
-        useIsFp16,
-        usePyTorchGPU,
-        useNcnnGPU,
-        useOnnxGPU,
-        useOnnxExecutionProvider,
-        useOnnxShouldTensorRtCache,
-    } = useContext(SettingsContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
 
-    const [isCpu] = useIsCpu;
-    const [isFp16] = useIsFp16;
-    const [pytorchGPU] = usePyTorchGPU;
-    const [ncnnGPU] = useNcnnGPU;
-    const [onnxGPU] = useOnnxGPU;
-    const [onnxExecutionProvider] = useOnnxExecutionProvider;
-    const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    const options = useBackendExecutionOptions();
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -395,16 +379,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const data = convertToUsableFormat(nodes, edges, schemata);
             const response = await backend.run({
                 data,
-                isCpu,
-                isFp16,
-                pytorchGPU,
-                ncnnGPU,
-                onnxGPU,
-                onnxExecutionProvider,
-                onnxShouldTensorRtCache,
-                onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(
-                    await ipcRenderer.invoke('get-appdata')
-                ),
+                options,
             });
             if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue
@@ -432,13 +407,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         typeStateRef,
         animate,
         backend,
-        isCpu,
-        isFp16,
-        pytorchGPU,
-        ncnnGPU,
-        onnxGPU,
-        onnxExecutionProvider,
-        onnxShouldTensorRtCache,
+        options,
         unAnimate,
     ]);
 

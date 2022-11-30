@@ -31,6 +31,11 @@ import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import {
+    generateAssignmentErrorTrace,
+    printErrorTrace,
+    simpleError,
+} from '../../common/types/mismatch';
+import {
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -38,6 +43,7 @@ import {
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
+import { VALID, Validity, invalid } from '../../common/Validity';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
@@ -91,7 +97,7 @@ interface GlobalVolatile {
     edgeChanges: ChangeCounter;
     typeState: TypeState;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
-    isValidConnection: (connection: Readonly<Connection>) => boolean;
+    isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | undefined;
@@ -819,9 +825,13 @@ export const GlobalProvider = memo(
         );
 
         const isValidConnection = useCallback(
-            ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
-                if (source === target || !source || !target || !sourceHandle || !targetHandle) {
-                    return false;
+            ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>): Validity => {
+                if (source === target) {
+                    return invalid('Cannot connect a node to itself.');
+                }
+
+                if (!source || !target || !sourceHandle || !targetHandle) {
+                    return invalid('Invalid connection data.');
                 }
                 const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
                 const targetHandleId = parseTargetHandle(targetHandle).inputId;
@@ -830,17 +840,36 @@ export const GlobalProvider = memo(
                 const targetFn = typeState.functions.get(target);
 
                 if (!sourceFn || !targetFn) {
-                    return false;
+                    return invalid('Invalid connection data.');
                 }
-
-                const outputType = sourceFn.outputs.get(sourceHandleId);
-                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
-                    return false;
 
                 const sourceNode = getNode(source);
                 const targetNode = getNode(target);
                 if (!sourceNode || !targetNode) {
-                    return false;
+                    return invalid('Invalid node data.');
+                }
+
+                const outputType = sourceFn.outputs.get(sourceHandleId);
+                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
+                    const schema = schemata.get(targetNode.data.schemaId);
+                    const input = schema.inputs.find((i) => i.id === targetHandleId)!;
+                    const inputType = targetFn.definition.inputDefaults.get(targetHandleId)!;
+
+                    const error = simpleError(outputType, inputType);
+                    if (error) {
+                        return invalid(
+                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
+                        );
+                    }
+
+                    const traceTree = generateAssignmentErrorTrace(outputType, inputType);
+                    if (!traceTree) throw new Error('Cannot determine assignment error');
+                    const trace = printErrorTrace(traceTree);
+                    return invalid(
+                        `Input ${
+                            input.label
+                        } cannot be connected with an incompatible value. ${trace.join(' ')}`
+                    );
                 }
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
@@ -856,14 +885,18 @@ export const GlobalProvider = memo(
                     });
                 };
                 const isLoop = checkTargetChildren(targetNode);
-                if (isLoop) return false;
+                if (isLoop) return invalid('Connection would create an infinite loop.');
 
                 const iteratorLock =
                     !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
-                return iteratorLock;
+                if (!iteratorLock) {
+                    return invalid('Cannot create a connection to/from an iterator in this way.');
+                }
+
+                return VALID;
             },
-            [getNode, getNodes, getEdges, typeState]
+            [typeState.functions, getNode, getNodes, getEdges, schemata]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();

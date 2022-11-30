@@ -5,6 +5,7 @@ import { SettingsButton } from '../SettingsModal';
 import { SystemStats } from '../SystemStats';
 import { AppInfo } from './AppInfo';
 import { ExecutionButtons } from './ExecutionButtons';
+import { KoFiButton } from './KoFiButton';
 
 export const Header = memo(() => {
     return (
@@ -39,6 +40,7 @@ export const Header = memo(() => {
                     >
                         <SystemStats />
                         <DependencyManagerButton />
+                        <KoFiButton />
                         <SettingsButton />
                     </HStack>
                 </Box>

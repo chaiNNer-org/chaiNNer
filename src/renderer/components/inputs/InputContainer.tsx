@@ -1,10 +1,12 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
-import React, { memo, useMemo } from 'react';
+import { Box, Center, HStack, Text, Tooltip, chakra } from '@chakra-ui/react';
+import React, { memo, useCallback, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Connection, Handle, Node, Position, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
+import { VALID, Validity, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
@@ -13,22 +15,44 @@ import { TypeTag } from '../TypeTag';
 
 interface LeftHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
+    validity: Validity;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
 const LeftHandle = memo(
-    ({ children, isValidConnection, ...props }: React.PropsWithChildren<LeftHandleProps>) => (
-        <Handle
-            isConnectable
-            className="input-handle"
-            isValidConnection={isValidConnection}
-            position={Position.Left}
-            type="target"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+    ({
+        children,
+        isValidConnection,
+        validity,
+        ...props
+    }: React.PropsWithChildren<LeftHandleProps>) => (
+        <Tooltip
+            hasArrow
+            borderRadius={8}
+            display={validity.isValid ? 'none' : 'block'}
+            label={
+                validity.isValid ? undefined : (
+                    <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
+                )
+            }
+            mt={1}
+            opacity={validity.isValid ? 0 : 1}
+            openDelay={500}
+            px={2}
+            py={1}
         >
-            {children}
-        </Handle>
+            <Handle
+                isConnectable
+                className="input-handle"
+                isValidConnection={isValidConnection}
+                position={Position.Left}
+                type="target"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {children}
+            </Handle>
+        </Tooltip>
     )
 );
 
@@ -57,13 +81,23 @@ export const HandleWrapper = memo(
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
 
-        const showHandle = useMemo(() => {
+        const isValidConnectionForRf = useCallback(
+            (connection: Readonly<Connection>): boolean => {
+                return isValidConnection(connection).isValid;
+            },
+            [isValidConnection]
+        );
+
+        const validity = useMemo(() => {
             // no active connection
-            if (!connectingFrom) return true;
+            if (!connectingFrom) return VALID;
 
             // We only want to display the connectingFrom target handle
-            if (connectingFrom.handleType === 'target')
-                return connectingFrom.handleId === targetHandle;
+            if (connectingFrom.handleType === 'target') {
+                return connectingFrom.handleId === targetHandle
+                    ? VALID
+                    : invalid('Cannot create an input-to-input connection');
+            }
 
             // Show same types
             return isValidConnection({
@@ -133,12 +167,12 @@ export const HandleWrapper = memo(
                             width: '22px',
                             height: '22px',
                             marginLeft: '-3px',
-                            opacity: showHandle ? 1 : 0,
+                            opacity: validity.isValid ? 1 : 0,
                         }}
                         as={LeftHandle}
                         className="input-handle"
                         id={targetHandle}
-                        isValidConnection={isValidConnection}
+                        isValidConnection={isValidConnectionForRf}
                         sx={{
                             width: '16px',
                             height: '16px',
@@ -150,10 +184,11 @@ export const HandleWrapper = memo(
                                 : {}),
                             backgroundColor: isConnected ? connectedColor : handleColors[0],
                             boxShadow: '2px 2px 2px #00000014',
-                            filter: showHandle ? undefined : 'grayscale(100%)',
-                            opacity: showHandle ? 1 : 0.3,
+                            filter: validity.isValid ? undefined : 'grayscale(100%)',
+                            opacity: validity.isValid ? 1 : 0.3,
                             position: 'relative',
                         }}
+                        validity={validity}
                         onContextMenu={noContextMenu}
                     />
                 </Center>
