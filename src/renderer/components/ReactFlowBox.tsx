@@ -29,6 +29,7 @@ import { EdgeData, NodeData } from '../../common/common-types';
 import {
     EMPTY_ARRAY,
     parseSourceHandle,
+    parseTargetHandle,
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
@@ -244,7 +245,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
-    const reactFlowInstance = useReactFlow();
+    const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
@@ -337,8 +338,19 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     if (!edgeType) {
                         return EMPTY_ARRAY;
                     }
+                    const { inputId } = parseTargetHandle(e.targetHandle);
+                    const targetNode = reactFlowInstance.getNode(e.target);
+                    if (!targetNode) {
+                        return EMPTY_ARRAY;
+                    }
+                    const targetEdgeType = functionDefinitions
+                        .get(targetNode.data.schemaId)
+                        ?.inputDefaults.get(inputId);
+                    if (!targetEdgeType) {
+                        return EMPTY_ARRAY;
+                    }
                     const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+                    const firstPossibleOutput = getFirstPossibleOutput(fn, targetEdgeType);
                     if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
                         return EMPTY_ARRAY;
                     }
