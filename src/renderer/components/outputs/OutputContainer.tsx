@@ -19,6 +19,8 @@ interface OutputContainerProps {
     definitionType: Type;
     label: string;
     generic: boolean;
+    index: number;
+    length: number;
 }
 
 interface RightHandleProps {
@@ -77,6 +79,8 @@ export const OutputContainer = memo(
         definitionType,
         label,
         generic,
+        index,
+        length,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -176,42 +180,53 @@ export const OutputContainer = memo(
 
         return (
             <Box
-                bg="var(--bg-700)"
-                h="auto"
-                minH="2rem"
-                px={2}
-                verticalAlign="middle"
+                bg="var(--gray-775)"
+                borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
+                borderTopLeftRadius={index === 0 ? 'lg' : 0}
                 w="full"
             >
-                {!generic && (
-                    <Center
-                        h="1.25rem"
-                        p={1}
-                        verticalAlign="middle"
-                    >
-                        {type && (
-                            <Center
-                                h="2rem"
-                                mr={1}
-                                verticalAlign="middle"
-                            >
-                                <TypeTags
-                                    isOptional={false}
-                                    type={type}
-                                />
-                            </Center>
-                        )}
-                        <Text
-                            display={label ? 'block' : 'none'}
-                            fontSize="xs"
-                            lineHeight="0.9rem"
-                            textAlign="center"
+                <Box
+                    bg="var(--gray-700)"
+                    borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
+                    borderTopLeftRadius={index === 0 ? 'lg' : 0}
+                    h="auto"
+                    minH="2rem"
+                    ml="auto"
+                    mr={0}
+                    px={2}
+                    verticalAlign="middle"
+                    w="calc(100% - 0.5rem)"
+                >
+                    {!generic && (
+                        <Center
+                            h="1.25rem"
+                            p={1}
+                            verticalAlign="middle"
                         >
-                            {label}
-                        </Text>
-                    </Center>
-                )}
-                <Box pb={generic ? 0 : 2}>{contents}</Box>
+                            {type && (
+                                <Center
+                                    h="2rem"
+                                    mr={1}
+                                    verticalAlign="middle"
+                                >
+                                    <TypeTags
+                                        isOptional={false}
+                                        type={type}
+                                    />
+                                </Center>
+                            )}
+                            <Text
+                                display={label ? 'block' : 'none'}
+                                fontSize="xs"
+                                lineHeight="0.9rem"
+                                textAlign="center"
+                            >
+                                {label}
+                            </Text>
+                        </Center>
+                    )}
+                    <Box pb={generic ? 0 : 2}>{contents}</Box>
+                </Box>
             </Box>
         );
     }

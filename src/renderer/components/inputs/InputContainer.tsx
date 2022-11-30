@@ -202,44 +202,64 @@ export interface InputContainerProps {
     label?: string;
     optional: boolean;
     generic: boolean;
+    index: number;
+    length: number;
 }
 
 export const InputContainer = memo(
-    ({ children, label, optional, generic }: React.PropsWithChildren<InputContainerProps>) => {
+    ({
+        children,
+        label,
+        optional,
+        generic,
+        index,
+        length,
+    }: React.PropsWithChildren<InputContainerProps>) => {
         return (
             <Box
-                bg="var(--bg-700)"
-                h="auto"
-                minH="2rem"
-                px={2}
-                verticalAlign="middle"
+                bg="var(--gray-775)"
+                borderBottomRightRadius={index === length - 1 ? 'lg' : 'none'}
+                borderTopRightRadius={index === 0 ? 'lg' : 'none'}
                 w="full"
             >
-                {!generic && (
-                    <Center
-                        h="1.25rem"
-                        p={1}
-                        verticalAlign="middle"
-                    >
-                        <Text
-                            display={label ? 'block' : 'none'}
-                            fontSize="xs"
-                            lineHeight="0.9rem"
-                            textAlign="center"
+                <Box
+                    bg="var(--gray-700)"
+                    borderBottomRightRadius={index === length - 1 ? 'lg' : 'none'}
+                    borderTopRightRadius={index === 0 ? 'lg' : 'none'}
+                    h="auto"
+                    minH="2rem"
+                    ml={0}
+                    mr="auto"
+                    px={2}
+                    verticalAlign="middle"
+                    w="calc(100% - 0.5rem)"
+                >
+                    {!generic && (
+                        <Center
+                            h="1.25rem"
+                            p={1}
+                            verticalAlign="middle"
                         >
-                            {label}
-                        </Text>
-                        {label && optional && (
-                            <Center
-                                h="1rem"
-                                verticalAlign="middle"
+                            <Text
+                                display={label ? 'block' : 'none'}
+                                fontSize="xs"
+                                lineHeight="0.9rem"
+                                textAlign="center"
                             >
-                                <TypeTag isOptional>optional</TypeTag>
-                            </Center>
-                        )}
-                    </Center>
-                )}
-                <Box pb={generic ? 0 : 2}>{children}</Box>
+                                {label}
+                            </Text>
+                            {label && optional && (
+                                <Center
+                                    h="1rem"
+                                    verticalAlign="middle"
+                                >
+                                    <TypeTag isOptional>optional</TypeTag>
+                                </Center>
+                            )}
+                        </Center>
+                    )}
+                    <Box pb={generic ? 0 : 2}>{children}</Box>
+                </Box>
             </Box>
         );
     }

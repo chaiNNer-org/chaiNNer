@@ -46,12 +46,24 @@ export interface SingleInputProps {
     inputData: InputData;
     inputSize: InputSize | undefined;
     onSetValue?: (value: InputValue) => void;
+    index: number;
+    length: number;
 }
 /**
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(
-    ({ input, schemaId, nodeId, isLocked, inputData, inputSize, onSetValue }: SingleInputProps) => {
+    ({
+        input,
+        schemaId,
+        nodeId,
+        isLocked,
+        inputData,
+        inputSize,
+        onSetValue,
+        index,
+        length,
+    }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle, optional, label } = input;
 
         const {
@@ -116,7 +128,9 @@ export const SchemaInput = memo(
         return (
             <InputContainer
                 generic={kind === 'generic'}
+                index={index}
                 label={label}
+                length={length}
                 optional={optional}
             >
                 {hasHandle ? (

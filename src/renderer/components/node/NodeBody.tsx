@@ -24,6 +24,7 @@ export const NodeBody = memo(
 
         return (
             <>
+                {!autoInput && inputs.length > 0 && <Box />}
                 {!autoInput && (
                     <NodeInputs
                         id={id}
@@ -41,6 +42,7 @@ export const NodeBody = memo(
                     outputs={outputs}
                     schemaId={schemaId}
                 />
+                {outputs.length > 0 && <Box />}
             </>
         );
     }
