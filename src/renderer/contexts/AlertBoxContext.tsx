@@ -106,7 +106,7 @@ const pickAlertIcon = (type: AlertType): JSX.Element => {
                 />
             );
         default:
-            assertNever(type);
+            return assertNever(type);
     }
 };
 
