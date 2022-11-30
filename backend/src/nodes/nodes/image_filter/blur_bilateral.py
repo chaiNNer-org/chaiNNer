@@ -50,7 +50,7 @@ class BlurNode(NodeBase):
         sigma_space: int,
     ) -> np.ndarray:
 
-        if diameter == 0 or sigma_space == 0:
+        if diameter == 0 or sigma_color == 0 or sigma_space == 0:
             return img
 
         sigma_color_adjusted = sigma_color / 255
