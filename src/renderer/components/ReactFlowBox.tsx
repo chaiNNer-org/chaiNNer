@@ -26,7 +26,12 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
-import { parseSourceHandle, stringifySourceHandle, stringifyTargetHandle } from '../../common/util';
+import {
+    EMPTY_ARRAY,
+    parseSourceHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
+} from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -34,7 +39,7 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import { Line, getBezierPathValues, pDistance } from '../helpers/graphUtils';
+import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
@@ -291,16 +296,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            // Corner positions of node
-            const nodeBounds = {
-                TL: { x: node.position.x || 0, y: node.position.y || 0 },
-                TR: { x: (node.position.x || 0) + (node.width || 0), y: node.position.y || 0 },
-                BL: { x: node.position.x || 0, y: (node.position.y || 0) + (node.height || 0) },
-                BR: {
+            const nodeBB = AABB.fromPoints(
+                {
+                    x: node.position.x || 0,
+                    y: node.position.y || 0,
+                },
+                {
                     x: (node.position.x || 0) + (node.width || 0),
                     y: (node.position.y || 0) + (node.height || 0),
-                },
-            };
+                }
+            );
 
             const fn = functionDefinitions.get(node.data.schemaId);
             if (!fn) {
@@ -309,67 +314,33 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
             // Finds the first edge that intersects with the node
             const intersectingEdges = edges
-                .filter((e) => {
-                    // Return false if we don't have necessary information
-                    if (
-                        !e.data ||
-                        !e.data.sourceX ||
-                        !e.data.sourceY ||
-                        !e.data.targetX ||
-                        !e.data.targetY
-                    ) {
-                        return false;
-                    }
+                .filter((e): e is Edge<EdgeData> & { data: Required<EdgeData> } => {
+                    // if one value is set, all are
+                    return e.data?.sourceX !== undefined;
+                })
+                .flatMap((e) => {
+                    const sourceP: Point = { x: e.data.sourceX, y: e.data.sourceY };
+                    const targetP: Point = { x: e.data.targetX, y: e.data.targetY };
 
-                    // If the node is not within the bounding box of the edge, we can skip it
-                    const edgeBounds = {
-                        minX: Math.min(e.data.sourceX, e.data.targetX) - (node.width || 0),
-                        maxX: Math.max(e.data.sourceX, e.data.targetX) + (node.width || 0),
-                        minY: Math.min(e.data.sourceY, e.data.targetY) - (node.height || 0),
-                        maxY: Math.max(e.data.sourceY, e.data.targetY) + (node.height || 0),
-                    };
-                    // Determine if the node is in the bounding box of the edge
-                    const isNodeInEdgeBounds =
-                        edgeBounds.minX <= nodeBounds.TL.x &&
-                        edgeBounds.maxX >= nodeBounds.TR.x &&
-                        edgeBounds.minY <= nodeBounds.TL.y &&
-                        edgeBounds.maxY >= nodeBounds.BL.y;
-                    if (!isNodeInEdgeBounds) {
-                        return false;
+                    // check node and edge bounding boxes
+                    const edgeBB = AABB.fromPoints(sourceP, targetP);
+                    if (!nodeBB.intersects(edgeBB)) {
+                        return EMPTY_ARRAY;
                     }
 
                     // Check if the node has valid connections it can make
                     // If it doesn't, we don't need to bother checking collision
                     if (!e.sourceHandle || !e.targetHandle) {
-                        return false;
+                        return EMPTY_ARRAY;
                     }
                     const { outputId } = parseSourceHandle(e.sourceHandle);
                     const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
-
-                    if (!edgeType) {
-                        return false;
-                    }
-
-                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    if (firstPossibleInput === undefined) {
-                        return false;
-                    }
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
-                    if (firstPossibleOutput === undefined) {
-                        return false;
-                    }
-
-                    // Determine if the center of the edge is within the node bounds
-                    // This is a quick check that guarantees collision
-                    const edgeCenterX = (e.data.sourceX + e.data.targetX) / 2;
-                    const edgeCenterY = (e.data.sourceY + e.data.targetY) / 2;
                     if (
-                        edgeCenterX >= nodeBounds.TL.x &&
-                        edgeCenterX <= nodeBounds.TR.x &&
-                        edgeCenterY >= nodeBounds.TL.y &&
-                        edgeCenterY <= nodeBounds.BL.y
+                        !edgeType ||
+                        getFirstPossibleInput(fn, edgeType) === undefined ||
+                        getFirstPossibleOutput(fn, edgeType) === undefined
                     ) {
-                        return true;
+                        return EMPTY_ARRAY;
                     }
 
                     const bezierPathCoordinates = getBezierPathValues({
@@ -385,76 +356,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     // TODO: there might be a way to select the order in which to check based on the position of the node relative to the edge
                     // However, I don't want to figure that out right now, and this works well enough.
                     const curve = new Bezier(bezierPathCoordinates);
-                    const curveIntersectsLeft =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TL,
-                            p2: nodeBounds.BL,
-                        }).length > 0;
-                    if (curveIntersectsLeft) {
-                        return true;
+                    if (!nodeBB.intersectsCurve(curve)) {
+                        return EMPTY_ARRAY;
                     }
-                    const curveIntersectsRight =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TR,
-                            p2: nodeBounds.BR,
-                        }).length > 0;
-                    if (curveIntersectsRight) {
-                        return true;
-                    }
-                    const curveIntersectsTop =
-                        curve.lineIntersects({
-                            p1: nodeBounds.TL,
-                            p2: nodeBounds.TR,
-                        }).length > 0;
-                    if (curveIntersectsTop) {
-                        return true;
-                    }
-                    const curveIntersectsBottom =
-                        curve.lineIntersects({
-                            p1: nodeBounds.BL,
-                            p2: nodeBounds.BR,
-                        }).length > 0;
-                    if (curveIntersectsBottom) {
-                        return true;
-                    }
-                    return false;
+
+                    const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
+                    return { e, mouseDist } as const;
                 })
                 // Sort the edges by their distance from the mouse position
-                .sort((a, b) => {
-                    if (
-                        !a.data ||
-                        !a.data.sourceX ||
-                        !a.data.sourceY ||
-                        !a.data.targetX ||
-                        !a.data.targetY ||
-                        !b.data ||
-                        !b.data.sourceX ||
-                        !b.data.sourceY ||
-                        !b.data.targetX ||
-                        !b.data.targetY
-                    ) {
-                        return 0;
-                    }
-
-                    const edgeLineA: Line = {
-                        sourceX: a.data.sourceX,
-                        sourceY: a.data.sourceY,
-                        targetX: a.data.targetX,
-                        targetY: a.data.targetY,
-                    };
-                    const edgeLineB: Line = {
-                        sourceX: b.data.sourceX,
-                        sourceY: b.data.sourceY,
-                        targetX: b.data.targetX,
-                        targetY: b.data.targetY,
-                    };
-
-                    const distanceA = pDistance(mousePosition, edgeLineA);
-                    const distanceB = pDistance(mousePosition, edgeLineB);
-                    if (distanceA > distanceB) return 1;
-                    if (distanceA < distanceB) return -1;
-                    return 0;
-                });
+                .sort((a, b) => a.mouseDist - b.mouseDist)
+                .map(({ e }) => e);
 
             // Early exit if there is not an intersecting edge
             if (intersectingEdges.length === 0) {
