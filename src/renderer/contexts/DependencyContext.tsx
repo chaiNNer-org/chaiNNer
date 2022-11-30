@@ -400,7 +400,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 onClose={onClose}
             >
                 <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
-                <ModalContent maxW="750px">
+                <ModalContent
+                    bgColor="var(--chain-editor-bg)"
+                    maxW="750px"
+                >
                     <ModalHeader>Dependency Manager</ModalHeader>
                     <ModalCloseButton disabled={depChanged} />
                     <ModalBody>
