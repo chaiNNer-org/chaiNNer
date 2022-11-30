@@ -287,7 +287,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     // Node-on-edge collision detection
     const performNodeOnEdgeCollisionDetection = useCallback(
-        (node: Node<NodeData>, mousePosition: XYPosition, quick = true) => {
+        (node: Node<NodeData>, mousePosition: XYPosition) => {
             // First, we need to make sure this node is an orphan. We can do a find so it stops early
             const hasConnectedEdge = !!edges.find(
                 (e) => e.source === node.id || e.target === node.id
@@ -296,16 +296,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            const nodeBB = AABB.fromPoints(
-                {
-                    x: node.position.x || 0,
-                    y: node.position.y || 0,
-                },
-                {
-                    x: (node.position.x || 0) + (node.width || 0),
-                    y: (node.position.y || 0) + (node.height || 0),
-                }
-            );
+            const nodePos: Point = { x: node.position.x || 0, y: node.position.y || 0 };
+            const nodeBB = AABB.fromPoints(nodePos, {
+                x: nodePos.x + (node.width || 0),
+                y: nodePos.y + (node.height || 0),
+            });
 
             const fn = functionDefinitions.get(node.data.schemaId);
             if (!fn) {
@@ -313,10 +308,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             }
 
             // Finds the first edge that intersects with the node
+            type CandidateEdge = Edge<EdgeData> & {
+                data: Required<EdgeData>;
+                sourceHandle: string;
+                targetHandle: string;
+            };
             const intersectingEdges = edges
-                .filter((e): e is Edge<EdgeData> & { data: Required<EdgeData> } => {
+                .filter((e): e is CandidateEdge => {
                     // if one value is set, all are
-                    return e.data?.sourceX !== undefined;
+                    return Boolean(
+                        e.data?.sourceX !== undefined && e.sourceHandle && e.targetHandle
+                    );
                 })
                 .flatMap((e) => {
                     const sourceP: Point = { x: e.data.sourceX, y: e.data.sourceY };
@@ -330,16 +332,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
                     // Check if the node has valid connections it can make
                     // If it doesn't, we don't need to bother checking collision
-                    if (!e.sourceHandle || !e.targetHandle) {
-                        return EMPTY_ARRAY;
-                    }
                     const { outputId } = parseSourceHandle(e.sourceHandle);
                     const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
-                    if (
-                        !edgeType ||
-                        getFirstPossibleInput(fn, edgeType) === undefined ||
-                        getFirstPossibleOutput(fn, edgeType) === undefined
-                    ) {
+                    if (!edgeType) {
+                        return EMPTY_ARRAY;
+                    }
+                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
+                    if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
                         return EMPTY_ARRAY;
                     }
 
@@ -353,46 +353,27 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     });
 
                     // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    // TODO: there might be a way to select the order in which to check based on the position of the node relative to the edge
-                    // However, I don't want to figure that out right now, and this works well enough.
                     const curve = new Bezier(bezierPathCoordinates);
                     if (!nodeBB.intersectsCurve(curve)) {
                         return EMPTY_ARRAY;
                     }
 
                     const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
-                    return { e, mouseDist } as const;
+                    return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
                 })
                 // Sort the edges by their distance from the mouse position
-                .sort((a, b) => a.mouseDist - b.mouseDist)
-                .map(({ e }) => e);
+                .sort((a, b) => a.mouseDist - b.mouseDist);
 
             // Early exit if there is not an intersecting edge
             if (intersectingEdges.length === 0) {
                 return;
             }
 
-            const intersectingEdge = intersectingEdges[0];
-
-            // Check if the node has valid connections it can make
-            if (!intersectingEdge.sourceHandle) {
-                return;
-            }
-            const edgeType = typeState.functions
-                .get(intersectingEdge.source)
-                ?.outputs.get(parseSourceHandle(intersectingEdge.sourceHandle).outputId);
-            if (!edgeType) {
-                return;
-            }
-
-            const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-            if (firstPossibleInput === undefined) {
-                return;
-            }
-            const firstPossibleOutput = getFirstPossibleOutput(fn, edgeType);
-            if (firstPossibleOutput === undefined) {
-                return;
-            }
+            const {
+                edge: intersectingEdge,
+                firstPossibleInput,
+                firstPossibleOutput,
+            } = intersectingEdges[0];
 
             const fromNode = nodes.find((n) => n.id === intersectingEdge.source);
             const toNode = nodes.find((n) => n.id === intersectingEdge.target);
@@ -400,22 +381,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            // We don't need to bother setting up the combination function if we're just detecting the collision for visualization
-            if (quick) {
-                return {
-                    status: 'success',
-                    performCombine: () => {},
-                    intersectingEdge,
-                };
-            }
-
             return {
-                status: 'success',
+                intersectingEdge,
                 performCombine: () => {
                     removeEdgeById(intersectingEdge.id);
                     createConnection({
                         source: fromNode.id,
-                        sourceHandle: intersectingEdge.sourceHandle!,
+                        sourceHandle: intersectingEdge.sourceHandle,
                         target: node.id,
                         targetHandle: stringifyTargetHandle({
                             nodeId: node.id,
@@ -429,10 +401,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             outputId: firstPossibleOutput,
                         }),
                         target: toNode.id,
-                        targetHandle: intersectingEdge.targetHandle!,
+                        targetHandle: intersectingEdge.targetHandle,
                     });
                 },
-                intersectingEdge,
             };
         },
         [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
@@ -447,12 +418,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     x: node.position.x + (event as unknown as MouseEvent).offsetX,
                     y: node.position.y + (event as unknown as MouseEvent).offsetY,
                 };
-                const collisionResp = performNodeOnEdgeCollisionDetection(
-                    node,
-                    mousePosition,
-                    true
-                );
-                if (collisionResp?.status === 'success') {
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, mousePosition);
+                if (collisionResp) {
                     setCollidingEdge(collisionResp.intersectingEdge.id);
                     setCollidingNode(node.id);
                 } else {
@@ -483,12 +450,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     x: node.position.x + (event as unknown as MouseEvent).offsetX,
                     y: node.position.y + (event as unknown as MouseEvent).offsetY,
                 };
-                const collisionResp = performNodeOnEdgeCollisionDetection(
-                    node,
-                    mousePosition,
-                    false
-                );
-                if (collisionResp?.status === 'success') {
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, mousePosition);
+                if (collisionResp) {
                     collisionResp.performCombine();
                     setCollidingEdge(collisionResp.intersectingEdge.id);
                     setCollidingNode(node.id);

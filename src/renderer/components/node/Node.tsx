@@ -77,21 +77,23 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
 
-    const collidingEdge = useContextSelector(GlobalVolatileContext, (c) => c.collidingEdge);
-    const collidingNode = useContextSelector(GlobalVolatileContext, (c) => c.collidingNode);
-    const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
-    let collidingAccentColor;
-    if (collidingNode && collidingNode === id && collidingEdge) {
-        const collidingEdgeActual = getEdge(collidingEdge);
-        if (collidingEdgeActual && collidingEdgeActual.sourceHandle) {
-            const edgeType = typeState.functions
-                .get(collidingEdgeActual.source)
-                ?.outputs.get(parseSourceHandle(collidingEdgeActual.sourceHandle).outputId);
-            if (edgeType) {
-                [collidingAccentColor] = getTypeAccentColors(edgeType);
+    const collidingAccentColor = useContextSelector(
+        GlobalVolatileContext,
+        ({ collidingEdge, collidingNode, typeState }) => {
+            if (collidingNode && collidingNode === id && collidingEdge) {
+                const collidingEdgeActual = getEdge(collidingEdge);
+                if (collidingEdgeActual && collidingEdgeActual.sourceHandle) {
+                    const edgeType = typeState.functions
+                        .get(collidingEdgeActual.source)
+                        ?.outputs.get(parseSourceHandle(collidingEdgeActual.sourceHandle).outputId);
+                    if (edgeType) {
+                        return getTypeAccentColors(edgeType)[0];
+                    }
+                }
             }
+            return undefined;
         }
-    }
+    );
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
