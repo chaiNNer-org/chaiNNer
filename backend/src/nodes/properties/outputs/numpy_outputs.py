@@ -96,10 +96,25 @@ class LargeImageOutput(ImageOutput):
         img = value
         h, w, c = get_h_w_c(img)
 
-        base64_img = preview_encode(img, 512)
+        previews = []
+        preview_sizes = [2048, 1024, 512, 256]
+
+        # Encode for multiple scales. Use the preceding scale to save time encoding the smaller sizes.
+        last_encoded = img
+        for size in preview_sizes:
+            if h >= size or w >= size:
+                base64, last_encoded = preview_encode(last_encoded, size)
+                le_h, le_w, _ = get_h_w_c(last_encoded)
+                previews.insert(0, {"size": max(le_h, le_w), "url": base64})
+
+        # Encode the full size image if not all previews are encoded.
+        # this includes both when the image is between sizes but smaller than 2k, and when no previews got encoded.
+        if len(previews) < len(preview_sizes):
+            base64, _ = preview_encode(img, max(h, w))
+            previews.insert(0, {"size": max(h, w), "url": base64})
 
         return {
-            "image": base64_img,
+            "previews": previews,
             "height": h,
             "width": w,
             "channels": c,

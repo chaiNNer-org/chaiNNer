@@ -8,14 +8,30 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
 import { OutputProps } from './props';
 
+const IMAGE_PREVIEW_SIZE = 200;
+
+interface PreviewImage {
+    size: number;
+    url: string;
+}
 interface LargeImageBroadcastData {
-    image: string;
+    previews: PreviewImage[];
     width: number;
     height: number;
     channels: number;
 }
+
+const pickImage = (last: LargeImageBroadcastData, realSize: number) => {
+    const found = last.previews
+        .sort((a, b) => a.size - b.size)
+        .find((preview) => {
+            return preview.size >= realSize;
+        });
+    return found ?? last.previews[last.previews.length - 1];
+};
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
@@ -25,7 +41,9 @@ export const LargeImageOutput = memo(
         const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
 
+        const dpr = useDevicePixelRatio();
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
+        const realSize = IMAGE_PREVIEW_SIZE * zoom * dpr;
 
         const { current, last, stale } = useOutputData<LargeImageBroadcastData>(outputId);
 
@@ -50,6 +68,8 @@ export const LargeImageOutput = memo(
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';
 
+        const pickedImage = last ? pickImage(last, realSize) : null;
+
         return (
             <Center
                 h="full"
@@ -59,15 +79,15 @@ export const LargeImageOutput = memo(
                 w="full"
             >
                 <Center
-                    h="200px"
+                    h={`${IMAGE_PREVIEW_SIZE}px`}
                     // overflow="hidden"
-                    w="200px"
+                    w={`${IMAGE_PREVIEW_SIZE}px`}
                 >
                     <Box
                         display={stale ? 'block' : 'none'}
-                        h="200px"
-                        marginRight="-200px"
-                        w="200px"
+                        h={`${IMAGE_PREVIEW_SIZE}px`}
+                        marginRight={`-${IMAGE_PREVIEW_SIZE}px`}
+                        w={`${IMAGE_PREVIEW_SIZE}px`}
                         zIndex="99"
                     >
                         <HStack
@@ -100,18 +120,18 @@ export const LargeImageOutput = memo(
                     <Center
                         bgColor={imgBgColor}
                         borderRadius="md"
-                        h="200px"
-                        maxH="200px"
-                        maxW="200px"
-                        minH="200px"
-                        minW="200px"
+                        h={`${IMAGE_PREVIEW_SIZE}px`}
+                        maxH={`${IMAGE_PREVIEW_SIZE}px`}
+                        maxW={`${IMAGE_PREVIEW_SIZE}px`}
+                        minH={`${IMAGE_PREVIEW_SIZE}px`}
+                        minW={`${IMAGE_PREVIEW_SIZE}px`}
                         overflow="hidden"
-                        w="200px"
+                        w={`${IMAGE_PREVIEW_SIZE}px`}
                     >
-                        {last ? (
+                        {last && pickedImage ? (
                             <Center
-                                maxH="200px"
-                                maxW="200px"
+                                maxH={`${IMAGE_PREVIEW_SIZE}px`}
+                                maxW={`${IMAGE_PREVIEW_SIZE}px`}
                             >
                                 <Image
                                     alt="Image preview failed to load, probably unsupported file type."
@@ -121,11 +141,16 @@ export const LargeImageOutput = memo(
                                             : ''
                                     }
                                     draggable={false}
-                                    maxH="200px"
-                                    maxW="200px"
-                                    src={last.image}
+                                    maxH={`${IMAGE_PREVIEW_SIZE}px`}
+                                    maxW={`${IMAGE_PREVIEW_SIZE}px`}
+                                    src={pickedImage.url}
                                     sx={{
-                                        imageRendering: zoom > 2 ? 'pixelated' : 'auto',
+                                        imageRendering:
+                                            zoom > 1 &&
+                                            realSize > IMAGE_PREVIEW_SIZE &&
+                                            pickedImage.size < realSize
+                                                ? 'pixelated'
+                                                : 'auto',
                                     }}
                                 />
                             </Center>
