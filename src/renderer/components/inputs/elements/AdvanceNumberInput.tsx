@@ -86,6 +86,7 @@ export const AdvancedNumberInput = memo(
                 >
                     {unit && (
                         <InputLeftAddon
+                            borderLeftRadius="md"
                             px={1}
                             w="fit-content"
                         >
@@ -93,6 +94,7 @@ export const AdvancedNumberInput = memo(
                         </InputLeftAddon>
                     )}
                     <NumberInput
+                        borderRadius="md"
                         className="nodrag"
                         defaultValue={defaultValue}
                         draggable={false}
@@ -107,7 +109,8 @@ export const AdvancedNumberInput = memo(
                         onKeyDown={stopPropagation}
                     >
                         <NumberInputField
-                            borderLeftRadius={unit ? 0 : 'xs'}
+                            borderLeftRadius={unit ? 0 : 'md'}
+                            borderRightRadius="md"
                             m={0}
                             p={1}
                             // dynamic width based on precision

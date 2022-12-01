@@ -161,11 +161,16 @@ export const SliderInput = memo(
                     >
                         <SliderTrack
                             bgGradient={gradient ? `linear(to-r, ${gradient.join(', ')})` : 'none'}
+                            borderRadius="md"
+                            cursor="pointer"
+                            h="100%"
                         >
-                            {filled && !gradient ? (
-                                <SliderFilledTrack bg={typeAccentColor} />
-                            ) : (
-                                <SliderTrack />
+                            {filled && !gradient && (
+                                <SliderFilledTrack
+                                    bg={typeAccentColor}
+                                    borderLeftRadius="md"
+                                    cursor="pointer"
+                                />
                             )}
                         </SliderTrack>
                         <Tooltip
@@ -179,7 +184,7 @@ export const SliderInput = memo(
                             px={2}
                             py={1}
                         >
-                            <SliderThumb />
+                            <SliderThumb opacity={filled && !gradient ? 0 : 1} />
                         </Tooltip>
                     </Slider>
                     {ends[1] && <Text fontSize="xs">{ends[1]}</Text>}
