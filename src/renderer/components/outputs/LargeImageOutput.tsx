@@ -135,9 +135,10 @@ export const LargeImageOutput = memo(
                             >
                                 <Image
                                     alt="Image preview failed to load, probably unsupported file type."
-                                    backgroundImage={
+                                    background={
                                         last.channels === 4
-                                            ? 'data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQABAACMCWJaQAA3AA/u11j//aQAAA'
+                                            ? // https://stackoverflow.com/a/65129916/7595472
+                                              'repeating-conic-gradient(#CDCDCD 0% 25%, #FFFFFF 0% 50%) 50% / 20px 20px'
                                             : ''
                                     }
                                     draggable={false}
