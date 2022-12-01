@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import Tuple
@@ -33,6 +35,13 @@ class RotateExpandCrop:
     CROP = 0
 
 
+def get_pil_image_mode(img: np.ndarray) -> str | None:
+    if get_h_w_c(img)[2] == 4:
+        return "RGBa"  # Pre-multiplied alpha to preserve transparent colors
+    else:
+        return None
+
+
 def resize(
     img: np.ndarray, out_dims: Tuple[int, int], interpolation: int
 ) -> np.ndarray:
@@ -49,7 +58,7 @@ def resize(
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
-    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = Image.fromarray((img * 255).astype("uint8"), get_pil_image_mode(img))
     pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
@@ -66,7 +75,7 @@ def rotate(
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
-    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = Image.fromarray((img * 255).astype("uint8"), get_pil_image_mode(img))
     pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
