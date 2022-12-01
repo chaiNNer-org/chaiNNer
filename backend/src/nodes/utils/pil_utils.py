@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Tuple
+from typing import Literal, Tuple
 
 import cv2
 import numpy as np
@@ -35,7 +35,7 @@ class RotateExpandCrop:
     CROP = 0
 
 
-def get_pil_image_mode(img: np.ndarray) -> Image._Mode | None:
+def get_pil_image_mode(img: np.ndarray) -> Literal["RGBa"] | None:
     if get_h_w_c(img)[2] == 4:
         return "RGBa"  # Pre-multiplied alpha to preserve transparent colors
     else:
