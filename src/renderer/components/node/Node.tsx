@@ -155,8 +155,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 spacing={0}
             >
                 <VStack
-                    bgColor="var(--gray-750)"
-                    spacing={1}
+                    // bgColor="var(--gray-750)"
+                    spacing={0}
                     w="full"
                 >
                     <NodeHeader

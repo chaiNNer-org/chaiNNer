@@ -180,27 +180,28 @@ export const OutputContainer = memo(
 
         return (
             <Box
-                bg="var(--gray-775)"
-                borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
-                borderTopLeftRadius={index === 0 ? 'lg' : 0}
+                // bg="var(--gray-775)"
+                // borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
+                // borderTopLeftRadius={index === 0 ? 'lg' : 0}
                 w="full"
             >
                 <Box
                     bg="var(--gray-700)"
-                    borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
-                    borderTopLeftRadius={index === 0 ? 'lg' : 0}
+                    // borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
+                    // borderTopLeftRadius={index === 0 ? 'lg' : 0}
                     h="auto"
                     minH="2rem"
                     ml="auto"
                     mr={0}
                     px={2}
                     verticalAlign="middle"
-                    w="calc(100% - 0.5rem)"
+                    // w="calc(100% - 0.5rem)"
                 >
                     {!generic && (
                         <Center
                             h="1.25rem"
-                            p={1}
+                            px={1}
+                            py={0.5}
                             verticalAlign="middle"
                         >
                             {type && (
@@ -225,7 +226,7 @@ export const OutputContainer = memo(
                             </Text>
                         </Center>
                     )}
-                    <Box pb={generic ? 0 : 2}>{contents}</Box>
+                    <Box pb={generic ? 0 : 1}>{contents}</Box>
                 </Box>
             </Box>
         );

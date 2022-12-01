@@ -216,28 +216,22 @@ export const InputContainer = memo(
         length,
     }: React.PropsWithChildren<InputContainerProps>) => {
         return (
-            <Box
-                bg="var(--gray-775)"
-                borderBottomRightRadius={index === length - 1 ? 'lg' : 'none'}
-                borderTopRightRadius={index === 0 ? 'lg' : 'none'}
-                w="full"
-            >
+            <Box w="full">
                 <Box
                     bg="var(--gray-700)"
-                    borderBottomRightRadius={index === length - 1 ? 'lg' : 'none'}
-                    borderTopRightRadius={index === 0 ? 'lg' : 'none'}
                     h="auto"
                     minH="2rem"
                     ml={0}
                     mr="auto"
                     px={2}
                     verticalAlign="middle"
-                    w="calc(100% - 0.5rem)"
+                    // w="calc(100% - 0.5rem)"
                 >
                     {!generic && (
                         <Center
                             h="1.25rem"
-                            p={1}
+                            px={1}
+                            py={0.5}
                             verticalAlign="middle"
                         >
                             <Text
@@ -258,7 +252,7 @@ export const InputContainer = memo(
                             )}
                         </Center>
                     )}
-                    <Box pb={generic ? 0 : 2}>{children}</Box>
+                    <Box pb={generic ? 0 : 1}>{children}</Box>
                 </Box>
             </Box>
         );
