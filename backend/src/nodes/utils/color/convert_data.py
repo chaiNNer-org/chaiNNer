@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Tuple
 import numpy as np
 import cv2
 
@@ -13,23 +13,39 @@ YUV = ColorSpace(3, "YUV", 3)
 HSV = ColorSpace(4, "HSV", 3)
 HSL = ColorSpace(5, "HSL", 3)
 CMYK = ColorSpace(6, "CMYK", 4)
+YUVA = ColorSpace(7, "YUVA", 4)
+HSVA = ColorSpace(8, "HSVA", 4)
+HSLA = ColorSpace(9, "HSLA", 4)
 
 RGB_LIKE = ColorSpaceDetector(1000, "Gray/RGB", [GRAY, RGB, RGBA])
+YUV_LIKE = ColorSpaceDetector(1001, "YUV", [YUV, YUVA])
+HSV_LIKE = ColorSpaceDetector(1002, "HSV", [HSV, HSVA])
+HSL_LIKE = ColorSpaceDetector(1003, "HSL", [HSL, HSLA])
+
+ALPHA_PAIRS: List[Tuple[ColorSpace, ColorSpace]] = [
+    (RGB, RGBA),
+    (YUV, YUVA),
+    (HSV, HSVA),
+    (HSL, HSLA),
+]
 
 color_spaces: List[ColorSpace] = [
     RGB,
     RGBA,
     GRAY,
     YUV,
+    YUVA,
     HSV,
+    HSVA,
     HSL,
+    HSLA,
     CMYK,
 ]
 color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
     RGB_LIKE,
-    YUV,
-    HSV,
-    HSL,
+    YUV_LIKE,
+    HSV_LIKE,
+    HSL_LIKE,
     CMYK,
 ]
 
@@ -123,15 +139,6 @@ conversions: List[Conversion] = [
         convert=lambda i: cv2.cvtColor(i, cv2.COLOR_GRAY2BGR),
     ),
     Conversion(
-        direction=(RGB, RGBA),
-        convert=lambda i: cv2.cvtColor(i, cv2.COLOR_BGR2BGRA),
-    ),
-    Conversion(
-        direction=(RGBA, RGB),
-        convert=lambda i: cv2.cvtColor(i, cv2.COLOR_BGRA2BGR),
-        cost=__CHANNEL_LOST,
-    ),
-    Conversion(
         direction=(RGBA, GRAY),
         convert=lambda i: cv2.cvtColor(i, cv2.COLOR_BGRA2GRAY),
         cost=__CHANNEL_LOST * 3,
@@ -188,3 +195,49 @@ conversions: List[Conversion] = [
         cost=__CHROMA_LOST,
     ),
 ]
+
+
+# Add conversions that can be generated because only alpha is different
+for dir_3, dir_4 in ALPHA_PAIRS:
+    assert dir_3.channels == 3
+    assert dir_4.channels == 4
+
+    # Add and remove the alpha channel
+    conversions.append(
+        Conversion(
+            direction=(dir_3, dir_4),
+            convert=lambda i: cv2.cvtColor(i, cv2.COLOR_BGR2BGRA),
+        )
+    )
+    conversions.append(
+        Conversion(
+            direction=(dir_4, dir_3),
+            convert=lambda i: cv2.cvtColor(i, cv2.COLOR_BGRA2BGR),
+            cost=__CHANNEL_LOST,
+        )
+    )
+
+__ALPHA_3_to_4 = dict(ALPHA_PAIRS)
+for conv in list(conversions):
+    in_4 = __ALPHA_3_to_4.get(conv.input)
+    out_4 = __ALPHA_3_to_4.get(conv.output)
+
+    if in_4 is not None and out_4 is not None:
+        # if we have a conversion X -> Y, then we can generate XA -> YA
+        # e.g. RGBA -> HSVA can be generated from RGB -> HSV
+
+        def create_convert(old_conv: Conversion):
+            def convert(img: np.ndarray) -> np.ndarray:
+                color = img[:, :, :3]
+                alpha = img[:, :, 3]
+                return np.dstack((old_conv.convert(color), alpha))
+
+            return convert
+
+        conversions.append(
+            Conversion(
+                direction=(in_4, out_4),
+                convert=create_convert(conv),
+                cost=conv.cost,
+            )
+        )
