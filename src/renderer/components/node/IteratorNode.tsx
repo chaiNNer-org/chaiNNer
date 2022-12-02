@@ -80,7 +80,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                 spacing={0}
             >
                 <VStack
-                    spacing={1}
+                    spacing={0}
                     w="full"
                 >
                     <IteratorNodeHeader

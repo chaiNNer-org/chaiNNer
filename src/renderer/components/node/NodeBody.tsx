@@ -1,4 +1,4 @@
-import { Box, Center } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Input, InputData, InputSize, NodeSchema } from '../../../common/common-types';
 import { NodeInputs } from './NodeInputs';
@@ -26,36 +26,32 @@ export const NodeBody = memo(
             <>
                 {!autoInput && inputs.length > 0 && <Box py={1} />}
                 {!autoInput && (
-                    <Center w="full">
-                        <Box
-                            bg="var(--gray-700)"
-                            w="full"
-                        >
-                            <NodeInputs
-                                id={id}
-                                inputData={inputData}
-                                inputSize={inputSize}
-                                isLocked={isLocked}
-                                schema={schema}
-                            />
-                        </Box>
-                    </Center>
-                )}
-
-                {outputs.length > 0 && <Box py={1} />}
-                <Center w="full">
                     <Box
                         bg="var(--gray-700)"
                         w="full"
                     >
-                        <NodeOutputs
-                            animated={animated}
+                        <NodeInputs
                             id={id}
-                            outputs={outputs}
-                            schemaId={schemaId}
+                            inputData={inputData}
+                            inputSize={inputSize}
+                            isLocked={isLocked}
+                            schema={schema}
                         />
                     </Box>
-                </Center>
+                )}
+
+                {outputs.length > 0 && <Box py={1} />}
+                <Box
+                    bg="var(--gray-700)"
+                    w="full"
+                >
+                    <NodeOutputs
+                        animated={animated}
+                        id={id}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </Box>
             </>
         );
     }
