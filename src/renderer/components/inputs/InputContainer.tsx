@@ -202,19 +202,10 @@ export interface InputContainerProps {
     label?: string;
     optional: boolean;
     generic: boolean;
-    index: number;
-    length: number;
 }
 
 export const InputContainer = memo(
-    ({
-        children,
-        label,
-        optional,
-        generic,
-        index,
-        length,
-    }: React.PropsWithChildren<InputContainerProps>) => {
+    ({ children, label, optional, generic }: React.PropsWithChildren<InputContainerProps>) => {
         return (
             <Box w="full">
                 <Box

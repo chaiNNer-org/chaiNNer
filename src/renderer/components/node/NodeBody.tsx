@@ -29,9 +29,6 @@ export const NodeBody = memo(
                     <Center w="full">
                         <Box
                             bg="var(--gray-700)"
-                            // borderRadius="lg"
-                            overflow="hidden"
-                            // w="calc(100% - 0.5rem)"
                             w="full"
                         >
                             <NodeInputs
@@ -49,9 +46,6 @@ export const NodeBody = memo(
                 <Center w="full">
                     <Box
                         bg="var(--gray-700)"
-                        // borderRadius="lg"
-                        overflow="hidden"
-                        // w="calc(100% - 0.5rem)"
                         w="full"
                     >
                         <NodeOutputs
