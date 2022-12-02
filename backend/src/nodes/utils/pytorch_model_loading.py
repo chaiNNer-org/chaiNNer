@@ -7,8 +7,9 @@ from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
 from .architecture.Swin2SR import Swin2SR
 from .architecture.HAT import HAT
-from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
-from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
+from .architecture.face_archs.gfpganv1_clean_arch import GFPGANv1Clean
+from .architecture.face_archs.restoreformer_arch import RestoreFormer
+from .architecture.face_archs.codeformer import CodeFormer
 from .torch_types import PyTorchModel
 
 
@@ -58,6 +59,11 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "encoder.down.0.block.0.norm1.weight" in state_dict_keys
     ):
         model = RestoreFormer(state_dict)
+    elif (
+        "encoder.blocks.0.weight" in state_dict_keys
+        and "quantize.embedding.weight" in state_dict_keys
+    ):
+        model = CodeFormer(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
