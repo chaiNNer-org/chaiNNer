@@ -29,7 +29,7 @@ from ...utils.pytorch_utils import to_pytorch_execution_options
 class FaceUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN and RestoreFormer."
+        self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN, RestoreFormer, and CodeFormer."
         self.inputs = [
             FaceModelInput("Model"),
             ImageInput(),
@@ -111,7 +111,7 @@ class FaceUpscaleNode(NodeBase):
                 output = (output + 1) / 2
                 restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
             except RuntimeError as error:
-                logger.error(f"\tFailed inference for GFPGAN: {error}.")
+                logger.error(f"\tFailed inference for Face Upscale: {error}.")
                 restored_face = cropped_face
 
             restored_face = restored_face.astype("uint8")  # type: ignore
@@ -182,9 +182,9 @@ class FaceUpscaleNode(NodeBase):
                 return result
 
         except Exception as e:
-            logger.error(f"GFPGAN failed: {e}")
+            logger.error(f"Face Upscale failed: {e}")
             face_helper = None
             del face_helper
             torch.cuda.empty_cache()
             # pylint: disable=raise-missing-from
-            raise RuntimeError("Failed to run GFPGAN.")
+            raise RuntimeError("Failed to run Face Upscale.")
