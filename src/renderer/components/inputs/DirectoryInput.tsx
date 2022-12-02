@@ -110,7 +110,6 @@ export const DirectoryInput = memo(
                     <Input
                         isReadOnly
                         borderRadius="lg"
-                        className="nodrag"
                         cursor="pointer"
                         disabled={isLocked || isInputConnected}
                         draggable={false}
