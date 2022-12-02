@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Literal, Tuple
+from typing import Tuple
 
 import cv2
 import numpy as np
