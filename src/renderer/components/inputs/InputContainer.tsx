@@ -208,7 +208,7 @@ export const InputContainer = memo(
     ({ children, label, optional, generic }: React.PropsWithChildren<InputContainerProps>) => {
         return (
             <Box
-                bg="var(--gray-700)"
+                bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
                 ml={0}

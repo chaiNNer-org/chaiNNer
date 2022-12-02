@@ -27,7 +27,7 @@ export const NodeBody = memo(
                 {!autoInput && inputs.length > 0 && <Box py={1} />}
                 {!autoInput && (
                     <Box
-                        bg="var(--gray-700)"
+                        bg="var(--bg-700)"
                         w="full"
                     >
                         <NodeInputs
@@ -42,7 +42,7 @@ export const NodeBody = memo(
 
                 {outputs.length > 0 && <Box py={1} />}
                 <Box
-                    bg="var(--gray-700)"
+                    bg="var(--bg-700)"
                     w="full"
                 >
                     <NodeOutputs
