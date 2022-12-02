@@ -17,7 +17,7 @@ YUVA = ColorSpace(7, "YUVA", 4)
 HSVA = ColorSpace(8, "HSVA", 4)
 HSLA = ColorSpace(9, "HSLA", 4)
 
-RGB_LIKE = ColorSpaceDetector(1000, "Gray/RGB", [GRAY, RGB, RGBA])
+RGB_LIKE = ColorSpaceDetector(1000, "RGB", [GRAY, RGB, RGBA])
 YUV_LIKE = ColorSpaceDetector(1001, "YUV", [YUV, YUVA])
 HSV_LIKE = ColorSpaceDetector(1002, "HSV", [HSV, HSVA])
 HSL_LIKE = ColorSpaceDetector(1003, "HSL", [HSL, HSLA])
@@ -43,6 +43,7 @@ color_spaces: List[ColorSpace] = [
 ]
 color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
     RGB_LIKE,
+    GRAY,
     YUV_LIKE,
     HSV_LIKE,
     HSL_LIKE,
