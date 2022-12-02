@@ -339,13 +339,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
                     const { inputId } = parseTargetHandle(e.targetHandle);
-                    const targetNode = reactFlowInstance.getNode(e.target);
-                    if (!targetNode) {
-                        return EMPTY_ARRAY;
-                    }
-                    const targetEdgeType = functionDefinitions
-                        .get(targetNode.data.schemaId)
-                        ?.inputDefaults.get(inputId);
+                    const targetEdgeType = typeState.functions
+                        .get(e.target)
+                        ?.definition.inputDefaults.get(inputId);
                     if (!targetEdgeType) {
                         return EMPTY_ARRAY;
                     }
