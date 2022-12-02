@@ -16,8 +16,6 @@ import { PyTorchOutput } from '../outputs/PyTorchOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
-    index: number;
-    length: number;
 }
 
 const OutputComponents: Readonly<
@@ -93,7 +91,7 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;
     return (
         <>
-            {outputs.map((output, index) => {
+            {outputs.map((output) => {
                 const props: FullOutputProps = {
                     ...output,
                     id,
@@ -104,8 +102,6 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
                     definitionType: functions.get(output.id)!,
                     hasHandle: output.hasHandle,
                     animated,
-                    index,
-                    length: outputs.length,
                 };
                 return pickOutput(output.kind, props);
             })}
