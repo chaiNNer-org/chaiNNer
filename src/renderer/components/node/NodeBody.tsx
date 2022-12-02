@@ -24,23 +24,34 @@ export const NodeBody = memo(
 
         return (
             <>
+                {!autoInput && inputs.length > 0 && <Box py={1} />}
                 {!autoInput && (
-                    <NodeInputs
-                        id={id}
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
-                        schema={schema}
-                    />
+                    <Box
+                        bg="var(--bg-700)"
+                        w="full"
+                    >
+                        <NodeInputs
+                            id={id}
+                            inputData={inputData}
+                            inputSize={inputSize}
+                            isLocked={isLocked}
+                            schema={schema}
+                        />
+                    </Box>
                 )}
 
-                {!autoInput && outputs.length > 0 && <Box />}
-                <NodeOutputs
-                    animated={animated}
-                    id={id}
-                    outputs={outputs}
-                    schemaId={schemaId}
-                />
+                {outputs.length > 0 && <Box py={1} />}
+                <Box
+                    bg="var(--bg-700)"
+                    w="full"
+                >
+                    <NodeOutputs
+                        animated={animated}
+                        id={id}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </Box>
             </>
         );
     }

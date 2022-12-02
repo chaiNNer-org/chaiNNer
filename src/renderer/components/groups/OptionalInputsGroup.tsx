@@ -67,8 +67,9 @@ export const OptionalInputsGroup = memo(
                                 aria-label="Add Input"
                                 bg="var(--bg-700)"
                                 height="auto"
-                                m={0}
+                                mb={-1}
                                 minWidth={0}
+                                mt={1}
                                 p={1}
                                 width="66%"
                                 onClick={() => setUserUncovered(uncovered + 1)}

@@ -88,7 +88,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                 spacing={0}
             >
                 <VStack
-                    spacing={1}
+                    spacing={0}
                     w="full"
                 >
                     <NodeHeader

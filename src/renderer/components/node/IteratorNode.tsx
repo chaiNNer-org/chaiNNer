@@ -47,7 +47,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { outputs, icon, category, name } = schema;
+    const { inputs, outputs, icon, category, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
@@ -80,7 +80,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                 spacing={0}
             >
                 <VStack
-                    spacing={1}
+                    spacing={0}
                     w="full"
                 >
                     <IteratorNodeHeader
@@ -91,12 +91,18 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         percentComplete={percentComplete}
                         selected={selected}
                     />
-                    <NodeInputs
-                        id={id}
-                        inputData={inputData}
-                        isLocked={isLocked}
-                        schema={schema}
-                    />
+                    {inputs.length > 0 && <Box py={1} />}
+                    <Box
+                        bgColor="var(--bg-700)"
+                        w="full"
+                    >
+                        <NodeInputs
+                            id={id}
+                            inputData={inputData}
+                            isLocked={isLocked}
+                            schema={schema}
+                        />
+                    </Box>
                     <Center>
                         <Text
                             fontSize="xs"
@@ -121,12 +127,17 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                             minWidth={minWidth}
                         />
                     </Center>
-                    {outputs.length > 0 && <Box />}
-                    <NodeOutputs
-                        id={id}
-                        outputs={outputs}
-                        schemaId={schemaId}
-                    />
+                    {outputs.length > 0 && <Box py={1} />}
+                    <Box
+                        bgColor="var(--bg-700)"
+                        w="full"
+                    >
+                        <NodeOutputs
+                            id={id}
+                            outputs={outputs}
+                            schemaId={schemaId}
+                        />
+                    </Box>
                 </VStack>
                 <NodeFooter
                     animated={animated}

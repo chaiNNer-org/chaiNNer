@@ -34,9 +34,11 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
 
     return (
         <Select
+            borderRadius="lg"
             className="nodrag"
             disabled={isLocked}
             draggable={false}
+            size="sm"
             value={selection}
             onChange={handleChange}
         >
