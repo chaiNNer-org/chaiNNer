@@ -184,7 +184,10 @@ export const SliderInput = memo(
                             px={2}
                             py={1}
                         >
-                            <SliderThumb opacity={filled && !gradient ? 0 : 1} />
+                            <SliderThumb
+                                borderRadius="sm"
+                                width="8px"
+                            />
                         </Tooltip>
                     </Slider>
                     {ends[1] && <Text fontSize="xs">{ends[1]}</Text>}
