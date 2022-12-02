@@ -19,8 +19,6 @@ interface OutputContainerProps {
     definitionType: Type;
     label: string;
     generic: boolean;
-    index: number;
-    length: number;
 }
 
 interface RightHandleProps {
