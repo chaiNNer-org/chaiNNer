@@ -58,9 +58,7 @@ def resize(
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
-    pimg = Image.fromarray(
-        (img * 255).astype("uint8"), get_pil_image_mode(img)
-    )  # type:ignore
+    pimg = Image.fromarray((img * 255).astype("uint8"), get_pil_image_mode(img))  # type: ignore
     pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
@@ -77,9 +75,7 @@ def rotate(
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
-    pimg = Image.fromarray(
-        (img * 255).astype("uint8"), get_pil_image_mode(img)
-    )  # type: ignore
+    pimg = Image.fromarray((img * 255).astype("uint8"), get_pil_image_mode(img))  # type: ignore
     pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
