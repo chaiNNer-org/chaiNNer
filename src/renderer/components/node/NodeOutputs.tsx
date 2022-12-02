@@ -50,10 +50,8 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             generic={OutputIsGeneric[kind]}
             hasHandle={props.hasHandle}
             id={props.id}
-            index={props.index}
             key={`${props.id}-${props.outputId}`}
             label={props.label}
-            length={props.length}
             outputId={props.outputId}
         >
             <OutputType {...props} />
