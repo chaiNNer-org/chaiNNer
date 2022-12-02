@@ -177,47 +177,45 @@ export const OutputContainer = memo(
         }
 
         return (
-            <Box w="full">
-                <Box
-                    bg="var(--gray-700)"
-                    h="auto"
-                    minH="2rem"
-                    ml="auto"
-                    mr={0}
-                    px={2}
-                    verticalAlign="middle"
-                >
-                    {!generic && (
-                        <Center
-                            h="1.25rem"
-                            px={1}
-                            py={0.5}
-                            verticalAlign="middle"
-                        >
-                            {type && (
-                                <Center
-                                    h="2rem"
-                                    mr={1}
-                                    verticalAlign="middle"
-                                >
-                                    <TypeTags
-                                        isOptional={false}
-                                        type={type}
-                                    />
-                                </Center>
-                            )}
-                            <Text
-                                display={label ? 'block' : 'none'}
-                                fontSize="xs"
-                                lineHeight="0.9rem"
-                                textAlign="center"
+            <Box
+                bg="var(--gray-700)"
+                h="auto"
+                minH="2rem"
+                ml="auto"
+                mr={0}
+                px={2}
+                verticalAlign="middle"
+            >
+                {!generic && (
+                    <Center
+                        h="1.25rem"
+                        px={1}
+                        py={0.5}
+                        verticalAlign="middle"
+                    >
+                        {type && (
+                            <Center
+                                h="2rem"
+                                mr={1}
+                                verticalAlign="middle"
                             >
-                                {label}
-                            </Text>
-                        </Center>
-                    )}
-                    <Box pb={generic ? 0 : 1}>{contents}</Box>
-                </Box>
+                                <TypeTags
+                                    isOptional={false}
+                                    type={type}
+                                />
+                            </Center>
+                        )}
+                        <Text
+                            display={label ? 'block' : 'none'}
+                            fontSize="xs"
+                            lineHeight="0.9rem"
+                            textAlign="center"
+                        >
+                            {label}
+                        </Text>
+                    </Center>
+                )}
+                <Box pb={generic ? 0 : 1}>{contents}</Box>
             </Box>
         );
     }
