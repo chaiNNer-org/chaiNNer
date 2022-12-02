@@ -183,6 +183,7 @@ export const OutputContainer = memo(
                 mr={0}
                 px={2}
                 verticalAlign="middle"
+                w="full"
             >
                 {!generic && (
                     <Center
