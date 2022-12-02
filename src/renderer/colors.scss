@@ -22,7 +22,6 @@
     --gray-650: #{color.mix($gray-600, $gray-700, 50%)};
     --gray-700: #{$gray-700};
     --gray-750: #{color.mix($gray-700, $gray-800, 50%)};
-    --gray-775: #{color.mix($gray-700, $gray-800, 25%)};
     --gray-800: #{$gray-800};
     --gray-850: #{color.mix($gray-800, $gray-900, 50%)};
     --gray-900: #{$gray-900};

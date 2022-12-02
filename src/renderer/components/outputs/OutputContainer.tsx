@@ -179,23 +179,15 @@ export const OutputContainer = memo(
         }
 
         return (
-            <Box
-                // bg="var(--gray-775)"
-                // borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
-                // borderTopLeftRadius={index === 0 ? 'lg' : 0}
-                w="full"
-            >
+            <Box w="full">
                 <Box
                     bg="var(--gray-700)"
-                    // borderBottomLeftRadius={index === length - 1 ? 'lg' : 0}
-                    // borderTopLeftRadius={index === 0 ? 'lg' : 0}
                     h="auto"
                     minH="2rem"
                     ml="auto"
                     mr={0}
                     px={2}
                     verticalAlign="middle"
-                    // w="calc(100% - 0.5rem)"
                 >
                     {!generic && (
                         <Center

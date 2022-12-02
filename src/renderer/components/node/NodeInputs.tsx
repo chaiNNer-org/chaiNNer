@@ -23,19 +23,17 @@ export const NodeInputs = memo(
 
         return (
             <>
-                {inputs.map((item, index) => {
+                {inputs.map((item) => {
                     switch (item.kind) {
                         case 'input': {
                             const { input } = item;
                             return (
                                 <SchemaInput
-                                    index={index}
                                     input={input}
                                     inputData={inputData}
                                     inputSize={inputSize}
                                     isLocked={isLocked}
                                     key={`i${input.id}`}
-                                    length={inputs.length}
                                     nodeId={id}
                                     schemaId={schemaId}
                                 />

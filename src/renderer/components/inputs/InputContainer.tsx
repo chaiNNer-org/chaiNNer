@@ -216,7 +216,6 @@ export const InputContainer = memo(
                     mr="auto"
                     px={2}
                     verticalAlign="middle"
-                    // w="calc(100% - 0.5rem)"
                 >
                     {!generic && (
                         <Center
