@@ -42,7 +42,7 @@ export const NodeBody = memo(
                     </Center>
                 )}
 
-                {!autoInput && outputs.length > 0 && <Box py={1} />}
+                {outputs.length > 0 && <Box py={1} />}
                 <Center w="full">
                     <Box
                         bg="var(--gray-700)"
@@ -56,7 +56,6 @@ export const NodeBody = memo(
                         />
                     </Box>
                 </Center>
-                {/* {outputs.length > 0 && <Box py={1} />} */}
             </>
         );
     }
