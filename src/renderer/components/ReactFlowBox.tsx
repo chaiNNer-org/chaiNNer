@@ -414,15 +414,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 },
             };
         },
-        [
-            createConnection,
-            edges,
-            functionDefinitions,
-            nodes,
-            reactFlowInstance,
-            removeEdgeById,
-            typeState.functions,
-        ]
+        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
     );
 
     const onNodeDrag = useCallback(
