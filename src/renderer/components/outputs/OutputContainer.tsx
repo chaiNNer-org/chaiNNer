@@ -79,8 +79,6 @@ export const OutputContainer = memo(
         definitionType,
         label,
         generic,
-        index,
-        length,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
