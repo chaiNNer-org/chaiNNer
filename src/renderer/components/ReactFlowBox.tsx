@@ -231,7 +231,7 @@ const updateZIndexes = (
             }
         }
     }
-    // Fix the iterator children (nodes and edges) to be above the iterator
+    // Fix the iterator children (nodes) to be above the iterator
     for (const node of nodes) {
         if (node.parentNode) {
             const iterator = nodesById.get(node.parentNode);
@@ -243,6 +243,7 @@ const updateZIndexes = (
             }
         }
     }
+    // Fix the iterator children (edges) to be above the iterator
     for (const edge of edges) {
         const sourceNode = nodesById.get(edge.source);
         const targetNode = nodesById.get(edge.target);
@@ -254,6 +255,17 @@ const updateZIndexes = (
                     Math.max(edge.zIndex || 0, iterator.zIndex || 0) +
                     1 +
                     (edge.selected ? SELECTED_ADD : 0);
+            }
+        }
+        // Fix nodes connected to nodes inside iterators
+        if (sourceNode?.parentNode) {
+            if (targetNode) {
+                targetNode.zIndex = Math.max(sourceNode.zIndex ?? 0, edge.zIndex ?? 0);
+            }
+        }
+        if (targetNode?.parentNode) {
+            if (sourceNode) {
+                sourceNode.zIndex = Math.max(targetNode.zIndex ?? 0, edge.zIndex ?? 0);
             }
         }
     }
