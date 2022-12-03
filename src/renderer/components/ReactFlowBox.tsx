@@ -217,11 +217,17 @@ const updateZIndexes = (
     for (const edge of edges) {
         const sourceNode = nodesById.get(edge.source);
         const targetNode = nodesById.get(edge.target);
-        const edgeParent = sourceNode?.parentNode ?? targetNode?.parentNode;
-        if (edgeParent) {
-            const iterator = nodesById.get(edgeParent);
-            if (iterator) {
-                iterator.zIndex = Math.max(iterator.zIndex || 0, (edge.zIndex || 0) + 1);
+        if (sourceNode?.type === 'iterator' || targetNode?.type === 'iterator') {
+            const maxZIndex = Math.max(
+                edge.zIndex ?? 0,
+                sourceNode?.zIndex ?? 0,
+                targetNode?.zIndex ?? 0
+            );
+            if (sourceNode) {
+                sourceNode.zIndex = maxZIndex + 1;
+            }
+            if (targetNode) {
+                targetNode.zIndex = maxZIndex + 1;
             }
         }
     }
@@ -229,8 +235,11 @@ const updateZIndexes = (
     for (const node of nodes) {
         if (node.parentNode) {
             const iterator = nodesById.get(node.parentNode);
-            if (iterator) {
-                node.zIndex = Math.max(node.zIndex || 0, (iterator.zIndex || 0) + 1);
+            if (iterator && (node.zIndex || 0) <= (iterator.zIndex || 0)) {
+                node.zIndex =
+                    Math.max(node.zIndex || 0, iterator.zIndex || 0) +
+                    1 +
+                    (node.selected ? SELECTED_ADD : 0);
             }
         }
     }
@@ -240,8 +249,11 @@ const updateZIndexes = (
         const edgeParent = sourceNode?.parentNode ?? targetNode?.parentNode;
         if (edgeParent) {
             const iterator = nodesById.get(edgeParent);
-            if (iterator) {
-                edge.zIndex = Math.max(edge.zIndex || 0, (iterator.zIndex || 0) + 1);
+            if (iterator && (edge.zIndex || 0) <= (iterator.zIndex || 0)) {
+                edge.zIndex =
+                    Math.max(edge.zIndex || 0, iterator.zIndex || 0) +
+                    1 +
+                    (edge.selected ? SELECTED_ADD : 0);
             }
         }
     }
