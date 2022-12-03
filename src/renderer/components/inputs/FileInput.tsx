@@ -175,7 +175,6 @@ export const FileInput = memo(
                             isReadOnly
                             alt={filePath}
                             borderRadius="lg"
-                            className="nodrag"
                             cursor="pointer"
                             disabled={isLocked || isInputConnected}
                             draggable={false}
