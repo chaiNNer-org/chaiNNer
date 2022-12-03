@@ -215,11 +215,11 @@ const updateZIndexes = (
 
     const iteratorChildNodesToAdjustMap = new Map<
         string,
-        { zIndexToUpdateTo: number; edgeZIndex: number }
+        { zIndexToUpdateTo: number; parentZIndex: number }
     >();
     const iteratorChildEdgesToAdjustMap = new Map<
         string,
-        { zIndexToUpdateTo: number; edgeZIndex: number }
+        { zIndexToUpdateTo: number; parentZIndex: number }
     >();
 
     // Now we have to adjust iterators that are connected to any edges, to make sure they are above them
@@ -228,10 +228,10 @@ const updateZIndexes = (
         const targetNode = nodesById.get(e.target);
         if (sourceNode && targetNode) {
             if (sourceNode.type === 'iterator') {
-                const zIndexToUpdateTo = Math.max(e.zIndex || 0, sourceNode.zIndex || 0) + 1;
+                const zIndexToUpdateTo = Math.max(e.zIndex || 0, sourceNode.zIndex || 0);
                 const zIndexData = {
-                    zIndexToUpdateTo,
-                    edgeZIndex: e.zIndex || 0,
+                    zIndexToUpdateTo: zIndexToUpdateTo + 1,
+                    parentZIndex: sourceNode.zIndex || 0,
                 };
                 // We also have to do to all children nodes and edges...
                 const sourceChildNodes = iteratorChildNodesMap.get(sourceNode.id);
@@ -242,13 +242,14 @@ const updateZIndexes = (
                 if (sourceChildEdges) {
                     iteratorChildEdgesToAdjustMap.set(sourceNode.id, zIndexData);
                 }
+                e.zIndex = zIndexToUpdateTo;
                 sourceNode.zIndex = zIndexToUpdateTo;
             }
             if (targetNode.type === 'iterator') {
-                const zIndexToUpdateTo = Math.max(e.zIndex || 0, targetNode.zIndex || 0) + 1;
+                const zIndexToUpdateTo = Math.max(e.zIndex || 0, targetNode.zIndex || 0);
                 const zIndexData = {
-                    zIndexToUpdateTo,
-                    edgeZIndex: e.zIndex || 0,
+                    zIndexToUpdateTo: zIndexToUpdateTo + 1,
+                    parentZIndex: targetNode.zIndex || 0,
                 };
                 const sourceChildNodes = iteratorChildNodesMap.get(targetNode.id);
                 const sourceChildEdges = iteratorChildEdgesMap.get(targetNode.id);
@@ -258,7 +259,8 @@ const updateZIndexes = (
                 if (sourceChildEdges) {
                     iteratorChildEdgesToAdjustMap.set(targetNode.id, zIndexData);
                 }
-                targetNode.zIndex = zIndexToUpdateTo;
+                e.zIndex = zIndexToUpdateTo;
+                sourceNode.zIndex = zIndexToUpdateTo;
             }
         }
     }
@@ -266,21 +268,21 @@ const updateZIndexes = (
     // Make final adjustments to the zIndex of the nodes and edges that are connected to iterators
     for (const [
         nodeId,
-        { zIndexToUpdateTo, edgeZIndex },
+        { zIndexToUpdateTo, parentZIndex },
     ] of iteratorChildNodesToAdjustMap.entries()) {
         const node = nodesById.get(nodeId);
         if (node) {
-            const offset = (node.zIndex || 0) - (edgeZIndex || 0);
+            const offset = (node.zIndex || 0) - (parentZIndex || 0);
             node.zIndex = zIndexToUpdateTo + offset;
         }
     }
     for (const [
         edgeId,
-        { zIndexToUpdateTo, edgeZIndex },
+        { zIndexToUpdateTo, parentZIndex },
     ] of iteratorChildEdgesToAdjustMap.entries()) {
         const edge = edgesById.get(edgeId);
         if (edge) {
-            const offset = (edge.zIndex || 0) - (edgeZIndex || 0);
+            const offset = (edge.zIndex || 0) - (parentZIndex || 0);
             edge.zIndex = zIndexToUpdateTo + offset;
         }
     }
