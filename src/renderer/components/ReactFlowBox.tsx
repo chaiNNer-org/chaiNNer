@@ -148,7 +148,7 @@ const updateZIndexes = (
         }
     }
 
-    const nodesToAdjust: { node: Node<NodeData>; zIndex: number }[] = [];
+    const nodesToAdjust = new Map<string, number>();
     // set the zIndex of all edges
     for (const e of edges) {
         let zIndex = Math.max(
@@ -156,33 +156,44 @@ const updateZIndexes = (
             byId.get(e.target)?.zIndex ?? STARTING_Z_INDEX
         );
 
-        const connectedNodes = nodes.filter((n) => n.id === e.source || n.id === e.target);
+        const sourceNode = byId.get(e.source);
+        const targetNode = byId.get(e.target);
 
-        if (e.selected && zIndex < MIN_SELECTED_INDEX) {
-            zIndex += SELECTED_ADD;
-            // If an edge is selected, make the connected nodes the same zIndex
-            connectedNodes.forEach((n) => {
-                if (n.type !== 'iterator') {
+        if (sourceNode && targetNode) {
+            if (e.selected && zIndex < MIN_SELECTED_INDEX) {
+                zIndex += SELECTED_ADD;
+                // If an edge is selected, make the connected nodes the same zIndex so that the handle stays above
+                if (sourceNode.type !== 'iterator') {
                     // We need to wait until after the loop to adjust the zIndex
-                    nodesToAdjust.push({ node: n, zIndex });
+                    nodesToAdjust.set(sourceNode.id, zIndex);
                 }
-            });
-        } else if (connectedNodes.some((n) => n.selected)) {
-            // If an edge is connectec to a selected node, we need to make the other node it is connected to the same zIndex
-            connectedNodes.forEach((n) => {
-                if (!n.selected && n.type !== 'iterator') {
+                if (targetNode.type !== 'iterator') {
                     // We need to wait until after the loop to adjust the zIndex
-                    nodesToAdjust.push({ node: n, zIndex });
+                    nodesToAdjust.set(targetNode.id, zIndex);
                 }
-            });
+            } else if (sourceNode.selected || targetNode.selected) {
+                // If an edge is connected to a selected node, we need to make the other node it is connected to the same zIndex so that both handles stay above
+                if (targetNode.selected && targetNode.type !== 'iterator') {
+                    // We need to wait until after the loop to adjust the zIndex
+                    nodesToAdjust.set(sourceNode.id, zIndex);
+                }
+                if (sourceNode.selected && sourceNode.type !== 'iterator') {
+                    // We need to wait until after the loop to adjust the zIndex
+                    nodesToAdjust.set(targetNode.id, zIndex);
+                }
+            }
         }
 
         e.zIndex = zIndex - 1;
     }
 
     // Adjust the zIndex of the nodes that were connected to selected edges
-    for (const { node, zIndex } of nodesToAdjust) {
-        node.zIndex = zIndex;
+    // The reason we don't do this in the loop above is because we don't want to modify as we detect)
+    for (const [nodeId, zIndex] of nodesToAdjust.entries()) {
+        const node = byId.get(nodeId);
+        if (node) {
+            node.zIndex = zIndex;
+        }
     }
 
     // Now we have to adjust iterators that are connected to any edges, to make sure they are above them
