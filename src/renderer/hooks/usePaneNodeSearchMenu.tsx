@@ -1,4 +1,3 @@
-import { Type } from '@chainner/navi';
 import { CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
 import {
     Box,
@@ -37,6 +36,7 @@ import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { TypeState } from '../helpers/TypeState';
@@ -246,11 +246,6 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
         </MenuList>
     );
 });
-
-const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | undefined =>
-    fn.schema.inputs.find((i) => i.hasHandle && fn.canAssignInput(i.id, type))?.id;
-const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | undefined =>
-    fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
 
 const getConnectionTarget = (
     connectingFrom: OnConnectStartParams | null,

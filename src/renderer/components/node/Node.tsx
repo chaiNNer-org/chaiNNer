@@ -1,9 +1,10 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
-import { isStartingNode } from '../../../common/util';
+import { isStartingNode, parseSourceHandle } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -11,6 +12,7 @@ import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
@@ -56,6 +58,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
+    const { getEdge } = useReactFlow();
+
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
@@ -72,6 +76,24 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
+
+    const collidingAccentColor = useContextSelector(
+        GlobalVolatileContext,
+        ({ collidingEdge, collidingNode, typeState }) => {
+            if (collidingNode && collidingNode === id && collidingEdge) {
+                const collidingEdgeActual = getEdge(collidingEdge);
+                if (collidingEdgeActual && collidingEdgeActual.sourceHandle) {
+                    const edgeType = typeState.functions
+                        .get(collidingEdgeActual.source)
+                        ?.outputs.get(parseSourceHandle(collidingEdgeActual.sourceHandle).outputId);
+                    if (edgeType) {
+                        return getTypeAccentColors(edgeType)[0];
+                    }
+                }
+            }
+            return undefined;
+        }
+    );
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
@@ -132,7 +154,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     return (
         <Center
             bg="var(--node-bg-color)"
-            borderColor={borderColor}
+            borderColor={collidingAccentColor || borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"

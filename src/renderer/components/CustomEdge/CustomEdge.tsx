@@ -1,5 +1,5 @@
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -19,16 +19,21 @@ export const CustomEdge = memo(
     ({
         id,
         source,
-        sourceX,
+        sourceX: _sourceX,
         sourceY,
-        targetX,
+        targetX: _targetX,
         targetY,
         sourcePosition,
         targetPosition,
         selected,
         sourceHandleId,
         animated,
+        data = {},
+        style,
     }: EdgeProps<EdgeData>) => {
+        const sourceX = _sourceX; // - 8 <- To align it with the node
+        const targetX = _targetX; // + 8
+
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
@@ -79,9 +84,33 @@ export const CustomEdge = memo(
 
         const showRunning = animated && !paused;
 
+        const isColliding = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.collidingEdge === id
+        );
+
         const classModifier = `${isHovered ? 'hovered' : ''} ${
             showRunning && animateChain ? 'running' : ''
-        }`;
+        } ${isColliding ? 'colliding' : ''}`;
+
+        // NOTE: I know that technically speaking this is bad
+        // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
+        // This is a tradeoff I'm willing to make
+        // This is necessary because RF does not expose source/target X/Y on the edge
+        useEffect(
+            () => {
+                // eslint-disable-next-line no-param-reassign
+                data.sourceX = sourceX;
+                // eslint-disable-next-line no-param-reassign
+                data.sourceY = sourceY;
+                // eslint-disable-next-line no-param-reassign
+                data.targetX = targetX;
+                // eslint-disable-next-line no-param-reassign
+                data.targetY = targetY;
+            },
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            [sourceX, sourceY, targetX, targetY]
+        );
 
         const menu = useEdgeMenu(id);
 
@@ -91,6 +120,7 @@ export const CustomEdge = memo(
                 style={{
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
+                    ...style,
                 }}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}

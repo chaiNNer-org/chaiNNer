@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
+import { Bezier } from 'bezier-js';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useMemo, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
     Background,
@@ -15,19 +16,31 @@ import ReactFlow, {
     NodeTypes,
     OnEdgesChange,
     OnNodesChange,
+    Position,
     Viewport,
+    XYPosition,
     useEdgesState,
+    useKeyPress,
     useNodesState,
     useReactFlow,
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import {
+    EMPTY_ARRAY,
+    parseSourceHandle,
+    parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
+} from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
+import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
@@ -161,6 +174,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const {
         setZoom,
         setHoveredNode,
+        setCollidingEdge,
+        setCollidingNode,
         addNodeChanges,
         addEdgeChanges,
         changeNodes,
@@ -169,20 +184,25 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         createConnection,
         setNodesRef,
         setEdgesRef,
+        removeEdgeById,
         exportViewportScreenshot,
     } = useContext(GlobalContext);
-    const { schemata } = useContext(BackendContext);
+    const { schemata, functionDefinitions } = useContext(BackendContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-    const reactFlowInstance = useReactFlow();
+    const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+
+    const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
     setNodesRef.current = setNodes;
     setEdgesRef.current = setEdges;
+
+    const altPressed = useKeyPress(['Alt', 'Option']);
 
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => {
@@ -216,8 +236,188 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
     }, [nodes, edges, isSnapToGrid, snapToGridAmount]);
 
+    // Node-on-edge collision detection
+    const performNodeOnEdgeCollisionDetection = useCallback(
+        (node: Node<NodeData>, mousePosition: XYPosition) => {
+            // First, we need to make sure this node is an orphan. We can do a find so it stops early
+            const hasConnectedEdge = !!edges.find(
+                (e) => e.source === node.id || e.target === node.id
+            );
+            if (hasConnectedEdge) {
+                return;
+            }
+
+            const nodePos: Point = { x: node.position.x || 0, y: node.position.y || 0 };
+            const nodeBB = AABB.fromPoints(nodePos, {
+                x: nodePos.x + (node.width || 0),
+                y: nodePos.y + (node.height || 0),
+            });
+
+            const fn = functionDefinitions.get(node.data.schemaId);
+            if (!fn) {
+                return;
+            }
+
+            // Finds the first edge that intersects with the node
+            type CandidateEdge = Edge<EdgeData> & {
+                data: Required<EdgeData>;
+                sourceHandle: string;
+                targetHandle: string;
+            };
+            const intersectingEdges = edges
+                .filter((e): e is CandidateEdge => {
+                    // if one value is set, all are
+                    return Boolean(
+                        e.data?.sourceX !== undefined && e.sourceHandle && e.targetHandle
+                    );
+                })
+                .flatMap((e) => {
+                    const sourceP: Point = { x: e.data.sourceX, y: e.data.sourceY };
+                    const targetP: Point = { x: e.data.targetX, y: e.data.targetY };
+
+                    // check node and edge bounding boxes
+                    const edgeBB = AABB.fromPoints(sourceP, targetP);
+                    if (!nodeBB.intersects(edgeBB)) {
+                        return EMPTY_ARRAY;
+                    }
+
+                    // Check if the node has valid connections it can make
+                    // If it doesn't, we don't need to bother checking collision
+                    const { outputId } = parseSourceHandle(e.sourceHandle);
+                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
+                    if (!edgeType) {
+                        return EMPTY_ARRAY;
+                    }
+                    const { inputId } = parseTargetHandle(e.targetHandle);
+                    const targetEdgeType = typeState.functions
+                        .get(e.target)
+                        ?.definition.inputDefaults.get(inputId);
+                    if (!targetEdgeType) {
+                        return EMPTY_ARRAY;
+                    }
+                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    const firstPossibleOutput = getFirstPossibleOutput(fn, targetEdgeType);
+                    if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
+                        return EMPTY_ARRAY;
+                    }
+
+                    const bezierPathCoordinates = getBezierPathValues({
+                        sourceX: e.data.sourceX,
+                        sourceY: e.data.sourceY,
+                        sourcePosition: Position.Right,
+                        targetX: e.data.targetX,
+                        targetY: e.data.targetY,
+                        targetPosition: Position.Left,
+                    });
+
+                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
+                    const curve = new Bezier(bezierPathCoordinates);
+                    if (!nodeBB.intersectsCurve(curve)) {
+                        return EMPTY_ARRAY;
+                    }
+
+                    const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
+                    return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
+                })
+                // Sort the edges by their distance from the mouse position
+                .sort((a, b) => a.mouseDist - b.mouseDist);
+
+            // Early exit if there is not an intersecting edge
+            if (intersectingEdges.length === 0) {
+                return;
+            }
+
+            const {
+                edge: intersectingEdge,
+                firstPossibleInput,
+                firstPossibleOutput,
+            } = intersectingEdges[0];
+
+            const fromNode = nodes.find((n) => n.id === intersectingEdge.source);
+            const toNode = nodes.find((n) => n.id === intersectingEdge.target);
+            if (!(fromNode && toNode)) {
+                return;
+            }
+
+            return {
+                intersectingEdge,
+                performCombine: () => {
+                    removeEdgeById(intersectingEdge.id);
+                    createConnection({
+                        source: fromNode.id,
+                        sourceHandle: intersectingEdge.sourceHandle,
+                        target: node.id,
+                        targetHandle: stringifyTargetHandle({
+                            nodeId: node.id,
+                            inputId: firstPossibleInput,
+                        }),
+                    });
+                    createConnection({
+                        source: node.id,
+                        sourceHandle: stringifySourceHandle({
+                            nodeId: node.id,
+                            outputId: firstPossibleOutput,
+                        }),
+                        target: toNode.id,
+                        targetHandle: intersectingEdge.targetHandle,
+                    });
+                },
+            };
+        },
+        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
+    );
+
+    const onNodeDrag = useCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (event: React.MouseEvent, node: Node<NodeData>, _nodes: Node[]) => {
+            if (altPressed) {
+                const mousePosition = {
+                    // React flow's type for the event is incorrect. This value exists.
+                    x: node.position.x + (event as unknown as MouseEvent).offsetX,
+                    y: node.position.y + (event as unknown as MouseEvent).offsetY,
+                };
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, mousePosition);
+                if (collisionResp) {
+                    setCollidingEdge(collisionResp.intersectingEdge.id);
+                    setCollidingNode(node.id);
+                } else {
+                    setCollidingEdge(undefined);
+                    setCollidingNode(undefined);
+                }
+            }
+        },
+        [altPressed, performNodeOnEdgeCollisionDetection, setCollidingEdge, setCollidingNode]
+    );
+
+    const lastAltPressed = useRef<boolean>(altPressed);
+    useEffect(() => {
+        if (lastAltPressed.current !== altPressed) {
+            lastAltPressed.current = altPressed;
+            if (!altPressed) {
+                setCollidingEdge(undefined);
+                setCollidingNode(undefined);
+            }
+        }
+    }, [altPressed, setCollidingEdge, setCollidingNode]);
+
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, _node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+            if (node && altPressed) {
+                const mousePosition = {
+                    // React flow's type for the event is incorrect. This value exists.
+                    x: node.position.x + (event as unknown as MouseEvent).offsetX,
+                    y: node.position.y + (event as unknown as MouseEvent).offsetY,
+                };
+                const collisionResp = performNodeOnEdgeCollisionDetection(node, mousePosition);
+                if (collisionResp) {
+                    collisionResp.performCombine();
+                    setCollidingEdge(collisionResp.intersectingEdge.id);
+                    setCollidingNode(node.id);
+                } else {
+                    setCollidingEdge(undefined);
+                    setCollidingNode(undefined);
+                }
+            }
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');
@@ -285,7 +485,18 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges();
             addEdgeChanges();
         },
-        [addNodeChanges, addEdgeChanges, changeNodes, nodes, changeEdges, edges]
+        [
+            altPressed,
+            nodes,
+            addNodeChanges,
+            addEdgeChanges,
+            performNodeOnEdgeCollisionDetection,
+            setCollidingEdge,
+            setCollidingNode,
+            edges,
+            changeNodes,
+            changeEdges,
+        ]
     );
 
     const onSelectionDragStop = useCallback(
@@ -410,6 +621,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
+                elevateEdgesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
@@ -426,13 +638,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
-                onDrop={onDrop}
                 // onEdgeUpdate={onEdgeUpdate}
+                onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}
                 onMoveStart={closeContextMenu}
                 onNodeClick={closeContextMenu}
+                onNodeDrag={onNodeDrag}
                 onNodeDragStart={closeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}

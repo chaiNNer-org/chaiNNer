@@ -212,6 +212,10 @@ export interface NodeData {
 }
 export interface EdgeData {
     readonly complete?: boolean;
+    sourceX?: number;
+    sourceY?: number;
+    targetX?: number;
+    targetY?: number;
 }
 
 /**
