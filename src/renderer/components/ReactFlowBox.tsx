@@ -213,77 +213,36 @@ const updateZIndexes = (
         }
     }
 
-    const iteratorChildNodesToAdjustMap = new Map<
-        string,
-        { zIndexToUpdateTo: number; parentZIndex: number }
-    >();
-    const iteratorChildEdgesToAdjustMap = new Map<
-        string,
-        { zIndexToUpdateTo: number; parentZIndex: number }
-    >();
-
-    // Now we have to adjust iterators that are connected to any edges, to make sure they are above them
-    for (const e of edges) {
-        const sourceNode = nodesById.get(e.source);
-        const targetNode = nodesById.get(e.target);
-        if (sourceNode && targetNode) {
-            if (sourceNode.type === 'iterator') {
-                const zIndexToUpdateTo = Math.max(e.zIndex || 0, sourceNode.zIndex || 0);
-                const zIndexData = {
-                    zIndexToUpdateTo: zIndexToUpdateTo + 1,
-                    parentZIndex: sourceNode.zIndex || 0,
-                };
-                // We also have to do to all children nodes and edges...
-                const sourceChildNodes = iteratorChildNodesMap.get(sourceNode.id);
-                const sourceChildEdges = iteratorChildEdgesMap.get(sourceNode.id);
-                if (sourceChildNodes) {
-                    iteratorChildNodesToAdjustMap.set(sourceNode.id, zIndexData);
-                }
-                if (sourceChildEdges) {
-                    iteratorChildEdgesToAdjustMap.set(sourceNode.id, zIndexData);
-                }
-                e.zIndex = zIndexToUpdateTo;
-                sourceNode.zIndex = zIndexToUpdateTo;
-            }
-            if (targetNode.type === 'iterator') {
-                const zIndexToUpdateTo = Math.max(e.zIndex || 0, targetNode.zIndex || 0);
-                const zIndexData = {
-                    zIndexToUpdateTo: zIndexToUpdateTo + 1,
-                    parentZIndex: targetNode.zIndex || 0,
-                };
-                const sourceChildNodes = iteratorChildNodesMap.get(targetNode.id);
-                const sourceChildEdges = iteratorChildEdgesMap.get(targetNode.id);
-                if (sourceChildNodes) {
-                    iteratorChildNodesToAdjustMap.set(targetNode.id, zIndexData);
-                }
-                if (sourceChildEdges) {
-                    iteratorChildEdgesToAdjustMap.set(targetNode.id, zIndexData);
-                }
-                e.zIndex = zIndexToUpdateTo;
-                sourceNode.zIndex = zIndexToUpdateTo;
+    // Adjust any iterators connected to edges to be above the edges
+    for (const edge of edges) {
+        const sourceNode = nodesById.get(edge.source);
+        const targetNode = nodesById.get(edge.target);
+        const edgeParent = sourceNode?.parentNode ?? targetNode?.parentNode;
+        if (edgeParent) {
+            const iterator = nodesById.get(edgeParent);
+            if (iterator) {
+                iterator.zIndex = Math.max(iterator.zIndex || 0, (edge.zIndex || 0) + 1);
             }
         }
     }
-
-    // Make final adjustments to the zIndex of the nodes and edges that are connected to iterators
-    for (const [
-        nodeId,
-        { zIndexToUpdateTo, parentZIndex },
-    ] of iteratorChildNodesToAdjustMap.entries()) {
-        const node = nodesById.get(nodeId);
-        if (node) {
-            const offset = (node.zIndex || 0) - (parentZIndex || 0);
-            node.zIndex = zIndexToUpdateTo + offset;
+    // Fix the iterator children (nodes and edges) to be above the iterator
+    for (const node of nodes) {
+        if (node.parentNode) {
+            const iterator = nodesById.get(node.parentNode);
+            if (iterator) {
+                node.zIndex = Math.max(node.zIndex || 0, (iterator.zIndex || 0) + 1);
+            }
         }
     }
-    for (const [
-        edgeId,
-        { zIndexToUpdateTo, parentZIndex },
-    ] of iteratorChildEdgesToAdjustMap.entries()) {
-        const edge = edgesById.get(edgeId);
-        if (edge) {
-            const offset = (edge.zIndex || 0) - (parentZIndex || 0);
-            edge.zIndex = zIndexToUpdateTo + offset;
+    for (const edge of edges) {
+        const sourceNode = nodesById.get(edge.source);
+        const targetNode = nodesById.get(edge.target);
+        const edgeParent = sourceNode?.parentNode ?? targetNode?.parentNode;
+        if (edgeParent) {
+            const iterator = nodesById.get(edgeParent);
+            if (iterator) {
+                edge.zIndex = Math.max(edge.zIndex || 0, (iterator.zIndex || 0) + 1);
+            }
         }
     }
 };
