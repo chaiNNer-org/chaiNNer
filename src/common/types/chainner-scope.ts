@@ -44,7 +44,7 @@ struct PyTorchModel {
     subType: string,
 }
 let PyTorchFaceModel = PyTorchModel {
-    arch: "GFPGAN" | "RestoreFormer",
+    arch: "GFPGAN" | "RestoreFormer" | "CodeFormer",
     subType: "Face SR"
 };
 let PyTorchSRModel = PyTorchModel {

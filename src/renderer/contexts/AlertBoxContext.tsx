@@ -1,4 +1,4 @@
-import { CopyIcon } from '@chakra-ui/icons';
+import { CopyIcon, InfoIcon, WarningIcon, WarningTwoIcon } from '@chakra-ui/icons';
 import {
     AlertDialog,
     AlertDialogBody,
@@ -66,6 +66,49 @@ const EMPTY_MESSAGE: InternalMessage = {
 };
 
 const ALERT_FOCUS_ID = 'alert-focus-button';
+
+const pickAlertIcon = (type: AlertType): JSX.Element => {
+    switch (type) {
+        case AlertType.INFO:
+            return (
+                <InfoIcon
+                    boxSize={4}
+                    color="gray.500"
+                    mr={2}
+                    mt={-1}
+                />
+            );
+        case AlertType.WARN:
+            return (
+                <WarningTwoIcon
+                    boxSize={4}
+                    color="yellow.500"
+                    mr={2}
+                    mt={-1}
+                />
+            );
+        case AlertType.ERROR:
+            return (
+                <WarningIcon
+                    boxSize={4}
+                    color="red.500"
+                    mr={2}
+                    mt={-1}
+                />
+            );
+        case AlertType.CRIT_ERROR:
+            return (
+                <WarningIcon
+                    boxSize={4}
+                    color="red.500"
+                    mr={2}
+                    mt={-1}
+                />
+            );
+        default:
+            return assertNever(type);
+    }
+};
 
 const getButtons = (
     { type, buttons, defaultId = 0, cancelId }: InternalMessage,
@@ -267,11 +310,13 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             >
                 <AlertDialogOverlay />
 
-                <AlertDialogContent>
+                <AlertDialogContent bgColor="var(--chain-editor-bg)">
                     <AlertDialogHeader>
+                        {pickAlertIcon(current?.type ?? AlertType.INFO)}
                         {current?.title}
                         {progressTotal > 1 ? ` (${progressCurrent}/${progressTotal})` : ''}
                     </AlertDialogHeader>
+
                     <AlertDialogCloseButton />
                     <AlertDialogBody whiteSpace="pre-wrap">{current?.message}</AlertDialogBody>
                     <AlertDialogFooter>

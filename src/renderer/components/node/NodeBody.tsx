@@ -1,8 +1,11 @@
-import { Center, Text } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
-import { InputData, InputSize, NodeSchema } from '../../../common/common-types';
+import { Input, InputData, InputSize, NodeSchema } from '../../../common/common-types';
 import { NodeInputs } from './NodeInputs';
 import { NodeOutputs } from './NodeOutputs';
+
+const isAutoInput = (input: Input): boolean =>
+    input.kind === 'generic' && input.optional && !input.hasHandle;
 
 interface NodeBodyProps {
     id: string;
@@ -17,48 +20,38 @@ export const NodeBody = memo(
     ({ schema, id, inputData, inputSize, isLocked, animated = false }: NodeBodyProps) => {
         const { inputs, outputs, schemaId } = schema;
 
+        const autoInput = inputs.length === 1 && isAutoInput(inputs[0]);
+
         return (
             <>
-                {inputs.length > 0 && (
-                    <Center>
-                        <Text
-                            fontSize="xs"
-                            m={0}
-                            mb={-1}
-                            mt={-1}
-                            p={0}
-                        >
-                            INPUTS
-                        </Text>
-                    </Center>
+                {!autoInput && inputs.length > 0 && <Box py={1} />}
+                {!autoInput && (
+                    <Box
+                        bg="var(--bg-700)"
+                        w="full"
+                    >
+                        <NodeInputs
+                            id={id}
+                            inputData={inputData}
+                            inputSize={inputSize}
+                            isLocked={isLocked}
+                            schema={schema}
+                        />
+                    </Box>
                 )}
-                <NodeInputs
-                    id={id}
-                    inputData={inputData}
-                    inputSize={inputSize}
-                    isLocked={isLocked}
-                    schema={schema}
-                />
 
-                {outputs.length > 0 && (
-                    <Center>
-                        <Text
-                            fontSize="xs"
-                            m={0}
-                            mb={-1}
-                            mt={-1}
-                            p={0}
-                        >
-                            OUTPUTS
-                        </Text>
-                    </Center>
-                )}
-                <NodeOutputs
-                    animated={animated}
-                    id={id}
-                    outputs={outputs}
-                    schemaId={schemaId}
-                />
+                {outputs.length > 0 && <Box py={1} />}
+                <Box
+                    bg="var(--bg-700)"
+                    w="full"
+                >
+                    <NodeOutputs
+                        animated={animated}
+                        id={id}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </Box>
             </>
         );
     }

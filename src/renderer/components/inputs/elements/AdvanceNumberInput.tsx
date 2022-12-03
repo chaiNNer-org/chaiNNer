@@ -86,6 +86,7 @@ export const AdvancedNumberInput = memo(
                 >
                     {unit && (
                         <InputLeftAddon
+                            borderLeftRadius="md"
                             px={1}
                             w="fit-content"
                         >
@@ -93,6 +94,7 @@ export const AdvancedNumberInput = memo(
                         </InputLeftAddon>
                     )}
                     <NumberInput
+                        borderRadius="md"
                         className="nodrag"
                         defaultValue={defaultValue}
                         draggable={false}
@@ -107,7 +109,8 @@ export const AdvancedNumberInput = memo(
                         onKeyDown={stopPropagation}
                     >
                         <NumberInputField
-                            borderLeftRadius={unit ? 0 : 'xs'}
+                            borderLeftRadius={unit ? 0 : 'md'}
+                            borderRightRadius="md"
                             m={0}
                             p={1}
                             // dynamic width based on precision
@@ -123,9 +126,13 @@ export const AdvancedNumberInput = memo(
         }
 
         return (
-            <InputGroup>
+            <InputGroup
+                size="sm"
+                w="full"
+            >
                 {unit && (
                     <InputLeftAddon
+                        borderLeftRadius="lg"
                         px={2}
                         w="fit-content"
                     >
@@ -133,20 +140,24 @@ export const AdvancedNumberInput = memo(
                     </InputLeftAddon>
                 )}
                 <NumberInput
+                    borderRadius="lg"
                     className="nodrag"
                     defaultValue={defaultValue}
                     draggable={false}
                     isDisabled={isDisabled}
                     max={max}
                     min={min}
+                    size="sm"
                     step={controlsStep}
                     value={inputString}
+                    w="full"
                     onBlur={onBlur}
                     onChange={setInputString}
                     onKeyDown={stopPropagation}
                 >
                     <NumberInputField
-                        borderLeftRadius={unit ? 0 : 'md'}
+                        borderLeftRadius={unit ? 0 : 'lg'}
+                        borderRightRadius="lg"
                         px={unit ? 2 : 4}
                     />
                     <NumberInputStepper>

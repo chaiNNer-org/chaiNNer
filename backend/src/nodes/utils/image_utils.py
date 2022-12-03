@@ -373,7 +373,7 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     return float(np.mean(ssim_map))
 
 
-def preview_encode(img: np.ndarray, target_size: int = 512) -> str:
+def preview_encode(img: np.ndarray, target_size: int = 512) -> Tuple[str, np.ndarray]:
     """
     resize the image, so the preview loads faster and doesn't lag the UI
     512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
@@ -387,4 +387,4 @@ def preview_encode(img: np.ndarray, target_size: int = 512) -> str:
 
     _, encoded_img = cv2.imencode(".webp", (img * 255).astype("uint8"))  # type: ignore
     base64_img = base64.b64encode(encoded_img).decode("utf8")
-    return f"data:image/webp;base64,{base64_img}"
+    return f"data:image/webp;base64,{base64_img}", img
