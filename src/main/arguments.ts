@@ -11,7 +11,7 @@ export interface ParsedArguments {
     noBackend: boolean;
 }
 
-const parseArgs = (args: readonly string[]): ParsedArguments => {
+export const parseArgs = (args: readonly string[]): ParsedArguments => {
     try {
         const parsed = yargs(args)
             .options({
