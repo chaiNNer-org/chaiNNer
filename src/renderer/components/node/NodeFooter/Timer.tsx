@@ -1,6 +1,6 @@
-import { TimeIcon } from '@chakra-ui/icons';
-import { HStack, Text, Tooltip } from '@chakra-ui/react';
+import { HStack, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { BiStopwatch } from 'react-icons/bi';
 
 interface TimerProps {
     time: number;
@@ -26,13 +26,16 @@ export const Timer = memo(({ time }: TimerProps) => {
                 spacing={0.5}
                 width="auto"
             >
-                <TimeIcon
-                    boxSize="0.5rem"
+                <Icon
+                    as={BiStopwatch}
+                    boxSize="0.75rem"
                     color="var(--node-timer-fg)"
                 />
                 <Text
                     color="var(--node-timer-fg)"
                     fontSize="xx-small"
+                    fontWeight="500"
+                    m={0}
                     textAlign="right"
                 >
                     {Number(time.toFixed(2))}s
