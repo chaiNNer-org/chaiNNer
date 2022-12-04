@@ -224,6 +224,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
+            ipcRenderer.send('set-progress-bar', null);
         }
     }, [status]);
 

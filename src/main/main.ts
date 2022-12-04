@@ -186,7 +186,13 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
-    ipcMain.on('set-progress-bar', (event, progress) => mainWindow.setProgressBar(progress));
+    ipcMain.on('set-progress-bar', (event, progress) => {
+        try {
+            mainWindow.setProgressBar(progress ?? -1);
+        } catch (err) {
+            log.error(err);
+        }
+    });
 };
 
 const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
