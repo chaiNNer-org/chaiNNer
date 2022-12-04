@@ -786,7 +786,7 @@ const createWindow = lazy(async () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.on('second-instance', async (_event, commandLine, _workingDirectory) => {
-        const { file } = parseArgs(commandLine.slice(app.isPackaged ? 1 : 2));
+        const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
         if (file) {
             const result = await openSaveFile(file);
             mainWindow.webContents.send('file-open', result);
