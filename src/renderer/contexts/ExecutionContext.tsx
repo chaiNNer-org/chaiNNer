@@ -259,7 +259,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         inputHash,
                         data ?? undefined
                     );
-                    if (progressPercent !== undefined) {
+                    if (progressPercent !== undefined && progressPercent !== null) {
                         if (progressPercent === 1) {
                             setPercentComplete(undefined);
                         } else {
