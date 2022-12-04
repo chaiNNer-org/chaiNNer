@@ -213,7 +213,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     useEffect(() => {
         if (percentComplete === undefined) {
-            ipcRenderer.send('set-progress-bar', -1);
+            ipcRenderer.send('set-progress-bar', null);
         } else {
             ipcRenderer.send('set-progress-bar', percentComplete);
         }

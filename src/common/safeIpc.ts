@@ -86,7 +86,7 @@ export interface SendChannels {
     'enable-menu': SendChannelInfo;
     'save-before-exit': SendChannelInfo;
     'exit-after-save': SendChannelInfo;
-    'set-progress-bar': ChannelInfo<void, [progress: number]>;
+    'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
 
     // history
     'history-undo': SendChannelInfo;
