@@ -212,11 +212,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
 
     useEffect(() => {
-        if (percentComplete === undefined) {
-            ipcRenderer.send('set-progress-bar', null);
-        } else {
-            ipcRenderer.send('set-progress-bar', percentComplete);
-        }
+        ipcRenderer.send('set-progress-bar', percentComplete ?? null);
     }, [percentComplete]);
 
     useEffect(() => {
@@ -260,7 +256,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         inputHash,
                         data ?? undefined
                     );
-                    if (progressPercent !== undefined && progressPercent !== null) {
+                    if (progressPercent != null) {
                         if (progressPercent === 1) {
                             setPercentComplete(undefined);
                         } else {
