@@ -40,6 +40,10 @@ class Segment:
 
 
 def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Segment]:
+    """
+    Splits the given length into segments of `exact` (padded) length.
+    Segments will overlap into each other with at least the given overlap.
+    """
     if length == exact:
         # trivial
         return [Segment(0, exact, 0, 0)]
@@ -53,6 +57,13 @@ def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Seg
         assert s.padded_length == exact
         result.append(s)
 
+    # The current strategy is to go from left to right and to align segments
+    # such that we use the least overlap possible. The last segment will then
+    # be the smallest with potentially a lot of overlap.
+    # While this is easy to implement, it's actually not ideal. Ideally, we
+    # would want for the overlap to be distributed evenly between segments.
+    # However, this is complex to implement and the current method also works.
+
     # we know that the first segment looks like this
     add(Segment(0, exact - overlap, 0, overlap))
 
@@ -64,6 +75,7 @@ def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Seg
         endPadding = overlap
 
         if end + endPadding >= length:
+            # last segment
             endPadding = 0
             end = length
             startPadding = exact - (end - start)
@@ -87,6 +99,8 @@ def exact_split_into_regions(
     Each region plus its padding is guaranteed to have the given exact size.
     The padding (if not zero) is guaranteed to be at least the given overlap value.
     """
+
+    # we can split x and y independently from each other and then combine the results
     x_segments = exact_split_into_segments(w, exact_w, overlap)
     y_segments = exact_split_into_segments(h, exact_h, overlap)
 
@@ -163,9 +177,9 @@ def exact_split(
     overlap: int = 16,
 ) -> np.ndarray:
     """
-    Splits the image into tiles with at most the given tile size.
+    Splits the image into tiles with exactly the given tile size.
 
-    If the upscale method requests a split, then the tile size will be lowered.
+    If the image is smaller than the given size, then it will be padded.
     """
 
     # ensure that the image is at least as large as the given size
