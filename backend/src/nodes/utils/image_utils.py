@@ -6,7 +6,7 @@ import numpy as np
 from sanic.log import logger
 
 from .blend_modes import ImageBlender, blend_mode_normalized
-from .utils import get_h_w_c
+from .utils import get_h_w_c, Padding
 
 
 class FillColor:
@@ -228,16 +228,16 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
 def create_border(
     img: np.ndarray,
     border_type: int,
-    top: int,
-    right: int,
-    bottom: int,
-    left: int,
+    border: Padding,
 ) -> np.ndarray:
     """
     Returns a new image with a specified border.
 
     The border type value is expected to come from the `BorderType` class.
     """
+
+    if border.empty:
+        return img
 
     _, _, c = get_h_w_c(img)
     if c == 4 and border_type == BorderType.BLACK:
@@ -252,10 +252,10 @@ def create_border(
 
     return cv2.copyMakeBorder(
         img,
-        top=top,
-        left=left,
-        right=right,
-        bottom=bottom,
+        top=border.top,
+        left=border.left,
+        right=border.right,
+        bottom=border.bottom,
         borderType=border_type,
         value=value,
     )

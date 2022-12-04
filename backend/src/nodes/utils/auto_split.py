@@ -1,12 +1,13 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, Tuple
 import math
 
 import numpy as np
 from sanic.log import logger
 
-from .utils import get_h_w_c
+from .utils import get_h_w_c, Region
+from .exact_split import exact_split
 
 
 class Split:
@@ -14,6 +15,9 @@ class Split:
 
 
 class Tiler(ABC):
+    def exact_tile_size(self) -> Tuple[int, int] | None:
+        return None
+
     @abstractmethod
     def starting_tile_size(self, width: int, height: int, channels: int) -> int:
         pass
@@ -42,6 +46,17 @@ class MaxTileSize(Tiler):
         return min(self.tile_size, max_tile_size)
 
 
+class ExactTileSize(Tiler):
+    def __init__(self, exact_size: Tuple[int, int]) -> None:
+        self.exact_size = exact_size
+
+    def exact_tile_size(self) -> Tuple[int, int] | None:
+        return self.exact_size
+
+    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
+        return max(*self.exact_size)
+
+
 def auto_split(
     img: np.ndarray,
     upscale: Callable[[np.ndarray], Union[np.ndarray, Split]],
@@ -55,6 +70,29 @@ def auto_split(
     """
 
     h, w, c = get_h_w_c(img)
+
+    exact_tile_size = tiler.exact_tile_size()
+    if exact_tile_size is not None:
+        logger.info(
+            f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {exact_tile_size[0]}x{exact_tile_size[1]}px."
+        )
+
+        def no_split_upscale(i: np.ndarray) -> np.ndarray:
+            result = upscale(i)
+            if isinstance(result, Split):
+                raise ValueError(
+                    f"Splits are not supported for exact size ({exact_tile_size[0]}x{exact_tile_size[1]}px) splitting."
+                    f" This typically means that your machine does not have enough VRAM to run the current model."
+                )
+            return result
+
+        return exact_split(
+            img=img,
+            exact_size=exact_tile_size,
+            upscale=no_split_upscale,
+            overlap=overlap,
+        )
+
     max_tile_size = tiler.starting_tile_size(w, h, c)
     logger.info(
         f"Auto split image ({w}x{h}px @ {c}) with initial tile size {max_tile_size}."
@@ -83,6 +121,8 @@ def auto_split(
     # and we only get to know this factor after the first successful upscale.
     result: Optional[np.ndarray] = None
     scale: int = 0
+
+    img_region = Region(0, 0, w, h)
 
     restart = True
     while restart:
@@ -113,12 +153,13 @@ def auto_split(
                 if y == start_y and x < start_x:
                     continue
 
-                x_min = max(0, x * tile_size_x - overlap)
-                y_min = max(0, y * tile_size_y - overlap)
-                x_max = min(w, (x + 1) * tile_size_x + overlap)
-                y_max = min(h, (y + 1) * tile_size_y + overlap)
+                tile = Region(
+                    x * tile_size_x, y * tile_size_y, tile_size_x, tile_size_y
+                ).intersect(img_region)
+                pad = img_region.child_padding(tile).min(overlap)
+                padded_tile = tile.add_padding(pad)
 
-                upscale_result = upscale(img[y_min:y_max, x_min:x_max, ...])
+                upscale_result = upscale(padded_tile.read_from(img))
 
                 if isinstance(upscale_result, Split):
                     max_tile_size = tiler.split(max_tile_size)
@@ -139,10 +180,10 @@ def auto_split(
 
                 # figure out by how much the image was upscaled by
                 up_h, up_w, _ = get_h_w_c(upscale_result)
-                current_scale = up_h // (y_max - y_min)
+                current_scale = up_h // padded_tile.height
                 assert current_scale > 0
-                assert (y_max - y_min) * current_scale == up_h
-                assert (x_max - x_min) * current_scale == up_w
+                assert padded_tile.height * current_scale == up_h
+                assert padded_tile.width * current_scale == up_w
 
                 if result is None:
                     # allocate the result image
@@ -152,30 +193,10 @@ def auto_split(
                 assert current_scale == scale
 
                 # remove overlap padding
-                pad_left = abs(x * tile_size_x - x_min)
-                pad_top = abs(y * tile_size_y - y_min)
-                pad_right = abs(min(w, (x + 1) * tile_size_x) - x_max)
-                pad_bottom = abs(min(h, (y + 1) * tile_size_y) - y_max)
-
-                up_x = pad_left * scale
-                up_y = pad_top * scale
-                up_w = up_w - (pad_left + pad_right) * scale
-                up_h = up_h - (pad_top + pad_bottom) * scale
-
-                upscale_result = upscale_result[
-                    up_y : (up_y + up_h),
-                    up_x : (up_x + up_w),
-                    ...,
-                ]
+                upscale_result = pad.scale(scale).remove_from(upscale_result)
 
                 # copy into result image
-                res_x = x * tile_size_x * scale
-                res_y = y * tile_size_y * scale
-                result[
-                    res_y : (res_y + up_h),
-                    res_x : (res_x + up_w),
-                    ...,
-                ] = upscale_result
+                tile.scale(scale).write_into(result, upscale_result)
 
     assert result is not None
     return result
