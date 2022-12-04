@@ -9,6 +9,7 @@ from ...properties.inputs import ImageInput, BorderInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.image_utils import create_border
+from ...utils.utils import Padding
 
 
 @NodeFactory.register("chainner:image:create_edges")
@@ -47,4 +48,4 @@ class CreateEdgesNode(NodeBase):
         right: int,
         bottom: int,
     ) -> np.ndarray:
-        return create_border(img, border_type, top, right, bottom, left)
+        return create_border(img, border_type, Padding(top, right, bottom, left))

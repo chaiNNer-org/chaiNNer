@@ -11,7 +11,8 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.auto_split_tiles import parse_tile_size_input, TileSize, NO_TILING
+from ...utils.auto_split_tiles import parse_tile_size_input, TileSize
+from ...utils.auto_split import ExactTileSize
 from ...utils.onnx_auto_split import onnx_auto_split
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_session import get_onnx_session
@@ -75,23 +76,16 @@ class OnnxImageUpscaleNode(NodeBase):
     ) -> np.ndarray:
         logger.debug("Upscaling image")
 
-        def estimate():
-            raise ValueError
+        if exact_size is None:
 
-        if exact_size is not None:
-            h, w, _ = get_h_w_c(img)
-            same_size = (w, h) == exact_size
-            assert (
-                same_size
-            ), f"The current model only support images with a size of {exact_size[0]}x{exact_size[1]}px"
-            tile_size = NO_TILING
+            def estimate():
+                raise ValueError
 
-        return onnx_auto_split(
-            img,
-            session,
-            change_shape=change_shape,
-            tiler=parse_tile_size_input(tile_size, estimate),
-        )
+            tiler = parse_tile_size_input(tile_size, estimate)
+        else:
+            tiler = ExactTileSize(exact_size)
+
+        return onnx_auto_split(img, session, change_shape=change_shape, tiler=tiler)
 
     def run(
         self,
