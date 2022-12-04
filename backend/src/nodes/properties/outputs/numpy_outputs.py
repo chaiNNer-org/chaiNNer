@@ -95,23 +95,36 @@ class LargeImageOutput(ImageOutput):
     def get_broadcast_data(self, value: np.ndarray):
         img = value
         h, w, c = get_h_w_c(img)
+        image_size = max(h, w)
+
+        preview_sizes = [2048, 1024, 512, 256]
+        preview_size_grace = 1.2
+
+        start_index = len(preview_sizes) - 1
+        for i, size in enumerate(preview_sizes):
+            if size <= image_size and image_size <= size * preview_size_grace:
+                # this preview size will perfectly fit the image
+                start_index = i
+                break
+            if image_size > size:
+                # the image size is larger than the preview size, so try to pick the previous size
+                start_index = max(0, i - 1)
+                break
 
         previews = []
-        preview_sizes = [2048, 1024, 512, 256]
 
         # Encode for multiple scales. Use the preceding scale to save time encoding the smaller sizes.
         last_encoded = img
-        for size in preview_sizes:
-            if h >= size or w >= size:
-                base64, last_encoded = preview_encode(last_encoded, size)
-                le_h, le_w, _ = get_h_w_c(last_encoded)
-                previews.insert(0, {"size": max(le_h, le_w), "url": base64})
-
-        # Encode the full size image if not all previews are encoded.
-        # this includes both when the image is between sizes but smaller than 2k, and when no previews got encoded.
-        if len(previews) < len(preview_sizes):
-            base64, _ = preview_encode(img, max(h, w))
-            previews.insert(0, {"size": max(h, w), "url": base64})
+        for size in preview_sizes[start_index:]:
+            largest_preview = size == preview_sizes[start_index]
+            base64, last_encoded = preview_encode(
+                last_encoded,
+                target_size=size,
+                grace=preview_size_grace,
+                lossless=largest_preview,
+            )
+            le_h, le_w, _ = get_h_w_c(last_encoded)
+            previews.insert(0, {"size": max(le_h, le_w), "url": base64})
 
         return {
             "previews": previews,
