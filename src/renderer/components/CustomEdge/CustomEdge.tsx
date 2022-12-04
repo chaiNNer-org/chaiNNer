@@ -31,8 +31,8 @@ export const CustomEdge = memo(
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
-        const sourceX = _sourceX; // - 8 <- To align it with the node
-        const targetX = _targetX; // + 8
+        const sourceX = _sourceX - 1; // - 8 <- To align it with the node
+        const targetX = _targetX + 1; // + 8
 
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
