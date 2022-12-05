@@ -63,7 +63,9 @@ struct NcnnNetwork {
 }
 
 struct OnnxFile;
-struct OnnxModel;
+struct OnnxModel {
+    scale: int(1..),
+}
 
 struct IteratorAuto;
 
@@ -120,6 +122,14 @@ def FpMode::toString(mode: FpMode) {
     match mode {
         FpMode::fp32 => "fp32",
         FpMode::fp16 => "fp16",
+    }
+}
+
+def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Image) {
+    Image {
+        width: model.scale * image.width,
+        height: model.scale * image.height,
+        channels: image.channels
     }
 }
 `;
