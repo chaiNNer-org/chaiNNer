@@ -1,5 +1,6 @@
 import { Type } from '@chainner/navi';
 import {
+    Icon,
     Input,
     InputGroup,
     InputLeftElement,
@@ -96,17 +97,24 @@ export const DirectoryInput = memo(
                 px={2}
                 py={0}
             >
-                <InputGroup onContextMenu={menu.onContextMenu}>
+                <InputGroup
+                    size="sm"
+                    onContextMenu={menu.onContextMenu}
+                >
                     <InputLeftElement pointerEvents="none">
-                        <BsFolderPlus />
+                        <Icon
+                            as={BsFolderPlus}
+                            m={0}
+                        />
                     </InputLeftElement>
                     <Input
                         isReadOnly
-                        className="nodrag"
+                        borderRadius="lg"
                         cursor="pointer"
                         disabled={isLocked || isInputConnected}
                         draggable={false}
                         placeholder="Click to select..."
+                        size="sm"
                         textOverflow="ellipsis"
                         value={displayDirectory ?? ''}
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises

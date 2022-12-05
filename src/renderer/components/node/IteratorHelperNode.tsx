@@ -87,7 +87,10 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                 opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
                 spacing={0}
             >
-                <VStack w="full">
+                <VStack
+                    spacing={0}
+                    w="full"
+                >
                     <NodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabledStatus}

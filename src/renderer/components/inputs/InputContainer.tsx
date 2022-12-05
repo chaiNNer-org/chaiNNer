@@ -211,6 +211,8 @@ export const InputContainer = memo(
                 bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
+                ml={0}
+                mr="auto"
                 px={2}
                 verticalAlign="middle"
                 w="full"
@@ -218,7 +220,8 @@ export const InputContainer = memo(
                 {!generic && (
                     <Center
                         h="1.25rem"
-                        p={1}
+                        px={1}
+                        py={0.5}
                         verticalAlign="middle"
                     >
                         <Text
@@ -239,7 +242,7 @@ export const InputContainer = memo(
                         )}
                     </Center>
                 )}
-                <Box pb={generic ? 0 : 2}>{children}</Box>
+                <Box pb={generic ? 0 : 1}>{children}</Box>
             </Box>
         );
     }

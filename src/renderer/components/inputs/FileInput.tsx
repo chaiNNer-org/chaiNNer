@@ -1,4 +1,5 @@
 import {
+    Icon,
     Input,
     InputGroup,
     InputLeftElement,
@@ -162,19 +163,23 @@ export const FileInput = memo(
                     px={2}
                     py={0}
                 >
-                    <InputGroup>
+                    <InputGroup size="sm">
                         <InputLeftElement pointerEvents="none">
-                            <BsFileEarmarkPlus />
+                            <Icon
+                                as={BsFileEarmarkPlus}
+                                m={0}
+                            />
                         </InputLeftElement>
 
                         <Input
                             isReadOnly
                             alt={filePath}
-                            className="nodrag"
+                            borderRadius="lg"
                             cursor="pointer"
                             disabled={isLocked || isInputConnected}
                             draggable={false}
                             placeholder="Click to select a file..."
+                            size="sm"
                             textOverflow="ellipsis"
                             value={filePath ? path.parse(filePath).base : ''}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises

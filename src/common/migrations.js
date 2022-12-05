@@ -830,6 +830,31 @@ const convertNormalGenerator = (data) => {
     return data;
 };
 
+const convertColorSpaceFromDetectors = (data) => {
+    const YUV = 3;
+    const HSV = 4;
+    const HSL = 5;
+    const YUV_LIKE = 1001;
+    const HSV_LIKE = 1002;
+    const HSL_LIKE = 1003;
+
+    /** @type {Partial<Record<number, [number, number]>>} */
+    const mapping = {
+        [YUV]: YUV_LIKE,
+        [HSV]: HSV_LIKE,
+        [HSL]: HSL_LIKE,
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const from = node.data.inputData[1];
+            node.data.inputData[1] = mapping[from] ?? from;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -873,6 +898,7 @@ const migrations = [
     convertColorSpaceFromTo,
     convertColorRGBLikeDetector,
     convertNormalGenerator,
+    convertColorSpaceFromDetectors,
 ];
 
 export const currentMigration = migrations.length;

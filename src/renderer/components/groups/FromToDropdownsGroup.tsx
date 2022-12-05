@@ -24,7 +24,7 @@ const DropDown = memo(({ nodeId, input, inputData, isLocked }: DropDownProps) =>
     );
 
     return (
-        <Box w="7.5em">
+        <Box w="6em">
             <DropDownInput
                 input={input}
                 isLocked={isLocked}

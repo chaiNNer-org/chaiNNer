@@ -1,6 +1,7 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable, List, Tuple, Type, Union
 import re
 import os
@@ -353,3 +354,128 @@ def list_all_files_sorted(
             if ext_filter is None or ext.lower() in ext_filter:
                 just_files.append(filepath)
     return just_files
+
+
+@dataclass(frozen=True)
+class Padding:
+    top: int
+    right: int
+    bottom: int
+    left: int
+
+    @staticmethod
+    def all(value: int) -> "Padding":
+        return Padding(value, value, value, value)
+
+    @staticmethod
+    def to(value: Padding | int) -> Padding:
+        if isinstance(value, int):
+            return Padding.all(value)
+        return value
+
+    @property
+    def horizontal(self) -> int:
+        return self.left + self.right
+
+    @property
+    def vertical(self) -> int:
+        return self.top + self.bottom
+
+    @property
+    def empty(self) -> bool:
+        return self.top == 0 and self.right == 0 and self.bottom == 0 and self.left == 0
+
+    def scale(self, factor: int) -> Padding:
+        return Padding(
+            self.top * factor,
+            self.right * factor,
+            self.bottom * factor,
+            self.left * factor,
+        )
+
+    def min(self, other: Padding | int) -> Padding:
+        other = Padding.to(other)
+        return Padding(
+            min(self.top, other.top),
+            min(self.right, other.right),
+            min(self.bottom, other.bottom),
+            min(self.left, other.left),
+        )
+
+    def remove_from(self, image: np.ndarray) -> np.ndarray:
+        h, w, _ = get_h_w_c(image)
+
+        return image[
+            self.top : (h - self.bottom),
+            self.left : (w - self.right),
+            ...,
+        ]
+
+
+@dataclass(frozen=True)
+class Region:
+    x: int
+    y: int
+    width: int
+    height: int
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        return self.width, self.height
+
+    def scale(self, factor: int) -> Region:
+        return Region(
+            self.x * factor,
+            self.y * factor,
+            self.width * factor,
+            self.height * factor,
+        )
+
+    def intersect(self, other: Region) -> Region:
+        x = max(self.x, other.x)
+        y = max(self.y, other.y)
+        width = min(self.x + self.width, other.x + other.width) - x
+        height = min(self.y + self.height, other.y + other.height) - y
+        return Region(x, y, width, height)
+
+    def add_padding(self, pad: Padding) -> Region:
+        return Region(
+            x=self.x - pad.left,
+            y=self.y - pad.top,
+            width=self.width + pad.horizontal,
+            height=self.height + pad.vertical,
+        )
+
+    def remove_padding(self, pad: Padding) -> Region:
+        return self.add_padding(pad.scale(-1))
+
+    def child_padding(self, child: Region) -> Padding:
+        """
+        Returns the padding `p` such that `child.add_padding(p) == self`.
+        """
+        left = child.x - self.x
+        top = child.y - self.y
+        right = self.width - child.width - left
+        bottom = self.height - child.height - top
+        return Padding(top, right, bottom, left)
+
+    def read_from(self, image: np.ndarray) -> np.ndarray:
+        h, w, _ = get_h_w_c(image)
+        if (w, h) == self.size:
+            return image
+
+        return image[
+            self.y : (self.y + self.height),
+            self.x : (self.x + self.width),
+            ...,
+        ]
+
+    def write_into(self, lhs: np.ndarray, rhs: np.ndarray):
+        h, w, _ = get_h_w_c(rhs)
+        assert (w, h) == self.size
+
+        lhs[
+            self.y : (self.y + self.height),
+            self.x : (self.x + self.width),
+            ...,
+        ] = rhs

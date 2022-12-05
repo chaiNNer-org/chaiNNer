@@ -60,11 +60,13 @@ export const TextInput = memo(
 
         return (
             <Input
+                borderRadius="lg"
                 className="nodrag"
                 disabled={isLocked || isInputConnected}
                 draggable={false}
                 maxLength={maxLength ?? undefined}
                 placeholder={placeholder ?? label}
+                size="sm"
                 value={isInputConnected ? typeText ?? '' : tempText}
                 onChange={(event) => {
                     setTempText(event.target.value);

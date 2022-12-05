@@ -179,6 +179,8 @@ export const OutputContainer = memo(
                 bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
+                ml="auto"
+                mr={0}
                 px={2}
                 verticalAlign="middle"
                 w="full"
@@ -186,7 +188,8 @@ export const OutputContainer = memo(
                 {!generic && (
                     <Center
                         h="1.25rem"
-                        p={1}
+                        px={1}
+                        py={0.5}
                         verticalAlign="middle"
                     >
                         {type && (
@@ -211,7 +214,7 @@ export const OutputContainer = memo(
                         </Text>
                     </Center>
                 )}
-                <Box pb={generic ? 0 : 2}>{contents}</Box>
+                <Box pb={generic ? 0 : 1}>{contents}</Box>
             </Box>
         );
     }

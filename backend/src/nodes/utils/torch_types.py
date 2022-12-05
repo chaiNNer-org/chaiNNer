@@ -6,8 +6,9 @@ from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
 from .architecture.Swin2SR import Swin2SR
 from .architecture.HAT import HAT
-from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
-from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
+from .architecture.face_archs.gfpganv1_clean_arch import GFPGANv1Clean
+from .architecture.face_archs.restoreformer_arch import RestoreFormer
+from .architecture.face_archs.codeformer import CodeFormer
 
 PyTorchSRModels = (RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR, Swin2SR, HAT)
 PyTorchSRModel = Union[
@@ -25,8 +26,8 @@ def isPyTorchSRModel(model: object):
     return isinstance(model, PyTorchSRModels)
 
 
-PyTorchFaceModels = (GFPGANv1Clean, RestoreFormer)
-PyTorchFaceModel = Union[GFPGANv1Clean, RestoreFormer]
+PyTorchFaceModels = (GFPGANv1Clean, RestoreFormer, CodeFormer)
+PyTorchFaceModel = Union[GFPGANv1Clean, RestoreFormer, CodeFormer]
 
 
 def isPyTorchFaceModel(model: object):

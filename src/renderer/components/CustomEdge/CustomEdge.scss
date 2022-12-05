@@ -29,6 +29,10 @@
     &.animated {
         stroke-dasharray: 0 !important;
     }
+
+    &.colliding {
+        stroke-width: 8px;
+    }
 }
 
 .edge-chain {
@@ -54,6 +58,10 @@
     &.running {
         animation: 'dashdraw-chain 0.5s linear infinite';
         opacity: 100%;
+    }
+
+    &.colliding {
+        stroke-width: 8px;
     }
 
     &.dot {

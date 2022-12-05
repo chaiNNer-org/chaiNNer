@@ -6,7 +6,7 @@ import numpy as np
 from sanic.log import logger
 
 from .blend_modes import ImageBlender, blend_mode_normalized
-from .utils import get_h_w_c
+from .utils import get_h_w_c, Padding
 
 
 class FillColor:
@@ -228,16 +228,16 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
 def create_border(
     img: np.ndarray,
     border_type: int,
-    top: int,
-    right: int,
-    bottom: int,
-    left: int,
+    border: Padding,
 ) -> np.ndarray:
     """
     Returns a new image with a specified border.
 
     The border type value is expected to come from the `BorderType` class.
     """
+
+    if border.empty:
+        return img
 
     _, _, c = get_h_w_c(img)
     if c == 4 and border_type == BorderType.BLACK:
@@ -252,10 +252,10 @@ def create_border(
 
     return cv2.copyMakeBorder(
         img,
-        top=top,
-        left=left,
-        right=right,
-        bottom=bottom,
+        top=border.top,
+        left=border.left,
+        right=border.right,
+        bottom=border.bottom,
         borderType=border_type,
         value=value,
     )
@@ -373,18 +373,26 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     return float(np.mean(ssim_map))
 
 
-def preview_encode(img: np.ndarray, target_size: int = 512) -> Tuple[str, np.ndarray]:
+def preview_encode(
+    img: np.ndarray,
+    target_size: int = 512,
+    grace: float = 1.2,
+    lossless: bool = False,
+) -> Tuple[str, np.ndarray]:
     """
     resize the image, so the preview loads faster and doesn't lag the UI
-    512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
+    512 was chosen as the default target because a 512x512 RGBA 8bit PNG is at most 1MB in size
     """
-    h, w, _ = get_h_w_c(img)
+    h, w, c = get_h_w_c(img)
 
-    max_size = target_size * 1.2
+    max_size = target_size * grace
     if w > max_size or h > max_size:
         f = max(w / target_size, h / target_size)
         img = cv2.resize(img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA)
 
-    _, encoded_img = cv2.imencode(".webp", (img * 255).astype("uint8"))  # type: ignore
+    image_format = "png" if c > 3 or lossless else "jpg"
+
+    _, encoded_img = cv2.imencode(f".{image_format}", (img * 255).astype("uint8"))  # type: ignore
     base64_img = base64.b64encode(encoded_img).decode("utf8")
-    return f"data:image/webp;base64,{base64_img}", img
+
+    return f"data:image/{image_format};base64,{base64_img}", img

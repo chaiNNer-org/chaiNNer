@@ -1,5 +1,6 @@
 appdirs
 black
+debugpy
 einops
 facexlib
 ffmpeg-python

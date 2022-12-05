@@ -16,7 +16,7 @@ import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
-import { getArguments } from './arguments';
+import { getArguments, parseArgs } from './arguments';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
@@ -32,6 +32,12 @@ if (require('electron-squirrel-startup')) {
 }
 
 const version = app.getVersion() as Version;
+
+const hasInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasInstanceLock) {
+    app.quit();
+}
 
 const localStorageLocation = path.join(app.getPath('userData'), 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
@@ -777,6 +783,18 @@ const createWindow = lazy(async () => {
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.on('second-instance', async (_event, commandLine, _workingDirectory) => {
+        const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
+        if (file) {
+            const result = await openSaveFile(file);
+            mainWindow.webContents.send('file-open', result);
+        }
+        // Focus main window if a second instance was attempted
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+    });
 });
 
 // This method will be called when Electron has finished
