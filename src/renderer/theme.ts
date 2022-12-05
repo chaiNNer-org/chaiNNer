@@ -10,4 +10,9 @@ const colors = {
     gray: Object.fromEntries(grays.map((v) => [v, `var(--gray-${v})`])),
 };
 
-export const theme = extendTheme({ config, colors } as const) as Theme;
+const fonts = {
+    heading: `Supreme, sans-serif`,
+    body: `Supreme, sans-serif`,
+};
+
+export const theme = extendTheme({ config, colors, fonts } as const) as Theme;
