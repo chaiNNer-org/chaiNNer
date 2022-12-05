@@ -418,7 +418,7 @@ class Executor:
                         "executionTime": execution_time,
                         "data": data,
                         "progressPercent": len(self.completed_node_ids)
-                        / len(self.chain.nodes.keys()),
+                        / len(self.chain.nodes),
                     },
                 }
             )
@@ -438,7 +438,7 @@ class Executor:
                         "executionTime": execution_time,
                         "data": None,
                         "progressPercent": len(self.completed_node_ids)
-                        / len(self.chain.nodes.keys()),
+                        / len(self.chain.nodes),
                     },
                 }
             )
@@ -450,9 +450,6 @@ class Executor:
 
         self.completed_node_ids.add(node_id)
 
-        total_length = len(self.chain.nodes.keys())
-        progress_percent = len(self.completed_node_ids) / total_length
-
         return {
             "event": "node-finish",
             "data": {
@@ -460,7 +457,7 @@ class Executor:
                 "nodeId": node_id,
                 "executionTime": None,
                 "data": None,
-                "progressPercent": progress_percent,
+                "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
             },
         }
 
