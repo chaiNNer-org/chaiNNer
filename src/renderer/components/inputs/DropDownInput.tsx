@@ -8,8 +8,7 @@ type DropDownInputProps = Pick<
 >;
 
 export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDownInputProps) => {
-    const { options } = input;
-    const def = options[0].value;
+    const { options, def } = input;
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
         setValue(options[Number(event.target.value)]?.value ?? def);
