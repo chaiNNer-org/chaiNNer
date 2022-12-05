@@ -56,10 +56,14 @@ export const BackendProvider = memo(
         const backend = getBackend(port);
 
         const [ownsBackend, setOwnsBackend] = useState<boolean>(false);
+        const ownsBackendRef = useRef(ownsBackend);
         useAsyncEffect(
             () => ({
                 supplier: () => ipcRenderer.invoke('owns-backend'),
-                successEffect: setOwnsBackend,
+                successEffect: (value) => {
+                    setOwnsBackend(value);
+                    ownsBackendRef.current = value;
+                },
             }),
             []
         );
@@ -70,6 +74,11 @@ export const BackendProvider = memo(
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
         const restart = useCallback((): Promise<void> => {
+            if (!ownsBackendRef.current) {
+                // we don't own the backend, so we can't restart it
+                return Promise.resolve();
+            }
+
             if (restartPromiseRef.current) {
                 // another promise is currently restarting the backend, so we just request another restart
                 needsNewRestartRef.current = true;
