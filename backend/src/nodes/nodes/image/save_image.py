@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import os
-import random
-import string
 from typing import Union
 
 import cv2
@@ -19,9 +17,16 @@ from ...properties.inputs import (
     TextInput,
     ImageExtensionDropdown,
     SliderInput,
+    DdsFormatDropdown,
+    DdsBC7CompressionDropdown,
+    DdsDitheringDropdown,
+    DdsErrorMetricDropdown,
+    DdsMipMapsDropdown,
+    BC7Compression,
 )
-from ...utils.pil_utils import *
 from ...utils.utils import get_h_w_c
+from ...utils.image_utils import cv_save_image
+from ...utils.dds import save_as_dds
 
 
 @NodeFactory.register("chainner:image:save")
@@ -34,7 +39,19 @@ class ImWriteNode(NodeBase):
             DirectoryInput(has_handle=True),
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
-            group("conditional-enum", {"conditions": {5: ["jpg", "webp"]}})(
+            group(
+                "conditional-enum",
+                {
+                    "conditions": {
+                        5: ["jpg", "webp"],
+                        6: ["dds"],
+                        7: ["dds"],
+                        8: ["dds"],
+                        9: ["dds"],
+                        10: ["dds"],
+                    }
+                },
+            )(
                 ImageExtensionDropdown(),
                 SliderInput(
                     "Quality",
@@ -43,6 +60,11 @@ class ImWriteNode(NodeBase):
                     default=95,
                     slider_step=1,
                 ).with_id(5),
+                DdsFormatDropdown().with_id(6),
+                DdsBC7CompressionDropdown().with_id(7),
+                DdsDitheringDropdown().with_id(8),
+                DdsErrorMetricDropdown().with_id(9),
+                DdsMipMapsDropdown().with_id(10),
             ),
         ]
         self.category = ImageCategory
@@ -61,6 +83,11 @@ class ImWriteNode(NodeBase):
         filename: str,
         extension: str,
         quality: int,
+        dds_format: str,
+        dds_bc7_compression: int,
+        dds_dithering: int,
+        dds_uniform_weighting: int,
+        dds_mipmap_levels: int,
     ) -> None:
         """Write an image to the specified path and return write status"""
 
@@ -80,6 +107,21 @@ class ImWriteNode(NodeBase):
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         os.makedirs(base_directory, exist_ok=True)
+
+        # DDS files are handles separately
+        if extension == "dds":
+            save_as_dds(
+                full_path,
+                img,
+                dds_format,
+                mipmap_levels=dds_mipmap_levels,
+                dithering=bool(dds_dithering),
+                uniform_weighting=bool(dds_uniform_weighting),
+                minimal_compression=dds_bc7_compression == BC7Compression.BEST_SPEED,
+                maximum_compression=dds_bc7_compression == BC7Compression.BEST_QUALITY,
+            )
+            return
+
         # Any image not supported by cv2, will be handled by pillow.
         if extension not in ["png", "jpg", "tiff", "webp"]:
             channels = get_h_w_c(img)[2]
@@ -105,17 +147,4 @@ class ImWriteNode(NodeBase):
             else:
                 params = []
 
-            # Write image with opencv if path is ascii, since imwrite doesn't support unicode
-            # This saves us from having to keep the image buffer in memory, if possible
-            if full_path.isascii():
-                cv2.imwrite(full_path, img, params)
-            else:
-                try:
-                    temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
-                    full_temp_path = full_path.replace(full_file, temp_filename)
-                    cv2.imwrite(full_temp_path, img, params)
-                    os.rename(full_temp_path, full_path)
-                except:
-                    _, buf_img = cv2.imencode(f".{extension}", img, params)
-                    with open(full_path, "wb") as outf:
-                        outf.write(buf_img)
+            cv_save_image(full_path, img, params)
