@@ -37,7 +37,9 @@ class DropDownInput(BaseInput):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
         self.accepted_values = {o["value"] for o in self.options}
-        self.default = default_value if default_value is not None else options[0]["value"]
+        self.default = (
+            default_value if default_value is not None else options[0]["value"]
+        )
 
         if not self.default in self.accepted_values:
             logger.error(
