@@ -81,6 +81,7 @@ def VideoFileInput() -> FileInput:
             ".mkv",
             ".flv",
             ".m4v",
+            ".avs",
         ],
         has_handle=False,
     )

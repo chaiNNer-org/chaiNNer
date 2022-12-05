@@ -204,11 +204,18 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
 
+    const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
+
+    useEffect(() => {
+        ipcRenderer.send('set-progress-bar', percentComplete ?? null);
+    }, [percentComplete]);
+
     useEffect(() => {
         if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
+            ipcRenderer.send('set-progress-bar', null);
         }
     }, [status]);
 
@@ -230,7 +237,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         useCallback(
             (eventData) => {
                 if (eventData) {
-                    const { finished, nodeId, executionTime, data } = eventData;
+                    const { finished, nodeId, executionTime, data, progressPercent } = eventData;
 
                     // TODO: This is incorrect. The inputs of the node might have changed since
                     // the chain started running. However, sending the then current input hashes
@@ -244,6 +251,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         inputHash,
                         data ?? undefined
                     );
+                    if (progressPercent != null) {
+                        if (progressPercent === 1) {
+                            setPercentComplete(undefined);
+                        } else {
+                            setPercentComplete(progressPercent);
+                        }
+                    }
 
                     unAnimate([nodeId, ...finished]);
                 }
