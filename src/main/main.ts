@@ -469,8 +469,8 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegIn
         return;
     }
 
-    log.info('Attempting to spawn backend...');
-    try {
+    const spawnBackendProcess = () => {
+        log.info('Attempting to spawn backend...');
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
@@ -511,65 +511,38 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegIn
             );
         });
 
-        ipcMain.handle('relaunch-application', () => {
+        return backend;
+    };
+
+    try {
+        let backend = spawnBackendProcess();
+
+        const tryKill = () => {
             log.info('Attempting to kill backend...');
             try {
                 const success = backend.kill();
                 if (success) {
-                    log.error('Successfully killed backend.');
+                    log.info('Successfully killed backend.');
                 } else {
                     log.error('Error killing backend.');
                 }
             } catch (error) {
                 log.error('Error killing backend.', error);
             }
+        };
+
+        ipcMain.handle('relaunch-application', () => {
+            tryKill();
             app.relaunch();
             app.exit();
         });
 
-        ipcMain.handle('kill-backend', () => {
-            log.info('Attempting to kill backend...');
-            try {
-                const success = backend.kill();
-                if (success) {
-                    log.error('Successfully killed backend.');
-                } else {
-                    log.error('Error killing backend.');
-                }
-            } catch (error) {
-                log.error('Error killing backend.', error);
-            }
-        });
-
         ipcMain.handle('restart-backend', () => {
-            log.info('Attempting to kill backend...');
-            try {
-                const success = backend.kill();
-                if (success) {
-                    log.error('Successfully killed backend to restart it.');
-                } else {
-                    log.error('Error killing backend.');
-                }
-                ipcMain.removeHandler('kill-backend');
-                spawnBackend(port, pythonInfo, ffmpegInfo);
-            } catch (error) {
-                log.error('Error restarting backend.', error);
-            }
+            tryKill();
+            backend = spawnBackendProcess();
         });
 
-        app.on('before-quit', () => {
-            log.info('Attempting to kill backend...');
-            try {
-                const success = backend.kill();
-                if (success) {
-                    log.error('Successfully killed backend.');
-                } else {
-                    log.error('Error killing backend.');
-                }
-            } catch (error) {
-                log.error('Error killing backend.');
-            }
-        });
+        app.on('before-quit', tryKill);
 
         log.info('Successfully spawned backend.');
     } catch (error) {

@@ -1,3 +1,4 @@
+import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
@@ -65,9 +66,9 @@ export const CustomEdge = memo(
         const [isHovered, setIsHovered] = useState(false);
 
         const { outputId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
-        const definitionType = functionDefinitions
-            .get(parentNode.data.schemaId)!
-            .outputDefaults.get(outputId)!;
+        const definitionType =
+            functionDefinitions.get(parentNode.data.schemaId)?.outputDefaults.get(outputId) ??
+            NeverType.instance;
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(source)?.outputs.get(outputId)
         );

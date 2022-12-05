@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
-import { Type } from '@chainner/navi';
+import { NeverType, Type } from '@chainner/navi';
 import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
@@ -88,7 +88,7 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
         [outputDataEntry, inputHash]
     );
 
-    const functions = functionDefinitions.get(schemaId)!.outputDefaults;
+    const functions = functionDefinitions.get(schemaId)?.outputDefaults;
     return (
         <>
             {outputs.map((output) => {
@@ -99,7 +99,7 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
                     useOutputData,
                     kind: output.kind,
                     schemaId,
-                    definitionType: functions.get(output.id)!,
+                    definitionType: functions?.get(output.id) ?? NeverType.instance,
                     hasHandle: output.hasHandle,
                     animated,
                 };
