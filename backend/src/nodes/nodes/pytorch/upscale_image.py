@@ -38,13 +38,7 @@ class ImageUpscaleNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
-                image_type="""
-                Image {
-                    width: Input0.scale * Input1.width,
-                    height: Input0.scale * Input1.height,
-                    channels: Input1.channels
-                }
-                """,
+                image_type="""convenientUpscale(Input0, Input1)""",
             )
         ]
 

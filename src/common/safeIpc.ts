@@ -45,7 +45,6 @@ export interface InvokeChannels {
     >;
     'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
     'owns-backend': ChannelInfo<boolean>;
-    'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
@@ -86,6 +85,7 @@ export interface SendChannels {
     'enable-menu': SendChannelInfo;
     'save-before-exit': SendChannelInfo;
     'exit-after-save': SendChannelInfo;
+    'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
 
     // history
     'history-undo': SendChannelInfo;

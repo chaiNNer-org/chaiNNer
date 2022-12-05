@@ -45,6 +45,7 @@ export interface GenericInput extends InputBase {
 }
 export interface DropDownInput extends InputBase {
     readonly kind: 'dropdown';
+    readonly def: string | number;
     readonly options: readonly InputOption[];
 }
 export interface FileInput extends InputBase {

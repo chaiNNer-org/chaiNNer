@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -24,8 +25,6 @@ import {
 import { getConnectedInputs } from '../helpers/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
-import { SetState } from '../helpers/types';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventMap,
     BackendEventSourceListener,
@@ -56,8 +55,6 @@ interface ExecutionContextValue {
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
-    isBackendKilled: boolean;
-    setIsBackendKilled: SetState<boolean>;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -196,7 +193,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend } = useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -207,13 +204,18 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
 
-    const [isBackendKilled, setIsBackendKilled] = useState(false);
+    const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
+
+    useEffect(() => {
+        ipcRenderer.send('set-progress-bar', percentComplete ?? null);
+    }, [percentComplete]);
 
     useEffect(() => {
         if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
+            ipcRenderer.send('set-progress-bar', null);
         }
     }, [status]);
 
@@ -235,7 +237,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         useCallback(
             (eventData) => {
                 if (eventData) {
-                    const { finished, nodeId, executionTime, data } = eventData;
+                    const { finished, nodeId, executionTime, data, progressPercent } = eventData;
 
                     // TODO: This is incorrect. The inputs of the node might have changed since
                     // the chain started running. However, sending the then current input hashes
@@ -249,6 +251,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         inputHash,
                         data ?? undefined
                     );
+                    if (progressPercent != null) {
+                        if (progressPercent === 1) {
+                            setPercentComplete(undefined);
+                        } else {
+                            setPercentComplete(progressPercent);
+                        }
+                    }
 
                     unAnimate([nodeId, ...finished]);
                 }
@@ -274,25 +283,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, 350);
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
-    const [ownsBackend, setOwnsBackend] = useState(true);
-    useAsyncEffect(
-        () => ({
-            supplier: () => ipcRenderer.invoke('owns-backend'),
-            successEffect: setOwnsBackend,
-        }),
-        [setOwnsBackend]
-    );
-
     useEffect(() => {
-        if (ownsBackend && !isBackendKilled && eventSourceStatus === 'error') {
-            sendAlert({
-                type: AlertType.ERROR,
-                message: 'An unexpected error occurred. You may need to restart chaiNNer.',
-            });
+        if (ownsBackend && !restartingRef.current && eventSourceStatus === 'error') {
+            log.warn('The backend event source errored.');
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend, sendAlert]);
+    }, [eventSourceStatus, unAnimate, restartingRef, ownsBackend]);
 
     const lastChangesRef = useRef(`${nodeChanges} ${edgeChanges}`);
     useEffect(() => {
@@ -523,8 +520,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
-        isBackendKilled,
-        setIsBackendKilled,
     });
 
     return (

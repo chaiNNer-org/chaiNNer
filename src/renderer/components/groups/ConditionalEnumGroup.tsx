@@ -18,7 +18,7 @@ export const ConditionalEnumGroup = memo(
         const { getNodeInputValue } = useContext(GlobalContext);
 
         const enumInput = inputs[0];
-        const enumValue = getNodeInputValue(enumInput.id, inputData) ?? enumInput.options[0].value;
+        const enumValue = getNodeInputValue(enumInput.id, inputData) ?? enumInput.def;
 
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,

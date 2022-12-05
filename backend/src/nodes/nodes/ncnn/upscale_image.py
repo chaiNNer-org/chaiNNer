@@ -9,7 +9,6 @@ from sanic.log import logger
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties import expression
 from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.auto_split import MaxTileSize
@@ -63,7 +62,7 @@ class NcnnUpscaleImageNode(NodeBase):
             TileSizeDropdown(),
         ]
         self.outputs = [
-            ImageOutput(image_type=expression.Image(channels="Input1.channels"))
+            ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
         ]
         self.category = NCNNCategory
         self.name = "Upscale Image"
