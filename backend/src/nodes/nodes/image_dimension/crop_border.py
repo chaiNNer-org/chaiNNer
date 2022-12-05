@@ -20,7 +20,7 @@ class BorderCropNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount", unit="px", minimum=None),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [
             ImageOutput(
