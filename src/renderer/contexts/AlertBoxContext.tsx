@@ -252,13 +252,13 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     const onClose = useCallback(
         (button: number) => {
-            current?.resolve(button);
             setQueue((q) => q.slice(1));
             setDone((prev) => prev + 1);
             if (isLast) {
                 onDisclosureClose();
                 setHotkeysEnabled(true);
             }
+            current?.resolve(button);
         },
         [current, isLast, setQueue, onDisclosureClose, setHotkeysEnabled]
     );
