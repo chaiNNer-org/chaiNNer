@@ -1,4 +1,3 @@
-import base64
 from typing import Tuple
 
 import cv2
@@ -371,28 +370,3 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     )
 
     return float(np.mean(ssim_map))
-
-
-def preview_encode(
-    img: np.ndarray,
-    target_size: int = 512,
-    grace: float = 1.2,
-    lossless: bool = False,
-) -> Tuple[str, np.ndarray]:
-    """
-    resize the image, so the preview loads faster and doesn't lag the UI
-    512 was chosen as the default target because a 512x512 RGBA 8bit PNG is at most 1MB in size
-    """
-    h, w, c = get_h_w_c(img)
-
-    max_size = target_size * grace
-    if w > max_size or h > max_size:
-        f = max(w / target_size, h / target_size)
-        img = cv2.resize(img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA)
-
-    image_format = "png" if c > 3 or lossless else "jpg"
-
-    _, encoded_img = cv2.imencode(f".{image_format}", (img * 255).astype("uint8"))  # type: ignore
-    base64_img = base64.b64encode(encoded_img).decode("utf8")
-
-    return f"data:image/{image_format};base64,{base64_img}", img
