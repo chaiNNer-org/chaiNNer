@@ -42,6 +42,7 @@ import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
+import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export interface DependencyContextValue {
@@ -267,6 +268,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { showAlert } = useContext(AlertBoxContext);
     const { useIsSystemPython } = useContext(SettingsContext);
     const { pythonInfo, restart } = useContext(BackendContext);
+    const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isSystemPython] = useIsSystemPython;
 
@@ -446,10 +448,23 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 buttons: ['Cancel', 'Uninstall'],
                                                 defaultId: 0,
                                             })
-                                                .then((button) => {
-                                                    if (button === 1) {
-                                                        uninstallPackage(dep);
+                                                .then(async (button) => {
+                                                    if (button === 0) return;
+
+                                                    if (hasRelevantUnsavedChangesRef.current) {
+                                                        const saveButton = await showAlert({
+                                                            type: AlertType.WARN,
+                                                            title: 'Unsaved Changes',
+                                                            message:
+                                                                `You might lose your unsaved changes by uninstalling ${dep.name}.` +
+                                                                `\n\nAre you sure you want to uninstall ${dep.name}?`,
+                                                            buttons: ['Cancel', 'Uninstall'],
+                                                            defaultId: 0,
+                                                        });
+                                                        if (saveButton === 0) return;
                                                     }
+
+                                                    uninstallPackage(dep);
                                                 })
                                                 .catch((error) => log.error(error));
                                         };

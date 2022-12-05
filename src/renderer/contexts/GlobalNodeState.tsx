@@ -155,6 +155,7 @@ interface Global {
     releaseNodeFromParent: (id: string) => void;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
+    hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
 }
 
 enum SaveResult {
@@ -353,14 +354,27 @@ export const GlobalProvider = memo(
          *
          * Some changes to the chain might not be worth saving (e.g. animation status).
          */
-        const [hasRelevantUnsavedChanges, setHasRelevantUnsavedChanges] = useState(false);
+        // eslint-disable-next-line react/hook-use-state
+        const [hasRelevantUnsavedChanges, setHasRelevantUnsavedChangesImpl] = useState(false);
+        const hasRelevantUnsavedChangesRef = useRef(hasRelevantUnsavedChanges);
+        const setHasRelevantUnsavedChanges = useCallback((value: boolean) => {
+            setHasRelevantUnsavedChangesImpl(value);
+            hasRelevantUnsavedChangesRef.current = value;
+        }, []);
         useEffect(() => {
             const hasUnsavedChanges =
                 lastSavedChanges[0] !== nodeChanges || lastSavedChanges[1] !== edgeChanges;
             const value = hasUnsavedChanges && (getNodes().length > 0 || !!savePath);
             setHasRelevantUnsavedChanges(value);
             ipcRenderer.send('update-has-unsaved-changes', value);
-        }, [lastSavedChanges, savePath, nodeChanges, edgeChanges, getNodes]);
+        }, [
+            lastSavedChanges,
+            savePath,
+            nodeChanges,
+            edgeChanges,
+            getNodes,
+            setHasRelevantUnsavedChanges,
+        ]);
 
         useEffect(() => {
             const id = setTimeout(() => {
@@ -472,7 +486,7 @@ export const GlobalProvider = memo(
             }
         }, [dumpState, schemata, sendToast]);
         const saveUnsavedChanges = useCallback(async (): Promise<SaveResult> => {
-            if (!hasRelevantUnsavedChanges) {
+            if (!hasRelevantUnsavedChangesRef.current) {
                 return SaveResult.NotSaved;
             }
 
@@ -494,7 +508,7 @@ export const GlobalProvider = memo(
             }
 
             return performSave(false);
-        }, [hasRelevantUnsavedChanges, showAlert, performSave]);
+        }, [showAlert, performSave]);
 
         useIpcRendererListener(
             'save-before-exit',
@@ -712,6 +726,8 @@ export const GlobalProvider = memo(
 
         const removeNodesById = useCallback(
             (ids: readonly string[]) => {
+                if (ids.length === 0) return;
+
                 const filteredIds = ids.filter((id) => {
                     const node = getNode(id);
                     return !(!node || node.type === 'iteratorHelper');
@@ -1317,6 +1333,15 @@ export const GlobalProvider = memo(
             savePath,
         ]);
 
+        useEffect(() => {
+            // remove invalid nodes on schemata changes
+            removeNodesById(
+                getNodes()
+                    .filter((n) => !schemata.has(n.data.schemaId))
+                    .map((n) => n.id)
+            );
+        }, [schemata, getNodes, removeNodesById]);
+
         const globalVolatileValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
             edgeChanges,
@@ -1370,6 +1395,7 @@ export const GlobalProvider = memo(
             releaseNodeFromParent,
             outputDataActions,
             getInputHash,
+            hasRelevantUnsavedChangesRef,
         });
 
         return (
