@@ -500,6 +500,7 @@ def DdsDitheringDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsDithering",
         label="Dithering (BC1-BC3)",
+        default_value=0,
         options=[
             {"option": "Yes", "value": 1},
             {"option": "No", "value": 0},
@@ -517,9 +518,10 @@ def DdsBC7CompressionDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsBC7Compression",
         label="BC7 Compression",
+        default_value=BC7Compression.DEFAULT,
         options=[
-            {"option": "Default", "value": BC7Compression.DEFAULT},
             {"option": "Best Speed", "value": BC7Compression.BEST_SPEED},
+            {"option": "Default", "value": BC7Compression.DEFAULT},
             {"option": "Best Quality", "value": BC7Compression.BEST_QUALITY},
         ],
     )
