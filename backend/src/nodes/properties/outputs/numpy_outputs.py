@@ -1,9 +1,11 @@
-from typing import Optional
+import base64
+from typing import Optional, Tuple
 import numpy as np
+import cv2
 
-from ...utils.image_utils import preview_encode
 from ...utils.utils import get_h_w_c
 from ...utils.format import format_image_with_channels
+from ...utils.pil_utils import resize, InterpolationMethod
 from .base_output import BaseOutput, OutputKind
 from .. import expression
 
@@ -77,6 +79,36 @@ class ImageOutput(NumPyOutput):
             )
 
 
+def preview_encode(
+    img: np.ndarray,
+    target_size: int = 512,
+    grace: float = 1.2,
+    lossless: bool = False,
+) -> Tuple[str, np.ndarray]:
+    """
+    resize the image, so the preview loads faster and doesn't lag the UI
+    512 was chosen as the default target because a 512x512 RGBA 8bit PNG is at most 1MB in size
+    """
+    h, w, c = get_h_w_c(img)
+
+    max_size = target_size * grace
+    if w > max_size or h > max_size:
+        f = max(w / target_size, h / target_size)
+        t = (int(w / f), int(h / f))
+        if c == 4:
+            # https://github.com/chaiNNer-org/chaiNNer/issues/1321
+            img = resize(img, t, InterpolationMethod.BOX)
+        else:
+            img = cv2.resize(img, t, interpolation=cv2.INTER_AREA)
+
+    image_format = "png" if c > 3 or lossless else "jpg"
+
+    _, encoded_img = cv2.imencode(f".{image_format}", (img * 255).astype("uint8"))  # type: ignore
+    base64_img = base64.b64encode(encoded_img).decode("utf8")
+
+    return f"data:image/{image_format};base64,{base64_img}", img
+
+
 class LargeImageOutput(ImageOutput):
     def __init__(
         self,
@@ -117,14 +149,14 @@ class LargeImageOutput(ImageOutput):
         last_encoded = img
         for size in preview_sizes[start_index:]:
             largest_preview = size == preview_sizes[start_index]
-            base64, last_encoded = preview_encode(
+            url, last_encoded = preview_encode(
                 last_encoded,
                 target_size=size,
                 grace=preview_size_grace,
                 lossless=largest_preview,
             )
             le_h, le_w, _ = get_h_w_c(last_encoded)
-            previews.insert(0, {"size": max(le_h, le_w), "url": base64})
+            previews.insert(0, {"size": max(le_h, le_w), "url": url})
 
         return {
             "previews": previews,

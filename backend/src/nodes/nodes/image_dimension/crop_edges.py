@@ -18,10 +18,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            NumberInput("Top", unit="px", minimum=None),
-            NumberInput("Left", unit="px", minimum=None),
-            NumberInput("Right", unit="px", minimum=None),
-            NumberInput("Bottom", unit="px", minimum=None),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
         ]
         self.outputs = [
             ImageOutput(

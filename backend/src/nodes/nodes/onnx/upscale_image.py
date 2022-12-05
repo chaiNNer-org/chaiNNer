@@ -10,7 +10,6 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...utils.auto_split_tiles import parse_tile_size_input, TileSize
 from ...utils.auto_split import ExactTileSize
 from ...utils.onnx_auto_split import onnx_auto_split
@@ -57,7 +56,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
-                image_type=expression.Image(channels="Input1.channels"),
+                image_type="""convenientUpscale(Input0, Input1)""",
             )
         ]
 
