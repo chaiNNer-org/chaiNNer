@@ -1,11 +1,27 @@
-from typing import Dict, List, Union
+from __future__ import annotations
+from typing import List, Union, TypedDict
 import numpy as np
+from sanic.log import logger
 
 from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
 from ...utils.image_utils import FillColor, FlipAxis, KernelType, normalize
+
+
+class UntypedOption(TypedDict):
+    option: str
+    value: str | int
+
+
+class TypedOption(TypedDict):
+    option: str
+    value: str | int
+    type: expression.ExpressionJson
+
+
+DropDownOption = Union[UntypedOption, TypedOption]
 
 
 class DropDownInput(BaseInput):
@@ -15,23 +31,32 @@ class DropDownInput(BaseInput):
         self,
         input_type: expression.ExpressionJson,
         label: str,
-        options: List[Dict],
+        options: List[DropDownOption],
+        default_value: str | int | None = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
+        self.accepted_values = {o["value"] for o in self.options}
+        self.default = default_value if default_value is not None else options[0]["value"]
+
+        if not self.default in self.accepted_values:
+            logger.error(
+                f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
+            )
+            self.default = options[0]["value"]
 
     def toDict(self):
         return {
             **super().toDict(),
             "options": self.options,
+            "def": self.default,
         }
 
     def make_optional(self):
         raise ValueError("DropDownInput cannot be made optional")
 
     def enforce(self, value):
-        accepted_values = [o["value"] for o in self.options]
-        assert value in accepted_values, f"{value} is not a valid option"
+        assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
 
