@@ -264,6 +264,8 @@ class Executor:
             ProgressController() if not parent_executor else parent_executor.progress
         )
 
+        self.completed_node_ids = set()
+
         self.loop: asyncio.AbstractEventLoop = loop
         self.queue: EventQueue = queue
         self.pool: ThreadPoolExecutor = pool
@@ -406,6 +408,7 @@ class Executor:
 
         async def send_broadcast():
             data = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
+            self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
                     "event": "node-finish",
@@ -414,6 +417,8 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,
+                        "progressPercent": len(self.completed_node_ids)
+                        / len(self.chain.nodes),
                     },
                 }
             )
@@ -423,6 +428,7 @@ class Executor:
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
         else:
+            self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
                     "event": "node-finish",
@@ -431,6 +437,8 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": None,
+                        "progressPercent": len(self.completed_node_ids)
+                        / len(self.chain.nodes),
                     },
                 }
             )
@@ -440,6 +448,8 @@ class Executor:
         if not node_id in finished:
             finished.append(node_id)
 
+        self.completed_node_ids.add(node_id)
+
         return {
             "event": "node-finish",
             "data": {
@@ -447,6 +457,7 @@ class Executor:
                 "nodeId": node_id,
                 "executionTime": None,
                 "data": None,
+                "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
             },
         }
 

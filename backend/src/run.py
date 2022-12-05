@@ -325,6 +325,7 @@ async def run_individual(request: Request):
                         "nodeId": full_data["id"],
                         "executionTime": execution_time,
                         "data": broadcast_data,
+                        "progressPercent": None,
                     },
                 }
             )
