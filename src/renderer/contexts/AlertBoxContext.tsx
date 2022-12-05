@@ -318,7 +318,12 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
                     </AlertDialogHeader>
 
                     <AlertDialogCloseButton />
-                    <AlertDialogBody whiteSpace="pre-wrap">{current?.message}</AlertDialogBody>
+                    <AlertDialogBody
+                        userSelect="text"
+                        whiteSpace="pre-wrap"
+                    >
+                        {current?.message}
+                    </AlertDialogBody>
                     <AlertDialogFooter>
                         <HStack width="full">
                             <IconButton
