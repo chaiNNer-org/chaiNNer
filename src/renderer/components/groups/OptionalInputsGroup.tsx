@@ -2,13 +2,22 @@ import { Box, Button, Center, Icon } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { IoAddOutline } from 'react-icons/io5';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { getUniqueKey } from '../../../common/group-inputs';
 import { findLastIndex } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
+import { someInput } from './util';
 
 export const OptionalInputsGroup = memo(
-    ({ inputs, inputData, inputSize, isLocked, nodeId, schemaId }: GroupProps<'optional-list'>) => {
+    ({
+        inputs,
+        inputData,
+        inputSize,
+        isLocked,
+        nodeId,
+        schemaId,
+        ItemRenderer,
+    }: GroupProps<'optional-list'>) => {
         const { getNodeInputValue } = useContext(GlobalContext);
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
@@ -18,15 +27,11 @@ export const OptionalInputsGroup = memo(
         // number of edges that need to be uncovered due to either having a value or an edge
         const uncoveredDueToValue = useMemo(() => {
             return (
-                findLastIndex(inputs, (i) => {
-                    const value = getNodeInputValue(i.id, inputData);
-                    if (value !== undefined) {
-                        return true;
-                    }
-                    if (isNodeInputLocked(nodeId, i.id)) {
-                        return true;
-                    }
-                    return false;
+                findLastIndex(inputs, (item) => {
+                    return someInput(item, (input) => {
+                        const value = getNodeInputValue(input.id, inputData);
+                        return value !== undefined || isNodeInputLocked(nodeId, input.id);
+                    });
                 }) + 1
             );
         }, [inputs, inputData, nodeId, getNodeInputValue, isNodeInputLocked]);
@@ -43,13 +48,13 @@ export const OptionalInputsGroup = memo(
 
         return (
             <>
-                {inputs.slice(0, uncovered).map((i) => (
-                    <SchemaInput
-                        input={i}
+                {inputs.slice(0, uncovered).map((item) => (
+                    <ItemRenderer
                         inputData={inputData}
                         inputSize={inputSize}
                         isLocked={isLocked}
-                        key={i.id}
+                        item={item}
+                        key={getUniqueKey(item)}
                         nodeId={nodeId}
                         schemaId={schemaId}
                     />
