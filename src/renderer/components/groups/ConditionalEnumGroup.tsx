@@ -33,7 +33,8 @@ export const ConditionalEnumGroup = memo(
             const cond = group.options.conditions[index - 1];
 
             // enum has the right value
-            if (cond.includes(enumValue)) return true;
+            if (typeof cond === 'object' ? cond.includes(enumValue) : cond === enumValue)
+                return true;
 
             // input or some input of the group is connected to another node
             return someInput(input, ({ id }) => isNodeInputLocked(nodeId, id));
