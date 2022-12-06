@@ -104,7 +104,7 @@ class ImWriteNode(NodeBase):
 
         os.makedirs(base_directory, exist_ok=True)
 
-        # DDS files are handles separately
+        # DDS files are handled separately
         if extension == "dds":
             save_as_dds(
                 full_path,
