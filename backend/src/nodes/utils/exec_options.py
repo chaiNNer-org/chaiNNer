@@ -38,7 +38,7 @@ class ExecutionOptions:
 
     @property
     def full_device(self) -> str:
-        if self.__device != "cpu" and self.__pytorch_gpu_index is not None:
+        if self.__device == "cuda" and self.__pytorch_gpu_index is not None:
             return f"{self.__device}:{self.__pytorch_gpu_index}"
         return self.__device
 
