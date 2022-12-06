@@ -151,7 +151,7 @@ interface OptionalListGroup extends GroupBase {
 interface ConditionalEnumGroup extends GroupBase {
     readonly kind: 'conditional-enum';
     readonly options: {
-        readonly conditions: readonly (readonly InputSchemaValue[])[];
+        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
     };
 }
 export type GroupKind = Group['kind'];
