@@ -452,14 +452,14 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 
 def pixelshuffle_block(
-    in_nc,
-    out_nc,
+    in_nc: int,
+    out_nc: int,
     upscale_factor=2,
     kernel_size=3,
     stride=1,
     bias=True,
     pad_type="zero",
-    norm_type=None,
+    norm_type: str | None = None,
     act_type="relu",
 ):
     """
@@ -475,7 +475,7 @@ def pixelshuffle_block(
         bias=bias,
         pad_type=pad_type,
         norm_type=None,
-        act_type=None,  # type: ignore
+        act_type=None,
     )
     pixel_shuffle = nn.PixelShuffle(upscale_factor)
 
@@ -485,14 +485,14 @@ def pixelshuffle_block(
 
 
 def upconv_block(
-    in_nc,
-    out_nc,
+    in_nc: int,
+    out_nc: int,
     upscale_factor=2,
     kernel_size=3,
     stride=1,
     bias=True,
     pad_type="zero",
-    norm_type=None,
+    norm_type: str | None = None,
     act_type="relu",
     mode="nearest",
 ):
