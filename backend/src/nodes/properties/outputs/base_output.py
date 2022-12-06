@@ -46,7 +46,7 @@ class BaseOutput:
     def __iter__(self):
         yield from self.toDict().items()
 
-    def get_broadcast_data(self, _value):
+    def get_broadcast_data(self, _value, _node_id):
         return None
 
     def validate(self, value) -> None:

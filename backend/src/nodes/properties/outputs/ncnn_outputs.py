@@ -14,7 +14,7 @@ class NcnnModelOutput(BaseOutput):
         super().__init__(model_type, label, kind=kind)
         self.should_broadcast = should_broadcast
 
-    def get_broadcast_data(self, value: NcnnModelWrapper):
+    def get_broadcast_data(self, value: NcnnModelWrapper, _node_id: str):
         if not self.should_broadcast:
             return None
 

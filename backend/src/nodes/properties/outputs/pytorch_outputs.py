@@ -15,7 +15,7 @@ class ModelOutput(BaseOutput):
         super().__init__(model_type, label, kind=kind)
         self.should_broadcast = should_broadcast
 
-    def get_broadcast_data(self, value: PyTorchModel):
+    def get_broadcast_data(self, value: PyTorchModel, _node_id: str):
         if not self.should_broadcast:
             return None
 

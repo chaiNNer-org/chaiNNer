@@ -14,7 +14,7 @@ class FileOutput(BaseOutput):
     ):
         super().__init__(file_type, label, kind=kind)
 
-    def get_broadcast_data(self, value: str):
+    def get_broadcast_data(self, value: str, _node_id: str):
         return value
 
     def validate(self, value) -> None:

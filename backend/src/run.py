@@ -313,7 +313,7 @@ async def run_individual(request: Request):
             for idx, node_output in enumerate(node_outputs):
                 try:
                     broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output[idx]
+                        output[idx], full_data["id"]
                     )
                 except Exception as error:
                     logger.error(f"Error broadcasting output: {error}")

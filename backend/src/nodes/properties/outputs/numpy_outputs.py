@@ -1,7 +1,10 @@
 import base64
 from typing import Optional, Tuple
+import tempfile
 import numpy as np
 import cv2
+from sanic.log import logger
+import os
 
 from ...utils.utils import get_h_w_c
 from ...utils.format import format_image_with_channels
@@ -51,7 +54,7 @@ class ImageOutput(NumPyOutput):
 
         self.channels: Optional[int] = channels
 
-    def get_broadcast_data(self, value: np.ndarray):
+    def get_broadcast_data(self, value: np.ndarray, _node_id: str):
         if not self.broadcast_type:
             return None
 
@@ -124,7 +127,7 @@ class LargeImageOutput(ImageOutput):
             has_handle=has_handle,
         )
 
-    def get_broadcast_data(self, value: np.ndarray):
+    def get_broadcast_data(self, value: np.ndarray, node_id: str):
         img = value
         h, w, c = get_h_w_c(img)
         image_size = max(h, w)
@@ -157,6 +160,18 @@ class LargeImageOutput(ImageOutput):
             )
             le_h, le_w, _ = get_h_w_c(last_encoded)
             previews.insert(0, {"size": max(le_h, le_w), "url": url})
+
+        # Encode full preview and save to temp file based on node id
+        preview_temp = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+
+        tempdir = tempfile.gettempdir()
+        logger.debug(f"Writing image to temp path: {tempdir}")
+        im_name = f"chaiNNer-temp-preview-{node_id}.png"
+        temp_save_dir = os.path.join(tempdir, im_name)
+        cv2.imwrite(
+            temp_save_dir,
+            preview_temp,
+        )
 
         return {
             "previews": previews,

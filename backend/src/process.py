@@ -400,7 +400,7 @@ class Executor:
             for index, node_output in enumerate(node_outputs):
                 try:
                     broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output[index]
+                        output[index], node_id
                     )
                 except Exception as e:
                     logger.error(f"Error broadcasting output: {e}")
