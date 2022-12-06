@@ -28,17 +28,24 @@ def as_int(value) -> int | None:
     return None
 
 
+def parse_onnx_shape(
+    shape: Tuple[int | str, str | int, str | int, str | int]
+) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+    if isinstance(shape[1], int) and shape[1] <= 4:
+        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
+    else:
+        assert isinstance(shape[3], int), "Channels must be int"
+        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+
 def get_input_shape(
     session: ort.InferenceSession,
 ) -> Tuple[OnnxInputShape, int, int | None, int | None]:
     """
     Returns the input shape, input channels, input width (optional), and input height (optional).
     """
-    shape = session.get_inputs()[0].shape
-    if isinstance(shape[1], int) and shape[1] <= 4:
-        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
-    else:
-        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+    return parse_onnx_shape(session.get_inputs()[0].shape)
 
 
 def get_output_shape(
@@ -47,11 +54,8 @@ def get_output_shape(
     """
     Returns the output shape, output channels, output width (optional), and output height (optional).
     """
-    shape = session.get_outputs()[0].shape
-    if isinstance(shape[1], int) and shape[1] <= 4:
-        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
-    else:
-        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+    return parse_onnx_shape(session.get_outputs()[0].shape)
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
