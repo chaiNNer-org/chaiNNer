@@ -42,7 +42,7 @@ import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
-import { ExecutionContext } from './ExecutionContext';
+import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export interface DependencyContextValue {
@@ -266,9 +266,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { showAlert } = useContext(AlertBoxContext);
-    const { setIsBackendKilled } = useContext(ExecutionContext);
     const { useIsSystemPython } = useContext(SettingsContext);
-    const { pythonInfo } = useContext(BackendContext);
+    const { pythonInfo, restart } = useContext(BackendContext);
+    const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isSystemPython] = useIsSystemPython;
 
@@ -322,21 +322,12 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     );
     const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
-    const [depChanged, setDepChanged] = useState(false);
-    useEffect(() => {
-        if (depChanged) {
-            setIsBackendKilled(true);
-            ipcRenderer.invoke('kill-backend').catch((reason) => log.error(reason));
-        }
-    }, [depChanged, setIsBackendKilled]);
-
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
         setShellOutput('');
         setIsRunningShell(true);
         setProgress(0);
-        setDepChanged(true);
 
         supplier()
             .catch((error) => {
@@ -348,6 +339,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 setInstallingPackage(null);
                 setUninstallingPackage(null);
                 setProgress(0);
+                restart().catch((reason) => log.error(reason));
             });
     };
 
@@ -366,6 +358,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
         }
     }, [shellOutput]);
+
+    // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
+    const currentlyProcessingDeps =
+        pipList === undefined || installingPackage !== null || uninstallingPackage !== null;
 
     const availableUpdates = useMemo(() => {
         return availableDeps.filter(({ packages }) =>
@@ -392,20 +388,20 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             {children}
             <Modal
                 isCentered
-                closeOnOverlayClick={!depChanged}
+                closeOnOverlayClick={!currentlyProcessingDeps}
                 isOpen={isOpen}
                 returnFocusOnClose={false}
                 scrollBehavior="inside"
                 size="xl"
                 onClose={onClose}
             >
-                <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
+                <ModalOverlay />
                 <ModalContent
                     bgColor="var(--chain-editor-bg)"
                     maxW="750px"
                 >
                     <ModalHeader>Dependency Manager</ModalHeader>
-                    <ModalCloseButton disabled={depChanged} />
+                    <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
                             <Flex w="full">
@@ -452,10 +448,23 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 buttons: ['Cancel', 'Uninstall'],
                                                 defaultId: 0,
                                             })
-                                                .then((button) => {
-                                                    if (button === 1) {
-                                                        uninstallPackage(dep);
+                                                .then(async (button) => {
+                                                    if (button === 0) return;
+
+                                                    if (hasRelevantUnsavedChangesRef.current) {
+                                                        const saveButton = await showAlert({
+                                                            type: AlertType.WARN,
+                                                            title: 'Unsaved Changes',
+                                                            message:
+                                                                `You might lose your unsaved changes by uninstalling ${dep.name}.` +
+                                                                `\n\nAre you sure you want to uninstall ${dep.name}?`,
+                                                            buttons: ['Cancel', 'Uninstall'],
+                                                            defaultId: 0,
+                                                        });
+                                                        if (saveButton === 0) return;
                                                     }
+
+                                                    uninstallPackage(dep);
                                                 })
                                                 .catch((error) => log.error(error));
                                         };
@@ -530,20 +539,12 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalFooter>
                         <Button
                             colorScheme="blue"
-                            disabled={depChanged}
+                            disabled={currentlyProcessingDeps}
                             mr={3}
-                            variant={depChanged ? 'ghost' : 'solid'}
+                            variant={currentlyProcessingDeps ? 'ghost' : 'solid'}
                             onClick={onClose}
                         >
                             Close
-                        </Button>
-                        <Button
-                            colorScheme="blue"
-                            variant={depChanged ? 'solid' : 'ghost'}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onClick={async () => ipcRenderer.invoke('relaunch-application')}
-                        >
-                            Restart chaiNNer
                         </Button>
                     </ModalFooter>
                 </ModalContent>

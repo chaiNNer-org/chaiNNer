@@ -42,7 +42,7 @@ class SPSRNet(nn.Module):
         norm=None,
         act: str = "leakyrelu",
         upsampler: str = "upconv",
-        mode: str = "CNA",
+        mode: B.ConvMode = "CNA",
     ):
         super(SPSRNet, self).__init__()
         self.model_arch = "SPSR"
@@ -72,7 +72,7 @@ class SPSRNet(nn.Module):
             n_upscale = 1
 
         fea_conv = B.conv_block(
-            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None  # type: ignore
+            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None
         )
         rb_blocks = [
             B.RRDB(
@@ -93,7 +93,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=norm,
-            act_type=None,  # type: ignore
+            act_type=None,
             mode=mode,
         )
 
@@ -124,7 +124,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
 
         self.model = B.sequential(
@@ -137,7 +137,7 @@ class SPSRNet(nn.Module):
         self.get_g_nopadding = Get_gradient_nopadding()
 
         self.b_fea_conv = B.conv_block(
-            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None  # type: ignore
+            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None
         )
 
         self.b_concat_1 = B.conv_block(
@@ -145,7 +145,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
         self.b_block_1 = B.RRDB(
             self.num_filters * 2,
@@ -164,7 +164,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
         self.b_block_2 = B.RRDB(
             self.num_filters * 2,
@@ -183,7 +183,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
         self.b_block_3 = B.RRDB(
             self.num_filters * 2,
@@ -202,7 +202,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
         self.b_block_4 = B.RRDB(
             self.num_filters * 2,
@@ -221,7 +221,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=norm,
-            act_type=None,  # type: ignore
+            act_type=None,
             mode=mode,
         )
 
@@ -253,13 +253,13 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
 
         self.b_module = B.sequential(*b_upsampler, b_HR_conv0, b_HR_conv1)
 
         self.conv_w = B.conv_block(
-            self.num_filters, self.out_nc, kernel_size=1, norm_type=None, act_type=None  # type: ignore
+            self.num_filters, self.out_nc, kernel_size=1, norm_type=None, act_type=None
         )
 
         self.f_concat = B.conv_block(
@@ -267,7 +267,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,  # type: ignore
+            act_type=None,
         )
 
         self.f_block = B.RRDB(
@@ -290,7 +290,7 @@ class SPSRNet(nn.Module):
             act_type=act,
         )
         self.f_HR_conv1 = B.conv_block(
-            self.num_filters, self.out_nc, kernel_size=3, norm_type=None, act_type=None  # type: ignore
+            self.num_filters, self.out_nc, kernel_size=3, norm_type=None, act_type=None
         )
 
         self.load_state_dict(self.state, strict=False)
@@ -341,30 +341,30 @@ class SPSRNet(nn.Module):
         # short cut
         x = x_ori + x
         x = self.model[2:](x)
-        x = self.HR_conv1_new(x)  # type: ignore
+        x = self.HR_conv1_new(x)
 
-        x_b_fea = self.b_fea_conv(x_grad)  # type: ignore
+        x_b_fea = self.b_fea_conv(x_grad)
         x_cat_1 = torch.cat([x_b_fea, x_fea1], dim=1)
 
-        x_cat_1 = self.b_block_1(x_cat_1)  # type: ignore
-        x_cat_1 = self.b_concat_1(x_cat_1)  # type: ignore
+        x_cat_1 = self.b_block_1(x_cat_1)
+        x_cat_1 = self.b_concat_1(x_cat_1)
 
         x_cat_2 = torch.cat([x_cat_1, x_fea2], dim=1)
 
         x_cat_2 = self.b_block_2(x_cat_2)
-        x_cat_2 = self.b_concat_2(x_cat_2)  # type: ignore
+        x_cat_2 = self.b_concat_2(x_cat_2)
 
         x_cat_3 = torch.cat([x_cat_2, x_fea3], dim=1)
 
         x_cat_3 = self.b_block_3(x_cat_3)
-        x_cat_3 = self.b_concat_3(x_cat_3)  # type: ignore
+        x_cat_3 = self.b_concat_3(x_cat_3)
 
         x_cat_4 = torch.cat([x_cat_3, x_fea4], dim=1)
 
         x_cat_4 = self.b_block_4(x_cat_4)
-        x_cat_4 = self.b_concat_4(x_cat_4)  # type: ignore
+        x_cat_4 = self.b_concat_4(x_cat_4)
 
-        x_cat_4 = self.b_LR_conv(x_cat_4)  # type: ignore
+        x_cat_4 = self.b_LR_conv(x_cat_4)
 
         # short cut
         x_cat_4 = x_cat_4 + x_b_fea
@@ -375,9 +375,9 @@ class SPSRNet(nn.Module):
         x_branch_d = x_branch
         x_f_cat = torch.cat([x_branch_d, x], dim=1)
         x_f_cat = self.f_block(x_f_cat)
-        x_out = self.f_concat(x_f_cat)  # type: ignore
-        x_out = self.f_HR_conv0(x_out)  # type: ignore
-        x_out = self.f_HR_conv1(x_out)  # type: ignore
+        x_out = self.f_concat(x_f_cat)
+        x_out = self.f_HR_conv0(x_out)
+        x_out = self.f_HR_conv1(x_out)
 
         #########
         # return x_out_branch, x_out, x_grad

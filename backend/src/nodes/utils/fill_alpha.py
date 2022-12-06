@@ -27,13 +27,14 @@ class ImageAverage:
             self.total[:, :, 3] += a
 
     def get_result(self) -> np.ndarray:
-        if self.total is not None:
-            f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
-            self.total[:, :, 0] *= f
-            self.total[:, :, 1] *= f
-            self.total[:, :, 2] *= f
-            self.total[:, :, 3] *= 1 / self.count
-        return self.total  # type: ignore
+        assert self.total is not None
+
+        f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
+        self.total[:, :, 0] *= f
+        self.total[:, :, 1] *= f
+        self.total[:, :, 2] *= f
+        self.total[:, :, 3] *= 1 / self.count
+        return self.total
 
 
 def with_self_as_background(img: np.ndarray):

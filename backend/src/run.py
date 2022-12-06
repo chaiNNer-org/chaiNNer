@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 import importlib
 import os
 
-# pylint: disable=unused-import
-import cv2
+import cv2  # pylint: disable=unused-import
 from sanic import Sanic
 from sanic.log import logger, access_logger
 from sanic.request import Request
@@ -21,19 +20,19 @@ from sanic_cors import CORS
 from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import (
     set_execution_options,
-    ExecutionOptions,
     parse_execution_options,
     JsonExecutionOptions,
 )
 from nodes.nodes.builtin_categories import category_order
+from nodes.group import Group
 
-from base_types import NodeId, InputId, OutputId
+from base_types import NodeId, OutputId
 from chain.cache import OutputCache
 from chain.json import parse_json, JsonNode
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
-from progress import Aborted  # type: ignore
+from progress import Aborted
 from response import (
     errorResponse,
     alreadyRunningResponse,
@@ -175,7 +174,10 @@ async def nodes(_):
             "category": node_object.category.name,
             "inputs": [x.toDict() for x in node_object.inputs],
             "outputs": [x.toDict() for x in node_object.outputs],
-            "groups": [g.toDict() for g in node_object.groups],
+            "groupLayout": [
+                g.toDict() if isinstance(g, Group) else g
+                for g in node_object.group_layout
+            ],
             "description": node_object.description,
             "icon": node_object.icon,
             "subcategory": node_object.sub,

@@ -42,14 +42,14 @@ class ImWriteNode(NodeBase):
             group(
                 "conditional-enum",
                 {
-                    "conditions": {
-                        5: ["jpg", "webp"],
-                        6: ["dds"],
-                        7: ["dds"],
-                        8: ["dds"],
-                        9: ["dds"],
-                        10: ["dds"],
-                    }
+                    "conditions": [
+                        ["jpg", "webp"],
+                        ["dds"],
+                        ["dds"],
+                        ["dds"],
+                        ["dds"],
+                        ["dds"],
+                    ]
                 },
             )(
                 ImageExtensionDropdown(),
@@ -59,12 +59,12 @@ class ImWriteNode(NodeBase):
                     maximum=100,
                     default=95,
                     slider_step=1,
-                ).with_id(5),
-                DdsFormatDropdown().with_id(6),
-                DdsBC7CompressionDropdown().with_id(7),
-                DdsDitheringDropdown().with_id(8),
-                DdsErrorMetricDropdown().with_id(9),
-                DdsMipMapsDropdown().with_id(10),
+                ),
+                DdsFormatDropdown(),
+                DdsBC7CompressionDropdown(),
+                DdsDitheringDropdown(),
+                DdsErrorMetricDropdown(),
+                DdsMipMapsDropdown(),
             ),
         ]
         self.category = ImageCategory

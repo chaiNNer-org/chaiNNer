@@ -1,5 +1,6 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
+import isDeepEqual from 'fast-deep-equal';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
@@ -32,17 +33,15 @@ import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 interface NodesInfo {
+    rawResponse: BackendNodesResponse;
     schemata: SchemaMap;
     categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
     categoriesMissingNodes: string[];
 }
 
-const processBackendResponse = ({
-    nodes,
-    categories,
-    categoriesMissingNodes,
-}: BackendNodesResponse): NodesInfo => {
+const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo => {
+    const { categories, categoriesMissingNodes, nodes } = rawResponse;
     const schemata = new SchemaMap(nodes);
 
     const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
@@ -64,7 +63,7 @@ const processBackendResponse = ({
         throw new Error(errors.join('\n\n'));
     }
 
-    return { schemata, categories, functionDefinitions, categoriesMissingNodes };
+    return { rawResponse, schemata, categories, functionDefinitions, categoriesMissingNodes };
 };
 
 const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
@@ -85,40 +84,21 @@ export const Main = memo(({ port }: MainProps) => {
 
     const { sendAlert } = useContext(AlertBoxContext);
 
-    const [nodesInfo, setNodesInfo] = useState<NodesInfo | null>(null);
+    const [nodesInfo, setNodesInfo] = useState<NodesInfo>();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
     const [backendReady, setBackendReady] = useState(false);
+    const [nodesRefreshCounter, setNodesRefreshCounter] = useState(0);
+    const refreshNodes = useCallback(() => setNodesRefreshCounter((prev) => prev + 1), []);
 
     const { loading, error, data, response } = useFetch<BackendNodesResponse>(
         `http://localhost:${port}/nodes`,
-        { cachePolicy: CachePolicies.NO_CACHE, retries: 25 },
-        [port]
+        { cachePolicy: CachePolicies.NO_CACHE, cache: 'no-cache', retries: 25 },
+        [port, nodesRefreshCounter]
     );
 
     useEffect(() => {
-        if (response.ok && data && !loading && !error && !backendReady) {
-            try {
-                setNodesInfo(processBackendResponse(data));
-            } catch (e) {
-                log.error(e);
-                sendAlert({
-                    type: AlertType.CRIT_ERROR,
-                    title: t(
-                        'error.title.unableToProcessNodes',
-                        'Unable to process backend nodes.'
-                    ),
-                    message: `${t(
-                        'error.message.criticalBackend',
-                        'A critical error occurred while processing the node data returned by the backend.'
-                    )}\n\n${String(e)}`,
-                });
-            }
-            setBackendReady(true);
-            ipcRenderer.send('backend-ready');
-        }
-
         if (error) {
             sendAlert({
                 type: AlertType.CRIT_ERROR,
@@ -127,6 +107,43 @@ export const Main = memo(({ port }: MainProps) => {
                     'A critical error occurred while processing the node data returned by the backend.'
                 )} ${t('error.error', 'Error')}: ${error.message}`,
             });
+        }
+    }, [error, sendAlert, t]);
+
+    useEffect(() => {
+        if (loading) {
+            return;
+        }
+
+        if (response.ok && data && !error) {
+            const rawResponse = data;
+            setNodesInfo((prev) => {
+                if (isDeepEqual(prev?.rawResponse, rawResponse)) {
+                    return prev;
+                }
+
+                try {
+                    return processBackendResponse(rawResponse);
+                } catch (e) {
+                    log.error(e);
+                    sendAlert({
+                        type: AlertType.CRIT_ERROR,
+                        title: t(
+                            'error.title.unableToProcessNodes',
+                            'Unable to process backend nodes.'
+                        ),
+                        message: `${t(
+                            'error.message.criticalBackend',
+                            'A critical error occurred while processing the node data returned by the backend.'
+                        )}\n\n${String(e)}`,
+                    });
+                }
+
+                return prev;
+            });
+        }
+
+        if (!backendReady) {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
@@ -167,7 +184,7 @@ export const Main = memo(({ port }: MainProps) => {
 
     if (error) return null;
 
-    if (!nodesInfo || !data || !pythonInfo || !ready) {
+    if (!nodesInfo || !pythonInfo || !ready) {
         return (
             <Box
                 h="100vh"
@@ -198,6 +215,7 @@ export const Main = memo(({ port }: MainProps) => {
                     functionDefinitions={nodesInfo.functionDefinitions}
                     port={port}
                     pythonInfo={pythonInfo}
+                    refreshNodes={refreshNodes}
                     schemata={nodesInfo.schemata}
                 >
                     <GlobalProvider reactFlowWrapper={reactFlowWrapper}>

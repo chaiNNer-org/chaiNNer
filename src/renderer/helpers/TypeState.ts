@@ -6,6 +6,7 @@ import {
     StructType,
     Type,
 } from '@chainner/navi';
+import log from 'electron-log';
 import { Edge, Node } from 'reactflow';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
@@ -48,18 +49,19 @@ export class TypeState {
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    return functionInstance.outputs.get(sourceHandle.outputId);
+                    return functionInstance?.outputs.get(sourceHandle.outputId);
                 }
             }
             return undefined;
         };
-        const addNode = (n: Node<NodeData>): FunctionInstance => {
+        const addNode = (n: Node<NodeData>): FunctionInstance | undefined => {
             const cached = functions.get(n.id);
             if (cached) return cached;
 
             const definition = functionDefinitions.get(n.data.schemaId);
             if (!definition) {
-                throw new Error(`No function definition for schema id ${n.data.schemaId}`);
+                log.warn(`Unknown schema id ${n.data.schemaId}`);
+                return undefined;
             }
 
             let instance;

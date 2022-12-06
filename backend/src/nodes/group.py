@@ -29,5 +29,5 @@ class Group(Generic[T]):
             "id": self.info.id,
             "kind": self.info.kind,
             "options": self.info.options,
-            "items": self.items,
+            "items": [i.toDict() if isinstance(i, Group) else i for i in self.items],
         }

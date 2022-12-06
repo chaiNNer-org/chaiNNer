@@ -22,7 +22,7 @@ class RRDBNet(nn.Module):
         norm=None,
         act: str = "leakyrelu",
         upsampler: str = "upconv",
-        mode: str = "CNA",
+        mode: B.ConvMode = "CNA",
     ) -> None:
         """
         ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
@@ -121,7 +121,7 @@ class RRDBNet(nn.Module):
                 out_nc=self.num_filters,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None,  # type: ignore
+                act_type=None,
             ),
             B.ShortcutBlock(
                 B.sequential(
@@ -147,7 +147,7 @@ class RRDBNet(nn.Module):
                         out_nc=self.num_filters,
                         kernel_size=3,
                         norm_type=self.norm,
-                        act_type=None,  # type: ignore
+                        act_type=None,
                         mode=self.mode,
                     ),
                 )
@@ -167,7 +167,7 @@ class RRDBNet(nn.Module):
                 out_nc=self.out_nc,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None,  # type: ignore
+                act_type=None,
             ),
         )
 
