@@ -11,8 +11,8 @@ import {
     ModalOverlay,
     useDisclosure,
 } from '@chakra-ui/react';
+import { TransformComponent, TransformWrapper } from '@pronestor/react-zoom-pan-pinch';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { createContext } from 'use-context-selector';
 import { useMemoObject } from '../hooks/useMemo';
 
