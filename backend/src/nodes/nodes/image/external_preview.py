@@ -49,6 +49,6 @@ class ImOpenNode(NodeBase):
             if platform.system() == "Darwin":  # macOS
                 subprocess.call(("open", temp_save_dir))
             elif platform.system() == "Windows":  # Windows
-                os.startfile(temp_save_dir)
+                os.startfile(temp_save_dir)  # type: ignore
             else:  # linux variants
                 subprocess.call(("xdg-open", temp_save_dir))
