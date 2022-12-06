@@ -27,6 +27,7 @@ import { BackendProvider } from './contexts/BackendContext';
 import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
+import { ImagePreviewProvider } from './contexts/ImagePreviewContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
@@ -222,28 +223,30 @@ export const Main = memo(({ port }: MainProps) => {
                         <ExecutionProvider>
                             <DependencyProvider>
                                 <HistoryProvider>
-                                    <VStack
-                                        bg="var(--window-bg)"
-                                        h="100vh"
-                                        overflow="hidden"
-                                        p={2}
-                                        w="100vw"
-                                    >
-                                        <Header />
-                                        <HStack
-                                            h="calc(100vh - 80px)"
-                                            minH="360px"
-                                            minW="720px"
-                                            w="full"
+                                    <ImagePreviewProvider>
+                                        <VStack
+                                            bg="var(--window-bg)"
+                                            h="100vh"
+                                            overflow="hidden"
+                                            p={2}
+                                            w="100vw"
                                         >
-                                            <NodeSelector />
-                                            <ReactFlowBox
-                                                edgeTypes={edgeTypes}
-                                                nodeTypes={nodeTypes}
-                                                wrapperRef={reactFlowWrapper}
-                                            />
-                                        </HStack>
-                                    </VStack>
+                                            <Header />
+                                            <HStack
+                                                h="calc(100vh - 80px)"
+                                                minH="360px"
+                                                minW="720px"
+                                                w="full"
+                                            >
+                                                <NodeSelector />
+                                                <ReactFlowBox
+                                                    edgeTypes={edgeTypes}
+                                                    nodeTypes={nodeTypes}
+                                                    wrapperRef={reactFlowWrapper}
+                                                />
+                                            </HStack>
+                                        </VStack>
+                                    </ImagePreviewProvider>
                                 </HistoryProvider>
                             </DependencyProvider>
                         </ExecutionProvider>

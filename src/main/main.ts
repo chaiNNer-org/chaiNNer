@@ -794,18 +794,17 @@ app.on('window-all-closed', () => {
 });
 
 app.on('quit', () => {
-    log.info('Cleaning up temp folders...');
+    log.info('Cleaning up temp files...');
     const tempDir = os.tmpdir();
     // find all the folders starting with 'chaiNNer-'
-    const tempFolders = readdirSync(tempDir, { withFileTypes: true })
-        .filter((dir) => dir.isDirectory())
+    const tempItems = readdirSync(tempDir, { withFileTypes: true })
         .map((dir) => dir.name)
         .filter((name) => name.includes('chaiNNer-'));
-    tempFolders.forEach((folder) => {
+    tempItems.forEach((item) => {
         try {
-            rmSync(path.join(tempDir, folder), { force: true, recursive: true });
+            rmSync(path.join(tempDir, item), { force: true, recursive: true });
         } catch (error) {
-            log.error(`Error removing temp folder. ${String(error)}`);
+            log.error(`Error removing temp file/folder. ${String(error)}`);
         }
     });
 });

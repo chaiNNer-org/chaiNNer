@@ -2,16 +2,23 @@
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
+import os from 'os';
+import path from 'path';
+import { memo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { ImagePreviewContext } from '../../contexts/ImagePreviewContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
 import { OutputProps } from './props';
 
 const IMAGE_PREVIEW_SIZE = 200;
+
+const TEMP_DIR = os.tmpdir();
+const TEMP_PREVIEW_FILEPATH_START = 'chaiNNer-temp-preview-';
+const TEMP_PREVIEW_FILEPATH_EXT = '.png';
 
 interface PreviewImage {
     size: number;
@@ -40,6 +47,8 @@ export const LargeImageOutput = memo(
         const { setManualOutputType } = useContext(GlobalContext);
         const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
+
+        const { showImage } = useContext(ImagePreviewContext);
 
         const dpr = useDevicePixelRatio();
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
@@ -70,6 +79,17 @@ export const LargeImageOutput = memo(
 
         const pickedImage = last ? pickImage(last, realSize) : null;
 
+        const fullPreviewPath = path.join(
+            TEMP_DIR,
+            `${TEMP_PREVIEW_FILEPATH_START}${id}${TEMP_PREVIEW_FILEPATH_EXT}`
+        );
+        const onPreviewClick = useCallback(() => {
+            if (last) {
+                showImage('');
+                showImage(fullPreviewPath);
+            }
+        }, [fullPreviewPath, last, showImage]);
+
         return (
             <Center
                 h="full"
@@ -80,7 +100,6 @@ export const LargeImageOutput = memo(
             >
                 <Center
                     h={`${IMAGE_PREVIEW_SIZE}px`}
-                    // overflow="hidden"
                     w={`${IMAGE_PREVIEW_SIZE}px`}
                 >
                     <Box
@@ -118,6 +137,10 @@ export const LargeImageOutput = memo(
                         </HStack>
                     </Box>
                     <Center
+                        _hover={{
+                            cursor: last ? 'zoom-in' : 'default',
+                            border: last ? '1px solid white' : 'none',
+                        }}
                         bgColor={imgBgColor}
                         borderRadius="md"
                         h={`${IMAGE_PREVIEW_SIZE}px`}
@@ -126,14 +149,22 @@ export const LargeImageOutput = memo(
                         minH={`${IMAGE_PREVIEW_SIZE}px`}
                         minW={`${IMAGE_PREVIEW_SIZE}px`}
                         overflow="hidden"
+                        transition="border 0.1s ease-in-out"
                         w={`${IMAGE_PREVIEW_SIZE}px`}
+                        onClick={onPreviewClick}
                     >
                         {last && pickedImage ? (
                             <Center
+                                _hover={{
+                                    cursor: 'zoom-in',
+                                }}
                                 maxH={`${IMAGE_PREVIEW_SIZE}px`}
                                 maxW={`${IMAGE_PREVIEW_SIZE}px`}
                             >
                                 <Image
+                                    _hover={{
+                                        cursor: 'zoom-in',
+                                    }}
                                     alt="Image preview failed to load, probably unsupported file type."
                                     background={
                                         last.channels === 4
