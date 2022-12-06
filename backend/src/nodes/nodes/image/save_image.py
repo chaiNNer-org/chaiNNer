@@ -42,10 +42,7 @@ class ImWriteNode(NodeBase):
             DirectoryInput(has_handle=True),
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
-            group(
-                "conditional-enum",
-                {"conditions": [["jpg", "webp"], ["dds"], ["dds"]]},
-            )(
+            group("conditional-enum", {"conditions": [["jpg", "webp"], "dds", "dds"]},)(
                 ImageExtensionDropdown(),
                 SliderInput(
                     "Quality",
