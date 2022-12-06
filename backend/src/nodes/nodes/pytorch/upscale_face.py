@@ -98,8 +98,8 @@ class FaceUpscaleNode(NodeBase):
             cropped_face_t = np2tensor(
                 cropped_face, bgr2rgb=True, change_range=True, add_batch=False
             )
-            tv_normalize(cropped_face_t, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)  # type: ignore
-            cropped_face_t = cropped_face_t.unsqueeze(0).to(device)  # type: ignore
+            tv_normalize(cropped_face_t, [0.5, 0.5, 0.5], [0.5, 0.5, 0.5], inplace=True)
+            cropped_face_t = cropped_face_t.unsqueeze(0).to(device)
 
             try:
                 if should_use_fp16:
@@ -114,7 +114,7 @@ class FaceUpscaleNode(NodeBase):
                 logger.error(f"\tFailed inference for Face Upscale: {error}.")
                 restored_face = cropped_face
 
-            restored_face = restored_face.astype("uint8")  # type: ignore
+            restored_face = restored_face.astype("uint8")
             face_helper.add_restored_face(restored_face)
 
         if background_img is not None:

@@ -37,7 +37,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
 
         model_proto = onnx.load_model_from_string(model.bytes)
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
-        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+        opt_model = onnxoptimizer.optimize(model_proto, passes)
 
         converter = Onnx2NcnnConverter(opt_model)
         ncnn_model = NcnnModelWrapper(converter.convert(fp16, False))
