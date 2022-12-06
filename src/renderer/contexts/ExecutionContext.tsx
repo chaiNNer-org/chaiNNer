@@ -207,15 +207,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
 
     useEffect(() => {
-        ipcRenderer.send('set-progress-bar', percentComplete ?? null);
-    }, [percentComplete]);
+        const displayProgress = status === ExecutionStatus.RUNNING ? percentComplete : undefined;
+        ipcRenderer.send('set-progress-bar', displayProgress ?? null);
+    }, [status, percentComplete]);
 
     useEffect(() => {
         if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
-            ipcRenderer.send('set-progress-bar', null);
+            setPercentComplete(undefined);
         }
     }, [status]);
 
