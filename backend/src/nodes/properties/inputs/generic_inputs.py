@@ -488,7 +488,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
 def DdsErrorMetricDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsErrorMetric",
-        label="Error Metric (BC1-BC3)",
+        label="Error Metric",
         options=[
             {"option": "Perceptual", "value": 0},
             {"option": "Uniform", "value": 1},
@@ -499,7 +499,7 @@ def DdsErrorMetricDropdown() -> DropDownInput:
 def DdsDitheringDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsDithering",
-        label="Dithering (BC1-BC3)",
+        label="Dithering",
         default_value=0,
         options=[
             {"option": "Yes", "value": 1},

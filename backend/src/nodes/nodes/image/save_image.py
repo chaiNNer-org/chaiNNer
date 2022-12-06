@@ -28,6 +28,9 @@ from ...utils.utils import get_h_w_c
 from ...utils.image_utils import cv_save_image
 from ...utils.dds import save_as_dds
 
+BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
+BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"
+
 
 @NodeFactory.register("chainner:image:save")
 class ImWriteNode(NodeBase):
@@ -41,16 +44,7 @@ class ImWriteNode(NodeBase):
             TextInput("Image Name"),
             group(
                 "conditional-enum",
-                {
-                    "conditions": [
-                        ["jpg", "webp"],
-                        ["dds"],
-                        ["dds"],
-                        ["dds"],
-                        ["dds"],
-                        ["dds"],
-                    ]
-                },
+                {"conditions": [["jpg", "webp"], ["dds"], ["dds"]]},
             )(
                 ImageExtensionDropdown(),
                 SliderInput(
@@ -60,10 +54,15 @@ class ImWriteNode(NodeBase):
                     default=95,
                     slider_step=1,
                 ),
-                DdsFormatDropdown(),
-                DdsBC7CompressionDropdown(),
-                DdsDitheringDropdown(),
-                DdsErrorMetricDropdown(),
+                group(
+                    "conditional-enum",
+                    {"conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS]},
+                )(
+                    DdsFormatDropdown(),
+                    DdsBC7CompressionDropdown(),
+                    DdsDitheringDropdown(),
+                    DdsErrorMetricDropdown(),
+                ),
                 DdsMipMapsDropdown(),
             ),
         ]
