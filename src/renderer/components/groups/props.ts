@@ -6,7 +6,16 @@ import {
     OfKind,
     SchemaId,
 } from '../../../common/common-types';
-import { GroupInputs } from '../../../common/group-inputs';
+import { GroupInputs, InputItem } from '../../../common/group-inputs';
+
+export type InputItemRenderer = (props: {
+    item: InputItem;
+    nodeId: string;
+    inputData: InputData;
+    inputSize?: InputSize;
+    isLocked: boolean;
+    schemaId: SchemaId;
+}) => JSX.Element | null;
 
 export interface GroupProps<Kind extends GroupKind> {
     group: OfKind<Group, Kind>;
@@ -16,4 +25,5 @@ export interface GroupProps<Kind extends GroupKind> {
     isLocked: boolean;
     inputData: InputData;
     inputSize: InputSize | undefined;
+    ItemRenderer: InputItemRenderer;
 }

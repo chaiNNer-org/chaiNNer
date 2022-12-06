@@ -12,11 +12,14 @@ from .properties.outputs.base_output import BaseOutput
 
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 
+NestedGroup = Group[Union[BaseInput, "NestedGroup"]]
+NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
+
 # pylint: disable-next=redefined-builtin
 def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
     info = GroupInfo(GroupId(id), kind, options)
 
-    def ret(*items: BaseInput) -> Group[BaseInput]:
+    def ret(*items) -> NestedGroup:
         return Group(info, list(items))
 
     return ret
@@ -28,7 +31,7 @@ class NodeBase(metaclass=ABCMeta):
     def __init__(self):
         self.__inputs: List[BaseInput] = []
         self.__outputs: List[BaseOutput] = []
-        self.__groups: List[Group[InputId]] = []
+        self.__group_layout: List[Union[InputId, NestedIdGroup]] = []
         self.description: str = ""
 
         self.category: Category = Category(
@@ -47,29 +50,33 @@ class NodeBase(metaclass=ABCMeta):
         return self.__inputs
 
     @inputs.setter
-    def inputs(self, value: List[Union[BaseInput, Group[BaseInput]]]):
+    def inputs(self, value: List[Union[BaseInput, NestedGroup]]):
         inputs: List[BaseInput] = []
-        groups: List[Group[InputId]] = []
+        groups = []
 
-        for x in value:
-            if isinstance(x, Group):
-                ids: List[InputId] = []
-                for y in x.items:
-                    if y.id == -1:
-                        y.id = InputId(len(inputs))
-                    inputs.append(y)
-                    ids.append(y.id)
+        def add_inputs(
+            current: List[Union[BaseInput, NestedGroup]]
+        ) -> List[Union[InputId, NestedIdGroup]]:
+            layout: List[Union[InputId, NestedIdGroup]] = []
 
-                if x.info.id == -1:
-                    x.info.id = GroupId(len(groups))
-                groups.append(Group(x.info, ids))
-            else:
-                if x.id == -1:
-                    x.id = InputId(len(inputs))
-                inputs.append(x)
+            for x in current:
+                if isinstance(x, Group):
+                    if x.info.id == -1:
+                        x.info.id = GroupId(len(groups))
+                    g: NestedIdGroup = Group(x.info, [])
+                    groups.append(g)
+                    layout.append(g)
+                    g.items.extend(add_inputs(x.items))
+                else:
+                    if x.id == -1:
+                        x.id = InputId(len(inputs))
+                    layout.append(x.id)
+                    inputs.append(x)
+
+            return layout
 
         self.__inputs = inputs
-        self.__groups = groups
+        self.__group_layout = add_inputs(value)
 
     @property
     def outputs(self) -> List[BaseOutput]:
@@ -83,8 +90,8 @@ class NodeBase(metaclass=ABCMeta):
         self.__outputs = value
 
     @property
-    def groups(self) -> List[Group[InputId]]:
-        return self.__groups
+    def group_layout(self) -> List[Union[InputId, NestedIdGroup]]:
+        return self.__group_layout
 
     @abstractmethod
     def run(self) -> Any:

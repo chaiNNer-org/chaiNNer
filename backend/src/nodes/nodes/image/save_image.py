@@ -34,7 +34,7 @@ class ImWriteNode(NodeBase):
             DirectoryInput(has_handle=True),
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
-            group("conditional-enum", {"conditions": {5: ["jpg", "webp"]}})(
+            group("conditional-enum", {"conditions": [["jpg", "webp"]]})(
                 ImageExtensionDropdown(),
                 SliderInput(
                     "Quality",
@@ -42,7 +42,7 @@ class ImWriteNode(NodeBase):
                     maximum=100,
                     default=95,
                     slider_step=1,
-                ).with_id(5),
+                ),
             ),
         ]
         self.category = ImageCategory
