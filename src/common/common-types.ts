@@ -45,6 +45,7 @@ export interface GenericInput extends InputBase {
 }
 export interface DropDownInput extends InputBase {
     readonly kind: 'dropdown';
+    readonly def: string | number;
     readonly options: readonly InputOption[];
 }
 export interface FileInput extends InputBase {
@@ -129,7 +130,7 @@ interface GroupBase {
     readonly id: GroupId;
     readonly kind: GroupKind;
     readonly options: Readonly<Record<string, unknown>>;
-    readonly items: readonly InputId[];
+    readonly items: readonly (InputId | Group)[];
 }
 interface NcnnFileInputGroup extends GroupBase {
     readonly kind: 'ncnn-file-inputs';
@@ -150,7 +151,7 @@ interface OptionalListGroup extends GroupBase {
 interface ConditionalEnumGroup extends GroupBase {
     readonly kind: 'conditional-enum';
     readonly options: {
-        readonly conditions: Readonly<Partial<Record<InputId, null | readonly InputSchemaValue[]>>>;
+        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
     };
 }
 export type GroupKind = Group['kind'];
@@ -182,7 +183,7 @@ export interface NodeSchema {
     readonly nodeType: NodeType;
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
-    readonly groups: readonly Group[];
+    readonly groupLayout: readonly (InputId | Group)[];
     readonly defaultNodes?: readonly DefaultNode[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;

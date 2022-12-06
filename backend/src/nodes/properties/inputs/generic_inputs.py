@@ -1,11 +1,27 @@
-from typing import Dict, List, Union
+from __future__ import annotations
+from typing import List, Union, TypedDict
 import numpy as np
+from sanic.log import logger
 
 from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
 from ...utils.image_utils import FillColor, FlipAxis, KernelType, normalize
+
+
+class UntypedOption(TypedDict):
+    option: str
+    value: str | int
+
+
+class TypedOption(TypedDict):
+    option: str
+    value: str | int
+    type: expression.ExpressionJson
+
+
+DropDownOption = Union[UntypedOption, TypedOption]
 
 
 class DropDownInput(BaseInput):
@@ -15,23 +31,34 @@ class DropDownInput(BaseInput):
         self,
         input_type: expression.ExpressionJson,
         label: str,
-        options: List[Dict],
+        options: List[DropDownOption],
+        default_value: str | int | None = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
+        self.accepted_values = {o["value"] for o in self.options}
+        self.default = (
+            default_value if default_value is not None else options[0]["value"]
+        )
+
+        if not self.default in self.accepted_values:
+            logger.error(
+                f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
+            )
+            self.default = options[0]["value"]
 
     def toDict(self):
         return {
             **super().toDict(),
             "options": self.options,
+            "def": self.default,
         }
 
     def make_optional(self):
         raise ValueError("DropDownInput cannot be made optional")
 
     def enforce(self, value):
-        accepted_values = [o["value"] for o in self.options]
-        assert value in accepted_values, f"{value} is not a valid option"
+        assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
 
@@ -405,5 +432,96 @@ def HbfTypeDropdown(label="Filter Type") -> DropDownInput:
         options=[
             {"option": "Normal", "value": KernelType.NORMAL},
             {"option": "Strong", "value": KernelType.STRONG},
+        ],
+    )
+
+
+def DdsFormatDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsFormat",
+        label="DDS Format",
+        options=[
+            {
+                "option": "BC1 (sRGB)",
+                "value": "BC1_UNORM_SRGB",
+            },
+            {
+                "option": "BC1 (Linear)",
+                "value": "BC1_UNORM",
+            },
+            {
+                "option": "BC3 (sRGB)",
+                "value": "BC3_UNORM_SRGB",
+            },
+            {
+                "option": "BC3 (Linear)",
+                "value": "BC3_UNORM",
+            },
+            {
+                "option": "BC4 (Linear, Unsigned)",
+                "value": "BC4_UNORM",
+            },
+            {
+                "option": "BC7 (sRGB)",
+                "value": "BC7_UNORM_SRGB",
+            },
+            {
+                "option": "BC7 (Linear)",
+                "value": "BC7_UNORM",
+            },
+        ],
+    )
+
+
+def DdsMipMapsDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsMipMaps",
+        label="Generate Mip Maps",
+        options=[
+            # these are not boolean values, see dds.py for more info
+            {"option": "Yes", "value": 0},
+            {"option": "No", "value": 1},
+        ],
+    )
+
+
+def DdsErrorMetricDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsErrorMetric",
+        label="Error Metric",
+        options=[
+            {"option": "Perceptual", "value": 0},
+            {"option": "Uniform", "value": 1},
+        ],
+    )
+
+
+def DdsDitheringDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsDithering",
+        label="Dithering",
+        default_value=0,
+        options=[
+            {"option": "Yes", "value": 1},
+            {"option": "No", "value": 0},
+        ],
+    )
+
+
+class BC7Compression:
+    DEFAULT = 0
+    BEST_SPEED = 1
+    BEST_QUALITY = 2
+
+
+def DdsBC7CompressionDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsBC7Compression",
+        label="BC7 Compression",
+        default_value=BC7Compression.DEFAULT,
+        options=[
+            {"option": "Best Speed", "value": BC7Compression.BEST_SPEED},
+            {"option": "Default", "value": BC7Compression.DEFAULT},
+            {"option": "Best Quality", "value": BC7Compression.BEST_QUALITY},
         ],
     )

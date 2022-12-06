@@ -106,7 +106,7 @@ class WindowsClipboard(ClipboardBase):
                 "pywin32 must be installed to use this library on Windows platform."
             )
 
-        self.__PNG_FORMAT = win32clipboard.RegisterClipboardFormat("PNG")  # type: ignore
+        self.__PNG_FORMAT = win32clipboard.RegisterClipboardFormat("PNG")
         self.__DIPV5_FORMAT = 17
         self.__DIP_FORMAT = 8
 
@@ -187,11 +187,11 @@ class WindowsClipboard(ClipboardBase):
         try:
             win32clipboard.OpenClipboard()
             win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardData(self.__PNG_FORMAT, image_bytes)  # type: ignore
+            win32clipboard.SetClipboardData(self.__PNG_FORMAT, image_bytes)
             dipv5 = self.__generate_dibv5(image_array)
-            win32clipboard.SetClipboardData(self.__DIPV5_FORMAT, dipv5)  # type: ignore
+            win32clipboard.SetClipboardData(self.__DIPV5_FORMAT, dipv5)
             dip = self.__generate_div(image_array)
-            win32clipboard.SetClipboardData(self.__DIP_FORMAT, dip)  # type: ignore
+            win32clipboard.SetClipboardData(self.__DIP_FORMAT, dip)
             win32clipboard.CloseClipboard()
         except Exception as err:
             win32clipboard.CloseClipboard()
@@ -207,8 +207,8 @@ class WindowsClipboard(ClipboardBase):
         try:
             win32clipboard.OpenClipboard()
             win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)  # type: ignore
-            win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text)  # type: ignore
+            win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)
+            win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text)
             win32clipboard.CloseClipboard()
         except Exception as err:
             win32clipboard.CloseClipboard()

@@ -15,5 +15,8 @@
     "reactflow",
     "sanic",
     "vram"
-  ]
+  ],
+  "[python]": {
+    "editor.formatOnSave": true
+  }
 }

@@ -51,41 +51,37 @@ class ImResizeToSide(NodeBase):
                 let side = Input2;
                 let condition = Input4;
 
-                def compareCondition(b: uint) {
+                def compareCondition(b: uint): bool {
                     match condition {
                         ResizeCondition::Both => false,
-                        ResizeCondition::Downscale => number::gt(target, b),
-                        ResizeCondition::Upscale => number::lt(target, b)
+                        ResizeCondition::Downscale => target > b,
+                        ResizeCondition::Upscale => target < b
                     }
                 }
 
                 let same = Size { width: w, height: h };
 
                 let outSize = match side {
-                    SideSelection::Width => match compareCondition(w) {
-                        true => same,
-                        false => Size {
+                    SideSelection::Width => if compareCondition(w) { same } else {
+                        Size {
                             width: target,
                             height: max(int & round((target / w) * h), 1)
                         }
                     },
-                    SideSelection::Height => match compareCondition(h) {
-                        true => same,
-                        false => Size {
+                    SideSelection::Height => if compareCondition(h) { same } else {
+                        Size {
                             width: max(int & round((target / h) * w), 1),
                             height: target
                         }
                     },
-                    SideSelection::Shorter => match compareCondition(min(h, w)) {
-                        true => same,
-                        false => Size {
+                    SideSelection::Shorter => if compareCondition(min(h, w)) { same } else {
+                        Size {
                             width: max(int & round((target / min(h, w)) * w), 1),
                             height: max(int & round((target / min(h, w)) * h), 1)
                         }
                     },
-                    SideSelection::Longer => match compareCondition(max(h, w)) {
-                        true => same,
-                        false => Size {
+                    SideSelection::Longer => if compareCondition(max(h, w)) { same } else {
+                        Size {
                             width: max(int & round((target / max(h, w)) * w), 1),
                             height: max(int & round((target / max(h, w)) * h), 1)
                         }
