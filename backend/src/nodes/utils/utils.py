@@ -187,88 +187,129 @@ def nptensor2np(
     return img_np.astype(imtype)
 
 
+def preprocess_upscale_input(
+    img: np.ndarray, model_in_nc: int, restore_input_channels: bool
+) -> Tuple[np.ndarray, np.ndarray | int | None]:
+    """Adjust number of image channels if it does not equal number of channels
+    required by the model."""
+    c = get_h_w_c(img)[2]
+
+    imgout = img
+    supplemental_output = None
+    if c == 4:
+        # Ignore alpha if single-color or not being replaced
+        unique = np.unique(img[:, :, 3])
+        if len(unique) == 1 or not restore_input_channels:
+            logger.debug("Ignoring alpha channel.")
+            if model_in_nc == 1:
+                logger.warning("Converting image to grayscale.")
+                imgout = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
+            else:
+                imgout = img[:, :, :3]
+
+            if restore_input_channels:
+                supplemental_output = unique[0]
+        else:
+            # Transparency hack (white/black background difference alpha)
+            imgout = np.copy(img[:, :, :3])
+            supplemental_output = np.copy(img[:, :, :3])
+            for c in range(3):
+                imgout[:, :, c] *= img[:, :, 3]
+                supplemental_output[:, :, c] = (supplemental_output[:, :, c] - 1) * img[
+                    :, :, 3
+                ] + 1
+
+            if model_in_nc == 1:
+                logger.warning("Converting image to grayscale.")
+                imgout = np.expand_dims(
+                    cv2.cvtColor(imgout, cv2.COLOR_BGR2GRAY), axis=2
+                )
+                supplemental_output = np.expand_dims(
+                    cv2.cvtColor(supplemental_output, cv2.COLOR_BGR2GRAY), axis=2
+                )
+    elif c == 3:
+        # Remove extra channels if too many (i.e three channel image, single channel model)
+        if model_in_nc == 1:
+            logger.warning("Converting image to grayscale.")
+            imgout = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
+        # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
+        elif model_in_nc == 4:
+            logger.debug("Expanding image channels.")
+            imgout = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
+    else:
+        # Add extra channels
+        logger.debug("Expanding image channels.")
+        if img.ndim == 2:
+            imgout = np.tile(np.expand_dims(img, axis=2), (1, 1, min(model_in_nc, 3)))
+        else:
+            imgout = np.tile(img, (1, 1, min(model_in_nc, 3)))
+
+        if model_in_nc == 4:
+            imgout = np.dstack((imgout, np.full(imgout.shape[:-1], 1.0, np.float32)))
+
+    return imgout, supplemental_output
+
+
+def postprocess_upscale_output(
+    img: np.ndarray, alpha: np.ndarray | None, inimg_c: int
+) -> np.ndarray:
+    """Adjust number of output image channels if required to match number of
+    input image channels."""
+    outimg_c = get_h_w_c(img)[2]
+
+    if (inimg_c == 4 and outimg_c in (1, 3)) or (inimg_c == 3 and outimg_c == 1):
+        if img.ndim == 2:
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(inimg_c, 3)))
+        elif outimg_c == 1:
+            img = np.tile(img, (1, 1, min(inimg_c, 3)))
+
+        if inimg_c == 4:
+            img = np.dstack((img, alpha))  # type: ignore
+    elif (inimg_c in (1, 3) and outimg_c == 4) or (inimg_c == 1 and outimg_c == 3):
+        img = img[:, :, :3]
+        if inimg_c == 1:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    return img
+
+
 def convenient_upscale(
     img: np.ndarray,
-    input_channels: int,
+    model_in_nc: int,
+    model_out_nc: int,
     upscale: Callable[[np.ndarray], np.ndarray],
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
 
     This method guarantees that the `upscale` function will be called with an image with
-    `input_channels` number of channels.
+    `model_in_nc` number of channels.
+
+    Additionally, guarantees that the number of channels of the output image will match
+    that of the input image in cases where `model_in_nc` == `model_out_nc`, and match
+    `model_out_nc` otherwise.
     """
+    inimg_c = get_h_w_c(img)[2]
 
-    c = get_h_w_c(img)[2]
+    restore_input_channels = model_in_nc == model_out_nc and model_in_nc != inimg_c
 
-    # Transparency hack (white/black background difference alpha)
-    if c == 4 and input_channels in (1, 3):
-        # Ignore single-color alpha
-        unique = np.unique(img[:, :, 3])
-        if len(unique) == 1:
-            logger.debug("Single color alpha channel, ignoring.")
-            if input_channels == 1:
-                logger.warning("Converting image to grayscale.")
-                img = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
-            else:
-                img = img[:, :, :3]
-            output = upscale(img)
-            if input_channels == 1:
-                output = np.tile(output, (1, 1, 3))
-            output = np.dstack(
-                (output, np.full(output.shape[:-1], unique[0], np.float32))
-            )
-        else:
-            img1 = np.copy(img[:, :, :3])
-            img2 = np.copy(img[:, :, :3])
-            for c in range(3):
-                img1[:, :, c] *= img[:, :, 3]
-                img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
-
-            if input_channels == 1:
-                logger.warning("Converting image to grayscale.")
-                img1 = np.expand_dims(cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY), axis=2)
-                img2 = np.expand_dims(cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY), axis=2)
-            output1 = upscale(img1)
-            output2 = upscale(img2)
-            alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
-            if input_channels == 1:
-                output1 = np.tile(output1, (1, 1, 3))
-            output = np.dstack((output1, alpha))
+    if inimg_c != model_in_nc:
+        img, input2 = preprocess_upscale_input(img, model_in_nc, restore_input_channels)
     else:
-        # Add extra channels if not enough (i.e single channel img, three channel model)
-        gray = False
-        if c == 1:
-            gray = True
-            logger.debug("Expanding image channels if necessary.")
-            if img.ndim == 2:
-                img = np.tile(
-                    np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3))
-                )
-            else:
-                img = np.tile(img, (1, 1, min(input_channels, 3)))
-            if input_channels == 4:
-                img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
-        # Remove extra channels if too many (i.e three channel image, single channel model)
-        elif c == 3:
-            if input_channels == 1:
-                logger.warning("Converting image to grayscale.")
-                img = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
-            # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
-            elif input_channels == 4:
-                logger.debug("Expanding image channels.")
-                img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
+        if img.ndim == 2:
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, 1))
+        input2 = None
 
-        output = upscale(img)
+    output = upscale(img)
+    alpha = None
+    if isinstance(input2, int):
+        alpha = np.full(output.shape[:-1], input2, np.float32)
+    elif isinstance(input2, np.ndarray):
+        output2 = upscale(input2)
+        alpha = 1 - np.mean(output2 - output, axis=2)
 
-        if gray:
-            out_c = get_h_w_c(output)[2]
-            if out_c == 4:
-                output = output[:, :, :3]
-            if out_c > 1:
-                output = np.expand_dims(
-                    cv2.cvtColor(output, cv2.COLOR_BGR2GRAY), axis=2
-                )
+    if restore_input_channels:
+        output = postprocess_upscale_output(output, alpha, inimg_c)
 
     return np.clip(output, 0, 1)
 

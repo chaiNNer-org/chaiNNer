@@ -117,5 +117,6 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
+            out_nc,
             lambda i: self.upscale(i, model, tile_size, exec_options),
         )

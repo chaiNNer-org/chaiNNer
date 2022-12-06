@@ -112,8 +112,6 @@ class NcnnUpscaleImageNode(NodeBase):
     def run(
         self, model: NcnnModelWrapper, img: np.ndarray, tile_size: TileSize
     ) -> np.ndarray:
-        model_c = model.in_nc
-
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
             if ic == 3:
@@ -133,4 +131,4 @@ class NcnnUpscaleImageNode(NodeBase):
                 i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
             return i
 
-        return convenient_upscale(img, model_c, upscale)
+        return convenient_upscale(img, model.in_nc, model.out_nc, upscale)

@@ -41,6 +41,19 @@ def get_input_shape(
         return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
 
 
+def get_output_shape(
+    session: ort.InferenceSession,
+) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+    """
+    Returns the output shape, output channels, output width (optional), and output height (optional).
+    """
+    shape = session.get_outputs()[0].shape
+    if isinstance(shape[1], int) and shape[1] <= 4:
+        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
+    else:
+        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+
 @NodeFactory.register("chainner:onnx:upscale_image")
 class OnnxImageUpscaleNode(NodeBase):
     def __init__(self):
@@ -96,6 +109,7 @@ class OnnxImageUpscaleNode(NodeBase):
         session = get_onnx_session(model, get_execution_options())
 
         input_shape, in_nc, req_width, req_height = get_input_shape(session)
+        _, out_nc, _, _ = get_output_shape(session)
         change_shape = input_shape == "BHWC"
 
         exact_size = None
@@ -110,5 +124,6 @@ class OnnxImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
+            out_nc,
             lambda i: self.upscale(i, session, tile_size, change_shape, exact_size),
         )
