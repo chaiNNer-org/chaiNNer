@@ -527,6 +527,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         <ExecutionContext.Provider value={value}>
             <ExecutionStatusContext.Provider value={statusValue}>
                 {children}
+                <div style={{ display: 'none' }}>
+                    {status};{percentComplete}
+                </div>
             </ExecutionStatusContext.Provider>
         </ExecutionContext.Provider>
     );
