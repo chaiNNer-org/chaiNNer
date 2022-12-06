@@ -11,7 +11,11 @@ import {
     ModalOverlay,
     useDisclosure,
 } from '@chakra-ui/react';
-import { TransformComponent, TransformWrapper } from '@pronestor/react-zoom-pan-pinch';
+import {
+    ReactZoomPanPinchRef,
+    TransformComponent,
+    TransformWrapper,
+} from '@pronestor/react-zoom-pan-pinch';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createContext } from 'use-context-selector';
 import { useMemoObject } from '../hooks/useMemo';
@@ -50,6 +54,7 @@ export const ImagePreviewProvider = memo(({ children }: React.PropsWithChildren<
     const value = useMemoObject<ImagePreview>({ showImage });
 
     const modalBodyRef = useRef<HTMLDivElement>(null);
+    const transformRef = useRef<ReactZoomPanPinchRef>(null);
 
     return (
         <ImagePreviewContext.Provider value={value}>
@@ -70,7 +75,13 @@ export const ImagePreviewProvider = memo(({ children }: React.PropsWithChildren<
                         overflow="hidden"
                         ref={modalBodyRef}
                     >
-                        <TransformWrapper initialScale={1}>
+                        <TransformWrapper
+                            centerOnInit
+                            initialScale={1}
+                            maxScale={8}
+                            minScale={0.125}
+                            ref={transformRef}
+                        >
                             {({ zoomIn, zoomOut, resetTransform }) => (
                                 <>
                                     {/* <HStack className="tools">
@@ -99,7 +110,11 @@ export const ImagePreviewProvider = memo(({ children }: React.PropsWithChildren<
                                                     loading="eager"
                                                     src={`${imgPath}?${hash}`}
                                                     sx={{
-                                                        imageRendering: 'pixelated',
+                                                        imageRendering:
+                                                            (transformRef.current?.state.scale ??
+                                                                0) > 1
+                                                                ? 'pixelated'
+                                                                : 'auto',
                                                     }}
                                                 />
                                             ) : (
