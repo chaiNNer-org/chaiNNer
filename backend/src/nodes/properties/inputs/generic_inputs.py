@@ -434,3 +434,94 @@ def HbfTypeDropdown(label="Filter Type") -> DropDownInput:
             {"option": "Strong", "value": KernelType.STRONG},
         ],
     )
+
+
+def DdsFormatDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsFormat",
+        label="DDS Format",
+        options=[
+            {
+                "option": "BC1 (sRGB)",
+                "value": "BC1_UNORM_SRGB",
+            },
+            {
+                "option": "BC1 (Linear)",
+                "value": "BC1_UNORM",
+            },
+            {
+                "option": "BC3 (sRGB)",
+                "value": "BC3_UNORM_SRGB",
+            },
+            {
+                "option": "BC3 (Linear)",
+                "value": "BC3_UNORM",
+            },
+            {
+                "option": "BC4 (Linear, Unsigned)",
+                "value": "BC4_UNORM",
+            },
+            {
+                "option": "BC7 (sRGB)",
+                "value": "BC7_UNORM_SRGB",
+            },
+            {
+                "option": "BC7 (Linear)",
+                "value": "BC7_UNORM",
+            },
+        ],
+    )
+
+
+def DdsMipMapsDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsMipMaps",
+        label="Generate Mip Maps",
+        options=[
+            # these are not boolean values, see dds.py for more info
+            {"option": "Yes", "value": 0},
+            {"option": "No", "value": 1},
+        ],
+    )
+
+
+def DdsErrorMetricDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsErrorMetric",
+        label="Error Metric",
+        options=[
+            {"option": "Perceptual", "value": 0},
+            {"option": "Uniform", "value": 1},
+        ],
+    )
+
+
+def DdsDitheringDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsDithering",
+        label="Dithering",
+        default_value=0,
+        options=[
+            {"option": "Yes", "value": 1},
+            {"option": "No", "value": 0},
+        ],
+    )
+
+
+class BC7Compression:
+    DEFAULT = 0
+    BEST_SPEED = 1
+    BEST_QUALITY = 2
+
+
+def DdsBC7CompressionDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsBC7Compression",
+        label="BC7 Compression",
+        default_value=BC7Compression.DEFAULT,
+        options=[
+            {"option": "Best Speed", "value": BC7Compression.BEST_SPEED},
+            {"option": "Default", "value": BC7Compression.DEFAULT},
+            {"option": "Best Quality", "value": BC7Compression.BEST_QUALITY},
+        ],
+    )

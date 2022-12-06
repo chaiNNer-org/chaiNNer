@@ -1,4 +1,7 @@
-from typing import Tuple
+from typing import Tuple, List
+import os
+import random
+import string
 
 import cv2
 import numpy as np
@@ -370,3 +373,25 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     )
 
     return float(np.mean(ssim_map))
+
+
+def cv_save_image(path: str, img: np.ndarray, params: List[int]):
+    """
+    A light wrapper around `cv2.imwrite` to support non-ASCII paths.
+    """
+
+    # Write image with opencv if path is ascii, since imwrite doesn't support unicode
+    # This saves us from having to keep the image buffer in memory, if possible
+    if path.isascii():
+        cv2.imwrite(path, img, params)
+    else:
+        extension = os.path.splitext(path)[1]
+        try:
+            temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
+            full_temp_path = os.path.join(os.path.dirname(path), temp_filename)
+            cv2.imwrite(full_temp_path, img, params)
+            os.rename(full_temp_path, path)
+        except:
+            _, buf_img = cv2.imencode(f".{extension}", img, params)
+            with open(path, "wb") as outf:
+                outf.write(buf_img)

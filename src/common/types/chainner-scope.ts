@@ -75,6 +75,11 @@ struct AdaptiveThresholdType;
 struct BlendMode;
 struct CaptionPosition;
 struct ColorSpace { channels: 1 | 3 | 4 }
+struct DdsBC7Compression;
+struct DdsDithering;
+struct DdsErrorMetric;
+struct DdsFormat;
+struct DdsMipMaps;
 struct EdgeFilter;
 struct FillMethod;
 struct FlipAxis;
@@ -84,6 +89,7 @@ struct ImageExtension;
 struct InterpolationMode;
 struct KernelType;
 struct MathOperation { operation: string }
+struct NoiseType;
 struct NormalChannelInvert;
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
@@ -91,9 +97,8 @@ struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
 struct TransferColorspace;
-struct VideoType;
 struct VideoPreset;
-struct NoiseType;
+struct VideoType;
 
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }
