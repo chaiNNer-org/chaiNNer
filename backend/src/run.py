@@ -32,7 +32,7 @@ from chain.json import parse_json, JsonNode
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
-from progress import Aborted  # type: ignore
+from progress import Aborted
 from response import (
     errorResponse,
     alreadyRunningResponse,
