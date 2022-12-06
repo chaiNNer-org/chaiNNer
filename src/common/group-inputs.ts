@@ -61,8 +61,9 @@ const groupInputsChecks: {
             }) must match the number of items excluding the first dropdown (${inputs.length - 1}).`;
 
         for (const cond of conditions) {
-            if (cond.length === 0) return 'All items must have at least one condition value';
-            const invalidValue = cond.find((c) => !allowed.has(c));
+            const condition = typeof cond === 'object' ? cond : [cond];
+            if (condition.length === 0) return 'All items must have at least one condition value';
+            const invalidValue = condition.find((c) => !allowed.has(c));
             if (invalidValue !== undefined)
                 return `Invalid condition value ${JSON.stringify(invalidValue)}`;
         }
