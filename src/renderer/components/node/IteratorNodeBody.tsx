@@ -111,10 +111,6 @@ export const IteratorNodeBody = memo(
             id
         );
 
-        const onIteratorAreaContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-            onPaneContextMenu(event);
-        };
-
         return (
             <Resizable
                 className="nodrag"
@@ -160,7 +156,7 @@ export const IteratorNodeBody = memo(
                     h="full"
                     my={0}
                     w="full"
-                    onContextMenu={onIteratorAreaContextMenu}
+                    onContextMenu={onPaneContextMenu}
                     onDragEnter={() => {
                         setHoveredNode(id);
                     }}
