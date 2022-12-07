@@ -423,6 +423,7 @@ export const usePaneNodeSearchMenu = (
             createNode,
             functionDefinitions,
             mousePosition,
+            parent,
             project,
             setGlobalConnectingFrom,
             stoppedOnIterator,
