@@ -40,10 +40,7 @@ export const FromToDropdownsGroup = memo(
         const [from, to] = inputs;
 
         return (
-            <InputContainer
-                generic
-                optional={false}
-            >
+            <InputContainer>
                 <HStack
                     mb={2}
                     mt={2}

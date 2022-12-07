@@ -1,46 +1,12 @@
 import { isNumericLiteral } from '@chainner/navi';
-import {
-    HStack,
-    Slider,
-    SliderFilledTrack,
-    SliderThumb,
-    SliderTrack,
-    Text,
-    Tooltip,
-    VStack,
-} from '@chakra-ui/react';
+import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Input, OfKind } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
+import { CustomSlider, LINEAR_SCALE, LogScale, Scale, SliderStyle } from './elements/StyledSlider';
+import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
-
-type ScaledNumber = number & { readonly __scaled: never };
-interface Scale {
-    toScale(value: number): ScaledNumber;
-    fromScale(scaledValue: ScaledNumber): number;
-}
-const LINEAR_SCALE: Scale = { toScale: (n) => n as ScaledNumber, fromScale: (n) => n };
-class LogScale implements Scale {
-    public readonly min: number;
-
-    public readonly precision: number;
-
-    constructor(min: number, precision: number) {
-        this.min = min;
-        this.precision = precision;
-    }
-
-    toScale(value: number): ScaledNumber {
-        return Math.log1p(value - this.min) as ScaledNumber;
-    }
-
-    fromScale(scaledValue: ScaledNumber): number {
-        const value = Math.expm1(scaledValue) + this.min;
-        return Number(value.toFixed(this.precision));
-    }
-}
 
 const parseScale = (
     input: Pick<OfKind<Input, 'slider'>, 'scale' | 'min' | 'max' | 'precision'>
@@ -74,7 +40,6 @@ export const SliderInput = memo(
         setValue,
         input,
         isLocked,
-        definitionType,
         useInputConnected,
         useInputType,
     }: InputProps<'slider', number>) => {
@@ -90,13 +55,11 @@ export const SliderInput = memo(
             noteExpression,
             ends,
             gradient,
+            label,
         } = input;
-
-        const scale = useMemo(() => parseScale(input), [input]);
 
         const [inputString, setInputString] = useState(String(value));
         const [sliderValue, setSliderValue] = useState(value ?? def);
-        const [showTooltip, setShowTooltip] = useState(false);
 
         const precisionOutput = useCallback(
             (val: number) => (hideTrailingZeros ? String(val) : val.toFixed(precision)),
@@ -110,21 +73,17 @@ export const SliderInput = memo(
             }
         }, [value, def, precisionOutput]);
 
-        const onSliderChange = (sliderInput: ScaledNumber) => {
-            const unscaled = scale.fromScale(sliderInput);
-            setInputString(precisionOutput(unscaled));
-            setSliderValue(unscaled);
-        };
-        const onSliderChangeEnd = (sliderInput: ScaledNumber) => {
-            setValue(scale.fromScale(sliderInput));
-        };
-
+        const onSliderChange = useCallback(
+            (n: number) => {
+                setInputString(precisionOutput(n));
+                setSliderValue(n);
+            },
+            [precisionOutput]
+        );
         const onNumberInputChange = (numberAsString: string) => {
             setInputString(numberAsString);
             setSliderValue(Number(numberAsString));
         };
-
-        const [typeAccentColor] = getTypeAccentColors(definitionType);
 
         const isInputConnected = useInputConnected();
         const inputType = useInputType();
@@ -141,55 +100,34 @@ export const SliderInput = memo(
             : undefined;
         const filled = !expr;
 
-        return (
+        const scale = useMemo(() => parseScale(input), [input]);
+        const sliderStyle = useMemo((): SliderStyle => {
+            if (gradient) {
+                return { type: 'gradient', gradient };
+            }
+            if (!filled) {
+                return { type: 'no-fill' };
+            }
+            return { type: 'label', label };
+        }, [label, gradient, filled]);
+
+        const slider = (
             <VStack w="full">
                 <HStack w="full">
                     {ends[0] && <Text fontSize="xs">{ends[0]}</Text>}
-                    <Slider
-                        defaultValue={scale.toScale(def)}
-                        focusThumbOnChange={false}
+                    <CustomSlider
+                        def={def}
                         isDisabled={isLocked || isInputConnected}
-                        max={scale.toScale(max)}
-                        min={scale.toScale(min)}
-                        step={scale === LINEAR_SCALE ? sliderStep : 1e-10}
-                        value={scale.toScale(displaySliderValue)}
+                        max={max}
+                        min={min}
+                        scale={scale}
+                        step={sliderStep}
+                        style={sliderStyle}
+                        tooltip={`${precisionOutput(displaySliderValue)}${unit ?? ''}`}
+                        value={displaySliderValue}
                         onChange={onSliderChange}
-                        onChangeEnd={onSliderChangeEnd}
-                        onDoubleClick={() => setValue(def)}
-                        onMouseEnter={() => setShowTooltip(true)}
-                        onMouseLeave={() => setShowTooltip(false)}
-                    >
-                        <SliderTrack
-                            bgGradient={gradient ? `linear(to-r, ${gradient.join(', ')})` : 'none'}
-                            borderRadius="md"
-                            cursor="pointer"
-                            h="100%"
-                        >
-                            {filled && !gradient && (
-                                <SliderFilledTrack
-                                    bg={typeAccentColor}
-                                    borderLeftRadius="md"
-                                    cursor="pointer"
-                                />
-                            )}
-                        </SliderTrack>
-                        <Tooltip
-                            hasArrow
-                            bg={typeAccentColor}
-                            borderRadius={8}
-                            color="white"
-                            isOpen={showTooltip}
-                            label={`${precisionOutput(displaySliderValue)}${unit ?? ''}`}
-                            placement="top"
-                            px={2}
-                            py={1}
-                        >
-                            <SliderThumb
-                                borderRadius="sm"
-                                width="8px"
-                            />
-                        </Tooltip>
-                    </Slider>
+                        onChangeEnd={setValue}
+                    />
                     {ends[1] && <Text fontSize="xs">{ends[1]}</Text>}
                     <AdvancedNumberInput
                         small
@@ -209,5 +147,11 @@ export const SliderInput = memo(
                 {expr && <Text fontSize="xs">{expr}</Text>}
             </VStack>
         );
+
+        if (sliderStyle.type === 'label') {
+            return <Box py={1}>{slider}</Box>;
+        }
+
+        return <WithLabel input={input}>{slider}</WithLabel>;
     }
 );
