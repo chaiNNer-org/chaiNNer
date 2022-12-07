@@ -109,7 +109,7 @@ interface GlobalVolatile {
     useConnectingFrom: GetSetState<OnConnectStartParams | null>;
 }
 interface Global {
-    reactFlowWrapper: React.RefObject<Element>;
+    reactFlowWrapper: React.RefObject<HTMLDivElement>;
     defaultIteratorSize: Readonly<Size>;
     setNodesRef: React.MutableRefObject<SetState<Node<NodeData>[]>>;
     setEdgesRef: React.MutableRefObject<SetState<Edge<EdgeData>[]>>;
@@ -172,7 +172,7 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 interface GlobalProviderProps {
-    reactFlowWrapper: React.RefObject<Element>;
+    reactFlowWrapper: React.RefObject<HTMLDivElement>;
 }
 
 export const GlobalProvider = memo(

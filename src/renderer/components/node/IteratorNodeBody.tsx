@@ -1,6 +1,6 @@
 import { Box, Flex, Icon, Spacer } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import { RefObject, memo, useLayoutEffect, useState } from 'react';
+import { memo, useLayoutEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -106,10 +106,7 @@ export const IteratorNodeBody = memo(
 
         const shade = 'var(--chain-editor-bg)';
 
-        const { onPaneContextMenu } = usePaneNodeSearchMenu(
-            reactFlowWrapper as RefObject<HTMLDivElement>,
-            id
-        );
+        const { onPaneContextMenu } = usePaneNodeSearchMenu(reactFlowWrapper, id);
 
         return (
             <Resizable
