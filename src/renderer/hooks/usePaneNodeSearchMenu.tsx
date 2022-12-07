@@ -380,7 +380,7 @@ export const usePaneNodeSearchMenu = (
                     },
                     nodeType: schema.nodeType,
                 },
-                stoppedOnIterator || parent || undefined
+                stoppedOnIterator || parent
             );
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (connectingFrom && targetFn && target.type !== 'none') {
