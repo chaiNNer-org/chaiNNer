@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Input, OfKind } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { CustomSlider, LINEAR_SCALE, LogScale, Scale, SliderStyle } from './elements/StyledSlider';
+import { LINEAR_SCALE, LogScale, Scale, SliderStyle, StyledSlider } from './elements/StyledSlider';
 import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -108,14 +108,15 @@ export const SliderInput = memo(
             if (!filled) {
                 return { type: 'no-fill' };
             }
-            return { type: 'label', label };
+            // TODO: Use the new label design
+            return { type: 'old-label', label };
         }, [label, gradient, filled]);
 
         const slider = (
             <VStack w="full">
                 <HStack w="full">
                     {ends[0] && <Text fontSize="xs">{ends[0]}</Text>}
-                    <CustomSlider
+                    <StyledSlider
                         def={def}
                         isDisabled={isLocked || isInputConnected}
                         max={max}

@@ -36,6 +36,10 @@ export class LogScale implements Scale {
     }
 }
 
+interface OldLabelStyle {
+    readonly type: 'old-label';
+    readonly label: string;
+}
 interface LabelStyle {
     readonly type: 'label';
     readonly label: string;
@@ -47,9 +51,9 @@ interface GradientStyle {
 interface NoFillStyle {
     readonly type: 'no-fill';
 }
-export type SliderStyle = LabelStyle | GradientStyle | NoFillStyle;
+export type SliderStyle = OldLabelStyle | LabelStyle | GradientStyle | NoFillStyle;
 
-interface CustomSliderProps {
+interface StyledSliderProps {
     style: SliderStyle;
     scale: Scale;
     isDisabled?: boolean;
@@ -62,7 +66,7 @@ interface CustomSliderProps {
     onChange: (value: number) => void;
     onChangeEnd: (value: number) => void;
 }
-export const CustomSlider = memo(
+export const StyledSlider = memo(
     ({
         style,
         scale,
@@ -75,7 +79,7 @@ export const CustomSlider = memo(
         tooltip,
         onChange,
         onChangeEnd,
-    }: CustomSliderProps) => {
+    }: StyledSliderProps) => {
         const [showTooltip, setShowTooltip] = useState(false);
 
         const [typeAccentColor] = useMemo(() => getTypeAccentColors(NumberType.instance), []);
@@ -135,6 +139,13 @@ export const CustomSlider = memo(
                                 cursor="pointer"
                             />
                         </>
+                    )}
+                    {style.type === 'old-label' && (
+                        <SliderFilledTrack
+                            bg={typeAccentColor}
+                            borderLeftRadius="md"
+                            cursor="pointer"
+                        />
                     )}
                 </SliderTrack>
                 <Tooltip
