@@ -44,6 +44,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
             {options.map(({ option }, index) => (
                 <option
                     key={option}
+                    style={{ fontSize: '120%' }}
                     value={index}
                 >
                     {option}
