@@ -110,14 +110,29 @@ def save_as_dds(
     See the following page for more information on save options:
     https://github.com/Microsoft/DirectXTex/wiki/Texconv
     """
+    full_name = os.path.basename(path)
+    target_dir = os.path.dirname(path)
+    name, ext = os.path.splitext(full_name)
+
+    assert ext == ".dds", "The file to save must end with '.dds'"
+
     tempDir = mkdtemp(prefix="chaiNNer-")
 
     try:
-        tempName = uuid.uuid4().hex
-        tempPng = os.path.join(tempDir, f"{tempName}.png")
+        tempPng = os.path.join(tempDir, f"{name}.png")
         cv_save_image(tempPng, image, [])
 
-        args = ["-f", dds_format, "-dx10", "-m", str(mipmap_levels), "-o", tempDir]
+        args = [
+            "-y",
+            "-f",
+            dds_format,
+            "-dx10",
+            "-m",
+            str(mipmap_levels),
+            # use texconv to directly produce the target file
+            "-o",
+            target_dir,
+        ]
 
         bc = ""
         bc += "u" if uniform_weighting else ""
@@ -132,15 +147,5 @@ def save_as_dds(
 
         args.append(tempPng)
         __run_texconv(args, "Unable to write DDS")
-
-        tempDds = os.path.join(tempDir, f"{tempName}.dds")
-
-        # delete existing file
-        try:
-            os.remove(path)
-        except:
-            pass
-
-        os.rename(tempDds, path)
     finally:
         shutil.rmtree(tempDir)
