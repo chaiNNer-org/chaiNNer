@@ -1,55 +1,41 @@
-import { Select } from '@chakra-ui/react';
-import { ChangeEvent, memo, useEffect } from 'react';
+import { Box } from '@chakra-ui/react';
+import { memo, useCallback } from 'react';
+import { Checkbox } from './elements/Checkbox';
+import { DropDown } from './elements/Dropdown';
+import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
-type DropDownInputProps = Pick<
-    InputProps<'dropdown', string | number>,
-    'value' | 'setValue' | 'input' | 'isLocked'
->;
+type DropDownInputProps = InputProps<'dropdown', string | number>;
 
 export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDownInputProps) => {
-    const { options, def } = input;
+    const { options, def, label } = input;
 
-    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setValue(options[Number(event.target.value)]?.value ?? def);
-    };
+    const reset = useCallback(() => setValue(def), [setValue, def]);
 
-    // set default
-    useEffect(() => {
-        if (value === undefined) {
-            setValue(def);
-        }
-    }, [value, setValue, def]);
-
-    // reset invalid values to default
-    useEffect(() => {
-        if (value !== undefined && options.every((o) => o.value !== value)) {
-            setValue(def);
-        }
-    }, [value, setValue, options, def]);
-
-    let selection = options.findIndex((o) => o.value === value);
-    if (selection === -1) selection = 0;
+    if (options.length === 2 && options[0].option === 'Yes') {
+        return (
+            <Box py={1}>
+                <Checkbox
+                    label={label}
+                    no={options[1]}
+                    reset={reset}
+                    value={value}
+                    yes={options[0]}
+                    onChange={setValue}
+                />
+            </Box>
+        );
+    }
 
     return (
-        <Select
-            borderRadius="lg"
-            className="nodrag"
-            disabled={isLocked}
-            draggable={false}
-            size="sm"
-            value={selection}
-            onChange={handleChange}
-        >
-            {options.map(({ option }, index) => (
-                <option
-                    key={option}
-                    style={{ fontSize: '120%' }}
-                    value={index}
-                >
-                    {option}
-                </option>
-            ))}
-        </Select>
+        <WithLabel input={input}>
+            <DropDown
+                isDisabled={isLocked}
+                options={input.options}
+                reset={reset}
+                value={value}
+                onChange={setValue}
+            />
+        </WithLabel>
     );
 });

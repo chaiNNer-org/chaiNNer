@@ -55,12 +55,12 @@ class ImWriteNode(NodeBase):
                     "conditional-enum",
                     {"conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS]},
                 )(
-                    DdsFormatDropdown(),
-                    DdsBC7CompressionDropdown(),
-                    DdsDitheringDropdown(),
-                    DdsErrorMetricDropdown(),
+                    DdsFormatDropdown().with_id(6),
+                    DdsBC7CompressionDropdown().with_id(7),
+                    DdsErrorMetricDropdown().with_id(9),
+                    DdsDitheringDropdown().with_id(8),
                 ),
-                DdsMipMapsDropdown(),
+                DdsMipMapsDropdown().with_id(10),
             ),
         ]
         self.category = ImageCategory
@@ -81,8 +81,8 @@ class ImWriteNode(NodeBase):
         quality: int,
         dds_format: str,
         dds_bc7_compression: int,
-        dds_dithering: int,
         dds_uniform_weighting: int,
+        dds_dithering: int,
         dds_mipmap_levels: int,
     ) -> None:
         """Write an image to the specified path and return write status"""

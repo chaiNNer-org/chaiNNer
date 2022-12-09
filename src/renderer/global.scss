@@ -144,3 +144,16 @@ body {
         z-index: 100000;
     }
 }
+
+.chainner-node-checkbox > .chakra-checkbox__control {
+    &[data-checked] {
+        --checked-color: var(--gray-500);
+
+        border-color: var(--checked-color);
+        background: var(--checked-color);
+    }
+
+    & svg {
+        color: var(--node-bg-color);
+    }
+}
