@@ -1,8 +1,8 @@
 from typing import Callable, Dict, List, TypeVar, Union
 
 from base_types import NodeId, OutputId, InputId
-from nodes.node_base import NodeBase, IteratorNodeBase
-from nodes.node_factory import NodeFactory
+from nodes.api.node_base import NodeBase, IteratorNodeBase
+from nodes.api.node_factory import NodeFactory
 
 
 K = TypeVar("K")

@@ -17,14 +17,15 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.node_factory import NodeFactory
+# from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import (
     set_execution_options,
     parse_execution_options,
     JsonExecutionOptions,
 )
-from nodes.nodes.builtin_categories import category_order
-from nodes.group import Group
+
+# from nodes.nodes.builtin_categories import category_order
+from nodes.api.group import Group
 
 from base_types import NodeId, OutputId
 from chain.cache import OutputCache
@@ -68,51 +69,53 @@ missing_categories = set()
 missing_module_errors = set()
 
 # Dynamically import all nodes
-for root, dirs, files in os.walk(
-    os.path.join(os.path.dirname(__file__), "nodes", "nodes")
-):
-    for file in files:
-        if file.endswith(".py") and not file.startswith("_"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                importlib.import_module(f"{module}", package=None)
-            except ImportError as e:
-                missing_node_count += 1
-                logger.debug(f"Failed to import {module}: {e}")
-                missing_module_errors.add(str(e))
+# for root, dirs, files in os.walk(
+#     os.path.join(os.path.dirname(__file__), "nodes", "nodes")
+# ):
+#     for file in files:
+#         if file.endswith(".py") and not file.startswith("_"):
+#             module = os.path.relpath(
+#                 os.path.join(root, file), os.path.dirname(__file__)
+#             )
+#             module = module.replace(os.path.sep, ".")[:-3]
+#             try:
+#                 importlib.import_module(f"{module}", package=None)
+#             except ImportError as e:
+#                 missing_node_count += 1
+#                 logger.debug(f"Failed to import {module}: {e}")
+#                 missing_module_errors.add(str(e))
 
-                # Turn path into __init__.py path
-                init_module = module.split(".")
-                init_module[-1] = "__init__"
-                init_module = ".".join(init_module)
-                try:
-                    category = getattr(importlib.import_module(init_module), "category")
-                    missing_categories.add(category.name)
-                except ImportError as ie:
-                    logger.info(ie)
-                except Exception as oe:
-                    logger.error(
-                        f"A critical error occurred when importing module {init_module}: {oe}"
-                    )
-            except Exception as e:
-                logger.error(
-                    f"A critical error occurred when importing module {module}: {e}"
-                )
-        # Load categories from __init__.py files
-        elif file.endswith(".py") and file == ("__init__.py"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                # TODO: replace the category system with a dynamic factory
-                category = getattr(importlib.import_module(module), "category")
-                categories.add(category)
-            except:
-                pass
+#                 # Turn path into __init__.py path
+#                 init_module = module.split(".")
+#                 init_module[-1] = "__init__"
+#                 init_module = ".".join(init_module)
+#                 try:
+#                     category = getattr(importlib.import_module(init_module), "category")
+#                     missing_categories.add(category.name)
+#                 except ImportError as ie:
+#                     logger.info(ie)
+#                 except Exception as oe:
+#                     logger.error(
+#                         f"A critical error occurred when importing module {init_module}: {oe}"
+#                     )
+#             except Exception as e:
+#                 logger.error(
+#                     f"A critical error occurred when importing module {module}: {e}"
+#                 )
+#         # Load categories from __init__.py files
+#         elif file.endswith(".py") and file == ("__init__.py"):
+#             module = os.path.relpath(
+#                 os.path.join(root, file), os.path.dirname(__file__)
+#             )
+#             module = module.replace(os.path.sep, ".")[:-3]
+#             try:
+#                 # TODO: replace the category system with a dynamic factory
+#                 category = getattr(importlib.import_module(module), "category")
+#                 categories.add(category)
+#             except:
+#                 pass
+
+from nodes.builtin import builtin
 
 
 if len(missing_module_errors) > 0:
@@ -157,42 +160,50 @@ access_logger.addFilter(SSEFilter())
 @app.route("/nodes")
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
-    registry = NodeFactory.get_registry()
+    # registry = NodeFactory.get_registry()
     logger.debug(categories)
 
     # sort nodes in category order
-    sorted_registry = sorted(
-        registry.items(),
-        key=lambda x: category_order.index(NodeFactory.get_node(x[0]).category.name),
-    )
+    # sorted_registry = sorted(
+    #     registry.items(),
+    #     key=lambda x: category_order.index(NodeFactory.get_node(x[0]).category.name),
+    # )
     node_list = []
-    for schema_id, _node_class in sorted_registry:
-        node_object = NodeFactory.get_node(schema_id)
-        node_dict = {
-            "schemaId": schema_id,
-            "name": node_object.name,
-            "category": node_object.category.name,
-            "inputs": [x.toDict() for x in node_object.inputs],
-            "outputs": [x.toDict() for x in node_object.outputs],
-            "groupLayout": [
-                g.toDict() if isinstance(g, Group) else g
-                for g in node_object.group_layout
-            ],
-            "description": node_object.description,
-            "icon": node_object.icon,
-            "subcategory": node_object.sub,
-            "nodeType": node_object.type,
-            "hasSideEffects": node_object.side_effects,
-            "deprecated": node_object.deprecated,
-        }
-        if node_object.type == "iterator":
-            node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
-        node_list.append(node_dict)
+    # for schema_id, _node_class in sorted_registry:
+    #     node_object = NodeFactory.get_node(schema_id)
+    #     node_dict = {
+    #         "schemaId": schema_id,
+    #         "name": node_object.name,
+    #         "category": node_object.category.name,
+    #         "inputs": [x.toDict() for x in node_object.inputs],
+    #         "outputs": [x.toDict() for x in node_object.outputs],
+    #         "groupLayout": [
+    #             g.toDict() if isinstance(g, Group) else g
+    #             for g in node_object.group_layout
+    #         ],
+    #         "description": node_object.description,
+    #         "icon": node_object.icon,
+    #         "subcategory": node_object.sub,
+    #         "nodeType": node_object.type,
+    #         "hasSideEffects": node_object.side_effects,
+    #         "deprecated": node_object.deprecated,
+    #     }
+    #     if node_object.type == "iterator":
+    #         node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
+    #     node_list.append(node_dict)
+    # return json(
+    #     {
+    #         "nodes": node_list,
+    #         "categories": [x.toDict() for x in categories],
+    #         "categoriesMissingNodes": list(missing_categories),
+    #     }
+    # )
+    logger.info(builtin)
     return json(
         {
-            "nodes": node_list,
-            "categories": [x.toDict() for x in categories],
-            "categoriesMissingNodes": list(missing_categories),
+            "nodes": [],
+            "categories": [],
+            "categoriesMissingNodes": [],
         }
     )
 

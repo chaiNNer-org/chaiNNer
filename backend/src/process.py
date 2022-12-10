@@ -29,7 +29,7 @@ from chain.chain import Chain, Node, FunctionNode, IteratorNode, SubChain
 from chain.cache import OutputCache, CacheStrategy, get_cache_strategies
 from chain.input import InputMap, EdgeInput
 
-from nodes.node_base import NodeBase
+from nodes.api.node_base import NodeBase
 from nodes.utils.image_utils import get_h_w_c
 
 

@@ -1,4 +1,4 @@
-from ..src.nodes.category import Category
+from ..src.nodes.api.category import Category
 
 
 def test_categories():
