@@ -1,11 +1,11 @@
 import { isNumericLiteral } from '@chainner/navi';
-import { Box, HStack, Text, VStack } from '@chakra-ui/react';
+import { HStack, Text, VStack } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Input, OfKind } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { LINEAR_SCALE, LogScale, Scale, SliderStyle, StyledSlider } from './elements/StyledSlider';
-import { WithLabel } from './InputContainer';
+import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const parseScale = (
@@ -150,7 +150,7 @@ export const SliderInput = memo(
         );
 
         if (sliderStyle.type === 'label') {
-            return <Box py={1}>{slider}</Box>;
+            return <WithoutLabel>{slider}</WithoutLabel>;
         }
 
         return <WithLabel input={input}>{slider}</WithLabel>;
