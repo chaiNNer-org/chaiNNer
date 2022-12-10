@@ -160,20 +160,48 @@ def __lab_to_lch(img: np.ndarray) -> np.ndarray:
     a = img[:, :, 1] - 0.5
     b = img[:, :, 0] - 0.5
 
-    # calculate c and h and normalize them to [0,1]
-    c = np.hypot(a, b) / math.sqrt(0.5)
-    h = np.arctan2(b, a) / (math.pi * 2) + 0.5
+    c = np.hypot(a, b)
+    h = np.arctan2(b, a)
+
+    # normalize C and h to [0,1]
+    #
+    # This is quite simple for h, but not so much for C. The problem is that
+    # the maximum value of C depends on h. This is because a*,b* in [-1,1] form
+    # a square of possible value around the origin. C nd h are simple polar
+    # coordinates where h is the angel and C is the distance from origin. Since
+    # the corners of a square are farther away from the origin than the mid
+    # point of the sides of the a square, the maximum value of C depends on the
+    # angle. E.g. for h=0, the maximum C value is 0.5 and for h=45°, it's
+    # sqrt(0.5).
+    #
+    # One strategy would be simple use the maximum value for all possible h
+    # values (which is sqrt(0.5)), but this has the problem that it is now
+    # possible to create C,h value pairs that create invalid a*,b* values.
+    # Ideally, all possible values C,h values should map to valid a*,b* values.
+    #
+    # To solve this problem, we calculate the maximum C value for the current
+    # h angle and use that to normalize C. `Cmax` for a,b in [-1,1] is defined
+    # as follows: `Cmax = 1/max(abs(cos(h)), abs(sin(h)))`. Since, we use a,b
+    # in [-0.5,0.5], we just have to divide that value by 2.
+    c_max = 0.5 / np.maximum(np.abs(np.sin(h)), np.abs(np.cos(h)))
+    c = c / c_max
+    h = h / (math.pi * 2) + 0.5
+
     return cv2.merge((h, c, l))
 
 
 def __lch_to_lab(img: np.ndarray) -> np.ndarray:
     l = img[:, :, 2]
-    # undo the c and h [0,1] normalization
-    c = img[:, :, 1] * math.sqrt(0.5)
-    h = (img[:, :, 0] - 0.5) * (math.pi * 2)
 
-    a = c * np.cos(h) + 0.5
-    b = c * np.sin(h) + 0.5
+    # undo the c and h [0,1] normalization
+    h = (img[:, :, 0] - 0.5) * (math.pi * 2)
+    sin_h = np.sin(h)
+    cos_h = np.cos(h)
+    c_max = 0.5 / np.maximum(np.abs(sin_h), np.abs(cos_h))
+    c = img[:, :, 1] * c_max
+
+    a = c * cos_h + 0.5
+    b = c * sin_h + 0.5
     return cv2.merge((b, a, l))
 
 
