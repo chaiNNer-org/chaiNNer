@@ -165,6 +165,8 @@ body {
         color: var(--chakra-colors-chakra-body-text);
         width: 1em;
         cursor: pointer;
+        overflow: visible;
+        stroke-width: 2.75 !important;
 
         polyline {
             cursor: pointer;
