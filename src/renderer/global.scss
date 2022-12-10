@@ -145,6 +145,10 @@ body {
     }
 }
 
+.chainner-handle:has(+ .with-label) {
+    margin-top: 1rem;
+}
+
 .chainner-node-checkbox > .chakra-checkbox__control {
     transition-property: border-color;
     transition-duration: var(--chakra-transition-duration-normal);

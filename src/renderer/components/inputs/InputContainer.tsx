@@ -148,6 +148,7 @@ export const HandleWrapper = memo(
         return (
             <HStack h="full">
                 <Center
+                    className="chainner-handle"
                     left="-6px"
                     position="absolute"
                 >
@@ -192,7 +193,7 @@ export const HandleWrapper = memo(
                         onContextMenu={noContextMenu}
                     />
                 </Center>
-                <Box w="full">{children}</Box>
+                {children}
             </HStack>
         );
     }
@@ -227,7 +228,10 @@ interface WithLabelProps {
 export const WithLabel = memo(
     ({ input: { label, optional }, children }: React.PropsWithChildren<WithLabelProps>) => {
         return (
-            <>
+            <Box
+                className="with-label"
+                w="full"
+            >
                 <Center
                     h="1.25rem"
                     px={1}
@@ -251,7 +255,21 @@ export const WithLabel = memo(
                     )}
                 </Center>
                 <Box pb={1}>{children}</Box>
-            </>
+            </Box>
+        );
+    }
+);
+
+export const WithoutLabel = memo(
+    ({ children }: React.PropsWithChildren<Record<string, unknown>>) => {
+        return (
+            <Box
+                className="without-label"
+                py={1}
+                w="full"
+            >
+                {children}
+            </Box>
         );
     }
 );
