@@ -152,7 +152,7 @@ class FaceUpscaleNode(NodeBase):
             exec_options = to_pytorch_execution_options(get_execution_options())
             device = torch.device(exec_options.full_device)
 
-            weight = 0.5
+            weight = 0.7
 
             with torch.no_grad():
                 appdata_path = user_data_dir(roaming=True)
