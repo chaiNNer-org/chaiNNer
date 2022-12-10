@@ -151,13 +151,27 @@ body {
 
     &,
     &[data-checked] {
-        border-color: inherit;
         background: var(--bg-700);
+
+        &:hover {
+            background: var(--bg-700);
+        }
+    }
+
+    &:not([data-checked]) {
+        border-color: inherit;
 
         &:hover {
             /* stylelint-disable-next-line custom-property-pattern */
             border-color: var(--chakra-colors-whiteAlpha-400);
-            background: var(--bg-700);
+        }
+    }
+
+    &[data-checked] {
+        border-color: var(--gray-500);
+
+        &:hover {
+            border-color: var(--gray-500);
         }
     }
 
