@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, TypedDict
+from typing import List, Literal, Union, TypedDict
 import numpy as np
 from sanic.log import logger
 
@@ -23,6 +23,15 @@ class TypedOption(TypedDict):
 
 DropDownOption = Union[UntypedOption, TypedOption]
 
+DropDownStyle = Literal["dropdown", "checkbox"]
+"""
+This specified the preferred style in which the frontend may display the dropdown.
+
+- `dropdown`: This is the default style. The dropdown will simply be displayed as a dropdown.
+- `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
+  The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
+"""
+
 
 class DropDownInput(BaseInput):
     """Input for a dropdown"""
@@ -33,6 +42,7 @@ class DropDownInput(BaseInput):
         label: str,
         options: List[DropDownOption],
         default_value: str | int | None = None,
+        preferred_style: DropDownStyle = "dropdown",
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -40,6 +50,7 @@ class DropDownInput(BaseInput):
         self.default = (
             default_value if default_value is not None else options[0]["value"]
         )
+        self.preferred_style: DropDownStyle = preferred_style
 
         if not self.default in self.accepted_values:
             logger.error(
@@ -52,6 +63,7 @@ class DropDownInput(BaseInput):
             **super().toDict(),
             "options": self.options,
             "def": self.default,
+            "preferredStyle": self.preferred_style,
         }
 
     def make_optional(self):
@@ -319,6 +331,7 @@ def ReciprocalScalingFactorInput() -> DropDownInput:
     return DropDownInput(
         input_type="ReciprocalScalingFactor",
         label="Reciprocal Scaling Factor",
+        preferred_style="checkbox",
         options=[
             {"option": "Yes", "value": 1},
             {"option": "No", "value": 0},
@@ -477,6 +490,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsMipMaps",
         label="Generate Mip Maps",
+        preferred_style="checkbox",
         options=[
             # these are not boolean values, see dds.py for more info
             {"option": "Yes", "value": 0},
@@ -500,6 +514,7 @@ def DdsDitheringDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsDithering",
         label="Dithering",
+        preferred_style="checkbox",
         default_value=0,
         options=[
             {"option": "Yes", "value": 1},

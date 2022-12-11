@@ -8,11 +8,12 @@ import { InputProps } from './props';
 type DropDownInputProps = InputProps<'dropdown', string | number>;
 
 export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDownInputProps) => {
-    const { options, def, label } = input;
+    const { options, def, label, preferredStyle } = input;
 
     const reset = useCallback(() => setValue(def), [setValue, def]);
 
-    if (options.length === 2 && options[0].option === 'Yes') {
+    if (preferredStyle === 'checkbox' && options.length === 2) {
+        // checkbox assumes the first options means yes and the second option means no
         return (
             <Box py={1}>
                 <Checkbox
