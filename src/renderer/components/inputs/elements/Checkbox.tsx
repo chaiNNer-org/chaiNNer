@@ -1,6 +1,7 @@
 import { Box, Checkbox as ChakraCheckbox } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { DropDownInput, InputSchemaValue } from '../../../../common/common-types';
+import './Checkbox.scss';
 
 type ArrayItem<T> = T extends readonly (infer I)[] ? I : never;
 type Option = ArrayItem<DropDownInput['options']>;
