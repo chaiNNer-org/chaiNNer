@@ -855,6 +855,73 @@ const convertColorSpaceFromDetectors = (data) => {
     return data;
 };
 
+const fixNumbers = (data) => {
+    // https://github.com/chaiNNer-org/chaiNNer/issues/1364
+
+    /** @type {Record<string, number[] | undefined>} */
+    const numbers = {
+        'chainner:image:save': [5],
+        'chainner:image:spritesheet_iterator': [1, 2],
+        'chainner:image:simple_video_frame_iterator_save': [5],
+        'chainner:image:crop_border': [1],
+        'chainner:image:crop_content': [1],
+        'chainner:image:crop_edges': [1, 2, 3, 4],
+        'chainner:image:crop_offsets': [1, 2, 3, 4],
+        'chainner:image:resize_factor': [1],
+        'chainner:image:resize_resolution': [1, 2],
+        'chainner:image:resize_to_side': [1],
+        'chainner:image:tile_fill': [1, 2],
+        'chainner:image:brightness_and_contrast': [1, 2],
+        'chainner:image:gamma': [1],
+        'chainner:image:hue_and_saturation': [1, 2, 3],
+        'chainner:image:opacity': [1],
+        'chainner:image:threshold': [1, 2],
+        'chainner:image:threshold_adaptive': [1, 4, 5],
+        'chainner:image:add_noise': [3],
+        'chainner:image:average_color_fix': [2],
+        'chainner:image:bilateral_blur': [1, 2, 3],
+        'chainner:image:blur': [1, 2],
+        'chainner:image:gaussian_blur': [1, 2],
+        'chainner:image:median_blur': [1],
+        'chainner:image:sharpen_hbf': [2],
+        'chainner:image:add_normals': [1, 3],
+        'chainner:image:normal_generator': [2, 3, 4],
+        'chainner:image:sharpen': [1, 2, 3],
+        'chainner:image:canny_edge_detection': [1, 2],
+        'chainner:image:caption': [2],
+        'chainner:image:create_border': [2],
+        'chainner:image:create_color_gray': [0, 1, 2],
+        'chainner:image:create_color_rgb': [0, 1, 2, 3, 4],
+        'chainner:image:create_color_rgba': [0, 1, 2, 3, 4, 5],
+        'chainner:image:create_edges': [2, 3, 4, 5],
+        'chainner:image:rotate': [1],
+        'chainner:image:shift': [1, 2],
+        'chainner:utility:math': [0, 2],
+        'chainner:utility:text_padding': [1],
+        'chainner:pytorch:interpolate_models': [2],
+        'chainner:pytorch:upscale_face': [3],
+        'chainner:ncnn:interpolate_models': [2],
+        'chainner:onnx:interpolate_models': [2],
+    };
+
+    data.nodes.forEach((node) => {
+        const numberInputs = numbers[node.data.schemaId];
+        if (Array.isArray(numberInputs)) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const id of numberInputs) {
+                const value = Number(node.data.inputData[id] ?? NaN);
+                if (Number.isNaN(value)) {
+                    delete node.data.inputData[id];
+                } else {
+                    node.data.inputData[id] = value;
+                }
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -899,6 +966,7 @@ const migrations = [
     convertColorRGBLikeDetector,
     convertNormalGenerator,
     convertColorSpaceFromDetectors,
+    fixNumbers,
 ];
 
 export const currentMigration = migrations.length;
