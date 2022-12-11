@@ -187,8 +187,8 @@ def nptensor2np(
     return img_np.astype(imtype)
 
 
-def preprocess_upscale_input(
-    img: np.ndarray, model_in_nc: int, restore_input_channels: bool
+def to_target_channels(
+    img: np.ndarray, model_in_nc: int
 ) -> Tuple[np.ndarray, np.ndarray | int | None]:
     """Adjust number of image channels if it does not equal number of channels
     required by the model."""
@@ -199,7 +199,7 @@ def preprocess_upscale_input(
     if c == 4:
         # Ignore alpha if single-color or not being replaced
         unique = np.unique(img[:, :, 3])
-        if len(unique) == 1 or not restore_input_channels:
+        if len(unique) == 1:
             logger.debug("Ignoring alpha channel.")
             if model_in_nc == 1:
                 logger.warning("Converting image to grayscale.")
@@ -207,8 +207,7 @@ def preprocess_upscale_input(
             else:
                 imgout = img[:, :, :3]
 
-            if restore_input_channels:
-                supplemental_output = unique[0]
+            supplemental_output = unique[0]
         else:
             # Transparency hack (white/black background difference alpha)
             imgout = np.copy(img[:, :, :3])
@@ -250,10 +249,10 @@ def preprocess_upscale_input(
     return imgout, supplemental_output
 
 
-def postprocess_upscale_output(
+def from_target_channels(
     img: np.ndarray, alpha: np.ndarray | None, inimg_c: int
 ) -> np.ndarray:
-    """Adjust number of output image channels if required to match number of
+    """Adjust number of output image channels to match number of
     input image channels."""
     outimg_c = get_h_w_c(img)[2]
 
@@ -263,8 +262,8 @@ def postprocess_upscale_output(
         elif outimg_c == 1:
             img = np.tile(img, (1, 1, min(inimg_c, 3)))
 
-        if inimg_c == 4:
-            img = np.dstack((img, alpha))  # type: ignore
+        if alpha is not None:
+            img = np.dstack((img, alpha))
     elif (inimg_c in (1, 3) and outimg_c == 4) or (inimg_c == 1 and outimg_c == 3):
         img = img[:, :, :3]
         if inimg_c == 1:
@@ -291,14 +290,13 @@ def convenient_upscale(
     """
     inimg_c = get_h_w_c(img)[2]
 
-    restore_input_channels = model_in_nc == model_out_nc and model_in_nc != inimg_c
+    if model_in_nc != model_out_nc:
+        return np.clip(upscale(to_target_channels(img, model_in_nc)[0]), 0, 1)
 
-    if inimg_c != model_in_nc:
-        img, input2 = preprocess_upscale_input(img, model_in_nc, restore_input_channels)
-    else:
-        if img.ndim == 2:
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, 1))
-        input2 = None
+    if inimg_c == model_in_nc:
+        return np.clip(upscale(img), 0, 1)
+
+    img, input2 = to_target_channels(img, model_in_nc)
 
     output = upscale(img)
     alpha = None
@@ -308,8 +306,7 @@ def convenient_upscale(
         output2 = upscale(input2)
         alpha = 1 - np.mean(output2 - output, axis=2)
 
-    if restore_input_channels:
-        output = postprocess_upscale_output(output, alpha, inimg_c)
+    output = from_target_channels(output, alpha, inimg_c)
 
     return np.clip(output, 0, 1)
 
