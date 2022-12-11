@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from . import category as ImageCategory
 from ...api.node_base import NodeBase
 from ...api.node_factory import NodeFactory
 from ...api.inputs import ImageInput
@@ -23,7 +22,6 @@ class ImOpenNode(NodeBase):
         self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]
         self.outputs = []
-        self.category = ImageCategory
         self.name = "View Image (external)"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"

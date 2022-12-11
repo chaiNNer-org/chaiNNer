@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageCategory
 from ...api.node_base import NodeBase
 from ...api.node_factory import NodeFactory
 from ...api.inputs import ImageInput
@@ -18,7 +17,6 @@ class ImViewNode(NodeBase):
         self.outputs = [
             LargeImageOutput("Preview", image_type="Input0", has_handle=False)
         ]
-        self.category = ImageCategory
         self.name = "View Image"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"

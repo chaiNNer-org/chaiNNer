@@ -9,7 +9,6 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from . import category as ImageCategory
 from ...api.node_base import NodeBase
 from ...api.node_factory import NodeFactory
 from ...api.inputs import ImageFileInput
@@ -31,7 +30,6 @@ class ImReadNode(NodeBase):
             TextOutput("Image Name"),
         ]
 
-        self.category = ImageCategory
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"

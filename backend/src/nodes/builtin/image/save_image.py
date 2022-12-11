@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from . import category as ImageCategory
 from ...api.node_base import NodeBase, group
 from ...api.node_factory import NodeFactory
 from ...api.inputs import (
@@ -63,7 +62,6 @@ class ImWriteNode(NodeBase):
                 DdsMipMapsDropdown(),
             ),
         ]
-        self.category = ImageCategory
         self.name = "Save Image"
         self.outputs = []
         self.icon = "MdSave"

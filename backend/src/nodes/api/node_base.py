@@ -104,7 +104,7 @@ class NodeBase(metaclass=ABCMeta):
         return {
             "schemaId": self.schema_id,
             "name": self.name,
-            "category": self.category.name,
+            # "category": self.category.name,
             "inputs": [x.toDict() for x in self.inputs],
             "outputs": [x.toDict() for x in self.outputs],
             "groupLayout": [

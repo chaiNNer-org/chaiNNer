@@ -1,12 +1,19 @@
 from __future__ import annotations
 
-from .node_base import NodeBase
+import inspect
+
+import os
 
 
-def i(path: str, class_name: str) -> NodeBase | None:
+def i(path: str, class_name: str):
     """Import the node at the path and return it, or return nothing if it fails"""
     try:
-        module = __import__(path, fromlist=[class_name])
+        frame = inspect.stack()[1]
+        p = frame[0].f_code.co_filename
+        p = os.path.dirname(os.path.realpath(p))
+        relative_path = os.path.relpath(os.path.join(p, path), start=os.curdir)
+        importable_path = relative_path.replace("\\", ".")
+        module = __import__(importable_path, fromlist=[class_name])
         return getattr(module, class_name)
     except Exception as e:
         # TODO: make this return a dict of missing node info
