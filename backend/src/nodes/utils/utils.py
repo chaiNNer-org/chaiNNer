@@ -187,89 +187,51 @@ def nptensor2np(
     return img_np.astype(imtype)
 
 
-def to_target_channels(
-    img: np.ndarray, model_in_nc: int
-) -> Tuple[np.ndarray, np.ndarray | int | None]:
-    """Adjust number of image channels if it does not equal number of channels
-    required by the model."""
+def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
+    return lambda i: np.clip(upscale(i), 0, 1)
+
+
+def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
+    """Adjusts the given image to have `target` number of channels."""
     c = get_h_w_c(img)[2]
 
-    imgout = img
-    supplemental_output = None
+    if c == target:
+        if img.ndim == 2:
+            return np.expand_dims(img.copy(), axis=2)
+        return img
+
+    if c == 1:
+        if target == 3:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        if target == 4:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+
+    if c == 3:
+        if target == 1:
+            return np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
+        if target == 4:
+            return cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+
     if c == 4:
-        # Ignore alpha if single-color or not being replaced
-        unique = np.unique(img[:, :, 3])
-        if len(unique) == 1:
-            logger.debug("Ignoring alpha channel.")
-            if model_in_nc == 1:
-                logger.warning("Converting image to grayscale.")
-                imgout = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
-            else:
-                imgout = img[:, :, :3]
+        if target == 1:
+            return np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
+        if target == 3:
+            return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-            supplemental_output = unique[0]
-        else:
-            # Transparency hack (white/black background difference alpha)
-            imgout = np.copy(img[:, :, :3])
-            supplemental_output = np.copy(img[:, :, :3])
-            for c in range(3):
-                imgout[:, :, c] *= img[:, :, 3]
-                supplemental_output[:, :, c] = (supplemental_output[:, :, c] - 1) * img[
-                    :, :, 3
-                ] + 1
-
-            if model_in_nc == 1:
-                logger.warning("Converting image to grayscale.")
-                imgout = np.expand_dims(
-                    cv2.cvtColor(imgout, cv2.COLOR_BGR2GRAY), axis=2
-                )
-                supplemental_output = np.expand_dims(
-                    cv2.cvtColor(supplemental_output, cv2.COLOR_BGR2GRAY), axis=2
-                )
-    elif c == 3:
-        # Remove extra channels if too many (i.e three channel image, single channel model)
-        if model_in_nc == 1:
-            logger.warning("Converting image to grayscale.")
-            imgout = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
-        # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
-        elif model_in_nc == 4:
-            logger.debug("Expanding image channels.")
-            imgout = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
-    else:
-        # Add extra channels
-        logger.debug("Expanding image channels.")
-        if img.ndim == 2:
-            imgout = np.tile(np.expand_dims(img, axis=2), (1, 1, min(model_in_nc, 3)))
-        else:
-            imgout = np.tile(img, (1, 1, min(model_in_nc, 3)))
-
-        if model_in_nc == 4:
-            imgout = np.dstack((imgout, np.full(imgout.shape[:-1], 1.0, np.float32)))
-
-    return imgout, supplemental_output
+    raise ValueError(f"Unable to convert {c} channel image to {target} channel image")
 
 
-def from_target_channels(
-    img: np.ndarray, alpha: np.ndarray | None, inimg_c: int
-) -> np.ndarray:
-    """Adjust number of output image channels to match number of
-    input image channels."""
-    outimg_c = get_h_w_c(img)[2]
+def with_black_and_white_backgrounds(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    c = get_h_w_c(img)[2]
+    assert c == 4
 
-    if (inimg_c == 4 and outimg_c in (1, 3)) or (inimg_c == 3 and outimg_c == 1):
-        if img.ndim == 2:
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(inimg_c, 3)))
-        elif outimg_c == 1:
-            img = np.tile(img, (1, 1, min(inimg_c, 3)))
+    black = np.copy(img[:, :, :3])
+    white = np.copy(img[:, :, :3])
+    for c in range(3):
+        black[:, :, c] *= img[:, :, 3]
+        white[:, :, c] = (white[:, :, c] - 1) * img[:, :, 3] + 1
 
-        if alpha is not None:
-            img = np.dstack((img, alpha))
-    elif (inimg_c in (1, 3) and outimg_c == 4) or (inimg_c == 1 and outimg_c == 3):
-        img = img[:, :, :3]
-        if inimg_c == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    return img
+    return black, white
 
 
 def convenient_upscale(
@@ -288,27 +250,39 @@ def convenient_upscale(
     that of the input image in cases where `model_in_nc` == `model_out_nc`, and match
     `model_out_nc` otherwise.
     """
-    inimg_c = get_h_w_c(img)[2]
+    in_img_c = get_h_w_c(img)[2]
+
+    upscale = clipped(upscale)
 
     if model_in_nc != model_out_nc:
-        return np.clip(upscale(to_target_channels(img, model_in_nc)[0]), 0, 1)
+        return upscale(to_target_channels(img, model_in_nc))
 
-    if inimg_c == model_in_nc:
-        return np.clip(upscale(img), 0, 1)
+    if in_img_c == model_in_nc:
+        return upscale(img)
 
-    img, input2 = to_target_channels(img, model_in_nc)
+    if in_img_c == 4:
+        # Ignore alpha if single-color or not being replaced
+        unique = np.unique(img[:, :, 3])
+        if len(unique) == 1:
+            rgb = to_target_channels(
+                upscale(to_target_channels(img[:, :, :3], model_in_nc)), 3
+            )
+            unique_alpha = np.full(rgb.shape[:-1], unique[0], np.float32)
+            return np.dstack((rgb, unique_alpha))
 
-    output = upscale(img)
-    alpha = None
-    if isinstance(input2, int):
-        alpha = np.full(output.shape[:-1], input2, np.float32)
-    elif isinstance(input2, np.ndarray):
-        output2 = upscale(input2)
-        alpha = 1 - np.mean(output2 - output, axis=2)
+        # Transparency hack (white/black background difference alpha)
+        black, white = with_black_and_white_backgrounds(img)
+        black_up = to_target_channels(
+            upscale(to_target_channels(black, model_in_nc)), 3
+        )
+        white_up = to_target_channels(
+            upscale(to_target_channels(white, model_in_nc)), 3
+        )
 
-    output = from_target_channels(output, alpha, inimg_c)
+        alpha = 1 - np.mean(white_up - black_up, axis=2)
+        return np.dstack((black_up, alpha))
 
-    return np.clip(output, 0, 1)
+    return to_target_channels(upscale(to_target_channels(img, model_in_nc)), in_img_c)
 
 
 def resize_to_side_conditional(
