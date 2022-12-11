@@ -1,8 +1,7 @@
-import { Box } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { Checkbox } from './elements/Checkbox';
 import { DropDown } from './elements/Dropdown';
-import { WithLabel } from './InputContainer';
+import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 type DropDownInputProps = InputProps<'dropdown', string | number>;
@@ -15,7 +14,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
     if (preferredStyle === 'checkbox' && options.length === 2) {
         // checkbox assumes the first options means yes and the second option means no
         return (
-            <Box py={1}>
+            <WithoutLabel>
                 <Checkbox
                     label={label}
                     no={options[1]}
@@ -24,7 +23,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
                     yes={options[0]}
                     onChange={setValue}
                 />
-            </Box>
+            </WithoutLabel>
         );
     }
 
