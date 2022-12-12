@@ -116,7 +116,7 @@ export const SchemaInput = memo(
             />
         );
 
-        if (kind !== 'generic' && kind !== 'slider') {
+        if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown') {
             inputElement = <WithLabel input={input}>{inputElement}</WithLabel>;
         }
 
