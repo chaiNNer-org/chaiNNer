@@ -206,59 +206,47 @@ def as_3d(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
+def as_target_channels(
+    img: np.ndarray, target_c: int, narrowing: bool = False
+) -> np.ndarray:
     """
     Given a number of target channels (either 1, 3, or 4), this convert the given image
     to an image with that many channels. If the given image already has the correct
     number of channels, it will be returned as is.
 
-    Only widening conversions are supported.
+    Narrowing conversions are only supported if narrowing is True.
     """
     c = get_h_w_c(img)[2]
 
-    if target_channels == 1:
+    if c == target_c == 1:
         return as_2d_grayscale(img)
-    if c == target_channels:
+    if c == target_c:
         return img
 
-    assert c < target_channels
-
-    if target_channels == 3:
-        if c == 1:
-            return np.dstack((img, img, img))
-
-    if target_channels == 4:
-        return convert_to_BGRA(img, c)
-
-    assert False, "Unable to convert image"
-
-
-def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
-    """Adjusts the given image to have `target` number of channels."""
-    c = get_h_w_c(img)[2]
-
-    if c == target:
-        return img
+    if narrowing is False:
+        assert (
+            c < target_c
+        ), f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"
 
     if c == 1:
-        if target == 3:
+        if target_c == 3:
             return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        if target == 4:
+        if target_c == 4:
             return cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
 
     if c == 3:
-        if target == 1:
+        if target_c == 1:
             return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        if target == 4:
+        if target_c == 4:
             return cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
     if c == 4:
-        if target == 1:
+        if target_c == 1:
             return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
-        if target == 3:
+        if target_c == 3:
             return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-    raise ValueError(f"Unable to convert {c} channel image to {target} channel image")
+    raise ValueError(f"Unable to convert {c} channel image to {target_c} channel image")
 
 
 def create_border(

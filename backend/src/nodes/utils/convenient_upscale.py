@@ -2,7 +2,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from .image_utils import to_target_channels
+from .image_utils import as_target_channels
 from .utils import get_h_w_c
 
 
@@ -44,7 +44,7 @@ def convenient_upscale(
     upscale = clipped(upscale)
 
     if model_in_nc != model_out_nc:
-        return upscale(to_target_channels(img, model_in_nc))
+        return upscale(as_target_channels(img, model_in_nc, True))
 
     if in_img_c == model_in_nc:
         return upscale(img)
@@ -53,22 +53,24 @@ def convenient_upscale(
         # Ignore alpha if single-color or not being replaced
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
-            rgb = to_target_channels(
-                upscale(to_target_channels(img[:, :, :3], model_in_nc)), 3
+            rgb = as_target_channels(
+                upscale(as_target_channels(img[:, :, :3], model_in_nc, True)), 3, True
             )
             unique_alpha = np.full(rgb.shape[:-1], unique[0], np.float32)
             return np.dstack((rgb, unique_alpha))
 
         # Transparency hack (white/black background difference alpha)
         black, white = with_black_and_white_backgrounds(img)
-        black_up = to_target_channels(
-            upscale(to_target_channels(black, model_in_nc)), 3
+        black_up = as_target_channels(
+            upscale(as_target_channels(black, model_in_nc, True)), 3, True
         )
-        white_up = to_target_channels(
-            upscale(to_target_channels(white, model_in_nc)), 3
+        white_up = as_target_channels(
+            upscale(as_target_channels(white, model_in_nc, True)), 3, True
         )
 
         alpha = 1 - np.mean(white_up - black_up, axis=2)
         return np.dstack((black_up, alpha))
 
-    return to_target_channels(upscale(to_target_channels(img, model_in_nc)), in_img_c)
+    return as_target_channels(
+        upscale(as_target_channels(img, model_in_nc, True)), in_img_c, True
+    )
