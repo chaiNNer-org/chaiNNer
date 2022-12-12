@@ -199,6 +199,13 @@ def as_2d_grayscale(img: np.ndarray) -> np.ndarray:
     assert False, f"Invalid image shape {img.shape}"
 
 
+def as_3d(img: np.ndarray) -> np.ndarray:
+    """Given a grayscale image, this returns an image with 3 dimensions (image.ndim == 3)."""
+    if img.ndim == 2:
+        return np.expand_dims(img.copy(), axis=2)
+    return img
+
+
 def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
     """
     Given a number of target channels (either 1, 3, or 4), this convert the given image
@@ -225,6 +232,34 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
         return convert_to_BGRA(img, c)
 
     assert False, "Unable to convert image"
+
+
+def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
+    """Adjusts the given image to have `target` number of channels."""
+    c = get_h_w_c(img)[2]
+
+    if c == target:
+        return img
+
+    if c == 1:
+        if target == 3:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        if target == 4:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+
+    if c == 3:
+        if target == 1:
+            return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if target == 4:
+            return cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+
+    if c == 4:
+        if target == 1:
+            return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+        if target == 3:
+            return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+
+    raise ValueError(f"Unable to convert {c} channel image to {target} channel image")
 
 
 def create_border(

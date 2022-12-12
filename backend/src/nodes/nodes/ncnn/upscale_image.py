@@ -17,11 +17,12 @@ from ...utils.auto_split_tiles import (
     parse_tile_size_input,
     TileSize,
 )
+from ...utils.convenient_upscale import convenient_upscale
 from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModelWrapper
 from ...utils.ncnn_session import get_ncnn_net
-from ...utils.utils import convenient_upscale, get_h_w_c
+from ...utils.utils import get_h_w_c
 from . import category as NCNNCategory
 
 
