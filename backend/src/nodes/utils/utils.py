@@ -46,6 +46,13 @@ def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
     return h, w, c
 
 
+def as_3d(img: np.ndarray) -> np.ndarray:
+    """Given a grayscale image, this returns an image with 3 dimensions (image.ndim == 3)."""
+    if img.ndim == 2:
+        return np.expand_dims(img.copy(), axis=2)
+    return img
+
+
 def denorm(x: np.ndarray, min_max: Tuple[float, float] = (-1.0, 1.0)) -> np.ndarray:
     """Denormalize from [-1,1] range to [0,1]
     formula: xi' = (xi - mu)/sigma
@@ -191,14 +198,16 @@ def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
     return lambda i: np.clip(upscale(i), 0, 1)
 
 
+def ensure_dims(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
+    """Ensures that upscale methods receive 3D input."""
+    return lambda i: upscale(as_3d(i))
+
+
 def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
-    """Adjusts the given image to have `target` number of channels.
-    Always outputs a 3D array."""
+    """Adjusts the given image to have `target` number of channels."""
     c = get_h_w_c(img)[2]
 
     if c == target:
-        if img.ndim == 2:
-            return np.expand_dims(img.copy(), axis=2)
         return img
 
     if c == 1:
@@ -209,13 +218,13 @@ def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
 
     if c == 3:
         if target == 1:
-            return np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
+            return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if target == 4:
             return cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
     if c == 4:
         if target == 1:
-            return np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
+            return cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
         if target == 3:
             return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
@@ -253,7 +262,7 @@ def convenient_upscale(
     """
     in_img_c = get_h_w_c(img)[2]
 
-    upscale = clipped(upscale)
+    upscale = clipped(ensure_dims(upscale))
 
     if model_in_nc != model_out_nc:
         return upscale(to_target_channels(img, model_in_nc))
