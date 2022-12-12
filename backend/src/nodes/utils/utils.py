@@ -198,7 +198,7 @@ def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
     return lambda i: np.clip(upscale(i), 0, 1)
 
 
-def ensure_dims(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
+def ensure_3d(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
     """Ensures that upscale methods receive 3D input."""
     return lambda i: upscale(as_3d(i))
 
@@ -262,7 +262,7 @@ def convenient_upscale(
     """
     in_img_c = get_h_w_c(img)[2]
 
-    upscale = clipped(ensure_dims(upscale))
+    upscale = clipped(ensure_3d(upscale))
 
     if model_in_nc != model_out_nc:
         return upscale(to_target_channels(img, model_in_nc))
