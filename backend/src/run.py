@@ -201,9 +201,7 @@ async def nodes(_):
     logger.info(builtin)
     return json(
         {
-            "nodes": [],
-            "categories": [],
-            "categoriesMissingNodes": [],
+            "schema": builtin.toDict(),
         }
     )
 
