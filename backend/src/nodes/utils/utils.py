@@ -192,7 +192,8 @@ def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
 
 
 def to_target_channels(img: np.ndarray, target: int) -> np.ndarray:
-    """Adjusts the given image to have `target` number of channels."""
+    """Adjusts the given image to have `target` number of channels.
+    Always outputs a 3D array."""
     c = get_h_w_c(img)[2]
 
     if c == target:
