@@ -112,7 +112,9 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     enabled,
                 },
                 { type: 'separator' },
-                isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
+                isMac
+                    ? { role: 'close', enabled, accelerator: 'CmdOrCtrl+Q' }
+                    : { role: 'quit', enabled, accelerator: 'CmdOrCtrl+Q' },
             ],
         },
         {
@@ -177,21 +179,6 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 { role: 'zoomOut', enabled },
                 { type: 'separator' },
                 { role: 'togglefullscreen' },
-            ],
-        },
-        {
-            label: 'Window',
-            submenu: [
-                { role: 'minimize' },
-                { role: 'zoom', enabled },
-                ...(isMac
-                    ? [
-                          { type: 'separator' },
-                          { role: 'front', enabled },
-                          { type: 'separator' },
-                          { role: 'window', enabled },
-                      ]
-                    : [{ role: 'close', enabled }]),
                 ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
             ],
         },
