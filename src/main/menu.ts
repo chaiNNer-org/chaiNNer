@@ -112,9 +112,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     enabled,
                 },
                 { type: 'separator' },
-                isMac
-                    ? { role: 'close', enabled, accelerator: 'CmdOrCtrl+Q' }
-                    : { role: 'quit', enabled, accelerator: 'CmdOrCtrl+Q' },
+                isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },
         {
