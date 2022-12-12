@@ -4,32 +4,33 @@ import { IoMdArrowForward } from 'react-icons/io';
 import { useContext } from 'use-context-selector';
 import { Input, InputData, OfKind } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { DropDownInput } from '../inputs/DropDownInput';
+import { DropDown } from '../inputs/elements/Dropdown';
 import { InputContainer } from '../inputs/InputContainer';
 import { GroupProps } from './props';
 
-interface DropDownProps {
+interface SmallDropDownProps {
     nodeId: string;
     input: OfKind<Input, 'dropdown'>;
     inputData: InputData;
     isLocked: boolean;
 }
-const DropDown = memo(({ nodeId, input, inputData, isLocked }: DropDownProps) => {
+const SmallDropDown = memo(({ nodeId, input, inputData, isLocked }: SmallDropDownProps) => {
     const { getNodeInputValue, setNodeInputValue } = useContext(GlobalContext);
 
     const value = getNodeInputValue<string | number>(input.id, inputData);
     const setValue = useCallback(
-        (data: string | number) => setNodeInputValue(nodeId, input.id, data),
-        [setNodeInputValue, nodeId, input.id]
+        (data?: string | number) => setNodeInputValue(nodeId, input.id, data ?? input.def),
+        [setNodeInputValue, nodeId, input]
     );
 
     return (
         <Box w="6em">
-            <DropDownInput
-                input={input}
-                isLocked={isLocked}
-                setValue={setValue}
+            <DropDown
+                isDisabled={isLocked}
+                options={input.options}
+                reset={setValue}
                 value={value}
+                onChange={setValue}
             />
         </Box>
     );
@@ -40,16 +41,13 @@ export const FromToDropdownsGroup = memo(
         const [from, to] = inputs;
 
         return (
-            <InputContainer
-                generic
-                optional={false}
-            >
+            <InputContainer>
                 <HStack
                     mb={2}
                     mt={2}
                     w="full"
                 >
-                    <DropDown
+                    <SmallDropDown
                         input={from}
                         inputData={inputData}
                         isLocked={isLocked}
@@ -58,7 +56,7 @@ export const FromToDropdownsGroup = memo(
                     <Box>
                         <IoMdArrowForward />
                     </Box>
-                    <DropDown
+                    <SmallDropDown
                         input={to}
                         inputData={inputData}
                         isLocked={isLocked}

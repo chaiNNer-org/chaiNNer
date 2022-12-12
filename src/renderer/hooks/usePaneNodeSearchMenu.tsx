@@ -324,7 +324,8 @@ interface Position {
 }
 
 export const usePaneNodeSearchMenu = (
-    wrapperRef: React.RefObject<HTMLDivElement>
+    wrapperRef: React.RefObject<HTMLDivElement>,
+    parent?: string
 ): UsePaneNodeSearchMenuValue => {
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
@@ -379,7 +380,7 @@ export const usePaneNodeSearchMenu = (
                     },
                     nodeType: schema.nodeType,
                 },
-                stoppedOnIterator || undefined
+                stoppedOnIterator || parent
             );
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (connectingFrom && targetFn && target.type !== 'none') {
@@ -422,6 +423,7 @@ export const usePaneNodeSearchMenu = (
             createNode,
             functionDefinitions,
             mousePosition,
+            parent,
             project,
             setGlobalConnectingFrom,
             stoppedOnIterator,

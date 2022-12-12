@@ -39,6 +39,7 @@ export interface InputOption {
     type?: ExpressionJson;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
+export type DropDownStyle = 'dropdown' | 'checkbox';
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';
@@ -47,6 +48,7 @@ export interface DropDownInput extends InputBase {
     readonly kind: 'dropdown';
     readonly def: string | number;
     readonly options: readonly InputOption[];
+    readonly preferredStyle: DropDownStyle;
 }
 export interface FileInput extends InputBase {
     readonly kind: 'file';

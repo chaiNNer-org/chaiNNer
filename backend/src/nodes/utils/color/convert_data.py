@@ -1,4 +1,5 @@
 from typing import List, Union, Tuple
+import math
 import numpy as np
 import cv2
 
@@ -16,17 +17,25 @@ CMYK = ColorSpace(6, "CMYK", 4)
 YUVA = ColorSpace(7, "YUVA", 4)
 HSVA = ColorSpace(8, "HSVA", 4)
 HSLA = ColorSpace(9, "HSLA", 4)
+LAB = ColorSpace(10, "L*a*b*", 3)
+LABA = ColorSpace(11, "L*a*b*A", 4)
+LCH = ColorSpace(12, "L*C*h°", 3)
+LCHA = ColorSpace(13, "L*C*h°A", 4)
 
 RGB_LIKE = ColorSpaceDetector(1000, "RGB", [GRAY, RGB, RGBA])
 YUV_LIKE = ColorSpaceDetector(1001, "YUV", [YUV, YUVA])
 HSV_LIKE = ColorSpaceDetector(1002, "HSV", [HSV, HSVA])
 HSL_LIKE = ColorSpaceDetector(1003, "HSL", [HSL, HSLA])
+LAB_LIKE = ColorSpaceDetector(1004, "L*a*b*", [LAB, LABA])
+LCH_LIKE = ColorSpaceDetector(1005, "L*C*h°", [LCH, LCHA])
 
 ALPHA_PAIRS: List[Tuple[ColorSpace, ColorSpace]] = [
     (RGB, RGBA),
     (YUV, YUVA),
     (HSV, HSVA),
     (HSL, HSLA),
+    (LAB, LABA),
+    (LCH, LCHA),
 ]
 
 color_spaces: List[ColorSpace] = [
@@ -40,6 +49,10 @@ color_spaces: List[ColorSpace] = [
     HSL,
     HSLA,
     CMYK,
+    LAB,
+    LABA,
+    LCH,
+    LCHA,
 ]
 color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
     RGB_LIKE,
@@ -48,6 +61,8 @@ color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
     HSV_LIKE,
     HSL_LIKE,
     CMYK,
+    LAB_LIKE,
+    LCH_LIKE,
 ]
 
 
@@ -122,6 +137,74 @@ def __cmyk_to_rgb(img: np.ndarray) -> np.ndarray:
     return cv2.merge((b, g, r))
 
 
+def __rgb_to_lab(img: np.ndarray) -> np.ndarray:
+    # 0≤L≤100 , −127≤a≤127, −127≤b≤127
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    l = img[:, :, 0] / 100
+    a = (img[:, :, 1] + 127) / 254
+    b = (img[:, :, 2] + 127) / 254
+    return cv2.merge((b, a, l))
+
+
+def __lab_to_rgb(img: np.ndarray) -> np.ndarray:
+    # 0≤L≤100 , −127≤a≤127, −127≤b≤127
+    l = img[:, :, 2] * 100
+    a = img[:, :, 1] * 254 - 127
+    b = img[:, :, 0] * 254 - 127
+    return cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
+
+
+def __lab_to_lch(img: np.ndarray) -> np.ndarray:
+    l = img[:, :, 2]
+    # a and b must be centered at 0
+    a = img[:, :, 1] - 0.5
+    b = img[:, :, 0] - 0.5
+
+    c = np.hypot(a, b)
+    h = np.arctan2(b, a)
+
+    # normalize C and h to [0,1]
+    #
+    # This is quite simple for h, but not so much for C. The problem is that
+    # the maximum value of C depends on h. This is because a*,b* in [-1,1] form
+    # a square of possible value around the origin. C nd h are simple polar
+    # coordinates where h is the angel and C is the distance from origin. Since
+    # the corners of a square are farther away from the origin than the mid
+    # point of the sides of the a square, the maximum value of C depends on the
+    # angle. E.g. for h=0, the maximum C value is 0.5 and for h=45°, it's
+    # sqrt(0.5).
+    #
+    # One strategy would be simple use the maximum value for all possible h
+    # values (which is sqrt(0.5)), but this has the problem that it is now
+    # possible to create C,h value pairs that create invalid a*,b* values.
+    # Ideally, all possible values C,h values should map to valid a*,b* values.
+    #
+    # To solve this problem, we calculate the maximum C value for the current
+    # h angle and use that to normalize C. `Cmax` for a,b in [-1,1] is defined
+    # as follows: `Cmax = 1/max(abs(cos(h)), abs(sin(h)))`. Since, we use a,b
+    # in [-0.5,0.5], we just have to divide that value by 2.
+    c_max = 0.5 / np.maximum(np.abs(np.sin(h)), np.abs(np.cos(h)))
+    c = c / c_max
+    h = h / (math.pi * 2) + 0.5
+
+    return cv2.merge((h, c, l))
+
+
+def __lch_to_lab(img: np.ndarray) -> np.ndarray:
+    l = img[:, :, 2]
+
+    # undo the c and h [0,1] normalization
+    h = (img[:, :, 0] - 0.5) * (math.pi * 2)
+    sin_h = np.sin(h)
+    cos_h = np.cos(h)
+    c_max = 0.5 / np.maximum(np.abs(sin_h), np.abs(cos_h))
+    c = img[:, :, 1] * c_max
+
+    a = c * cos_h + 0.5
+    b = c * sin_h + 0.5
+    return cv2.merge((b, a, l))
+
+
 # The conversion loses one channel of information (e.g. the alpha channel, or a color channel)
 __CHANNEL_LOST = 1000
 # The conversion loses hue/chroma information in certain edge cases
@@ -193,6 +276,25 @@ conversions: List[Conversion] = [
     Conversion(
         direction=(CMYK, RGB),
         convert=__cmyk_to_rgb,
+        cost=__CHROMA_LOST,
+    ),
+    # LAB
+    Conversion(
+        direction=(RGB, LAB),
+        convert=__rgb_to_lab,
+    ),
+    Conversion(
+        direction=(LAB, RGB),
+        convert=__lab_to_rgb,
+    ),
+    # LCH
+    Conversion(
+        direction=(LAB, LCH),
+        convert=__lab_to_lch,
+    ),
+    Conversion(
+        direction=(LCH, LAB),
+        convert=__lch_to_lab,
         cost=__CHROMA_LOST,
     ),
 ]
