@@ -218,7 +218,6 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
 
     if target_channels == 3:
         if c == 1:
-            img = as_2d_grayscale(img)
             return np.dstack((img, img, img))
 
     if target_channels == 4:
