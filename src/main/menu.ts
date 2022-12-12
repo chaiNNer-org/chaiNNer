@@ -177,21 +177,6 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 { role: 'zoomOut', enabled },
                 { type: 'separator' },
                 { role: 'togglefullscreen' },
-            ],
-        },
-        {
-            label: 'Window',
-            submenu: [
-                { role: 'minimize' },
-                { role: 'zoom', enabled },
-                ...(isMac
-                    ? [
-                          { type: 'separator' },
-                          { role: 'front', enabled },
-                          { type: 'separator' },
-                          { role: 'window', enabled },
-                      ]
-                    : [{ role: 'close', enabled }]),
                 ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
             ],
         },
