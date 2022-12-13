@@ -76,7 +76,6 @@ struct BlendMode;
 struct CaptionPosition;
 struct ColorSpace { channels: 1 | 3 | 4 }
 struct DdsBC7Compression;
-struct DdsDithering;
 struct DdsErrorMetric;
 struct DdsFormat;
 struct DdsMipMaps;
@@ -92,7 +91,6 @@ struct MathOperation { operation: string }
 struct NoiseType;
 struct NormalChannelInvert;
 struct OverflowMethod;
-struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
