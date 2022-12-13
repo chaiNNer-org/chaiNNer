@@ -4,8 +4,8 @@ import sys
 import cv2
 import numpy as np
 
-from nodes.utils.utils import get_h_w_c
-from nodes.utils.image_utils import as_target_channels
+from ...utils.utils import get_h_w_c
+from ..image_utils import as_target_channels
 from .clipboard_base import ClipboardBase
 
 # Check if we are running on Windows, because win32clipboard is only available on Windows
