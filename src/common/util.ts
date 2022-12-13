@@ -228,3 +228,27 @@ export const getInputValues = <T>(schema: NodeSchema, getValue: (inputId: InputI
 export const stopPropagation = (event: { readonly stopPropagation: () => void }): void => {
     event.stopPropagation();
 };
+
+export const joinEnglish = (list: readonly string[], conj: 'and' | 'or' = 'and'): string => {
+    if (list.length === 0) throw new Error('Cannot join empty list');
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return `${list[0]} ${conj} ${list[1]}`;
+
+    return `${list.slice(0, -1).join(', ')}, ${conj} ${list[list.length - 1]}`;
+};
+
+export const fixRoundingError = (n: number): number => {
+    if (!Number.isFinite(n)) return n;
+
+    const expS = n.toExponential(15);
+    if (/0{6}[0-3]\d[eE][+-]\d+$/.test(expS)) {
+        return Number(n.toExponential(12));
+    }
+
+    if (Number.isInteger(n)) return n;
+    const s = String(n);
+    if (/(?:9{6}[6-9]|0{6}[0-3])\d$/.test(s)) {
+        return Number(n.toPrecision(12));
+    }
+    return n;
+};
