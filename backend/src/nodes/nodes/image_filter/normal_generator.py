@@ -16,9 +16,9 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.edge_filter import EdgeFilter, get_filter_kernels
-from ...utils.height import get_height_map
-from ...utils.image_utils import get_h_w_c
+from ...impl.normals.edge_filter import EdgeFilter, get_filter_kernels
+from ...impl.normals.height import get_height_map
+from ...impl.image_utils import get_h_w_c
 
 
 def as_grayscale(img: np.ndarray) -> np.ndarray:

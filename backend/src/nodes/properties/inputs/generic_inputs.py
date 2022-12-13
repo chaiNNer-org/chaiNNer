@@ -7,8 +7,8 @@ from sanic.log import logger
 from .. import expression
 
 from .base_input import BaseInput
-from ...utils.blend_modes import BlendModes as bm
-from ...utils.image_utils import FillColor, FlipAxis, KernelType, normalize
+from ...impl.blend_modes import BlendModes as bm
+from ...impl.image_utils import FillColor, FlipAxis, KernelType, normalize
 from ...utils.utils import (
     split_snake_case,
     split_pascal_case,

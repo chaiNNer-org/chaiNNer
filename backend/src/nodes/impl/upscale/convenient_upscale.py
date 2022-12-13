@@ -2,8 +2,8 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from .image_utils import as_target_channels
-from .utils import get_h_w_c
+from ..image_utils import as_target_channels
+from ...utils.utils import get_h_w_c
 
 
 def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:

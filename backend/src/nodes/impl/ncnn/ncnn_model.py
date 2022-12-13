@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 from sanic.log import logger
 
-from .checked_cast import checked_cast
+from ...utils.checked_cast import checked_cast
 
 
 param_schema_file = os.path.join(

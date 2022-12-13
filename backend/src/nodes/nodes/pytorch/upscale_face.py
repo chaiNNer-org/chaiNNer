@@ -18,10 +18,10 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import FaceModelInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
-from ...utils.pytorch_utils import np2tensor, tensor2np
+from ...impl.pytorch.pytorch_utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchFaceModel
-from ...utils.pytorch_utils import to_pytorch_execution_options
+from ...impl.pytorch.torch_types import PyTorchFaceModel
+from ...impl.pytorch.pytorch_utils import to_pytorch_execution_options
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")

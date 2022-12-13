@@ -5,9 +5,9 @@ import torch
 from torch import Tensor
 import numpy as np
 
-from .exec_options import ExecutionOptions
-from .image_utils import as_3d
-from .np_tensor_utils import np_denorm, MAX_VALUES_BY_DTYPE
+from ...utils.exec_options import ExecutionOptions
+from ..image_utils import as_3d
+from ..onnx.np_tensor_utils import np_denorm, MAX_VALUES_BY_DTYPE
 
 
 def to_pytorch_execution_options(options: ExecutionOptions):

@@ -12,7 +12,7 @@ from ...properties.inputs import (
     CaptionPositionInput,
 )
 from ...properties.outputs import ImageOutput
-from ...utils.pil_utils import add_caption
+from ...impl.pil_utils import add_caption
 
 
 @NodeFactory.register("chainner:image:caption")

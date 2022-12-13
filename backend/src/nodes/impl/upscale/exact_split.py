@@ -7,8 +7,8 @@ from dataclasses import dataclass
 import numpy as np
 from sanic.log import logger
 
-from .utils import get_h_w_c, Region, Padding
-from .image_utils import create_border, BorderType
+from ...utils.utils import get_h_w_c, Region, Padding
+from ..image_utils import create_border, BorderType
 
 
 def pad_image(img: np.ndarray, min_size: Tuple[int, int]):

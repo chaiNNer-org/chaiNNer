@@ -15,8 +15,8 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, SliderInput
 from ...properties.outputs import NumberOutput, OnnxModelOutput
-from ...utils.auto_split_tiles import NO_TILING
-from ...utils.onnx_model import OnnxModel
+from ...impl.upscale.auto_split_tiles import NO_TILING
+from ...impl.onnx.onnx_model import OnnxModel
 from . import category as ONNXCategory
 from .upscale_image import OnnxImageUpscaleNode
 

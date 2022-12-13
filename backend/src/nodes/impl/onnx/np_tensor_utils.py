@@ -2,7 +2,7 @@ from typing import Tuple, Type
 
 import numpy as np
 
-from .image_utils import as_3d
+from ..image_utils import as_3d
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,

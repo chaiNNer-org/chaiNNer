@@ -5,7 +5,7 @@ import cv2
 
 from ...utils.utils import get_h_w_c
 from ...utils.format import format_image_with_channels
-from ...utils.pil_utils import resize, InterpolationMethod
+from ...impl.pil_utils import resize, InterpolationMethod
 from .base_output import BaseOutput, OutputKind
 from .. import expression
 

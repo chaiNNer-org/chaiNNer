@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, TileModeInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.tile_util import tile_image
+from ...impl.tile_util import tile_image
 
 
 @NodeFactory.register("chainner:image:tile_fill")

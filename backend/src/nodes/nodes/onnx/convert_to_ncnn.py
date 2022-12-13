@@ -9,9 +9,9 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.ncnn_model import NcnnModelWrapper
-from ...utils.onnx_model import OnnxModel
-from ...utils.onnx_to_ncnn import Onnx2NcnnConverter
+from ...impl.ncnn.ncnn_model import NcnnModelWrapper
+from ...impl.onnx.onnx_model import OnnxModel
+from ...impl.onnx.onnx_to_ncnn import Onnx2NcnnConverter
 
 FP_MODE_32 = 0
 

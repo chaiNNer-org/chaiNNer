@@ -12,9 +12,9 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import PthFileInput
 from ...properties.outputs import ModelOutput, DirectoryOutput, TextOutput
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchModel
-from ...utils.pytorch_model_loading import load_state_dict
-from ...utils.pytorch_utils import to_pytorch_execution_options
+from ...impl.pytorch.torch_types import PyTorchModel
+from ...impl.pytorch.pytorch_model_loading import load_state_dict
+from ...impl.pytorch.pytorch_utils import to_pytorch_execution_options
 from ...utils.unpickler import RestrictedUnpickle
 
 

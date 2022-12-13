@@ -7,7 +7,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import HbfTypeDropdown, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...utils.image_utils import KernelType
+from ...impl.image_utils import KernelType
 from . import category as ImageFilterCategory
 
 

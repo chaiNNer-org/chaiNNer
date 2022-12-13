@@ -6,7 +6,7 @@ import math
 import numpy as np
 from sanic.log import logger
 
-from .utils import get_h_w_c, Region
+from ...utils.utils import get_h_w_c, Region
 from .exact_split import exact_split
 
 

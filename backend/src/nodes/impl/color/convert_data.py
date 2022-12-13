@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 from .convert_model import ColorSpace, ColorSpaceDetector, Conversion
-from ..utils import get_h_w_c
+from ...utils.utils import get_h_w_c
 
 
 GRAY = ColorSpace(0, "Gray", 1)

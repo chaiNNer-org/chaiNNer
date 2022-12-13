@@ -2,7 +2,7 @@ from __future__ import annotations
 import onnxruntime as ort
 from weakref import WeakKeyDictionary
 
-from .exec_options import ExecutionOptions
+from ...utils.exec_options import ExecutionOptions
 from .onnx_model import OnnxModel
 
 

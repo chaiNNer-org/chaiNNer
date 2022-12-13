@@ -9,11 +9,11 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, BlendModeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.image_utils import (
+from ...impl.image_utils import (
     as_2d_grayscale,
     blend_images,
 )
-from ...utils.pil_utils import convert_to_BGRA
+from ...impl.pil_utils import convert_to_BGRA
 from ...utils.utils import get_h_w_c
 
 

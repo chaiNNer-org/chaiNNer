@@ -1,8 +1,8 @@
 from typing import Callable, Dict, Iterable, Tuple
 import numpy as np
 
-from ..format import format_image_with_channels
-from ..utils import get_h_w_c
+from ...utils.format import format_image_with_channels
+from ...utils.utils import get_h_w_c
 
 
 class ColorSpace:

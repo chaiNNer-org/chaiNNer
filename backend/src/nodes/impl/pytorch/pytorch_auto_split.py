@@ -7,7 +7,7 @@ import numpy as np
 
 from .torch_types import PyTorchModel
 
-from .auto_split import auto_split, Split, Tiler
+from ..upscale.auto_split import auto_split, Split, Tiler
 from .pytorch_utils import tensor2np, np2tensor
 
 

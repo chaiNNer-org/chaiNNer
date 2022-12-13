@@ -2,7 +2,7 @@ from typing import Callable, NewType
 import numpy as np
 from sanic.log import logger
 
-from .utils import get_h_w_c
+from ...utils.utils import get_h_w_c
 from .auto_split import Tiler, MaxTileSize, NoTiling
 
 

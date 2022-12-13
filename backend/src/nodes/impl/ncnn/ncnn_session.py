@@ -4,7 +4,7 @@ from weakref import WeakKeyDictionary
 
 from ncnn_vulkan import ncnn
 
-from .exec_options import ExecutionOptions
+from ...utils.exec_options import ExecutionOptions
 from .ncnn_model import NcnnModelWrapper
 
 

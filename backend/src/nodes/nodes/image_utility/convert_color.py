@@ -11,7 +11,7 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.color.convert import (
+from ...impl.color.convert import (
     convert,
     color_space_from_id,
     color_space_or_detector_from_id,

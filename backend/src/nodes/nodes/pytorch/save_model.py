@@ -9,7 +9,7 @@ from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, DirectoryInput, TextInput
-from ...utils.torch_types import PyTorchModel
+from ...impl.pytorch.torch_types import PyTorchModel
 
 
 @NodeFactory.register("chainner:pytorch:save_model")

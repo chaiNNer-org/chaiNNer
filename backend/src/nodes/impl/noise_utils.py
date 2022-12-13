@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Callable, List
 import numpy as np
 
-from .utils import get_h_w_c
+from ..utils.utils import get_h_w_c
 from .image_utils import as_target_channels
 
 

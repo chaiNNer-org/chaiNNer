@@ -14,7 +14,7 @@ from ...properties.inputs import (
     ResizeCondition,
 )
 from ...properties.outputs import ImageOutput
-from ...utils.pil_utils import resize
+from ...impl.pil_utils import resize
 from ...utils.utils import get_h_w_c, resize_to_side_conditional
 
 

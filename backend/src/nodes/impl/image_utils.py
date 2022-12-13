@@ -8,7 +8,7 @@ import numpy as np
 from sanic.log import logger
 
 from .blend_modes import ImageBlender, blend_mode_normalized
-from .utils import get_h_w_c, Padding
+from ..utils.utils import get_h_w_c, Padding
 
 
 class FillColor:

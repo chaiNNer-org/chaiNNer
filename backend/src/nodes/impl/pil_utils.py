@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from .image_utils import FillColor, convert_to_BGRA, get_fill_color
-from .utils import get_h_w_c
+from ..utils.utils import get_h_w_c
 
 
 class InterpolationMethod:

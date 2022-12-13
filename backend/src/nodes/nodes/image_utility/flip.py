@@ -8,7 +8,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, FlipAxisInput
 from ...properties.outputs import ImageOutput
-from ...utils.image_utils import FlipAxis
+from ...impl.image_utils import FlipAxis
 
 
 @NodeFactory.register("chainner:image:flip")

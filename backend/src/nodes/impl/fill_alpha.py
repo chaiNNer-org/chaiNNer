@@ -6,7 +6,7 @@ import numpy as np
 
 from .blend_modes import BlendModes
 from .image_utils import blend_images
-from .utils import get_h_w_c
+from ..utils.utils import get_h_w_c
 
 
 class ImageAverage:

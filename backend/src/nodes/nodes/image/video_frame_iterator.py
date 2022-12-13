@@ -23,7 +23,7 @@ from ...properties.inputs import (
     SliderInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
-from ...utils.image_utils import normalize
+from ...impl.image_utils import normalize
 from ...utils.utils import get_h_w_c
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"

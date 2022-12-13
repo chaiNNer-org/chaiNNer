@@ -7,9 +7,9 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import SrModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.torch_types import PyTorchSRModel
-from ...utils.architecture.SwinIR import SwinIR
-from ...utils.architecture.Swin2SR import Swin2SR
+from ...impl.pytorch.torch_types import PyTorchSRModel
+from ...impl.pytorch.architecture.SwinIR import SwinIR
+from ...impl.pytorch.architecture.Swin2SR import Swin2SR
 
 from .convert_to_onnx import ConvertTorchToONNXNode
 

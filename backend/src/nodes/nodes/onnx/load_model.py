@@ -11,7 +11,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFileInput
 from ...properties.outputs import OnnxModelOutput, DirectoryOutput, TextOutput
-from ...utils.onnx_model import OnnxModel
+from ...impl.onnx.onnx_model import OnnxModel
 
 
 @NodeFactory.register("chainner:onnx:load_model")

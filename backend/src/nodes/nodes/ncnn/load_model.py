@@ -7,8 +7,8 @@ from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.ncnn_model import NcnnModel, NcnnModelWrapper
-from ...utils.ncnn_optimizer import NcnnOptimizer
+from ...impl.ncnn.ncnn_model import NcnnModel, NcnnModelWrapper
+from ...impl.ncnn.ncnn_optimizer import NcnnOptimizer
 from . import category as NCNNCategory
 
 

@@ -1,6 +1,6 @@
 try:
     import torch
-    from ...utils.torch_types import (
+    from ...impl.pytorch.torch_types import (
         isPyTorchSRModel,
         isPyTorchFaceModel,
         isPyTorchModel,

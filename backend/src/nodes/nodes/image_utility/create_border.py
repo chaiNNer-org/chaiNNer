@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, BorderInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.image_utils import create_border
+from ...impl.image_utils import create_border
 from ...utils.utils import Padding
 
 
