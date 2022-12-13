@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import cv2
 import numpy as np
 
@@ -14,7 +16,7 @@ __maintainer__ = "Adrian Rosebrock"
 __link__ = "https://github.com/jrosebr1/color_transfer"
 
 
-def image_stats(img):
+def image_stats(img: np.ndarray):
     """Get means and standard deviations of channels"""
 
     # Compute the mean and standard deviation of each channel
@@ -27,7 +29,7 @@ def image_stats(img):
     return a_mean, a_std, b_mean, b_std, c_mean, c_std
 
 
-def min_max_scale(img, new_range=(0, 255)):
+def min_max_scale(img: np.ndarray, new_range=(0, 255)):
     """Perform min-max scaling to a NumPy array"""
 
     # Get arrays current min and max
@@ -47,7 +49,7 @@ def min_max_scale(img, new_range=(0, 255)):
 
 
 def scale_array(
-    arr, overflow_method: int = 1, clip_min: int = 0, clip_max: int = 255
+    arr: np.ndarray, overflow_method: int = 1, clip_min: int = 0, clip_max: int = 255
 ) -> np.ndarray:
     """
     Trim NumPy array values to be in [0, 255] range with option of
@@ -63,12 +65,15 @@ def scale_array(
     return scaled
 
 
+ColorSpace = Literal["L*a*b*", "RGB"]
+
+
 def color_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
-    colorspace: str = "L*a*b*",
+    colorspace: ColorSpace = "L*a*b*",
     overflow_method: int = 1,
-    reciprocal_scale: int = 1,
+    reciprocal_scale: bool = True,
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image.
@@ -99,6 +104,8 @@ def color_transfer(
         c_clip_min, c_clip_max = (0, 1)
         img = img[:, :, :3]
         ref_img = ref_img[:, :, :3]
+    else:
+        raise ValueError(f"Invalid color space {colorspace}")
 
     # Compute color statistics for the source and target images
     (

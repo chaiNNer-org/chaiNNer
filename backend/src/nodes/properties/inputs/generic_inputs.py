@@ -74,6 +74,32 @@ class DropDownInput(BaseInput):
         return value
 
 
+class BoolInput(DropDownInput):
+    def __init__(self, label: str, default: bool = True):
+        super().__init__(
+            input_type="bool",
+            label=label,
+            default_value=int(default),
+            options=[
+                {
+                    "option": "Yes",
+                    "value": int(True),  # 1
+                    "type": "true",
+                },
+                {
+                    "option": "No",
+                    "value": int(False),  # 0
+                    "type": "false",
+                },
+            ],
+            preferred_style="checkbox",
+        )
+
+    def enforce(self, value) -> bool:
+        value = super().enforce(value)
+        return bool(value)
+
+
 class TextInput(BaseInput):
     """Input for arbitrary text"""
 
@@ -327,18 +353,6 @@ def OverflowMethodInput() -> DropDownInput:
     )
 
 
-def ReciprocalScalingFactorInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="ReciprocalScalingFactor",
-        label="Reciprocal Scaling Factor",
-        preferred_style="checkbox",
-        options=[
-            {"option": "Yes", "value": 1},
-            {"option": "No", "value": 0},
-        ],
-    )
-
-
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return DropDownInput(
@@ -506,19 +520,6 @@ def DdsErrorMetricDropdown() -> DropDownInput:
         options=[
             {"option": "Perceptual", "value": 0},
             {"option": "Uniform", "value": 1},
-        ],
-    )
-
-
-def DdsDitheringDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsDithering",
-        label="Dithering",
-        preferred_style="checkbox",
-        default_value=0,
-        options=[
-            {"option": "Yes", "value": 1},
-            {"option": "No", "value": 0},
         ],
     )
 
