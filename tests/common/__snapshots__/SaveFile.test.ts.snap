@@ -2029,6 +2029,182 @@ Object {
 }
 `;
 
+exports[`Read save file gamma.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {
+        "sourceX": 635.6532134250882,
+        "sourceY": 835.2615446978116,
+        "targetX": 693.6532134250881,
+        "targetY": 554.2615446978116,
+      },
+      "id": "10867a82-beb1-451e-b45a-4457a930227a",
+      "source": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+      "sourceHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
+      "target": "be8845a1-4104-4946-9ef3-0aef2a083507",
+      "targetHandle": "be8845a1-4104-4946-9ef3-0aef2a083507-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {
+        "sourceX": 377.6532134250882,
+        "sourceY": 836.2615446978116,
+        "targetX": 383.6532134250882,
+        "targetY": 683.2615446978116,
+      },
+      "id": "34f566eb-5852-449e-91f9-de806be4986f",
+      "source": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+      "sourceHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
+      "target": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+      "targetHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {
+        "sourceX": 361.3094634250882,
+        "sourceY": 542.2615446978116,
+        "targetX": 398.6532134250881,
+        "targetY": 296.2615446978116,
+      },
+      "id": "893511ec-505c-489c-b521-53d5c15df8d3",
+      "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+      "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
+      "target": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+      "targetHandle": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {
+        "sourceX": 361.3094634250882,
+        "sourceY": 542.2615446978116,
+        "targetX": 125.65321342508821,
+        "targetY": 684.2615446978116,
+      },
+      "id": "fc6cc665-23c7-41d5-9440-f6d0dbd4e855",
+      "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+      "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
+      "target": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+      "targetHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+        "inputData": Object {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 332,
+      "id": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+      "position": Object {
+        "x": 403.6532134250881,
+        "y": 237.2615446978116,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+        "inputData": Object {
+          "0": 100,
+          "1": 100,
+          "2": 188,
+          "3": 82,
+          "4": 126,
+        },
+        "schemaId": "chainner:image:create_color_rgb",
+      },
+      "height": 364,
+      "id": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+      "position": Object {
+        "x": 97.65321342508821,
+        "y": 219.2615446978116,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 259,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+        "inputData": Object {
+          "1": 2.2,
+          "2": "normal",
+        },
+        "schemaId": "chainner:image:gamma",
+      },
+      "height": 252,
+      "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+      "position": Object {
+        "x": 130.6532134250882,
+        "y": 625.2615446978116,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "be8845a1-4104-4946-9ef3-0aef2a083507",
+        "inputData": Object {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 332,
+      "id": "be8845a1-4104-4946-9ef3-0aef2a083507",
+      "position": Object {
+        "x": 698.6532134250881,
+        "y": 495.2615446978116,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 70,
+    },
+    Object {
+      "data": Object {
+        "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+        "inputData": Object {
+          "1": 2.2,
+          "2": "invert",
+        },
+        "schemaId": "chainner:image:gamma",
+      },
+      "height": 252,
+      "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+      "position": Object {
+        "x": 388.6532134250882,
+        "y": 624.2615446978116,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": -23.65321342508821,
+    "y": 47.73845530218841,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
   "edges": Array [
@@ -6213,6 +6389,185 @@ Object {
     "viewport": Object {
       "x": 0,
       "y": 0,
+      "zoom": 1,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
+exports[`Write save file gamma.chn 1`] = `
+Object {
+  "checksum": "2f158f034b7d100ee9685a41614618a9",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {
+          "sourceX": 635.6532134250882,
+          "sourceY": 835.2615446978116,
+          "targetX": 693.6532134250881,
+          "targetY": 554.2615446978116,
+        },
+        "id": "10867a82-beb1-451e-b45a-4457a930227a",
+        "source": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+        "sourceHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
+        "target": "be8845a1-4104-4946-9ef3-0aef2a083507",
+        "targetHandle": "be8845a1-4104-4946-9ef3-0aef2a083507-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {
+          "sourceX": 377.6532134250882,
+          "sourceY": 836.2615446978116,
+          "targetX": 383.6532134250882,
+          "targetY": 683.2615446978116,
+        },
+        "id": "34f566eb-5852-449e-91f9-de806be4986f",
+        "source": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+        "sourceHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
+        "target": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+        "targetHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {
+          "sourceX": 361.3094634250882,
+          "sourceY": 542.2615446978116,
+          "targetX": 398.6532134250881,
+          "targetY": 296.2615446978116,
+        },
+        "id": "893511ec-505c-489c-b521-53d5c15df8d3",
+        "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+        "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
+        "target": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+        "targetHandle": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {
+          "sourceX": 361.3094634250882,
+          "sourceY": 542.2615446978116,
+          "targetX": 125.65321342508821,
+          "targetY": 684.2615446978116,
+        },
+        "id": "fc6cc665-23c7-41d5-9440-f6d0dbd4e855",
+        "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+        "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
+        "target": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+        "targetHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+          "inputData": Object {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 332,
+        "id": "0656a2a4-9f76-4d08-a8f1-f1fc97e0d0e9",
+        "position": Object {
+          "x": 403.6532134250881,
+          "y": 237.2615446978116,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+          "inputData": Object {
+            "0": 100,
+            "1": 100,
+            "2": 188,
+            "3": 82,
+            "4": 126,
+          },
+          "schemaId": "chainner:image:create_color_rgb",
+        },
+        "height": 364,
+        "id": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
+        "position": Object {
+          "x": 97.65321342508821,
+          "y": 219.2615446978116,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 259,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+          "inputData": Object {
+            "1": 2.2,
+            "2": "normal",
+          },
+          "schemaId": "chainner:image:gamma",
+        },
+        "height": 252,
+        "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
+        "position": Object {
+          "x": 130.6532134250882,
+          "y": 625.2615446978116,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "be8845a1-4104-4946-9ef3-0aef2a083507",
+          "inputData": Object {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 332,
+        "id": "be8845a1-4104-4946-9ef3-0aef2a083507",
+        "position": Object {
+          "x": 698.6532134250881,
+          "y": 495.2615446978116,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 70,
+      },
+      Object {
+        "data": Object {
+          "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+          "inputData": Object {
+            "1": 2.2,
+            "2": "invert",
+          },
+          "schemaId": "chainner:image:gamma",
+        },
+        "height": 252,
+        "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
+        "position": Object {
+          "x": 388.6532134250882,
+          "y": 624.2615446978116,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": -23.65321342508821,
+      "y": 47.73845530218841,
       "zoom": 1,
     },
   },
