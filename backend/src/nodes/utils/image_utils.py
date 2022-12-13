@@ -223,7 +223,7 @@ def as_target_channels(
     if c == target_c:
         return img
 
-    if narrowing is False:
+    if not narrowing:
         assert (
             c < target_c
         ), f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"

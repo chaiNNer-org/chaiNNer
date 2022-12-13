@@ -4,8 +4,6 @@ import numpy as np
 from .utils import get_h_w_c
 from .image_utils import as_target_channels
 
-from sanic.log import logger
-
 
 def __add_noises(
     image: np.ndarray,
@@ -20,7 +18,7 @@ def __add_noises(
         img = img[:, :, :3]
 
     noises = noise_gen(h, w)
-    logger.info(noises[0].dtype)
+
     assert len(noises) > 0
 
     max_channels = min(c, 3)
