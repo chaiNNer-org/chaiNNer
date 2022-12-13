@@ -97,6 +97,20 @@ export const lazy = <T>(fn: () => T): (() => T) => {
         return value;
     };
 };
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const lazyKeyed = <K extends object, T extends {} | null>(
+    fn: (key: K) => T
+): ((key: K) => T) => {
+    const cache = new WeakMap<K, T>();
+    return (key) => {
+        let value = cache.get(key);
+        if (value === undefined) {
+            value = fn(key);
+            cache.set(key, value);
+        }
+        return value;
+    };
+};
 
 export const debounce = (fn: () => void, delay: number): (() => void) => {
     let id: NodeJS.Timeout | undefined;

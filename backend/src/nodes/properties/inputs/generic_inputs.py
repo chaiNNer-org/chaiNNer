@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import List, Literal, Union, TypedDict
+from enum import Enum
+from typing import Dict, Generic, List, Literal, Type, TypeVar, Union, TypedDict
 import numpy as np
 from sanic.log import logger
 
@@ -8,6 +9,12 @@ from .. import expression
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
 from ...utils.image_utils import FillColor, FlipAxis, KernelType, normalize
+from ...utils.utils import (
+    split_snake_case,
+    split_pascal_case,
+    join_pascal_case,
+    join_space_case,
+)
 
 
 class UntypedOption(TypedDict):
@@ -98,6 +105,79 @@ class BoolInput(DropDownInput):
     def enforce(self, value) -> bool:
         value = super().enforce(value)
         return bool(value)
+
+
+T = TypeVar("T", bound=Enum)
+
+
+class EnumInput(Generic[T], DropDownInput):
+    """
+    This adapts a python Enum into a chaiNNer dropdown input.
+
+    ### Features
+
+    All variants of the enum will be converted into typed dropdown options.
+    The dropdown will be fully typed and brings its own type definitions.
+    Option labels can be (partially) overridden using `option_labels`.
+
+    By default, the input label, type names, and option labels will all be generated from the enum name and variant names.
+    All of those defaults and be overridden.
+
+    Options will be ordered by declaration order in the python enum definition.
+
+    ### Requirements
+
+    The value of each variant has to be either `str` or `int`.
+    Other types are not permitted.
+    """
+
+    def __init__(
+        self,
+        enum: Type[T],
+        label: str | None = None,
+        default_value: T | None = None,
+        type_name: str | None = None,
+        option_labels: Dict[T, str] | None = None,
+    ):
+        if type_name is None:
+            type_name = enum.__name__
+        if label is None:
+            label = join_space_case(split_pascal_case(type_name))
+        if option_labels is None:
+            option_labels = {}
+
+        options: List[DropDownOption] = []
+        variant_types: List[str] = []
+        for variant in enum:
+            value = variant.value
+            assert isinstance(value, (int, str))
+
+            name = split_snake_case(variant.name)
+            variant_type = f"{type_name}::{join_pascal_case(name)}"
+            option_label = option_labels.get(variant, join_space_case(name))
+
+            variant_types.append(variant_type)
+            options.append(
+                {"option": option_label, "value": value, "type": variant_type}
+            )
+
+        super().__init__(
+            input_type=type_name,
+            label=label,
+            options=options,
+            default_value=default_value.value if default_value is not None else None,
+        )
+
+        self.type_definitions = (
+            f"let {type_name} = {' | '.join(variant_types)};\n"
+            + "\n".join([f"struct {t};" for t in variant_types])
+        )
+        self.type_name: str = type_name
+        self.enum = enum
+
+    def enforce(self, value) -> T:
+        value = super().enforce(value)
+        return self.enum(value)
 
 
 class TextInput(BaseInput):

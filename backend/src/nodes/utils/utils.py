@@ -94,6 +94,32 @@ def alphanumeric_sort(value: str) -> List[Union[str, int]]:
     return parts  # type: ignore
 
 
+__SPLIT_SNAKE_CASE = re.compile(r"(\d+|_+)")
+__SPLIT_PASCAL_CASE = re.compile(r"(\d+)|(?<=[a-z])(?=[A-Z])")
+
+
+def split_snake_case(s: str) -> List[str]:
+    """Splits a snake case identifier into its parts. E.g. `SNAKE_CASE` -> [`snake`, `case`]"""
+    return [
+        x.lower() for x in __SPLIT_SNAKE_CASE.split(s) if x and not x.startswith("_")
+    ]
+
+
+def split_pascal_case(s: str) -> List[str]:
+    """Splits a snake case identifier into its parts. E.g. `SNAKE_CASE` -> [`snake`, `case`]"""
+    return [
+        x.lower() for x in __SPLIT_PASCAL_CASE.split(s) if x and not x.startswith("_")
+    ]
+
+
+def join_pascal_case(words: List[str]) -> str:
+    return "".join([x.capitalize() for x in words])
+
+
+def join_space_case(words: List[str]) -> str:
+    return " ".join([x.capitalize() for x in words])
+
+
 def walk_error_handler(exception_instance):
     logger.warning(
         f"Exception occurred during walk: {exception_instance} Continuing..."

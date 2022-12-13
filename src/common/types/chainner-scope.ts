@@ -89,7 +89,6 @@ struct ImageExtension;
 struct InterpolationMode;
 struct KernelType;
 struct MathOperation { operation: string }
-struct NoiseType;
 struct NormalChannelInvert;
 struct OverflowMethod;
 struct RotateInterpolationMode;
@@ -108,7 +107,6 @@ enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
 enum SideSelection { Width, Height, Shorter, Longer }
-enum NoiseColor { Rgb, Gray }
 
 def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
     match fill {
