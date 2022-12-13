@@ -1,90 +1,75 @@
-from __future__ import annotations
-from typing import Type
+from typing import Tuple, Type
 
-import torch
-from torch import Tensor
 import numpy as np
 
-from .exec_options import ExecutionOptions
 from .image_utils import as_3d
-from .np_tensor_utils import np_denorm, MAX_VALUES_BY_DTYPE
+
+MAX_VALUES_BY_DTYPE = {
+    np.dtype("int8"): 127,
+    np.dtype("uint8"): 255,
+    np.dtype("int16"): 32767,
+    np.dtype("uint16"): 65535,
+    np.dtype("int32"): 2147483647,
+    np.dtype("uint32"): 4294967295,
+    np.dtype("int64"): 9223372036854775807,
+    np.dtype("uint64"): 18446744073709551615,
+    np.dtype("float32"): 1.0,
+    np.dtype("float64"): 1.0,
+}
 
 
-def to_pytorch_execution_options(options: ExecutionOptions):
-    # CPU override
-    if options.full_device == "cpu":
-        device = "cpu"
-    # Check for Nvidia CUDA
-    elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
-        device = "cuda"
-    # Check for Apple MPS
-    elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
-        device = "mps"
-    # Check for DirectML
-    elif hasattr(torch, "dml") and torch.dml.is_available():  # type: ignore
-        device = "dml"
-    else:
-        device = "cpu"
-
-    return ExecutionOptions(
-        device=device,
-        fp16=options.fp16,
-        pytorch_gpu_index=options.pytorch_gpu_index,
-        ncnn_gpu_index=options.ncnn_gpu_index,
-        onnx_gpu_index=options.onnx_gpu_index,
-        onnx_execution_provider=options.onnx_execution_provider,
-        onnx_should_tensorrt_cache=options.onnx_should_tensorrt_cache,
-        onnx_tensorrt_cache_path=options.onnx_tensorrt_cache_path,
-    )
+def np_denorm(x: np.ndarray, min_max: Tuple[float, float] = (-1.0, 1.0)) -> np.ndarray:
+    """Denormalize from [-1,1] range to [0,1]
+    formula: xi' = (xi - mu)/sigma
+    Example: "out = (x + 1.0) / 2.0" for denorm
+        range (-1,1) to (0,1)
+    for use with proper act in Generator output (ie. tanh)
+    """
+    out = (x - min_max[0]) / (min_max[1] - min_max[0])
+    return np.clip(out, 0, 1)
 
 
-def bgr_to_rgb(image: Tensor) -> Tensor:
-    # flip image channels
-    # https://github.com/pytorch/pytorch/issues/229
-    out: Tensor = image.flip(-3)
-    # RGB to BGR #may be faster:
-    # out: Tensor = image[[2, 1, 0], :, :]
-    return out
-
-
-def rgb_to_bgr(image: Tensor) -> Tensor:
-    # same operation as bgr_to_rgb(), flip image channels
-    return bgr_to_rgb(image)
-
-
-def bgra_to_rgba(image: Tensor) -> Tensor:
-    out: Tensor = image[[2, 1, 0, 3], :, :]
-    return out
-
-
-def rgba_to_bgra(image: Tensor) -> Tensor:
-    # same operation as bgra_to_rgba(), flip image channels
-    return bgra_to_rgba(image)
-
-
-def norm(x: Tensor):
+def np_norm(x: np.ndarray) -> np.ndarray:
     """Normalize (z-norm) from [0,1] range to [-1,1]"""
     out = (x - 0.5) * 2.0
-    return out.clamp(-1, 1)
+    return np.clip(out, -1, 1)
 
 
-def np2tensor(
+def np_bgr_to_rgb(img: np.ndarray) -> np.ndarray:
+    out: np.ndarray = img[::-1, ...]
+    return out
+
+
+def np_rgb_to_bgr(img: np.ndarray) -> np.ndarray:
+    # same operation as bgr_to_rgb(), flip image channels
+    return np_bgr_to_rgb(img)
+
+
+def np_bgra_to_rgba(img: np.ndarray) -> np.ndarray:
+    out: np.ndarray = img[[2, 1, 0, 3], ...]  # type: ignore
+    return out
+
+
+def np_rgba_to_bgra(img: np.ndarray) -> np.ndarray:
+    # same operation as bgra_to_rgba(), flip image channels
+    return np_bgra_to_rgba(img)
+
+
+def np2nptensor(
     img: np.ndarray,
     bgr2rgb=True,
     data_range=1.0,  # pylint: disable=unused-argument
     normalize=False,
     change_range=True,
     add_batch=True,
-) -> Tensor:
-    """Converts a numpy image array into a Tensor array.
+) -> np.ndarray:
+    """Converts a numpy image array into a numpy Tensor array.
     Parameters:
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    # images expected to be uint8 -> 255
-    if not isinstance(img, np.ndarray):
+    if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
         raise TypeError("Got unexpected object type, expected np.ndarray")
-
     # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
     # if bgr2rgb:
     #     img = img[
@@ -96,27 +81,26 @@ def np2tensor(
         t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
     # "HWC to CHW" and "numpy to tensor"
-    tensor = torch.from_numpy(
-        np.ascontiguousarray(np.transpose(as_3d(img), (2, 0, 1)))
-    ).float()
+    img = np.ascontiguousarray(np.transpose(as_3d(img), (2, 0, 1))).astype(np.float32)
     if bgr2rgb:
         # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
-        if tensor.shape[0] % 3 == 0:
-            # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
-            tensor = bgr_to_rgb(tensor)
-        elif tensor.shape[0] == 4:
-            # RGBA
-            tensor = bgra_to_rgba(tensor)
+        if (
+            img.shape[0] % 3 == 0
+        ):  # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
+            img = np_bgr_to_rgb(img)
+        elif img.shape[0] == 4:  # RGBA
+            img = np_bgra_to_rgba(img)
     if add_batch:
-        # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
-        tensor.unsqueeze_(0)
+        img = np.expand_dims(
+            img, axis=0
+        )  # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
     if normalize:
-        tensor = norm(tensor)
-    return tensor
+        img = np_norm(img)
+    return img
 
 
-def tensor2np(
-    img: Tensor,
+def nptensor2np(
+    img: np.ndarray,
     rgb2bgr=True,
     remove_batch=True,
     data_range=255,
@@ -135,33 +119,27 @@ def tensor2np(
     Output:
         img (np array): 3D(H,W,C) or 2D(H,W), [0,255], np.uint8 (default)
     """
-    if not isinstance(img, Tensor):
-        raise TypeError("Got unexpected object type, expected Tensor")
-    n_dim = img.dim()
+    n_dim = img.ndim
 
-    # TODO: Check: could denormalize here in tensor form instead, but end result is the same
-
-    img = img.float().cpu()
-
-    img_np: np.ndarray
+    img = img.astype(np.float32)
 
     if n_dim in (4, 3):
         # if n_dim == 4, has to convert to 3 dimensions
         if n_dim == 4 and remove_batch:
             # remove a fake batch dimension
-            img = img.squeeze(dim=0)
+            img = img.squeeze(0)
 
         if img.shape[0] == 3 and rgb2bgr:  # RGB
             # RGB to BGR -> in tensor, if using OpenCV, else not needed. Only if image has colors.
-            img_np = rgb_to_bgr(img).numpy()
+            img_np = np_rgb_to_bgr(img)
         elif img.shape[0] == 4 and rgb2bgr:  # RGBA
             # RGBA to BGRA -> in tensor, if using OpenCV, else not needed. Only if image has colors.
-            img_np = rgba_to_bgra(img).numpy()
+            img_np = np_rgba_to_bgra(img)
         else:
-            img_np = img.numpy()
+            img_np = img
         img_np = np.transpose(img_np, (1, 2, 0))  # CHW to HWC
     elif n_dim == 2:
-        img_np = img.numpy()
+        img_np = img
     else:
         raise TypeError(
             f"Only support 4D, 3D and 2D tensor. But received with dimension: {n_dim:d}"

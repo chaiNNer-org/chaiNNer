@@ -11,11 +11,12 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.auto_split_tiles import parse_tile_size_input, TileSize
+from ...utils.convenient_upscale import convenient_upscale
 from ...utils.auto_split import ExactTileSize
 from ...utils.onnx_auto_split import onnx_auto_split
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_session import get_onnx_session
-from ...utils.utils import get_h_w_c, convenient_upscale
+from ...utils.utils import get_h_w_c
 from ...utils.exec_options import get_execution_options
 
 
@@ -28,17 +29,34 @@ def as_int(value) -> int | None:
     return None
 
 
+def parse_onnx_shape(
+    shape: Tuple[int | str, str | int, str | int, str | int]
+) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+    if isinstance(shape[1], int) and shape[1] <= 4:
+        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
+    else:
+        assert isinstance(shape[3], int), "Channels must be int"
+        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+
 def get_input_shape(
     session: ort.InferenceSession,
 ) -> Tuple[OnnxInputShape, int, int | None, int | None]:
     """
     Returns the input shape, input channels, input width (optional), and input height (optional).
     """
-    shape = session.get_inputs()[0].shape
-    if isinstance(shape[1], int) and shape[1] <= 4:
-        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
-    else:
-        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+
+    return parse_onnx_shape(session.get_inputs()[0].shape)
+
+
+def get_output_shape(
+    session: ort.InferenceSession,
+) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+    """
+    Returns the output shape, output channels, output width (optional), and output height (optional).
+    """
+
+    return parse_onnx_shape(session.get_outputs()[0].shape)
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
@@ -96,6 +114,7 @@ class OnnxImageUpscaleNode(NodeBase):
         session = get_onnx_session(model, get_execution_options())
 
         input_shape, in_nc, req_width, req_height = get_input_shape(session)
+        _, out_nc, _, _ = get_output_shape(session)
         change_shape = input_shape == "BHWC"
 
         exact_size = None
@@ -110,5 +129,6 @@ class OnnxImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
+            out_nc,
             lambda i: self.upscale(i, session, tile_size, change_shape, exact_size),
         )

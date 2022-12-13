@@ -65,6 +65,8 @@ struct NcnnNetwork {
 struct OnnxFile;
 struct OnnxModel {
     scale: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
 }
 
 struct IteratorAuto;
@@ -131,7 +133,11 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Imag
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,
-        channels: image.channels
+        channels: if model.inputChannels == model.outputChannels {
+            image.channels
+        } else {
+            model.outputChannels
+        }
     }
 }
 `;

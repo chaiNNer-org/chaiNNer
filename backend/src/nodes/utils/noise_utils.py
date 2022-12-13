@@ -18,6 +18,7 @@ def __add_noises(
         img = img[:, :, :3]
 
     noises = noise_gen(h, w)
+
     assert len(noises) > 0
 
     max_channels = min(c, 3)
@@ -63,7 +64,7 @@ def gaussian_noise(
     noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.normal(0, amount, (h, w, noise_c)),
+        lambda h, w: rng.normal(0, amount, (h, w, noise_c)).astype(np.float32),
     )
 
 
@@ -78,7 +79,7 @@ def uniform_noise(
     noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.uniform(-amount, amount, (h, w, noise_c)),
+        lambda h, w: rng.uniform(-amount, amount, (h, w, noise_c)).astype(np.float32),
     )
 
 
@@ -93,8 +94,8 @@ def salt_and_pepper_noise(
         rng = np.random.default_rng(seed)
         noise_c = 3 if noise_type == "rgb" else 1
         amt = amount / 2
-        pepper = rng.choice([0, 1], (h, w, noise_c), p=[amt, 1 - amt])
-        salt = rng.choice([0, 1], (h, w, noise_c), p=[1 - amt, amt])
+        pepper = rng.choice([0, 1], (h, w, noise_c), p=[amt, 1 - amt]).astype(np.uint8)
+        salt = rng.choice([0, 1], (h, w, noise_c), p=[1 - amt, amt]).astype(np.uint8)
         return [pepper, salt]
 
     def combine(i: np.ndarray, n: List[np.ndarray]):
@@ -115,7 +116,7 @@ def poisson_noise(
     noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.poisson(amount, (h, w, noise_c)),
+        lambda h, w: rng.poisson(amount, (h, w, noise_c)).astype(np.uint8),
     )
 
 
@@ -130,6 +131,6 @@ def speckle_noise(
     noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.normal(0, amount, (h, w, noise_c)),
+        lambda h, w: rng.normal(0, amount, (h, w, noise_c)).astype(np.float32),
         lambda i, n: i + i * n,
     )
