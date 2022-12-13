@@ -1992,12 +1992,7 @@ Object {
   "edges": Array [
     Object {
       "animated": false,
-      "data": Object {
-        "sourceX": 635.6532134250882,
-        "sourceY": 835.2615446978116,
-        "targetX": 693.6532134250881,
-        "targetY": 554.2615446978116,
-      },
+      "data": Object {},
       "id": "10867a82-beb1-451e-b45a-4457a930227a",
       "source": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
       "sourceHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
@@ -2008,12 +2003,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "sourceX": 377.6532134250882,
-        "sourceY": 836.2615446978116,
-        "targetX": 383.6532134250882,
-        "targetY": 683.2615446978116,
-      },
+      "data": Object {},
       "id": "34f566eb-5852-449e-91f9-de806be4986f",
       "source": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
       "sourceHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
@@ -2024,12 +2014,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "sourceX": 361.3094634250882,
-        "sourceY": 542.2615446978116,
-        "targetX": 398.6532134250881,
-        "targetY": 296.2615446978116,
-      },
+      "data": Object {},
       "id": "893511ec-505c-489c-b521-53d5c15df8d3",
       "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
       "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
@@ -2040,12 +2025,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "sourceX": 361.3094634250882,
-        "sourceY": 542.2615446978116,
-        "targetX": 125.65321342508821,
-        "targetY": 684.2615446978116,
-      },
+      "data": Object {},
       "id": "fc6cc665-23c7-41d5-9440-f6d0dbd4e855",
       "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
       "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
@@ -6314,17 +6294,12 @@ Object {
 
 exports[`Write save file gamma.chn 1`] = `
 Object {
-  "checksum": "603886d34c9855b71d6a33cf95a791c1",
+  "checksum": "3d8535b2c2e46a1708e46bc4bfc876a1",
   "content": Object {
     "edges": Array [
       Object {
         "animated": false,
-        "data": Object {
-          "sourceX": 635.6532134250882,
-          "sourceY": 835.2615446978116,
-          "targetX": 693.6532134250881,
-          "targetY": 554.2615446978116,
-        },
+        "data": Object {},
         "id": "10867a82-beb1-451e-b45a-4457a930227a",
         "source": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
         "sourceHandle": "d5925529-e5c7-4a31-8e84-ec9c3c949868-0",
@@ -6335,12 +6310,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "sourceX": 377.6532134250882,
-          "sourceY": 836.2615446978116,
-          "targetX": 383.6532134250882,
-          "targetY": 683.2615446978116,
-        },
+        "data": Object {},
         "id": "34f566eb-5852-449e-91f9-de806be4986f",
         "source": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
         "sourceHandle": "964a1f57-98dd-41ef-af1a-d20e19dc2782-0",
@@ -6351,12 +6321,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "sourceX": 361.3094634250882,
-          "sourceY": 542.2615446978116,
-          "targetX": 398.6532134250881,
-          "targetY": 296.2615446978116,
-        },
+        "data": Object {},
         "id": "893511ec-505c-489c-b521-53d5c15df8d3",
         "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
         "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
@@ -6367,12 +6332,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "sourceX": 361.3094634250882,
-          "sourceY": 542.2615446978116,
-          "targetX": 125.65321342508821,
-          "targetY": 684.2615446978116,
-        },
+        "data": Object {},
         "id": "fc6cc665-23c7-41d5-9440-f6d0dbd4e855",
         "source": "7f1d7757-ac02-4a54-8a15-7819eab079e5",
         "sourceHandle": "7f1d7757-ac02-4a54-8a15-7819eab079e5-0",
