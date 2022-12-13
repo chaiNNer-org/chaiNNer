@@ -1,3 +1,4 @@
+import { ScopeBuilder, SourceDocument, parseDefinitions } from '@chainner/navi';
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import isDeepEqual from 'fast-deep-equal';
@@ -44,18 +45,42 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
     const { categories, categoriesMissingNodes, nodes } = rawResponse;
     const schemata = new SchemaMap(nodes);
 
-    const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
-
     const errors: string[] = [];
 
+    const parentScope = getChainnerScope();
+    const scopeBuilder = new ScopeBuilder('main scope', parentScope);
+
+    const processedDeclarations = new Set<string>();
     for (const schema of nodes) {
-        try {
-            functionDefinitions.set(
-                schema.schemaId,
-                FunctionDefinition.fromSchema(schema, getChainnerScope())
-            );
-        } catch (error) {
-            errors.push(String(error));
+        for (const input of schema.inputs) {
+            const { typeDefinitions } = input;
+            if (typeDefinitions) {
+                if (processedDeclarations.has(typeDefinitions)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+                processedDeclarations.add(typeDefinitions);
+
+                try {
+                    const definitions = parseDefinitions(
+                        new SourceDocument(typeDefinitions, `${schema.schemaId} ${input.id}`)
+                    );
+                    for (const d of definitions) {
+                        if (parentScope.has(d.name)) {
+                            errors.push(
+                                `Duplicate type definitions for ${d.name} in ${schema.schemaId} > ${input.label} (id: ${input.id}). The type definition is already defined in chainner scope (see "src/common/types/chainner-scope.ts")`
+                            );
+                        }
+                        scopeBuilder.add(d);
+                    }
+                } catch (error) {
+                    errors.push(
+                        `Unable to add type definitions of ${schema.schemaId} > ${input.label} (id: ${input.id}):` +
+                            `\nError: ${String(error)}` +
+                            `\nType definitions: ${typeDefinitions}`
+                    );
+                }
+            }
         }
     }
 
@@ -63,7 +88,24 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
         throw new Error(errors.join('\n\n'));
     }
 
-    return { rawResponse, schemata, categories, functionDefinitions, categoriesMissingNodes };
+    const scope = scopeBuilder.createScope();
+    const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
+
+    for (const schema of nodes) {
+        try {
+            functionDefinitions.set(schema.schemaId, FunctionDefinition.fromSchema(schema, scope));
+        } catch (error) {
+            errors.push(String(error));
+        }
+    }
+
+    return {
+        rawResponse,
+        schemata,
+        categories,
+        functionDefinitions,
+        categoriesMissingNodes,
+    };
 };
 
 const nodeTypes: NodeTypes & Record<NodeType, unknown> = {

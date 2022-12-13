@@ -1,4 +1,5 @@
-from typing import Literal, Callable, List
+from enum import Enum
+from typing import Callable, List
 import numpy as np
 
 from .utils import get_h_w_c
@@ -49,21 +50,26 @@ def __add_noise(
     )
 
 
-NoiseType = Literal["gray", "rgb"]
+class NoiseColor(Enum):
+    RGB = "rgb"
+    GRAY = "gray"
+
+    @property
+    def channels(self):
+        return 3 if self is NoiseColor.RGB else 1
 
 
 # Applies gaussian noise to an image
 def gaussian_noise(
     image: np.ndarray,
     amount: float,
-    noise_type: NoiseType,
+    noise_color: NoiseColor,
     seed: int = 0,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
-    noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.normal(0, amount, (h, w, noise_c)),
+        lambda h, w: rng.normal(0, amount, (h, w, noise_color.channels)),
     )
 
 
@@ -71,14 +77,13 @@ def gaussian_noise(
 def uniform_noise(
     image: np.ndarray,
     amount: float,
-    noise_type: NoiseType,
+    noise_color: NoiseColor,
     seed: int = 0,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
-    noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.uniform(-amount, amount, (h, w, noise_c)),
+        lambda h, w: rng.uniform(-amount, amount, (h, w, noise_color.channels)),
     )
 
 
@@ -86,12 +91,12 @@ def uniform_noise(
 def salt_and_pepper_noise(
     image: np.ndarray,
     amount: float,
-    noise_type: NoiseType,
+    noise_color: NoiseColor,
     seed: int = 0,
 ) -> np.ndarray:
     def gen_noise(h: int, w: int):
         rng = np.random.default_rng(seed)
-        noise_c = 3 if noise_type == "rgb" else 1
+        noise_c = noise_color.channels
         amt = amount / 2
         pepper = rng.choice([0, 1], (h, w, noise_c), p=[amt, 1 - amt])
         salt = rng.choice([0, 1], (h, w, noise_c), p=[1 - amt, amt])
@@ -108,14 +113,13 @@ def salt_and_pepper_noise(
 def poisson_noise(
     image: np.ndarray,
     amount: float,
-    noise_type: NoiseType,
+    noise_color: NoiseColor,
     seed: int = 0,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
-    noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.poisson(amount, (h, w, noise_c)),
+        lambda h, w: rng.poisson(amount, (h, w, noise_color.channels)),
     )
 
 
@@ -123,13 +127,12 @@ def poisson_noise(
 def speckle_noise(
     image: np.ndarray,
     amount: float,
-    noise_type: NoiseType,
+    noise_color: NoiseColor,
     seed: int = 0,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
-    noise_c = 3 if noise_type == "rgb" else 1
     return __add_noise(
         image,
-        lambda h, w: rng.normal(0, amount, (h, w, noise_c)),
+        lambda h, w: rng.normal(0, amount, (h, w, noise_color.channels)),
         lambda i, n: i + i * n,
     )

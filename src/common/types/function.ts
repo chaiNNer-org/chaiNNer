@@ -11,12 +11,11 @@ import {
     isDisjointWith,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, lazy, topologicalSort } from '../util';
-import { getChainnerScope } from './chainner-scope';
+import { EMPTY_MAP, lazyKeyed, topologicalSort } from '../util';
 import { fromJson } from './json';
 
-const getConversionScope = lazy(() => {
-    const scope = new ScopeBuilder('Conversion scope', getChainnerScope());
+const getConversionScope = lazyKeyed((parentScope: Scope) => {
+    const scope = new ScopeBuilder('Conversion scope', parentScope);
     scope.add(new ParameterDefinition('Input'));
     return scope.createScope();
 });
@@ -225,7 +224,7 @@ const evaluateInputOptions = (
     return result;
 };
 
-const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
+const getConversions = (schema: NodeSchema, scope: Scope): Map<InputId, Expression> => {
     const result = new Map<InputId, Expression>();
     for (const input of schema.inputs) {
         // eslint-disable-next-line no-continue
@@ -235,7 +234,7 @@ const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
 
         // verify that it's a valid conversion
         try {
-            evaluate(e, getConversionScope());
+            evaluate(e, getConversionScope(scope));
         } catch (error) {
             const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
             throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
@@ -295,7 +294,7 @@ export class FunctionDefinition {
             inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id)
         );
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
-        this.inputConversions = getConversions(schema);
+        this.inputConversions = getConversions(schema, scope);
 
         // outputs
         const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
@@ -340,7 +339,7 @@ export class FunctionDefinition {
             return type;
         }
 
-        const scope = getConversionScope();
+        const scope = getConversionScope(this.scope);
         scope.assignParameter('Input', type);
         return evaluate(conversion, scope);
     }

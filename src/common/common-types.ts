@@ -28,6 +28,7 @@ interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
     readonly conversion?: ExpressionJson | null;
+    readonly typeDefinitions?: string | null;
     readonly kind: InputKind;
     readonly label: string;
     readonly optional: boolean;
