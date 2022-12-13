@@ -282,6 +282,12 @@ export interface WindowSize {
     readonly height: number;
 }
 
+export interface SubCategory {
+    name: string;
+    description: string;
+    nodes: NodeSchema[];
+}
+
 export interface Category {
     name: string;
     description: string;
@@ -289,4 +295,13 @@ export interface Category {
     color: string;
     installHint?: string;
     excludedFromCheck: string[];
+    subCategories: SubCategory[];
+}
+
+export interface Package {
+    name: string;
+    version: string;
+    description: string;
+    dependencies: unknown[]; // TODO
+    categories: Category[];
 }

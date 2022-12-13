@@ -198,10 +198,11 @@ async def nodes(_):
     #         "categoriesMissingNodes": list(missing_categories),
     #     }
     # )
-    logger.info(builtin)
+    packages = [builtin]
+    logger.info([x.toDict() for x in packages])
     return json(
         {
-            "schema": builtin.toDict(),
+            "packages": [x.toDict() for x in packages],
         }
     )
 

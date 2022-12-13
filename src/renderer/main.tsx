@@ -7,7 +7,14 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
+import {
+    Category,
+    NodeSchema,
+    NodeType,
+    PythonInfo,
+    SchemaId,
+    SubCategory,
+} from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -41,7 +48,22 @@ interface NodesInfo {
 }
 
 const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo => {
-    const { categories, categoriesMissingNodes, nodes } = rawResponse;
+    const { packages } = rawResponse;
+    const categories = packages.reduce((acc, pkg) => {
+        const { categories: pkgCategories } = pkg;
+        acc.push(...pkgCategories);
+        return acc;
+    }, [] as Category[]);
+    const subCategories = categories.reduce((acc, category) => {
+        const { subCategories: categorySubcategories } = category;
+        acc.push(...categorySubcategories);
+        return acc;
+    }, [] as SubCategory[]);
+    const nodes = subCategories.reduce((acc, subCategory) => {
+        const { nodes: subcategoryNodes } = subCategory;
+        acc.push(...subcategoryNodes);
+        return acc;
+    }, [] as NodeSchema[]);
     const schemata = new SchemaMap(nodes);
 
     const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
@@ -63,7 +85,7 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
         throw new Error(errors.join('\n\n'));
     }
 
-    return { rawResponse, schemata, categories, functionDefinitions, categoriesMissingNodes };
+    return { rawResponse, schemata, categories, functionDefinitions, categoriesMissingNodes: [] };
 };
 
 const nodeTypes: NodeTypes & Record<NodeType, unknown> = {

@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { Category, InputId, InputValue, JsonNode, NodeSchema, SchemaId } from './common-types';
+import { InputId, InputValue, JsonNode, Package, SchemaId } from './common-types';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -34,9 +34,7 @@ export type BackendExecutorActionResponse =
     | BackendExceptionResponse
     | BackendNoExecutorResponse;
 export interface BackendNodesResponse {
-    nodes: NodeSchema[];
-    categories: Category[];
-    categoriesMissingNodes: string[];
+    packages: Package[];
 }
 export interface BackendExecutionOptions {
     isCpu: boolean;
