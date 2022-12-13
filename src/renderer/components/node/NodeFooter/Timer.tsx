@@ -23,10 +23,10 @@ const splitDuration = (duration: number): Duration => {
     return { hours, minutes, seconds };
 };
 const shortFormat = ({ hours, minutes, seconds }: Duration): string => {
-    if (hours > 0) return `${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
 
     const totalSeconds = fixRoundingError(minutes * 60 + seconds);
-    if (totalSeconds >= 100) return `${minutes}m`;
+    if (totalSeconds >= 100) return `${minutes}m ${Math.floor(seconds)}s`;
 
     const shortestVariant = [
         totalSeconds.toPrecision(2),
