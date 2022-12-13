@@ -3,7 +3,7 @@ import cv2
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
 from ...impl.pil_utils import InterpolationMethod, RotateExpandCrop
-from ...impl.tile_util import TileMode
+from ...impl.tile import TileMode
 from ...impl.normals.height import HeightSource
 from ...impl.normals.edge_filter import EdgeFilters
 from ...impl.color.convert_data import color_spaces, color_spaces_or_detectors

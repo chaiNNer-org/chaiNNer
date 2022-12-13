@@ -11,7 +11,7 @@ from ...utils.checked_cast import checked_cast
 
 
 param_schema_file = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
+    os.path.dirname(os.path.realpath(__file__)), "param_schema.json"
 )
 with open(param_schema_file, encoding="utf-8") as schemaf:
     param_schema = jload(schemaf)

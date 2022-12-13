@@ -11,9 +11,9 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import SrModelInput, OnnxFpDropdown
 from ...properties.outputs import OnnxModelOutput, TextOutput
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.pytorch_utils import to_pytorch_execution_options
-from ...impl.onnx.onnx_model import OnnxModel
-from ...impl.pytorch.torch_types import PyTorchSRModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
+from ...impl.onnx.model import OnnxModel
+from ...impl.pytorch.types import PyTorchSRModel
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")

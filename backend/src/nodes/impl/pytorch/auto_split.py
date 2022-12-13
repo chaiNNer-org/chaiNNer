@@ -5,10 +5,10 @@ import gc
 import torch
 import numpy as np
 
-from .torch_types import PyTorchModel
+from .types import PyTorchModel
 
 from ..upscale.auto_split import auto_split, Split, Tiler
-from .pytorch_utils import tensor2np, np2tensor
+from .utils import tensor2np, np2tensor
 
 
 @torch.inference_mode()

@@ -12,9 +12,9 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, SliderInput
 from ...properties.outputs import ModelOutput, NumberOutput
-from ...impl.pytorch.torch_types import PyTorchModel
-from ...impl.pytorch.pytorch_model_loading import load_state_dict
-from ...impl.pytorch.pytorch_utils import np2tensor, tensor2np
+from ...impl.pytorch.types import PyTorchModel
+from ...impl.pytorch.model_loading import load_state_dict
+from ...impl.pytorch.utils import np2tensor, tensor2np
 
 
 @NodeFactory.register("chainner:pytorch:interpolate_models")

@@ -1,4 +1,4 @@
-from ...impl.ncnn.ncnn_model import NcnnModelWrapper
+from ...impl.ncnn.model import NcnnModelWrapper
 from .. import expression
 from .base_output import BaseOutput, OutputKind
 

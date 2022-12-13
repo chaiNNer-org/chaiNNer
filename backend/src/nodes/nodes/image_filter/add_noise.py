@@ -8,7 +8,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput, EnumInput
 from ...properties.outputs import ImageOutput
-from ...impl.noise_utils import (
+from ...impl.noise import (
     gaussian_noise,
     uniform_noise,
     salt_and_pepper_noise,

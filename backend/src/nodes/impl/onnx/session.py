@@ -3,7 +3,7 @@ import onnxruntime as ort
 from weakref import WeakKeyDictionary
 
 from ...utils.exec_options import ExecutionOptions
-from .onnx_model import OnnxModel
+from .model import OnnxModel
 
 
 def create_inference_session(

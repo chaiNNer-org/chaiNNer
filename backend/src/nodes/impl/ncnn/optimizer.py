@@ -1,8 +1,8 @@
 import numpy as np
 from ...utils.checked_cast import checked_cast
-from .ncnn_model import BinaryOpTypes as BOT
-from .ncnn_model import EltwiseOpTypes as EOT
-from .ncnn_model import NcnnLayer, NcnnModel
+from .model import BinaryOpTypes as BOT
+from .model import EltwiseOpTypes as EOT
+from .model import NcnnLayer, NcnnModel
 
 
 class NcnnOptimizer:

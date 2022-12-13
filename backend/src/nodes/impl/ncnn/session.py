@@ -5,7 +5,7 @@ from weakref import WeakKeyDictionary
 from ncnn_vulkan import ncnn
 
 from ...utils.exec_options import ExecutionOptions
-from .ncnn_model import NcnnModelWrapper
+from .model import NcnnModelWrapper
 
 
 def create_ncnn_net(

@@ -19,9 +19,9 @@ from ...impl.upscale.auto_split_tiles import (
 )
 from ...impl.upscale.convenient_upscale import convenient_upscale
 from ...utils.exec_options import get_execution_options
-from ...impl.ncnn.ncnn_auto_split import ncnn_auto_split
-from ...impl.ncnn.ncnn_model import NcnnModelWrapper
-from ...impl.ncnn.ncnn_session import get_ncnn_net
+from ...impl.ncnn.auto_split import ncnn_auto_split
+from ...impl.ncnn.model import NcnnModelWrapper
+from ...impl.ncnn.session import get_ncnn_net
 from ...utils.utils import get_h_w_c
 from . import category as NCNNCategory
 

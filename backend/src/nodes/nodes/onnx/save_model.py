@@ -8,7 +8,7 @@ from . import category as ONNXCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, DirectoryInput, TextInput
-from ...impl.onnx.onnx_model import OnnxModel
+from ...impl.onnx.model import OnnxModel
 
 
 @NodeFactory.register("chainner:onnx:save_model")

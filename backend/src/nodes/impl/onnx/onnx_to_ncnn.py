@@ -9,7 +9,7 @@ from google.protobuf.internal.containers import (
 )
 from sanic.log import logger
 
-from ..ncnn.ncnn_model import (
+from ..ncnn.model import (
     DTYPE_FP16,
     DTYPE_FP32,
     BinaryOpTypes,
@@ -25,8 +25,8 @@ from ..ncnn.ncnn_model import (
     ReductionOpTypes,
     UnaryOpTypes,
 )
-from ..ncnn.ncnn_optimizer import NcnnOptimizer
-from .onnx_tensor_utils import *
+from ..ncnn.optimizer import NcnnOptimizer
+from .tensorproto_utils import *
 
 UOT = UnaryOpTypes
 BOT = BinaryOpTypes
