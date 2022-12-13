@@ -930,6 +930,17 @@ const clearEdgeData = (data) => {
     return data;
 };
 
+const gammaCheckbox = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:gamma') {
+            const from = /** @type {"normal" | "invert"} */ (node.data.inputData[2]);
+            node.data.inputData[2] = from === 'invert' ? 1 : 0;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -976,6 +987,7 @@ const migrations = [
     convertColorSpaceFromDetectors,
     fixNumbers,
     clearEdgeData,
+    gammaCheckbox,
 ];
 
 export const currentMigration = migrations.length;

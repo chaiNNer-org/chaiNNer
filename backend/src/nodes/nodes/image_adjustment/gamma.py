@@ -5,7 +5,7 @@ import numpy as np
 from . import category as ImageAdjustmentCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, GammaOptionInput
+from ...properties.inputs import ImageInput, NumberInput, BoolInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
 
@@ -25,7 +25,7 @@ class GammaNode(NodeBase):
                 precision=4,
                 controls_step=0.1,
             ),
-            GammaOptionInput(),
+            BoolInput("Invert Gamma", default=False),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageAdjustmentCategory
@@ -33,17 +33,13 @@ class GammaNode(NodeBase):
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
 
-    def run(self, img: np.ndarray, gamma: float, gamma_option: str) -> np.ndarray:
+    def run(self, img: np.ndarray, gamma: float, invert_gamma: bool) -> np.ndarray:
         if gamma == 1:
             # noop
             return img
 
-        if gamma_option == "normal":
-            pass
-        elif gamma_option == "invert":
+        if invert_gamma:
             gamma = 1 / gamma
-        else:
-            assert False, f"Invalid gamma option: {gamma_option}"
 
         # single-channel grayscale
         if img.ndim == 2:

@@ -82,7 +82,6 @@ struct DdsMipMaps;
 struct EdgeFilter;
 struct FillMethod;
 struct FlipAxis;
-struct GammaOption;
 struct HeightMapSource;
 struct ImageExtension;
 struct InterpolationMode;
