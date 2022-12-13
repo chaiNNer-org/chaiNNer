@@ -922,6 +922,14 @@ const fixNumbers = (data) => {
     return data;
 };
 
+const clearEdgeData = (data) => {
+    data.edges.forEach((edge) => {
+        edge.data = {};
+    });
+
+    return data;
+};
+
 const gammaCheckbox = (data) => {
     data.nodes.forEach((node) => {
         if (node.data.schemaId === 'chainner:image:gamma') {
@@ -978,6 +986,7 @@ const migrations = [
     convertNormalGenerator,
     convertColorSpaceFromDetectors,
     fixNumbers,
+    clearEdgeData,
     gammaCheckbox,
 ];
 
