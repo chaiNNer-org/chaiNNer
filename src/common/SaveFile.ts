@@ -69,27 +69,34 @@ export class SaveFile {
 
     static stringify(content: SaveData, version: Version): string {
         const { nodes, edges, viewport } = content;
-        const sanitizedNodes = nodes.map<Node<NodeData>>((n) => ({
-            data: {
-                schemaId: n.data.schemaId,
-                inputData: n.data.inputData,
-                inputSize: n.data.inputSize,
-                id: n.data.id,
-                iteratorSize: n.data.iteratorSize,
-                isDisabled: n.data.isDisabled,
-                isLocked: n.data.isLocked,
-                parentNode: n.data.parentNode,
-            },
-            id: n.id,
-            position: n.position,
-            type: n.type,
-            selected: n.selected,
-            height: n.height,
-            width: n.width,
-            zIndex: n.zIndex,
-            parentNode: n.parentNode,
-        }));
-        const sanitizedContent = { nodes: sanitizedNodes, edges, viewport };
+
+        const sanitizedContent: RawSaveFile['content'] = {
+            nodes: nodes.map(
+                (n): Node<NodeData> => ({
+                    data: {
+                        schemaId: n.data.schemaId,
+                        inputData: n.data.inputData,
+                        inputSize: n.data.inputSize,
+                        id: n.data.id,
+                        iteratorSize: n.data.iteratorSize,
+                        isDisabled: n.data.isDisabled,
+                        isLocked: n.data.isLocked,
+                        parentNode: n.data.parentNode,
+                    },
+                    id: n.id,
+                    position: n.position,
+                    type: n.type,
+                    selected: n.selected,
+                    height: n.height,
+                    width: n.width,
+                    zIndex: n.zIndex,
+                    parentNode: n.parentNode,
+                })
+            ),
+            edges: edges.map((e): Edge<EdgeData> => ({ ...e, data: {} })),
+            viewport,
+        };
+
         const data: Required<RawSaveFile> = {
             version,
             content: sanitizedContent,

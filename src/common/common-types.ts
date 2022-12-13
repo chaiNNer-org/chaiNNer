@@ -214,7 +214,6 @@ export interface NodeData {
     readonly minHeight?: number;
 }
 export interface EdgeData {
-    readonly complete?: boolean;
     sourceX?: number;
     sourceY?: number;
     targetX?: number;

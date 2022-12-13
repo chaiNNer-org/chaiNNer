@@ -5,9 +5,7 @@ Object {
   "edges": Array [
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "63622b46-a037-4ce3-b6b9-3c8f84c4729c",
       "source": "a548dbd5-faf8-4ec5-a802-d2dce26057e0",
       "sourceHandle": "a548dbd5-faf8-4ec5-a802-d2dce26057e0-0",
@@ -18,9 +16,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "ff04dcb9-e700-43ef-a91d-d26c1061de05",
       "source": "8c494f8c-b566-4ded-a787-ea1c173b0538",
       "sourceHandle": "8c494f8c-b566-4ded-a787-ea1c173b0538-0",
@@ -31,9 +27,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "17e27305-dda3-4a49-a511-b913b73fd1b1",
       "source": "16dfce4e-01c5-4245-b147-d98395279949",
       "sourceHandle": "16dfce4e-01c5-4245-b147-d98395279949-0",
@@ -44,9 +38,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "6304c53f-441f-48b3-830e-a6a0a3b3b287",
       "source": "9d585b34-0ff9-454d-8641-08e4fdcd7dcc",
       "sourceHandle": "9d585b34-0ff9-454d-8641-08e4fdcd7dcc-0",
@@ -57,9 +49,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "a1229db0-7945-41c1-9853-77275a2e1b17",
       "source": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1",
       "sourceHandle": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1-0",
@@ -70,9 +60,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "2dcd7c05-01ce-4500-b35b-390d0e6ed4ac",
       "source": "f840ac55-5d59-4a39-8315-2e9b962e66b4",
       "sourceHandle": "f840ac55-5d59-4a39-8315-2e9b962e66b4-0",
@@ -83,9 +71,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "1f927646-93ec-4e84-afb9-c57ed5396fd6",
       "source": "f840ac55-5d59-4a39-8315-2e9b962e66b4",
       "sourceHandle": "f840ac55-5d59-4a39-8315-2e9b962e66b4-0",
@@ -96,9 +82,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "156be7a7-729d-455c-ad72-1a204f0085ac",
       "source": "25e041c5-4bc8-4caf-b42d-051e40b4af8f",
       "sourceHandle": "25e041c5-4bc8-4caf-b42d-051e40b4af8f-0",
@@ -109,9 +93,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "98884ce6-ec19-4ef1-9f37-308bf37c271f",
       "source": "29e944f4-6c54-4f21-ac9f-502b499666cf",
       "sourceHandle": "29e944f4-6c54-4f21-ac9f-502b499666cf-0",
@@ -122,9 +104,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "38a0892d-3099-45f2-93c5-801be4eaca63",
       "source": "a725b9e8-4b52-45ac-876e-b6bed86fefc2",
       "sourceHandle": "a725b9e8-4b52-45ac-876e-b6bed86fefc2-0",
@@ -135,9 +115,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "f1abb4c9-d5e6-4c11-b8d1-4ce7b5b18980",
       "source": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1",
       "sourceHandle": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1-0",
@@ -148,9 +126,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "3a762d4f-59b1-489b-aabf-1353a92ffdb6",
       "source": "681c81d7-5ff5-40bb-96e0-a56adeffe09d",
       "sourceHandle": "681c81d7-5ff5-40bb-96e0-a56adeffe09d-0",
@@ -161,9 +137,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "5b9e0649-5c85-46d9-9caf-2d430eb52530",
       "source": "bd114a6b-1c75-4009-8989-b35fc4ba1f74",
       "sourceHandle": "bd114a6b-1c75-4009-8989-b35fc4ba1f74-0",
@@ -174,9 +148,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "b4e8a304-a841-4ce3-ba95-38aec0833c96",
       "source": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed",
       "sourceHandle": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed-0",
@@ -187,9 +159,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "14fc7efc-4ee9-4657-a4b0-c44525bf4f82",
       "source": "1cb633d8-20a1-4076-a9d9-589fde1ce979",
       "sourceHandle": "1cb633d8-20a1-4076-a9d9-589fde1ce979-0",
@@ -200,9 +170,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "7fc9cc98-46ce-4850-8143-54c3f8be366e",
       "source": "95eba862-eae0-4460-99bd-8251a4777df8",
       "sourceHandle": "95eba862-eae0-4460-99bd-8251a4777df8-0",
@@ -213,9 +181,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "27d55f0d-b6ab-423e-969c-ea202c904052",
       "source": "79dbff25-fde6-4c5c-9214-26a5d5cc1632",
       "sourceHandle": "79dbff25-fde6-4c5c-9214-26a5d5cc1632-0",
@@ -226,9 +192,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "e6adc9ea-055e-4c83-a317-9c8d5695e133",
       "source": "e029ec9d-61b3-4872-9d0f-1d730bd4fa24",
       "sourceHandle": "e029ec9d-61b3-4872-9d0f-1d730bd4fa24-0",
@@ -239,9 +203,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "ad0c3fac-7651-4b6b-a137-d07c863afca3",
       "source": "9223f402-191d-432d-9643-a41fdaa78a51",
       "sourceHandle": "9223f402-191d-432d-9643-a41fdaa78a51-0",
@@ -252,9 +214,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "0659869b-2e2e-45d3-8075-13e98d266eda",
       "source": "16dfce4e-01c5-4245-b147-d98395279949",
       "sourceHandle": "16dfce4e-01c5-4245-b147-d98395279949-3",
@@ -265,9 +225,7 @@ Object {
     },
     Object {
       "animated": false,
-      "data": Object {
-        "complete": false,
-      },
+      "data": Object {},
       "id": "1ce4a40b-3a7e-440e-93cf-123fd6dd9ce7",
       "source": "9223f402-191d-432d-9643-a41fdaa78a51",
       "sourceHandle": "9223f402-191d-432d-9643-a41fdaa78a51-0",
@@ -4357,14 +4315,12 @@ Object {
 
 exports[`Write save file big ol test.chn 1`] = `
 Object {
-  "checksum": "07674573f1c7f92712ad52d0850dda75",
+  "checksum": "f74ad3bcaed84b5b46366781974d9667",
   "content": Object {
     "edges": Array [
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "63622b46-a037-4ce3-b6b9-3c8f84c4729c",
         "source": "a548dbd5-faf8-4ec5-a802-d2dce26057e0",
         "sourceHandle": "a548dbd5-faf8-4ec5-a802-d2dce26057e0-0",
@@ -4375,9 +4331,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "ff04dcb9-e700-43ef-a91d-d26c1061de05",
         "source": "8c494f8c-b566-4ded-a787-ea1c173b0538",
         "sourceHandle": "8c494f8c-b566-4ded-a787-ea1c173b0538-0",
@@ -4388,9 +4342,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "17e27305-dda3-4a49-a511-b913b73fd1b1",
         "source": "16dfce4e-01c5-4245-b147-d98395279949",
         "sourceHandle": "16dfce4e-01c5-4245-b147-d98395279949-0",
@@ -4401,9 +4353,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "6304c53f-441f-48b3-830e-a6a0a3b3b287",
         "source": "9d585b34-0ff9-454d-8641-08e4fdcd7dcc",
         "sourceHandle": "9d585b34-0ff9-454d-8641-08e4fdcd7dcc-0",
@@ -4414,9 +4364,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "a1229db0-7945-41c1-9853-77275a2e1b17",
         "source": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1",
         "sourceHandle": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1-0",
@@ -4427,9 +4375,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "2dcd7c05-01ce-4500-b35b-390d0e6ed4ac",
         "source": "f840ac55-5d59-4a39-8315-2e9b962e66b4",
         "sourceHandle": "f840ac55-5d59-4a39-8315-2e9b962e66b4-0",
@@ -4440,9 +4386,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "1f927646-93ec-4e84-afb9-c57ed5396fd6",
         "source": "f840ac55-5d59-4a39-8315-2e9b962e66b4",
         "sourceHandle": "f840ac55-5d59-4a39-8315-2e9b962e66b4-0",
@@ -4453,9 +4397,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "156be7a7-729d-455c-ad72-1a204f0085ac",
         "source": "25e041c5-4bc8-4caf-b42d-051e40b4af8f",
         "sourceHandle": "25e041c5-4bc8-4caf-b42d-051e40b4af8f-0",
@@ -4466,9 +4408,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "98884ce6-ec19-4ef1-9f37-308bf37c271f",
         "source": "29e944f4-6c54-4f21-ac9f-502b499666cf",
         "sourceHandle": "29e944f4-6c54-4f21-ac9f-502b499666cf-0",
@@ -4479,9 +4419,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "38a0892d-3099-45f2-93c5-801be4eaca63",
         "source": "a725b9e8-4b52-45ac-876e-b6bed86fefc2",
         "sourceHandle": "a725b9e8-4b52-45ac-876e-b6bed86fefc2-0",
@@ -4492,9 +4430,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "f1abb4c9-d5e6-4c11-b8d1-4ce7b5b18980",
         "source": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1",
         "sourceHandle": "4bcc72a7-9c71-4242-b060-7cc97eb8d2c1-0",
@@ -4505,9 +4441,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "3a762d4f-59b1-489b-aabf-1353a92ffdb6",
         "source": "681c81d7-5ff5-40bb-96e0-a56adeffe09d",
         "sourceHandle": "681c81d7-5ff5-40bb-96e0-a56adeffe09d-0",
@@ -4518,9 +4452,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "5b9e0649-5c85-46d9-9caf-2d430eb52530",
         "source": "bd114a6b-1c75-4009-8989-b35fc4ba1f74",
         "sourceHandle": "bd114a6b-1c75-4009-8989-b35fc4ba1f74-0",
@@ -4531,9 +4463,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "b4e8a304-a841-4ce3-ba95-38aec0833c96",
         "source": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed",
         "sourceHandle": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed-0",
@@ -4544,9 +4474,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "14fc7efc-4ee9-4657-a4b0-c44525bf4f82",
         "source": "1cb633d8-20a1-4076-a9d9-589fde1ce979",
         "sourceHandle": "1cb633d8-20a1-4076-a9d9-589fde1ce979-0",
@@ -4557,9 +4485,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "7fc9cc98-46ce-4850-8143-54c3f8be366e",
         "source": "95eba862-eae0-4460-99bd-8251a4777df8",
         "sourceHandle": "95eba862-eae0-4460-99bd-8251a4777df8-0",
@@ -4570,9 +4496,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "27d55f0d-b6ab-423e-969c-ea202c904052",
         "source": "79dbff25-fde6-4c5c-9214-26a5d5cc1632",
         "sourceHandle": "79dbff25-fde6-4c5c-9214-26a5d5cc1632-0",
@@ -4583,9 +4507,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "e6adc9ea-055e-4c83-a317-9c8d5695e133",
         "source": "e029ec9d-61b3-4872-9d0f-1d730bd4fa24",
         "sourceHandle": "e029ec9d-61b3-4872-9d0f-1d730bd4fa24-0",
@@ -4596,9 +4518,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "ad0c3fac-7651-4b6b-a137-d07c863afca3",
         "source": "9223f402-191d-432d-9643-a41fdaa78a51",
         "sourceHandle": "9223f402-191d-432d-9643-a41fdaa78a51-0",
@@ -4609,9 +4529,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "0659869b-2e2e-45d3-8075-13e98d266eda",
         "source": "16dfce4e-01c5-4245-b147-d98395279949",
         "sourceHandle": "16dfce4e-01c5-4245-b147-d98395279949-3",
@@ -4622,9 +4540,7 @@ Object {
       },
       Object {
         "animated": false,
-        "data": Object {
-          "complete": false,
-        },
+        "data": Object {},
         "id": "1ce4a40b-3a7e-440e-93cf-123fd6dd9ce7",
         "source": "9223f402-191d-432d-9643-a41fdaa78a51",
         "sourceHandle": "9223f402-191d-432d-9643-a41fdaa78a51-0",
