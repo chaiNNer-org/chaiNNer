@@ -922,6 +922,14 @@ const fixNumbers = (data) => {
     return data;
 };
 
+const clearEdgeData = (data) => {
+    data.edges.forEach((edge) => {
+        edge.data = {};
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -967,6 +975,7 @@ const migrations = [
     convertNormalGenerator,
     convertColorSpaceFromDetectors,
     fixNumbers,
+    clearEdgeData,
 ];
 
 export const currentMigration = migrations.length;
