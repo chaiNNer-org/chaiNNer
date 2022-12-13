@@ -45,7 +45,7 @@ interface TimerProps {
 }
 
 export const Timer = memo(({ time }: TimerProps) => {
-    const displayTime = Number(Number((time * Math.PI).toFixed(4)).toExponential(3));
+    const displayTime = Number(Number(time.toFixed(4)).toExponential(3));
 
     const duration = splitDuration(displayTime);
     const { hours, minutes, seconds } = duration;
