@@ -2143,7 +2143,7 @@ Object {
         "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
         "inputData": Object {
           "1": 2.2,
-          "2": "normal",
+          "2": 0,
         },
         "schemaId": "chainner:image:gamma",
       },
@@ -2180,7 +2180,7 @@ Object {
         "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
         "inputData": Object {
           "1": 2.2,
-          "2": "invert",
+          "2": 1,
         },
         "schemaId": "chainner:image:gamma",
       },
@@ -6398,7 +6398,7 @@ Object {
 
 exports[`Write save file gamma.chn 1`] = `
 Object {
-  "checksum": "2f158f034b7d100ee9685a41614618a9",
+  "checksum": "603886d34c9855b71d6a33cf95a791c1",
   "content": Object {
     "edges": Array [
       Object {
@@ -6512,7 +6512,7 @@ Object {
           "id": "964a1f57-98dd-41ef-af1a-d20e19dc2782",
           "inputData": Object {
             "1": 2.2,
-            "2": "normal",
+            "2": 0,
           },
           "schemaId": "chainner:image:gamma",
         },
@@ -6549,7 +6549,7 @@ Object {
           "id": "d5925529-e5c7-4a31-8e84-ec9c3c949868",
           "inputData": Object {
             "1": 2.2,
-            "2": "invert",
+            "2": 1,
           },
           "schemaId": "chainner:image:gamma",
         },
