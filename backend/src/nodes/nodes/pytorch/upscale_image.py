@@ -19,9 +19,10 @@ from ...utils.auto_split_tiles import (
     TileSize,
 )
 from ...utils.auto_split import MaxTileSize
+from ...utils.convenient_upscale import convenient_upscale
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.pytorch_auto_split import pytorch_auto_split
-from ...utils.utils import get_h_w_c, convenient_upscale
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
@@ -117,5 +118,6 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
+            out_nc,
             lambda i: self.upscale(i, model, tile_size, exec_options),
         )
