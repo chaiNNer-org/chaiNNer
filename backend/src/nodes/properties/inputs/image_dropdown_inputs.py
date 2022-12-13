@@ -290,17 +290,6 @@ def TileModeInput():
     )
 
 
-def GammaOptionInput():
-    return DropDownInput(
-        input_type="GammaOption",
-        label="Gamma Option",
-        options=[
-            {"option": "None", "value": "normal"},
-            {"option": "Invert gamma", "value": "invert"},
-        ],
-    )
-
-
 def CaptionPositionInput() -> DropDownInput:
     """Select Caption Position"""
     return DropDownInput(
