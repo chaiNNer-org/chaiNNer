@@ -159,19 +159,6 @@ def RotateExpansionInput() -> DropDownInput:
     )
 
 
-def BlurInput() -> DropDownInput:
-    """Blur option dropdown"""
-    return DropDownInput(
-        input_type="BlurMode",
-        label="Blur Mode",
-        options=[
-            {"option": "Box", "value": 0},
-            {"option": "Blur", "value": 1},
-            {"option": "Gaussian", "value": 2},
-        ],
-    )
-
-
 def BorderInput() -> DropDownInput:
     """CopyMakeBorder option dropdown"""
     return DropDownInput(
