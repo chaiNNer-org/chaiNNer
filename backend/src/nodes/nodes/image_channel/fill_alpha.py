@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, AlphaFillMethodInput, AlphaFillMethod
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.fill_alpha import (
+from ...impl.fill_alpha import (
     convert_to_binary_alpha,
     fill_alpha_fragment_blur,
     fill_alpha_edge_extend,

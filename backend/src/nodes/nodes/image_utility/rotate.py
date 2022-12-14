@@ -13,7 +13,7 @@ from ...properties.inputs import (
     FillColorDropdown,
 )
 from ...properties.outputs import ImageOutput
-from ...utils.pil_utils import rotate
+from ...impl.pil_utils import rotate
 
 
 @NodeFactory.register("chainner:image:rotate")

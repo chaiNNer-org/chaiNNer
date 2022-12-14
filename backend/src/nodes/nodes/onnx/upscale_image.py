@@ -10,12 +10,12 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
-from ...utils.auto_split_tiles import parse_tile_size_input, TileSize
-from ...utils.convenient_upscale import convenient_upscale
-from ...utils.auto_split import ExactTileSize
-from ...utils.onnx_auto_split import onnx_auto_split
-from ...utils.onnx_model import OnnxModel
-from ...utils.onnx_session import get_onnx_session
+from ...impl.upscale.auto_split_tiles import parse_tile_size_input, TileSize
+from ...impl.upscale.convenient_upscale import convenient_upscale
+from ...impl.upscale.auto_split import ExactTileSize
+from ...impl.onnx.auto_split import onnx_auto_split
+from ...impl.onnx.model import OnnxModel
+from ...impl.onnx.session import get_onnx_session
 from ...utils.utils import get_h_w_c
 from ...utils.exec_options import get_execution_options
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Union
 
-from nodes.utils import clipboard
+from ...impl import clipboard
 
 from . import category as UtilityCategory
 

@@ -25,8 +25,8 @@ from ...properties.inputs import (
     BC7Compression,
 )
 from ...utils.utils import get_h_w_c
-from ...utils.image_utils import cv_save_image
-from ...utils.dds import save_as_dds
+from ...impl.image_utils import cv_save_image
+from ...impl.dds import save_as_dds
 
 BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
 BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"

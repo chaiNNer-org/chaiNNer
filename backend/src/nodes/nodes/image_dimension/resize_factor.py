@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, InterpolationInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.pil_utils import resize
+from ...impl.pil_utils import resize
 from ...utils.utils import get_h_w_c, round_half_up
 
 

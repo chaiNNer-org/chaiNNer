@@ -12,7 +12,7 @@ from ...properties.inputs import (
     BoolInput,
 )
 from ...properties.outputs import ImageOutput
-from ...utils.color_transfer import color_transfer, ColorSpace
+from ...impl.color_transfer import color_transfer, ColorSpace
 from ...utils.utils import get_h_w_c
 
 
