@@ -1,10 +1,7 @@
-import os
-import sys
 from typing import Tuple
 
-import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from ..utils.utils import get_h_w_c
@@ -69,50 +66,3 @@ def rotate(
     pimg = Image.fromarray((img * 255).astype("uint8"))
     pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore
     return np.array(pimg).astype("float32") / 255
-
-
-def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
-    """Add caption with PIL"""
-    fontsize = round(size * 0.8)
-    if position == "bottom":
-        img = cv2.copyMakeBorder(
-            img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
-        )
-    elif position == "top":
-        img = cv2.copyMakeBorder(
-            img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
-        )
-    else:
-        raise RuntimeError(f"Unknown position {position}")
-
-    pimg = Image.fromarray((img * 255).astype("uint8"))
-    font_path = os.path.join(
-        os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
-    )
-    font = ImageFont.truetype(font_path, fontsize)
-    h, w, c = get_h_w_c(img)
-    text_x = w // 2
-    if position == "bottom":
-        text_y = h - round(size / 2)
-    elif position == "top":
-        text_y = round(size / 2)
-    font_color = (255,) * c
-
-    fw, _ = font.getsize(caption)
-    # scale font size to fit image
-    if fw > w:
-        font = ImageFont.truetype(font_path, round(fontsize * w / fw))
-
-    d = ImageDraw.Draw(pimg)
-    d.text(
-        (text_x, text_y),
-        caption,
-        font=font,
-        anchor="mm",
-        align="center",
-        fill=font_color,
-    )
-
-    img = np.array(pimg).astype("float32") / 255
-
-    return img

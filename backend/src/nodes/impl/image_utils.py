@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import List
 import os
 import random
 import string
@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .blend_modes import ImageBlender, blend_mode_normalized
 from ..utils.utils import get_h_w_c, Padding
 
 
@@ -37,90 +36,6 @@ class KernelType:
     STRONG = 1
 
 
-def get_opencv_formats():
-    available_formats = [
-        # Bitmaps
-        ".bmp",
-        ".dib",
-        # JPEG
-        ".jpg",
-        ".jpeg",
-        ".jpe",
-        ".jp2",
-        # PNG, WebP, Tiff
-        ".png",
-        ".webp",
-        ".tif",
-        ".tiff",
-        # Portable image format
-        ".pbm",
-        ".pgm",
-        ".ppm",
-        ".pxm",
-        ".pnm",
-        # Sun Rasters
-        ".sr",
-        ".ras",
-        # OpenEXR
-        ".exr",
-        # Radiance HDR
-        ".hdr",
-        ".pic",
-    ]
-    return available_formats
-
-
-def get_pil_formats():
-    available_formats = [
-        # Bitmaps
-        ".bmp",
-        ".dib",
-        ".xbm",
-        # DDS
-        ".dds",
-        # EPS
-        ".eps",
-        # GIF
-        # ".gif",
-        # Icons
-        ".icns",
-        ".ico",
-        # JPEG
-        ".jpg",
-        ".jpeg",
-        ".jfif",
-        ".jp2",
-        ".jpx",
-        # Randoms
-        ".msp",
-        ".pcx",
-        ".sgi",
-        # PNG, WebP, TIFF
-        ".png",
-        ".webp",
-        ".tiff",
-        # APNG
-        # ".apng",
-        # Portable image format
-        ".pbm",
-        ".pgm",
-        ".ppm",
-        ".pnm",
-        # TGA
-        ".tga",
-    ]
-
-    return available_formats
-
-
-def get_available_image_formats():
-    available_formats = []
-    available_formats.extend(get_opencv_formats())
-    available_formats.extend(get_pil_formats())
-    no_dupes = set(available_formats)
-    return sorted(list(no_dupes))
-
-
 def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
     assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
     if in_c == 1:
@@ -138,24 +53,6 @@ def normalize(img: np.ndarray) -> np.ndarray:
     except:
         logger.debug("img dtype is not int")
     return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
-
-
-def normalize_normals(
-    x: np.ndarray, y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    # The square of the length of X and Y
-    l_sq = np.square(x) + np.square(y)
-
-    # If the length of X and Y is >1, then make it 1
-    l = np.sqrt(np.maximum(l_sq, 1))
-    x /= l
-    y /= l
-    l_sq = np.minimum(l_sq, 1, out=l_sq)
-
-    # Compute Z
-    z = np.sqrt(1 - l_sq)
-
-    return x, y, z
 
 
 def get_fill_color(channels: int, fill: int):
@@ -283,92 +180,6 @@ def create_border(
         borderType=border_type,
         value=value,
     )
-
-
-def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
-    """
-    Changes the given image to the background overlayed with the image.
-
-    The 2 given images must be the same size and their values must be between 0 and 1.
-
-    The returned image is guaranteed to have values between 0 and 1.
-
-    If the 2 given images have a different number of channels, then the returned image
-    will have maximum of the two.
-
-    Only grayscale, RGB, and RGBA images are supported.
-    """
-    o_shape = get_h_w_c(overlay)
-    b_shape = get_h_w_c(base)
-
-    assert (
-        o_shape[:2] == b_shape[:2]
-    ), "The overlay and the base image must have the same size"
-
-    def assert_sane(c: int, name: str):
-        sane = c in (1, 3, 4)
-        assert sane, f"The {name} has to be a grayscale, RGB, or RGBA image"
-
-    o_channels = o_shape[2]
-    b_channels = b_shape[2]
-
-    assert_sane(o_channels, "overlay layer")
-    assert_sane(b_channels, "base layer")
-
-    blender = ImageBlender()
-    target_c = max(o_channels, b_channels)
-    needs_clipping = not blend_mode_normalized(blend_mode)
-
-    if target_c == 4 and b_channels < 4:
-        base = as_target_channels(base, 3)
-
-        # The general algorithm below can be optimized because we know that b_a is 1
-        o_a = np.dstack((overlay[:, :, 3],) * 3)
-        o_rgb = overlay[:, :, :3]
-
-        blend_rgb = blender.apply_blend(o_rgb, base, blend_mode)
-        final_rgb = o_a * blend_rgb + (1 - o_a) * base
-        if needs_clipping:
-            final_rgb = np.clip(final_rgb, 0, 1)
-
-        return as_target_channels(final_rgb, 4)
-
-    overlay = as_target_channels(overlay, target_c)
-    base = as_target_channels(base, target_c)
-
-    if target_c in (1, 3):
-        # We don't need to do any alpha blending, so the images can blended directly
-        result = blender.apply_blend(overlay, base, blend_mode)
-        if needs_clipping:
-            result = np.clip(result, 0, 1)
-        return result
-
-    # do the alpha blending for RGBA
-    o_a = overlay[:, :, 3]
-    b_a = base[:, :, 3]
-    o_rgb = overlay[:, :, :3]
-    b_rgb = base[:, :, :3]
-
-    final_a = 1 - (1 - o_a) * (1 - b_a)
-
-    blend_strength = o_a * b_a
-    o_strength = o_a - blend_strength  # type: ignore
-    b_strength = b_a - blend_strength  # type: ignore
-
-    blend_rgb = blender.apply_blend(o_rgb, b_rgb, blend_mode)
-
-    final_rgb = (
-        (np.dstack((o_strength,) * 3) * o_rgb)
-        + (np.dstack((b_strength,) * 3) * b_rgb)
-        + (np.dstack((blend_strength,) * 3) * blend_rgb)
-    )
-    final_rgb /= np.maximum(np.dstack((final_a,) * 3), 0.0001)  # type: ignore
-    final_rgb = np.clip(final_rgb, 0, 1)
-
-    result = np.concatenate([final_rgb, np.expand_dims(final_a, axis=2)], axis=2)
-    if needs_clipping:
-        result = np.clip(result, 0, 1)
-    return result
 
 
 def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:

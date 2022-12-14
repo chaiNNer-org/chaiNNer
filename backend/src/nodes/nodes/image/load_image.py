@@ -15,7 +15,8 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageFileInput
 from ...properties.outputs import LargeImageOutput, DirectoryOutput, TextOutput
 from ...impl.dds import dds_to_png_texconv
-from ...impl.image_utils import get_opencv_formats, get_pil_formats, normalize
+from ...impl.image_formats import get_opencv_formats, get_pil_formats
+from ...impl.image_utils import normalize
 from ...utils.utils import get_h_w_c
 
 
