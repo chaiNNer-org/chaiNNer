@@ -115,7 +115,8 @@ missing_module_errors = set()
 #             except:
 #                 pass
 
-from nodes.builtin import builtin
+from nodes.builtin import main
+from nodes.package_registry import PackageRegistry
 
 
 if len(missing_module_errors) > 0:
@@ -198,7 +199,7 @@ async def nodes(_):
     #         "categoriesMissingNodes": list(missing_categories),
     #     }
     # )
-    packages = [builtin]
+    packages = PackageRegistry.get_registry().values()
     logger.info([x.toDict() for x in packages])
     return json(
         {

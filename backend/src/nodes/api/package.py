@@ -10,7 +10,7 @@ class Package:
         categories: List[Category],
         dependencies: List[str],  # TODO: use an actual dependency class
     ):
-        self.name: str = name
+        self.__name: str = name
         self.description: str = description
 
         self.categories: List[Category] = categories
@@ -18,7 +18,7 @@ class Package:
 
     def toDict(self):
         return {
-            "name": self.name,
+            "name": self.__name,
             "description": self.description,
             "categories": [category.toDict() for category in self.categories],
             "dependencies": self.dependencies,
@@ -32,3 +32,7 @@ class Package:
 
     def __json__(self):
         return self.toDict()
+
+    @property
+    def name(self):
+        return self.__name

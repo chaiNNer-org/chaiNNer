@@ -2,9 +2,9 @@ import os
 
 from sanic.log import logger
 
-from ...api.node_base import NodeBase
-from ...api.node_factory import NodeFactory
-from ...api.inputs import DirectoryInput, NcnnModelInput, TextInput
+from ....api.node_base import NodeBase
+from ....api.node_factory import NodeFactory
+from ....api.inputs import DirectoryInput, NcnnModelInput, TextInput
 from ...utils.ncnn_model import NcnnModelWrapper
 from . import category as NCNNCategory
 

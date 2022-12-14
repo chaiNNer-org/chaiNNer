@@ -1,4 +1,4 @@
-from ...api.category import Category
+from ....api.category import Category
 
 category = Category(
     name="PyTorch",
