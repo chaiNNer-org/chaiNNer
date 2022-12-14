@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { Category, NodeSchema } from '../../../common/common-types';
+import { Category, SubCategory } from '../../../common/common-types';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
@@ -76,26 +76,29 @@ export const RegularAccordionItem = memo(
 
 interface SubcategoriesProps {
     collapsed: boolean;
-    subcategoryMap: Map<string, NodeSchema[]>;
+    subCategories: SubCategory[];
+    category: Category;
 }
 
-export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
+export const SubCategories = memo(({ collapsed, category, subCategories }: SubcategoriesProps) => {
     return (
         <>
-            {[...subcategoryMap].map(([subcategory, nodes]) => (
-                <Box key={subcategory}>
+            {subCategories.map((subCategory) => (
+                <Box key={subCategory.name}>
                     <Center>
                         <SubcategoryHeading
                             collapsed={collapsed}
-                            subcategory={subcategory}
+                            subcategory={subCategory.name}
                         />
                     </Center>
                     <Box>
-                        {nodes.map((node) => (
+                        {subCategory.nodes.map((node) => (
                             <RepresentativeNodeWrapper
+                                category={category}
                                 collapsed={collapsed}
                                 key={node.name}
                                 node={node}
+                                subCategory={subCategory}
                             />
                         ))}
                     </Box>

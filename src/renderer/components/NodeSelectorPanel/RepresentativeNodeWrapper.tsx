@@ -4,7 +4,7 @@ import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../../common/common-types';
+import { Category, NodeSchema, SubCategory } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -26,10 +26,12 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
 interface RepresentativeNodeWrapperProps {
     node: NodeSchema;
     collapsed?: boolean;
+    category: Category;
+    subCategory: SubCategory;
 }
 
 export const RepresentativeNodeWrapper = memo(
-    ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
+    ({ node, category, subCategory, collapsed = false }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
         const reactFlowInstance = useReactFlow();
 
@@ -137,13 +139,13 @@ export const RepresentativeNodeWrapper = memo(
                                 }}
                             >
                                 <RepresentativeNode
-                                    category={node.category}
+                                    category={category.name}
                                     collapsed={collapsed}
                                     createNodeFromSelector={createNodeFromSelector}
                                     icon={node.icon}
                                     name={node.name}
                                     schemaId={node.schemaId}
-                                    subcategory={node.subcategory}
+                                    subcategory={subCategory.name}
                                 />
                             </Center>
                         </Tooltip>

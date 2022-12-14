@@ -19,7 +19,6 @@ class ImViewNode(NodeBase):
         ]
         self.name = "View Image"
         self.icon = "BsEyeFill"
-        self.sub = "Input & Output"
 
         self.side_effects = True
 

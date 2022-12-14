@@ -176,8 +176,6 @@ export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;
-    readonly category: string;
-    readonly subcategory: string;
     readonly description: string;
     readonly icon: string;
     readonly nodeType: NodeType;

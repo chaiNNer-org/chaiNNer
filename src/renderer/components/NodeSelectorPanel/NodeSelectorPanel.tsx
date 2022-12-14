@@ -19,23 +19,18 @@ import {
     Tabs,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { ChangeEventHandler, memo, useMemo, useState } from 'react';
+import { ChangeEventHandler, memo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import {
-    getMatchingNodes,
-    getNodesByCategory,
-    getSubcategories,
-    sortSchemata,
-} from '../../helpers/nodeSearchFuncs';
+import { getMatchingNodes, sortSchemata } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
 import { presets } from './presets';
-import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
+import { RegularAccordionItem, SubCategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 interface SearchBarProps {
@@ -90,7 +85,7 @@ export const NodeSelector = memo(() => {
         searchQuery,
         sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
     );
-    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+    // const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
         SettingsContext,
@@ -98,13 +93,14 @@ export const NodeSelector = memo(() => {
     );
 
     const { favorites } = useNodeFavorites();
-    const favoriteNodes = useMemo(() => {
-        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    }, [byCategories, favorites]);
+    // const favoriteNodes = useMemo(() => {
+    //     return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
+    // }, [byCategories, favorites]);
+    const favoriteNodes = [];
 
     const [showCollapseButtons, setShowCollapseButtons] = useState(false);
 
-    const defaultIndex = Array.from({ length: byCategories.size + 1 }, (_, i) => i);
+    const defaultIndex = 0; // Array.from({ length: byCategories.size + 1 }, (_, i) => i);
     const [accordionIndex, setAccordionIndex] = useState<ExpandedIndex>(defaultIndex);
 
     const accordionIsCollapsed = typeof accordionIndex !== 'number' && accordionIndex.length === 0;
@@ -211,17 +207,20 @@ export const NodeSelector = memo(() => {
                                             noFavorites={favorites.size === 0}
                                         />
                                         {categories.map((category) => {
-                                            const categoryNodes = byCategories.get(category.name);
-                                            const categoryIsMissingNodes =
-                                                categoriesMissingNodes.includes(category.name);
+                                            // const categoryNodes = byCategories.get(category.name);
 
-                                            if (!categoryNodes && !categoryIsMissingNodes) {
-                                                return null;
-                                            }
+                                            // const categoryIsMissingNodes =
+                                            //     categoriesMissingNodes.includes(category.name);
 
-                                            const subcategoryMap = categoryNodes
-                                                ? getSubcategories(categoryNodes)
-                                                : null;
+                                            // if (!categoryNodes && !categoryIsMissingNodes) {
+                                            //     return null;
+                                            // }
+
+                                            // const subcategoryMap = categoryNodes
+                                            //     ? getSubcategories(categoryNodes)
+                                            //     : null;
+
+                                            const { subCategories } = category;
 
                                             return (
                                                 <RegularAccordionItem
@@ -229,18 +228,19 @@ export const NodeSelector = memo(() => {
                                                     collapsed={collapsed}
                                                     key={category.name}
                                                 >
-                                                    {categoryIsMissingNodes && (
+                                                    {/* {categoryIsMissingNodes && (
                                                         <PackageHint
                                                             collapsed={collapsed}
                                                             hint={category.installHint ?? ''}
                                                             packageName={category.name}
                                                             onClick={openDependencyManager}
                                                         />
-                                                    )}
-                                                    {subcategoryMap && (
-                                                        <Subcategories
+                                                    )} */}
+                                                    {subCategories && (
+                                                        <SubCategories
+                                                            category={category}
                                                             collapsed={collapsed}
-                                                            subcategoryMap={subcategoryMap}
+                                                            subCategories={subCategories}
                                                         />
                                                     )}
                                                 </RegularAccordionItem>

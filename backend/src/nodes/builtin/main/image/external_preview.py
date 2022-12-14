@@ -24,7 +24,6 @@ class ImOpenNode(NodeBase):
         self.outputs = []
         self.name = "View Image (external)"
         self.icon = "BsEyeFill"
-        self.sub = "Input & Output"
 
         self.side_effects = True
 

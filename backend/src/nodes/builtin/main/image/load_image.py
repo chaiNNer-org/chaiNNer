@@ -32,7 +32,6 @@ class ImReadNode(NodeBase):
 
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
-        self.sub = "Input & Output"
 
     def read_cv(self, path: str) -> np.ndarray:
         img = None
