@@ -10,7 +10,8 @@ from typing import Any, Dict, List, Optional, TypedDict
 import importlib
 import os
 
-import cv2  # pylint: disable=unused-import
+# pylint: disable-next=unused-import
+import cv2  # type: ignore
 from sanic import Sanic
 from sanic.log import logger, access_logger
 from sanic.request import Request

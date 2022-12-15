@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, Iterable, Optional, Set, TypeVar
+from typing import Dict, Generic, Iterable, Optional, Set, TypeVar
 import gc
 from sanic.log import logger
 
