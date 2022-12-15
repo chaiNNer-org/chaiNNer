@@ -45,8 +45,6 @@ class NodeBase(metaclass=ABCMeta):
         self.side_effects: bool = False
         self.deprecated: bool = False
 
-        self.schema_id = None  # placeholder
-
     @property
     def inputs(self) -> List[BaseInput]:
         return self.__inputs
@@ -100,9 +98,12 @@ class NodeBase(metaclass=ABCMeta):
         """Abstract method to run a node's logic"""
         return
 
-    def toDict(self) -> Dict[str, Any]:
+    def get_schema_id(self, package_author: str, package_name: str) -> str:
+        return f"{package_author}:{package_name}:{self.__class__.__name__.lower()}"
+
+    def toDict(self, package_author: str, package_name: str) -> Dict[str, Any]:
         return {
-            "schemaId": self.schema_id,
+            "schemaId": self.get_schema_id(package_author, package_name),
             "name": self.name,
             # "category": self.category.name,
             "inputs": [x.toDict() for x in self.inputs],

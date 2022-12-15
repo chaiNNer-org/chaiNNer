@@ -15,15 +15,9 @@ class SubCategory:
             [n for n in nodes if n is not None] if nodes is not None else []
         )
 
-    def toDict(self):
+    def toDict(self, package_author: str, package_name: str):
         return {
             "name": self.name,
             "description": self.description,
-            "nodes": [node.toDict() for node in self.nodes],
+            "nodes": [node.toDict(package_author, package_name) for node in self.nodes],
         }
-
-    def __repr__(self):
-        return str(self.toDict())
-
-    def __iter__(self):
-        yield from self.toDict().items()

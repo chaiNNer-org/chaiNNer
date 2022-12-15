@@ -32,7 +32,7 @@ BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"
 
 
 @NodeFactory.register("chainner:image:save")
-class ImWriteNode(NodeBase):
+class Save(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Save image to file at a specified directory."

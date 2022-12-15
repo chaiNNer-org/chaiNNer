@@ -8,8 +8,7 @@ from ....api.inputs import ImageInput
 from ....api.outputs import LargeImageOutput
 
 
-@NodeFactory.register("chainner:image:view")
-class ImViewNode(NodeBase):
+class View(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "See an inline preview of the image in the editor."

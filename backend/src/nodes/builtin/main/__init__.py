@@ -5,8 +5,9 @@ from ...api.package import Package
 
 PackageRegistry.register(
     Package(
-        name="chaiNNer",
-        description="chaiNNer's built-in nodes",
+        author="chaiNNer",
+        name="image",
+        description="chaiNNer's built-in image nodes",
         categories=[image_category],
         dependencies=[],
     )

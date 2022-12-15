@@ -19,7 +19,7 @@ from ....utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:load")
-class ImReadNode(NodeBase):
+class Load(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Load image from specified file."

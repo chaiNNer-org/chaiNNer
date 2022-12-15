@@ -6,10 +6,10 @@ input_and_output = SubCategory(
     name="Input & Output",
     description="Nodes for reading and writing image data.",
     nodes=[
-        i("load_image", "ImReadNode"),
-        i("save_image", "ImWriteNode"),
-        i("view_image", "ImViewNode"),
-        i("external_preview", "ImOpenNode"),
+        i("load_image", "Load"),
+        i("save_image", "Save"),
+        i("view_image", "View"),
+        i("external_preview", "Preview"),
     ],
 )
 

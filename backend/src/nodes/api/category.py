@@ -22,18 +22,14 @@ class Category:
             sub_categories if sub_categories is not None else []
         )
 
-    def toDict(self):
+    def toDict(self, package_author: str, package_name: str):
         return {
             "name": self.name,
             "description": self.description,
             "icon": self.icon,
             "color": self.color,
             "installHint": self.install_hint,
-            "subCategories": [sub.toDict() for sub in self.sub_categories],
+            "subCategories": [
+                sub.toDict(package_author, package_name) for sub in self.sub_categories
+            ],
         }
-
-    def __repr__(self):
-        return str(self.toDict())
-
-    def __iter__(self):
-        yield from self.toDict().items()

@@ -200,6 +200,7 @@ async def nodes(_):
     #     }
     # )
     packages = PackageRegistry.get_registry().values()
+
     logger.info([x.toDict() for x in packages])
     return json(
         {
@@ -297,7 +298,7 @@ async def run_individual(request: Request):
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
-        node_instance = NodeFactory.get_node(full_data["schemaId"])
+        node_instance = PackageRegistry.get_node(full_data["schemaId"])
 
         # Enforce that all inputs match the expected input schema
         enforced_inputs = []

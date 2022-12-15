@@ -16,7 +16,7 @@ from ....api.inputs import ImageInput
 
 
 @NodeFactory.register("chainner:image:preview")
-class ImOpenNode(NodeBase):
+class Preview(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Open the image in your default image viewer."
