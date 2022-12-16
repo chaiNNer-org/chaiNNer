@@ -120,7 +120,7 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
 
     switch (kind) {
         case 'path': {
-            const maxLength = 16;
+            const maxLength = 14;
             return (
                 <Tooltip
                     hasArrow
