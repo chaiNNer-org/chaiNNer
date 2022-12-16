@@ -1,4 +1,5 @@
-from typing import List, Union, Tuple
+from __future__ import annotations
+from typing import Dict, List
 import math
 import numpy as np
 import cv2
@@ -29,14 +30,31 @@ HSL_LIKE = ColorSpaceDetector(1003, "HSL", [HSL, HSLA])
 LAB_LIKE = ColorSpaceDetector(1004, "L*a*b*", [LAB, LABA])
 LCH_LIKE = ColorSpaceDetector(1005, "L*C*h°", [LCH, LCHA])
 
-ALPHA_PAIRS: List[Tuple[ColorSpace, ColorSpace]] = [
-    (RGB, RGBA),
-    (YUV, YUVA),
-    (HSV, HSVA),
-    (HSL, HSLA),
-    (LAB, LABA),
-    (LCH, LCHA),
-]
+ALPHA_PAIRS: Dict[ColorSpace, ColorSpace] = {
+    RGB: RGBA,
+    YUV: YUVA,
+    HSV: HSVA,
+    HSL: HSLA,
+    LAB: LABA,
+    LCH: LCHA,
+}
+
+
+def is_alpha_partner(c: ColorSpace) -> bool:
+    """
+    Whether this color space is returned by `get_alpha_partner` for some input.
+    """
+    return c in ALPHA_PAIRS.values()
+
+
+def get_alpha_partner(c: ColorSpace) -> ColorSpace | None:
+    """
+    If the given color does NOT have an alpha channel and there exists another color space that this equivalent to the given one but does have an alpha, then the color space with an alpha channel will be returned, `None` otherwise.
+
+    E.g. RGB will return RGBA and RGBA will return None.
+    """
+    return ALPHA_PAIRS.get(c, None)
+
 
 color_spaces: List[ColorSpace] = [
     RGB,
@@ -54,7 +72,7 @@ color_spaces: List[ColorSpace] = [
     LCH,
     LCHA,
 ]
-color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
+color_spaces_or_detectors: List[ColorSpace | ColorSpaceDetector] = [
     RGB_LIKE,
     GRAY,
     YUV_LIKE,
@@ -301,7 +319,7 @@ conversions: List[Conversion] = [
 
 
 # Add conversions that can be generated because only alpha is different
-for dir_3, dir_4 in ALPHA_PAIRS:
+for dir_3, dir_4 in ALPHA_PAIRS.items():
     assert dir_3.channels == 3
     assert dir_4.channels == 4
 

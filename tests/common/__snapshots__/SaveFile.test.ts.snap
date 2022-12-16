@@ -3317,6 +3317,7 @@ Object {
         "inputData": Object {
           "1": 1000,
           "2": 1,
+          "3": 0,
         },
         "schemaId": "chainner:image:change_colorspace",
       },
@@ -7395,7 +7396,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "cf7e625f9cddef513ad512266184591d",
+  "checksum": "58194428d6da5dd3eeda524547ec702d",
   "content": Object {
     "edges": Array [
       Object {
@@ -7648,6 +7649,7 @@ Object {
           "inputData": Object {
             "1": 1000,
             "2": 1,
+            "3": 0,
           },
           "schemaId": "chainner:image:change_colorspace",
         },

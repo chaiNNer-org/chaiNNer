@@ -6,16 +6,17 @@ from ...impl.pil_utils import InterpolationMethod, RotateExpandCrop
 from ...impl.tile import TileMode
 from ...impl.normals.height import HeightSource
 from ...impl.normals.edge_filter import EdgeFilters
-from ...impl.color.convert_data import color_spaces, color_spaces_or_detectors
+from ...impl.color.convert_data import (
+    color_spaces,
+    color_spaces_or_detectors,
+    is_alpha_partner,
+    get_alpha_partner,
+)
 from ..expression import named
 from .generic_inputs import DropDownInput
 
 
-def ColorSpaceInput(
-    label: str = "Color Space",
-    detector: bool = False,
-) -> DropDownInput:
-    l = color_spaces_or_detectors if detector else color_spaces
+def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
     return DropDownInput(
         input_type="ColorSpace",
         label=label,
@@ -25,7 +26,29 @@ def ColorSpaceInput(
                 "value": c.id,
                 "type": named("ColorSpace", {"channels": c.channels}),
             }
-            for c in l
+            for c in color_spaces_or_detectors
+        ],
+    )
+
+
+def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
+    return DropDownInput(
+        input_type="ColorSpace",
+        label=label,
+        options=[
+            {
+                "option": c.name,
+                "value": c.id,
+                "type": named(
+                    "ColorSpace",
+                    {
+                        "channels": c.channels,
+                        "supportsAlpha": get_alpha_partner(c) is not None,
+                    },
+                ),
+            }
+            for c in color_spaces
+            if not is_alpha_partner(c)
         ],
     )
 

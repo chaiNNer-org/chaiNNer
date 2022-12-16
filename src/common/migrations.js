@@ -941,6 +941,46 @@ const gammaCheckbox = (data) => {
     return data;
 };
 
+const changeColorSpaceAlpha = (data) => {
+    const RGB = 1;
+    const RGBA = 2;
+    const YUV = 3;
+    const HSV = 4;
+    const HSL = 5;
+    const YUVA = 7;
+    const HSVA = 8;
+    const HSLA = 9;
+    const LAB = 10;
+    const LABA = 11;
+    const LCH = 12;
+    const LCHA = 13;
+
+    const mapping = {
+        [RGBA]: RGB,
+        [YUVA]: YUV,
+        [HSVA]: HSV,
+        [HSLA]: HSL,
+        [LABA]: LAB,
+        [LCHA]: LCH,
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const to = node.data.inputData[2];
+            const mapped = mapping[to];
+            if (mapped === undefined) {
+                node.data.inputData[2] = to;
+                node.data.inputData[3] = 0; // output alpha: False
+            } else {
+                node.data.inputData[2] = mapped;
+                node.data.inputData[3] = 1; // output alpha: True
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -988,6 +1028,7 @@ const migrations = [
     fixNumbers,
     clearEdgeData,
     gammaCheckbox,
+    changeColorSpaceAlpha,
 ];
 
 export const currentMigration = migrations.length;

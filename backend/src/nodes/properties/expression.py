@@ -30,6 +30,7 @@ def from_number_json(n: NumberJson) -> Union[int, float]:
 ExpressionJson = Union[
     str,
     int,
+    bool,
     "NumericLiteralTypeJson",
     "IntervalTypeJson",
     "IntIntervalTypeJson",

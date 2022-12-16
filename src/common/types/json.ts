@@ -20,6 +20,7 @@ import { assertNever } from '../util';
 export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 
 export type ExpressionJson =
+    | boolean
     | string
     | number
     | TypeJson
@@ -160,10 +161,12 @@ export const toJson = (e: Expression): ExpressionJson => {
 };
 
 export const fromJson = (e: ExpressionJson): Expression => {
+    if (typeof e === 'boolean') {
+        return new NamedExpression(e ? 'true' : 'false');
+    }
     if (typeof e === 'number') {
         return new NumericLiteralType(e);
     }
-
     if (typeof e === 'string') {
         return parseExpression(new SourceDocument(e, 'unnamed JSON'));
     }
