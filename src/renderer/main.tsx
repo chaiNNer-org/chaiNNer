@@ -56,12 +56,12 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
     }, [] as Category[]);
     const subCategories = categories.reduce((acc, category) => {
         const { subCategories: categorySubcategories } = category;
-        acc.push(...categorySubcategories);
+        acc.push(...categorySubcategories.map((subCategory) => ({ ...subCategory, category })));
         return acc;
     }, [] as SubCategory[]);
     const nodes = subCategories.reduce((acc, subCategory) => {
         const { nodes: subcategoryNodes } = subCategory;
-        acc.push(...subcategoryNodes);
+        acc.push(...subcategoryNodes.map((node) => ({ ...node, subCategory })));
         return acc;
     }, [] as NodeSchema[]);
     const schemata = new SchemaMap(nodes);

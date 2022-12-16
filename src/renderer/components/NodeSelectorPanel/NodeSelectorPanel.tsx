@@ -19,13 +19,13 @@ import {
     Tabs,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { ChangeEventHandler, memo, useState } from 'react';
+import { ChangeEventHandler, memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { getMatchingNodes, sortSchemata } from '../../helpers/nodeSearchFuncs';
+import { createSearchPredicate } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
@@ -80,10 +80,16 @@ export const NodeSelector = memo(() => {
     const [isExperimentalFeatures] = useExperimentalFeatures;
 
     const [searchQuery, setSearchQuery] = useState('');
+    const matchesSearchQuery = createSearchPredicate(searchQuery);
 
-    const matchingNodes = getMatchingNodes(
-        searchQuery,
-        sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
+    // const matchingNodes = getMatchingNodes(
+    //     searchQuery,
+    //     sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
+    // );
+    const matchingCategories = categories.filter((c) =>
+        c.subCategories.some((s) =>
+            s.nodes.some((n) => matchesSearchQuery(`${c.name} ${s.name} ${n.name}`))
+        )
     );
     // const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
@@ -93,14 +99,18 @@ export const NodeSelector = memo(() => {
     );
 
     const { favorites } = useNodeFavorites();
-    // const favoriteNodes = useMemo(() => {
-    //     return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    // }, [byCategories, favorites]);
-    const favoriteNodes = [];
+    const favoriteNodes = useMemo(() => {
+        return categories
+            .map((c) => c.subCategories.map((s) => ({ ...s, category: c })))
+            .flat()
+            .map((s) => s.nodes.map((n) => ({ ...n, subCategory: s })))
+            .flat()
+            .filter((n) => favorites.has(n.schemaId));
+    }, [categories, favorites]);
 
     const [showCollapseButtons, setShowCollapseButtons] = useState(false);
 
-    const defaultIndex = 0; // Array.from({ length: byCategories.size + 1 }, (_, i) => i);
+    const defaultIndex = Array.from({ length: categories.length + 1 }, (_, i) => i);
     const [accordionIndex, setAccordionIndex] = useState<ExpandedIndex>(defaultIndex);
 
     const accordionIsCollapsed = typeof accordionIndex !== 'number' && accordionIndex.length === 0;
@@ -204,9 +214,11 @@ export const NodeSelector = memo(() => {
                                         <FavoritesAccordionItem
                                             collapsed={collapsed}
                                             favoriteNodes={favoriteNodes}
-                                            noFavorites={favorites.size === 0}
+                                            noFavorites={
+                                                favorites.size === 0 || favoriteNodes.length === 0
+                                            }
                                         />
-                                        {categories.map((category) => {
+                                        {matchingCategories.map((category) => {
                                             // const categoryNodes = byCategories.get(category.name);
 
                                             // const categoryIsMissingNodes =

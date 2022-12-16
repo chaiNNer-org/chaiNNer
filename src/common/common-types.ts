@@ -186,6 +186,7 @@ export interface NodeSchema {
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
+    readonly subCategory?: SubCategory;
 }
 
 export interface DefaultNode {
@@ -284,6 +285,7 @@ export interface SubCategory {
     name: string;
     description: string;
     nodes: NodeSchema[];
+    category?: Category;
 }
 
 export interface Category {

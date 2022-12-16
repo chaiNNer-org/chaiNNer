@@ -65,13 +65,17 @@ export const FavoritesAccordionItem = memo(
                 >
                     <Box>
                         {!noFavorites ? (
-                            favoriteNodes.map((node) => (
-                                <RepresentativeNodeWrapper
-                                    collapsed={collapsed}
-                                    key={node.schemaId}
-                                    node={node}
-                                />
-                            ))
+                            favoriteNodes.map((node) => {
+                                return (
+                                    <RepresentativeNodeWrapper
+                                        category={node.subCategory!.category!}
+                                        collapsed={collapsed}
+                                        key={node.schemaId}
+                                        node={node}
+                                        subCategory={node.subCategory!}
+                                    />
+                                );
+                            })
                         ) : (
                             <TextBox
                                 noWrap

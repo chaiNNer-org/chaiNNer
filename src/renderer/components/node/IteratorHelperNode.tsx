@@ -6,7 +6,6 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useValidity } from '../../hooks/useValidity';
 import { NodeBody } from './NodeBody';
@@ -32,10 +31,10 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { icon, category, name } = schema;
+    const { icon, subCategory, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getNodeAccentColor(category);
+    const accentColor = subCategory?.category?.color ?? '#e0e0e0';
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]

@@ -6,8 +6,6 @@ const BLANK_SCHEMA: NodeSchema = {
     outputs: [],
     groupLayout: [],
     icon: '',
-    category: '',
-    subcategory: '',
     name: '',
     description: '',
     nodeType: 'regularNode',

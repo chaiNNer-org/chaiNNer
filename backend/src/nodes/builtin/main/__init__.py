@@ -5,7 +5,7 @@ from ...api.package import Package
 
 PackageRegistry.register(
     Package(
-        author="chaiNNer",
+        author="chainner",
         name="image",
         description="chaiNNer's built-in image nodes",
         categories=[image_category],
