@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.image_utils import normalize_normals
+from ...impl.normals.util import normalize_normals
 
 
 @NodeFactory.register("chainner:image:add_normals")
@@ -21,9 +21,9 @@ class NormalAdditionNode(NodeBase):
             is guaranteed to be normalized."""
         self.inputs = [
             ImageInput("Normal Map 1", channels=[3, 4]),
-            SliderInput("Strength 1", maximum=100, default=100),
+            SliderInput("Strength 1", maximum=200, default=100),
             ImageInput("Normal Map 2", channels=[3, 4]),
-            SliderInput("Strength 2", maximum=100, default=100),
+            SliderInput("Strength 2", maximum=200, default=100),
         ]
         self.outputs = [
             ImageOutput(

@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.image_utils import normalize_normals
+from ...impl.normals.util import normalize_normals
 
 
 @NodeFactory.register("chainner:image:normalize_normal_map")

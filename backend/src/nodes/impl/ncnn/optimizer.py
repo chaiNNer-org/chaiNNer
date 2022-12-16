@@ -285,7 +285,7 @@ class NcnnOptimizer:
 
     def __fuse_innerproduct_dropout(self):
         for i, layer in enumerate(self.model.layers):
-            if layer == "InnerProduct":
+            if layer.op_type == "InnerProduct":
                 # InnerProduct - Dropout
                 output = layer.outputs[0]
 
@@ -659,7 +659,7 @@ class NcnnOptimizer:
                         continue
                     if self.model.layers[j].num_outputs != 1:
                         continue
-                    if self.model.layers[j].outputs == dropout_input:
+                    if self.model.layers[j].outputs[0] == dropout_input:
                         break
                 else:
                     j -= 1
@@ -721,7 +721,7 @@ class NcnnOptimizer:
 
     def __eliminate_noop(self):
         for i, layer in enumerate(self.model.layers):
-            if layer == "Noop":
+            if layer.op_type == "Noop":
                 if layer.num_inputs == 0:
                     # Noop
                     layer.op_type = "ncnnfused"
@@ -990,7 +990,7 @@ class NcnnOptimizer:
                         continue
                     if self.model.layers[j].num_inputs != 1:
                         continue
-                    if self.model.layers[j].inputs == reduction1_output:
+                    if self.model.layers[j].inputs[0] == reduction1_output:
                         break
                 else:
                     j += 1
@@ -1122,7 +1122,7 @@ class NcnnOptimizer:
 
                     j = i
                     for j in range(i + 1, len(self.model.layers)):
-                        if self.model.layers[j] != "Convolution":
+                        if self.model.layers[j].op_type != "Convolution":
                             continue
                         if self.model.layers[j].num_inputs != 1:
                             continue

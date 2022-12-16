@@ -18,7 +18,7 @@ from ...properties.outputs import (
     TextOutput,
     NumberOutput,
 )
-from ...impl.image_utils import get_available_image_formats
+from ...impl.image_formats import get_available_image_formats
 from ...utils.utils import list_all_files_sorted
 
 PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
