@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
 from ....api.inputs import ImageInput
 from ....api.outputs import LargeImageOutput
 

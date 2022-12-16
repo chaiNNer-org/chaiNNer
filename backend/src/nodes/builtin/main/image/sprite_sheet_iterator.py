@@ -10,7 +10,7 @@ from ....api.node_base import IteratorNodeBase, NodeBase
 from ....api.node_factory import NodeFactory
 from ....api.inputs import IteratorInput, ImageInput, NumberInput
 from ....api.outputs import ImageOutput, NumberOutput
-from ...utils.utils import get_h_w_c
+from ....utils.utils import get_h_w_c
 
 SPRITESHEET_ITERATOR_INPUT_NODE_ID = "chainner:image:spritesheet_iterator_load"
 SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
