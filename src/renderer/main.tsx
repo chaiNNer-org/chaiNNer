@@ -99,6 +99,10 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
         }
     }
 
+    if (errors.length) {
+        throw new Error(errors.join('\n\n'));
+    }
+
     return {
         rawResponse,
         schemata,
