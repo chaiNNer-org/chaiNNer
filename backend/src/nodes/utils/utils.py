@@ -120,6 +120,15 @@ def join_space_case(words: List[str]) -> str:
     return " ".join([x.capitalize() for x in words])
 
 
+def split_file_path(path: str) -> Tuple[str, str, str]:
+    """
+    Returns the base directory, file name, and extension of the given file path.
+    """
+    base, ext = os.path.splitext(path)
+    dirname, basename = os.path.split(base)
+    return dirname, basename, ext
+
+
 def walk_error_handler(exception_instance):
     logger.warning(
         f"Exception occurred during walk: {exception_instance} Continuing..."

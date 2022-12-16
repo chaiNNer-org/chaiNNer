@@ -12,6 +12,7 @@ import numpy as np
 from sanic.log import logger
 
 from .image_utils import cv_save_image
+from ..utils.utils import split_file_path
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__), "texconv"  # type: ignore
@@ -64,7 +65,7 @@ def dds_to_png_texconv(path: str) -> str:
     Converts the given DDS file to PNG by creating a temporary PNG file.
     """
     prefix = uuid.uuid4().hex
-    _, basename = os.path.split(os.path.splitext(path)[0])
+    _, basename, _ = split_file_path(path)
 
     tempdir = mkdtemp(prefix="chaiNNer-")
 
@@ -110,9 +111,7 @@ def save_as_dds(
     See the following page for more information on save options:
     https://github.com/Microsoft/DirectXTex/wiki/Texconv
     """
-    full_name = os.path.basename(path)
-    target_dir = os.path.dirname(path)
-    name, ext = os.path.splitext(full_name)
+    target_dir, name, ext = split_file_path(path)
 
     assert ext == ".dds", "The file to save must end with '.dds'"
 

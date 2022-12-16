@@ -17,7 +17,7 @@ from ...properties.outputs import LargeImageOutput, DirectoryOutput, TextOutput
 from ...impl.dds import dds_to_png_texconv
 from ...impl.image_formats import get_opencv_formats, get_pil_formats
 from ...impl.image_utils import normalize
-from ...utils.utils import get_h_w_c
+from ...utils.utils import get_h_w_c, split_file_path
 
 
 @NodeFactory.register("chainner:image:load")
@@ -84,7 +84,8 @@ class ImReadNode(NodeBase):
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.debug(f"Reading image from path: {path}")
-        _base, ext = os.path.splitext(path)
+
+        dirname, basename, ext = split_file_path(path)
 
         supported_by_cv = ext.lower() in get_opencv_formats()
         supported_by_pil = ext.lower() in get_pil_formats()
@@ -119,5 +120,4 @@ class ImReadNode(NodeBase):
 
         img = normalize(img)
 
-        dirname, basename = os.path.split(os.path.splitext(path)[0])
         return img, dirname, basename

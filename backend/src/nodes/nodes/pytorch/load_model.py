@@ -16,6 +16,7 @@ from ...impl.pytorch.types import PyTorchModel
 from ...impl.pytorch.model_loading import load_state_dict
 from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...utils.unpickler import RestrictedUnpickle
+from ...utils.utils import split_file_path
 
 
 @NodeFactory.register("chainner:pytorch:load_model")
@@ -74,5 +75,5 @@ class LoadModelNode(NodeBase):
                 f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try another."
             )
 
-        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        dirname, basename, _ = split_file_path(path)
         return model, dirname, basename
