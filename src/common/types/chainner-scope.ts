@@ -12,7 +12,7 @@ import {
     union,
 } from '@chainner/navi';
 import { lazy } from '../util';
-import { formatTextPattern, padCenter, padEnd, padStart } from './chainner-builtin';
+import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from './chainner-builtin';
 
 const code = `
 struct null;
@@ -22,18 +22,18 @@ struct Directory { path: string }
 struct AudioFile;
 struct Audio;
 
-struct ImageFile;
+struct ImageFile { path: string }
 struct Image {
     width: uint,
     height: uint,
     channels: int(1..),
 }
 
-struct VideoFile;
+struct VideoFile { path: string }
 struct Video;
 
-struct PthFile;
-struct PtFile;
+struct PthFile { path: string }
+struct PtFile { path: string }
 struct PyTorchScript;
 struct PyTorchModel {
     scale: int(1..),
@@ -52,8 +52,8 @@ let PyTorchSRModel = PyTorchModel {
     subType: "SR"
 };
 
-struct NcnnBinFile;
-struct NcnnParamFile;
+struct NcnnBinFile { path: string }
+struct NcnnParamFile { path: string }
 struct NcnnNetwork {
     scale: int(1..),
     inputChannels: int(1..),
@@ -62,7 +62,7 @@ struct NcnnNetwork {
     fp: string,
 }
 
-struct OnnxFile;
+struct OnnxFile { path: string }
 struct OnnxModel {
     scale: int(1..),
     inputChannels: int(1..),
@@ -138,6 +138,12 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Imag
         }
     }
 }
+
+struct SplitFilePath {
+    dir: Directory,
+    basename: string,
+    ext: string,
+}
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -177,6 +183,9 @@ export const getChainnerScope = lazy((): Scope => {
             intInterval(0, Infinity),
             StringType.instance,
         ])
+    );
+    builder.add(
+        BuiltinFunctionDefinition.unary('splitFilePath', splitFilePath, StringType.instance)
     );
 
     return builder.createScope();

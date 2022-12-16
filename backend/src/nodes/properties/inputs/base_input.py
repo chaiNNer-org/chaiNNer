@@ -25,6 +25,7 @@ class BaseInput:
     ):
         self.input_type: expression.ExpressionJson = input_type
         self.input_conversion: expression.ExpressionJson | None = None
+        self.input_adapt: expression.ExpressionJson | None = None
         self.type_definitions: str | None = None
         self.kind: InputKind = kind
         self.label: str = label
@@ -53,6 +54,7 @@ class BaseInput:
             "id": self.id,
             "type": actual_type,
             "conversion": self.input_conversion,
+            "adapt": self.input_adapt,
             "typeDefinitions": self.type_definitions,
             "kind": self.kind,
             "label": self.label,

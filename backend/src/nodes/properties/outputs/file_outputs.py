@@ -26,11 +26,21 @@ def ImageFileOutput() -> FileOutput:
     return FileOutput("ImageFile", "Image File")
 
 
-def DirectoryOutput(label: str = "Directory") -> FileOutput:
-    """Output for saving to a directory"""
-    return FileOutput("Directory", label, kind="directory")
-
-
 def OnnxFileOutput() -> FileOutput:
     """Output for saving a .onnx file"""
     return FileOutput("OnnxFile", "ONNX Model File")
+
+
+def DirectoryOutput(
+    label: str = "Directory", of_input: int | None = None
+) -> FileOutput:
+    """Output for saving to a directory"""
+    directory_type = (
+        "Directory" if of_input is None else f"splitFilePath(Input{of_input}.path).dir"
+    )
+
+    return FileOutput(
+        file_type=directory_type,
+        label=label,
+        kind="directory",
+    )

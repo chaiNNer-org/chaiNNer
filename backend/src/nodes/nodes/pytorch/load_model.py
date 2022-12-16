@@ -10,7 +10,7 @@ from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import PthFileInput
-from ...properties.outputs import ModelOutput, DirectoryOutput, TextOutput
+from ...properties.outputs import ModelOutput, DirectoryOutput, FileNameOutput
 from ...utils.exec_options import get_execution_options
 from ...impl.pytorch.types import PyTorchModel
 from ...impl.pytorch.model_loading import load_state_dict
@@ -29,8 +29,8 @@ class LoadModelNode(NodeBase):
         self.inputs = [PthFileInput(primary_input=True)]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
-            DirectoryOutput("Model Directory").with_id(2),
-            TextOutput("Model Name").with_id(1),
+            DirectoryOutput("Model Directory", of_input=0).with_id(2),
+            FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
 
         self.category = PyTorchCategory
