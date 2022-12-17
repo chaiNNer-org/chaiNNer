@@ -74,40 +74,6 @@ export const RegularAccordionItem = memo(
     }
 );
 
-interface SubcategoriesProps {
-    collapsed: boolean;
-    subCategories: SubCategory[];
-    category: Category;
-}
-
-export const SubCategories = memo(({ collapsed, category, subCategories }: SubcategoriesProps) => {
-    return (
-        <>
-            {subCategories.map((subCategory) => (
-                <Box key={subCategory.name}>
-                    <Center>
-                        <SubcategoryHeading
-                            collapsed={collapsed}
-                            subcategory={subCategory.name}
-                        />
-                    </Center>
-                    <Box>
-                        {subCategory.nodes.map((node) => (
-                            <RepresentativeNodeWrapper
-                                category={category}
-                                collapsed={collapsed}
-                                key={node.name}
-                                node={node}
-                                subCategory={subCategory}
-                            />
-                        ))}
-                    </Box>
-                </Box>
-            ))}
-        </>
-    );
-});
-
 interface PackageHintProps {
     collapsed: boolean;
     onClick: () => void;

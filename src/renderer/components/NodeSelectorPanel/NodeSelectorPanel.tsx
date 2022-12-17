@@ -30,7 +30,9 @@ import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
 import { presets } from './presets';
-import { RegularAccordionItem, SubCategories } from './RegularAccordionItem';
+import { RegularAccordionItem } from './RegularAccordionItem';
+import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
+import { SubcategoryHeading } from './SubcategoryHeading';
 import { TextBox } from './TextBox';
 
 interface SearchBarProps {
@@ -248,13 +250,27 @@ export const NodeSelector = memo(() => {
                                                             onClick={openDependencyManager}
                                                         />
                                                     )} */}
-                                                    {subCategories && (
-                                                        <SubCategories
-                                                            category={category}
-                                                            collapsed={collapsed}
-                                                            subCategories={subCategories}
-                                                        />
-                                                    )}
+                                                    {subCategories.map((subCategory) => (
+                                                        <Box key={subCategory.name}>
+                                                            <Center>
+                                                                <SubcategoryHeading
+                                                                    collapsed={collapsed}
+                                                                    subcategory={subCategory.name}
+                                                                />
+                                                            </Center>
+                                                            <Box>
+                                                                {subCategory.nodes.map((node) => (
+                                                                    <RepresentativeNodeWrapper
+                                                                        category={category}
+                                                                        collapsed={collapsed}
+                                                                        key={node.name}
+                                                                        node={node}
+                                                                        subCategory={subCategory}
+                                                                    />
+                                                                ))}
+                                                            </Box>
+                                                        </Box>
+                                                    ))}
                                                 </RegularAccordionItem>
                                             );
                                         })}
