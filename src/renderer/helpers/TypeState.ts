@@ -1,11 +1,4 @@
-import {
-    EvaluationError,
-    NonNeverType,
-    NumericLiteralType,
-    StringLiteralType,
-    StructType,
-    Type,
-} from '@chainner/navi';
+import { EvaluationError, NonNeverType, StructType, Type } from '@chainner/navi';
 import log from 'electron-log';
 import { Edge, Node } from 'reactflow';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
@@ -77,19 +70,9 @@ export class TypeState {
                         const inputValue = n.data.inputData[id];
 
                         if (inputValue !== undefined) {
-                            if (definition.inputDataLiterals.has(id)) {
-                                if (typeof inputValue === 'number') {
-                                    return new NumericLiteralType(inputValue);
-                                }
-                                return new StringLiteralType(inputValue);
-                            }
-
-                            const optionTypes = definition.inputOptions.get(id);
-                            if (optionTypes) {
-                                const currentOption = optionTypes.get(inputValue);
-                                if (currentOption) {
-                                    return currentOption;
-                                }
+                            const foo = definition.inputDataAdapters.get(id)?.(inputValue);
+                            if (foo !== undefined) {
+                                return foo;
                             }
                         }
 

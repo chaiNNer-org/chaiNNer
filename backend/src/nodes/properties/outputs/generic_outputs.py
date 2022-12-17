@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .base_output import BaseOutput, OutputKind
 from .. import expression
 
@@ -28,3 +29,13 @@ class TextOutput(BaseOutput):
 
     def validate(self, value) -> None:
         assert isinstance(value, str)
+
+
+def FileNameOutput(label: str = "Name", of_input: int | None = None):
+    output_type = (
+        "string"
+        if of_input is None
+        else f"splitFilePath(Input{of_input}.path).basename"
+    )
+
+    return TextOutput(label=label, output_type=output_type)

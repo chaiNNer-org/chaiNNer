@@ -5,11 +5,13 @@ import {
     StringPrimitive,
     StringType,
     StructType,
+    StructTypeField,
     ValueType,
     builtin,
     intersect,
     literal,
 } from '@chainner/navi';
+import path from 'path';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -218,3 +220,31 @@ export const padCenter = builtin.wrapTernary<
         return NeverType.instance;
     }
 });
+
+export const splitFilePath = builtin.wrapUnary<StringPrimitive, StructType>(
+    (filePath: StringPrimitive) => {
+        if (filePath.type === 'literal') {
+            const base = path.basename(filePath.value);
+            const ext = path.extname(base);
+            const basename = ext ? base.slice(0, -ext.length) : base;
+            return new StructType('SplitFilePath', [
+                new StructTypeField(
+                    'dir',
+                    new StructType('Directory', [
+                        new StructTypeField('path', literal(path.dirname(filePath.value))),
+                    ])
+                ),
+                new StructTypeField('basename', literal(basename)),
+                new StructTypeField('ext', literal(ext)),
+            ]);
+        }
+        return new StructType('SplitFilePath', [
+            new StructTypeField(
+                'dir',
+                new StructType('Directory', [new StructTypeField('path', StringType.instance)])
+            ),
+            new StructTypeField('basename', StringType.instance),
+            new StructTypeField('ext', StringType.instance),
+        ]);
+    }
+);

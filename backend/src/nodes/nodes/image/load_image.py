@@ -13,7 +13,7 @@ from . import category as ImageCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageFileInput
-from ...properties.outputs import LargeImageOutput, DirectoryOutput, TextOutput
+from ...properties.outputs import LargeImageOutput, DirectoryOutput, FileNameOutput
 from ...impl.dds import dds_to_png_texconv
 from ...impl.image_formats import get_opencv_formats, get_pil_formats
 from ...impl.image_utils import normalize
@@ -28,8 +28,8 @@ class ImReadNode(NodeBase):
         self.inputs = [ImageFileInput(primary_input=True)]
         self.outputs = [
             LargeImageOutput(),
-            DirectoryOutput("Image Directory"),
-            TextOutput("Image Name"),
+            DirectoryOutput("Image Directory", of_input=0),
+            FileNameOutput("Image Name", of_input=0),
         ]
 
         self.category = ImageCategory

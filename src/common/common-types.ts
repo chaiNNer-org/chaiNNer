@@ -27,7 +27,22 @@ export type InputSchemaValue = string | number;
 interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
+    /**
+     * Optional type conversion that occurs before the type system checks
+     * whether 2 types are compatible.
+     *
+     * This can be used to implement e.g. number rounding or type wrapping for
+     * edges.
+     */
     readonly conversion?: ExpressionJson | null;
+    /**
+     * Optional type conversion for adapting input data.
+     *
+     * The frontend stores input data as numbers and strings, but inputs may
+     * use different types. This optional conversion allows inputs to convert
+     * input data to compatible types. E.g. the directory input wraps its path.
+     */
+    readonly adapt?: ExpressionJson | null;
     readonly typeDefinitions?: string | null;
     readonly kind: InputKind;
     readonly label: string;

@@ -5,7 +5,7 @@ from typing import Tuple
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
-from ...properties.outputs import NcnnModelOutput, TextOutput
+from ...properties.outputs import NcnnModelOutput, FileNameOutput
 from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from ...impl.ncnn.optimizer import NcnnOptimizer
 from ...utils.utils import split_file_path
@@ -25,7 +25,7 @@ class NcnnLoadModelNode(NodeBase):
         ]
         self.outputs = [
             NcnnModelOutput(kind="ncnn", should_broadcast=True),
-            TextOutput("Model Name"),
+            FileNameOutput("Model Name", of_input=0),
         ]
 
         self.category = NCNNCategory
