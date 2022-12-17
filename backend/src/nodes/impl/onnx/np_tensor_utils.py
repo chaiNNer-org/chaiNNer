@@ -68,8 +68,6 @@ def np2nptensor(
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
-        raise TypeError("Got unexpected object type, expected np.ndarray")
     # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
     # if bgr2rgb:
     #     img = img[

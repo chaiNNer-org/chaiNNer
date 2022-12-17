@@ -81,9 +81,6 @@ def np2tensor(
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    # images expected to be uint8 -> 255
-    if not isinstance(img, np.ndarray):
-        raise TypeError("Got unexpected object type, expected np.ndarray")
 
     # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
     # if bgr2rgb:
@@ -135,8 +132,6 @@ def tensor2np(
     Output:
         img (np array): 3D(H,W,C) or 2D(H,W), [0,255], np.uint8 (default)
     """
-    if not isinstance(img, Tensor):
-        raise TypeError("Got unexpected object type, expected Tensor")
     n_dim = img.dim()
 
     # TODO: Check: could denormalize here in tensor form instead, but end result is the same
