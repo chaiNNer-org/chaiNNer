@@ -12,6 +12,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFileInput
 from ...properties.outputs import OnnxModelOutput, DirectoryOutput, TextOutput
 from ...impl.onnx.model import OnnxModel
+from ...utils.utils import split_file_path
 
 
 @NodeFactory.register("chainner:onnx:load_model")
@@ -48,5 +49,5 @@ class OnnxLoadModelNode(NodeBase):
 
         model_as_string = model.SerializeToString()  # type: ignore
 
-        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        dirname, basename, _ = split_file_path(path)
         return OnnxModel(model_as_string), dirname, basename

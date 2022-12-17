@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Tuple
 
 from ...node_base import NodeBase, group
@@ -9,6 +8,7 @@ from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
 from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from ...impl.ncnn.optimizer import NcnnOptimizer
+from ...utils.utils import split_file_path
 from . import category as NCNNCategory
 
 
@@ -37,6 +37,6 @@ class NcnnLoadModelNode(NodeBase):
         model = NcnnModel.load_from_file(param_path, bin_path)
         NcnnOptimizer(model).optimize()
 
-        model_name = os.path.splitext(os.path.basename(param_path))[0]
+        _, model_name, _ = split_file_path(param_path)
 
         return NcnnModelWrapper(model), model_name

@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from ..utils.utils import get_h_w_c, Padding
+from ..utils.utils import get_h_w_c, Padding, split_file_path
 
 
 class FillColor:
@@ -218,10 +218,10 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
     if path.isascii():
         cv2.imwrite(path, img, params)
     else:
-        extension = os.path.splitext(path)[1]
+        dirname, _, extension = split_file_path(path)
         try:
             temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
-            full_temp_path = os.path.join(os.path.dirname(path), temp_filename)
+            full_temp_path = os.path.join(dirname, temp_filename)
             cv2.imwrite(full_temp_path, img, params)
             os.rename(full_temp_path, path)
         except:
