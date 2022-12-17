@@ -1,6 +1,7 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { InputItem, getUniqueKey } from '../../../common/group-inputs';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
@@ -16,9 +17,16 @@ export const ConditionalEnumGroup = memo(
         group,
         ItemRenderer,
     }: GroupProps<'conditional-enum'>) => {
+        const { schemata } = useContext(BackendContext);
         const { getNodeInputValue } = useContext(GlobalContext);
 
-        const enumInput = inputs[0];
+        const enumInput = useMemo(() => {
+            const schema = schemata.get(schemaId);
+            const input = schema.inputs.find((i) => i.id === group.options.enum);
+            if (!input || input.kind !== 'dropdown') throw new Error('Invalid enum id');
+            return input;
+        }, [schemata, schemaId, group.options.enum]);
+
         const enumValue = getNodeInputValue(enumInput.id, inputData) ?? enumInput.def;
 
         const isNodeInputLocked = useContextSelector(
@@ -27,10 +35,7 @@ export const ConditionalEnumGroup = memo(
         );
 
         const showInput = (input: InputItem, index: number): boolean => {
-            // always show the main dropdown itself
-            if (index === 0) return true;
-
-            const cond = group.options.conditions[index - 1];
+            const cond = group.options.conditions[index];
 
             // enum has the right value
             if (typeof cond === 'object' ? cond.includes(enumValue) : cond === enumValue)

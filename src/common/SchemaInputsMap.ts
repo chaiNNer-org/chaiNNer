@@ -32,7 +32,7 @@ const createInputList = (schema: NodeSchema): readonly InputItem[] => {
 
     for (const { group, inputs } of groups) {
         const name = `${group.kind} group (id: ${group.id}) in ${schema.name} (id: ${schema.schemaId})`;
-        const validity = checkGroupInputs(inputs, group);
+        const validity = checkGroupInputs(inputs, group, schema);
         if (!validity.isValid) {
             throw new Error(`The ${name} is invalid. ${validity.reason}`);
         }

@@ -42,8 +42,14 @@ class ImWriteNode(NodeBase):
             DirectoryInput(has_handle=True),
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
-            group("conditional-enum", {"conditions": [["jpg", "webp"], "dds", "dds"]},)(
-                ImageExtensionDropdown(),
+            ImageExtensionDropdown().with_id(4),
+            group(
+                "conditional-enum",
+                {
+                    "enum": 4,
+                    "conditions": [["jpg", "webp"], "dds", "dds", "dds"],
+                },
+            )(
                 SliderInput(
                     "Quality",
                     minimum=0,
@@ -51,11 +57,14 @@ class ImWriteNode(NodeBase):
                     default=95,
                     slider_step=1,
                 ),
+                DdsFormatDropdown().with_id(6),
                 group(
                     "conditional-enum",
-                    {"conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS]},
+                    {
+                        "enum": 6,
+                        "conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS],
+                    },
                 )(
-                    DdsFormatDropdown().with_id(6),
                     DdsBC7CompressionDropdown().with_id(7),
                     DdsErrorMetricDropdown().with_id(9),
                     BoolInput("Dithering", default=False).with_id(8),

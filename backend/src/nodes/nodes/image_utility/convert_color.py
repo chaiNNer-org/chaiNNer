@@ -7,15 +7,22 @@ from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
+    ColorSpaceDetectorInput,
     ColorSpaceInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
+from ...impl.color.convert_data import color_spaces, get_alpha_partner
 from ...impl.color.convert import (
     convert,
     color_space_from_id,
     color_space_or_detector_from_id,
 )
+
+COLOR_SPACES_WITH_ALPHA_PARTNER = [
+    c.id for c in color_spaces if get_alpha_partner(c) is not None
+]
 
 
 @NodeFactory.register("chainner:image:change_colorspace")
@@ -29,15 +36,27 @@ class ColorConvertNode(NodeBase):
         self.inputs = [
             ImageInput(image_type=expression.Image(channels="Input1.channels")),
             group("from-to-dropdowns")(
-                ColorSpaceInput(label="From", detector=True),
-                ColorSpaceInput(label="To"),
+                ColorSpaceDetectorInput(label="From").with_id(1),
+                ColorSpaceInput(label="To").with_id(2),
+            ),
+            group(
+                "conditional-enum",
+                {"enum": 2, "conditions": [COLOR_SPACES_WITH_ALPHA_PARTNER]},
+            )(
+                BoolInput("Output Alpha", default=False),
             ),
         ]
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
                     size_as="Input0",
-                    channels="Input2.channels",
+                    channels="""
+                    if bool::and(Input2.supportsAlpha, Input3) {
+                        4
+                    } else {
+                        Input2.channels
+                    }
+                    """,
                 )
             )
         ]
@@ -46,11 +65,15 @@ class ColorConvertNode(NodeBase):
         self.icon = "MdColorLens"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, input_: int, output: int) -> np.ndarray:
+    def run(self, img: np.ndarray, input_: int, output: int, alpha: bool) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        return convert(
-            img,
-            color_space_or_detector_from_id(input_),
-            color_space_from_id(output),
-        )
+        from_cs = color_space_or_detector_from_id(input_)
+        to_cs = color_space_from_id(output)
+
+        alpha_cs = get_alpha_partner(to_cs)
+        if alpha and alpha_cs is not None:
+            assert alpha_cs.channels == 4
+            to_cs = alpha_cs
+
+        return convert(img, from_cs, to_cs)

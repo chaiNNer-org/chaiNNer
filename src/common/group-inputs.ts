@@ -5,6 +5,7 @@ import {
     GroupKind,
     Input,
     InputKind,
+    NodeSchema,
     OfKind,
 } from './common-types';
 import { VALID, Validity, invalid } from './Validity';
@@ -20,7 +21,7 @@ export type InputItem = Input | GroupInputItem;
 type InputGuarantees<T extends Record<GroupKind, readonly InputItem[]>> = T;
 
 type DeclaredGroupInputs = InputGuarantees<{
-    'conditional-enum': readonly [DropDownInput, ...InputItem[]];
+    'conditional-enum': readonly InputItem[];
     'from-to-dropdowns': readonly [DropDownInput, DropDownInput];
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
@@ -44,21 +45,21 @@ const allAreOptional = (inputs: readonly InputItem[]): boolean => {
 const groupInputsChecks: {
     [Kind in GroupKind]: (
         inputs: readonly InputItem[],
-        group: OfKind<Group, Kind>
+        group: OfKind<Group, Kind>,
+        schema: NodeSchema
     ) => string | undefined;
 } = {
-    'conditional-enum': (inputs, { options: { conditions } }) => {
+    'conditional-enum': (inputs, { options: { enum: enumId, conditions } }, schema) => {
         if (inputs.length === 0) return 'Expected at least 1 item';
 
-        const dropdown = inputs[0];
+        const dropdown = schema.inputs.find((i) => i.id === enumId);
+        if (!dropdown) return `There is no input with the id ${enumId}`;
         if (dropdown.kind !== 'dropdown') return 'The first item must be a dropdown';
         if (dropdown.hasHandle) return 'The first dropdown must not have a handle';
         const allowed = new Set(dropdown.options.map((o) => o.value));
 
-        if (conditions.length !== inputs.length - 1)
-            return `The number of conditions (${
-                conditions.length
-            }) must match the number of items excluding the first dropdown (${inputs.length - 1}).`;
+        if (conditions.length !== inputs.length)
+            return `The number of conditions (${conditions.length}) must match the number of items (${inputs.length}).`;
 
         for (const cond of conditions) {
             const condition = typeof cond === 'object' ? cond : [cond];
@@ -87,12 +88,16 @@ const groupInputsChecks: {
     },
 };
 
-export const checkGroupInputs = (inputs: readonly InputItem[], group: Group): Validity => {
+export const checkGroupInputs = (
+    inputs: readonly InputItem[],
+    group: Group,
+    schema: NodeSchema
+): Validity => {
     const checkFn = groupInputsChecks[group.kind];
     if (typeof checkFn !== 'function') {
         return invalid(`"${group.kind}" is not a valid group kind.`);
     }
-    const reason = checkFn(inputs, group as never);
+    const reason = checkFn(inputs, group as never, schema);
     if (reason) return invalid(reason);
     return VALID;
 };
