@@ -1,19 +1,20 @@
+from enum import Enum
 import numpy as np
 from ...utils.utils import get_h_w_c
 
 
-class HeightSource:
-    AVG_RGB = 0
+class HeightSource(Enum):
+    AVERAGE_RGB = 0
     MAX_RGB = 1
     # 1 - ((1-r) * (1-g) * (1-b))
     SCREEN_RGB = 2
-    R = 3
-    G = 4
-    B = 5
-    A = 6
+    RED = 3
+    GREEN = 4
+    BLUE = 5
+    ALPHA = 6
 
 
-def get_height_map(img: np.ndarray, source: int) -> np.ndarray:
+def get_height_map(img: np.ndarray, source: HeightSource) -> np.ndarray:
     """
     Converts the given color/grayscale image to a height map.
     """
@@ -21,7 +22,7 @@ def get_height_map(img: np.ndarray, source: int) -> np.ndarray:
 
     assert c in (1, 3, 4), "Only grayscale, RGB, and RGBA images are supported"
 
-    if source == HeightSource.A:
+    if source == HeightSource.ALPHA:
         if c < 4:
             return np.ones((h, w), dtype=np.float32)
         return img[:, :, 3]
@@ -36,15 +37,15 @@ def get_height_map(img: np.ndarray, source: int) -> np.ndarray:
     g = img[:, :, 1]
     b = img[:, :, 0]
 
-    if source == HeightSource.R:
+    if source == HeightSource.RED:
         return r
-    elif source == HeightSource.G:
+    elif source == HeightSource.GREEN:
         return g
-    elif source == HeightSource.B:
+    elif source == HeightSource.BLUE:
         return b
     elif source == HeightSource.MAX_RGB:
         return np.maximum(np.maximum(r, g), b)
-    elif source == HeightSource.AVG_RGB:
+    elif source == HeightSource.AVERAGE_RGB:
         return (r + g + b) / 3
     elif source == HeightSource.SCREEN_RGB:
         return 1 - ((1 - r) * (1 - g) * (1 - b))

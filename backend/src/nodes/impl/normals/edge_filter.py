@@ -1,36 +1,27 @@
-from typing import Literal, Dict, Tuple
+from enum import Enum
+from typing import Dict, Tuple
 import numpy as np
 
-EdgeFilter = Literal[
-    "sobel",
-    "sobel-like-5",
-    "sobel-like-7",
-    "sobel-like-9",
-    "prewitt",
-    "scharr",
-    "4-sample",
-]
 
-
-class EdgeFilters:
-    Sobel: EdgeFilter = "sobel"
-    SobelLike5: EdgeFilter = "sobel-like-5"
-    SobelLike7: EdgeFilter = "sobel-like-7"
-    SobelLike9: EdgeFilter = "sobel-like-9"
-    Prewitt: EdgeFilter = "prewitt"
-    Scharr: EdgeFilter = "scharr"
-    FourSample: EdgeFilter = "4-sample"
+class EdgeFilter(Enum):
+    SOBEL = "sobel"
+    SOBEL_LIKE_5 = "sobel-like-5"
+    SOBEL_LIKE_7 = "sobel-like-7"
+    SOBEL_LIKE_9 = "sobel-like-9"
+    PREWITT = "prewitt"
+    SCHARR = "scharr"
+    FOUR_SAMPLE = "4-sample"
 
 
 FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
-    "sobel": np.array(
+    EdgeFilter.SOBEL: np.array(
         [
             [+1, 0, -1],
             [+2, 0, -2],
             [+1, 0, -1],
         ]
     ),
-    "sobel-like-5": np.array(
+    EdgeFilter.SOBEL_LIKE_5: np.array(
         [
             [1 / 16, 1 / 10, 0, -1 / 10, -1 / 16],
             [1 / 10, 1 / 2.8, 0, -1 / 2.8, -1 / 10],
@@ -39,7 +30,7 @@ FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
             [1 / 16, 1 / 10, 0, -1 / 10, -1 / 16],
         ]
     ),
-    "sobel-like-7": np.array(
+    EdgeFilter.SOBEL_LIKE_7: np.array(
         [
             [1, 2, 3, 0, -3, -2, -1],
             [2, 3, 4, 0, -4, -3, -2],
@@ -50,7 +41,7 @@ FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
             [1, 2, 3, 0, -3, -2, -1],
         ]
     ),
-    "sobel-like-9": np.array(
+    EdgeFilter.SOBEL_LIKE_9: np.array(
         [
             [1, 2, 3, 4, 0, -4, -3, -2, -1],
             [2, 3, 4, 5, 0, -5, -4, -3, -2],
@@ -63,21 +54,21 @@ FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
             [1, 2, 3, 4, 0, -4, -3, -2, -1],
         ]
     ),
-    "prewitt": np.array(
+    EdgeFilter.PREWITT: np.array(
         [
             [+1, 0, -1],
             [+1, 0, -1],
             [+1, 0, -1],
         ]
     ),
-    "scharr": np.array(
+    EdgeFilter.SCHARR: np.array(
         [
             [+3, 0, -3],
             [+10, 0, -10],
             [+3, 0, -3],
         ]
     ),
-    "4-sample": np.array(
+    EdgeFilter.FOUR_SAMPLE: np.array(
         [
             [1, 0, -1],
         ]
