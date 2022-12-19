@@ -451,7 +451,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         options.append({"option": str(size), "value": size})
 
     return DropDownInput(
-        input_type="TileMode",
+        input_type="TileSize",
         label=label,
         options=options,
     )

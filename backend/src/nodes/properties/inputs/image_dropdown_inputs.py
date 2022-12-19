@@ -3,7 +3,6 @@ import cv2
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
 from ...impl.pil_utils import InterpolationMethod
-from ...impl.tile import TileMode
 from ...impl.color.convert_data import (
     color_spaces,
     color_spaces_or_detectors,
@@ -242,23 +241,6 @@ def AdaptiveMethodInput() -> DropDownInput:
             {
                 "option": "Gaussian - C",
                 "value": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            },
-        ],
-    )
-
-
-def TileModeInput():
-    return DropDownInput(
-        input_type="TileMode",
-        label="Tile Mode",
-        options=[
-            {
-                "option": "Tile",
-                "value": TileMode.TILE,
-            },
-            {
-                "option": "Mirror",
-                "value": TileMode.MIRROR,
             },
         ],
     )

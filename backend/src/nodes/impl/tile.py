@@ -1,3 +1,4 @@
+from enum import Enum
 import math
 import numpy as np
 import cv2
@@ -5,12 +6,12 @@ import cv2
 from ..utils.utils import get_h_w_c
 
 
-class TileMode:
+class TileMode(Enum):
     TILE = 0
     MIRROR = 1
 
 
-def tile_image(img: np.ndarray, width: int, height: int, mode: int) -> np.ndarray:
+def tile_image(img: np.ndarray, width: int, height: int, mode: TileMode) -> np.ndarray:
     if mode == TileMode.TILE:
         # do nothing
         pass
