@@ -33,57 +33,6 @@ def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
     return h, w, c
 
 
-def resize_to_side_conditional(
-    w: int, h: int, target: int, side: str, condition: str
-) -> Tuple[int, int]:
-    def compare_conditions(b: int) -> bool:
-        if condition == "both":
-            return False
-        if condition == "downscale":
-            return target > b
-        elif condition == "upscale":
-            return target < b
-        else:
-            raise RuntimeError(f"Unknown condition {condition}")
-
-    if side == "width":
-        if compare_conditions(w):
-            w_new = w
-            h_new = h
-        else:
-            w_new = target
-            h_new = max(round_half_up((target / w) * h), 1)
-
-    elif side == "height":
-        if compare_conditions(h):
-            w_new = w
-            h_new = h
-        else:
-            w_new = max(round_half_up((target / h) * w), 1)
-            h_new = target
-
-    elif side == "shorter side":
-        if compare_conditions(min(h, w)):
-            w_new = w
-            h_new = h
-        else:
-            w_new = max(round_half_up((target / min(h, w)) * w), 1)
-            h_new = max(round_half_up((target / min(h, w)) * h), 1)
-
-    elif side == "longer side":
-        if compare_conditions(max(h, w)):
-            w_new = w
-            h_new = h
-        else:
-            w_new = max(round_half_up((target / max(h, w)) * w), 1)
-            h_new = max(round_half_up((target / max(h, w)) * h), 1)
-
-    else:
-        raise RuntimeError(f"Unknown side selection {side}")
-
-    return w_new, h_new
-
-
 def alphanumeric_sort(value: str) -> List[Union[str, int]]:
     """Key function to sort strings containing numbers by proper
     numerical order."""
