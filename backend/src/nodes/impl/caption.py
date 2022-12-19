@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import sys
 
@@ -8,14 +9,21 @@ from PIL import Image, ImageDraw, ImageFont
 from ..utils.utils import get_h_w_c
 
 
-def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
+class CaptionPosition(Enum):
+    BOTTOM = "bottom"
+    TOP = "top"
+
+
+def add_caption(
+    img: np.ndarray, caption: str, size: int, position: CaptionPosition
+) -> np.ndarray:
     """Add caption with PIL"""
     fontsize = round(size * 0.8)
-    if position == "bottom":
+    if position is CaptionPosition.BOTTOM:
         img = cv2.copyMakeBorder(
             img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
-    elif position == "top":
+    elif position is CaptionPosition.TOP:
         img = cv2.copyMakeBorder(
             img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
@@ -29,9 +37,9 @@ def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.n
     font = ImageFont.truetype(font_path, fontsize)
     h, w, c = get_h_w_c(img)
     text_x = w // 2
-    if position == "bottom":
+    if position is CaptionPosition.BOTTOM:
         text_y = h - round(size / 2)
-    elif position == "top":
+    elif position is CaptionPosition.TOP:
         text_y = round(size / 2)
     font_color = (255,) * c
 

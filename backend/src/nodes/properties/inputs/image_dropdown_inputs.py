@@ -300,24 +300,6 @@ def TileModeInput():
     )
 
 
-def CaptionPositionInput() -> DropDownInput:
-    """Select Caption Position"""
-    return DropDownInput(
-        input_type="CaptionPosition",
-        label="Caption Position",
-        options=[
-            {
-                "option": "Bottom",
-                "value": "bottom",
-            },
-            {
-                "option": "Top",
-                "value": "top",
-            },
-        ],
-    )
-
-
 def EdgeFilterInput() -> DropDownInput:
     return DropDownInput(
         input_type="EdgeFilter",
