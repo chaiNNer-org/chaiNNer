@@ -343,29 +343,6 @@ def IteratorInput():
     return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
 
 
-class AlphaFillMethod:
-    EXTEND_TEXTURE = 1
-    EXTEND_COLOR = 2
-
-
-def AlphaFillMethodInput() -> DropDownInput:
-    """Alpha Fill method option dropdown"""
-    return DropDownInput(
-        input_type="FillMethod",
-        label="Fill method",
-        options=[
-            {
-                "option": "Extend texture",
-                "value": AlphaFillMethod.EXTEND_TEXTURE,
-            },
-            {
-                "option": "Extend color",
-                "value": AlphaFillMethod.EXTEND_COLOR,
-            },
-        ],
-    )
-
-
 def VideoTypeDropdown() -> DropDownInput:
     """Video Type option dropdown"""
     return DropDownInput(

@@ -80,7 +80,6 @@ struct DdsBC7Compression;
 struct DdsErrorMetric;
 struct DdsFormat;
 struct DdsMipMaps;
-struct FillMethod;
 struct FlipAxis;
 struct ImageExtension;
 struct InterpolationMode;
