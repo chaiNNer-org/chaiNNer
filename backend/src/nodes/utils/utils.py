@@ -116,8 +116,17 @@ def join_pascal_case(words: List[str]) -> str:
     return "".join([x.capitalize() for x in words])
 
 
+__ABBREVIATIONS = {"rgb", "rgba"}
+
+
+def smart_capitalize(word: str) -> str:
+    if word in __ABBREVIATIONS:
+        return word.upper()
+    return word.capitalize()
+
+
 def join_space_case(words: List[str]) -> str:
-    return " ".join([x.capitalize() for x in words])
+    return " ".join([smart_capitalize(x) for x in words])
 
 
 def split_file_path(path: str) -> Tuple[str, str, str]:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 
 import cv2
 import numpy as np
@@ -9,16 +10,21 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
     SliderInput,
-    EdgeFilterInput,
     NormalChannelInvertInput,
-    HeightMapSourceInput,
-    NormalMappingAlphaInput,
+    EnumInput,
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...impl.normals.edge_filter import EdgeFilter, get_filter_kernels
-from ...impl.normals.height import get_height_map
+from ...impl.normals.height import get_height_map, HeightSource
 from ...impl.image_utils import get_h_w_c
+
+
+class AlphaOutput(Enum):
+    NONE = "none"
+    UNCHANGED = "unchanged"
+    HEIGHT = "height"
+    ONE = "one"
 
 
 def as_grayscale(img: np.ndarray) -> np.ndarray:
@@ -45,7 +51,11 @@ class NormalMapGenerator(NodeBase):
         self.description = """Generate a normal map from a given image."""
         self.inputs = [
             ImageInput("Image", channels=[1, 3, 4]),
-            HeightMapSourceInput(),
+            EnumInput(
+                HeightSource,
+                label="Height Source",
+                default_value=HeightSource.AVERAGE_RGB,
+            ),
             SliderInput(
                 "Blur/Sharp",
                 minimum=-20,
@@ -71,16 +81,34 @@ class NormalMapGenerator(NodeBase):
                 controls_step=0.1,
                 scale="log-offset",
             ),
-            EdgeFilterInput(),
+            EnumInput(
+                EdgeFilter,
+                label="Filter",
+                default_value=EdgeFilter.SOBEL,
+                option_labels={
+                    EdgeFilter.SOBEL: "Sobel (dUdV) (3x3)",
+                    EdgeFilter.SOBEL_LIKE_5: "Sobel-like (5x5)",
+                    EdgeFilter.SOBEL_LIKE_7: "Sobel-like (7x7)",
+                    EdgeFilter.SOBEL_LIKE_9: "Sobel-like (9x9)",
+                    EdgeFilter.PREWITT: "Prewitt (3x3)",
+                    EdgeFilter.SCHARR: "Scharr (3x3)",
+                    EdgeFilter.FOUR_SAMPLE: "4 Sample (1x3)",
+                },
+            ),
             NormalChannelInvertInput(),
-            NormalMappingAlphaInput(),
+            EnumInput(
+                AlphaOutput,
+                label="Alpha Channel",
+                default_value=AlphaOutput.NONE,
+                option_labels={AlphaOutput.ONE: "Set to 1"},
+            ),
         ]
         self.outputs = [
             ImageOutput(
                 "Normal Map",
                 image_type=expression.Image(
                     size_as="Input0",
-                    channels="match Input7 { NormalMappingAlpha::None => 3, _ => 4 }",
+                    channels="match Input7 { AlphaOutput::None => 3, _ => 4 }",
                 ),
             ),
         ]
@@ -92,13 +120,13 @@ class NormalMapGenerator(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        height_source: int,
+        height_source: HeightSource,
         blur_sharp: float,
         min_z: float,
         scale: float,
         edge_filter: EdgeFilter,
         invert: int,
-        alpha_output: str,
+        alpha_output: AlphaOutput,
     ) -> np.ndarray:
         h, w, c = get_h_w_c(img)
         height = get_height_map(img, height_source)
@@ -132,13 +160,13 @@ class NormalMapGenerator(NodeBase):
         if invert & 2 != 0:
             y = -y
 
-        if alpha_output == "none":
+        if alpha_output is AlphaOutput.NONE:
             a = None
-        elif alpha_output == "height":
+        elif alpha_output is AlphaOutput.HEIGHT:
             a = height
-        elif alpha_output == "unchanged":
+        elif alpha_output is AlphaOutput.UNCHANGED:
             a = np.ones((h, w), dtype=np.float32) if c < 4 else img[:, :, 3]
-        elif alpha_output == "one":
+        elif alpha_output is AlphaOutput.ONE:
             a = np.ones((h, w), dtype=np.float32)
         else:
             assert False, f"Invalid alpha output '{alpha_output}'"
