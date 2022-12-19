@@ -24,11 +24,11 @@ class FlipAxis:
     NONE = 2
 
 
-class BorderType:
-    BLACK = 0
-    REPLICATE = 1
-    WRAP = 3
+class BorderType(Enum):
     REFLECT_MIRROR = 4
+    WRAP = 3
+    REPLICATE = 1
+    BLACK = 0
     TRANSPARENT = 5
 
 
@@ -144,13 +144,11 @@ def as_target_channels(
 
 def create_border(
     img: np.ndarray,
-    border_type: int,
+    border_type: BorderType,
     border: Padding,
 ) -> np.ndarray:
     """
     Returns a new image with a specified border.
-
-    The border type value is expected to come from the `BorderType` class.
     """
 
     if border.empty:
@@ -162,8 +160,9 @@ def create_border(
     else:
         value = 0
 
+    cv_border_type: int = border_type.value
     if border_type == BorderType.TRANSPARENT:
-        border_type = cv2.BORDER_CONSTANT
+        cv_border_type = cv2.BORDER_CONSTANT
         value = 0
         img = as_target_channels(img, 4)
 
@@ -173,7 +172,7 @@ def create_border(
         left=border.left,
         right=border.right,
         bottom=border.bottom,
-        borderType=border_type,
+        borderType=cv_border_type,
         value=value,
     )
 

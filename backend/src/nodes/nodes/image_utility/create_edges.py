@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, BorderInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.image_utils import create_border
+from ...impl.image_utils import create_border, BorderType
 from ...utils.utils import Padding
 
 
@@ -42,7 +42,7 @@ class CreateEdgesNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        border_type: int,
+        border_type: BorderType,
         top: int,
         left: int,
         right: int,

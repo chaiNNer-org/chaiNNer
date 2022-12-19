@@ -11,7 +11,7 @@ from ...impl.color.convert_data import (
     get_alpha_partner,
 )
 from ..expression import named
-from .generic_inputs import DropDownInput
+from .generic_inputs import DropDownInput, EnumInput
 
 
 def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
@@ -162,37 +162,22 @@ def RotateInterpolationInput() -> DropDownInput:
 
 
 def BorderInput() -> DropDownInput:
-    """CopyMakeBorder option dropdown"""
-    return DropDownInput(
-        input_type="BorderType",
-        label="Border Type",
-        options=[
-            {
-                "option": "Reflect (Mirror)",
-                "value": BorderType.REFLECT_MIRROR,
-                "type": "BorderType::ReflectMirror",
-            },
-            {
-                "option": "Wrap (Tile)",
-                "value": BorderType.WRAP,
-                "type": "BorderType::Wrap",
-            },
-            {
-                "option": "Replicate Edges",
-                "value": BorderType.REPLICATE,
-                "type": "BorderType::Replicate",
-            },
-            {
-                "option": "Black",
-                "value": BorderType.BLACK,
-                "type": "BorderType::Black",
-            },
-            {
-                "option": "Transparent",
-                "value": BorderType.TRANSPARENT,
-                "type": "BorderType::Transparent",
-            },
-        ],
+    return EnumInput(
+        BorderType,
+        default_value=BorderType.REFLECT_MIRROR,
+        option_labels={
+            BorderType.REFLECT_MIRROR: "Reflect (Mirror)",
+            BorderType.WRAP: "Wrap (Tile)",
+            BorderType.REPLICATE: "Replicate Edges",
+        },
+        extra_definitions="""
+            def BorderType::getOutputChannels(type: BorderType, channels: uint) {
+                match type {
+                    BorderType::Transparent => 4,
+                    _ => channels
+                }
+            }
+        """,
     )
 
 
