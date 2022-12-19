@@ -9,11 +9,11 @@ from ...properties.inputs import (
     ImageInput,
     SliderInput,
     RotateInterpolationInput,
-    RotateExpansionInput,
+    EnumInput,
     FillColorDropdown,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import rotate
+from ...impl.pil_utils import rotate, RotateSizeChange, FillColor
 
 
 @NodeFactory.register("chainner:image:rotate")
@@ -33,7 +33,14 @@ class RotateNode(NodeBase):
                 unit="°",
             ),
             RotateInterpolationInput(),
-            RotateExpansionInput(),
+            EnumInput(
+                RotateSizeChange,
+                label="Image Dimensions",
+                option_labels={
+                    RotateSizeChange.EXPAND: "Expand to fit",
+                    RotateSizeChange.CROP: "Crop to original",
+                },
+            ),
             FillColorDropdown(),
         ]
         self.outputs = [
@@ -98,6 +105,11 @@ class RotateNode(NodeBase):
         self.sub = "Modification"
 
     def run(
-        self, img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+        self,
+        img: np.ndarray,
+        angle: float,
+        interpolation: int,
+        expand: RotateSizeChange,
+        fill: FillColor,
     ) -> np.ndarray:
         return rotate(img, angle, interpolation, expand, fill)
