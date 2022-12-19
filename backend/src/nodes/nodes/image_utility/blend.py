@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, BlendModeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.blend import blend_images
+from ...impl.blend import blend_images, BlendMode
 from ...impl.image_utils import as_2d_grayscale
 from ...impl.pil_utils import convert_to_BGRA
 from ...utils.utils import get_h_w_c
@@ -44,7 +44,7 @@ class ImBlend(NodeBase):
         self,
         base: np.ndarray,
         ov: np.ndarray,
-        blend_mode: int,
+        blend_mode: BlendMode,
     ) -> np.ndarray:
         """Blend images together"""
 

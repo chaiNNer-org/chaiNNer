@@ -1,3 +1,4 @@
+from enum import Enum
 import cv2
 import numpy as np
 
@@ -5,62 +6,60 @@ from ..utils.utils import get_h_w_c
 from .image_utils import as_target_channels
 
 
-class BlendModes:
-    """Blending mode constants"""
-
+class BlendMode(Enum):
     NORMAL = 0
-    MULTIPLY = 1
     DARKEN = 2
-    LIGHTEN = 3
-    ADD = 4
+    MULTIPLY = 1
     COLOR_BURN = 5
-    COLOR_DODGE = 6
-    REFLECT = 7
-    GLOW = 8
-    OVERLAY = 9
-    DIFFERENCE = 10
-    NEGATION = 11
+    LINEAR_BURN = 22
+    LIGHTEN = 3
     SCREEN = 12
-    XOR = 13
-    SUBTRACT = 14
-    DIVIDE = 15
-    EXCLUSION = 16
+    COLOR_DODGE = 6
+    ADD = 4
+    OVERLAY = 9
     SOFT_LIGHT = 17
     HARD_LIGHT = 18
     VIVID_LIGHT = 19
     LINEAR_LIGHT = 20
     PIN_LIGHT = 21
-    LINEAR_BURN = 22
+    REFLECT = 7
+    GLOW = 8
+    DIFFERENCE = 10
+    EXCLUSION = 16
+    NEGATION = 11
+    SUBTRACT = 14
+    DIVIDE = 15
+    XOR = 13
 
 
 __normalized = {
-    BlendModes.NORMAL: True,
-    BlendModes.MULTIPLY: True,
-    BlendModes.DARKEN: True,
-    BlendModes.LIGHTEN: True,
-    BlendModes.ADD: False,
-    BlendModes.COLOR_BURN: False,
-    BlendModes.COLOR_DODGE: False,
-    BlendModes.REFLECT: False,
-    BlendModes.GLOW: False,
-    BlendModes.OVERLAY: True,
-    BlendModes.DIFFERENCE: True,
-    BlendModes.NEGATION: True,
-    BlendModes.SCREEN: True,
-    BlendModes.XOR: True,
-    BlendModes.SUBTRACT: False,
-    BlendModes.DIVIDE: False,
-    BlendModes.EXCLUSION: True,
-    BlendModes.SOFT_LIGHT: True,
-    BlendModes.HARD_LIGHT: True,
-    BlendModes.VIVID_LIGHT: False,
-    BlendModes.LINEAR_LIGHT: False,
-    BlendModes.PIN_LIGHT: True,
-    BlendModes.LINEAR_BURN: False,
+    BlendMode.NORMAL: True,
+    BlendMode.MULTIPLY: True,
+    BlendMode.DARKEN: True,
+    BlendMode.LIGHTEN: True,
+    BlendMode.ADD: False,
+    BlendMode.COLOR_BURN: False,
+    BlendMode.COLOR_DODGE: False,
+    BlendMode.REFLECT: False,
+    BlendMode.GLOW: False,
+    BlendMode.OVERLAY: True,
+    BlendMode.DIFFERENCE: True,
+    BlendMode.NEGATION: True,
+    BlendMode.SCREEN: True,
+    BlendMode.XOR: True,
+    BlendMode.SUBTRACT: False,
+    BlendMode.DIVIDE: False,
+    BlendMode.EXCLUSION: True,
+    BlendMode.SOFT_LIGHT: True,
+    BlendMode.HARD_LIGHT: True,
+    BlendMode.VIVID_LIGHT: False,
+    BlendMode.LINEAR_LIGHT: False,
+    BlendMode.PIN_LIGHT: True,
+    BlendMode.LINEAR_BURN: False,
 }
 
 
-def blend_mode_normalized(blend_mode: int) -> bool:
+def blend_mode_normalized(blend_mode: BlendMode) -> bool:
     """
     Returns whether the given blend mode is guaranteed to produce normalized results (value between 0 and 1).
     """
@@ -72,32 +71,34 @@ class ImageBlender:
 
     def __init__(self):
         self.modes = {
-            BlendModes.NORMAL: self.__normal,
-            BlendModes.MULTIPLY: self.__multiply,
-            BlendModes.DARKEN: self.__darken,
-            BlendModes.LIGHTEN: self.__lighten,
-            BlendModes.ADD: self.__add,
-            BlendModes.COLOR_BURN: self.__color_burn,
-            BlendModes.COLOR_DODGE: self.__color_dodge,
-            BlendModes.REFLECT: self.__reflect,
-            BlendModes.GLOW: self.__glow,
-            BlendModes.OVERLAY: self.__overlay,
-            BlendModes.DIFFERENCE: self.__difference,
-            BlendModes.NEGATION: self.__negation,
-            BlendModes.SCREEN: self.__screen,
-            BlendModes.XOR: self.__xor,
-            BlendModes.SUBTRACT: self.__subtract,
-            BlendModes.DIVIDE: self.__divide,
-            BlendModes.EXCLUSION: self.__exclusion,
-            BlendModes.SOFT_LIGHT: self.__soft_light,
-            BlendModes.HARD_LIGHT: self.__hard_light,
-            BlendModes.VIVID_LIGHT: self.__vivid_light,
-            BlendModes.LINEAR_LIGHT: self.__linear_light,
-            BlendModes.PIN_LIGHT: self.__pin_light,
-            BlendModes.LINEAR_BURN: self.__linear_burn,
+            BlendMode.NORMAL: self.__normal,
+            BlendMode.MULTIPLY: self.__multiply,
+            BlendMode.DARKEN: self.__darken,
+            BlendMode.LIGHTEN: self.__lighten,
+            BlendMode.ADD: self.__add,
+            BlendMode.COLOR_BURN: self.__color_burn,
+            BlendMode.COLOR_DODGE: self.__color_dodge,
+            BlendMode.REFLECT: self.__reflect,
+            BlendMode.GLOW: self.__glow,
+            BlendMode.OVERLAY: self.__overlay,
+            BlendMode.DIFFERENCE: self.__difference,
+            BlendMode.NEGATION: self.__negation,
+            BlendMode.SCREEN: self.__screen,
+            BlendMode.XOR: self.__xor,
+            BlendMode.SUBTRACT: self.__subtract,
+            BlendMode.DIVIDE: self.__divide,
+            BlendMode.EXCLUSION: self.__exclusion,
+            BlendMode.SOFT_LIGHT: self.__soft_light,
+            BlendMode.HARD_LIGHT: self.__hard_light,
+            BlendMode.VIVID_LIGHT: self.__vivid_light,
+            BlendMode.LINEAR_LIGHT: self.__linear_light,
+            BlendMode.PIN_LIGHT: self.__pin_light,
+            BlendMode.LINEAR_BURN: self.__linear_burn,
         }
 
-    def apply_blend(self, a: np.ndarray, b: np.ndarray, blend_mode: int) -> np.ndarray:
+    def apply_blend(
+        self, a: np.ndarray, b: np.ndarray, blend_mode: BlendMode
+    ) -> np.ndarray:
         return self.modes[blend_mode](a, b)
 
     def __normal(self, a: np.ndarray, _: np.ndarray) -> np.ndarray:
@@ -181,7 +182,7 @@ class ImageBlender:
         return a + b - 1
 
 
-def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
+def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: BlendMode):
     """
     Changes the given image to the background overlayed with the image.
 

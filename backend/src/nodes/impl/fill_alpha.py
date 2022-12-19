@@ -4,7 +4,7 @@ import math
 import cv2
 import numpy as np
 
-from .blend import BlendModes, blend_images
+from .blend import BlendMode, blend_images
 from ..utils.utils import get_h_w_c
 
 
@@ -87,7 +87,7 @@ def fill_alpha_fragment_blur(img: np.ndarray) -> np.ndarray:
         blurred = fragment_blur(img, 5, i, 1 << i)
         # Blurred tends to be a bit too transparent
         with_self_as_background(blurred)
-        result = blend_images(result, blurred, BlendModes.NORMAL)
+        result = blend_images(result, blurred, BlendMode.NORMAL)
 
     return result
 
@@ -130,5 +130,5 @@ def fill_alpha_edge_extend(img: np.ndarray, distance: int) -> np.ndarray:
         r[:, :, 2] *= f
         r[:, :, 3] = np.minimum(r[:, :, 3], 1)
 
-        img = blend_images(img, r, BlendModes.NORMAL)
+        img = blend_images(img, r, BlendMode.NORMAL)
     return img

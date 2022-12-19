@@ -7,7 +7,7 @@ from sanic.log import logger
 from .. import expression
 
 from .base_input import BaseInput
-from ...impl.blend import BlendModes as bm
+from ...impl.blend import BlendMode
 from ...impl.image_utils import FillColor, normalize
 from ...utils.utils import (
     split_snake_case,
@@ -359,34 +359,11 @@ def VideoPresetDropdown() -> DropDownInput:
 
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
-    return DropDownInput(
-        input_type="BlendMode",
-        label="Blend Mode",
-        options=[
-            {"option": "Normal", "value": bm.NORMAL},
-            {"option": "Darken", "value": bm.DARKEN},
-            {"option": "Multiply", "value": bm.MULTIPLY},
-            {"option": "Color Burn", "value": bm.COLOR_BURN},
-            {"option": "Linear Burn", "value": bm.LINEAR_BURN},
-            {"option": "Lighten", "value": bm.LIGHTEN},
-            {"option": "Screen", "value": bm.SCREEN},
-            {"option": "Color Dodge", "value": bm.COLOR_DODGE},
-            {"option": "Linear Dodge (Add)", "value": bm.ADD},
-            {"option": "Overlay", "value": bm.OVERLAY},
-            {"option": "Soft Light", "value": bm.SOFT_LIGHT},
-            {"option": "Hard Light", "value": bm.HARD_LIGHT},
-            {"option": "Vivid Light", "value": bm.VIVID_LIGHT},
-            {"option": "Linear Light", "value": bm.LINEAR_LIGHT},
-            {"option": "Pin Light", "value": bm.PIN_LIGHT},
-            {"option": "Reflect", "value": bm.REFLECT},
-            {"option": "Glow", "value": bm.GLOW},
-            {"option": "Difference", "value": bm.DIFFERENCE},
-            {"option": "Exclusion", "value": bm.EXCLUSION},
-            {"option": "Negation", "value": bm.NEGATION},
-            {"option": "Subtract", "value": bm.SUBTRACT},
-            {"option": "Divide", "value": bm.DIVIDE},
-            {"option": "Xor", "value": bm.XOR},
-        ],
+    return EnumInput(
+        BlendMode,
+        option_labels={
+            BlendMode.ADD: "Linear Dodge (Add)",
+        },
     )
 
 
