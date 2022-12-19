@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 
 import os
 from typing import Union
@@ -18,11 +19,9 @@ from ...properties.inputs import (
     ImageExtensionDropdown,
     SliderInput,
     DdsFormatDropdown,
-    DdsBC7CompressionDropdown,
     BoolInput,
-    DdsErrorMetricDropdown,
+    EnumInput,
     DdsMipMapsDropdown,
-    BC7Compression,
 )
 from ...utils.utils import get_h_w_c
 from ...impl.image_utils import cv_save_image
@@ -30,6 +29,17 @@ from ...impl.dds import save_as_dds
 
 BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
 BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"
+
+
+class DDSErrorMetric(Enum):
+    PERCEPTUAL = 0
+    UNIFORM = 1
+
+
+class BC7Compression(Enum):
+    BEST_SPEED = 1
+    DEFAULT = 0
+    BEST_QUALITY = 2
 
 
 @NodeFactory.register("chainner:image:save")
@@ -65,8 +75,12 @@ class ImWriteNode(NodeBase):
                         "conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS],
                     },
                 )(
-                    DdsBC7CompressionDropdown().with_id(7),
-                    DdsErrorMetricDropdown().with_id(9),
+                    EnumInput(
+                        BC7Compression,
+                        label="BC7 Compression",
+                        default_value=BC7Compression.DEFAULT,
+                    ).with_id(7),
+                    EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
                     BoolInput("Dithering", default=False).with_id(8),
                 ),
                 DdsMipMapsDropdown().with_id(10),
