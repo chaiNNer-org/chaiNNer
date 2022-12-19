@@ -8,7 +8,7 @@ from .. import expression
 
 from .base_input import BaseInput
 from ...impl.blend import BlendModes as bm
-from ...impl.image_utils import FillColor, FlipAxis, KernelType, normalize
+from ...impl.image_utils import FillColor, FlipAxis, normalize
 from ...utils.utils import (
     split_snake_case,
     split_pascal_case,
@@ -528,17 +528,6 @@ def PaddingAlignmentDropdown(label="Alignment") -> DropDownInput:
                 "value": "center",
                 "type": "PaddingAlignment::Center",
             },
-        ],
-    )
-
-
-def HbfTypeDropdown(label="Filter Type") -> DropDownInput:
-    return DropDownInput(
-        input_type="KernelType",
-        label=label,
-        options=[
-            {"option": "Normal", "value": KernelType.NORMAL},
-            {"option": "Strong", "value": KernelType.STRONG},
         ],
     )
 
