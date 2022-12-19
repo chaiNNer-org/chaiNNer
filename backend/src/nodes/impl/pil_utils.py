@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 from PIL import Image
 
-from .image_utils import FillColor, convert_to_BGRA, get_fill_color
+from .image_utils import FillColor, convert_to_BGRA
 from ..utils.utils import get_h_w_c
 
 
@@ -74,7 +74,7 @@ def rotate(
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)
-    fill_color = tuple([x * 255 for x in get_fill_color(c, fill)])
+    fill_color = tuple([x * 255 for x in fill.get_color(c)])
 
     resample = INTERPOLATION_METHODS_MAP[interpolation.interpolation_method]
 
