@@ -103,8 +103,8 @@ class ImWriteNode(NodeBase):
         extension: str,
         quality: int,
         dds_format: str,
-        dds_bc7_compression: int,
-        dds_uniform_weighting: int,
+        dds_bc7_compression: BC7Compression,
+        dds_error_metric: DDSErrorMetric,
         dds_dithering: bool,
         dds_mipmap_levels: int,
     ) -> None:
@@ -135,7 +135,7 @@ class ImWriteNode(NodeBase):
                 dds_format,
                 mipmap_levels=dds_mipmap_levels,
                 dithering=dds_dithering,
-                uniform_weighting=bool(dds_uniform_weighting),
+                uniform_weighting=dds_error_metric == DDSErrorMetric.UNIFORM,
                 minimal_compression=dds_bc7_compression == BC7Compression.BEST_SPEED,
                 maximum_compression=dds_bc7_compression == BC7Compression.BEST_QUALITY,
             )
