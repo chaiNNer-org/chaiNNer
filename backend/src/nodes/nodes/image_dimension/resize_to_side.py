@@ -1,4 +1,6 @@
 from __future__ import annotations
+from enum import Enum
+from typing import Tuple
 
 import numpy as np
 from sanic.log import logger
@@ -10,12 +12,75 @@ from ...properties.inputs import (
     ImageInput,
     NumberInput,
     InterpolationInput,
-    ResizeToSideInput,
-    ResizeCondition,
+    EnumInput,
 )
 from ...properties.outputs import ImageOutput
 from ...impl.pil_utils import resize
-from ...utils.utils import get_h_w_c, resize_to_side_conditional
+from ...utils.utils import get_h_w_c, round_half_up
+
+
+class SideSelection(Enum):
+    WIDTH = "width"
+    HEIGHT = "height"
+    SHORTER_SIDE = "shorter side"
+    LONGER_SIDE = "longer side"
+
+
+class ResizeCondition(Enum):
+    BOTH = "both"
+    UPSCALE = "upscale"
+    DOWNSCALE = "downscale"
+
+
+def resize_to_side_conditional(
+    w: int, h: int, target: int, side: SideSelection, condition: ResizeCondition
+) -> Tuple[int, int]:
+    def compare_conditions(b: int) -> bool:
+        if condition == ResizeCondition.BOTH:
+            return False
+        if condition == ResizeCondition.DOWNSCALE:
+            return target > b
+        elif condition == ResizeCondition.UPSCALE:
+            return target < b
+        else:
+            raise RuntimeError(f"Unknown condition {condition}")
+
+    if side == SideSelection.WIDTH:
+        if compare_conditions(w):
+            w_new = w
+            h_new = h
+        else:
+            w_new = target
+            h_new = max(round_half_up((target / w) * h), 1)
+
+    elif side == SideSelection.HEIGHT:
+        if compare_conditions(h):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round_half_up((target / h) * w), 1)
+            h_new = target
+
+    elif side == SideSelection.SHORTER_SIDE:
+        if compare_conditions(min(h, w)):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round_half_up((target / min(h, w)) * w), 1)
+            h_new = max(round_half_up((target / min(h, w)) * h), 1)
+
+    elif side == SideSelection.LONGER_SIDE:
+        if compare_conditions(max(h, w)):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round_half_up((target / max(h, w)) * w), 1)
+            h_new = max(round_half_up((target / max(h, w)) * h), 1)
+
+    else:
+        raise RuntimeError(f"Unknown side selection {side}")
+
+    return w_new, h_new
 
 
 @NodeFactory.register("chainner:image:resize_to_side")
@@ -34,9 +99,16 @@ class ImResizeToSide(NodeBase):
                 minimum=1,
                 unit="px",
             ),
-            ResizeToSideInput(),
+            EnumInput(SideSelection, label="Resize To"),
             InterpolationInput(),
-            ResizeCondition(),
+            EnumInput(
+                ResizeCondition,
+                option_labels={
+                    ResizeCondition.BOTH: "Upscale And Downscale",
+                    ResizeCondition.UPSCALE: "Upscale Only",
+                    ResizeCondition.DOWNSCALE: "Downscale Only",
+                },
+            ),
         ]
         self.category = ImageDimensionCategory
         self.name = "Resize To Side"
@@ -74,13 +146,13 @@ class ImResizeToSide(NodeBase):
                             height: target
                         }
                     },
-                    SideSelection::Shorter => if compareCondition(min(h, w)) { same } else {
+                    SideSelection::ShorterSide => if compareCondition(min(h, w)) { same } else {
                         Size {
                             width: max(int & round((target / min(h, w)) * w), 1),
                             height: max(int & round((target / min(h, w)) * h), 1)
                         }
                     },
-                    SideSelection::Longer => if compareCondition(max(h, w)) { same } else {
+                    SideSelection::LongerSide => if compareCondition(max(h, w)) { same } else {
                         Size {
                             width: max(int & round((target / max(h, w)) * w), 1),
                             height: max(int & round((target / max(h, w)) * h), 1)
@@ -103,9 +175,9 @@ class ImResizeToSide(NodeBase):
         self,
         img: np.ndarray,
         target: int,
-        side: str,
+        side: SideSelection,
         interpolation: int,
-        condition: str,
+        condition: ResizeCondition,
     ) -> np.ndarray:
         """Takes an image and resizes it"""
 
