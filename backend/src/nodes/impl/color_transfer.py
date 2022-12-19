@@ -68,7 +68,7 @@ def scale_array(
     clipping or scaling.
     """
 
-    if overflow_method:
+    if overflow_method == OverflowMethod.CLIP:
         scaled = np.clip(arr, clip_min, clip_max)
     else:
         scale_range = (max([arr.min(), clip_min]), min([arr.max(), clip_max]))
