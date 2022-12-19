@@ -76,11 +76,8 @@ struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
-struct DdsBC7Compression;
-struct DdsErrorMetric;
 struct DdsFormat;
 struct DdsMipMaps;
-struct FlipAxis;
 struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }
@@ -92,7 +89,6 @@ struct VideoPreset;
 struct VideoType;
 
 enum FpMode { fp32, fp16 }
-enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum SideSelection { Width, Height, Shorter, Longer }
 
