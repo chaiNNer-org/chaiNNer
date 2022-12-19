@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List
 import os
 import random
@@ -10,7 +11,7 @@ from sanic.log import logger
 from ..utils.utils import get_h_w_c, Padding, split_file_path
 
 
-class FillColor:
+class FillColor(Enum):
     AUTO = -1
     BLACK = 0
     TRANSPARENT = 1
@@ -55,7 +56,7 @@ def normalize(img: np.ndarray) -> np.ndarray:
     return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
 
 
-def get_fill_color(channels: int, fill: int):
+def get_fill_color(channels: int, fill: FillColor):
     """Select how to fill negative space that results from rotation"""
 
     if fill == FillColor.AUTO:
@@ -68,7 +69,7 @@ def get_fill_color(channels: int, fill: int):
     return fill_color
 
 
-def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: int) -> np.ndarray:
+def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)

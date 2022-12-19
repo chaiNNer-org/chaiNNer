@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Tuple
 
 import numpy as np
@@ -25,7 +26,7 @@ INTERPOLATION_METHODS_MAP = {
 }
 
 
-class RotateExpandCrop:
+class RotateSizeChange(Enum):
     EXPAND = 1
     CROP = 0
 
@@ -52,7 +53,11 @@ def resize(
 
 
 def rotate(
-    img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+    img: np.ndarray,
+    angle: float,
+    interpolation: int,
+    expand: RotateSizeChange,
+    fill: FillColor,
 ) -> np.ndarray:
     """Perform PIL rotate"""
 
@@ -64,5 +69,10 @@ def rotate(
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
     pimg = Image.fromarray((img * 255).astype("uint8"))
-    pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore
+    pimg = pimg.rotate(
+        angle,
+        interpolation,  # type: ignore
+        bool(expand.value),
+        fillcolor=fill_color,
+    )
     return np.array(pimg).astype("float32") / 255

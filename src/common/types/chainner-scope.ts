@@ -96,20 +96,12 @@ struct VideoPreset;
 struct VideoType;
 
 enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
-enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }
 enum Orientation { Horizontal, Vertical }
 enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
-enum RotateSizeChange { Crop, Expand }
 enum SideSelection { Width, Height, Shorter, Longer }
 
-def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
-    match fill {
-        FillColor::Transparent => 4,
-        _ => channels
-    }
-}
 def BorderType::getOutputChannels(type: BorderType, channels: uint) {
     match type {
         BorderType::Transparent => 4,

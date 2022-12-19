@@ -138,6 +138,7 @@ class EnumInput(Generic[T], DropDownInput):
         default_value: T | None = None,
         type_name: str | None = None,
         option_labels: Dict[T, str] | None = None,
+        extra_definitions: str | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -171,6 +172,7 @@ class EnumInput(Generic[T], DropDownInput):
         self.type_definitions = (
             f"let {type_name} = {' | '.join(variant_types)};\n"
             + "\n".join([f"struct {t};" for t in variant_types])
+            + (extra_definitions or "")
         )
         self.type_name: str = type_name
         self.enum = enum
@@ -467,26 +469,18 @@ def BlendModeDropdown() -> DropDownInput:
 
 
 def FillColorDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="FillColor",
+    return EnumInput(
+        FillColor,
         label="Negative Space Fill",
-        options=[
-            {
-                "option": "Auto",
-                "value": FillColor.AUTO,
-                "type": "FillColor::Auto",
-            },
-            {
-                "option": "Black Fill",
-                "value": FillColor.BLACK,
-                "type": "FillColor::Black",
-            },
-            {
-                "option": "Transparency",
-                "value": FillColor.TRANSPARENT,
-                "type": "FillColor::Transparent",
-            },
-        ],
+        default_value=FillColor.AUTO,
+        extra_definitions="""
+            def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
+                match fill {
+                    FillColor::Transparent => 4,
+                    _ => channels
+                }
+            }
+        """,
     )
 
 
