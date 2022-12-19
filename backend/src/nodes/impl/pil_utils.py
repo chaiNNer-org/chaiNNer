@@ -8,13 +8,23 @@ from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from ..utils.utils import get_h_w_c
 
 
-class InterpolationMethod:
+class InterpolationMethod(Enum):
     AUTO = -1
     NEAREST = 0
     LANCZOS = 1
     LINEAR = 2
     CUBIC = 3
     BOX = 4
+
+
+class RotationInterpolationMethod(Enum):
+    CUBIC = InterpolationMethod.CUBIC.value
+    LINEAR = InterpolationMethod.LINEAR.value
+    NEAREST = InterpolationMethod.NEAREST.value
+
+    @property
+    def interpolation_method(self) -> InterpolationMethod:
+        return InterpolationMethod(self.value)
 
 
 INTERPOLATION_METHODS_MAP = {
@@ -32,7 +42,7 @@ class RotateSizeChange(Enum):
 
 
 def resize(
-    img: np.ndarray, out_dims: Tuple[int, int], interpolation: int
+    img: np.ndarray, out_dims: Tuple[int, int], interpolation: InterpolationMethod
 ) -> np.ndarray:
     """Perform PIL resize"""
 
@@ -45,17 +55,17 @@ def resize(
         else:
             interpolation = InterpolationMethod.BOX
 
-    interpolation = INTERPOLATION_METHODS_MAP[interpolation]
+    resample = INTERPOLATION_METHODS_MAP[interpolation]
 
     pimg = Image.fromarray((img * 255).astype("uint8"))
-    pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
+    pimg = pimg.resize(out_dims, resample=resample)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
 
 def rotate(
     img: np.ndarray,
     angle: float,
-    interpolation: int,
+    interpolation: RotationInterpolationMethod,
     expand: RotateSizeChange,
     fill: FillColor,
 ) -> np.ndarray:
@@ -66,13 +76,13 @@ def rotate(
         img = convert_to_BGRA(img, c)
     fill_color = tuple([x * 255 for x in get_fill_color(c, fill)])
 
-    interpolation = INTERPOLATION_METHODS_MAP[interpolation]
+    resample = INTERPOLATION_METHODS_MAP[interpolation.interpolation_method]
 
     pimg = Image.fromarray((img * 255).astype("uint8"))
     pimg = pimg.rotate(
         angle,
-        interpolation,  # type: ignore
-        bool(expand.value),
+        resample=resample,  # type: ignore
+        expand=bool(expand.value),
         fillcolor=fill_color,
     )
     return np.array(pimg).astype("float32") / 255

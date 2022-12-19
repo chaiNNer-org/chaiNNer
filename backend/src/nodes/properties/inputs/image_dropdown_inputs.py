@@ -2,7 +2,7 @@ import cv2
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
-from ...impl.pil_utils import InterpolationMethod
+from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
 from ...impl.color.convert_data import (
     color_spaces,
     color_spaces_or_detectors,
@@ -52,35 +52,12 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
 
 def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
-    return DropDownInput(
-        input_type="InterpolationMode",
-        label="Interpolation Method",
-        options=[
-            {
-                "option": "Auto",
-                "value": InterpolationMethod.AUTO,
-            },
-            {
-                "option": "Nearest Neighbor",
-                "value": InterpolationMethod.NEAREST,
-            },
-            {
-                "option": "Area (Box)",
-                "value": InterpolationMethod.BOX,
-            },
-            {
-                "option": "Linear",
-                "value": InterpolationMethod.LINEAR,
-            },
-            {
-                "option": "Cubic",
-                "value": InterpolationMethod.CUBIC,
-            },
-            {
-                "option": "Lanczos",
-                "value": InterpolationMethod.LANCZOS,
-            },
-        ],
+    return EnumInput(
+        InterpolationMethod,
+        option_labels={
+            InterpolationMethod.NEAREST: "Nearest Neighbor",
+            InterpolationMethod.BOX: "Area (Box)",
+        },
     )
 
 
@@ -140,23 +117,12 @@ def ResizeCondition() -> DropDownInput:
 
 
 def RotateInterpolationInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="RotateInterpolationMode",
+    return EnumInput(
+        RotationInterpolationMethod,
         label="Interpolation Method",
-        options=[
-            {
-                "option": "Cubic",
-                "value": InterpolationMethod.CUBIC,
-            },
-            {
-                "option": "Linear",
-                "value": InterpolationMethod.LINEAR,
-            },
-            {
-                "option": "Nearest Neighbor",
-                "value": InterpolationMethod.NEAREST,
-            },
-        ],
+        option_labels={
+            RotationInterpolationMethod.NEAREST: "Nearest Neighbor",
+        },
     )
 
 

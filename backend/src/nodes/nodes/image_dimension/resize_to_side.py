@@ -14,7 +14,7 @@ from ...properties.inputs import (
     ResizeCondition,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import resize
+from ...impl.pil_utils import resize, InterpolationMethod
 from ...utils.utils import get_h_w_c, resize_to_side_conditional
 
 
@@ -104,7 +104,7 @@ class ImResizeToSide(NodeBase):
         img: np.ndarray,
         target: int,
         side: str,
-        interpolation: int,
+        interpolation: InterpolationMethod,
         condition: str,
     ) -> np.ndarray:
         """Takes an image and resizes it"""
