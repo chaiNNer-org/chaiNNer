@@ -92,7 +92,6 @@ struct VideoPreset;
 struct VideoType;
 
 enum FpMode { fp32, fp16 }
-enum Orientation { Horizontal, Vertical }
 enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum SideSelection { Width, Height, Shorter, Longer }

@@ -318,26 +318,6 @@ def MathOpsDropdown() -> DropDownInput:
     )
 
 
-def StackOrientationDropdown() -> DropDownInput:
-    """Input for selecting stack orientation from dropdown"""
-    return DropDownInput(
-        input_type="Orientation",
-        label="Orientation",
-        options=[
-            {
-                "option": "Horizontal",
-                "value": "horizontal",
-                "type": "Orientation::Horizontal",
-            },
-            {
-                "option": "Vertical",
-                "value": "vertical",
-                "type": "Orientation::Vertical",
-            },
-        ],
-    )
-
-
 def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
     return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
