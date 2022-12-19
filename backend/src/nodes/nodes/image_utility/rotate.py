@@ -13,7 +13,12 @@ from ...properties.inputs import (
     FillColorDropdown,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import rotate, RotateSizeChange, FillColor
+from ...impl.pil_utils import (
+    rotate,
+    RotateSizeChange,
+    FillColor,
+    RotationInterpolationMethod,
+)
 
 
 @NodeFactory.register("chainner:image:rotate")
@@ -108,7 +113,7 @@ class RotateNode(NodeBase):
         self,
         img: np.ndarray,
         angle: float,
-        interpolation: int,
+        interpolation: RotationInterpolationMethod,
         expand: RotateSizeChange,
         fill: FillColor,
     ) -> np.ndarray:
