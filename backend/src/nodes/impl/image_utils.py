@@ -16,6 +16,18 @@ class FillColor(Enum):
     BLACK = 0
     TRANSPARENT = 1
 
+    def get_color(self, channels: int):
+        """Select how to fill negative space that results from rotation"""
+
+        if self == FillColor.AUTO:
+            fill_color = (0,) * channels
+        elif self == FillColor.BLACK:
+            fill_color = (0,) * channels if channels < 4 else (0, 0, 0, 1)
+        else:
+            fill_color = (0, 0, 0, 0)
+
+        return fill_color
+
 
 class FlipAxis:
     HORIZONTAL = 1
@@ -51,24 +63,11 @@ def normalize(img: np.ndarray) -> np.ndarray:
     return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
 
 
-def get_fill_color(channels: int, fill: FillColor):
-    """Select how to fill negative space that results from rotation"""
-
-    if fill == FillColor.AUTO:
-        fill_color = (0,) * channels
-    elif fill == FillColor.BLACK:
-        fill_color = (0,) * channels if channels < 4 else (0, 0, 0, 1)
-    else:
-        fill_color = (0, 0, 0, 0)
-
-    return fill_color
-
-
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)
-    fill_color = get_fill_color(c, fill)
+    fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
     translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
