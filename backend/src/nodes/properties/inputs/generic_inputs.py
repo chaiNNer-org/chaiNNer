@@ -8,7 +8,7 @@ from .. import expression
 
 from .base_input import BaseInput
 from ...impl.blend import BlendModes as bm
-from ...impl.image_utils import FillColor, FlipAxis, normalize
+from ...impl.image_utils import FillColor, normalize
 from ...utils.utils import (
     split_snake_case,
     split_pascal_case,
@@ -377,19 +377,6 @@ def VideoPresetDropdown() -> DropDownInput:
     )
 
 
-def FlipAxisInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="FlipAxis",
-        label="Flip Axis",
-        options=[
-            {"option": "Horizontal", "value": FlipAxis.HORIZONTAL},
-            {"option": "Vertical", "value": FlipAxis.VERTICAL},
-            {"option": "Both", "value": FlipAxis.BOTH},
-            {"option": "None", "value": FlipAxis.NONE},
-        ],
-    )
-
-
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return DropDownInput(
@@ -457,30 +444,6 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     )
 
 
-def PaddingAlignmentDropdown(label="Alignment") -> DropDownInput:
-    return DropDownInput(
-        input_type="PaddingAlignment",
-        label=label,
-        options=[
-            {
-                "option": "Start",
-                "value": "start",
-                "type": "PaddingAlignment::Start",
-            },
-            {
-                "option": "End",
-                "value": "end",
-                "type": "PaddingAlignment::End",
-            },
-            {
-                "option": "Center",
-                "value": "center",
-                "type": "PaddingAlignment::Center",
-            },
-        ],
-    )
-
-
 def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsFormat",
@@ -527,35 +490,5 @@ def DdsMipMapsDropdown() -> DropDownInput:
             # these are not boolean values, see dds.py for more info
             {"option": "Yes", "value": 0},
             {"option": "No", "value": 1},
-        ],
-    )
-
-
-def DdsErrorMetricDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsErrorMetric",
-        label="Error Metric",
-        options=[
-            {"option": "Perceptual", "value": 0},
-            {"option": "Uniform", "value": 1},
-        ],
-    )
-
-
-class BC7Compression:
-    DEFAULT = 0
-    BEST_SPEED = 1
-    BEST_QUALITY = 2
-
-
-def DdsBC7CompressionDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsBC7Compression",
-        label="BC7 Compression",
-        default_value=BC7Compression.DEFAULT,
-        options=[
-            {"option": "Best Speed", "value": BC7Compression.BEST_SPEED},
-            {"option": "Default", "value": BC7Compression.DEFAULT},
-            {"option": "Best Quality", "value": BC7Compression.BEST_QUALITY},
         ],
     )
