@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import numpy as np
-import cv2
 
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, FlipAxisInput
+from ...properties.inputs import ImageInput, EnumInput
 from ...properties.outputs import ImageOutput
 from ...impl.image_utils import FlipAxis
 
@@ -18,7 +17,7 @@ class FlipNode(NodeBase):
         self.description = "Flip an image."
         self.inputs = [
             ImageInput("Image"),
-            FlipAxisInput(),
+            EnumInput(FlipAxis),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageUtilityCategory
@@ -26,7 +25,5 @@ class FlipNode(NodeBase):
         self.icon = "MdFlip"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, axis: int) -> np.ndarray:
-        if axis == FlipAxis.NONE:
-            return img
-        return cv2.flip(img, axis)
+    def run(self, img: np.ndarray, axis: FlipAxis) -> np.ndarray:
+        return axis.flip(img)
