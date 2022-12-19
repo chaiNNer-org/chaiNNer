@@ -457,30 +457,6 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     )
 
 
-def PaddingAlignmentDropdown(label="Alignment") -> DropDownInput:
-    return DropDownInput(
-        input_type="PaddingAlignment",
-        label=label,
-        options=[
-            {
-                "option": "Start",
-                "value": "start",
-                "type": "PaddingAlignment::Start",
-            },
-            {
-                "option": "End",
-                "value": "end",
-                "type": "PaddingAlignment::End",
-            },
-            {
-                "option": "Center",
-                "value": "center",
-                "type": "PaddingAlignment::Center",
-            },
-        ],
-    )
-
-
 def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsFormat",
