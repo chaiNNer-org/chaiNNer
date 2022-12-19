@@ -1,8 +1,7 @@
 """Fast color transfer method using mean and std"""
 
 from __future__ import annotations
-
-from typing import Literal
+from enum import Enum
 
 import cv2
 import numpy as np
@@ -14,6 +13,16 @@ __license__ = "MIT"
 __version__ = "1.0.0"
 __maintainer__ = "Adrian Rosebrock"
 __link__ = "https://github.com/jrosebr1/color_transfer"
+
+
+class TransferColorSpace(Enum):
+    LAB = "L*a*b*"
+    RGB = "RGB"
+
+
+class OverflowMethod(Enum):
+    CLIP = 1
+    SCALE = 0
 
 
 def image_stats(img: np.ndarray):
@@ -49,7 +58,10 @@ def min_max_scale(img: np.ndarray, new_range=(0, 255)):
 
 
 def scale_array(
-    arr: np.ndarray, overflow_method: int = 1, clip_min: int = 0, clip_max: int = 255
+    arr: np.ndarray,
+    overflow_method: OverflowMethod,
+    clip_min: int = 0,
+    clip_max: int = 255,
 ) -> np.ndarray:
     """
     Trim NumPy array values to be in [0, 255] range with option of
@@ -65,14 +77,11 @@ def scale_array(
     return scaled
 
 
-ColorSpace = Literal["L*a*b*", "RGB"]
-
-
 def color_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
-    colorspace: ColorSpace = "L*a*b*",
-    overflow_method: int = 1,
+    colorspace: TransferColorSpace,
+    overflow_method: OverflowMethod,
     reciprocal_scale: bool = True,
 ) -> np.ndarray:
     """
@@ -92,13 +101,13 @@ def color_transfer(
     )
 
     # Convert the images from the RGB to L*a*b* color space, if necessary
-    if colorspace == "L*a*b*":
+    if colorspace == TransferColorSpace.LAB:
         a_clip_min, a_clip_max = (0, 100)
         b_clip_min, b_clip_max = (-127, 127)
         c_clip_min, c_clip_max = (-127, 127)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2LAB)
-    elif colorspace == "RGB":
+    elif colorspace == TransferColorSpace.RGB:
         a_clip_min, a_clip_max = (0, 1)
         b_clip_min, b_clip_max = (0, 1)
         c_clip_min, c_clip_max = (0, 1)
@@ -156,7 +165,7 @@ def color_transfer(
     # Merge the channels together, then convert back to the RGB color
     # space if necessary
     transfer = cv2.merge([channel_a, channel_b, channel_c])
-    if colorspace == "L*a*b*":
+    if colorspace == TransferColorSpace.LAB:
         transfer = cv2.cvtColor(transfer, cv2.COLOR_LAB2BGR)
 
     # Return the color transferred image
