@@ -79,7 +79,6 @@ struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
 struct ImageExtension;
-struct InterpolationMode;
 struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct RotateInterpolationMode;
@@ -89,7 +88,6 @@ struct VideoPreset;
 struct VideoType;
 
 enum FpMode { fp32, fp16 }
-enum Orientation { Horizontal, Vertical }
 
 def FpMode::toString(mode: FpMode) {
     match mode {

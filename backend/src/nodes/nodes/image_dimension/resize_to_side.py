@@ -15,7 +15,7 @@ from ...properties.inputs import (
     EnumInput,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import resize
+from ...impl.pil_utils import resize, InterpolationMethod
 from ...utils.utils import get_h_w_c, round_half_up
 
 
@@ -176,7 +176,7 @@ class ImResizeToSide(NodeBase):
         img: np.ndarray,
         target: int,
         side: SideSelection,
-        interpolation: int,
+        interpolation: InterpolationMethod,
         condition: ResizeCondition,
     ) -> np.ndarray:
         """Takes an image and resizes it"""
