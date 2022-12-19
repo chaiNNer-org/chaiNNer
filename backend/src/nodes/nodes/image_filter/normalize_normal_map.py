@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import cv2
 import numpy as np
 
 from . import category as ImageFilterCategory
@@ -9,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.normals.util import normalize_normals
+from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
 
 
 @NodeFactory.register("chainner:image:normalize_normal_map")
@@ -36,14 +35,4 @@ class NormalizeNode(NodeBase):
     def run(self, img: np.ndarray) -> np.ndarray:
         """Takes a normal map and normalizes it"""
 
-        # Convert BGR to XY
-        x = img[:, :, 2] * 2 - 1
-        y = img[:, :, 1] * 2 - 1
-
-        x, y, z = normalize_normals(x, y)
-
-        r_norm = (x + 1) * 0.5
-        g_norm = (y + 1) * 0.5
-        b_norm = z
-
-        return cv2.merge((b_norm, g_norm, r_norm))
+        return xyz_to_bgr(gr_to_xyz(img))
