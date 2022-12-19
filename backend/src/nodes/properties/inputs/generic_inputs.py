@@ -529,33 +529,3 @@ def DdsMipMapsDropdown() -> DropDownInput:
             {"option": "No", "value": 1},
         ],
     )
-
-
-def DdsErrorMetricDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsErrorMetric",
-        label="Error Metric",
-        options=[
-            {"option": "Perceptual", "value": 0},
-            {"option": "Uniform", "value": 1},
-        ],
-    )
-
-
-class BC7Compression:
-    DEFAULT = 0
-    BEST_SPEED = 1
-    BEST_QUALITY = 2
-
-
-def DdsBC7CompressionDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsBC7Compression",
-        label="BC7 Compression",
-        default_value=BC7Compression.DEFAULT,
-        options=[
-            {"option": "Best Speed", "value": BC7Compression.BEST_SPEED},
-            {"option": "Default", "value": BC7Compression.DEFAULT},
-            {"option": "Best Quality", "value": BC7Compression.BEST_QUALITY},
-        ],
-    )

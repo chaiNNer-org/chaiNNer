@@ -76,8 +76,6 @@ struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
-struct DdsBC7Compression;
-struct DdsErrorMetric;
 struct DdsFormat;
 struct DdsMipMaps;
 struct FlipAxis;
