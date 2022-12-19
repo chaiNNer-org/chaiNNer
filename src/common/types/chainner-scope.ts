@@ -91,19 +91,12 @@ struct TileMode;
 struct VideoPreset;
 struct VideoType;
 
-enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FpMode { fp32, fp16 }
 enum Orientation { Horizontal, Vertical }
 enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum SideSelection { Width, Height, Shorter, Longer }
 
-def BorderType::getOutputChannels(type: BorderType, channels: uint) {
-    match type {
-        BorderType::Transparent => 4,
-        _ => channels
-    }
-}
 def FpMode::toString(mode: FpMode) {
     match mode {
         FpMode::fp32 => "fp32",
