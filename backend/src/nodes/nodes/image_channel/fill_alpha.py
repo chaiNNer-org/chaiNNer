@@ -1,11 +1,12 @@
 from __future__ import annotations
+from enum import Enum
 
 import numpy as np
 
 from . import category as ImageChannelCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, AlphaFillMethodInput, AlphaFillMethod
+from ...properties.inputs import ImageInput, EnumInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...impl.fill_alpha import (
@@ -13,6 +14,11 @@ from ...impl.fill_alpha import (
     fill_alpha_fragment_blur,
     fill_alpha_edge_extend,
 )
+
+
+class AlphaFillMethod(Enum):
+    EXTEND_TEXTURE = 1
+    EXTEND_COLOR = 2
 
 
 @NodeFactory.register("chainner:image:fill_alpha")
@@ -24,7 +30,7 @@ class FillAlphaNode(NodeBase):
         )
         self.inputs = [
             ImageInput("RGBA", channels=4),
-            AlphaFillMethodInput(),
+            EnumInput(AlphaFillMethod, label="Fill Method"),
         ]
         self.outputs = [
             ImageOutput(
@@ -38,7 +44,7 @@ class FillAlphaNode(NodeBase):
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, method: int) -> np.ndarray:
+    def run(self, img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
         """Fills transparent holes in the given image"""
 
         if method == AlphaFillMethod.EXTEND_TEXTURE:
@@ -52,7 +58,7 @@ class FillAlphaNode(NodeBase):
             convert_to_binary_alpha(img)
             img = fill_alpha_edge_extend(img, 40)
         else:
-            assert False, f"Invalid alpha fill method {type(method)} {method}"
+            assert False, f"Invalid alpha fill method {method}"
 
         # Finally, add a black background and convert to RGB
         img[:, :, 0] *= img[:, :, 3]
