@@ -32,11 +32,6 @@ class BorderType:
     TRANSPARENT = 5
 
 
-class KernelType:
-    NORMAL = 0
-    STRONG = 1
-
-
 def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
     assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
     if in_c == 1:
