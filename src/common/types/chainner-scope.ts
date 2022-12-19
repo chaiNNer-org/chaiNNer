@@ -87,7 +87,7 @@ struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct ThresholdType;
-struct TileMode;
+struct TileSize;
 struct VideoPreset;
 struct VideoType;
 
