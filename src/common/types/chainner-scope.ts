@@ -78,7 +78,6 @@ struct BlendMode;
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
-struct FlipAxis;
 struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }

@@ -8,7 +8,7 @@ from .. import expression
 
 from .base_input import BaseInput
 from ...impl.blend import BlendModes as bm
-from ...impl.image_utils import FillColor, FlipAxis, normalize
+from ...impl.image_utils import FillColor, normalize
 from ...utils.utils import (
     split_snake_case,
     split_pascal_case,
@@ -373,19 +373,6 @@ def VideoPresetDropdown() -> DropDownInput:
             {"option": "slow", "value": "slow"},
             {"option": "slower", "value": "slower"},
             {"option": "veryslow", "value": "veryslow"},
-        ],
-    )
-
-
-def FlipAxisInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="FlipAxis",
-        label="Flip Axis",
-        options=[
-            {"option": "Horizontal", "value": FlipAxis.HORIZONTAL},
-            {"option": "Vertical", "value": FlipAxis.VERTICAL},
-            {"option": "Both", "value": FlipAxis.BOTH},
-            {"option": "None", "value": FlipAxis.NONE},
         ],
     )
 

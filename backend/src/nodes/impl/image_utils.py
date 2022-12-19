@@ -17,11 +17,16 @@ class FillColor(Enum):
     TRANSPARENT = 1
 
 
-class FlipAxis:
+class FlipAxis(Enum):
     HORIZONTAL = 1
     VERTICAL = 0
     BOTH = -1
     NONE = 2
+
+    def flip(self, img: np.ndarray) -> np.ndarray:
+        if self == FlipAxis.NONE:
+            return img
+        return cv2.flip(img, self.value)
 
 
 class BorderType(Enum):
