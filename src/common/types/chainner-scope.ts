@@ -75,7 +75,6 @@ struct IteratorAuto;
 struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
-struct CaptionPosition;
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsBC7Compression;
 struct DdsErrorMetric;

@@ -9,10 +9,10 @@ from ...properties.inputs import (
     ImageInput,
     TextInput,
     NumberInput,
-    CaptionPositionInput,
+    EnumInput,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.caption import add_caption
+from ...impl.caption import add_caption, CaptionPosition
 
 
 @NodeFactory.register("chainner:image:caption")
@@ -24,7 +24,7 @@ class CaptionNode(NodeBase):
             ImageInput(),
             TextInput("Caption"),
             NumberInput("Caption Size", minimum=20, default=42, unit="px"),
-            CaptionPositionInput(),
+            EnumInput(CaptionPosition, default_value=CaptionPosition.BOTTOM),
         ]
         self.outputs = [
             ImageOutput(
@@ -45,7 +45,7 @@ class CaptionNode(NodeBase):
         self.sub = "Compositing"
 
     def run(
-        self, img: np.ndarray, caption: str, size: int, position: str
+        self, img: np.ndarray, caption: str, size: int, position: CaptionPosition
     ) -> np.ndarray:
         """Add caption an image"""
 
