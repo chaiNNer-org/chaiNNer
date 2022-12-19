@@ -390,28 +390,6 @@ def FlipAxisInput() -> DropDownInput:
     )
 
 
-def TransferColorspaceInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="TransferColorspace",
-        label="Colorspace",
-        options=[
-            {"option": "L*a*b*", "value": "L*a*b*"},
-            {"option": "RGB", "value": "RGB"},
-        ],
-    )
-
-
-def OverflowMethodInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="OverflowMethod",
-        label="Overflow Method",
-        options=[
-            {"option": "Clip", "value": 1},
-            {"option": "Scale", "value": 0},
-        ],
-    )
-
-
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return DropDownInput(

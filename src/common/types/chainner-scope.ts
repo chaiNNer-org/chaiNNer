@@ -85,11 +85,9 @@ struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }
 struct NormalChannelInvert;
-struct OverflowMethod;
 struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
-struct TransferColorspace;
 struct VideoPreset;
 struct VideoType;
 
