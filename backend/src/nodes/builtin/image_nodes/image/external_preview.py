@@ -11,11 +11,9 @@ import numpy as np
 from sanic.log import logger
 
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
 from ....api.inputs import ImageInput
 
 
-@NodeFactory.register("chainner:image:preview")
 class Preview(NodeBase):
     def __init__(self):
         super().__init__()

@@ -9,7 +9,6 @@ from PIL import Image
 from sanic.log import logger
 
 from ....api.node_base import NodeBase, group
-from ....api.node_factory import NodeFactory
 from ....api.inputs import (
     ImageInput,
     DirectoryInput,
@@ -31,7 +30,6 @@ BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
 BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"
 
 
-@NodeFactory.register("chainner:image:save")
 class Save(NodeBase):
     def __init__(self):
         super().__init__()

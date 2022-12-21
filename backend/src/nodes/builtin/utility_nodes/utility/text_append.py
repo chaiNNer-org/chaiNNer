@@ -5,14 +5,12 @@ from typing import List, Union
 from . import category as UtilityCategory
 
 from ....api.node_base import NodeBase, group
-from ....api.node_factory import NodeFactory
 from ....api.inputs import TextInput
 from ....api.outputs import TextOutput
-from ...utils.utils import ALPHABET
+from ....utils.utils import ALPHABET
 
 
-@NodeFactory.register("chainner:utility:text_append")
-class TextAppendNode(NodeBase):
+class Text_Append(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Append different text together using a separator string."
@@ -56,10 +54,8 @@ class TextAppendNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory
         self.name = "Text Append"
         self.icon = "MdTextFields"
-        self.sub = "Text"
 
     def run(self, separator: str, *args: Union[str, None]) -> str:
         inputs: List[Union[str, None]] = [*args]

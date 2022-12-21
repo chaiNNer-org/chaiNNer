@@ -115,7 +115,7 @@ missing_module_errors = set()
 #             except:
 #                 pass
 
-from nodes.builtin import main
+from nodes.builtin import image_nodes, utility_nodes
 from nodes.package_registry import PackageRegistry
 
 

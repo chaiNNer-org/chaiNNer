@@ -10,7 +10,6 @@ from PIL import Image
 from sanic.log import logger
 
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
 from ....api.inputs import ImageFileInput
 from ....api.outputs import LargeImageOutput, DirectoryOutput, TextOutput
 from ....utils.dds import dds_to_png_texconv
@@ -18,7 +17,6 @@ from ....utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from ....utils.utils import get_h_w_c
 
 
-@NodeFactory.register("chainner:image:load")
 class Load(NodeBase):
     def __init__(self):
         super().__init__()

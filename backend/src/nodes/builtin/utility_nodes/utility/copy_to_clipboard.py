@@ -3,17 +3,13 @@ from __future__ import annotations
 from typing import Union
 
 from nodes.utils import clipboard
-
-from . import category as UtilityCategory
+import numpy as np
 
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
-from ....api.inputs import *
-from ....api.outputs import *
+from ....api.inputs import ClipboardInput
 
 
-@NodeFactory.register("chainner:utility:copy_to_clipboard")
-class TextClipboardNode(NodeBase):
+class Copy_To_Clipboard(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Copies the input to the clipboard."
@@ -22,10 +18,8 @@ class TextClipboardNode(NodeBase):
         ]
         self.outputs = []
 
-        self.category = UtilityCategory
         self.name = "Copy To Clipboard"
         self.icon = "BsClipboard"
-        self.sub = "Clipboard"
 
         self.side_effects = True
 

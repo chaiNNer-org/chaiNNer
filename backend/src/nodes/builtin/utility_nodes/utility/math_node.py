@@ -2,16 +2,12 @@ from __future__ import annotations
 import math
 from typing import Union
 
-from . import category as UtilityCategory
-
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
 from ....api.inputs import NumberInput, MathOpsDropdown
 from ....api.outputs import NumberOutput
 
 
-@NodeFactory.register("chainner:utility:math")
-class MathNode(NodeBase):
+class Math(NodeBase):
     special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
 
     def __init__(self):
@@ -53,10 +49,8 @@ class MathNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory
         self.name = "Math"
         self.icon = "MdCalculate"
-        self.sub = "Math"
 
     def run(
         self, in1: Union[int, float], op: str, in2: Union[int, float]
@@ -76,10 +70,7 @@ class MathNode(NodeBase):
         elif op == "min":
             return min(in1, in2)
         elif op == "mod":
-            if (
-                in1 in MathNode.special_mod_numbers
-                or in2 in MathNode.special_mod_numbers
-            ):
+            if in1 in Math.special_mod_numbers or in2 in Math.special_mod_numbers:
                 return in1 - in2 * math.floor(in1 / in2)
             else:
                 return in1 % in2

@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-from . import category as UtilityCategory
-
 from ....api.node_base import NodeBase
-from ....api.node_factory import NodeFactory
 from ....api.inputs import TextInput, NumberInput, PaddingAlignmentDropdown
 from ....api.outputs import TextOutput
 
 
-@NodeFactory.register("chainner:utility:text_padding")
-class TextPaddingNode(NodeBase):
+class Text_Padding(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Pads text until it has a certain length."
@@ -40,10 +36,8 @@ class TextPaddingNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory
         self.name = "Text Padding"
         self.icon = "MdTextFields"
-        self.sub = "Text"
 
     def run(self, text: str, width: int, padding: str, alignment: str) -> str:
         if alignment == "start":

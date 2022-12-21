@@ -2,17 +2,13 @@ from __future__ import annotations
 
 from typing import Union
 
-from . import category as UtilityCategory
-
 from ....api.node_base import NodeBase, group
-from ....api.node_factory import NodeFactory
 from ....api.inputs import TextInput
 from ....api.outputs import TextOutput
-from ...utils.replacement import ReplacementString
+from ....utils.replacement import ReplacementString
 
 
-@NodeFactory.register("chainner:utility:text_pattern")
-class TextPatternNode(NodeBase):
+class Text_Pattern(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
@@ -57,10 +53,8 @@ class TextPatternNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory
         self.name = "Text Pattern"
         self.icon = "MdTextFields"
-        self.sub = "Text"
 
     def run(
         self,
