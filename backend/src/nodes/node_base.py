@@ -1,9 +1,9 @@
+from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from base_types import InputId, OutputId
 
-from .category import Category
 from .group import Group, GroupInfo, GroupId
 
 from .properties.inputs.base_input import BaseInput
@@ -32,14 +32,11 @@ class NodeBase(metaclass=ABCMeta):
         self.__inputs: List[BaseInput] = []
         self.__outputs: List[BaseOutput] = []
         self.__group_layout: List[Union[InputId, NestedIdGroup]] = []
-        self.description: str = ""
 
-        self.category: Category = Category(
-            "Unknown", "Unknown category", "BsQuestionDiamond", "#718096"
-        )
+        self.schema_id: str = ""
+        self.description: str = ""
         self.name: str = ""
         self.icon: str = ""
-        self.sub: str = "Miscellaneous"
         self.type: NodeType = "regularNode"
 
         self.side_effects: bool = False
@@ -106,7 +103,6 @@ class IteratorNodeBase(NodeBase):
     def __init__(self):
         super().__init__()
         self.icon = "MdLoop"
-        self.sub = "Iteration"
         self.type = "iterator"
         self.default_nodes = []
 

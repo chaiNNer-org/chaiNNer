@@ -2,7 +2,7 @@ from typing import Callable, Dict, List, TypeVar, Union
 
 from base_types import NodeId, OutputId, InputId
 from nodes.node_base import NodeBase, IteratorNodeBase
-from nodes.node_factory import NodeFactory
+from api import registry
 
 
 K = TypeVar("K")
@@ -25,7 +25,7 @@ class FunctionNode:
         self.is_helper: bool = False
 
     def get_node(self) -> NodeBase:
-        return NodeFactory.get_node(self.schema_id)
+        return registry.get_node(self.schema_id)
 
     def has_side_effects(self) -> bool:
         return self.get_node().side_effects
@@ -40,7 +40,7 @@ class IteratorNode:
 
     def get_node(self) -> IteratorNodeBase:
         if self.__node is None:
-            node = NodeFactory.get_node(self.schema_id)
+            node = registry.get_node(self.schema_id)
             assert isinstance(node, IteratorNodeBase), "Invalid iterator node"
             self.__node = node
         return self.__node
