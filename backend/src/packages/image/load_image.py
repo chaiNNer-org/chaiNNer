@@ -9,18 +9,19 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from . import io
-from ...nodes.node_base import NodeBase
-from ...nodes.properties.inputs import ImageFileInput
-from ...nodes.properties.outputs import (
+from nodes.node_base import NodeBase
+from nodes.properties.inputs import ImageFileInput
+from nodes.properties.outputs import (
     LargeImageOutput,
     DirectoryOutput,
     FileNameOutput,
 )
-from ...nodes.impl.dds import dds_to_png_texconv
-from ...nodes.impl.image_formats import get_opencv_formats, get_pil_formats
-from ...nodes.impl.image_utils import normalize
-from ...nodes.utils.utils import get_h_w_c, split_file_path
+from nodes.impl.dds import dds_to_png_texconv
+from nodes.impl.image_formats import get_opencv_formats, get_pil_formats
+from nodes.impl.image_utils import normalize
+from nodes.utils.utils import get_h_w_c, split_file_path
+
+from . import io
 
 
 @io.register()
