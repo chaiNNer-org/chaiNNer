@@ -70,6 +70,8 @@ You can right-click in the editor viewport to show an inline nodes list to selec
   - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
 - [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
   - A very nice collection of mostly ESRGAN models that have been trained for various tasks.
+- [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
+  - An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
 
 ## Compatibility Notes
 
