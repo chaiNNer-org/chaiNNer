@@ -13,6 +13,10 @@ from .architecture.face.codeformer import CodeFormer
 from .types import PyTorchModel
 
 
+class UnsupportedModel(Exception):
+    pass
+
+
 def load_state_dict(state_dict) -> PyTorchModel:
     logger.debug(f"Loading state dict into pytorch model arch")
 
@@ -70,5 +74,5 @@ def load_state_dict(state_dict) -> PyTorchModel:
             model = ESRGAN(state_dict)
         except:
             # pylint: disable=raise-missing-from
-            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+            raise UnsupportedModel
     return model
