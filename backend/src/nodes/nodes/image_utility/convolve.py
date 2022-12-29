@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from . import category as ImageUtilityCategory
@@ -64,20 +65,6 @@ class ImageConvolveNode(NodeBase):
         else:
             imagePadded = img
 
-        for y in range(img.shape[1]):
-            if y > img.shape[1] - yKernShape:
-                break
-            if y % strides == 0:
-                for x in range(img.shape[0]):
-                    if x > img.shape[0] - xKernShape:
-                        break
-                    try:
-                        if x % strides == 0:
-                            output[x, y] = (
-                                kernel
-                                * imagePadded[x : x + xKernShape, y : y + yKernShape]
-                            ).sum()
-                    except:
-                        break
+        output = cv2.filter2D(imagePadded, -1, kernel)
 
         return output
