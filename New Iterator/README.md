@@ -112,6 +112,16 @@ link_1.forEach((image1, index) => {
 
 Well, suppose we replaced the *Load Image in Directory* node with a simple *Load Image* node. We could manually select all images in the directory of *Load Image in Directory* and run the chain for each one. This would behave exactly like option 2, so option 2 would be the correct behavior here.
 
+Putting it together, example 3 behaves as follows:
+
+```js
+LoadImagesInDirectory("C:/.../").forEach((image) => {
+	upscaledImage = UpscaleImage(image)
+	fixedImage = AverageColorFix(upscaledImage, image)
+	SaveImage(fixedImage)
+})
+```
+
 Note: The operation in option 2 is called [zip](https://docs.python.org/3.3/library/functions.html#zip). However, this is a special because we know that both iterators (from link 1 and 3) have the same number of items. So we know that the zip will not discard any items.
 
 ### Auto iteration
@@ -122,7 +132,7 @@ While auto iteration nicely integrated all existing nodes into the new iterator 
 
 To implement some nodes (e.g. a node for combining a sequence of images into a sprit sheet, or writing a sequence of images to disk as frames of a video), we need the node to handle the iteration itself. As such, we need a way to turn off auto iteration and to pass in the iterator directly as is.
 
-This is where iterator input come in. These are special inputs that chainner knows need the iterator as is and must not be subject of auto iteration.
+This is where iterator input come in. These are special inputs that chainner knows need the iterator as is and must not be subject to auto iteration.
 
 Note: Auto iteration is functionally equivalent to the `map` operation.
 
@@ -252,7 +262,7 @@ The rule for implicit collectors are as follows:
 2. For each lineage, there exists one implicit collector.
 3. Given an auto iterated node with side effects over lineage L, connect this node to the implicit collector of L.
 
-These rules ensure that all nodes with side effects run while the chainner can still eliminate dead nodes.
+These rules ensure that all nodes with side effects run, while the chainner can still eliminate dead nodes.
 
 Note: Since auto iteration is equivalent to a `map` operation, we assume that auto iterated nodes can always be connected to an implicit collector. This includes nodes like *View Image* and *Save Image* that have no connectable outputs.
 
@@ -260,7 +270,23 @@ Note: Since auto iteration is equivalent to a `map` operation, we assume that au
 
 Suppose we have the following chain:
 
-Example 8: \
+Example 8: Simple upscale with views \
 ![image](./lock-step.png)
 
-TODO:
+I added the implicit collector here to make it more obvious what's going on under the hood.
+
+The following chain behaves like this:
+
+```js
+imagesIter = LoadImagesFromDirectory()
+upscaledIter = imagesIter.map(image => Upscale(image))
+view1Iter = imagesIter.map(image => ViewImage(image))
+saveIter = upscaledIter.map(upscaledImage => SaveImage(upscaledImage))
+view2Iter = upscaledIter.map(upscaledImage => ViewImage(upscaledImage))
+ImplicitCollector([view1Iter, saveIter, view2Iter])
+```
+
+The implicit collector will zip all given iterators and iterate them all at once. Since all iterators have the same lineage, they are guaranteed to have the same length, so no items are lost.
+
+### Optimizing auto-iterated nodes
+
