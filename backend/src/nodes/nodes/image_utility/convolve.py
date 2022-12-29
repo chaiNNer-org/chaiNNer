@@ -16,7 +16,7 @@ class ImageConvolveNode(NodeBase):
         super().__init__()
         self.description = "Convolves input image with input kernel (kernel values separated by commas)"
         self.inputs = [
-            ImageInput(),
+            ImageInput("Grayscale Image", channels=1),
             TextInput("Kernel String"),
             NumberInput("Kernel Width/Height", minimum=0, default=3),
             NumberInput("Padding", minimum=0, default=0),
@@ -41,10 +41,6 @@ class ImageConvolveNode(NodeBase):
 
         kernel = np.array([float(d) for d in kernel_in.split(",")])
         kernel = kernel.reshape(kernel_dim, kernel_dim)
-
-        # Grayscale image if it is not already
-        if len(img.shape) != 2:
-            img = img[:, :, 0]
 
         # Thanks Samrat Sahoo on Medium for the convolution code
         kernel = np.flipud(np.fliplr(kernel))
