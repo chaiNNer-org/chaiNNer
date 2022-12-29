@@ -9,13 +9,12 @@ from ...properties.inputs import ImageInput, NumberInput, TextInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 
+
 @NodeFactory.register("chainner:image:image_convolve")
 class ImageConvolveNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Convolves input image with input kernel (kernel values separated by commas)"
-        )
+        self.description = "Convolves input image with input kernel (kernel values separated by commas)"
         self.inputs = [
             ImageInput(),
             TextInput("Kernel String"),
@@ -30,7 +29,7 @@ class ImageConvolveNode(NodeBase):
         self.name = "Convolve"
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"
-    
+
     def run(
         self,
         img: np.ndarray,
@@ -38,15 +37,15 @@ class ImageConvolveNode(NodeBase):
         kernel_dim: int,
         padding: int,
         strides: int,
-        ) -> np.ndarray:
-        
+    ) -> np.ndarray:
+
         kernel = np.array([float(d) for d in kernel_in.split(",")])
-        kernel = kernel.reshape(kernel_dim,kernel_dim)
-        
+        kernel = kernel.reshape(kernel_dim, kernel_dim)
+
         # Grayscale image if it is not already
         if len(img.shape) != 2:
             img = img[:, :, 0]
-        
+
         # Thanks Samrat Sahoo on Medium for the convolution code
         # Cross Correlation
         kernel = np.flipud(np.fliplr(kernel))
@@ -64,8 +63,12 @@ class ImageConvolveNode(NodeBase):
 
         # Apply Equal Padding to All Sides
         if padding != 0:
-            imagePadded = np.zeros((img.shape[0] + padding*2, img.shape[1] + padding*2))
-            imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = img
+            imagePadded = np.zeros(
+                (img.shape[0] + padding * 2, img.shape[1] + padding * 2)
+            )
+            imagePadded[
+                int(padding) : int(-1 * padding), int(padding) : int(-1 * padding)
+            ] = img
         else:
             imagePadded = img
 
@@ -83,7 +86,10 @@ class ImageConvolveNode(NodeBase):
                     try:
                         # Only Convolve if x has moved by the specified Strides
                         if x % strides == 0:
-                            output[x, y] = (kernel * imagePadded[x: x + xKernShape, y: y + yKernShape]).sum()
+                            output[x, y] = (
+                                kernel
+                                * imagePadded[x : x + xKernShape, y : y + yKernShape]
+                            ).sum()
                     except:
                         break
 
