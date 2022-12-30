@@ -35,13 +35,13 @@ class ImageConvolveNode(NodeBase):
         self,
         img: np.ndarray,
         kernel_in: str,
-        kernel_dim: int,
         padding: int,
         strides: int,
     ) -> np.ndarray:
 
-        kernel = np.array([float(d) for d in kernel_in.split(",")])
-        kernel = kernel.reshape(kernel_dim, kernel_dim)
+        kernel = np.stack([l.split() for l in kernel_in.splitlines()], axis=0).astype(
+            float
+        )
 
         # Thanks Samrat Sahoo on Medium for the convolution code
         kernel = np.flipud(np.fliplr(kernel))
