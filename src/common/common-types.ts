@@ -173,12 +173,17 @@ interface ConditionalEnumGroup extends GroupBase {
         readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
     };
 }
+interface SeedGroup extends GroupBase {
+    readonly kind: 'seed';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
     | FromToDropdownsGroup
     | OptionalListGroup
-    | ConditionalEnumGroup;
+    | ConditionalEnumGroup
+    | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;
