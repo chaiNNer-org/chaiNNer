@@ -6,7 +6,7 @@ import numpy as np
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, TextInput
+from ...properties.inputs import ImageInput, NumberInput, NoteTextAreaInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 
@@ -15,11 +15,10 @@ from ...properties import expression
 class ImageConvolveNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Convolves input image with input kernel (kernel values separated by commas)"
+        self.description = "Convolves input image with input kernel"
         self.inputs = [
             ImageInput("Grayscale Image", channels=1),
-            TextInput("Kernel String"),
-            NumberInput("Kernel Width/Height", minimum=0, default=3),
+            NoteTextAreaInput("Kernel String"),
             NumberInput("Padding", minimum=0, default=0),
             NumberInput("Strides", minimum=1, default=1),
         ]
@@ -40,7 +39,7 @@ class ImageConvolveNode(NodeBase):
                         channels: 1,
                     }
                 """,
-                channels=1
+                channels=1,
             )
         ]
         self.category = ImageUtilityCategory
