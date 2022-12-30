@@ -21,7 +21,7 @@ class ImageConvolveNode(NodeBase):
             TextInput("Kernel String"),
             NumberInput("Kernel Width/Height", minimum=0, default=3),
             NumberInput("Padding", minimum=0, default=0),
-            NumberInput("Strides", minimum=0, default=1),
+            NumberInput("Strides", minimum=1, default=1),
         ]
         self.outputs = [
             ImageOutput(
