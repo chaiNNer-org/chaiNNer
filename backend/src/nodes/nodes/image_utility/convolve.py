@@ -24,7 +24,24 @@ class ImageConvolveNode(NodeBase):
             NumberInput("Strides", minimum=0, default=1),
         ]
         self.outputs = [
-            ImageOutput(image_type=expression.Image(size_as="Input0"), channels=1)
+            ImageOutput(
+                image_type="""
+                    let w = Input0.width;
+                    let h = Input0.height;
+
+                    let kernel = Input1;
+
+                    let padding = Input2;
+                    let stride = Input3;
+
+                    Image {
+                        width: int & floor((w + padding * 2 - 1) / stride + 1),
+                        height: int & floor((h + padding * 2 - 1) / stride + 1),
+                        channels: 1,
+                    }
+                """,
+                channels=1
+            )
         ]
         self.category = ImageUtilityCategory
         self.name = "Convolve"
