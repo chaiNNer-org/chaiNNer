@@ -113,6 +113,7 @@ export const AdvancedNumberInput = memo(
                             borderRightRadius="md"
                             m={0}
                             p={1}
+                            size={1}
                             // dynamic width based on precision
                             w={`${3 + 0.5 * precision}rem`}
                         />
@@ -159,6 +160,7 @@ export const AdvancedNumberInput = memo(
                         borderLeftRadius={unit ? 0 : 'lg'}
                         borderRightRadius="lg"
                         px={unit ? 2 : 4}
+                        size={1}
                     />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
