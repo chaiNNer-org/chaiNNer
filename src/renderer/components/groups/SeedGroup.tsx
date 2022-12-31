@@ -1,6 +1,6 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
-import { BsDice5 } from 'react-icons/bs';
+import { HiOutlineRefresh } from 'react-icons/hi';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
@@ -43,7 +43,7 @@ export const SeedGroup = memo(
                         <IconButton
                             aria-label="Random Seed"
                             h="2rem"
-                            icon={<BsDice5 />}
+                            icon={<HiOutlineRefresh />}
                             isDisabled={isLocked || isInputLocked}
                             minWidth={0}
                             size="md"
