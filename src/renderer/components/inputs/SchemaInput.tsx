@@ -1,4 +1,5 @@
 import { NeverType, Type } from '@chainner/navi';
+import { HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
@@ -46,12 +47,22 @@ export interface SingleInputProps {
     inputData: InputData;
     inputSize: InputSize | undefined;
     onSetValue?: (value: InputValue) => void;
+    afterInput?: JSX.Element;
 }
 /**
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(
-    ({ input, schemaId, nodeId, isLocked, inputData, inputSize, onSetValue }: SingleInputProps) => {
+    ({
+        input,
+        schemaId,
+        nodeId,
+        isLocked,
+        inputData,
+        inputSize,
+        onSetValue,
+        afterInput,
+    }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle } = input;
 
         const {
@@ -115,6 +126,15 @@ export const SchemaInput = memo(
                 value={value}
             />
         );
+
+        if (afterInput) {
+            inputElement = (
+                <HStack w="full">
+                    {inputElement}
+                    {afterInput}
+                </HStack>
+            );
+        }
 
         if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown') {
             inputElement = <WithLabel input={input}>{inputElement}</WithLabel>;

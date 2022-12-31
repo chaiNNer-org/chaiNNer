@@ -6,6 +6,7 @@ import {
     Input,
     InputKind,
     NodeSchema,
+    NumberInput,
     OfKind,
 } from './common-types';
 import { VALID, Validity, invalid } from './Validity';
@@ -25,6 +26,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'from-to-dropdowns': readonly [DropDownInput, DropDownInput];
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
+    seed: readonly [NumberInput];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -85,6 +87,12 @@ const groupInputsChecks: {
         if (inputs.length === 0) return 'Expected at least 1 item';
 
         if (!allAreOptional(inputs)) return 'Expected all inputs to be optional';
+    },
+    seed: (inputs) => {
+        if (inputs.length !== 1) return 'Expected exactly 1 number input';
+        const [input] = inputs;
+
+        if (input.kind !== 'number') return 'Expected the input to be a number input';
     },
 };
 
