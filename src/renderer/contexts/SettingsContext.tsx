@@ -73,7 +73,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     // Snap to grid
     const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
-    const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
+    const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 16);
     const useSnapToGrid = useMemoArray([
         isSnapToGrid,
         setIsSnapToGrid,
