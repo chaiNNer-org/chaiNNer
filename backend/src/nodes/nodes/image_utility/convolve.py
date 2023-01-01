@@ -8,7 +8,6 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, NoteTextAreaInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 
 
 @NodeFactory.register("chainner:image:image_convolve")
