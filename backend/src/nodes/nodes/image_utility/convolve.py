@@ -16,10 +16,9 @@ class ImageConvolveNode(NodeBase):
         super().__init__()
         self.description = "Convolves input image with input kernel"
         self.inputs = [
-            ImageInput("Grayscale Image", channels=1),
+            ImageInput("Image"),
             NoteTextAreaInput("Kernel String"),
             NumberInput("Padding", minimum=0, default=0),
-            NumberInput("Strides", minimum=1, default=1),
         ]
         self.outputs = [
             ImageOutput(
@@ -30,15 +29,12 @@ class ImageConvolveNode(NodeBase):
                     let kernel = Input1;
 
                     let padding = Input2;
-                    let stride = Input3;
 
                     Image {
-                        width: int & floor((w + padding * 2 - 1) / stride + 1),
-                        height: int & floor((h + padding * 2 - 1) / stride + 1),
-                        channels: 1,
+                        width: int & floor((w + padding * 2 - 1) + 1),
+                        height: int & floor((h + padding * 2 - 1)+ 1),
                     }
                 """,
-                channels=1,
             )
         ]
         self.category = ImageUtilityCategory
@@ -51,35 +47,24 @@ class ImageConvolveNode(NodeBase):
         img: np.ndarray,
         kernel_in: str,
         padding: int,
-        strides: int,
     ) -> np.ndarray:
 
         kernel = np.stack([l.split() for l in kernel_in.splitlines()], axis=0).astype(
             float
         )
 
-        # Thanks Samrat Sahoo on Medium for the convolution code
         kernel = np.flipud(np.fliplr(kernel))
 
-        xKernShape = kernel.shape[0]
-        yKernShape = kernel.shape[1]
-        xImgShape = img.shape[0]
-        yImgShape = img.shape[1]
+        img = cv2.copyMakeBorder(
+            img,
+            top=padding,
+            left=padding,
+            right=padding,
+            bottom=padding,
+            borderType=cv2.BORDER_CONSTANT,
+            value=0,
+        )
 
-        xOutput = int(((xImgShape - xKernShape + 2 * padding) / strides) + 1)
-        yOutput = int(((yImgShape - yKernShape + 2 * padding) / strides) + 1)
-        output = np.zeros((xOutput, yOutput))
-
-        if padding != 0:
-            imagePadded = np.zeros(
-                (img.shape[0] + padding * 2, img.shape[1] + padding * 2)
-            )
-            imagePadded[
-                int(padding) : int(-1 * padding), int(padding) : int(-1 * padding)
-            ] = img
-        else:
-            imagePadded = img
-
-        output = cv2.filter2D(imagePadded, -1, kernel)
+        output = cv2.filter2D(img, -1, kernel)
 
         return output
