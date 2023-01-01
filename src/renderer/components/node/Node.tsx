@@ -158,6 +158,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            minWidth="240px"
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}
@@ -172,9 +173,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             onDrop={onDrop}
         >
             <VStack
-                minWidth="240px"
                 opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
                 spacing={0}
+                w="full"
             >
                 <VStack
                     spacing={0}
