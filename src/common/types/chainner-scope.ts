@@ -78,7 +78,6 @@ struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
 struct ImageExtension;
-struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct ThresholdType;

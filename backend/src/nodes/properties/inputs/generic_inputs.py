@@ -268,56 +268,6 @@ class AnyInput(BaseInput):
         return value
 
 
-def MathOpsDropdown() -> DropDownInput:
-    """Input for selecting math operation type from dropdown"""
-    return DropDownInput(
-        input_type="MathOperation",
-        label="Math Operation",
-        options=[
-            {
-                "option": "Add (+)",
-                "value": "add",
-                "type": """MathOperation { operation: "add" }""",
-            },
-            {
-                "option": "Subtract (-)",
-                "value": "sub",
-                "type": """MathOperation { operation: "sub" }""",
-            },
-            {
-                "option": "Multiply (×)",
-                "value": "mul",
-                "type": """MathOperation { operation: "mul" }""",
-            },
-            {
-                "option": "Divide (÷)",
-                "value": "div",
-                "type": """MathOperation { operation: "div" }""",
-            },
-            {
-                "option": "Exponent/Power (^)",
-                "value": "pow",
-                "type": """MathOperation { operation: "pow" }""",
-            },
-            {
-                "option": "Maximum",
-                "value": "max",
-                "type": """MathOperation { operation: "max" }""",
-            },
-            {
-                "option": "Minimum",
-                "value": "min",
-                "type": """MathOperation { operation: "min" }""",
-            },
-            {
-                "option": "Modulo",
-                "value": "mod",
-                "type": """MathOperation { operation: "mod" }""",
-            },
-        ],
-    )
-
-
 def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
     return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)

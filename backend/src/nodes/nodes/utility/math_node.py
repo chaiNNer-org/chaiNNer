@@ -1,33 +1,57 @@
 from __future__ import annotations
+from enum import Enum
 import math
-from typing import Union
+from typing import Dict, Union
 
 from . import category as UtilityCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NumberInput, MathOpsDropdown
+from ...properties.inputs import NumberInput, EnumInput
 from ...properties.outputs import NumberOutput
+
+
+class MathOperation(Enum):
+    ADD = "add"
+    SUBTRACT = "sub"
+    MULTIPLY = "mul"
+    DIVIDE = "div"
+    POWER = "pow"
+    MAXIMUM = "max"
+    MINIMUM = "min"
+    MODULO = "mod"
+
+
+OP_LABEL: Dict[MathOperation, str] = {
+    MathOperation.ADD: "Add: a + b",
+    MathOperation.SUBTRACT: "Subtract: a - b",
+    MathOperation.MULTIPLY: "Multiply: a × b",
+    MathOperation.DIVIDE: "Divide: a ÷ b",
+    MathOperation.POWER: "Exponent: a ^ b",
+    MathOperation.MAXIMUM: "Maximum: max(a, b)",
+    MathOperation.MINIMUM: "Minimum: min(a, b)",
+    MathOperation.MODULO: "Modulo: a mod b",
+}
+
+_special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
 
 
 @NodeFactory.register("chainner:utility:math")
 class MathNode(NodeBase):
-    special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
-
     def __init__(self):
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
         self.inputs = [
             NumberInput(
-                "Operand A",
+                "Operand a",
                 minimum=None,
                 maximum=None,
                 precision=100,
                 controls_step=1,
             ),
-            MathOpsDropdown(),
+            EnumInput(MathOperation, "Math Operation", option_labels=OP_LABEL),
             NumberInput(
-                "Operand B",
+                "Operand b",
                 minimum=None,
                 maximum=None,
                 precision=100,
@@ -38,16 +62,18 @@ class MathNode(NodeBase):
             NumberOutput(
                 "Result",
                 output_type="""
-                match Input1.operation {
-                    "add" => Input0 + Input2,
-                    "sub" => Input0 - Input2,
-                    "mul" => Input0 * Input2,
-                    "div" => Input0 / Input2,
-                    "pow" => pow(Input0, Input2),
-                    "max" => max(Input0, Input2),
-                    "min" => min(Input0, Input2),
-                    "mod" => mod(Input0, Input2),
-                    _ => number
+                let a = Input0;
+                let b = Input2;
+
+                match Input1 {
+                    MathOperation::Add => Input0 + Input2,
+                    MathOperation::Subtract => Input0 - Input2,
+                    MathOperation::Multiply => Input0 * Input2,
+                    MathOperation::Divide => Input0 / Input2,
+                    MathOperation::Power => pow(Input0, Input2),
+                    MathOperation::Maximum => max(Input0, Input2),
+                    MathOperation::Minimum => min(Input0, Input2),
+                    MathOperation::Modulo => mod(Input0, Input2),
                 }
                 """,
             )
@@ -59,29 +85,26 @@ class MathNode(NodeBase):
         self.sub = "Math"
 
     def run(
-        self, in1: Union[int, float], op: str, in2: Union[int, float]
+        self, a: Union[int, float], op: MathOperation, b: Union[int, float]
     ) -> Union[int, float]:
-        if op == "add":
-            return in1 + in2
-        elif op == "sub":
-            return in1 - in2
-        elif op == "mul":
-            return in1 * in2
-        elif op == "div":
-            return in1 / in2
-        elif op == "pow":
-            return in1**in2
-        elif op == "max":
-            return max(in1, in2)
-        elif op == "min":
-            return min(in1, in2)
-        elif op == "mod":
-            if (
-                in1 in MathNode.special_mod_numbers
-                or in2 in MathNode.special_mod_numbers
-            ):
-                return in1 - in2 * math.floor(in1 / in2)
+        if op == MathOperation.ADD:
+            return a + b
+        elif op == MathOperation.SUBTRACT:
+            return a - b
+        elif op == MathOperation.MULTIPLY:
+            return a * b
+        elif op == MathOperation.DIVIDE:
+            return a / b
+        elif op == MathOperation.POWER:
+            return a**b
+        elif op == MathOperation.MAXIMUM:
+            return max(a, b)
+        elif op == MathOperation.MINIMUM:
+            return min(a, b)
+        elif op == MathOperation.MODULO:
+            if a in _special_mod_numbers or b in _special_mod_numbers:
+                return a - b * math.floor(a / b)
             else:
-                return in1 % in2
+                return a % b
         else:
             raise RuntimeError(f"Unknown operator {op}")
