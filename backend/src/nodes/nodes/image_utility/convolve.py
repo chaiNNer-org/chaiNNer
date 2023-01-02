@@ -31,8 +31,8 @@ class ImageConvolveNode(NodeBase):
                     let padding = Input2;
 
                     Image {
-                        width: int & floor((w + padding * 2 - 1) + 1),
-                        height: int & floor((h + padding * 2 - 1)+ 1),
+                        width: w + padding * 2,
+                        height: h + padding * 2,
                     }
                 """,
             )
