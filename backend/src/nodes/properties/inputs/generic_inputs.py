@@ -117,11 +117,11 @@ class EnumInput(Generic[T], DropDownInput):
     ### Features
 
     All variants of the enum will be converted into typed dropdown options.
-    The dropdown will be fully typed and brings its own type definitions.
+    The dropdown will be fully typed and bring its own type definitions.
     Option labels can be (partially) overridden using `option_labels`.
 
     By default, the input label, type names, and option labels will all be generated from the enum name and variant names.
-    All of those defaults and be overridden.
+    All of those defaults can be overridden.
 
     Options will be ordered by declaration order in the python enum definition.
 
