@@ -66,14 +66,14 @@ class MathNode(NodeBase):
                 let b = Input2;
 
                 match Input1 {
-                    MathOperation::Add => Input0 + Input2,
-                    MathOperation::Subtract => Input0 - Input2,
-                    MathOperation::Multiply => Input0 * Input2,
-                    MathOperation::Divide => Input0 / Input2,
-                    MathOperation::Power => pow(Input0, Input2),
-                    MathOperation::Maximum => max(Input0, Input2),
-                    MathOperation::Minimum => min(Input0, Input2),
-                    MathOperation::Modulo => mod(Input0, Input2),
+                    MathOperation::Add      => a + b,
+                    MathOperation::Subtract => a - b,
+                    MathOperation::Multiply => a * b,
+                    MathOperation::Divide   => a / b,
+                    MathOperation::Power    => pow(a, b),
+                    MathOperation::Maximum  => max(a, b),
+                    MathOperation::Minimum  => min(a, b),
+                    MathOperation::Modulo   => mod(a, b),
                 }
                 """,
             )
