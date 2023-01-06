@@ -48,10 +48,7 @@ def pytorch_auto_split(
                         d_img.detach().cpu()
                     except:
                         pass
-                    try:
-                        del d_img
-                    except:
-                        pass
+                    del d_img
                 gc.collect()
                 torch.cuda.empty_cache()
                 return Split()
