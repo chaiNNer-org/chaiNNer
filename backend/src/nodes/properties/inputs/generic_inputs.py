@@ -229,6 +229,12 @@ class NoteTextAreaInput(BaseInput):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
 
+    def enforce(self, value) -> str:
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
+        return str(value)
+
     def toDict(self):
         return {
             **super().toDict(),
