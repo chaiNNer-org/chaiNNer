@@ -44,7 +44,10 @@ def pytorch_auto_split(
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
                 if d_img is not None:
-                    d_img.detach().cpu()
+                    try:
+                        d_img.detach().cpu()
+                    except:
+                        pass
                     del d_img
                 gc.collect()
                 torch.cuda.empty_cache()
