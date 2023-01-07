@@ -9,7 +9,7 @@ from ...properties.outputs import TextOutput
 
 
 @NodeFactory.register("chainner:utility:text")
-class TextAppendNode(NodeBase):
+class TextValueNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Outputs the given text."

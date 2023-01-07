@@ -9,7 +9,7 @@ from ...properties.outputs import NumberOutput
 
 
 @NodeFactory.register("chainner:utility:number")
-class MathNode(NodeBase):
+class NumberValueNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Outputs the given number."
