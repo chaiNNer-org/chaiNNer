@@ -71,22 +71,22 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             packages: [
                 {
                     packageName: 'onnx',
-                    version: '1.12.0',
+                    version: '1.13.0',
                     sizeEstimate: 12 * MB,
                 },
                 {
                     packageName: 'onnxoptimizer',
-                    version: '0.3.1',
+                    version: '0.3.6',
                     sizeEstimate: 300 * KB,
                 },
                 {
                     packageName: canCuda ? 'onnxruntime-gpu' : 'onnxruntime',
                     sizeEstimate: canCuda ? 110 * MB : 5 * MB,
-                    version: '1.12.1',
+                    version: '1.13.1',
                 },
                 {
                     packageName: 'protobuf',
-                    version: '3.16.0',
+                    version: '3.20.2',
                     sizeEstimate: 500 * KB,
                 },
             ],
