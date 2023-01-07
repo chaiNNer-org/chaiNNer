@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 from typing import List
 
 import cv2
@@ -7,9 +8,14 @@ import numpy as np
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, StackOrientationDropdown
+from ...properties.inputs import ImageInput, EnumInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c, round_half_up
+
+
+class Orientation(Enum):
+    HORIZONTAL = "horizontal"
+    VERTICAL = "vertical"
 
 
 @NodeFactory.register("chainner:image:stack")
@@ -24,7 +30,7 @@ class StackNode(NodeBase):
             ImageInput("Image B").make_optional(),
             ImageInput("Image C").make_optional(),
             ImageInput("Image D").make_optional(),
-            StackOrientationDropdown(),
+            EnumInput(Orientation),
         ]
         self.outputs = [
             ImageOutput(
@@ -83,7 +89,7 @@ class StackNode(NodeBase):
         im2: np.ndarray | None,
         im3: np.ndarray | None,
         im4: np.ndarray | None,
-        orientation: str,
+        orientation: Orientation,
     ) -> np.ndarray:
         img = im1
         imgs = []
@@ -105,14 +111,14 @@ class StackNode(NodeBase):
 
             fixed_img = img
             # Fix images so they resize proportionally to the max image
-            if orientation == "horizontal":
+            if orientation == Orientation.HORIZONTAL:
                 if h < max_h:
                     fixed_img = cv2.resize(
                         img,
                         (round_half_up(w * max_h / h), max_h),
                         interpolation=cv2.INTER_NEAREST,
                     )
-            elif orientation == "vertical":
+            elif orientation == Orientation.VERTICAL:
                 if w < max_w:
                     fixed_img = cv2.resize(
                         img,
@@ -130,7 +136,7 @@ class StackNode(NodeBase):
 
             fixed_imgs.append(fixed_img.astype("float32"))
 
-        if orientation == "horizontal":
+        if orientation == Orientation.HORIZONTAL:
             for i in range(len(fixed_imgs)):
                 assert (
                     fixed_imgs[i].shape[0] == fixed_imgs[0].shape[0]
@@ -139,7 +145,7 @@ class StackNode(NodeBase):
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
             img = cv2.hconcat(fixed_imgs)  # type: ignore
-        elif orientation == "vertical":
+        elif orientation == Orientation.VERTICAL:
             for i in range(len(fixed_imgs)):
                 assert (
                     fixed_imgs[i].shape[1] == fixed_imgs[0].shape[1]

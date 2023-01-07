@@ -1,0 +1,2966 @@
+{
+  "AbsVal": {
+    "weightOrder": {}
+  },
+  "ArgMax": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "out_max_val",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "topk",
+      "defaultValue": 1
+    },
+    "weightOrder": {}
+  },
+  "BatchNorm": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "channels",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "eps",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {
+      "slope": [1],
+      "mean": [1],
+      "variance": [1],
+      "bias": [1]
+    }
+  },
+  "Bias": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "bias_data_size",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "bias": [1]
+    }
+  },
+  "BinaryOp": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "op_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "with_scalar",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "b",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "BNLL": {
+    "weightOrder": {}
+  },
+  "Cast": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "type_from",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "type_to",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Clip": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "min",
+      "defaultValue": "-FLT_MAX"
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "max",
+      "defaultValue": "FLT_MAX"
+    },
+    "weightOrder": {}
+  },
+  "Concat": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "axis",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Convolution": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "int8_scale_term",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "dynamic_weight",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Convolution1D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "dynamic_weight",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Convolution3D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "17": {
+      "paramId": "17",
+      "paramPhase": "pad_behind",
+      "defaultValue": "pad_front"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "kernel_d",
+      "defaultValue": "kernel_w"
+    },
+    "22": {
+      "paramId": "22",
+      "paramPhase": "dilation_d",
+      "defaultValue": "dilation_w"
+    },
+    "23": {
+      "paramId": "23",
+      "paramPhase": "stride_d",
+      "defaultValue": "stride_w"
+    },
+    "24": {
+      "paramId": "24",
+      "paramPhase": "pad_front",
+      "defaultValue": "pad_left"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "ConvolutionDepthWise": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "int8_scale_term",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "dynamic_weight",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "ConvolutionDepthWise1D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "dynamic_weight",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "ConvolutionDepthWise3D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "17": {
+      "paramId": "17",
+      "paramPhase": "pad_behind",
+      "defaultValue": "pad_front"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "pad_value",
+      "defaultValue": 0.0
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "kernel_d",
+      "defaultValue": "kernel_w"
+    },
+    "22": {
+      "paramId": "22",
+      "paramPhase": "dilation_d",
+      "defaultValue": "dilation_w"
+    },
+    "23": {
+      "paramId": "23",
+      "paramPhase": "stride_d",
+      "defaultValue": "stride_w"
+    },
+    "24": {
+      "paramId": "24",
+      "paramPhase": "pad_front",
+      "defaultValue": "pad_left"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Crop": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "woffset",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "hoffset",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "coffset",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "outw",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "outh",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "outc",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "woffset2",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "hoffset2",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "coffset2",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "starts",
+      "defaultValue": []
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "ends",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "axes",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "Deconvolution": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "output_pad_bottom",
+      "defaultValue": "output_pad_right"
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "output_h",
+      "defaultValue": "output_w"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Deconvolution1D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Deconvolution3D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "17": {
+      "paramId": "17",
+      "paramPhase": "pad_behind",
+      "defaultValue": "pad_front"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "output_pad_bottom",
+      "defaultValue": "output_pad_right"
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_pad_behind",
+      "defaultValue": "output_pad_right"
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "kernel_d",
+      "defaultValue": "kernel_w"
+    },
+    "22": {
+      "paramId": "22",
+      "paramPhase": "dilation_d",
+      "defaultValue": "dilation_w"
+    },
+    "23": {
+      "paramId": "23",
+      "paramPhase": "stride_d",
+      "defaultValue": "stride_w"
+    },
+    "24": {
+      "paramId": "24",
+      "paramPhase": "pad_front",
+      "defaultValue": "pad_left"
+    },
+    "25": {
+      "paramId": "25",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "26": {
+      "paramId": "26",
+      "paramPhase": "output_h",
+      "defaultValue": "output_w"
+    },
+    "27": {
+      "paramId": "27",
+      "paramPhase": "output_d",
+      "defaultValue": "output_w"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "DeconvolutionDepthWise": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "output_pad_bottom",
+      "defaultValue": "output_pad_right"
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "output_h",
+      "defaultValue": "output_w"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "DeconvolutionDepthWise1D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "DeconvolutionDepthWise3D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "17": {
+      "paramId": "17",
+      "paramPhase": "pad_behind",
+      "defaultValue": "pad_front"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "output_pad_right",
+      "defaultValue": 0
+    },
+    "19": {
+      "paramId": "19",
+      "paramPhase": "output_pad_bottom",
+      "defaultValue": "output_pad_right"
+    },
+    "20": {
+      "paramId": "20",
+      "paramPhase": "output_pad_behind",
+      "defaultValue": "output_pad_right"
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "kernel_d",
+      "defaultValue": "kernel_w"
+    },
+    "22": {
+      "paramId": "22",
+      "paramPhase": "dilation_d",
+      "defaultValue": "dilation_w"
+    },
+    "23": {
+      "paramId": "23",
+      "paramPhase": "stride_d",
+      "defaultValue": "stride_w"
+    },
+    "24": {
+      "paramId": "24",
+      "paramPhase": "pad_front",
+      "defaultValue": "pad_left"
+    },
+    "25": {
+      "paramId": "25",
+      "paramPhase": "output_w",
+      "defaultValue": 0
+    },
+    "26": {
+      "paramId": "26",
+      "paramPhase": "output_h",
+      "defaultValue": "output_w"
+    },
+    "27": {
+      "paramId": "27",
+      "paramPhase": "output_d",
+      "defaultValue": "output_w"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "DeformableConv2D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "dilation_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "int8_scale_term",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "dilation_h",
+      "defaultValue": "dilation_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Dequantize": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "scale",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "bias_data_size",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "scale": [1],
+      "bias": [1]
+    }
+  },
+  "DetectionOutput": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_class",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "nms_threshold",
+      "defaultValue": 0.05
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "nms_top_k",
+      "defaultValue": 300
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "keep_top_k",
+      "defaultValue": 100
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "confidence_threshold",
+      "defaultValue": 0.5
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "variances[0]",
+      "defaultValue": 0.1
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "variances[1]",
+      "defaultValue": 0.1
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "variances[2]",
+      "defaultValue": 0.2
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "variances[3]",
+      "defaultValue": 0.2
+    },
+    "weightOrder": {}
+  },
+  "Dropout": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "scale",
+      "defaultValue": 1.0
+    },
+    "weightOrder": {}
+  },
+  "Eltwise": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "op_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "coeffs",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "ELU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "alpha",
+      "defaultValue": 0.1
+    },
+    "weightOrder": {}
+  },
+  "Embed": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "input_dim",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Exp": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "base",
+      "defaultValue": -1.0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "scale",
+      "defaultValue": 1.0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "shift",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "ExpandDims": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "expand_w",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "expand_h",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "expand_c",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "axes",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "Flatten": {
+    "weightOrder": {}
+  },
+  "GELU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "fast_gelu",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Gemm": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "alpha",
+      "defaultValue": 1.0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "beta",
+      "defaultValue": 1.0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "transA",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "transB",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "GLU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "axis",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "GridSample": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "sample_type",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "padding_mode",
+      "defaultValue": 1
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "align_corner",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "GroupNorm": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "channels",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "eps",
+      "defaultValue": 0.001
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "affine",
+      "defaultValue": 1
+    },
+    "weightOrder": {
+      "gamma": [1],
+      "beta": [1]
+    }
+  },
+  "GRU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "direction",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias": [1, 3, 10],
+      "weight_hc": [1, 3, 10]
+    }
+  },
+  "HardSigmoid": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "alpha",
+      "defaultValue": 0.2
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "beta",
+      "defaultValue": 0.5
+    },
+    "weightOrder": {}
+  },
+  "HardSwish": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "alpha",
+      "defaultValue": 0.2
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "beta",
+      "defaultValue": 0.5
+    },
+    "weightOrder": {}
+  },
+  "InnerProduct": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "int8_scale_term",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
+  },
+  "Input": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "w",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "h",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "c",
+      "defaultValue": 0
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "d",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "InstanceNorm": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "channels",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "eps",
+      "defaultValue": 0.001
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "affine",
+      "defaultValue": 1
+    },
+    "weightOrder": {
+      "gamma": [1],
+      "bias": [1]
+    }
+  },
+  "Interp": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "resize_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "height_scale",
+      "defaultValue": 1.0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "width_scale",
+      "defaultValue": 1.0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "output_height",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "output_width",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "dynamic_target_size",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "align_corner",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "LayerNorm": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "affine_size",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "eps",
+      "defaultValue": 0.001
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "affine",
+      "defaultValue": 1
+    },
+    "weightOrder": {
+      "gamma": [1],
+      "beta": [1]
+    }
+  },
+  "Log": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "base",
+      "defaultValue": -1.0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "scale",
+      "defaultValue": 1.0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "shift",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "LRN": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "region_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "local_size",
+      "defaultValue": 5
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "alpha",
+      "defaultValue": 1.0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "beta",
+      "defaultValue": 0.75
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "bias",
+      "defaultValue": 1.0
+    },
+    "weightOrder": {}
+  },
+  "LSTM": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 1
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "direction",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias_c": [1, 3, 10],
+      "weight_hc": [1, 3, 10],
+      "weight_hr": [1, 3, 10]
+    }
+  },
+  "MemoryData": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "w",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "h",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "c",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "data": [1]
+    }
+  },
+  "Mish": {
+    "weightOrder": {}
+  },
+  "MultiHeadAttention": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "embed_dim",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "num_head",
+      "defaultValue": 1
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "q_weight": [1, 3, 10],
+      "q_bias": [1],
+      "k_weight": [1, 3, 10],
+      "k_bias": [1],
+      "v_weight": [1, 3, 10],
+      "v_bias": [1],
+      "out_weight": [1, 3, 10],
+      "out_bias": [1]
+    }
+  },
+  "MVN": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "normalize_variance",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "across_channels",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "eps",
+      "defaultValue": 0.0001
+    },
+    "weightOrder": {}
+  },
+  "Noop": {
+    "weightOrder": {}
+  },
+  "Normalize": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "across_spatial",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "channel_shared",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "eps",
+      "defaultValue": 0.0001
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "scale_data_size",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "across_channel",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "eps_mode",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "scale": [1]
+    }
+  },
+  "Packing": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "out_packing",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "use_padding",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "cast_type_from",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "cast_type_to",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "storage_type_from",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "storage_type_to",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Padding": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "top",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "bottom",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "left",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "right",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "type",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "value",
+      "defaultValue": 0.0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "per_channel_pad_data_size",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "front",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "behind",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "per_channel_pad_data": [1]
+    }
+  },
+  "Permute": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "order_type",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "PixelShuffle": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "upscale_factor",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "mode",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Pooling": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooling_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "global_pooling",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "pad_mode",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "avgpool_count_include_pad",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "adaptive_pooling",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "out_w",
+      "defaultValue": 0
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "out_h",
+      "defaultValue": "out_w"
+    },
+    "weightOrder": {}
+  },
+  "Pooling1D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooling_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "global_pooling",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "pad_mode",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "avgpool_count_include_pad",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "adaptive_pooling",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "out_w",
+      "defaultValue": 0
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "weightOrder": {}
+  },
+  "Pooling3D": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooling_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "kernel_w",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "stride_w",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "pad_left",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "global_pooling",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "pad_mode",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "avgpool_count_include_pad",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "adaptive_pooling",
+      "defaultValue": 0
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "out_w",
+      "defaultValue": 0
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "kernel_h",
+      "defaultValue": "kernel_w"
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "stride_h",
+      "defaultValue": "stride_w"
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "pad_top",
+      "defaultValue": "pad_left"
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "pad_right",
+      "defaultValue": "pad_left"
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "pad_bottom",
+      "defaultValue": "pad_top"
+    },
+    "16": {
+      "paramId": "16",
+      "paramPhase": "pad_behind",
+      "defaultValue": "pad_front"
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "out_h",
+      "defaultValue": "out_w"
+    },
+    "21": {
+      "paramId": "21",
+      "paramPhase": "kernel_d",
+      "defaultValue": "kernel_w"
+    },
+    "22": {
+      "paramId": "22",
+      "paramPhase": "stride_d",
+      "defaultValue": "stride_w"
+    },
+    "23": {
+      "paramId": "23",
+      "paramPhase": "pad_front",
+      "defaultValue": "pad_left"
+    },
+    "28": {
+      "paramId": "28",
+      "paramPhase": "out_d",
+      "defaultValue": "out_w"
+    },
+    "weightOrder": {}
+  },
+  "Power": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "power",
+      "defaultValue": 1.0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "scale",
+      "defaultValue": 1.0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "shift",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "PReLU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_slope",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "slope": [1]
+    }
+  },
+  "PriorBox": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "min_sizes",
+      "defaultValue": []
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "max_sizes",
+      "defaultValue": []
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "aspect_ratios",
+      "defaultValue": []
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "variances[0]",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "variances[1]",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "variances[2]",
+      "defaultValue": 0
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "variances[3]",
+      "defaultValue": 0
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "flip",
+      "defaultValue": 1
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "clip",
+      "defaultValue": 0
+    },
+    "9": {
+      "paramId": "9",
+      "paramPhase": "image_width",
+      "defaultValue": 0
+    },
+    "10": {
+      "paramId": "10",
+      "paramPhase": "image_height",
+      "defaultValue": 0
+    },
+    "11": {
+      "paramId": "11",
+      "paramPhase": "step_width",
+      "defaultValue": -233
+    },
+    "12": {
+      "paramId": "12",
+      "paramPhase": "step_height",
+      "defaultValue": -233
+    },
+    "13": {
+      "paramId": "13",
+      "paramPhase": "offset",
+      "defaultValue": 0
+    },
+    "14": {
+      "paramId": "14",
+      "paramPhase": "step_mmdetection",
+      "defaultValue": 0
+    },
+    "15": {
+      "paramId": "15",
+      "paramPhase": "center_mmdetection",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "slope": [1]
+    }
+  },
+  "Proposal": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "feat_stride",
+      "defaultValue": 16
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "base_size",
+      "defaultValue": 16
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "pre_nms_topN",
+      "defaultValue": 6000
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "after_nms_topN",
+      "defaultValue": 300
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "num_thresh",
+      "defaultValue": 0.7
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "min_size",
+      "defaultValue": 16
+    },
+    "weightOrder": {}
+  },
+  "PSROIPooling": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooled_width",
+      "defaultValue": 7
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "pooled_height",
+      "defaultValue": 7
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "spatial_scale",
+      "defaultValue": 0.0625
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "output_dim",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Quantize": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "scale",
+      "defaultValue": 1
+    },
+    "weightOrder": {
+      "scale": [1]
+    }
+  },
+  "Reduction": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "operation",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "reduce_all",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "coeff",
+      "defaultValue": 1.0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "axes",
+      "defaultValue": []
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "keepdims",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "UNKNOWN",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "ReLU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "slope",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "Reorg": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "stride",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Requantize": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "scale_in_data_size",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "scale_out_data_size",
+      "defaultValue": 1
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "bias_data_size",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "activation_type",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "activation_params",
+      "defaultValue": []
+    },
+    "weightOrder": {
+      "scale_in": [1],
+      "scale_out": [1],
+      "bias": [1]
+    }
+  },
+  "Reshape": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "w",
+      "defaultValue": -233
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "h",
+      "defaultValue": -233
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "c",
+      "defaultValue": -233
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "permute",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "RNN": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "direction",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias_c": [1, 3, 10],
+      "weight_hc": [1, 3, 10]
+    }
+  },
+  "ROIAlign": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooled_width",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "pooled_height",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "spatial_scale",
+      "defaultValue": 1
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "sampling_ratio",
+      "defaultValue": 0
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "aligned",
+      "defaultValue": 0
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "version",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "ROIPooling": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooled_width",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "pooled_height",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "spatial_scale",
+      "defaultValue": 1
+    },
+    "weightOrder": {}
+  },
+  "Scale": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "scale_data_size",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "bias_term",
+      "defaultValue": 0
+    },
+    "weightOrder": {
+      "scale": [1],
+      "bias": [1]
+    }
+  },
+  "SELU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "alpha",
+      "defaultValue": 1.67326324
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "lambda",
+      "defaultValue": 1.050700987
+    },
+    "weightOrder": {}
+  },
+  "ShuffleChannel": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "group",
+      "defaultValue": 1
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "reverse",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Sigmoid": {
+    "weightOrder": {}
+  },
+  "Slice": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "slices",
+      "defaultValue": []
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "axis",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Softmax": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "axis",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "fixbug0",
+      "defaultValue": 1
+    },
+    "weightOrder": {}
+  },
+  "Softplus": {
+    "weightOrder": {}
+  },
+  "Split": {
+    "weightOrder": {}
+  },
+  "SPP": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "pooling_type",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "pyramid_height",
+      "defaultValue": 1
+    },
+    "weightOrder": {}
+  },
+  "Squeeze": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "squeeze_w",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "squeeze_h",
+      "defaultValue": 0
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "squeeze_c",
+      "defaultValue": 0
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "axes",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "StatisticsPooling": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "include_stddev",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "Swish": {
+    "weightOrder": {}
+  },
+  "TanH": {
+    "weightOrder": {}
+  },
+  "Threshold": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "threshold",
+      "defaultValue": 0.0
+    },
+    "weightOrder": {}
+  },
+  "Tile": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "dim",
+      "defaultValue": 0
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "tiles",
+      "defaultValue": 1
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "repeats",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "UnaryOp": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "op_type",
+      "defaultValue": 0
+    },
+    "weightOrder": {}
+  },
+  "YoloDetectionOutput": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_class",
+      "defaultValue": 20
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "num_box",
+      "defaultValue": 5
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "confidence_threshold",
+      "defaultValue": 0.01
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "num_threshold",
+      "defaultValue": 0.45
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "biases",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  },
+  "Yolov3DetectionOutput": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_class",
+      "defaultValue": 20
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "num_box",
+      "defaultValue": 5
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "confidence_threshold",
+      "defaultValue": 0.01
+    },
+    "3": {
+      "paramId": "3",
+      "paramPhase": "num_threshold",
+      "defaultValue": 0.45
+    },
+    "4": {
+      "paramId": "4",
+      "paramPhase": "biases",
+      "defaultValue": []
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "mask",
+      "defaultValue": []
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "anchors_scale",
+      "defaultValue": []
+    },
+    "weightOrder": {}
+  }
+}

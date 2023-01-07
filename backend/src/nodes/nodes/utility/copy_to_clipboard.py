@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Union
 
-from nodes.utils import clipboard
+from ...impl import clipboard
 
 from . import category as UtilityCategory
 
@@ -32,7 +32,7 @@ class TextClipboardNode(NodeBase):
     def run(self, value: Union[str, np.ndarray]) -> None:
         if isinstance(value, np.ndarray):
             clipboard.copy_image(value)
-        elif isinstance(value, str):
+        elif isinstance(value, str):  # type: ignore
             clipboard.copy_text(value)
         else:
             raise RuntimeError(f"Unsupported type {type(value)}")

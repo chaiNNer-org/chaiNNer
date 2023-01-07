@@ -29,7 +29,6 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
-import { getChainnerScope } from '../../common/types/chainner-scope';
 import {
     generateAssignmentErrorTrace,
     printErrorTrace,
@@ -109,7 +108,7 @@ interface GlobalVolatile {
     useConnectingFrom: GetSetState<OnConnectStartParams | null>;
 }
 interface Global {
-    reactFlowWrapper: React.RefObject<Element>;
+    reactFlowWrapper: React.RefObject<HTMLDivElement>;
     defaultIteratorSize: Readonly<Size>;
     setNodesRef: React.MutableRefObject<SetState<Node<NodeData>[]>>;
     setEdgesRef: React.MutableRefObject<SetState<Edge<EdgeData>[]>>;
@@ -172,13 +171,13 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 interface GlobalProviderProps {
-    reactFlowWrapper: React.RefObject<Element>;
+    reactFlowWrapper: React.RefObject<HTMLDivElement>;
 }
 
 export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
-        const { schemata, functionDefinitions, backend } = useContext(BackendContext);
+        const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
         const { useStartupTemplate, useViewportExportPadding } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
@@ -221,7 +220,7 @@ export const GlobalProvider = memo(
                     }
 
                     try {
-                        return evaluate(expression, getChainnerScope());
+                        return evaluate(expression, scope);
                     } catch (error) {
                         log.error(error);
                         return undefined;
@@ -244,7 +243,7 @@ export const GlobalProvider = memo(
                     return { map };
                 });
             },
-            [setManualOutputTypes]
+            [setManualOutputTypes, scope]
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);

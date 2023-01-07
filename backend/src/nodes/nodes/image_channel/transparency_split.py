@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.image_utils import as_target_channels
+from ...impl.image_utils import as_target_channels
 
 
 @NodeFactory.register("chainner:image:split_transparency")

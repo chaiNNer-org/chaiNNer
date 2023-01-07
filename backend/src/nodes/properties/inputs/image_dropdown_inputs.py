@@ -1,21 +1,19 @@
 import cv2
 
 # pylint: disable=relative-beyond-top-level
-from ...utils.image_utils import BorderType
-from ...utils.pil_utils import InterpolationMethod, RotateExpandCrop
-from ...utils.tile_util import TileMode
-from ...utils.height import HeightSource
-from ...utils.edge_filter import EdgeFilters
-from ...utils.color.convert_data import color_spaces, color_spaces_or_detectors
+from ...impl.image_utils import BorderType
+from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
+from ...impl.color.convert_data import (
+    color_spaces,
+    color_spaces_or_detectors,
+    is_alpha_partner,
+    get_alpha_partner,
+)
 from ..expression import named
-from .generic_inputs import DropDownInput
+from .generic_inputs import DropDownInput, EnumInput
 
 
-def ColorSpaceInput(
-    label: str = "Color Space",
-    detector: bool = False,
-) -> DropDownInput:
-    l = color_spaces_or_detectors if detector else color_spaces
+def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
     return DropDownInput(
         input_type="ColorSpace",
         label=label,
@@ -25,185 +23,71 @@ def ColorSpaceInput(
                 "value": c.id,
                 "type": named("ColorSpace", {"channels": c.channels}),
             }
-            for c in l
+            for c in color_spaces_or_detectors
+        ],
+    )
+
+
+def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
+    return DropDownInput(
+        input_type="ColorSpace",
+        label=label,
+        options=[
+            {
+                "option": c.name,
+                "value": c.id,
+                "type": named(
+                    "ColorSpace",
+                    {
+                        "channels": c.channels,
+                        "supportsAlpha": get_alpha_partner(c) is not None,
+                    },
+                ),
+            }
+            for c in color_spaces
+            if not is_alpha_partner(c)
         ],
     )
 
 
 def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
-    return DropDownInput(
-        input_type="InterpolationMode",
-        label="Interpolation Method",
-        options=[
-            {
-                "option": "Auto",
-                "value": InterpolationMethod.AUTO,
-            },
-            {
-                "option": "Nearest Neighbor",
-                "value": InterpolationMethod.NEAREST,
-            },
-            {
-                "option": "Area (Box)",
-                "value": InterpolationMethod.BOX,
-            },
-            {
-                "option": "Linear",
-                "value": InterpolationMethod.LINEAR,
-            },
-            {
-                "option": "Cubic",
-                "value": InterpolationMethod.CUBIC,
-            },
-            {
-                "option": "Lanczos",
-                "value": InterpolationMethod.LANCZOS,
-            },
-        ],
-    )
-
-
-def ResizeToSideInput() -> DropDownInput:
-    """Resize to side dropdown"""
-    return DropDownInput(
-        input_type="SideSelection",
-        label="Resize To",
-        options=[
-            {
-                "option": "Width",
-                "value": "width",
-                "type": "SideSelection::Width",
-            },
-            {
-                "option": "Height",
-                "value": "height",
-                "type": "SideSelection::Height",
-            },
-            {
-                "option": "Shorter Side",
-                "value": "shorter side",
-                "type": "SideSelection::Shorter",
-            },
-            {
-                "option": "Longer Side",
-                "value": "longer side",
-                "type": "SideSelection::Longer",
-            },
-        ],
-    )
-
-
-def ResizeCondition() -> DropDownInput:
-    """Upscale / Downscale condition dropdown"""
-    return DropDownInput(
-        input_type="ResizeCondition",
-        label="Resize Condition",
-        options=[
-            {
-                "option": "Upscale And Downscale",
-                "value": "both",
-                "type": "ResizeCondition::Both",
-            },
-            {
-                "option": "Upscale Only",
-                "value": "upscale",
-                "type": "ResizeCondition::Upscale",
-            },
-            {
-                "option": "Downscale Only",
-                "value": "downscale",
-                "type": "ResizeCondition::Downscale",
-            },
-        ],
+    return EnumInput(
+        InterpolationMethod,
+        option_labels={
+            InterpolationMethod.NEAREST: "Nearest Neighbor",
+            InterpolationMethod.BOX: "Area (Box)",
+        },
     )
 
 
 def RotateInterpolationInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="RotateInterpolationMode",
+    return EnumInput(
+        RotationInterpolationMethod,
         label="Interpolation Method",
-        options=[
-            {
-                "option": "Cubic",
-                "value": InterpolationMethod.CUBIC,
-            },
-            {
-                "option": "Linear",
-                "value": InterpolationMethod.LINEAR,
-            },
-            {
-                "option": "Nearest Neighbor",
-                "value": InterpolationMethod.NEAREST,
-            },
-        ],
-    )
-
-
-def RotateExpansionInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="RotateSizeChange",
-        label="Image Dimensions",
-        options=[
-            {
-                "option": "Expand to fit",
-                "value": RotateExpandCrop.EXPAND,
-                "type": "RotateSizeChange::Expand",
-            },
-            {
-                "option": "Crop to original",
-                "value": RotateExpandCrop.CROP,
-                "type": "RotateSizeChange::Crop",
-            },
-        ],
-    )
-
-
-def BlurInput() -> DropDownInput:
-    """Blur option dropdown"""
-    return DropDownInput(
-        input_type="BlurMode",
-        label="Blur Mode",
-        options=[
-            {"option": "Box", "value": 0},
-            {"option": "Blur", "value": 1},
-            {"option": "Gaussian", "value": 2},
-        ],
+        option_labels={
+            RotationInterpolationMethod.NEAREST: "Nearest Neighbor",
+        },
     )
 
 
 def BorderInput() -> DropDownInput:
-    """CopyMakeBorder option dropdown"""
-    return DropDownInput(
-        input_type="BorderType",
-        label="Border Type",
-        options=[
-            {
-                "option": "Reflect (Mirror)",
-                "value": BorderType.REFLECT_MIRROR,
-                "type": "BorderType::ReflectMirror",
-            },
-            {
-                "option": "Wrap (Tile)",
-                "value": BorderType.WRAP,
-                "type": "BorderType::Wrap",
-            },
-            {
-                "option": "Replicate Edges",
-                "value": BorderType.REPLICATE,
-                "type": "BorderType::Replicate",
-            },
-            {
-                "option": "Black",
-                "value": BorderType.BLACK,
-                "type": "BorderType::Black",
-            },
-            {
-                "option": "Transparent",
-                "value": BorderType.TRANSPARENT,
-                "type": "BorderType::Transparent",
-            },
-        ],
+    return EnumInput(
+        BorderType,
+        default_value=BorderType.REFLECT_MIRROR,
+        option_labels={
+            BorderType.REFLECT_MIRROR: "Reflect (Mirror)",
+            BorderType.WRAP: "Wrap (Tile)",
+            BorderType.REPLICATE: "Replicate Edges",
+        },
+        extra_definitions="""
+            def BorderType::getOutputChannels(type: BorderType, channels: uint) {
+                match type {
+                    BorderType::Transparent => 4,
+                    _ => channels
+                }
+            }
+        """,
     )
 
 
@@ -273,126 +157,6 @@ def AdaptiveMethodInput() -> DropDownInput:
     )
 
 
-def TileModeInput():
-    return DropDownInput(
-        input_type="TileMode",
-        label="Tile Mode",
-        options=[
-            {
-                "option": "Tile",
-                "value": TileMode.TILE,
-            },
-            {
-                "option": "Mirror",
-                "value": TileMode.MIRROR,
-            },
-        ],
-    )
-
-
-def GammaOptionInput():
-    return DropDownInput(
-        input_type="GammaOption",
-        label="Gamma Option",
-        options=[
-            {"option": "None", "value": "normal"},
-            {"option": "Invert gamma", "value": "invert"},
-        ],
-    )
-
-
-def CaptionPositionInput() -> DropDownInput:
-    """Select Caption Position"""
-    return DropDownInput(
-        input_type="CaptionPosition",
-        label="Caption Position",
-        options=[
-            {
-                "option": "Bottom",
-                "value": "bottom",
-            },
-            {
-                "option": "Top",
-                "value": "top",
-            },
-        ],
-    )
-
-
-def EdgeFilterInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="EdgeFilter",
-        label="Filter",
-        options=[
-            {
-                "option": "Sobel (dUdV) (3x3)",
-                "value": EdgeFilters.Sobel,
-            },
-            {
-                "option": "Sobel-like (5x5)",
-                "value": EdgeFilters.SobelLike5,
-            },
-            {
-                "option": "Sobel-like (7x7)",
-                "value": EdgeFilters.SobelLike7,
-            },
-            {
-                "option": "Sobel-like (9x9)",
-                "value": EdgeFilters.SobelLike9,
-            },
-            {
-                "option": "Prewitt (3x3)",
-                "value": EdgeFilters.Prewitt,
-            },
-            {
-                "option": "Scharr (3x3)",
-                "value": EdgeFilters.Scharr,
-            },
-            {
-                "option": "4 Sample (1x3)",
-                "value": EdgeFilters.FourSample,
-            },
-        ],
-    )
-
-
-def HeightMapSourceInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="HeightMapSource",
-        label="Height Source",
-        options=[
-            {
-                "option": "Average RGB",
-                "value": HeightSource.AVG_RGB,
-            },
-            {
-                "option": "Max RGB",
-                "value": HeightSource.MAX_RGB,
-            },
-            {
-                "option": "Screen RGB",
-                "value": HeightSource.SCREEN_RGB,
-            },
-            {
-                "option": "Alpha",
-                "value": HeightSource.A,
-            },
-            {
-                "option": "Red",
-                "value": HeightSource.R,
-            },
-            {
-                "option": "Green",
-                "value": HeightSource.G,
-            },
-            {
-                "option": "Blue",
-                "value": HeightSource.B,
-            },
-        ],
-    )
-
-
 def NormalChannelInvertInput() -> DropDownInput:
     return DropDownInput(
         input_type="NormalChannelInvert",
@@ -413,83 +177,6 @@ def NormalChannelInvertInput() -> DropDownInput:
             {
                 "option": "Invert R and G",
                 "value": 3,
-            },
-        ],
-    )
-
-
-def NormalMappingAlphaInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="NormalMappingAlpha",
-        label="Alpha Channel",
-        options=[
-            {
-                "option": "None",
-                "value": "none",
-                "type": "NormalMappingAlpha::None",
-            },
-            {
-                "option": "Unchanged",
-                "value": "unchanged",
-                "type": "NormalMappingAlpha::Unchanged",
-            },
-            {
-                "option": "Height",
-                "value": "height",
-                "type": "NormalMappingAlpha::Height",
-            },
-            {
-                "option": "Set to 1",
-                "value": "one",
-                "type": "NormalMappingAlpha::One",
-            },
-        ],
-    )
-
-
-def NoiseTypeDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="NoiseType",
-        label="Noise Type",
-        options=[
-            {
-                "option": "Gaussian",
-                "value": "gaussian",
-            },
-            {
-                "option": "Uniform",
-                "value": "uniform",
-            },
-            {
-                "option": "Salt & Pepper",
-                "value": "salt_and_pepper",
-            },
-            {
-                "option": "Speckle",
-                "value": "speckle",
-            },
-            {
-                "option": "Poisson",
-                "value": "poisson",
-            },
-        ],
-    )
-
-
-def NoiseColorDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="NoiseColor",
-        label="Noise Color",
-        options=[
-            {
-                "option": "Color",
-                "value": "rgb",
-                "type": "NoiseColor::Rgb",
-            },
-            {
-                "option": "Monochrome",
-                "value": "gray",
-                "type": "NoiseColor::Gray",
             },
         ],
     )

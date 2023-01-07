@@ -166,3 +166,7 @@ body {
         z-index: 100000;
     }
 }
+
+.chainner-handle:has(+ .with-label) {
+    margin-top: 1rem;
+}

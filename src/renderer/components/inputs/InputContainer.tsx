@@ -148,6 +148,7 @@ export const HandleWrapper = memo(
         return (
             <HStack h="full">
                 <Center
+                    className="chainner-handle"
                     left="-6px"
                     position="absolute"
                 >
@@ -198,51 +199,76 @@ export const HandleWrapper = memo(
     }
 );
 
-export interface InputContainerProps {
-    label?: string;
-    optional: boolean;
-    generic: boolean;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface InputContainerProps {}
+
+export const InputContainer = memo(({ children }: React.PropsWithChildren<InputContainerProps>) => {
+    return (
+        <Box
+            bg="var(--bg-700)"
+            h="auto"
+            ml={0}
+            mr="auto"
+            px={2}
+            verticalAlign="middle"
+            w="full"
+        >
+            {children}
+        </Box>
+    );
+});
+
+interface WithLabelProps {
+    input: {
+        readonly label: string;
+        readonly optional: boolean;
+    };
 }
 
-export const InputContainer = memo(
-    ({ children, label, optional, generic }: React.PropsWithChildren<InputContainerProps>) => {
+export const WithLabel = memo(
+    ({ input: { label, optional }, children }: React.PropsWithChildren<WithLabelProps>) => {
         return (
             <Box
-                bg="var(--bg-700)"
-                h="auto"
-                minH="2rem"
-                ml={0}
-                mr="auto"
-                px={2}
-                verticalAlign="middle"
+                className="with-label"
                 w="full"
             >
-                {!generic && (
-                    <Center
-                        h="1.25rem"
-                        px={1}
-                        py={0.5}
-                        verticalAlign="middle"
+                <Center
+                    h="1.25rem"
+                    px={1}
+                    py={0.5}
+                    verticalAlign="middle"
+                >
+                    <Text
+                        fontSize="xs"
+                        lineHeight="0.9rem"
+                        textAlign="center"
                     >
-                        <Text
-                            display={label ? 'block' : 'none'}
-                            fontSize="xs"
-                            lineHeight="0.9rem"
-                            textAlign="center"
+                        {label}
+                    </Text>
+                    {optional && (
+                        <Center
+                            h="1rem"
+                            verticalAlign="middle"
                         >
-                            {label}
-                        </Text>
-                        {label && optional && (
-                            <Center
-                                h="1rem"
-                                verticalAlign="middle"
-                            >
-                                <TypeTag isOptional>optional</TypeTag>
-                            </Center>
-                        )}
-                    </Center>
-                )}
-                <Box pb={generic ? 0 : 1}>{children}</Box>
+                            <TypeTag isOptional>optional</TypeTag>
+                        </Center>
+                    )}
+                </Center>
+                <Box pb={1}>{children}</Box>
+            </Box>
+        );
+    }
+);
+
+export const WithoutLabel = memo(
+    ({ children }: React.PropsWithChildren<Record<string, unknown>>) => {
+        return (
+            <Box
+                className="without-label"
+                py={1}
+                w="full"
+            >
+                {children}
             </Box>
         );
     }

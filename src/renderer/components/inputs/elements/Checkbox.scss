@@ -1,0 +1,40 @@
+@use '../../../colors.scss';
+
+.chainner-node-checkbox > .chakra-checkbox__control {
+    transition-property: border-color;
+    transition-duration: var(--chakra-transition-duration-normal);
+
+    /* stylelint-disable-next-line no-duplicate-selectors */
+    & {
+        border-color: inherit;
+        background: var(--bg-700);
+
+        &:hover {
+            /* stylelint-disable-next-line custom-property-pattern */
+            border-color: var(--chakra-colors-whiteAlpha-400);
+            background: var(--bg-700);
+        }
+    }
+
+    &[data-checked] {
+        border-color: rgba(255 255 255/50%);
+        background: var(--bg-700);
+
+        &:hover {
+            border-color: rgba(255 255 255/50%);
+            background: var(--bg-700);
+        }
+    }
+
+    & svg {
+        color: var(--chakra-colors-chakra-body-text);
+        width: 1em;
+        cursor: pointer;
+        overflow: visible;
+        stroke-width: 2.75 !important;
+
+        polyline {
+            cursor: pointer;
+        }
+    }
+}

@@ -1,4 +1,5 @@
 import { NeverType, Type } from '@chainner/navi';
+import { HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
@@ -15,7 +16,7 @@ import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
 import { FileInput } from './FileInput';
 import { GenericInput } from './GenericInput';
-import { HandleWrapper, InputContainer } from './InputContainer';
+import { HandleWrapper, InputContainer, WithLabel } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
@@ -46,21 +47,34 @@ export interface SingleInputProps {
     inputData: InputData;
     inputSize: InputSize | undefined;
     onSetValue?: (value: InputValue) => void;
+    afterInput?: JSX.Element;
 }
 /**
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(
-    ({ input, schemaId, nodeId, isLocked, inputData, inputSize, onSetValue }: SingleInputProps) => {
-        const { id: inputId, kind, hasHandle, optional, label } = input;
+    ({
+        input,
+        schemaId,
+        nodeId,
+        isLocked,
+        inputData,
+        inputSize,
+        onSetValue,
+        afterInput,
+    }: SingleInputProps) => {
+        const { id: inputId, kind, hasHandle } = input;
 
         const {
             getNodeInputValue,
             setNodeInputValue,
             useInputSize: useInputSizeContext,
         } = useContext(GlobalContext);
-        const definitionType = useContextSelector(BackendContext, (c) =>
-            c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId)
+        const definitionType = useContextSelector(
+            BackendContext,
+            (c) =>
+                c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId) ??
+                NeverType.instance
         );
 
         const value = getNodeInputValue(inputId, inputData);
@@ -98,9 +112,9 @@ export const SchemaInput = memo(
         );
 
         const InputType = InputComponents[kind];
-        const inputElement = (
+        let inputElement = (
             <InputType
-                definitionType={definitionType!}
+                definitionType={definitionType}
                 input={input as never}
                 inputKey={`${schemaId}-${inputId}`}
                 isLocked={isLocked}
@@ -113,15 +127,24 @@ export const SchemaInput = memo(
             />
         );
 
+        if (afterInput) {
+            inputElement = (
+                <HStack w="full">
+                    {inputElement}
+                    {afterInput}
+                </HStack>
+            );
+        }
+
+        if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown') {
+            inputElement = <WithLabel input={input}>{inputElement}</WithLabel>;
+        }
+
         return (
-            <InputContainer
-                generic={kind === 'generic'}
-                label={label}
-                optional={optional}
-            >
+            <InputContainer>
                 {hasHandle ? (
                     <HandleWrapper
-                        definitionType={definitionType!}
+                        definitionType={definitionType}
                         id={nodeId}
                         inputId={inputId}
                     >

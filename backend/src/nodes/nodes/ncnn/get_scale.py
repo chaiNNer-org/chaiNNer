@@ -5,7 +5,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput
 from ...properties.outputs import NumberOutput
-from ...utils.ncnn_model import NcnnModelWrapper
+from ...impl.ncnn.model import NcnnModelWrapper
 
 
 @NodeFactory.register("chainner:ncnn:model_dim")

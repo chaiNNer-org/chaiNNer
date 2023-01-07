@@ -10,12 +10,13 @@ from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import PthFileInput
-from ...properties.outputs import ModelOutput, DirectoryOutput, TextOutput
+from ...properties.outputs import ModelOutput, DirectoryOutput, FileNameOutput
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchModel
-from ...utils.pytorch_model_loading import load_state_dict
-from ...utils.pytorch_utils import to_pytorch_execution_options
+from ...impl.pytorch.types import PyTorchModel
+from ...impl.pytorch.model_loading import load_state_dict
+from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...utils.unpickler import RestrictedUnpickle
+from ...utils.utils import split_file_path
 
 
 @NodeFactory.register("chainner:pytorch:load_model")
@@ -29,8 +30,8 @@ class LoadModelNode(NodeBase):
         self.inputs = [PthFileInput(primary_input=True)]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
-            DirectoryOutput("Model Directory").with_id(2),
-            TextOutput("Model Name").with_id(1),
+            DirectoryOutput("Model Directory", of_input=0).with_id(2),
+            FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
 
         self.category = PyTorchCategory
@@ -66,13 +67,10 @@ class LoadModelNode(NodeBase):
                 model = model.half()
             else:
                 model = model.float()
-        except ValueError as e:
-            raise e
-        except Exception:
-            # pylint: disable=raise-missing-from
+        except Exception as e:
             raise ValueError(
                 f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try another."
-            )
+            ) from e
 
-        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        dirname, basename, _ = split_file_path(path)
         return model, dirname, basename

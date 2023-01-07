@@ -12,16 +12,17 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import SrModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
-from ...utils.torch_types import PyTorchSRModel
-from ...utils.auto_split_tiles import (
+from ...impl.pytorch.types import PyTorchSRModel
+from ...impl.upscale.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,
     TileSize,
 )
-from ...utils.auto_split import MaxTileSize
-from ...utils.pytorch_utils import to_pytorch_execution_options
-from ...utils.pytorch_auto_split import pytorch_auto_split
-from ...utils.utils import get_h_w_c, convenient_upscale
+from ...impl.upscale.auto_split import MaxTileSize
+from ...impl.upscale.convenient_upscale import convenient_upscale
+from ...impl.pytorch.utils import to_pytorch_execution_options
+from ...impl.pytorch.auto_split import pytorch_auto_split
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
@@ -117,5 +118,6 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
+            out_nc,
             lambda i: self.upscale(i, model, tile_size, exec_options),
         )

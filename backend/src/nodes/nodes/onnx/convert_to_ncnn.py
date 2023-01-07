@@ -9,9 +9,9 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.ncnn_model import NcnnModelWrapper
-from ...utils.onnx_model import OnnxModel
-from ...utils.onnx_to_ncnn import Onnx2NcnnConverter
+from ...impl.ncnn.model import NcnnModelWrapper
+from ...impl.onnx.model import OnnxModel
+from ...impl.onnx.onnx_to_ncnn import Onnx2NcnnConverter
 
 FP_MODE_32 = 0
 
@@ -37,7 +37,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
 
         model_proto = onnx.load_model_from_string(model.bytes)
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
-        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+        opt_model = onnxoptimizer.optimize(model_proto, passes)
 
         converter = Onnx2NcnnConverter(opt_model)
         ncnn_model = NcnnModelWrapper(converter.convert(fp16, False))

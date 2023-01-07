@@ -27,7 +27,23 @@ export type InputSchemaValue = string | number;
 interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
+    /**
+     * Optional type conversion that occurs before the type system checks
+     * whether 2 types are compatible.
+     *
+     * This can be used to implement e.g. number rounding or type wrapping for
+     * edges.
+     */
     readonly conversion?: ExpressionJson | null;
+    /**
+     * Optional type conversion for adapting input data.
+     *
+     * The frontend stores input data as numbers and strings, but inputs may
+     * use different types. This optional conversion allows inputs to convert
+     * input data to compatible types. E.g. the directory input wraps its path.
+     */
+    readonly adapt?: ExpressionJson | null;
+    readonly typeDefinitions?: string | null;
     readonly kind: InputKind;
     readonly label: string;
     readonly optional: boolean;
@@ -39,6 +55,7 @@ export interface InputOption {
     type?: ExpressionJson;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
+export type DropDownStyle = 'dropdown' | 'checkbox';
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';
@@ -47,6 +64,7 @@ export interface DropDownInput extends InputBase {
     readonly kind: 'dropdown';
     readonly def: string | number;
     readonly options: readonly InputOption[];
+    readonly preferredStyle: DropDownStyle;
 }
 export interface FileInput extends InputBase {
     readonly kind: 'file';
@@ -130,7 +148,7 @@ interface GroupBase {
     readonly id: GroupId;
     readonly kind: GroupKind;
     readonly options: Readonly<Record<string, unknown>>;
-    readonly items: readonly InputId[];
+    readonly items: readonly (InputId | Group)[];
 }
 interface NcnnFileInputGroup extends GroupBase {
     readonly kind: 'ncnn-file-inputs';
@@ -151,15 +169,21 @@ interface OptionalListGroup extends GroupBase {
 interface ConditionalEnumGroup extends GroupBase {
     readonly kind: 'conditional-enum';
     readonly options: {
-        readonly conditions: Readonly<Partial<Record<InputId, null | readonly InputSchemaValue[]>>>;
+        readonly enum: InputId;
+        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
     };
+}
+interface SeedGroup extends GroupBase {
+    readonly kind: 'seed';
+    readonly options: Readonly<Record<string, never>>;
 }
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
     | FromToDropdownsGroup
     | OptionalListGroup
-    | ConditionalEnumGroup;
+    | ConditionalEnumGroup
+    | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;
@@ -183,7 +207,7 @@ export interface NodeSchema {
     readonly nodeType: NodeType;
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
-    readonly groups: readonly Group[];
+    readonly groupLayout: readonly (InputId | Group)[];
     readonly defaultNodes?: readonly DefaultNode[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
@@ -212,7 +236,6 @@ export interface NodeData {
     readonly minHeight?: number;
 }
 export interface EdgeData {
-    readonly complete?: boolean;
     sourceX?: number;
     sourceY?: number;
     targetX?: number;

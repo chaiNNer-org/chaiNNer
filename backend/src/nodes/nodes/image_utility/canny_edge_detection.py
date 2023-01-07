@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.image_utils import normalize
+from ...impl.image_utils import normalize
 
 
 @NodeFactory.register("chainner:image:canny_edge_detection")

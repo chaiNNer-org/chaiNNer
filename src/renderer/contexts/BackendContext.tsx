@@ -1,3 +1,4 @@
+import { Scope } from '@chainner/navi';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { createContext } from 'use-context-selector';
 import { Backend, getBackend } from '../../common/Backend';
@@ -5,6 +6,7 @@ import { Category, PythonInfo, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
+import { getChainnerScope } from '../../common/types/chainner-scope';
 import { FunctionDefinition } from '../../common/types/function';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
@@ -24,6 +26,7 @@ interface BackendContextState {
     categories: Category[];
     categoriesMissingNodes: string[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    scope: Scope;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
     restart: () => Promise<void>;
 }
@@ -68,6 +71,10 @@ export const BackendProvider = memo(
             []
         );
 
+        const scope = useMemo(() => {
+            // function definitions all use the same scope, so just pick any one of them
+            return [...functionDefinitions.values()][0]?.scope ?? getChainnerScope();
+        }, [functionDefinitions]);
         const schemaInputs = useMemo(() => new SchemaInputsMap(schemata.schemata), [schemata]);
 
         const restartingRef = useRef(false);
@@ -122,6 +129,7 @@ export const BackendProvider = memo(
             categories,
             categoriesMissingNodes,
             functionDefinitions,
+            scope,
             restartingRef,
             restart,
         });

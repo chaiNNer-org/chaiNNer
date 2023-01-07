@@ -1,22 +1,26 @@
 import {
+    AnyType,
     Expression,
     NonNeverType,
+    NumberType,
     ParameterDefinition,
     Scope,
     ScopeBuilder,
+    StringType,
     Type,
     evaluate,
     getReferences,
     intersect,
     isDisjointWith,
+    literal,
+    union,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, lazy, topologicalSort } from '../util';
-import { getChainnerScope } from './chainner-scope';
+import { EMPTY_MAP, lazyKeyed, topologicalSort } from '../util';
 import { fromJson } from './json';
 
-const getConversionScope = lazy(() => {
-    const scope = new ScopeBuilder('Conversion scope', getChainnerScope());
+const getConversionScope = lazyKeyed((parentScope: Scope) => {
+    const scope = new ScopeBuilder('Conversion scope', parentScope);
     scope.add(new ParameterDefinition('Input'));
     return scope.createScope();
 });
@@ -190,42 +194,84 @@ const evaluateOutputs = (
     return { ordered, defaults };
 };
 
-const evaluateInputOptions = (
+const getInputDataAdapters = (
     schema: NodeSchema,
     scope: Scope
-): Map<InputId, Map<InputSchemaValue, NonNeverType>> => {
-    const result = new Map<InputId, Map<InputSchemaValue, NonNeverType>>();
-    for (const input of schema.inputs) {
-        if (input.kind === 'dropdown') {
-            const options = new Map<InputSchemaValue, NonNeverType>();
-            result.set(input.id, options);
-            for (const o of input.options) {
-                if (o.type !== undefined) {
-                    const name =
-                        `${o.option}=${JSON.stringify(o.value)} ` +
-                        `in (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+): ReadonlyMap<InputId, (value: InputSchemaValue) => NonNeverType | undefined> => {
+    const adapters = new Map<InputId, (value: InputSchemaValue) => NonNeverType | undefined>();
 
-                    let type;
+    for (const input of schema.inputs) {
+        const inputName = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+
+        switch (input.kind) {
+            case 'number':
+            case 'slider':
+            case 'text':
+            case 'text-line': {
+                adapters.set(input.id, (value) => literal(value as never));
+                break;
+            }
+
+            case 'dropdown': {
+                const options = new Map<InputSchemaValue, NonNeverType>();
+                for (const o of input.options) {
+                    if (o.type !== undefined) {
+                        const name = `${o.option}=${JSON.stringify(o.value)} in ${inputName}`;
+
+                        let type;
+                        try {
+                            type = evaluate(fromJson(o.type), scope);
+                        } catch (error) {
+                            throw new Error(
+                                `Unable to evaluate type of option ${name}: ${String(error)}`
+                            );
+                        }
+                        if (type.type === 'never') {
+                            throw new Error(`Type of ${name} cannot be 'never'.`);
+                        }
+
+                        options.set(o.value, type);
+                    }
+                }
+                adapters.set(input.id, (value) => options.get(value));
+                break;
+            }
+
+            default: {
+                if (input.adapt != null) {
+                    const adoptExpression = fromJson(input.adapt);
+                    const conversionScope = getConversionScope(scope);
+
+                    // verify that it's a valid conversion
                     try {
-                        type = evaluate(fromJson(o.type), scope);
+                        conversionScope.assignParameter(
+                            'Input',
+                            union(NumberType.instance, StringType.instance)
+                        );
+                        evaluate(adoptExpression, conversionScope);
                     } catch (error) {
+                        const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
                         throw new Error(
-                            `Unable to evaluate type of option ${name}: ${String(error)}`
+                            `The conversion of input ${name} is invalid: ${String(error)}`
                         );
                     }
-                    if (type.type === 'never') {
-                        throw new Error(`Type of ${name} cannot be 'never'.`);
-                    }
 
-                    options.set(o.value, type);
+                    adapters.set(input.id, (value) => {
+                        conversionScope.assignParameter('Input', literal(value as never));
+                        const result = evaluate(adoptExpression, conversionScope);
+                        if (result.type === 'never') return undefined;
+                        return result;
+                    });
                 }
+                break;
             }
         }
     }
-    return result;
+
+    return adapters;
 };
 
-const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
+const getConversions = (schema: NodeSchema, scope: Scope): Map<InputId, Expression> => {
     const result = new Map<InputId, Expression>();
     for (const input of schema.inputs) {
         // eslint-disable-next-line no-continue
@@ -235,7 +281,9 @@ const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
 
         // verify that it's a valid conversion
         try {
-            evaluate(e, getConversionScope());
+            const conversionScope = getConversionScope(scope);
+            conversionScope.assignParameter('Input', AnyType.instance);
+            evaluate(e, conversionScope);
         } catch (error) {
             const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
             throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
@@ -273,11 +321,16 @@ export class FunctionDefinition {
         return this.inputGenerics.size > 0 || this.outputGenerics.size > 0;
     }
 
-    readonly inputDataLiterals: Set<InputId>;
+    /**
+     * Optional per-input functions that take the current input data for their
+     * input and convert it into a type that is compatible with the input.
+     */
+    readonly inputDataAdapters: ReadonlyMap<
+        InputId,
+        (value: InputSchemaValue) => NonNeverType | undefined
+    >;
 
     readonly inputNullable: Set<InputId>;
-
-    readonly inputOptions: ReadonlyMap<InputId, ReadonlyMap<string | number, NonNeverType>>;
 
     readonly defaultInstance: FunctionInstance;
 
@@ -295,7 +348,7 @@ export class FunctionDefinition {
             inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id)
         );
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
-        this.inputConversions = getConversions(schema);
+        this.inputConversions = getConversions(schema, scope);
 
         // outputs
         const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
@@ -311,20 +364,8 @@ export class FunctionDefinition {
         this.outputEvaluationOrder = outputs.ordered.map(({ output }) => output.id);
 
         // input literal values
-        this.inputDataLiterals = new Set(
-            schema.inputs
-                .filter((i) => {
-                    return (
-                        i.kind === 'number' ||
-                        i.kind === 'slider' ||
-                        i.kind === 'text' ||
-                        i.kind === 'text-line'
-                    );
-                })
-                .map((i) => i.id)
-        );
+        this.inputDataAdapters = getInputDataAdapters(schema, scope);
         this.inputNullable = new Set(schema.inputs.filter((i) => i.optional).map((i) => i.id));
-        this.inputOptions = evaluateInputOptions(schema, scope);
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         this.defaultInstance = FunctionInstance.fromDefinition(this);
@@ -340,7 +381,7 @@ export class FunctionDefinition {
             return type;
         }
 
-        const scope = getConversionScope();
+        const scope = getConversionScope(this.scope);
         scope.assignParameter('Input', type);
         return evaluate(conversion, scope);
     }

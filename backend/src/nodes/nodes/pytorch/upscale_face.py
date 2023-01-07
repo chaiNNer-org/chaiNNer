@@ -18,10 +18,10 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import FaceModelInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
-from ...utils.pytorch_utils import np2tensor, tensor2np
+from ...impl.pytorch.utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchFaceModel
-from ...utils.pytorch_utils import to_pytorch_execution_options
+from ...impl.pytorch.types import PyTorchFaceModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
@@ -98,8 +98,8 @@ class FaceUpscaleNode(NodeBase):
             cropped_face_t = np2tensor(
                 cropped_face, bgr2rgb=True, change_range=True, add_batch=False
             )
-            tv_normalize(cropped_face_t, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)  # type: ignore
-            cropped_face_t = cropped_face_t.unsqueeze(0).to(device)  # type: ignore
+            tv_normalize(cropped_face_t, [0.5, 0.5, 0.5], [0.5, 0.5, 0.5], inplace=True)
+            cropped_face_t = cropped_face_t.unsqueeze(0).to(device)
 
             try:
                 if should_use_fp16:
@@ -114,7 +114,7 @@ class FaceUpscaleNode(NodeBase):
                 logger.error(f"\tFailed inference for Face Upscale: {error}.")
                 restored_face = cropped_face
 
-            restored_face = restored_face.astype("uint8")  # type: ignore
+            restored_face = restored_face.astype("uint8")
             face_helper.add_restored_face(restored_face)
 
         if background_img is not None:
@@ -152,7 +152,7 @@ class FaceUpscaleNode(NodeBase):
             exec_options = to_pytorch_execution_options(get_execution_options())
             device = torch.device(exec_options.full_device)
 
-            weight = 0.5
+            weight = 0.7
 
             with torch.no_grad():
                 appdata_path = user_data_dir(roaming=True)

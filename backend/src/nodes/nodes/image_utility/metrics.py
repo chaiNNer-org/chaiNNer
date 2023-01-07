@@ -10,7 +10,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import NumberOutput
-from ...utils.image_utils import calculate_ssim
+from ...impl.image_utils import calculate_ssim
 from ...utils.utils import get_h_w_c
 
 

@@ -5,8 +5,8 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { noContextMenu } from '../../hooks/useContextMenu';
 import { useMemoArray } from '../../hooks/useMemo';
+import { usePaneNodeSearchMenu } from '../../hooks/usePaneNodeSearchMenu';
 
 const createGridDotsPath = (size: number, fill: string) => (
     <circle
@@ -67,8 +67,13 @@ export const IteratorNodeBody = memo(
     ({ id, iteratorSize, accentColor, minWidth = 256, minHeight = 256 }: IteratorNodeBodyProps) => {
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
         const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
-        const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
-            useContext(GlobalContext);
+        const {
+            defaultIteratorSize,
+            setIteratorSize,
+            setHoveredNode,
+            updateIteratorBounds,
+            reactFlowWrapper,
+        } = useContext(GlobalContext);
 
         const { useSnapToGrid } = useContext(SettingsContext);
         const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
@@ -100,6 +105,8 @@ export const IteratorNodeBody = memo(
         ]);
 
         const shade = 'var(--chain-editor-bg)';
+
+        const { onPaneContextMenu } = usePaneNodeSearchMenu(reactFlowWrapper, id);
 
         return (
             <Resizable
@@ -146,7 +153,7 @@ export const IteratorNodeBody = memo(
                     h="full"
                     my={0}
                     w="full"
-                    onContextMenu={noContextMenu}
+                    onContextMenu={onPaneContextMenu}
                     onDragEnter={() => {
                         setHoveredNode(id);
                     }}

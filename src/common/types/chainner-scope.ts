@@ -12,7 +12,7 @@ import {
     union,
 } from '@chainner/navi';
 import { lazy } from '../util';
-import { formatTextPattern, padCenter, padEnd, padStart } from './chainner-builtin';
+import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from './chainner-builtin';
 
 const code = `
 struct null;
@@ -22,18 +22,18 @@ struct Directory { path: string }
 struct AudioFile;
 struct Audio;
 
-struct ImageFile;
+struct ImageFile { path: string }
 struct Image {
     width: uint,
     height: uint,
     channels: int(1..),
 }
 
-struct VideoFile;
+struct VideoFile { path: string }
 struct Video;
 
-struct PthFile;
-struct PtFile;
+struct PthFile { path: string }
+struct PtFile { path: string }
 struct PyTorchScript;
 struct PyTorchModel {
     scale: int(1..),
@@ -52,8 +52,8 @@ let PyTorchSRModel = PyTorchModel {
     subType: "SR"
 };
 
-struct NcnnBinFile;
-struct NcnnParamFile;
+struct NcnnBinFile { path: string }
+struct NcnnParamFile { path: string }
 struct NcnnNetwork {
     scale: int(1..),
     inputChannels: int(1..),
@@ -62,9 +62,11 @@ struct NcnnNetwork {
     fp: string,
 }
 
-struct OnnxFile;
+struct OnnxFile { path: string }
 struct OnnxModel {
     scale: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
 }
 
 struct IteratorAuto;
@@ -72,52 +74,19 @@ struct IteratorAuto;
 // various inputs
 struct AdaptiveMethod;
 struct AdaptiveThresholdType;
-struct BlendMode;
-struct CaptionPosition;
-struct ColorSpace { channels: 1 | 3 | 4 }
-struct EdgeFilter;
-struct FillMethod;
-struct FlipAxis;
-struct GammaOption;
-struct HeightMapSource;
+struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
+struct DdsFormat;
+struct DdsMipMaps;
 struct ImageExtension;
-struct InterpolationMode;
-struct KernelType;
-struct MathOperation { operation: string }
 struct NormalChannelInvert;
-struct OverflowMethod;
-struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
 struct ThresholdType;
-struct TileMode;
-struct TransferColorspace;
-struct VideoType;
+struct TileSize;
 struct VideoPreset;
-struct NoiseType;
+struct VideoType;
 
-enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
-enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }
-enum NormalMappingAlpha { None, Unchanged, Height, One }
-enum Orientation { Horizontal, Vertical }
-enum PaddingAlignment { Start, End, Center }
-enum ResizeCondition { Both, Upscale, Downscale }
-enum RotateSizeChange { Crop, Expand }
-enum SideSelection { Width, Height, Shorter, Longer }
-enum NoiseColor { Rgb, Gray }
 
-def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
-    match fill {
-        FillColor::Transparent => 4,
-        _ => channels
-    }
-}
-def BorderType::getOutputChannels(type: BorderType, channels: uint) {
-    match type {
-        BorderType::Transparent => 4,
-        _ => channels
-    }
-}
 def FpMode::toString(mode: FpMode) {
     match mode {
         FpMode::fp32 => "fp32",
@@ -129,8 +98,18 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Imag
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,
-        channels: image.channels
+        channels: if model.inputChannels == model.outputChannels {
+            image.channels
+        } else {
+            model.outputChannels
+        }
     }
+}
+
+struct SplitFilePath {
+    dir: Directory,
+    basename: string,
+    ext: string,
 }
 `;
 
@@ -171,6 +150,9 @@ export const getChainnerScope = lazy((): Scope => {
             intInterval(0, Infinity),
             StringType.instance,
         ])
+    );
+    builder.add(
+        BuiltinFunctionDefinition.unary('splitFilePath', splitFilePath, StringType.instance)
     );
 
     return builder.createScope();

@@ -5,10 +5,10 @@ import numpy as np
 from . import category as ImageDimensionCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, TileModeInput
+from ...properties.inputs import ImageInput, NumberInput, EnumInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.tile_util import tile_image
+from ...impl.tile import tile_image, TileMode
 
 
 @NodeFactory.register("chainner:image:tile_fill")
@@ -20,7 +20,7 @@ class TileFillNode(NodeBase):
             ImageInput(),
             NumberInput("Width", minimum=1, default=1, unit="px"),
             NumberInput("Height", minimum=1, default=1, unit="px"),
-            TileModeInput(),
+            EnumInput(TileMode),
         ]
         self.outputs = [
             ImageOutput(
@@ -37,6 +37,6 @@ class TileFillNode(NodeBase):
         self.sub = "Resize"
 
     def run(
-        self, img: np.ndarray, width: int, height: int, tile_mode: int
+        self, img: np.ndarray, width: int, height: int, tile_mode: TileMode
     ) -> np.ndarray:
         return tile_image(img, width, height, tile_mode)

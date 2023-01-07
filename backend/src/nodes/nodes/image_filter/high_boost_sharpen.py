@@ -1,14 +1,19 @@
 from __future__ import annotations
+from enum import Enum
 
 import cv2
 import numpy as np
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import HbfTypeDropdown, ImageInput, SliderInput
+from ...properties.inputs import EnumInput, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...utils.image_utils import KernelType
 from . import category as ImageFilterCategory
+
+
+class KernelType(Enum):
+    NORMAL = 0
+    STRONG = 1
 
 
 @NodeFactory.register("chainner:image:sharpen_hbf")
@@ -18,7 +23,7 @@ class HbfSharpenNode(NodeBase):
         self.description = "Apply sharpening to an image using a high boost filter."
         self.inputs = [
             ImageInput(),
-            HbfTypeDropdown(),
+            EnumInput(KernelType, label="Filter Type"),
             SliderInput(
                 "Amount",
                 minimum=0,
@@ -38,7 +43,7 @@ class HbfSharpenNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        kernel_type: int,
+        kernel_type: KernelType,
         amount: float,
     ) -> np.ndarray:
         if amount == 0:

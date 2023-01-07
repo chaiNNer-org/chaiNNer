@@ -11,7 +11,7 @@ from ...node_base import NodeBase, IteratorNodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import *
-from ...utils.torch_types import PyTorchModel
+from ...impl.pytorch.types import PyTorchModel
 from ...utils.utils import list_all_files_sorted
 
 PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"

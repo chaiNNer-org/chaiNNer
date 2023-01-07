@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, InterpolationInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.pil_utils import resize
+from ...impl.pil_utils import resize, InterpolationMethod
 
 
 @NodeFactory.register("chainner:image:resize_resolution")
@@ -41,7 +41,11 @@ class ImResizeToResolutionNode(NodeBase):
         self.sub = "Resize"
 
     def run(
-        self, img: np.ndarray, width: int, height: int, interpolation: int
+        self,
+        img: np.ndarray,
+        width: int,
+        height: int,
+        interpolation: InterpolationMethod,
     ) -> np.ndarray:
         """Takes an image and resizes it"""
 

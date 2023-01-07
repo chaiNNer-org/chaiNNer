@@ -1,13 +1,20 @@
 from __future__ import annotations
-from typing import List, Union, TypedDict
+from enum import Enum
+from typing import Dict, Generic, List, Literal, Type, TypeVar, Union, TypedDict
 import numpy as np
 from sanic.log import logger
 
 from .. import expression
 
 from .base_input import BaseInput
-from ...utils.blend_modes import BlendModes as bm
-from ...utils.image_utils import FillColor, FlipAxis, KernelType, normalize
+from ...impl.blend import BlendMode
+from ...impl.image_utils import FillColor, normalize
+from ...utils.utils import (
+    split_snake_case,
+    split_pascal_case,
+    join_pascal_case,
+    join_space_case,
+)
 
 
 class UntypedOption(TypedDict):
@@ -23,6 +30,15 @@ class TypedOption(TypedDict):
 
 DropDownOption = Union[UntypedOption, TypedOption]
 
+DropDownStyle = Literal["dropdown", "checkbox"]
+"""
+This specified the preferred style in which the frontend may display the dropdown.
+
+- `dropdown`: This is the default style. The dropdown will simply be displayed as a dropdown.
+- `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
+  The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
+"""
+
 
 class DropDownInput(BaseInput):
     """Input for a dropdown"""
@@ -33,6 +49,7 @@ class DropDownInput(BaseInput):
         label: str,
         options: List[DropDownOption],
         default_value: str | int | None = None,
+        preferred_style: DropDownStyle = "dropdown",
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -40,6 +57,7 @@ class DropDownInput(BaseInput):
         self.default = (
             default_value if default_value is not None else options[0]["value"]
         )
+        self.preferred_style: DropDownStyle = preferred_style
 
         if not self.default in self.accepted_values:
             logger.error(
@@ -52,6 +70,7 @@ class DropDownInput(BaseInput):
             **super().toDict(),
             "options": self.options,
             "def": self.default,
+            "preferredStyle": self.preferred_style,
         }
 
     def make_optional(self):
@@ -60,6 +79,107 @@ class DropDownInput(BaseInput):
     def enforce(self, value):
         assert value in self.accepted_values, f"{value} is not a valid option"
         return value
+
+
+class BoolInput(DropDownInput):
+    def __init__(self, label: str, default: bool = True):
+        super().__init__(
+            input_type="bool",
+            label=label,
+            default_value=int(default),
+            options=[
+                {
+                    "option": "Yes",
+                    "value": int(True),  # 1
+                    "type": "true",
+                },
+                {
+                    "option": "No",
+                    "value": int(False),  # 0
+                    "type": "false",
+                },
+            ],
+            preferred_style="checkbox",
+        )
+
+    def enforce(self, value) -> bool:
+        value = super().enforce(value)
+        return bool(value)
+
+
+T = TypeVar("T", bound=Enum)
+
+
+class EnumInput(Generic[T], DropDownInput):
+    """
+    This adapts a python Enum into a chaiNNer dropdown input.
+
+    ### Features
+
+    All variants of the enum will be converted into typed dropdown options.
+    The dropdown will be fully typed and bring its own type definitions.
+    Option labels can be (partially) overridden using `option_labels`.
+
+    By default, the input label, type names, and option labels will all be generated from the enum name and variant names.
+    All of those defaults can be overridden.
+
+    Options will be ordered by declaration order in the python enum definition.
+
+    ### Requirements
+
+    The value of each variant has to be either `str` or `int`.
+    Other types are not permitted.
+    """
+
+    def __init__(
+        self,
+        enum: Type[T],
+        label: str | None = None,
+        default_value: T | None = None,
+        type_name: str | None = None,
+        option_labels: Dict[T, str] | None = None,
+        extra_definitions: str | None = None,
+    ):
+        if type_name is None:
+            type_name = enum.__name__
+        if label is None:
+            label = join_space_case(split_pascal_case(type_name))
+        if option_labels is None:
+            option_labels = {}
+
+        options: List[DropDownOption] = []
+        variant_types: List[str] = []
+        for variant in enum:
+            value = variant.value
+            assert isinstance(value, (int, str))
+
+            name = split_snake_case(variant.name)
+            variant_type = f"{type_name}::{join_pascal_case(name)}"
+            option_label = option_labels.get(variant, join_space_case(name))
+
+            variant_types.append(variant_type)
+            options.append(
+                {"option": option_label, "value": value, "type": variant_type}
+            )
+
+        super().__init__(
+            input_type=type_name,
+            label=label,
+            options=options,
+            default_value=default_value.value if default_value is not None else None,
+        )
+
+        self.type_definitions = (
+            f"let {type_name} = {' | '.join(variant_types)};\n"
+            + "\n".join([f"struct {t};" for t in variant_types])
+            + (extra_definitions or "")
+        )
+        self.type_name: str = type_name
+        self.enum = enum
+
+    def enforce(self, value) -> T:
+        value = super().enforce(value)
+        return self.enum(value)
 
 
 class TextInput(BaseInput):
@@ -109,6 +229,12 @@ class NoteTextAreaInput(BaseInput):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
 
+    def enforce(self, value) -> str:
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
+        return str(value)
+
     def toDict(self):
         return {
             **super().toDict(),
@@ -148,102 +274,9 @@ class AnyInput(BaseInput):
         return value
 
 
-def MathOpsDropdown() -> DropDownInput:
-    """Input for selecting math operation type from dropdown"""
-    return DropDownInput(
-        input_type="MathOperation",
-        label="Math Operation",
-        options=[
-            {
-                "option": "Add (+)",
-                "value": "add",
-                "type": """MathOperation { operation: "add" }""",
-            },
-            {
-                "option": "Subtract (-)",
-                "value": "sub",
-                "type": """MathOperation { operation: "sub" }""",
-            },
-            {
-                "option": "Multiply (×)",
-                "value": "mul",
-                "type": """MathOperation { operation: "mul" }""",
-            },
-            {
-                "option": "Divide (÷)",
-                "value": "div",
-                "type": """MathOperation { operation: "div" }""",
-            },
-            {
-                "option": "Exponent/Power (^)",
-                "value": "pow",
-                "type": """MathOperation { operation: "pow" }""",
-            },
-            {
-                "option": "Maximum",
-                "value": "max",
-                "type": """MathOperation { operation: "max" }""",
-            },
-            {
-                "option": "Minimum",
-                "value": "min",
-                "type": """MathOperation { operation: "min" }""",
-            },
-            {
-                "option": "Modulo",
-                "value": "mod",
-                "type": """MathOperation { operation: "mod" }""",
-            },
-        ],
-    )
-
-
-def StackOrientationDropdown() -> DropDownInput:
-    """Input for selecting stack orientation from dropdown"""
-    return DropDownInput(
-        input_type="Orientation",
-        label="Orientation",
-        options=[
-            {
-                "option": "Horizontal",
-                "value": "horizontal",
-                "type": "Orientation::Horizontal",
-            },
-            {
-                "option": "Vertical",
-                "value": "vertical",
-                "type": "Orientation::Vertical",
-            },
-        ],
-    )
-
-
 def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
     return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
-
-
-class AlphaFillMethod:
-    EXTEND_TEXTURE = 1
-    EXTEND_COLOR = 2
-
-
-def AlphaFillMethodInput() -> DropDownInput:
-    """Alpha Fill method option dropdown"""
-    return DropDownInput(
-        input_type="FillMethod",
-        label="Fill method",
-        options=[
-            {
-                "option": "Extend texture",
-                "value": AlphaFillMethod.EXTEND_TEXTURE,
-            },
-            {
-                "option": "Extend color",
-                "value": AlphaFillMethod.EXTEND_COLOR,
-            },
-        ],
-    )
 
 
 def VideoTypeDropdown() -> DropDownInput:
@@ -280,106 +313,29 @@ def VideoPresetDropdown() -> DropDownInput:
     )
 
 
-def FlipAxisInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="FlipAxis",
-        label="Flip Axis",
-        options=[
-            {"option": "Horizontal", "value": FlipAxis.HORIZONTAL},
-            {"option": "Vertical", "value": FlipAxis.VERTICAL},
-            {"option": "Both", "value": FlipAxis.BOTH},
-            {"option": "None", "value": FlipAxis.NONE},
-        ],
-    )
-
-
-def TransferColorspaceInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="TransferColorspace",
-        label="Colorspace",
-        options=[
-            {"option": "L*a*b*", "value": "L*a*b*"},
-            {"option": "RGB", "value": "RGB"},
-        ],
-    )
-
-
-def OverflowMethodInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="OverflowMethod",
-        label="Overflow Method",
-        options=[
-            {"option": "Clip", "value": 1},
-            {"option": "Scale", "value": 0},
-        ],
-    )
-
-
-def ReciprocalScalingFactorInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="ReciprocalScalingFactor",
-        label="Reciprocal Scaling Factor",
-        options=[
-            {"option": "Yes", "value": 1},
-            {"option": "No", "value": 0},
-        ],
-    )
-
-
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
-    return DropDownInput(
-        input_type="BlendMode",
-        label="Blend Mode",
-        options=[
-            {"option": "Normal", "value": bm.NORMAL},
-            {"option": "Darken", "value": bm.DARKEN},
-            {"option": "Multiply", "value": bm.MULTIPLY},
-            {"option": "Color Burn", "value": bm.COLOR_BURN},
-            {"option": "Linear Burn", "value": bm.LINEAR_BURN},
-            {"option": "Lighten", "value": bm.LIGHTEN},
-            {"option": "Screen", "value": bm.SCREEN},
-            {"option": "Color Dodge", "value": bm.COLOR_DODGE},
-            {"option": "Linear Dodge (Add)", "value": bm.ADD},
-            {"option": "Overlay", "value": bm.OVERLAY},
-            {"option": "Soft Light", "value": bm.SOFT_LIGHT},
-            {"option": "Hard Light", "value": bm.HARD_LIGHT},
-            {"option": "Vivid Light", "value": bm.VIVID_LIGHT},
-            {"option": "Linear Light", "value": bm.LINEAR_LIGHT},
-            {"option": "Pin Light", "value": bm.PIN_LIGHT},
-            {"option": "Reflect", "value": bm.REFLECT},
-            {"option": "Glow", "value": bm.GLOW},
-            {"option": "Difference", "value": bm.DIFFERENCE},
-            {"option": "Exclusion", "value": bm.EXCLUSION},
-            {"option": "Negation", "value": bm.NEGATION},
-            {"option": "Subtract", "value": bm.SUBTRACT},
-            {"option": "Divide", "value": bm.DIVIDE},
-            {"option": "Xor", "value": bm.XOR},
-        ],
+    return EnumInput(
+        BlendMode,
+        option_labels={
+            BlendMode.ADD: "Linear Dodge (Add)",
+        },
     )
 
 
 def FillColorDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="FillColor",
+    return EnumInput(
+        FillColor,
         label="Negative Space Fill",
-        options=[
-            {
-                "option": "Auto",
-                "value": FillColor.AUTO,
-                "type": "FillColor::Auto",
-            },
-            {
-                "option": "Black Fill",
-                "value": FillColor.BLACK,
-                "type": "FillColor::Black",
-            },
-            {
-                "option": "Transparency",
-                "value": FillColor.TRANSPARENT,
-                "type": "FillColor::Transparent",
-            },
-        ],
+        default_value=FillColor.AUTO,
+        extra_definitions="""
+            def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
+                match fill {
+                    FillColor::Transparent => 4,
+                    _ => channels
+                }
+            }
+        """,
     )
 
 
@@ -395,42 +351,57 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         options.append({"option": str(size), "value": size})
 
     return DropDownInput(
-        input_type="TileMode",
+        input_type="TileSize",
         label=label,
         options=options,
     )
 
 
-def PaddingAlignmentDropdown(label="Alignment") -> DropDownInput:
+def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
-        input_type="PaddingAlignment",
-        label=label,
+        input_type="DdsFormat",
+        label="DDS Format",
         options=[
             {
-                "option": "Start",
-                "value": "start",
-                "type": "PaddingAlignment::Start",
+                "option": "BC1 (sRGB)",
+                "value": "BC1_UNORM_SRGB",
             },
             {
-                "option": "End",
-                "value": "end",
-                "type": "PaddingAlignment::End",
+                "option": "BC1 (Linear)",
+                "value": "BC1_UNORM",
             },
             {
-                "option": "Center",
-                "value": "center",
-                "type": "PaddingAlignment::Center",
+                "option": "BC3 (sRGB)",
+                "value": "BC3_UNORM_SRGB",
+            },
+            {
+                "option": "BC3 (Linear)",
+                "value": "BC3_UNORM",
+            },
+            {
+                "option": "BC4 (Linear, Unsigned)",
+                "value": "BC4_UNORM",
+            },
+            {
+                "option": "BC7 (sRGB)",
+                "value": "BC7_UNORM_SRGB",
+            },
+            {
+                "option": "BC7 (Linear)",
+                "value": "BC7_UNORM",
             },
         ],
     )
 
 
-def HbfTypeDropdown(label="Filter Type") -> DropDownInput:
+def DdsMipMapsDropdown() -> DropDownInput:
     return DropDownInput(
-        input_type="KernelType",
-        label=label,
+        input_type="DdsMipMaps",
+        label="Generate Mip Maps",
+        preferred_style="checkbox",
         options=[
-            {"option": "Normal", "value": KernelType.NORMAL},
-            {"option": "Strong", "value": KernelType.STRONG},
+            # these are not boolean values, see dds.py for more info
+            {"option": "Yes", "value": 0},
+            {"option": "No", "value": 1},
         ],
     )

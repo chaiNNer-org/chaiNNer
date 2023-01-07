@@ -4,8 +4,7 @@ from typing import Literal, Union
 import os
 
 # pylint: disable=relative-beyond-top-level
-from ...utils.image_utils import get_available_image_formats
-from .. import expression
+from ...impl.image_formats import get_available_image_formats
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 
@@ -25,17 +24,24 @@ class FileInput(BaseInput):
 
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type_name: str,
         label: str,
         file_kind: FileInputKind,
         filetypes: list[str],
         has_handle: bool = False,
         primary_input: bool = False,
     ):
-        super().__init__(input_type, label, kind="file", has_handle=has_handle)
+        super().__init__(input_type_name, label, kind="file", has_handle=has_handle)
         self.filetypes = filetypes
         self.file_kind = file_kind
         self.primary_input = primary_input
+
+        self.input_adapt = f"""
+            match Input {{
+                string as path => {input_type_name} {{ path: path }},
+                _ => never
+            }}
+        """
 
     def toDict(self):
         return {
@@ -55,7 +61,7 @@ class FileInput(BaseInput):
 def ImageFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
-        input_type="ImageFile",
+        input_type_name="ImageFile",
         label="Image File",
         file_kind="image",
         filetypes=get_available_image_formats(),
@@ -67,7 +73,7 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
 def VideoFileInput() -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
-        input_type="VideoFile",
+        input_type_name="VideoFile",
         label="Video File",
         file_kind="video",
         filetypes=[
@@ -90,7 +96,7 @@ def VideoFileInput() -> FileInput:
 def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
-        input_type="PthFile",
+        input_type_name="PthFile",
         label="Pretrained Model",
         file_kind="pth",
         filetypes=[".pth"],
@@ -103,6 +109,13 @@ class DirectoryInput(BaseInput):
 
     def __init__(self, label: str = "Base Directory", has_handle: bool = False):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
+
+        self.input_adapt = """
+            match Input {
+                string as path => Directory { path: path },
+                _ => never
+            }
+        """
 
     def enforce(self, value):
         assert os.path.exists(value), f"Directory {value} does not exist"
@@ -143,6 +156,10 @@ def ImageExtensionDropdown() -> DropDownInput:
                 "option": "TGA",
                 "value": "tga",
             },
+            {
+                "option": "DDS",
+                "value": "dds",
+            },
         ],
     )
 
@@ -150,7 +167,7 @@ def ImageExtensionDropdown() -> DropDownInput:
 def BinFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput(
-        input_type="NcnnBinFile",
+        input_type_name="NcnnBinFile",
         label="NCNN Bin File",
         file_kind="bin",
         filetypes=[".bin"],
@@ -161,7 +178,7 @@ def BinFileInput(primary_input: bool = False) -> FileInput:
 def ParamFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput(
-        input_type="NcnnParamFile",
+        input_type_name="NcnnParamFile",
         label="NCNN Param File",
         file_kind="param",
         filetypes=[".param"],
@@ -172,7 +189,7 @@ def ParamFileInput(primary_input: bool = False) -> FileInput:
 def OnnxFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .onnx file"""
     return FileInput(
-        input_type="OnnxFile",
+        input_type_name="OnnxFile",
         label="ONNX Model File",
         file_kind="onnx",
         filetypes=[".onnx"],

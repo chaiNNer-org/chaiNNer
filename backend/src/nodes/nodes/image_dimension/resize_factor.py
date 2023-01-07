@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, InterpolationInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.pil_utils import resize
+from ...impl.pil_utils import resize, InterpolationMethod
 from ...utils.utils import get_h_w_c, round_half_up
 
 
@@ -46,7 +46,9 @@ class ImResizeByFactorNode(NodeBase):
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 
-    def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
+    def run(
+        self, img: np.ndarray, scale: float, interpolation: InterpolationMethod
+    ) -> np.ndarray:
         """Takes an image and resizes it"""
 
         logger.debug(f"Resizing image by {scale} via {interpolation}")

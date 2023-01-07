@@ -23,8 +23,8 @@ from ...properties.inputs import (
     SliderInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
-from ...utils.image_utils import normalize
-from ...utils.utils import get_h_w_c
+from ...impl.image_utils import normalize
+from ...utils.utils import get_h_w_c, split_file_path
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
@@ -189,9 +189,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         input_node_id = context.get_helper(VIDEO_ITERATOR_INPUT_NODE_ID).id
         output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id
 
-        base_name = os.path.basename(path)
-        video_dir = os.path.dirname(path)
-        video_name = os.path.splitext(base_name)[0]
+        video_dir, video_name, _ = split_file_path(path)
 
         ffmpeg_reader = (
             ffmpeg.input(path)

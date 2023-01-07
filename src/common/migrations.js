@@ -855,6 +855,132 @@ const convertColorSpaceFromDetectors = (data) => {
     return data;
 };
 
+const fixNumbers = (data) => {
+    // https://github.com/chaiNNer-org/chaiNNer/issues/1364
+
+    /** @type {Record<string, number[] | undefined>} */
+    const numbers = {
+        'chainner:image:save': [5],
+        'chainner:image:spritesheet_iterator': [1, 2],
+        'chainner:image:simple_video_frame_iterator_save': [5],
+        'chainner:image:crop_border': [1],
+        'chainner:image:crop_content': [1],
+        'chainner:image:crop_edges': [1, 2, 3, 4],
+        'chainner:image:crop_offsets': [1, 2, 3, 4],
+        'chainner:image:resize_factor': [1],
+        'chainner:image:resize_resolution': [1, 2],
+        'chainner:image:resize_to_side': [1],
+        'chainner:image:tile_fill': [1, 2],
+        'chainner:image:brightness_and_contrast': [1, 2],
+        'chainner:image:gamma': [1],
+        'chainner:image:hue_and_saturation': [1, 2, 3],
+        'chainner:image:opacity': [1],
+        'chainner:image:threshold': [1, 2],
+        'chainner:image:threshold_adaptive': [1, 4, 5],
+        'chainner:image:add_noise': [3],
+        'chainner:image:average_color_fix': [2],
+        'chainner:image:bilateral_blur': [1, 2, 3],
+        'chainner:image:blur': [1, 2],
+        'chainner:image:gaussian_blur': [1, 2],
+        'chainner:image:median_blur': [1],
+        'chainner:image:sharpen_hbf': [2],
+        'chainner:image:add_normals': [1, 3],
+        'chainner:image:normal_generator': [2, 3, 4],
+        'chainner:image:sharpen': [1, 2, 3],
+        'chainner:image:canny_edge_detection': [1, 2],
+        'chainner:image:caption': [2],
+        'chainner:image:create_border': [2],
+        'chainner:image:create_color_gray': [0, 1, 2],
+        'chainner:image:create_color_rgb': [0, 1, 2, 3, 4],
+        'chainner:image:create_color_rgba': [0, 1, 2, 3, 4, 5],
+        'chainner:image:create_edges': [2, 3, 4, 5],
+        'chainner:image:rotate': [1],
+        'chainner:image:shift': [1, 2],
+        'chainner:utility:math': [0, 2],
+        'chainner:utility:text_padding': [1],
+        'chainner:pytorch:interpolate_models': [2],
+        'chainner:pytorch:upscale_face': [3],
+        'chainner:ncnn:interpolate_models': [2],
+        'chainner:onnx:interpolate_models': [2],
+    };
+
+    data.nodes.forEach((node) => {
+        const numberInputs = numbers[node.data.schemaId];
+        if (Array.isArray(numberInputs)) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const id of numberInputs) {
+                const value = Number(node.data.inputData[id] ?? NaN);
+                if (Number.isNaN(value)) {
+                    delete node.data.inputData[id];
+                } else {
+                    node.data.inputData[id] = value;
+                }
+            }
+        }
+    });
+
+    return data;
+};
+
+const clearEdgeData = (data) => {
+    data.edges.forEach((edge) => {
+        edge.data = {};
+    });
+
+    return data;
+};
+
+const gammaCheckbox = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:gamma') {
+            const from = /** @type {"normal" | "invert"} */ (node.data.inputData[2]);
+            node.data.inputData[2] = from === 'invert' ? 1 : 0;
+        }
+    });
+
+    return data;
+};
+
+const changeColorSpaceAlpha = (data) => {
+    const RGB = 1;
+    const RGBA = 2;
+    const YUV = 3;
+    const HSV = 4;
+    const HSL = 5;
+    const YUVA = 7;
+    const HSVA = 8;
+    const HSLA = 9;
+    const LAB = 10;
+    const LABA = 11;
+    const LCH = 12;
+    const LCHA = 13;
+
+    const mapping = {
+        [RGBA]: RGB,
+        [YUVA]: YUV,
+        [HSVA]: HSV,
+        [HSLA]: HSL,
+        [LABA]: LAB,
+        [LCHA]: LCH,
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const to = node.data.inputData[2];
+            const mapped = mapping[to];
+            if (mapped === undefined) {
+                node.data.inputData[2] = to;
+                node.data.inputData[3] = 0; // output alpha: False
+            } else {
+                node.data.inputData[2] = mapped;
+                node.data.inputData[3] = 1; // output alpha: True
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -899,6 +1025,10 @@ const migrations = [
     convertColorRGBLikeDetector,
     convertNormalGenerator,
     convertColorSpaceFromDetectors,
+    fixNumbers,
+    clearEdgeData,
+    gammaCheckbox,
+    changeColorSpaceAlpha,
 ];
 
 export const currentMigration = migrations.length;

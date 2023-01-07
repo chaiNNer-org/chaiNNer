@@ -1,4 +1,5 @@
-from typing import Union, Literal
+from __future__ import annotations
+from typing import Literal
 from base_types import InputId
 from .. import expression
 
@@ -23,7 +24,9 @@ class BaseInput:
         has_handle=True,
     ):
         self.input_type: expression.ExpressionJson = input_type
-        self.input_conversion: Union[expression.ExpressionJson, None] = None
+        self.input_conversion: expression.ExpressionJson | None = None
+        self.input_adapt: expression.ExpressionJson | None = None
+        self.type_definitions: str | None = None
         self.kind: InputKind = kind
         self.label: str = label
         self.optional: bool = False
@@ -51,13 +54,15 @@ class BaseInput:
             "id": self.id,
             "type": actual_type,
             "conversion": self.input_conversion,
+            "adapt": self.input_adapt,
+            "typeDefinitions": self.type_definitions,
             "kind": self.kind,
             "label": self.label,
             "optional": self.optional,
             "hasHandle": self.has_handle,
         }
 
-    def with_id(self, input_id: Union[InputId, int]):
+    def with_id(self, input_id: InputId | int):
         self.id = InputId(input_id)
         return self
 

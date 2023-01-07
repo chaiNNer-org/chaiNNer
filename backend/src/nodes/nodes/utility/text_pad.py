@@ -1,11 +1,18 @@
 from __future__ import annotations
+from enum import Enum
 
 from . import category as UtilityCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import TextInput, NumberInput, PaddingAlignmentDropdown
+from ...properties.inputs import TextInput, NumberInput, EnumInput
 from ...properties.outputs import TextOutput
+
+
+class PaddingAlignment(Enum):
+    START = "start"
+    END = "end"
+    CENTER = "center"
 
 
 @NodeFactory.register("chainner:utility:text_padding")
@@ -24,7 +31,7 @@ class TextPaddingNode(NodeBase):
                 max_length=1,
                 placeholder="e.g. '0' or ' '",
             ),
-            PaddingAlignmentDropdown(),
+            EnumInput(PaddingAlignment, label="Alignment"),
         ]
         self.outputs = [
             TextOutput(
@@ -45,12 +52,14 @@ class TextPaddingNode(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Text"
 
-    def run(self, text: str, width: int, padding: str, alignment: str) -> str:
-        if alignment == "start":
+    def run(
+        self, text: str, width: int, padding: str, alignment: PaddingAlignment
+    ) -> str:
+        if alignment == PaddingAlignment.START:
             return text.rjust(width, padding)
-        elif alignment == "end":
+        elif alignment == PaddingAlignment.END:
             return text.ljust(width, padding)
-        elif alignment == "center":
+        elif alignment == PaddingAlignment.CENTER:
             return text.center(width, padding)
         else:
             raise ValueError(f"Invalid alignment '{alignment}'.")

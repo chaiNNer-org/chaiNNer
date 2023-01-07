@@ -7,12 +7,11 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
-    TransferColorspaceInput,
-    OverflowMethodInput,
-    ReciprocalScalingFactorInput,
+    EnumInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput
-from ...utils.color_transfer import color_transfer
+from ...impl.color_transfer import color_transfer, TransferColorSpace, OverflowMethod
 from ...utils.utils import get_h_w_c
 
 
@@ -34,9 +33,13 @@ class ColorTransferNode(NodeBase):
         self.inputs = [
             ImageInput("Image", channels=[1, 3, 4]),
             ImageInput("Reference Image", channels=[3, 4]),
-            TransferColorspaceInput(),
-            OverflowMethodInput(),
-            ReciprocalScalingFactorInput(),
+            EnumInput(
+                TransferColorSpace,
+                label="Colorspace",
+                option_labels={TransferColorSpace.LAB: "L*a*b*"},
+            ),
+            EnumInput(OverflowMethod),
+            BoolInput("Reciprocal Scaling Factor", default=True),
         ]
         self.outputs = [ImageOutput("Image", image_type="Input0")]
         self.category = ImageFilterCategory
@@ -48,9 +51,9 @@ class ColorTransferNode(NodeBase):
         self,
         img: np.ndarray,
         ref_img: np.ndarray,
-        colorspace: str = "L*a*b*",
-        overflow_method: int = 1,
-        reciprocal_scale: int = 1,
+        colorspace: TransferColorSpace,
+        overflow_method: OverflowMethod,
+        reciprocal_scale: bool,
     ) -> np.ndarray:
         """
         Transfers the color distribution from source image to target image.

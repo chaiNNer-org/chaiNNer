@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, FillColorDropdown, NumberInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.image_utils import shift
+from ...impl.image_utils import shift, FillColor
 
 
 @NodeFactory.register("chainner:image:shift")
@@ -41,6 +41,6 @@ class ShiftNode(NodeBase):
         img: np.ndarray,
         amount_x: int,
         amount_y: int,
-        fill: int,
+        fill: FillColor,
     ) -> np.ndarray:
         return shift(img, amount_x, amount_y, fill)
