@@ -7,21 +7,19 @@ import { readdirSync, rmSync } from 'fs';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
-import portfinder from 'portfinder';
-import { FfmpegInfo, PythonInfo, Version, WindowSize } from '../common/common-types';
-import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
-import { runPipInstall, runPipList } from '../common/pip';
+import { SetupStage } from '../common/backend-setup';
+import { Version, WindowSize } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
+import { CriticalError } from '../common/ui/error';
+import { ProgressController, ProgressToken, SubProgress } from '../common/ui/progress';
 import { lazy } from '../common/util';
-import { versionGt } from '../common/version';
 import { getArguments, parseArgs } from './arguments';
-import { OwnedBackendProcess } from './backend/process';
-import { getIntegratedFfmpeg, hasSystemFfmpeg } from './ffmpeg/ffmpeg';
+import { BackendProcess } from './backend/process';
+import { setupBackend } from './backend/setup';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
-import { checkPythonPaths } from './python/checkPythonPaths';
-import { getIntegratedPython } from './python/integratedPython';
+import { addSplashScreen } from './splash';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
 
@@ -115,9 +113,43 @@ const checkForUpdate = () => {
         .catch((reason) => log.error(reason));
 };
 
-ipcMain.handle('owns-backend', () => !getArguments().noBackend);
+const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc, backend: BackendProcess) => {
+    ipcMain.handle('owns-backend', () => backend.owned);
+    ipcMain.handle('get-port', () => backend.port);
+    ipcMain.handle('get-python', () => backend.python);
 
-const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
+    if (backend.owned) {
+        backend.addErrorListener((error) => {
+            const messageBoxOptions = {
+                type: 'error',
+                title: 'Unexpected Error',
+                message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
+                    error
+                )}`,
+            };
+            dialog.showMessageBoxSync(messageBoxOptions);
+            app.exit(1);
+        });
+
+        app.on('before-quit', () => backend.tryKill());
+    }
+
+    ipcMain.handle('relaunch-application', () => {
+        if (backend.owned) {
+            backend.tryKill();
+        }
+        app.relaunch();
+        app.exit();
+    });
+
+    ipcMain.handle('restart-backend', () => {
+        if (backend.owned) {
+            backend.restart();
+        } else {
+            log.warn('Tried to restart non-owned backend');
+        }
+    });
+
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
@@ -200,236 +232,6 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     });
 };
 
-const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
-    log.info('Attempting to check for a port...');
-    const port = await portfinder.getPortPromise();
-    if (!port) {
-        log.warn('An open port could not be found');
-        splashWindow.hide();
-        const messageBoxOptions = {
-            type: 'error',
-            title: 'No open port',
-            message:
-                'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
-        };
-        await dialog.showMessageBox(messageBoxOptions);
-        app.exit(1);
-    }
-    log.info(`Port found: ${port}`);
-    ipcMain.handle('get-port', () => {
-        if (getArguments().noBackend) {
-            return 8000;
-        }
-        return port;
-    });
-    return port;
-};
-
-const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
-    log.info('Attempting to check Python env...');
-
-    let pythonInfo: PythonInfo;
-
-    const useSystemPython = localStorage.getItem('use-system-python') === 'true';
-    let systemPythonLocation = localStorage.getItem('system-python-location');
-    let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
-
-    if (systemPythonLocation) {
-        systemPythonLocation = path.normalize(String(JSON.parse(systemPythonLocation)));
-    }
-
-    if (integratedPythonFolderPath) {
-        integratedPythonFolderPath = path.normalize(integratedPythonFolderPath);
-    }
-
-    if (useSystemPython) {
-        try {
-            pythonInfo = await checkPythonPaths([
-                ...(systemPythonLocation ? [systemPythonLocation] : []),
-                'python3',
-                'python',
-                // Fall back to integrated python if all else fails
-                integratedPythonFolderPath,
-            ]);
-            if (pythonInfo.python === integratedPythonFolderPath) {
-                log.info('System python not found. Using integrated Python');
-                const messageBoxOptions = {
-                    type: 'warning',
-                    title: 'Python not installed or invalid version',
-                    buttons: ['Get Python', 'Ok'],
-                    defaultId: 1,
-                    message:
-                        'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
-                        ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
-                };
-                const buttonResult = await dialog.showMessageBox(messageBoxOptions);
-                if (buttonResult.response === 0) {
-                    await shell.openExternal('https://www.python.org/downloads/');
-                }
-            }
-        } catch (error) {
-            log.error(error);
-
-            splashWindow.hide();
-            const messageBoxOptions = {
-                type: 'error',
-                title: 'Error checking for valid Python instance',
-                buttons: ['Get Python', 'Exit'],
-                defaultId: 1,
-                message:
-                    'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
-            };
-            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
-            if (buttonResult.response === 0) {
-                await shell.openExternal('https://www.python.org/downloads/');
-            }
-            app.exit(1);
-            throw new Error();
-        }
-    } else {
-        // User is using integrated python
-        try {
-            let lastStage = '';
-            pythonInfo = await getIntegratedPython(
-                integratedPythonFolderPath,
-                (percentage, stage) => {
-                    if (stage !== lastStage) {
-                        lastStage = stage;
-                        splashWindow.webContents.send(`${stage}ing-python`);
-                    }
-                    splashWindow.webContents.send('progress', percentage);
-                }
-            );
-        } catch (error) {
-            log.error(error);
-
-            splashWindow.hide();
-            const messageBoxOptions = {
-                type: 'error',
-                title: 'Unable to install integrated Python',
-                buttons: ['Exit'],
-                message:
-                    `Chainner was unable to install its integrated Python environment.` +
-                    ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
-            };
-            await dialog.showMessageBox(messageBoxOptions);
-            app.exit(1);
-            throw new Error();
-        }
-    }
-
-    log.info(`Final Python binary: ${pythonInfo.python}`);
-    log.info(pythonInfo);
-
-    ipcMain.handle('get-python', () => pythonInfo);
-    return pythonInfo;
-};
-
-const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
-    log.info('Attempting to check Ffmpeg env...');
-
-    let ffmpegInfo: FfmpegInfo;
-
-    const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
-
-    try {
-        let lastStage = '';
-        ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
-            if (stage !== lastStage) {
-                lastStage = stage;
-                splashWindow.webContents.send(`${stage}ing-ffmpeg`);
-            }
-            splashWindow.webContents.send('progress', percentage);
-        });
-    } catch (error) {
-        log.error(error);
-
-        splashWindow.hide();
-        const messageBoxOptions = {
-            type: 'warning',
-            title: 'Unable to install integrated Ffmpeg',
-            buttons: ['Ok'],
-            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
-        };
-        await dialog.showMessageBox(messageBoxOptions);
-
-        if (await hasSystemFfmpeg()) {
-            ffmpegInfo = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
-        } else {
-            ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
-        }
-    }
-
-    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
-    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
-
-    return ffmpegInfo;
-};
-
-const checkPythonDeps = async (
-    splashWindow: BrowserWindowWithSafeIpc,
-    pythonInfo: PythonInfo,
-    hasNvidia: boolean
-) => {
-    log.info('Attempting to check Python deps...');
-    try {
-        const pipList = await runPipList(pythonInfo);
-        const installedPackages = new Set(Object.keys(pipList));
-
-        const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
-        const optionalPackages = getOptionalDependencies(hasNvidia).flatMap((dep) => dep.packages);
-
-        // CASE 1: A package isn't installed
-        const missingRequiredPackages = requiredPackages.filter(
-            (packageInfo) => !installedPackages.has(packageInfo.packageName)
-        );
-
-        // CASE 2: A required package is installed but not the latest version
-        const outOfDateRequiredPackages = requiredPackages.filter((packageInfo) => {
-            const installedVersion = pipList[packageInfo.packageName];
-            if (!installedVersion) {
-                return false;
-            }
-            return versionGt(packageInfo.version, installedVersion);
-        });
-
-        // CASE 3: An optional package is installed, set to auto update, and is not the latest version
-        const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
-            const installedVersion = pipList[packageInfo.packageName];
-            if (!installedVersion) {
-                return false;
-            }
-            return packageInfo.autoUpdate && versionGt(packageInfo.version, installedVersion);
-        });
-
-        const allPackagesThatNeedToBeInstalled = [
-            ...missingRequiredPackages,
-            ...outOfDateRequiredPackages,
-            ...outOfDateOptionalPackages,
-        ];
-
-        if (allPackagesThatNeedToBeInstalled.length > 0) {
-            const isInstallingRequired = missingRequiredPackages.length > 0;
-            const isUpdating =
-                outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
-
-            splashWindow.webContents.send('installing-deps', isUpdating && !isInstallingRequired);
-            // Try to update/install deps
-            log.info('Installing/Updating dependencies...');
-            await runPipInstall(pythonInfo, [
-                {
-                    name: 'All Packages That Need To Be Installed',
-                    packages: allPackagesThatNeedToBeInstalled,
-                },
-            ] as Dependency[]);
-        }
-    } catch (error) {
-        log.error(error);
-    }
-};
-
 const checkNvidiaSmi = async () => {
     const registerEmptyGpuEvents = () => {
         ipcMain.handle('get-nvidia-gpu-name', () => null);
@@ -471,146 +273,12 @@ const checkNvidiaSmi = async () => {
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegInfo) => {
-    if (getArguments().noBackend) {
-        return;
-    }
+const createBackend = async (token: ProgressToken<SetupStage>) => {
+    const useSystemPython = localStorage.getItem('use-system-python') === 'true';
+    const systemPythonLocation = localStorage.getItem('system-python-location');
 
-    try {
-        const backend = OwnedBackendProcess.spawn(port, pythonInfo, {
-            STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
-            STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
-        });
-
-        backend.addErrorListener((error) => {
-            const messageBoxOptions = {
-                type: 'error',
-                title: 'Unexpected Error',
-                message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
-                    error
-                )}`,
-            };
-            dialog.showMessageBoxSync(messageBoxOptions);
-            app.exit(1);
-        });
-
-        ipcMain.handle('relaunch-application', () => {
-            backend.tryKill();
-            app.relaunch();
-            app.exit();
-        });
-
-        ipcMain.handle('restart-backend', () => {
-            backend.restart();
-        });
-
-        app.on('before-quit', () => backend.tryKill());
-
-        log.info('Successfully spawned backend.');
-    } catch (error) {
-        log.error('Error spawning backend.');
-    }
+    return setupBackend(token, useSystemPython, systemPythonLocation, () => nvidiaSmiPromise);
 };
-
-const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
-    new Promise<void>((resolve) => {
-        const splash = new BrowserWindow({
-            width: 400,
-            height: 400,
-            frame: false,
-            // backgroundColor: '#2D3748',
-            center: true,
-            minWidth: 400,
-            minHeight: 400,
-            maxWidth: 400,
-            maxHeight: 400,
-            resizable: false,
-            minimizable: true,
-            maximizable: false,
-            closable: false,
-            alwaysOnTop: true,
-            titleBarStyle: 'hidden',
-            transparent: true,
-            roundedCorners: true,
-            webPreferences: {
-                webSecurity: false,
-                nodeIntegration: true,
-                contextIsolation: false,
-            },
-            icon: `${__dirname}/../public/icons/cross_platform/icon`,
-            show: false,
-        }) as BrowserWindowWithSafeIpc;
-        if (!splash.isDestroyed()) {
-            try {
-                splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
-            } catch (error) {
-                log.error('Error loading splash window.', error);
-            }
-        }
-
-        splash.once('ready-to-show', () => {
-            splash.show();
-            // splash.webContents.openDevTools();
-        });
-
-        splash.on('close', () => {
-            mainWindow.destroy();
-            resolve();
-        });
-
-        // Look, I just wanna see the cool animation
-        const sleep = (ms: number) =>
-            new Promise((r) => {
-                setTimeout(r, ms);
-            });
-
-        // Send events to splash screen renderer as they happen
-        // Added some sleep functions so I can see that this is doing what I want it to
-        // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
-        splash.webContents.once('dom-ready', async () => {
-            splash.webContents.send('checking-port');
-            const port = await getValidPort(splash);
-            await sleep(250);
-
-            splash.webContents.send('checking-python');
-            const pythonInfo = await checkPythonEnv(splash);
-            await sleep(250);
-
-            splash.webContents.send('checking-ffmpeg');
-            const ffmpegInfo = await checkFfmpegEnv(splash);
-            await sleep(250);
-
-            splash.webContents.send('checking-deps');
-            const hasNvidia = await nvidiaSmiPromise;
-            await checkPythonDeps(splash, pythonInfo, hasNvidia);
-            await sleep(250);
-
-            splash.webContents.send('spawning-backend');
-            spawnBackend(port, pythonInfo, ffmpegInfo);
-
-            registerEventHandlers(mainWindow);
-
-            splash.webContents.send('splash-finish');
-            await sleep(250);
-
-            resolve();
-        });
-
-        ipcMain.once('backend-ready', async () => {
-            splash.webContents.send('finish-loading');
-            splash.on('close', () => {});
-            await sleep(500);
-            splash.destroy();
-            mainWindow.show();
-            if (lastWindowSize?.maximized) {
-                mainWindow.maximize();
-            }
-            const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
-            if (app.isPackaged && checkUpdateOnStartup) {
-                checkForUpdate();
-            }
-        });
-    });
 
 const createWindow = lazy(async () => {
     // Create the browser window.
@@ -645,15 +313,44 @@ const createWindow = lazy(async () => {
         setMainMenu({ mainWindow, menuData, enabled: true });
     });
 
-    await doSplashScreenChecks(mainWindow);
+    const progressController = new ProgressController<SetupStage>('init');
+    addSplashScreen(progressController);
 
-    // and load the index.html of the app.
-    if (!mainWindow.isDestroyed()) {
-        try {
-            await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-        } catch (error) {
-            log.error('Error loading main window.', error);
+    try {
+        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9));
+        registerEventHandlers(mainWindow, backend);
+
+        if (mainWindow.isDestroyed()) {
+            return;
         }
+
+        ipcMain.once('backend-ready', () => {
+            progressController.submitProgress({ totalProgress: 1 });
+
+            mainWindow.show();
+            if (lastWindowSize?.maximized) {
+                mainWindow.maximize();
+            }
+            const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
+            if (app.isPackaged && checkUpdateOnStartup) {
+                checkForUpdate();
+            }
+        });
+
+        // and load the index.html of the app.
+        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch((error) => log.error(error));
+    } catch (error) {
+        if (error instanceof CriticalError) {
+            await progressController.submitInterrupt(error.interrupt);
+        } else {
+            log.error(error);
+            await progressController.submitInterrupt({
+                type: 'critical error',
+                message: 'Unable to setup backend due to unknown.',
+            });
+        }
+
+        return;
     }
 
     // Open the DevTools.

@@ -9,8 +9,10 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
+import { SetupStage } from './backend-setup';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
+import { Progress } from './ui/progress';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -52,26 +54,13 @@ export interface InvokeChannels {
 }
 
 export interface SendChannels {
+    'splash-setup-progress': SendChannelInfo<[progress: Progress<SetupStage>]>;
     'backend-ready': SendChannelInfo;
-    'checking-deps': SendChannelInfo;
-    'checking-port': SendChannelInfo;
-    'checking-python': SendChannelInfo;
-    'downloading-python': SendChannelInfo;
-    'extracting-python': SendChannelInfo;
-    'checking-ffmpeg': SendChannelInfo;
-    'downloading-ffmpeg': SendChannelInfo;
-    'extracting-ffmpeg': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
     'file-save-as': SendChannelInfo;
     'file-save': SendChannelInfo;
     'file-export-template': SendChannelInfo;
-    'finish-loading': SendChannelInfo;
-    'installing-deps': SendChannelInfo<[onlyUpdating: boolean]>;
-    'installing-main-deps': SendChannelInfo;
-    progress: SendChannelInfo<[percentage: number]>;
-    'spawning-backend': SendChannelInfo;
-    'splash-finish': SendChannelInfo;
     'start-sleep-blocker': SendChannelInfo;
     'stop-sleep-blocker': SendChannelInfo;
     'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
