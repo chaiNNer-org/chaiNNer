@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
@@ -10,13 +10,13 @@ import path from 'path';
 import portfinder from 'portfinder';
 import { FfmpegInfo, PythonInfo, Version, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
-import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
 import { getArguments, parseArgs } from './arguments';
+import { OwnedBackendProcess } from './backend/process';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
@@ -115,8 +115,7 @@ const checkForUpdate = () => {
         .catch((reason) => log.error(reason));
 };
 
-const ownsBackend = !getArguments().noBackend;
-ipcMain.handle('owns-backend', () => ownsBackend);
+ipcMain.handle('owns-backend', () => !getArguments().noBackend);
 
 const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('dir-select', (event, dirPath) =>
@@ -366,7 +365,6 @@ const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
     log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
 
-    ipcMain.handle('get-ffmpeg', () => ffmpegInfo);
     return ffmpegInfo;
 };
 
@@ -478,31 +476,13 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegIn
         return;
     }
 
-    const spawnBackendProcess = () => {
-        log.info('Attempting to spawn backend...');
-        const backendPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'src', 'run.py')
-            : './backend/src/run.py';
-        const backend = spawn(pythonInfo.python, [backendPath, String(port)], {
-            env: {
-                ...sanitizedEnv,
-                STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
-                STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
-            },
-        });
-        backend.stdout.on('data', (data) => {
-            const dataString = String(data);
-            // Remove unneeded timestamp
-            const fixedData = dataString.split('] ').slice(1).join('] ');
-            log.info(`Backend: ${fixedData}`);
+    try {
+        const backend = OwnedBackendProcess.spawn(port, pythonInfo, {
+            STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
+            STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
         });
 
-        backend.stderr.on('data', (data) => {
-            log.error(`Backend: ${String(data)}`);
-        });
-
-        backend.on('error', (error) => {
-            log.error(`Python subprocess encountered an unexpected error: ${String(error)}`);
+        backend.addErrorListener((error) => {
             const messageBoxOptions = {
                 type: 'error',
                 title: 'Unexpected Error',
@@ -514,44 +494,17 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegIn
             app.exit(1);
         });
 
-        backend.on('exit', (code, signal) => {
-            log.error(
-                `Python subprocess exited with code ${String(code)} and signal ${String(signal)}`
-            );
-        });
-
-        return backend;
-    };
-
-    try {
-        let backend = spawnBackendProcess();
-
-        const tryKill = () => {
-            log.info('Attempting to kill backend...');
-            try {
-                const success = backend.kill();
-                if (success) {
-                    log.info('Successfully killed backend.');
-                } else {
-                    log.error('Error killing backend.');
-                }
-            } catch (error) {
-                log.error('Error killing backend.', error);
-            }
-        };
-
         ipcMain.handle('relaunch-application', () => {
-            tryKill();
+            backend.tryKill();
             app.relaunch();
             app.exit();
         });
 
         ipcMain.handle('restart-backend', () => {
-            tryKill();
-            backend = spawnBackendProcess();
+            backend.restart();
         });
 
-        app.on('before-quit', tryKill);
+        app.on('before-quit', () => backend.tryKill());
 
         log.info('Successfully spawned backend.');
     } catch (error) {

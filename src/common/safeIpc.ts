@@ -9,7 +9,7 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
-import { FfmpegInfo, FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
+import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
@@ -23,7 +23,6 @@ export interface InvokeChannels {
     'get-nvidia-gpus': ChannelInfo<string[] | null>;
     'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
     'get-python': ChannelInfo<PythonInfo>;
-    'get-ffmpeg': ChannelInfo<FfmpegInfo>;
     'get-port': ChannelInfo<number>;
     'get-localstorage-location': ChannelInfo<string>;
     'get-app-version': ChannelInfo<Version>;

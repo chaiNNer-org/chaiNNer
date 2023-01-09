@@ -1,5 +1,13 @@
 import fetch from 'cross-fetch';
-import { Category, InputId, InputValue, JsonNode, NodeSchema, SchemaId } from './common-types';
+import {
+    Category,
+    InputId,
+    InputValue,
+    JsonNode,
+    NodeSchema,
+    PythonInfo,
+    SchemaId,
+} from './common-types';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -147,6 +155,10 @@ export class Backend {
      */
     listNcnnGpus(): Promise<string[]> {
         return this.fetchJson('/listgpus/ncnn', 'GET');
+    }
+
+    pythonInfo(): Promise<PythonInfo> {
+        return this.fetchJson('/python-info', 'GET');
     }
 }
 
