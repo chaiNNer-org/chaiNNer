@@ -378,6 +378,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const response = await backend.run({
                 data,
                 options,
+                sendBroadcastData: true,
             });
             if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue

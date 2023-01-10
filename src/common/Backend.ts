@@ -51,6 +51,7 @@ export interface BackendExecutionOptions {
 export interface BackendRunRequest {
     data: JsonNode[];
     options: BackendExecutionOptions;
+    sendBroadcastData: boolean;
 }
 export interface BackendRunIndividualRequest {
     id: string;
