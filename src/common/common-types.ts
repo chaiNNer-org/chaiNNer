@@ -281,20 +281,20 @@ export interface FileOpenError {
     error: string;
 }
 
-export interface JsonEdgeInput {
+export interface BackendJsonEdgeInput {
     type: 'edge';
     id: string;
     index: number;
 }
-export interface JsonValueInput {
+export interface BackendJsonValueInput {
     type: 'value';
     value: InputValue | null;
 }
-export type JsonInput = JsonEdgeInput | JsonValueInput;
-export interface JsonNode {
+export type BackendJsonInput = BackendJsonEdgeInput | BackendJsonValueInput;
+export interface BackendJsonNode {
     id: string;
     schemaId: SchemaId;
-    inputs: JsonInput[];
+    inputs: BackendJsonInput[];
     nodeType: string;
     parent: string | null;
 }

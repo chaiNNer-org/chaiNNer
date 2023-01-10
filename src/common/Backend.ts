@@ -1,5 +1,12 @@
 import fetch from 'cross-fetch';
-import { Category, InputId, InputValue, JsonNode, NodeSchema, SchemaId } from './common-types';
+import {
+    BackendJsonNode,
+    Category,
+    InputId,
+    InputValue,
+    NodeSchema,
+    SchemaId,
+} from './common-types';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -49,7 +56,7 @@ export interface BackendExecutionOptions {
     onnxTensorRtCachePath: string;
 }
 export interface BackendRunRequest {
-    data: JsonNode[];
+    data: BackendJsonNode[];
     options: BackendExecutionOptions;
 }
 export interface BackendRunIndividualRequest {
