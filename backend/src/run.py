@@ -445,6 +445,14 @@ async def list_ncnn_gpus(_request: Request):
         return json([])
 
 
+@app.route("/python-info", methods=["GET"])
+async def python_info(_request: Request):
+    version = (
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
+    return json({"python": sys.executable, "version": version})
+
+
 if __name__ == "__main__":
     try:
         port = int(sys.argv[1]) or 8000

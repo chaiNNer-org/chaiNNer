@@ -5,6 +5,7 @@ import {
     InputId,
     InputValue,
     NodeSchema,
+    PythonInfo,
     SchemaId,
 } from './common-types';
 
@@ -155,6 +156,10 @@ export class Backend {
      */
     listNcnnGpus(): Promise<string[]> {
         return this.fetchJson('/listgpus/ncnn', 'GET');
+    }
+
+    pythonInfo(): Promise<PythonInfo> {
+        return this.fetchJson('/python-info', 'GET');
     }
 }
 
