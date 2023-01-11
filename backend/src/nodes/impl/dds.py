@@ -105,6 +105,7 @@ def save_as_dds(
     dithering: bool = False,
     minimal_compression: bool = False,
     maximum_compression: bool = False,
+    dx9: bool = False,
 ):
     """
     Saves an image as DDS using texconv.
@@ -125,7 +126,7 @@ def save_as_dds(
             "-y",
             "-f",
             dds_format,
-            "-dx10",
+            "-dx9" if dx9 else "-dx10",
             "-m",
             str(mipmap_levels),
             # use texconv to directly produce the target file

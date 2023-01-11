@@ -357,43 +357,6 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     )
 
 
-def DdsFormatDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsFormat",
-        label="DDS Format",
-        options=[
-            {
-                "option": "BC1 (sRGB)",
-                "value": "BC1_UNORM_SRGB",
-            },
-            {
-                "option": "BC1 (Linear)",
-                "value": "BC1_UNORM",
-            },
-            {
-                "option": "BC3 (sRGB)",
-                "value": "BC3_UNORM_SRGB",
-            },
-            {
-                "option": "BC3 (Linear)",
-                "value": "BC3_UNORM",
-            },
-            {
-                "option": "BC4 (Linear, Unsigned)",
-                "value": "BC4_UNORM",
-            },
-            {
-                "option": "BC7 (sRGB)",
-                "value": "BC7_UNORM_SRGB",
-            },
-            {
-                "option": "BC7 (Linear)",
-                "value": "BC7_UNORM",
-            },
-        ],
-    )
-
-
 def DdsMipMapsDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsMipMaps",

@@ -18,7 +18,7 @@ from ...properties.inputs import (
     TextInput,
     ImageExtensionDropdown,
     SliderInput,
-    DdsFormatDropdown,
+    DropDownInput,
     BoolInput,
     EnumInput,
     DdsMipMapsDropdown,
@@ -28,7 +28,15 @@ from ...impl.image_utils import cv_save_image
 from ...impl.dds import save_as_dds
 
 BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
-BC1_BC3_FORMATS = "BC1_UNORM_SRGB", "BC1_UNORM", "BC3_UNORM_SRGB", "BC3_UNORM"
+BC1_BC3_FORMATS = (
+    "BC1_UNORM_SRGB",
+    "BC1_UNORM",
+    "BC3_UNORM_SRGB",
+    "BC3_UNORM",
+    "DXT1",
+    "DXT3",
+    "DXT5",
+)
 
 
 class DDSErrorMetric(Enum):
@@ -40,6 +48,62 @@ class BC7Compression(Enum):
     BEST_SPEED = 1
     DEFAULT = 0
     BEST_QUALITY = 2
+
+
+def DdsFormatDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsFormat",
+        label="DDS Format",
+        options=[
+            {
+                "option": "BC1 (sRGB, DX 10+)",
+                "value": "BC1_UNORM_SRGB",
+            },
+            {
+                "option": "BC1 (Linear, DX 10+)",
+                "value": "BC1_UNORM",
+            },
+            {
+                "option": "BC3 (sRGB, DX 10+)",
+                "value": "BC3_UNORM_SRGB",
+            },
+            {
+                "option": "BC3 (Linear, DX 10+)",
+                "value": "BC3_UNORM",
+            },
+            {
+                "option": "BC4 (Linear, Unsigned, DX 10+)",
+                "value": "BC4_UNORM",
+            },
+            {
+                "option": "BC7 (sRGB, DX 11+)",
+                "value": "BC7_UNORM_SRGB",
+            },
+            {
+                "option": "BC7 (Linear, DX 11+)",
+                "value": "BC7_UNORM",
+            },
+            {
+                "option": "DXT1 (Legacy)",
+                "value": "DXT1",
+            },
+            {
+                "option": "DXT3 (Legacy)",
+                "value": "DXT3",
+            },
+            {
+                "option": "DXT5 (Legacy)",
+                "value": "DXT5",
+            },
+        ],
+    )
+
+
+_LEGACY_DDS_FORMATS = {
+    "DXT1": "BC1_UNORM",
+    "DXT3": "BC2_UNORM",
+    "DXT5": "BC3_UNORM",
+}
 
 
 @NodeFactory.register("chainner:image:save")
@@ -129,6 +193,11 @@ class ImWriteNode(NodeBase):
 
         # DDS files are handled separately
         if extension == "dds":
+            # remap legacy DX9 formats
+            legacy_dds = dds_format in _LEGACY_DDS_FORMATS
+            if legacy_dds:
+                dds_format = _LEGACY_DDS_FORMATS[dds_format]
+
             save_as_dds(
                 full_path,
                 img,
@@ -138,6 +207,7 @@ class ImWriteNode(NodeBase):
                 uniform_weighting=dds_error_metric == DDSErrorMetric.UNIFORM,
                 minimal_compression=dds_bc7_compression == BC7Compression.BEST_SPEED,
                 maximum_compression=dds_bc7_compression == BC7Compression.BEST_QUALITY,
+                dx9=legacy_dds,
             )
             return
 
