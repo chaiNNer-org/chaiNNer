@@ -201,6 +201,7 @@ async def nodes(_):
 class RunRequest(TypedDict):
     data: List[JsonNode]
     options: JsonExecutionOptions
+    sendBroadcastData: bool
 
 
 @app.route("/run", methods=["POST"])
@@ -229,6 +230,7 @@ async def run(request: Request):
         executor = Executor(
             chain,
             inputs,
+            full_data["sendBroadcastData"],
             app.loop,
             ctx.queue,
             ctx.pool,

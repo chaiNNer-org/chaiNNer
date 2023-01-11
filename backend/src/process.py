@@ -103,6 +103,7 @@ class IteratorContext:
         return Executor(
             self.executor.chain,
             self.inputs,
+            self.executor.send_broadcast_data,
             self.executor.loop,
             self.executor.queue,
             self.executor.pool,
@@ -242,6 +243,7 @@ class Executor:
         self,
         chain: Chain,
         inputs: InputMap,
+        send_broadcast_data: bool,
         loop: asyncio.AbstractEventLoop,
         queue: EventQueue,
         pool: ThreadPoolExecutor,
@@ -255,6 +257,7 @@ class Executor:
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain
         self.inputs = inputs
+        self.send_broadcast_data: bool = send_broadcast_data
         self.cache: OutputCache[Output] = OutputCache(
             parent=parent_executor.cache if parent_executor else parent_cache
         )
@@ -424,7 +427,11 @@ class Executor:
             )
 
         # Only broadcast the output if the node has outputs and the output is not cached
-        if len(node_outputs) > 0 and not self.cache.has(node_id):
+        if (
+            self.send_broadcast_data
+            and len(node_outputs) > 0
+            and not self.cache.has(node_id)
+        ):
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
         else:
