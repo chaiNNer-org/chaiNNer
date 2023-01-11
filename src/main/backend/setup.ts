@@ -1,8 +1,8 @@
 import { app } from 'electron';
 import log from 'electron-log';
+import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
-import { SetupStage } from '../../common/backend-setup';
 import { FfmpegInfo, PythonInfo } from '../../common/common-types';
 import {
     Dependency,
@@ -37,7 +37,7 @@ const getValidPort = async () => {
 };
 
 const getPythonInfo = async (
-    token: ProgressToken<SetupStage>,
+    token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null
 ) => {
@@ -104,9 +104,12 @@ const getPythonInfo = async (
                 integratedPythonFolderPath,
                 (percentage, stage) => {
                     token.submitProgress({
-                        stage: `${stage}ing-python`,
+                        status:
+                            stage === 'download'
+                                ? t('splash.downloadingPython', 'Downloading Integrated Python...')
+                                : t('splash.extractingPython', 'Extracting downloaded files...'),
                         totalProgress: stage === 'download' ? 0.3 : 0.4,
-                        stageProgress: percentage / 100,
+                        statusProgress: percentage / 100,
                     });
                 }
             );
@@ -128,7 +131,7 @@ const getPythonInfo = async (
     return pythonInfo;
 };
 
-const getFfmpegInfo = async (token: ProgressToken<SetupStage>) => {
+const getFfmpegInfo = async (token: ProgressToken) => {
     log.info('Attempting to check Ffmpeg env...');
 
     let ffmpegInfo: FfmpegInfo;
@@ -138,9 +141,12 @@ const getFfmpegInfo = async (token: ProgressToken<SetupStage>) => {
     try {
         ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
             token.submitProgress({
-                stage: `${stage}ing-ffmpeg`,
+                status:
+                    stage === 'download'
+                        ? t('splash.downloadingFfmpeg', 'Downloading ffmpeg...')
+                        : t('splash.extractingFfmpeg', 'Extracting downloaded files...'),
                 totalProgress: stage === 'download' ? 0.5 : 0.6,
-                stageProgress: percentage / 100,
+                statusProgress: percentage / 100,
             });
         });
     } catch (error) {
@@ -166,7 +172,7 @@ const getFfmpegInfo = async (token: ProgressToken<SetupStage>) => {
 };
 
 const ensurePythonDeps = async (
-    token: ProgressToken<SetupStage>,
+    token: ProgressToken,
     pythonInfo: PythonInfo,
     hasNvidia: boolean
 ) => {
@@ -213,8 +219,11 @@ const ensurePythonDeps = async (
             const isUpdating =
                 outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
 
+            const onlyUpdating = isUpdating && !isInstallingRequired;
             token.submitProgress({
-                stage: isUpdating && !isInstallingRequired ? 'updating-deps' : 'installing-deps',
+                status: onlyUpdating
+                    ? t('splash.updatingDeps', 'Updating dependencies...')
+                    : t('splash.installingDeps', 'Installing required dependencies...'),
                 totalProgress: 0.7,
             });
 
@@ -247,49 +256,67 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegIn
 };
 
 const setupOwnedBackend = async (
-    token: ProgressToken<SetupStage>,
+    token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>
 ): Promise<OwnedBackendProcess> => {
-    token.submitProgress({ stage: 'checking-port', totalProgress: 0.1 });
+    token.submitProgress({
+        status: t('splash.checkingPort', 'Checking for available port...'),
+        totalProgress: 0.1,
+    });
     const port = await getValidPort();
 
-    token.submitProgress({ stage: 'checking-python', totalProgress: 0.2 });
+    token.submitProgress({
+        status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
+        totalProgress: 0.2,
+    });
     const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation);
 
-    token.submitProgress({ stage: 'checking-ffmpeg', totalProgress: 0.5 });
+    token.submitProgress({
+        status: t('splash.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
+        totalProgress: 0.5,
+    });
     const ffmpegInfo = await getFfmpegInfo(token);
 
-    token.submitProgress({ stage: 'checking-deps', totalProgress: 0.6 });
+    token.submitProgress({
+        status: t('splash.checkingDeps', 'Checking dependencies...'),
+        totalProgress: 0.6,
+    });
     await ensurePythonDeps(token, pythonInfo, await hasNvidia());
 
-    token.submitProgress({ stage: 'spawning-backend', totalProgress: 0.8 });
+    token.submitProgress({
+        status: t('splash.startingBackend', 'Starting up backend process...'),
+        totalProgress: 0.8,
+    });
     return spawnBackend(port, pythonInfo, ffmpegInfo);
 };
 
 const setupBorrowedBackend = async (
-    token: ProgressToken<SetupStage>,
+    token: ProgressToken,
     port: number
 ): Promise<BorrowedBackendProcess> => {
     log.info(`Attempting to setup backend from port ${port}...`);
 
-    token.submitProgress({ stage: 'spawning-backend', totalProgress: 0.8 });
+    token.submitProgress({
+        status: t('splash.startingBackend', 'Starting up backend process...'),
+        totalProgress: 0.8,
+    });
     return BorrowedBackendProcess.fromPort(port);
 };
 
 export const setupBackend = async (
-    token: ProgressToken<SetupStage>,
+    token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>
 ): Promise<BackendProcess> => {
-    token.submitProgress({ stage: 'init', totalProgress: 0 });
+    token.submitProgress({ totalProgress: 0 });
 
     const backend = getArguments().noBackend
         ? await setupBorrowedBackend(token, 8000)
         : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia);
 
-    token.submitProgress({ stage: 'done', totalProgress: 1 });
+    token.submitProgress({ totalProgress: 1 });
     return backend;
 };

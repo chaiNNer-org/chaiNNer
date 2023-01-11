@@ -1,11 +1,12 @@
 import { BrowserWindow, MessageBoxOptions, app, dialog, shell } from 'electron';
 import log from 'electron-log';
-import { SetupStage } from '../common/backend-setup';
 import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
 import { Progress, ProgressMonitor } from '../common/ui/progress';
 import { assertNever } from '../common/util';
 
-export const addSplashScreen = (monitor: ProgressMonitor<SetupStage>) => {
+export type SplashStage = 'init' | 'done';
+
+export const addSplashScreen = (monitor: ProgressMonitor) => {
     const splash = new BrowserWindow({
         width: 400,
         height: 400,
@@ -34,7 +35,7 @@ export const addSplashScreen = (monitor: ProgressMonitor<SetupStage>) => {
     }) as BrowserWindowWithSafeIpc;
 
     let progressFinished = false;
-    let lastProgress: Progress<SetupStage> | undefined;
+    let lastProgress: Progress | undefined;
 
     if (!splash.isDestroyed()) {
         splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY).catch((error) => {

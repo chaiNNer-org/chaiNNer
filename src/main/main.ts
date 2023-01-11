@@ -4,10 +4,11 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
+import { t } from 'i18next';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
-import { SetupStage } from '../common/backend-setup';
+import './i18n';
 import { Version, WindowSize } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
@@ -273,7 +274,7 @@ const checkNvidiaSmi = async () => {
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const createBackend = async (token: ProgressToken<SetupStage>) => {
+const createBackend = async (token: ProgressToken) => {
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = localStorage.getItem('system-python-location');
 
@@ -313,12 +314,16 @@ const createWindow = lazy(async () => {
         setMainMenu({ mainWindow, menuData, enabled: true });
     });
 
-    const progressController = new ProgressController<SetupStage>('init');
+    const progressController = new ProgressController();
     addSplashScreen(progressController);
 
     try {
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9));
         registerEventHandlers(mainWindow, backend);
+
+        progressController.submitProgress({
+            status: t('splash.loadingApp', 'Loading main application...'),
+        });
 
         if (mainWindow.isDestroyed()) {
             return;

@@ -1,29 +1,30 @@
 import { InterruptRequest } from './interrupt';
 
-export interface Progress<S> {
-    stage: S;
+export interface Progress {
+    /** An optional status message for the current progress. */
+    status: string | null;
     /** Number between 0 and 1 that describes the current progress of the overall operation. */
     totalProgress: number;
-    /** Number between 0 and 1 that describes the current progress of the state. */
-    stageProgress: number;
+    /** Number between 0 and 1 that describes the current progress of the status. */
+    statusProgress: number;
 }
 
-export type ProgressListener<S> = (progress: Readonly<Progress<S>>) => void;
+export type ProgressListener = (progress: Readonly<Progress>) => void;
 export type InterruptListener = (warning: Readonly<InterruptRequest>) => Promise<void>;
 
-export interface ProgressMonitor<S> {
-    addProgressListener(listener: ProgressListener<S>): void;
+export interface ProgressMonitor {
+    addProgressListener(listener: ProgressListener): void;
     addInterruptListener(listener: InterruptListener): void;
 }
 
-export interface ProgressToken<S> {
+export interface ProgressToken {
     /**
      * Submits the current progress update to all listeners.
      *
-     * If `stage` changed from the last progress and there is no `stageProgress` given,
-     * then `stageProgress` will be reset to 0.
+     * If `status` changed from the last progress and there is no `statusProgress` given,
+     * then `statusProgress` will be reset to 0.
      */
-    submitProgress(progress: Partial<Readonly<Progress<S>>>): void;
+    submitProgress(progress: Partial<Readonly<Progress>>): void;
 
     /**
      * Submits an interruption that can optionally be displayed.
@@ -31,26 +32,15 @@ export interface ProgressToken<S> {
     submitInterrupt(interrupt: Readonly<InterruptRequest>): Promise<void>;
 }
 
-/**
- * Returns the state type of some progress-related object.
- */
-export type StageOf<T> = T extends Progress<infer S>
-    ? S
-    : T extends ProgressMonitor<infer S>
-    ? S
-    : T extends ProgressToken<infer S>
-    ? S
-    : never;
-
 const callListeners = <T>(listeners: Iterable<(value: T) => void>, value: T) => {
     for (const listener of listeners) {
         listener(value);
     }
 };
 
-export const updateProgress = <S>(
-    progress: Progress<S>,
-    { stage, totalProgress, stageProgress }: Partial<Readonly<Progress<S>>>
+export const updateProgress = (
+    progress: Progress,
+    { status, totalProgress, statusProgress }: Partial<Readonly<Progress>>
 ): boolean => {
     let changed = false;
 
@@ -60,18 +50,18 @@ export const updateProgress = <S>(
         changed = true;
     }
 
-    if (stageProgress !== undefined && stageProgress !== progress.stageProgress) {
+    if (statusProgress !== undefined && statusProgress !== progress.statusProgress) {
         // eslint-disable-next-line no-param-reassign
-        progress.stageProgress = stageProgress;
+        progress.statusProgress = statusProgress;
         changed = true;
     }
 
-    if (stage !== undefined && stage !== progress.stage) {
+    if (status !== undefined && status !== progress.status) {
         // eslint-disable-next-line no-param-reassign
-        progress.stage = stage;
-        if (stageProgress === undefined) {
+        progress.status = status;
+        if (statusProgress === undefined) {
             // eslint-disable-next-line no-param-reassign
-            progress.stageProgress = 0;
+            progress.statusProgress = 0;
         }
         changed = true;
     }
@@ -79,23 +69,22 @@ export const updateProgress = <S>(
     return changed;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export class ProgressController<S extends {}> implements ProgressMonitor<S>, ProgressToken<S> {
-    private readonly progressListeners: ProgressListener<S>[] = [];
+export class ProgressController implements ProgressMonitor, ProgressToken {
+    private readonly progressListeners: ProgressListener[] = [];
 
     private readonly interruptListeners: InterruptListener[] = [];
 
-    private readonly progress: Progress<S>;
+    private readonly progress: Progress;
 
-    constructor(initialStage: S) {
+    constructor() {
         this.progress = {
-            stage: initialStage,
+            status: null,
             totalProgress: 0,
-            stageProgress: 0,
+            statusProgress: 0,
         };
     }
 
-    addProgressListener(listener: ProgressListener<S>): void {
+    addProgressListener(listener: ProgressListener): void {
         this.progressListeners.push(listener);
     }
 
@@ -103,7 +92,7 @@ export class ProgressController<S extends {}> implements ProgressMonitor<S>, Pro
         this.interruptListeners.push(listener);
     }
 
-    submitProgress(update: Partial<Readonly<Progress<S>>>): void {
+    submitProgress(update: Partial<Readonly<Progress>>): void {
         if (updateProgress(this.progress, update)) {
             callListeners(this.progressListeners, this.progress);
         }
@@ -117,17 +106,17 @@ export class ProgressController<S extends {}> implements ProgressMonitor<S>, Pro
     }
 }
 
-export class SubProgress<S> implements ProgressToken<S> {
+export class SubProgress implements ProgressToken {
     constructor(
-        private readonly token: ProgressToken<S>,
+        private readonly token: ProgressToken,
         private readonly mapFn: (totalProgress: number) => number
     ) {}
 
-    static slice<S>(token: ProgressToken<S>, start = 0, end = 1) {
+    static slice(token: ProgressToken, start = 0, end = 1) {
         return new SubProgress(token, (p) => start + p * (end - start));
     }
 
-    submitProgress(progress: Partial<Readonly<Progress<S>>>): void {
+    submitProgress(progress: Partial<Readonly<Progress>>): void {
         if (progress.totalProgress !== undefined) {
             // eslint-disable-next-line no-param-reassign
             progress = { ...progress, totalProgress: this.mapFn(progress.totalProgress) };

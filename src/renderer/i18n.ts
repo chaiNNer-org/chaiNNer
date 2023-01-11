@@ -1,23 +1,10 @@
 import log from 'electron-log';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from '../common/locales/en/translation.json';
-
-const resources = {
-    en,
-};
+import { DEFAULT_OPTIONS } from '../common/i18n';
 
 i18n.use(initReactI18next)
-    .init({
-        resources,
-        lng: 'en',
-
-        interpolation: {
-            escapeValue: false,
-        },
-    })
+    .init(DEFAULT_OPTIONS)
     .catch((err) => {
         log.error(err);
     });
-
-export { i18n };

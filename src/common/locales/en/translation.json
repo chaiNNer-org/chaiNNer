@@ -48,6 +48,7 @@
   },
   "splash": {
     "checkingDeps": "Checking dependencies...",
+    "checkingFfmpeg": "Checking system environment for Ffmpeg...",
     "checkingPort": "Checking for available port...",
     "checkingPython": "Checking system environment for valid Python...",
     "downloadingFfmpeg": "Downloading ffmpeg...",

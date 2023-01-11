@@ -9,7 +9,6 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
-import { SetupStage } from './backend-setup';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 import { Progress } from './ui/progress';
@@ -54,7 +53,7 @@ export interface InvokeChannels {
 }
 
 export interface SendChannels {
-    'splash-setup-progress': SendChannelInfo<[progress: Progress<SetupStage>]>;
+    'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-ready': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;

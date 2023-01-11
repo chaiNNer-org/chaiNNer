@@ -1,81 +1,33 @@
 import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './i18n';
 import { useTranslation } from 'react-i18next';
-import { SetupStage } from '../common/backend-setup';
 import { ipcRenderer } from '../common/safeIpc';
-import { assertNever } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { theme } from './splashTheme';
 
 const Splash = memo(() => {
     const { t } = useTranslation();
 
-    const getStatusText = useCallback(
-        (stage: SetupStage): string => {
-            switch (stage) {
-                case 'init':
-                    return t('splash.loading', 'Loading...');
-
-                case 'checking-port':
-                    return t('splash.checkingPort', 'Checking for available port...');
-
-                case 'checking-python':
-                    return t(
-                        'splash.checkingPython',
-                        'Checking system environment for valid Python...'
-                    );
-                case 'downloading-python':
-                    return t('splash.downloadingPython', 'Downloading Integrated Python...');
-                case 'extracting-python':
-                    return t('splash.extractingPython', 'Extracting downloaded files...');
-
-                case 'checking-ffmpeg':
-                case 'downloading-ffmpeg':
-                    return t('splash.downloadingFfmpeg', 'Downloading ffmpeg...');
-                case 'extracting-ffmpeg':
-                    return t('splash.extractingFfmpeg', 'Extracting downloaded files...');
-
-                case 'checking-deps':
-                    return t('splash.checkingDeps', 'Checking dependencies...');
-                case 'installing-deps':
-                    return t('splash.installingDeps', 'Installing required dependencies...');
-                case 'updating-deps':
-                    return t('splash.updatingDeps', 'Updating dependencies...');
-
-                case 'spawning-backend':
-                    return t('splash.startingBackend', 'Starting up backend process...');
-
-                case 'done':
-                    return t('splash.loadingApp', 'Loading main application...');
-
-                default:
-                    return assertNever(stage);
-            }
-        },
-        [t]
-    );
-
-    const [status, setStatus] = useState(getStatusText('init'));
+    const [status, setStatus] = useState(t('splash.loading', 'Loading...'));
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [overallProgressPercentage, setOverallProgressPercentage] = useState(0);
     const [showProgressBar, setShowProgressBar] = useState(false);
 
     // Register event listeners
     useEffect(() => {
-        ipcRenderer.on(
-            'splash-setup-progress',
-            (event, { stage, stageProgress, totalProgress }) => {
-                setOverallProgressPercentage(totalProgress);
+        ipcRenderer.on('splash-setup-progress', (event, progress) => {
+            setOverallProgressPercentage(progress.totalProgress);
 
-                setShowProgressBar(stageProgress > 0);
-                setProgressPercentage(stageProgress);
+            setShowProgressBar(progress.statusProgress > 0);
+            setProgressPercentage(progress.statusProgress);
 
-                setStatus(getStatusText(stage));
+            if (progress.status) {
+                setStatus(progress.status);
             }
-        );
-    }, [getStatusText]);
+        });
+    }, []);
 
     return (
         <ChakraProvider theme={theme}>
