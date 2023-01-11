@@ -28,7 +28,7 @@ from ...impl.image_utils import cv_save_image
 from ...impl.dds import save_as_dds
 
 BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
-BC1_BC3_FORMATS = (
+BC123_FORMATS = (
     "BC1_UNORM_SRGB",
     "BC1_UNORM",
     "BC3_UNORM_SRGB",
@@ -87,7 +87,7 @@ class ImWriteNode(NodeBase):
                     "conditional-enum",
                     {
                         "enum": 6,
-                        "conditions": [BC7_FORMATS, BC1_BC3_FORMATS, BC1_BC3_FORMATS],
+                        "conditions": [BC7_FORMATS, BC123_FORMATS, BC123_FORMATS],
                     },
                 )(
                     EnumInput(
