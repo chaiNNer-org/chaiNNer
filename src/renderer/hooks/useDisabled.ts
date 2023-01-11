@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
+import { DisabledStatus, getDisabledStatus } from '../../common/nodes/disabled';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import { useMemoObject } from './useMemo';
 
 export interface UseDisabled {

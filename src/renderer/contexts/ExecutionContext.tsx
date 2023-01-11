@@ -1,30 +1,17 @@
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'reactflow';
+import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
-import { checkNodeValidity } from '../../common/checkNodeValidity';
-import {
-    EdgeData,
-    InputId,
-    JsonEdgeInput,
-    JsonInput,
-    JsonNode,
-    NodeData,
-    OutputId,
-} from '../../common/common-types';
+import { EdgeData, NodeData } from '../../common/common-types';
+import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
+import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
+import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import {
-    ParsedSourceHandle,
-    assertNever,
-    getInputValues,
-    parseSourceHandle,
-    parseTargetHandle,
-} from '../../common/util';
+import { assertNever } from '../../common/util';
 import { getConnectedInputs } from '../helpers/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../helpers/disabled';
-import { getNodesWithSideEffects } from '../helpers/sideEffect';
 import {
     BackendEventMap,
     BackendEventSourceListener,
@@ -65,77 +52,6 @@ export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusCont
 export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
-
-const convertToUsableFormat = (
-    nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
-) => {
-    const result: JsonNode[] = [];
-
-    const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertHandle = (handle: ParsedSourceHandle): JsonEdgeInput => {
-        const schema = nodeSchemaMap.get(handle.nodeId);
-        if (!schema) {
-            throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
-        }
-
-        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.outputId);
-        if (index === -1) {
-            throw new Error(
-                `Invalid handle: There is no output with id ${handle.outputId} in ${schema.name}`
-            );
-        }
-
-        return { type: 'edge', id: handle.nodeId, index };
-    };
-
-    type Handles<I extends InputId | OutputId> = Record<
-        string,
-        Record<I, JsonEdgeInput | undefined> | undefined
-    >;
-    const inputHandles: Handles<InputId> = {};
-    edges.forEach((element) => {
-        const { sourceHandle, targetHandle } = element;
-        if (!sourceHandle || !targetHandle) return;
-
-        const sourceH = parseSourceHandle(sourceHandle);
-        const targetH = parseTargetHandle(targetHandle);
-
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertHandle(sourceH);
-    });
-
-    // Set up each node in the result
-    nodes.forEach((element) => {
-        const { id, data, type: nodeType } = element;
-        const { schemaId, inputData } = data;
-        const schema = schemata.get(schemaId);
-
-        if (!nodeType) {
-            throw new Error(
-                `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`
-            );
-        }
-
-        // Node
-        result.push({
-            id,
-            schemaId,
-            inputs: getInputValues<JsonInput>(
-                schema,
-                (inputId) =>
-                    inputHandles[id]?.[inputId] ?? {
-                        type: 'value',
-                        value: inputData[inputId] ?? null,
-                    }
-            ),
-            nodeType,
-            parent: element.parentNode ?? null,
-        });
-    });
-
-    return result;
-};
 
 const getExecutionErrorMessage = (
     { exception, source }: BackendEventMap['execution-error'],
@@ -374,7 +290,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setStatus(ExecutionStatus.RUNNING);
             animate(nodes.map((n) => n.id));
 
-            const data = convertToUsableFormat(nodes, edges, schemata);
+            const data = toBackendJson(nodes, edges, schemata);
             const response = await backend.run({
                 data,
                 options,

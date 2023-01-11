@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
-import { checkNodeValidity, checkRequiredInputs } from '../../common/checkNodeValidity';
 import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
+import { checkNodeValidity, checkRequiredInputs } from '../../common/nodes/checkNodeValidity';
 import { VALID, Validity, invalid } from '../../common/Validity';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { getConnectedInputs } from '../helpers/connectedInputs';

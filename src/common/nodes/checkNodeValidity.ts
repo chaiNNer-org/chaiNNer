@@ -1,7 +1,7 @@
-import { Input, InputData, InputId, NodeSchema } from './common-types';
-import { FunctionInstance } from './types/function';
-import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from './types/mismatch';
-import { VALID, Validity, invalid } from './Validity';
+import { Input, InputData, InputId, NodeSchema } from '../common-types';
+import { FunctionInstance } from '../types/function';
+import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from '../types/mismatch';
+import { VALID, Validity, invalid } from '../Validity';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
