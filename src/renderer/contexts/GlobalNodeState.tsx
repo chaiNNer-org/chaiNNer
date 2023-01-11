@@ -27,6 +27,8 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import {
@@ -48,7 +50,6 @@ import {
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
-import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
     NodeProto,
     copyEdges,
@@ -60,7 +61,6 @@ import {
     setSelected,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
-import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     ChangeCounter,

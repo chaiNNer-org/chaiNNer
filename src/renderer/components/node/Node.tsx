@@ -4,13 +4,13 @@ import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'rea
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
+import { DisabledStatus } from '../../../common/nodes/disabled';
 import { isStartingNode, parseSourceHandle } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
-import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';

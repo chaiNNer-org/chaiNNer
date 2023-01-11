@@ -1,9 +1,9 @@
 import fetch from 'cross-fetch';
 import {
+    BackendJsonNode,
     Category,
     InputId,
     InputValue,
-    JsonNode,
     NodeSchema,
     PythonInfo,
     SchemaId,
@@ -57,8 +57,9 @@ export interface BackendExecutionOptions {
     onnxTensorRtCachePath: string;
 }
 export interface BackendRunRequest {
-    data: JsonNode[];
+    data: BackendJsonNode[];
     options: BackendExecutionOptions;
+    sendBroadcastData: boolean;
 }
 export interface BackendRunIndividualRequest {
     id: string;

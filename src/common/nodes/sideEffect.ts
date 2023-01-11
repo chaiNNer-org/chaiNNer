@@ -1,6 +1,6 @@
-import { Edge, Node } from 'reactflow';
-import { EdgeData, NodeData } from '../../common/common-types';
-import { SchemaMap } from '../../common/SchemaMap';
+import { EdgeData, NodeData } from '../common-types';
+import { SchemaMap } from '../SchemaMap';
+import type { Edge, Node } from 'reactflow';
 
 /**
  * Returns a list of all nodes with side effects and nodes that are inputs of nodes with side
