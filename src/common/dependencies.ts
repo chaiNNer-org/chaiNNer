@@ -107,7 +107,7 @@ export const requiredDependencies: Dependency[] = [
     },
     {
         name: 'OpenCV',
-        packages: [{ packageName: 'opencv-python', version: '4.6.0.66', sizeEstimate: 30 * MB }],
+        packages: [{ packageName: 'opencv-python', version: '4.7.0.68', sizeEstimate: 30 * MB }],
     },
     {
         name: 'NumPy',
