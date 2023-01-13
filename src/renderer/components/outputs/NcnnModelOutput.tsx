@@ -1,14 +1,10 @@
-/* eslint-disable no-nested-ternary */
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
-import { ViewOffIcon } from '@chakra-ui/icons';
-import { Center, HStack, Spinner, Text } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo, useEffect, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { LargeTags } from './elements/LargeTags';
+import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
 interface NcnnModelData {
@@ -34,8 +30,6 @@ const getColorMode = (channels: number) => {
 
 export const NcnnModelOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
-        const { t } = useTranslation();
-
         const { current } = useOutputData<NcnnModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -63,36 +57,21 @@ export const NcnnModelOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
+        const tags = useMemo(() => {
+            if (!current) return undefined;
+
+            return [
+                `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
+                `${current.nf}nf`,
+                current.fp,
+            ];
+        }, [current]);
+
         return (
-            <Center
-                h="full"
-                minH="2rem"
-                overflow="hidden"
-                verticalAlign="middle"
-                w="full"
-            >
-                {current && !animated ? (
-                    <LargeTags
-                        tags={[
-                            `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
-                            `${current.nf}nf`,
-                            current.fp,
-                        ]}
-                    />
-                ) : animated ? (
-                    <Spinner />
-                ) : (
-                    <HStack>
-                        <ViewOffIcon />
-                        <Text
-                            fontSize="sm"
-                            lineHeight="0.5rem"
-                        >
-                            {t('outputs.model.modelNotAvailable', 'Model data not available.')}
-                        </Text>
-                    </HStack>
-                )}
-            </Center>
+            <ModelDataTags
+                loading={animated}
+                tags={tags}
+            />
         );
     }
 );

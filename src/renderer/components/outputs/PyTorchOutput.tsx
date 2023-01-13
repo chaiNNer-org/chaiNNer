@@ -1,14 +1,10 @@
-/* eslint-disable no-nested-ternary */
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
-import { ViewOffIcon } from '@chakra-ui/icons';
-import { Center, HStack, Spinner, Text } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo, useEffect, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { LargeTags } from './elements/LargeTags';
+import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
@@ -35,8 +31,6 @@ const getColorMode = (channels: number) => {
 
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
-        const { t } = useTranslation();
-
         const { current } = useOutputData<PyTorchModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -65,36 +59,21 @@ export const PyTorchOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
+        const tags = useMemo(() => {
+            if (!current) return undefined;
+
+            return [
+                current.arch,
+                `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
+                ...current.size,
+            ];
+        }, [current]);
+
         return (
-            <Center
-                h="full"
-                minH="2rem"
-                overflow="hidden"
-                verticalAlign="middle"
-                w="full"
-            >
-                {current && !animated ? (
-                    <LargeTags
-                        tags={[
-                            current.arch,
-                            `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
-                            ...current.size,
-                        ]}
-                    />
-                ) : animated ? (
-                    <Spinner />
-                ) : (
-                    <HStack>
-                        <ViewOffIcon />
-                        <Text
-                            fontSize="sm"
-                            lineHeight="0.5rem"
-                        >
-                            {t('outputs.model.modelNotAvailable', 'Model data not available.')}
-                        </Text>
-                    </HStack>
-                )}
-            </Center>
+            <ModelDataTags
+                loading={animated}
+                tags={tags}
+            />
         );
     }
 );
