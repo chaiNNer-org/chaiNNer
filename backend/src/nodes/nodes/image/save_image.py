@@ -57,6 +57,13 @@ _LEGACY_DDS_FORMATS = {
 }
 
 
+class JpegSubsampling(Enum):
+    FACTOR_444 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444)
+    FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
+    FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
+    FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
+
+
 @NodeFactory.register("chainner:image:save")
 class ImWriteNode(NodeBase):
     def __init__(self):
@@ -72,7 +79,7 @@ class ImWriteNode(NodeBase):
                 "conditional-enum",
                 {
                     "enum": 4,
-                    "conditions": [["jpg", "webp"], "dds", "dds", "dds"],
+                    "conditions": [["jpg", "webp"], "jpg", "dds", "dds", "dds"],
                 },
             )(
                 SliderInput(
@@ -82,6 +89,17 @@ class ImWriteNode(NodeBase):
                     default=95,
                     slider_step=1,
                 ),
+                EnumInput(
+                    JpegSubsampling,
+                    label="Chroma Subsampling",
+                    default_value=JpegSubsampling.FACTOR_422,
+                    option_labels={
+                        JpegSubsampling.FACTOR_444: "4:4:4 (Best Quality)",
+                        JpegSubsampling.FACTOR_440: "4:4:0",
+                        JpegSubsampling.FACTOR_422: "4:2:2",
+                        JpegSubsampling.FACTOR_420: "4:2:0 (Best Compression)",
+                    },
+                ).with_id(11),
                 DdsFormatDropdown().with_id(6),
                 group(
                     "conditional-enum",
@@ -117,6 +135,7 @@ class ImWriteNode(NodeBase):
         filename: str,
         extension: str,
         quality: int,
+        chroma_subsampling: JpegSubsampling,
         dds_format: str,
         dds_bc7_compression: BC7Compression,
         dds_error_metric: DDSErrorMetric,
@@ -181,7 +200,12 @@ class ImWriteNode(NodeBase):
                 image.save(full_path)
         else:
             if extension == "jpg":
-                params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+                params = [
+                    cv2.IMWRITE_JPEG_QUALITY,
+                    quality,
+                    cv2.IMWRITE_JPEG_SAMPLING_FACTOR,
+                    chroma_subsampling.value,
+                ]
             elif extension == "webp":
                 params = [cv2.IMWRITE_WEBP_QUALITY, 101 if lossless else quality]
             else:
