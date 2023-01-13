@@ -1,13 +1,14 @@
 /* eslint-disable no-nested-ternary */
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
-import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
+import { Center, HStack, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { LargeTags } from './elements/LargeTags';
 import { OutputProps } from './props';
 
 interface NcnnModelData {
@@ -62,9 +63,6 @@ export const NcnnModelOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
-        const tagColor = 'var(--tag-bg)';
-        const fontColor = 'var(--tag-fg)';
-
         return (
             <Center
                 h="full"
@@ -74,38 +72,13 @@ export const NcnnModelOutput = memo(
                 w="full"
             >
                 {current && !animated ? (
-                    <Center mt={1}>
-                        <Wrap
-                            justify="center"
-                            maxW={60}
-                            spacing={2}
-                        >
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {getColorMode(current.inNc)}→{getColorMode(current.outNc)}
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {current.nf}nf
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {current.fp}
-                                </Tag>
-                            </WrapItem>
-                        </Wrap>
-                    </Center>
+                    <LargeTags
+                        tags={[
+                            `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
+                            `${current.nf}nf`,
+                            current.fp,
+                        ]}
+                    />
                 ) : animated ? (
                     <Spinner />
                 ) : (
