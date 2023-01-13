@@ -79,7 +79,7 @@ class ImWriteNode(NodeBase):
                 "conditional-enum",
                 {
                     "enum": 4,
-                    "conditions": [["jpg", "webp"], "jpg", "dds", "dds", "dds"],
+                    "conditions": [["jpg", "webp"], "jpg", "jpg", "dds", "dds", "dds"],
                 },
             )(
                 SliderInput(
@@ -100,6 +100,7 @@ class ImWriteNode(NodeBase):
                         JpegSubsampling.FACTOR_420: "4:2:0 (Best Compression)",
                     },
                 ).with_id(11),
+                BoolInput("Progressive", default=False).with_id(12),
                 DdsFormatDropdown().with_id(6),
                 group(
                     "conditional-enum",
@@ -136,6 +137,7 @@ class ImWriteNode(NodeBase):
         extension: str,
         quality: int,
         chroma_subsampling: JpegSubsampling,
+        progressive: bool,
         dds_format: str,
         dds_bc7_compression: BC7Compression,
         dds_error_metric: DDSErrorMetric,
@@ -205,6 +207,8 @@ class ImWriteNode(NodeBase):
                     quality,
                     cv2.IMWRITE_JPEG_SAMPLING_FACTOR,
                     chroma_subsampling.value,
+                    cv2.IMWRITE_JPEG_PROGRESSIVE,
+                    int(progressive),
                 ]
             elif extension == "webp":
                 params = [cv2.IMWRITE_WEBP_QUALITY, 101 if lossless else quality]
