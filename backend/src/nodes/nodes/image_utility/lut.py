@@ -58,11 +58,9 @@ class LutNode(NodeBase):
         img: np.ndarray,
         lut: np.ndarray,
     ) -> np.ndarray:
-        # only use top row
-        lut = lut[0:1]
-        _, w, _ = get_h_w_c(lut)
-
         # convert to the size of the LUT
+        _, w, _ = get_h_w_c(lut)
         img = quantize(img, w)
 
-        return lut[0, img]
+        # only use top row of lut
+        return np.take(lut[0], img, axis=0)
