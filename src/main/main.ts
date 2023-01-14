@@ -20,6 +20,7 @@ import { BackendProcess } from './backend/process';
 import { setupBackend } from './backend/setup';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
+import { getRootDir } from './platform';
 import { addSplashScreen } from './splash';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
@@ -273,12 +274,19 @@ const checkNvidiaSmi = async () => {
 };
 
 const nvidiaSmiPromise = checkNvidiaSmi();
+const getRootDirPromise = getRootDir();
 
 const createBackend = async (token: ProgressToken) => {
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = localStorage.getItem('system-python-location');
 
-    return setupBackend(token, useSystemPython, systemPythonLocation, () => nvidiaSmiPromise);
+    return setupBackend(
+        token,
+        useSystemPython,
+        systemPythonLocation,
+        () => nvidiaSmiPromise,
+        () => getRootDirPromise
+    );
 };
 
 const createWindow = lazy(async () => {

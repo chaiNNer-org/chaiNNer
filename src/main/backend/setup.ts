@@ -1,4 +1,3 @@
-import { app } from 'electron';
 import log from 'electron-log';
 import { t } from 'i18next';
 import path from 'path';
@@ -39,13 +38,14 @@ const getValidPort = async () => {
 const getPythonInfo = async (
     token: ProgressToken,
     useSystemPython: boolean,
-    systemPythonLocation: string | undefined | null
+    systemPythonLocation: string | undefined | null,
+    rootDir: string
 ) => {
     log.info('Attempting to check Python env...');
 
     let pythonInfo: PythonInfo;
 
-    let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+    let integratedPythonFolderPath = path.join(rootDir, '/python');
 
     if (systemPythonLocation) {
         // eslint-disable-next-line no-param-reassign
@@ -131,12 +131,12 @@ const getPythonInfo = async (
     return pythonInfo;
 };
 
-const getFfmpegInfo = async (token: ProgressToken) => {
+const getFfmpegInfo = async (token: ProgressToken, rootDir: string) => {
     log.info('Attempting to check Ffmpeg env...');
 
     let ffmpegInfo: FfmpegInfo;
 
-    const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
+    const integratedFfmpegFolderPath = path.join(rootDir, '/ffmpeg');
 
     try {
         ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
@@ -259,7 +259,8 @@ const setupOwnedBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>
+    hasNvidia: () => Promise<boolean>,
+    getRootDir: () => Promise<string>
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
         status: t('splash.checkingPort', 'Checking for available port...'),
@@ -267,17 +268,19 @@ const setupOwnedBackend = async (
     });
     const port = await getValidPort();
 
+    const rootDir = await getRootDir();
+
     token.submitProgress({
         status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
         totalProgress: 0.2,
     });
-    const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation);
+    const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({
         status: t('splash.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
         totalProgress: 0.5,
     });
-    const ffmpegInfo = await getFfmpegInfo(token);
+    const ffmpegInfo = await getFfmpegInfo(token, rootDir);
 
     token.submitProgress({
         status: t('splash.checkingDeps', 'Checking dependencies...'),
@@ -309,13 +312,20 @@ export const setupBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>
+    hasNvidia: () => Promise<boolean>,
+    getRootDir: () => Promise<string>
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 
     const backend = getArguments().noBackend
         ? await setupBorrowedBackend(token, 8000)
-        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia);
+        : await setupOwnedBackend(
+              token,
+              useSystemPython,
+              systemPythonLocation,
+              hasNvidia,
+              getRootDir
+          );
 
     token.submitProgress({ totalProgress: 1 });
     return backend;
