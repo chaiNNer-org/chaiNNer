@@ -9,7 +9,7 @@ interface chaiNNerLogoProps {
     percent?: number;
 }
 
-export const ChaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProps) => (
+export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoProps) => (
     <Box
         boxSize={size}
         display="block"
@@ -74,7 +74,7 @@ export const ChaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProp
                             strokeWidth: '24px',
                             stroke: 'var(--chakra-colors-red-600)',
                             strokeDasharray: 100,
-                            strokeDashoffset: 100 * (1 - percent),
+                            strokeDashoffset: 100 - percent,
                             transition: 'stroke-dashoffset ease-in-out 0.25s',
                         }}
                     />
