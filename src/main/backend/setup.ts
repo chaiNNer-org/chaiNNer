@@ -109,7 +109,7 @@ const getPythonInfo = async (
                                 ? t('splash.downloadingPython', 'Downloading Integrated Python...')
                                 : t('splash.extractingPython', 'Extracting downloaded files...'),
                         totalProgress: stage === 'download' ? 0.3 : 0.4,
-                        statusProgress: percentage / 100,
+                        statusProgress: percentage,
                     });
                 }
             );
@@ -146,7 +146,7 @@ const getFfmpegInfo = async (token: ProgressToken) => {
                         ? t('splash.downloadingFfmpeg', 'Downloading ffmpeg...')
                         : t('splash.extractingFfmpeg', 'Extracting downloaded files...'),
                 totalProgress: stage === 'download' ? 0.5 : 0.6,
-                statusProgress: percentage / 100,
+                statusProgress: percentage,
             });
         });
     } catch (error) {
