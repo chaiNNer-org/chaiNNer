@@ -33,99 +33,6 @@
     "npm": ">=7.0.0"
   },
   "license": "GPLv3",
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "executableName": "chainner",
-        "extraResource": "./backend/src/",
-        "icon": "./src/public/icons/cross_platform/icon"
-      },
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "config": {
-            "repository": {
-              "owner": "joeyballentine",
-              "name": "chaiNNer"
-            }
-          },
-          "draft": true,
-          "prerelease": true
-        }
-      ],
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "chainner",
-            "iconUrl": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico",
-            "setupIcon": "./src/public/icons/win/icon.ico",
-            "loadingGif": "./src/public/icons/win/installing_loop.gif"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin",
-            "linux",
-            "win32"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "format": "ULFO",
-            "name": "chaiNNer",
-            "icon": "./src/public/icons/mac/icon.icns"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {
-            "name": "chainner",
-            "options": {
-              "icon": "./src/public/icons/cross_platform/icon.png"
-            }
-          }
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {
-            "name": "chainner",
-            "options": {
-              "icon": "./src/public/icons/cross_platform/icon.png"
-            }
-          }
-        }
-      ],
-      "plugins": [
-        {
-          "name": "@electron-forge/plugin-webpack",
-          "config": {
-            "mainConfig": "./webpack.main.config.js",
-            "renderer": {
-              "config": "./webpack.renderer.config.js",
-              "nodeIntegration": true,
-              "contextIsolation": false,
-              "entryPoints": [
-                {
-                  "html": "./src/renderer/index.html",
-                  "js": "./src/renderer/renderer.js",
-                  "name": "main_window"
-                },
-                {
-                  "html": "./src/renderer/splash.html",
-                  "js": "./src/renderer/splash_renderer.js",
-                  "name": "splash_screen"
-                }
-              ]
-            },
-            "devContentSecurityPolicy": ""
-          }
-        }
-      ]
-    }
-  },
   "devDependencies": {
     "@babel/core": "^7.18.2",
     "@babel/preset-react": "^7.17.12",
@@ -200,6 +107,7 @@
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.10",
     "@react-nano/use-event-source": "^0.12.0",
+    "adm-zip": "^0.5.10",
     "bezier-js": "^6.1.0",
     "cross-fetch": "^3.1.5",
     "decompress": "^4.2.1",
