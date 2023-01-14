@@ -11,17 +11,14 @@ const Splash = memo(() => {
     const { t } = useTranslation();
 
     const [status, setStatus] = useState(t('splash.loading', 'Loading...'));
-    const [progressPercentage, setProgressPercentage] = useState(0);
-    const [overallProgressPercentage, setOverallProgressPercentage] = useState(0);
-    const [showProgressBar, setShowProgressBar] = useState(false);
+    const [statusProgress, setStatusProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
 
     // Register event listeners
     useEffect(() => {
         ipcRenderer.on('splash-setup-progress', (event, progress) => {
-            setOverallProgressPercentage(progress.totalProgress);
-
-            setShowProgressBar(progress.statusProgress > 0);
-            setProgressPercentage(progress.statusProgress);
+            setOverallProgress(progress.totalProgress);
+            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress : null);
 
             if (progress.status) {
                 setStatus(progress.status);
@@ -44,7 +41,7 @@ const Splash = memo(() => {
                 >
                     <Center>
                         <ChaiNNerLogo
-                            percent={overallProgressPercentage}
+                            percent={overallProgress * 100}
                             size={256}
                         />
                     </Center>
@@ -63,11 +60,11 @@ const Splash = memo(() => {
                                 {status}
                             </Text>
                         </Center>
-                        {showProgressBar && (
+                        {statusProgress !== null && (
                             <Center>
                                 <Progress
                                     hasStripe
-                                    value={progressPercentage}
+                                    value={statusProgress * 100}
                                     w="350px"
                                 />
                             </Center>
