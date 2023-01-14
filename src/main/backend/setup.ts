@@ -269,9 +269,9 @@ const setupOwnedBackend = async (
     });
     const port = await getValidPort();
 
-    const currentExecuatbleDir = path.dirname(process.execPath);
-    const isPortable = await checkFileExists(path.join(currentExecuatbleDir, 'portable'));
-    const rootDir = isPortable ? currentExecuatbleDir : app.getAppPath();
+    const currentExecutableDir = path.dirname(app.getAppPath());
+    const isPortable = await checkFileExists(path.join(currentExecutableDir, 'portable'));
+    const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
 
     token.submitProgress({
         status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
