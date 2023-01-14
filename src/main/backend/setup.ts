@@ -12,7 +12,6 @@ import {
 import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
-import { checkFileExists } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { getArguments } from '../arguments';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
@@ -261,7 +260,8 @@ const setupOwnedBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>
+    hasNvidia: () => Promise<boolean>,
+    getRootDir: () => Promise<string>
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
         status: t('splash.checkingPort', 'Checking for available port...'),
@@ -269,9 +269,7 @@ const setupOwnedBackend = async (
     });
     const port = await getValidPort();
 
-    const currentExecutableDir = path.dirname(app.getAppPath());
-    const isPortable = await checkFileExists(path.join(currentExecutableDir, 'portable'));
-    const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
+    const rootDir = await getRootDir();
 
     token.submitProgress({
         status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
@@ -315,13 +313,23 @@ export const setupBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>
+    hasNvidia: () => Promise<boolean>,
+    getRootDir: () => Promise<string>
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 
+    const currentExecutableDir = path.dirname(app.getPath('exe'));
+    log.info(`currentExecutableDir setupBackend: ${currentExecutableDir}`);
+
     const backend = getArguments().noBackend
         ? await setupBorrowedBackend(token, 8000)
-        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia);
+        : await setupOwnedBackend(
+              token,
+              useSystemPython,
+              systemPythonLocation,
+              hasNvidia,
+              getRootDir
+          );
 
     token.submitProgress({ totalProgress: 1 });
     return backend;
