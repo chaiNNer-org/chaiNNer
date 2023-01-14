@@ -1,4 +1,3 @@
-import { app } from 'electron';
 import log from 'electron-log';
 import { t } from 'i18next';
 import path from 'path';
@@ -317,9 +316,6 @@ export const setupBackend = async (
     getRootDir: () => Promise<string>
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
-
-    const currentExecutableDir = path.dirname(app.getPath('exe'));
-    log.info(`currentExecutableDir setupBackend: ${currentExecutableDir}`);
 
     const backend = getArguments().noBackend
         ? await setupBorrowedBackend(token, 8000)
