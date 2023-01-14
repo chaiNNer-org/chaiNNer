@@ -12,6 +12,7 @@ import {
 import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
+import { checkFileExists } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { getArguments } from '../arguments';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
@@ -39,13 +40,14 @@ const getValidPort = async () => {
 const getPythonInfo = async (
     token: ProgressToken,
     useSystemPython: boolean,
-    systemPythonLocation: string | undefined | null
+    systemPythonLocation: string | undefined | null,
+    rootDir: string
 ) => {
     log.info('Attempting to check Python env...');
 
     let pythonInfo: PythonInfo;
 
-    let integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+    let integratedPythonFolderPath = path.join(rootDir, '/python');
 
     if (systemPythonLocation) {
         // eslint-disable-next-line no-param-reassign
@@ -131,12 +133,12 @@ const getPythonInfo = async (
     return pythonInfo;
 };
 
-const getFfmpegInfo = async (token: ProgressToken) => {
+const getFfmpegInfo = async (token: ProgressToken, rootDir: string) => {
     log.info('Attempting to check Ffmpeg env...');
 
     let ffmpegInfo: FfmpegInfo;
 
-    const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
+    const integratedFfmpegFolderPath = path.join(rootDir, '/ffmpeg');
 
     try {
         ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
@@ -267,17 +269,21 @@ const setupOwnedBackend = async (
     });
     const port = await getValidPort();
 
+    const currentExecuatbleDir = path.dirname(process.execPath);
+    const isPortable = await checkFileExists(path.join(currentExecuatbleDir, 'portable'));
+    const rootDir = isPortable ? currentExecuatbleDir : app.getAppPath();
+
     token.submitProgress({
         status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
         totalProgress: 0.2,
     });
-    const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation);
+    const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({
         status: t('splash.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
         totalProgress: 0.5,
     });
-    const ffmpegInfo = await getFfmpegInfo(token);
+    const ffmpegInfo = await getFfmpegInfo(token, rootDir);
 
     token.submitProgress({
         status: t('splash.checkingDeps', 'Checking dependencies...'),
