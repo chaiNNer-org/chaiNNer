@@ -22,6 +22,7 @@ import {
     OutputId,
     SchemaId,
 } from '../../common/common-types';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import { TypeState } from '../../common/nodes/TypeState';
 import { FunctionDefinition } from '../../common/types/function';
 import {
@@ -37,7 +38,6 @@ import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
-import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';

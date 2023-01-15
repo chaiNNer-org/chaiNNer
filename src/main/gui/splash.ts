@@ -1,8 +1,8 @@
 import { BrowserWindow, MessageBoxOptions, app, dialog, shell } from 'electron';
 import log from 'electron-log';
-import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
-import { Progress, ProgressMonitor } from '../common/ui/progress';
-import { assertNever } from '../common/util';
+import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
+import { Progress, ProgressMonitor } from '../../common/ui/progress';
+import { assertNever } from '../../common/util';
 
 export type SplashStage = 'init' | 'done';
 
