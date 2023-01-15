@@ -20,7 +20,7 @@ import { BackendProcess } from './backend/process';
 import { setupBackend } from './backend/setup';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
-import { getRootDir, getRootDirSync } from './platform';
+import { getRootDirSync } from './platform';
 import { addSplashScreen } from './splash';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
@@ -39,7 +39,9 @@ if (!hasInstanceLock) {
     app.quit();
 }
 
-const localStorageLocation = path.join(getRootDirSync(), 'settings');
+const applicationDataRootDir = getRootDirSync();
+
+const localStorageLocation = path.join(applicationDataRootDir, 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
 const localStorage = new LocalStorage(localStorageLocation);
 
@@ -274,7 +276,6 @@ const checkNvidiaSmi = async () => {
 };
 
 const nvidiaSmiPromise = checkNvidiaSmi();
-const getRootDirPromise = getRootDir();
 
 const createBackend = async (token: ProgressToken) => {
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
@@ -285,7 +286,7 @@ const createBackend = async (token: ProgressToken) => {
         useSystemPython,
         systemPythonLocation,
         () => nvidiaSmiPromise,
-        () => getRootDirPromise
+        applicationDataRootDir
     );
 };
 

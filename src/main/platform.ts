@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { existsSync } from 'fs';
 import os from 'os';
 import path from 'path';
-import { checkFileExists } from '../common/util';
+import { checkFileExists, lazy } from '../common/util';
 
 export type SupportedPlatform = 'linux' | 'darwin' | 'win32';
 
@@ -33,13 +33,13 @@ export const getRootDir = async (): Promise<string> => {
     return rootDir;
 };
 
-export const getIsPortableSync = (): boolean => {
+export const getIsPortableSync = lazy((): boolean => {
     const isPortable = existsSync(path.join(currentExecutableDir, 'portable'));
     return isPortable;
-};
+});
 
-export const getRootDirSync = (): string => {
+export const getRootDirSync = lazy((): string => {
     const isPortable = getIsPortableSync();
     const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
     return rootDir;
-};
+});

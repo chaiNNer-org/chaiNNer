@@ -260,15 +260,13 @@ const setupOwnedBackend = async (
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>,
-    getRootDir: () => Promise<string>
+    rootDir: string
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
         status: t('splash.checkingPort', 'Checking for available port...'),
         totalProgress: 0.1,
     });
     const port = await getValidPort();
-
-    const rootDir = await getRootDir();
 
     token.submitProgress({
         status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
@@ -313,19 +311,13 @@ export const setupBackend = async (
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>,
-    getRootDir: () => Promise<string>
+    rootDir: string
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 
     const backend = getArguments().noBackend
         ? await setupBorrowedBackend(token, 8000)
-        : await setupOwnedBackend(
-              token,
-              useSystemPython,
-              systemPythonLocation,
-              hasNvidia,
-              getRootDir
-          );
+        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia, rootDir);
 
     token.submitProgress({ totalProgress: 1 });
     return backend;
