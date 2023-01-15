@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import log from 'electron-log';
-import { BackendExecutionOptions, getBackend } from '../../common/Backend';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { Backend, BackendExecutionOptions, getBackend } from '../../common/Backend';
+import { EdgeData, NodeData, NodeSchema } from '../../common/common-types';
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
@@ -13,6 +13,7 @@ import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { ProgressController, ProgressToken } from '../../common/ui/progress';
+import { delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { setupBackend } from '../backend/setup';
 import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
@@ -48,6 +49,25 @@ const createBackend = async (token: ProgressToken, args: RunArguments) => {
         () => getRootDirPromise,
         args.noBackend
     );
+};
+
+const getBackendNodes = async (backend: Backend): Promise<NodeSchema[]> => {
+    // this implements an exponential back off strategy to
+    const maxTries = 50;
+    const startSleep = 1;
+    const maxSleep = 250;
+
+    for (let i = 0; i < maxTries; i += 1) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            return (await backend.nodes()).nodes;
+        } catch {
+            // eslint-disable-next-line no-await-in-loop
+            await delay(Math.max(maxSleep, startSleep * 2 ** i));
+        }
+    }
+
+    throw new Error('Unable to connect to backend server');
 };
 
 const getExecutionOptions = (): BackendExecutionOptions => {
@@ -108,7 +128,6 @@ export const runChainInCli = async (args: RunArguments) => {
 
     const backendProcess = await createBackend(progressController, args);
     const backend = getBackend(backendProcess.port);
-    const schemata = new SchemaMap((await backend.nodes()).nodes);
 
     const saveFile = await SaveFile.read(args.file);
     if (saveFile.tamperedWith) {
@@ -117,6 +136,7 @@ export const runChainInCli = async (args: RunArguments) => {
         );
     }
 
+    const schemata = new SchemaMap(await getBackendNodes(backend));
     const disabledNodes = new Set(
         getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id)
     );
@@ -150,6 +170,7 @@ export const runChainInCli = async (args: RunArguments) => {
         options,
         sendBroadcastData: false,
     });
+
     if (response.type === 'error') {
         log.error(response.message);
         log.error(response.exception);
@@ -160,4 +181,6 @@ export const runChainInCli = async (args: RunArguments) => {
     if (response.type === 'already-running') {
         log.error(`Cannot start because a previous executor is still running.`);
     }
+
+    app.exit(response.type === 'success' ? 0 : 1);
 };
