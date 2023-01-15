@@ -1,4 +1,3 @@
-import { ScopeBuilder, SourceDocument, parseDefinitions } from '@chainner/navi';
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import isDeepEqual from 'fast-deep-equal';
@@ -9,9 +8,9 @@ import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
 import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
+import { parseFunctionDefinitions } from '../common/nodes/parseFunctionDefinitions';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
-import { getChainnerScope } from '../common/types/chainner-scope';
 import { FunctionDefinition } from '../common/types/function';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
@@ -43,71 +42,12 @@ interface NodesInfo {
 
 const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo => {
     const { categories, categoriesMissingNodes, nodes } = rawResponse;
-    const schemata = new SchemaMap(nodes);
-
-    const errors: string[] = [];
-
-    const parentScope = getChainnerScope();
-    const scopeBuilder = new ScopeBuilder('main scope', parentScope);
-
-    const processedDeclarations = new Set<string>();
-    for (const schema of nodes) {
-        for (const input of schema.inputs) {
-            const { typeDefinitions } = input;
-            if (typeDefinitions) {
-                if (processedDeclarations.has(typeDefinitions)) {
-                    // eslint-disable-next-line no-continue
-                    continue;
-                }
-                processedDeclarations.add(typeDefinitions);
-
-                try {
-                    const definitions = parseDefinitions(
-                        new SourceDocument(typeDefinitions, `${schema.schemaId} ${input.id}`)
-                    );
-                    for (const d of definitions) {
-                        if (parentScope.has(d.name)) {
-                            errors.push(
-                                `Duplicate type definitions for ${d.name} in ${schema.schemaId} > ${input.label} (id: ${input.id}). The type definition is already defined in chainner scope (see "src/common/types/chainner-scope.ts")`
-                            );
-                        }
-                        scopeBuilder.add(d);
-                    }
-                } catch (error) {
-                    errors.push(
-                        `Unable to add type definitions of ${schema.schemaId} > ${input.label} (id: ${input.id}):` +
-                            `\nError: ${String(error)}` +
-                            `\nType definitions: ${typeDefinitions}`
-                    );
-                }
-            }
-        }
-    }
-
-    if (errors.length) {
-        throw new Error(errors.join('\n\n'));
-    }
-
-    const scope = scopeBuilder.createScope();
-    const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
-
-    for (const schema of nodes) {
-        try {
-            functionDefinitions.set(schema.schemaId, FunctionDefinition.fromSchema(schema, scope));
-        } catch (error) {
-            errors.push(String(error));
-        }
-    }
-
-    if (errors.length) {
-        throw new Error(errors.join('\n\n'));
-    }
 
     return {
         rawResponse,
-        schemata,
+        schemata: new SchemaMap(nodes),
         categories,
-        functionDefinitions,
+        functionDefinitions: parseFunctionDefinitions(nodes),
         categoriesMissingNodes,
     };
 };
