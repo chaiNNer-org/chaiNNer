@@ -2,6 +2,7 @@ import { BrowserWindow, app, dialog } from 'electron';
 import log from 'electron-log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
+import { settingStorage } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
 const setupErrorHandling = () => {
@@ -34,11 +35,11 @@ const setupErrorHandling = () => {
         },
     });
 
-    process.on('uncaughtException', (err) => {
+    process.on('uncaughtException', (error) => {
         dialog.showMessageBoxSync({
             type: 'error',
             title: 'Error in Main process',
-            message: `Something failed: ${String(err)}`,
+            message: `Something failed: ${String(error)}`,
         });
         app.exit(1);
     });
@@ -46,6 +47,11 @@ const setupErrorHandling = () => {
 
 export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
+
+    const disableHardwareAcceleration = settingStorage.getItem('disable-hw-accel') === 'true';
+    if (disableHardwareAcceleration) {
+        app.disableHardwareAcceleration();
+    }
 
     const hasInstanceLock = app.requestSingleInstanceLock();
     if (!hasInstanceLock) {

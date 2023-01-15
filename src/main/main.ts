@@ -5,8 +5,9 @@ import os from 'os';
 import path from 'path';
 import './i18n';
 import { parseArgs } from './arguments';
+import { createCli } from './cli/create';
+import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
-import { settingStorage } from './setting-storage';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // eslint-disable-next-line global-require
@@ -41,12 +42,7 @@ app.on('quit', () => {
 });
 
 if (args.command === 'open') {
-    const disableHardwareAcceleration = settingStorage.getItem('disable-hw-accel') === 'true';
-    if (disableHardwareAcceleration) {
-        app.disableHardwareAcceleration();
-    }
-
     createGuiApp(args);
 } else {
-    throw new Error('Unsupported');
+    createCli(() => runChainInCli(args));
 }
