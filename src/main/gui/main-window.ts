@@ -54,7 +54,7 @@ const registerEventHandlerPreSetup = (
     args: OpenArguments
 ) => {
     ipcMain.handle('get-app-version', () => version);
-    ipcMain.handle('get-appdata', () => app.getPath('userData'));
+    ipcMain.handle('get-appdata', () => getRootDirSync());
     ipcMain.handle('get-gpu-info', getGpuInfo);
     ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
 

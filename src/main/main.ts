@@ -8,6 +8,7 @@ import { parseArgs } from './arguments';
 import { createCli } from './cli/create';
 import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
+import { getRootDirSync } from './platform';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // eslint-disable-next-line global-require
@@ -17,9 +18,8 @@ if (require('electron-squirrel-startup')) {
 
 const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
-// log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 log.transports.file.resolvePath = (variables) =>
-    path.join(variables.electronDefaultDir!, variables.fileName!);
+    path.join(getRootDirSync(), 'logs', variables.fileName!);
 log.transports.file.level = 'info';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
