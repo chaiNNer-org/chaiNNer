@@ -1,8 +1,8 @@
-import { app } from 'electron';
 import { LocalStorage } from 'node-localstorage';
 import path from 'path';
+import { getRootDirSync } from './platform';
 
-export const settingStorageLocation = path.join(app.getPath('userData'), 'settings');
+export const settingStorageLocation = path.join(getRootDirSync(), 'settings');
 
 interface ReadonlyStorage {
     /** Returns the current value associated with the given key, or null if the given key does not exist. */

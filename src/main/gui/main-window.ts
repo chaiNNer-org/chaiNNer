@@ -11,7 +11,7 @@ import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
-import { getRootDir } from '../platform';
+import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
 import { getGpuInfo } from '../systemInfo';
 import { hasUpdate } from '../update';
@@ -302,14 +302,13 @@ const createBackend = async (token: ProgressToken, args: OpenArguments) => {
     const systemPythonLocation = settingStorage.getItem('system-python-location');
 
     const nvidiaSmiPromise = checkNvidiaSmi();
-    const getRootDirPromise = getRootDir();
 
     return setupBackend(
         token,
         useSystemPython,
         systemPythonLocation,
         () => nvidiaSmiPromise,
-        () => getRootDirPromise,
+        getRootDirSync(),
         args.noBackend
     );
 };

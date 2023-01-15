@@ -164,7 +164,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             "Iterate over all frames in a video, and write to a video buffer."
         )
         self.inputs = [
-            VideoFileInput(),
+            VideoFileInput(primary_input=True),
         ]
         self.outputs = []
         self.default_nodes = [
