@@ -1,6 +1,7 @@
 import { BrowserWindow, app, dialog } from 'electron';
 import log from 'electron-log';
 import { lazy } from '../../common/util';
+import { OpenArguments } from '../arguments';
 import { createMainWindow } from './main-window';
 
 const setupErrorHandling = () => {
@@ -43,7 +44,7 @@ const setupErrorHandling = () => {
     });
 };
 
-export const createGuiApp = () => {
+export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
 
     const hasInstanceLock = app.requestSingleInstanceLock();
@@ -52,7 +53,7 @@ export const createGuiApp = () => {
     }
 
     const createWindow = lazy(() => {
-        createMainWindow().catch((error) => log.error(error));
+        createMainWindow(args).catch((error) => log.error(error));
     });
 
     // This method will be called when Electron has finished

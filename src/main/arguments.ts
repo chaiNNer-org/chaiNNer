@@ -1,42 +1,75 @@
-import { app } from 'electron';
-import log from 'electron-log';
 import yargs from 'yargs/yargs';
-import { lazy } from '../common/util';
+import { assertNever } from '../common/util';
 
-export interface ParsedArguments {
-    /**
-     * A file the user wants to open.
-     */
-    file?: string;
+interface ArgumentOptions {
     noBackend: boolean;
 }
+export interface OpenArguments extends ArgumentOptions {
+    command: 'open';
+    file: string | undefined;
+}
+export interface RunArguments extends ArgumentOptions {
+    command: 'run';
+    file: string;
+}
+export type ParsedArguments = OpenArguments | RunArguments;
 
+/**
+ * Parses the given arguments.
+ *
+ * If the arguments are invalid, an error message will be logged in the terminal and the process will be terminated.
+ */
 export const parseArgs = (args: readonly string[]): ParsedArguments => {
-    try {
-        const parsed = yargs(args)
-            .options({
-                backend: { type: 'boolean', default: true },
-            })
-            .parseSync();
+    const parsed = yargs(args)
+        .scriptName('chainner')
+        .command(['* [file]', 'open [file]'], 'Open the chaiNNer GUI', (y) => {
+            return y.positional('file', {
+                type: 'string',
+                description: 'An optional chain to open. This should be a .chn file',
+            });
+        })
+        .command(
+            'run <file>',
+            'Run the given chain in the command line without opening the GUI',
+            (y) => {
+                return y.positional('file', {
+                    type: 'string',
+                    description: 'The chain to run. This should be a .chn file',
+                });
+            }
+        )
+        .options({
+            backend: {
+                type: 'boolean',
+                default: true,
+                description:
+                    'An internal developer option to use a different backend. Do not use this as this is not a stable option and may change or disappear at any time',
+                hidden: true,
+            },
+        })
+        .strict()
+        .parseSync();
 
-        const file = parsed._[0];
+    const options: ArgumentOptions = {
+        noBackend: !parsed.backend,
+    };
 
-        return {
-            file: file ? String(file) : undefined,
-            noBackend: !parsed.backend,
-        };
-    } catch (error) {
-        log.error('Failed to parse command line arguments');
-        log.error(error);
+    const command = (parsed._[0] as ParsedArguments['command'] | undefined) ?? 'open';
 
-        return {
-            file: undefined,
-            noBackend: false,
-        };
+    switch (command) {
+        case 'open':
+            return {
+                command: 'open',
+                file: parsed.file,
+                ...options,
+            };
+        case 'run':
+            return {
+                command: 'run',
+                file: parsed.file!,
+                ...options,
+            };
+        default:
+            return assertNever(command);
     }
 };
-
-export const getArguments = lazy<ParsedArguments>(() => {
-    const args = process.argv.slice(app.isPackaged ? 1 : 2);
-    return parseArgs(args);
-});

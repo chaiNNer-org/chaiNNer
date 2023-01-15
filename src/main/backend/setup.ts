@@ -12,7 +12,6 @@ import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
 import { versionGt } from '../../common/version';
-import { getArguments } from '../arguments';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
 import { checkPythonPaths } from '../python/checkPythonPaths';
 import { getIntegratedPython } from '../python/integratedPython';
@@ -313,11 +312,12 @@ export const setupBackend = async (
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>,
-    getRootDir: () => Promise<string>
+    getRootDir: () => Promise<string>,
+    noOwnedBackend: boolean
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 
-    const backend = getArguments().noBackend
+    const backend = noOwnedBackend
         ? await setupBorrowedBackend(token, 8000)
         : await setupOwnedBackend(
               token,

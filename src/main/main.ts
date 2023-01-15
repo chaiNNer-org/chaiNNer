@@ -4,6 +4,7 @@ import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import './i18n';
+import { parseArgs } from './arguments';
 import { createGuiApp } from './gui/create';
 import { settingStorage } from './setting-storage';
 
@@ -13,10 +14,7 @@ if (require('electron-squirrel-startup')) {
     app.quit();
 }
 
-const disableHardwareAcceleration = settingStorage.getItem('disable-hw-accel') === 'true';
-if (disableHardwareAcceleration) {
-    app.disableHardwareAcceleration();
-}
+const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 log.transports.file.resolvePath = (variables) =>
@@ -42,4 +40,13 @@ app.on('quit', () => {
     });
 });
 
-createGuiApp();
+if (args.command === 'open') {
+    const disableHardwareAcceleration = settingStorage.getItem('disable-hw-accel') === 'true';
+    if (disableHardwareAcceleration) {
+        app.disableHardwareAcceleration();
+    }
+
+    createGuiApp(args);
+} else {
+    throw new Error('Unsupported');
+}

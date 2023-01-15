@@ -7,7 +7,7 @@ import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
-import { getArguments, parseArgs } from '../arguments';
+import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
@@ -49,7 +49,10 @@ const checkForUpdate = () => {
         .catch((reason) => log.error(reason));
 };
 
-const registerEventHandlerPreSetup = (mainWindow: BrowserWindowWithSafeIpc) => {
+const registerEventHandlerPreSetup = (
+    mainWindow: BrowserWindowWithSafeIpc,
+    args: OpenArguments
+) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => app.getPath('userData'));
     ipcMain.handle('get-gpu-info', getGpuInfo);
@@ -154,9 +157,8 @@ const registerEventHandlerPreSetup = (mainWindow: BrowserWindowWithSafeIpc) => {
     });
 
     // Opening file with chaiNNer
-    const { file: filepath } = getArguments();
-    if (filepath) {
-        const result = openSaveFile(filepath);
+    if (args.file) {
+        const result = openSaveFile(args.file);
         ipcMain.handle('get-cli-open', () => result);
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
@@ -295,7 +297,7 @@ const checkNvidiaSmi = async () => {
     return false;
 };
 
-const createBackend = async (token: ProgressToken) => {
+const createBackend = async (token: ProgressToken, args: OpenArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
 
@@ -307,11 +309,12 @@ const createBackend = async (token: ProgressToken) => {
         useSystemPython,
         systemPythonLocation,
         () => nvidiaSmiPromise,
-        () => getRootDirPromise
+        () => getRootDirPromise,
+        args.noBackend
     );
 };
 
-export const createMainWindow = async () => {
+export const createMainWindow = async (args: OpenArguments) => {
     const lastWindowSize = JSON.parse(
         settingStorage.getItem('use-last-window-size') || 'null'
     ) as WindowSize | null;
@@ -339,8 +342,8 @@ export const createMainWindow = async () => {
     addSplashScreen(progressController);
 
     try {
-        registerEventHandlerPreSetup(mainWindow);
-        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9));
+        registerEventHandlerPreSetup(mainWindow, args);
+        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
         progressController.submitProgress({
