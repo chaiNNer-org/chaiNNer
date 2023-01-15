@@ -70,7 +70,7 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def VideoFileInput() -> FileInput:
+def VideoFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
         input_type_name="VideoFile",
@@ -90,6 +90,7 @@ def VideoFileInput() -> FileInput:
             ".avs",
         ],
         has_handle=False,
+        primary_input=primary_input,
     )
 
 
