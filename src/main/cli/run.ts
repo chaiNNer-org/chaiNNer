@@ -17,7 +17,7 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { setupBackend } from '../backend/setup';
 import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
-import { getRootDir } from '../platform';
+import { getRootDirSync } from '../platform';
 import { settingStorage } from '../setting-storage';
 import type { Edge, Node } from 'reactflow';
 
@@ -74,14 +74,13 @@ const createBackend = async (token: ProgressToken, args: RunArguments) => {
     const systemPythonLocation = settingStorage.getItem('system-python-location');
 
     const hasNvidia = getNvidiaGPUs().then((gpus) => gpus !== undefined);
-    const getRootDirPromise = getRootDir();
 
     return setupBackend(
         token,
         useSystemPython,
         systemPythonLocation,
         () => hasNvidia,
-        () => getRootDirPromise,
+        getRootDirSync(),
         args.noBackend
     );
 };
