@@ -12,14 +12,49 @@ import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ProgressController, ProgressToken } from '../../common/ui/progress';
-import { delay } from '../../common/util';
+import { ProgressController, ProgressMonitor, ProgressToken } from '../../common/ui/progress';
+import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { setupBackend } from '../backend/setup';
 import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
 import { getRootDir } from '../platform';
 import { settingStorage } from '../setting-storage';
 import type { Edge, Node } from 'reactflow';
+
+const addProgressListeners = (monitor: ProgressMonitor) => {
+    monitor.addInterruptListener(({ type, title, message, options }) => {
+        const logger = (s: string) => {
+            if (type === 'warning') {
+                log.warn(s);
+            } else {
+                log.error(s);
+            }
+        };
+
+        if (title) logger(title);
+        logger(message);
+
+        for (const option of options ?? []) {
+            logger(` - ${option.title}`);
+
+            const { action } = option;
+            switch (action.type) {
+                case 'open-url':
+                    logger(`   Go to ${action.url}`);
+                    break;
+
+                default:
+                    return assertNever(action.type);
+            }
+        }
+
+        if (type === 'critical error') {
+            app.exit(1);
+        }
+
+        return Promise.resolve();
+    });
+};
 
 const getNvidiaGPUs = async () => {
     const nvidiaSmi = await getNvidiaSmi();
@@ -124,9 +159,20 @@ const ensureStaticCorrectness = ({ nodes, edges }: Readonly<Chain>, schemata: Sc
 
 export const runChainInCli = async (args: RunArguments) => {
     const progressController = new ProgressController();
-    // TODO: listener
+    addProgressListeners(progressController);
 
     const backendProcess = await createBackend(progressController, args);
+    if (backendProcess.owned) {
+        backendProcess.addErrorListener((error) => {
+            log.error(
+                `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
+                    error
+                )}`
+            );
+            app.exit(1);
+        });
+    }
+
     const backend = getBackend(backendProcess.port);
 
     const saveFile = await SaveFile.read(args.file);
