@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import { existsSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import { checkFileExists } from '../common/util';
@@ -28,6 +29,17 @@ export const getIsPortable = async (): Promise<boolean> => {
 
 export const getRootDir = async (): Promise<string> => {
     const isPortable = await getIsPortable();
+    const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
+    return rootDir;
+};
+
+export const getIsPortableSync = (): boolean => {
+    const isPortable = existsSync(path.join(currentExecutableDir, 'portable'));
+    return isPortable;
+};
+
+export const getRootDirSync = (): string => {
+    const isPortable = getIsPortableSync();
     const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
     return rootDir;
 };

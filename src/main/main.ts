@@ -20,7 +20,7 @@ import { BackendProcess } from './backend/process';
 import { setupBackend } from './backend/setup';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
-import { getRootDir } from './platform';
+import { getRootDir, getRootDirSync } from './platform';
 import { addSplashScreen } from './splash';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
@@ -39,7 +39,7 @@ if (!hasInstanceLock) {
     app.quit();
 }
 
-const localStorageLocation = path.join(app.getPath('userData'), 'settings');
+const localStorageLocation = path.join(getRootDirSync(), 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
 const localStorage = new LocalStorage(localStorageLocation);
 
