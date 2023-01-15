@@ -2,11 +2,11 @@
 import { Menu, MenuItemConstructorOptions, app, dialog, shell } from 'electron';
 import os from 'os';
 import path from 'path';
-import { isMac } from '../common/env';
-import { links } from '../common/links';
-import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
-import { openSaveFile } from '../common/SaveFile';
-import { getCpuInfo, getGpuInfo } from './systemInfo';
+import { isMac } from '../../common/env';
+import { links } from '../../common/links';
+import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
+import { openSaveFile } from '../../common/SaveFile';
+import { getCpuInfo, getGpuInfo } from '../systemInfo';
 
 export interface MenuData {
     openRecentRev: readonly string[];
