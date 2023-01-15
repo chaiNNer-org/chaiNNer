@@ -6,6 +6,7 @@ import { isMac } from '../../common/env';
 import { links } from '../../common/links';
 import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
+import { getRootDirSync } from '../platform';
 import { getCpuInfo, getGpuInfo } from '../systemInfo';
 
 export interface MenuData {
@@ -194,7 +195,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 {
                     label: 'Open logs folder',
                     click: async () => {
-                        await shell.openPath(app.getPath('logs'));
+                        await shell.openPath(path.join(getRootDirSync(), 'logs'));
                     },
                 },
                 {
