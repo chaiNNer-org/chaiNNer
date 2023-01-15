@@ -5,13 +5,13 @@ import { createContext, useContext, useContextSelector } from 'use-context-selec
 import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
+import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import { assertNever } from '../../common/util';
-import { getConnectedInputs } from '../helpers/connectedInputs';
 import {
     BackendEventMap,
     BackendEventSourceListener,

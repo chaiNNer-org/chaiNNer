@@ -26,6 +26,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import {
     EMPTY_ARRAY,
     parseSourceHandle,
@@ -38,7 +39,6 @@ import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
-import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';

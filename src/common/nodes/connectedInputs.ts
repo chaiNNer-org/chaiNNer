@@ -1,8 +1,8 @@
 import { Type } from '@chainner/navi';
-import { Edge } from 'reactflow';
-import { EdgeData, InputId, OutputId } from '../../common/common-types';
-import { FunctionDefinition } from '../../common/types/function';
-import { parseTargetHandle } from '../../common/util';
+import { EdgeData, InputId, OutputId } from '../common-types';
+import { FunctionDefinition } from '../types/function';
+import { parseTargetHandle } from '../util';
+import type { Edge } from 'reactflow';
 
 export const getConnectedInputs = (
     nodeId: string,
