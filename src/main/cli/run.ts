@@ -1,8 +1,15 @@
 import { app } from 'electron';
 import log from 'electron-log';
-import { Backend, BackendExecutionOptions, getBackend } from '../../common/Backend';
-import { EdgeData, NodeData, NodeSchema } from '../../common/common-types';
+import EventSource from 'eventsource';
+import {
+    Backend,
+    BackendEventMap,
+    BackendExecutionOptions,
+    getBackend,
+} from '../../common/Backend';
+import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
+import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
@@ -12,13 +19,16 @@ import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { FunctionDefinition } from '../../common/types/function';
 import { ProgressController, ProgressMonitor, ProgressToken } from '../../common/ui/progress';
 import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
+import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
 import { getRootDirSync } from '../platform';
 import { settingStorage } from '../setting-storage';
+import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
 
 const addProgressListeners = (monitor: ProgressMonitor) => {
@@ -104,6 +114,28 @@ const getBackendNodes = async (backend: Backend): Promise<NodeSchema[]> => {
     throw new Error('Unable to connect to backend server');
 };
 
+interface ReadyBackend {
+    backend: Backend;
+    schemata: SchemaMap;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    eventSource: EventSource;
+}
+const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBackend> => {
+    const backend = getBackend(backendProcess.port);
+
+    const schemata = new SchemaMap(await getBackendNodes(backend));
+
+    // only connect the event source after we first heard back from the backend
+    const eventSource = new EventSource(`http://localhost:${backendProcess.port}/sse`, {
+        withCredentials: true,
+    });
+
+    // this validates that the nodes on the backend "make sense"
+    const functionDefinitions = parseFunctionDefinitions(schemata.schemata);
+
+    return { backend, schemata, functionDefinitions, eventSource };
+};
+
 const getExecutionOptions = (): BackendExecutionOptions => {
     const getSetting = <T>(key: string, defaultValue: T): T => {
         const value = settingStorage.getItem(key);
@@ -128,8 +160,20 @@ interface Chain {
     edges: Edge<EdgeData>[];
 }
 
-const ensureStaticCorrectness = ({ nodes, edges }: Readonly<Chain>, schemata: SchemaMap): void => {
-    const functionDefinitions = parseFunctionDefinitions(schemata.schemata);
+const ensureStaticCorrectness = (
+    { nodes, edges }: Readonly<Chain>,
+    schemata: SchemaMap,
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
+): void => {
+    const unknown = nodes.filter((n) => !schemata.has(n.data.schemaId));
+    if (unknown.length > 0) {
+        log.error(
+            `There are ${unknown.length} unknown node(s) in the chain.` +
+                ` This means that either (1) the chain was produces by a newer version of chainner, (2) the node was deprecated and has been removed, or (3) a third-party plugin is not installed.`
+        );
+        throw new Exit(1);
+    }
+
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions);
 
@@ -150,10 +194,22 @@ const ensureStaticCorrectness = ({ nodes, edges }: Readonly<Chain>, schemata: Sc
 
     if (invalidNodes.length > 0) {
         const reasons = invalidNodes.join('\n');
-        throw new Error(
-            `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
+        log.error(
+            `There are invalid nodes in the chain. Please fix them before running.\n${reasons}`
         );
+        throw new Exit(1);
     }
+};
+
+const addEventListener = <K extends keyof BackendEventMap>(
+    eventSource: EventSource,
+    type: K,
+    listener: (data: BackendEventMap[K]) => void
+) => {
+    eventSource.addEventListener(type, (event) => {
+        const data = JSON.parse(event.data as string) as BackendEventMap[K];
+        listener(data);
+    });
 };
 
 export const runChainInCli = async (args: RunArguments) => {
@@ -172,23 +228,25 @@ export const runChainInCli = async (args: RunArguments) => {
         });
     }
 
-    const backend = getBackend(backendProcess.port);
+    const { backend, schemata, functionDefinitions, eventSource } = await connectToBackend(
+        backendProcess
+    );
 
+    log.info(`Read chain file ${args.file}`);
     const saveFile = await SaveFile.read(args.file);
     if (saveFile.tamperedWith) {
         log.warn(
-            'The save file has been tampered with. This might lead to errors in the execution of this chain.'
+            `The save file has been tampered with. This might lead to errors in the execution of this chain.`
         );
     }
 
-    const schemata = new SchemaMap(await getBackendNodes(backend));
     const disabledNodes = new Set(
         getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id)
     );
     const nodesToOptimize = saveFile.nodes.filter((n) => !disabledNodes.has(n.id));
     const nodes = getNodesWithSideEffects(nodesToOptimize, saveFile.edges, schemata);
-    const nodeIds = new Set(nodes.map((n) => n.id));
-    const edges = saveFile.edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+    const nodesById = new Map(nodes.map((n) => [n.id, n]));
+    const edges = saveFile.edges.filter((e) => nodesById.has(e.source) && nodesById.has(e.target));
 
     // show an error if there are no nodes to run
     if (nodes.length === 0) {
@@ -201,31 +259,55 @@ export const runChainInCli = async (args: RunArguments) => {
             message = 'There are no nodes to run.';
         }
         log.error(message);
-        return;
+        throw new Exit();
     }
 
     // check for static errors
-    ensureStaticCorrectness({ nodes, edges }, schemata);
+    ensureStaticCorrectness({ nodes, edges }, schemata, functionDefinitions);
+
+    // progress
+    const freeNodes = new Set(nodes.filter((n) => !n.parentNode).map((n) => n.id));
+    const lastIteratorPercentage = new Map<string, number>();
+    addEventListener(eventSource, 'iterator-progress-update', ({ iteratorId, percent }) => {
+        const node = nodesById.get(iteratorId);
+        if (node && percent < 1 && lastIteratorPercentage.get(iteratorId) !== percent) {
+            lastIteratorPercentage.set(iteratorId, percent);
+            const schema = schemata.get(node.data.schemaId);
+            log.info(`${schema.name} at ${(percent * 100).toFixed(1)}%`);
+        }
+    });
+    const finishedFreeNodes = new Set<string>();
+    addEventListener(eventSource, 'node-finish', ({ finished }) => {
+        let didAdd = false;
+        for (const id of finished) {
+            if (freeNodes.has(id) && !finishedFreeNodes.has(id)) {
+                finishedFreeNodes.add(id);
+                didAdd = true;
+            }
+        }
+        if (didAdd) {
+            log.info(`Executed ${finishedFreeNodes.size}/${freeNodes.size} nodes`);
+        }
+    });
 
     const data = toBackendJson(nodes, edges, schemata);
     const options = getExecutionOptions();
-
     const response = await backend.run({
         data,
         options,
         sendBroadcastData: false,
     });
+    eventSource.close();
 
     if (response.type === 'error') {
         log.error(response.message);
-        log.error(response.exception);
-        if (response.source) {
-            log.error(response.source);
-        }
+        log.error(formatExecutionErrorMessage(response, schemata));
+        throw new Exit();
     }
     if (response.type === 'already-running') {
         log.error(`Cannot start because a previous executor is still running.`);
+        throw new Exit();
     }
 
-    app.exit(response.type === 'success' ? 0 : 1);
+    log.info('Done.');
 };
