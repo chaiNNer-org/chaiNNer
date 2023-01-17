@@ -1,5 +1,6 @@
 import { app } from 'electron';
 import log from 'electron-log';
+import { Exit } from './exit';
 
 const fatalErrorInMain = (error: unknown) => {
     log.error('Error in Main process');
@@ -22,8 +23,17 @@ export const createCli = (command: () => Promise<void>) => {
     // we don't need hardware acceleration at all
     app.disableHardwareAcceleration();
 
-    command().catch((error) => {
-        log.error(error);
-        app.exit(1);
-    });
+    command().then(
+        () => {
+            app.exit(0);
+        },
+        (error) => {
+            if (error instanceof Exit) {
+                app.exit(error.exitCode);
+            } else {
+                log.error(error);
+                app.exit(1);
+            }
+        }
+    );
 };

@@ -4,16 +4,15 @@ import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { SchemaMap } from '../../common/SchemaMap';
 import { assertNever } from '../../common/util';
 import {
-    BackendEventMap,
     BackendEventSourceListener,
     useBackendEventSource,
     useBackendEventSourceListener,
@@ -52,52 +51,6 @@ export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusCont
 export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
-
-const getExecutionErrorMessage = (
-    { exception, source }: BackendEventMap['execution-error'],
-    schemata: SchemaMap
-): string => {
-    if (!source) return exception;
-
-    const schema = schemata.get(source.schemaId);
-    let { name } = schema;
-    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
-        // make the name unique using the category of the schema
-        name = `${schema.category} ${schema.name}`;
-    }
-
-    const inputs = schema.inputs.flatMap((i) => {
-        const value = source.inputs[i.id];
-        if (value === undefined) return [];
-
-        let valueStr: string;
-        const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
-        if (option) {
-            valueStr = option.option;
-        } else if (value === null) {
-            valueStr = 'None';
-        } else if (typeof value === 'number') {
-            valueStr = String(value);
-        } else if (typeof value === 'string') {
-            valueStr = JSON.stringify(value);
-        } else {
-            let type = 'Image';
-            if (value.channels === 1) type = 'Grayscale image';
-            if (value.channels === 3) type = 'RGB image';
-            if (value.channels === 4) type = 'RGBA image';
-            valueStr = `${type} ${value.width}x${value.height}`;
-        }
-
-        return [`• ${i.label}: ${valueStr}`];
-    });
-    const partial = inputs.length === schema.inputs.length;
-    const inputsInfo =
-        inputs.length === 0
-            ? ''
-            : `Input values${partial ? '' : ' (partial)'}:\n${inputs.join('\n')}`;
-
-    return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
-};
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
@@ -142,7 +95,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
         if (data) {
-            sendAlert({ type: AlertType.ERROR, message: getExecutionErrorMessage(data, schemata) });
+            sendAlert({
+                type: AlertType.ERROR,
+                message: formatExecutionErrorMessage(
+                    data,
+                    schemata,
+                    (label, value) => `• ${label}: ${value}`
+                ),
+            });
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }

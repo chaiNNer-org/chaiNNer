@@ -5,6 +5,7 @@ import {
     InputId,
     InputValue,
     NodeSchema,
+    OutputData,
     PythonInfo,
     SchemaId,
 } from './common-types';
@@ -184,3 +185,29 @@ export const getBackend = (port: number): Backend => {
     }
     return instance;
 };
+
+/**
+ * All possible events emitted by backend SSE along with the data layout of the event data.
+ */
+export interface BackendEventMap {
+    finish: {
+        message: string;
+    };
+    'execution-error': {
+        message: string;
+        source?: BackendExceptionSource | null;
+        exception: string;
+    };
+    'node-finish': {
+        finished: string[];
+        nodeId: string;
+        executionTime?: number | null;
+        data?: OutputData | null;
+        progressPercent?: number | null;
+    };
+    'iterator-progress-update': {
+        percent: number;
+        iteratorId: string;
+        running?: string[] | null;
+    };
+}

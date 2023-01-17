@@ -21,10 +21,30 @@ export class SchemaMap {
 
     private readonly lookup: ReadonlyMap<SchemaId, NodeSchema>;
 
+    private readonly unique: ReadonlySet<SchemaId>;
+
     constructor(schemata: readonly NodeSchema[]) {
         // defensive copy
         this.schemata = [...schemata];
         this.lookup = new Map<SchemaId, NodeSchema>(schemata.map((n) => [n.schemaId, n] as const));
+
+        const byName = new Map<string, SchemaId[]>();
+        for (const { name, schemaId } of this.schemata) {
+            let list = byName.get(name);
+            if (list === undefined) {
+                list = [];
+                byName.set(name, list);
+            }
+            list.push(schemaId);
+        }
+        this.unique = new Set([...byName.values()].filter((l) => l.length === 1).map((l) => l[0]));
+    }
+
+    /**
+     * Returns whether the given schema has a unique name among all schemata.
+     */
+    hasUniqueName(schemaId: SchemaId): boolean {
+        return this.unique.has(schemaId);
     }
 
     has(schemaId: SchemaId): boolean {
