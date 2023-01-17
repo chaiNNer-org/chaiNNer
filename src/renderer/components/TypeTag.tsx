@@ -1,15 +1,8 @@
-import {
-    NeverType,
-    StructType,
-    Type,
-    isNumericLiteral,
-    isStringLiteral,
-    without,
-} from '@chainner/navi';
+import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/navi';
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getField, isDirectory, isImage } from '../../common/types/util';
+import { getField, isDirectory, isImage, withoutNull } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -24,8 +17,6 @@ const getColorMode = (channels: number) => {
             return undefined;
     }
 };
-
-const nullType = new StructType('null');
 
 type TagValue =
     | { kind: 'literal'; value: string }
@@ -165,7 +156,7 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
 
 export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
     const { t } = useTranslation();
-    const tags = getTypeText(without(type, nullType));
+    const tags = getTypeText(withoutNull(type));
 
     return (
         <>

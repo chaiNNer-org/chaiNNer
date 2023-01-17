@@ -1,6 +1,7 @@
 import { Input, InputData, InputId, NodeSchema } from '../common-types';
 import { FunctionInstance } from '../types/function';
 import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from '../types/mismatch';
+import { withoutNull } from '../types/util';
 import { VALID, Validity, invalid } from '../Validity';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
@@ -41,7 +42,7 @@ export const checkNodeValidity = ({
         for (const { inputId, assignedType, inputType } of functionInstance.inputErrors) {
             const input = schema.inputs.find((i) => i.id === inputId)!;
 
-            const error = simpleError(assignedType, inputType);
+            const error = simpleError(assignedType, withoutNull(inputType));
             if (error) {
                 return invalid(
                     `Input ${input.label} requires ${error.definition} but was connected with ${error.assigned}.`
@@ -52,7 +53,7 @@ export const checkNodeValidity = ({
         if (functionInstance.inputErrors.length > 0) {
             const { inputId, assignedType, inputType } = functionInstance.inputErrors[0];
             const input = schema.inputs.find((i) => i.id === inputId)!;
-            const traceTree = generateAssignmentErrorTrace(assignedType, inputType);
+            const traceTree = generateAssignmentErrorTrace(assignedType, withoutNull(inputType));
             if (!traceTree) throw new Error('Cannot determine assignment error');
             const trace = printErrorTrace(traceTree);
             return invalid(
