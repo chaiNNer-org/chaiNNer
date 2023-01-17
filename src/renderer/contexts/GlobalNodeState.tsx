@@ -36,6 +36,7 @@ import {
     printErrorTrace,
     simpleError,
 } from '../../common/types/mismatch';
+import { withoutNull } from '../../common/types/util';
 import {
     EMPTY_SET,
     createUniqueId,
@@ -868,7 +869,9 @@ export const GlobalProvider = memo(
                 if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
                     const schema = schemata.get(targetNode.data.schemaId);
                     const input = schema.inputs.find((i) => i.id === targetHandleId)!;
-                    const inputType = targetFn.definition.inputDefaults.get(targetHandleId)!;
+                    const inputType = withoutNull(
+                        targetFn.definition.inputDefaults.get(targetHandleId)!
+                    );
 
                     const error = simpleError(outputType, inputType);
                     if (error) {
