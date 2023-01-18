@@ -7,7 +7,7 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import { MouseEventHandler, memo } from 'react';
 import { areApproximatelyEqual, stopPropagation } from '../../../../common/util';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
@@ -41,6 +41,8 @@ interface AdvancedNumberInputProps {
     inputString: string;
     setInputString: (input: string) => void;
     setInput: (value: number) => void;
+
+    onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
 }
 
 export const AdvancedNumberInput = memo(
@@ -59,6 +61,8 @@ export const AdvancedNumberInput = memo(
         inputString,
         setInputString,
         setInput,
+
+        onContextMenu,
     }: AdvancedNumberInputProps) => {
         const onBlur = () => {
             const valAsNumber =
@@ -83,6 +87,7 @@ export const AdvancedNumberInput = memo(
                     mx={0}
                     size="xs"
                     w="fit-content"
+                    onContextMenu={onContextMenu}
                 >
                     {unit && (
                         <InputLeftAddon
@@ -130,6 +135,7 @@ export const AdvancedNumberInput = memo(
             <InputGroup
                 size="sm"
                 w="full"
+                onContextMenu={onContextMenu}
             >
                 {unit && (
                     <InputLeftAddon

@@ -10,6 +10,7 @@ import {
 import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
+import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
@@ -238,6 +239,12 @@ export const runChainInCli = async (args: RunArguments) => {
         log.warn(
             `The save file has been tampered with. This might lead to errors in the execution of this chain.`
         );
+    }
+
+    if (args.overrideFile) {
+        log.info(`Read override file ${args.overrideFile}`);
+        const overrideFile = await readOverrideFile(args.overrideFile);
+        applyOverrides(saveFile.nodes, saveFile.edges, schemata, overrideFile);
     }
 
     const disabledNodes = new Set(
