@@ -118,6 +118,7 @@ export const SchemaInput = memo(
                 input={input as never}
                 inputKey={`${schemaId}-${inputId}`}
                 isLocked={isLocked}
+                nodeId={nodeId}
                 resetValue={resetValue}
                 setValue={setValue}
                 useInputConnected={useInputConnected}

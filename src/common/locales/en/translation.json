@@ -10,10 +10,10 @@
   "error": {
     "error": "Error",
     "message": {
-      "criticalBackend": "A critical error occurred while processing the node data returned by the backend"
+      "criticalBackend": "A critical error occurred while processing the node data returned by the backend."
     },
     "title": {
-      "unableToProcessNodes": "Unable to process backend nodes"
+      "unableToProcessNodes": "Unable to process backend nodes."
     }
   },
   "header": {
@@ -26,7 +26,9 @@
     "stopButton": "Stop button"
   },
   "inputs": {
+    "copyOverrideInputId": "Copy Override Input Id",
     "directory": {
+      "copyFullDirectoryPath": "Copy Full Directory Path",
       "openInFileExplorer": "Open in File Explorer",
       "selectDirectory": "Select a directory..."
     },
@@ -35,6 +37,14 @@
       "copyFullFilePath": "Copy Full File Path",
       "openInFileExplorer": "Open in File Explorer",
       "selectFile": "Select a file..."
+    },
+    "number": {
+      "copyText": "Copy Number",
+      "paste": "Paste"
+    },
+    "text": {
+      "copyText": "Copy Text",
+      "paste": "Paste"
     }
   },
   "loading": "Loading...",

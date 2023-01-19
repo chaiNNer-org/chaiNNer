@@ -11,6 +11,7 @@ export interface OpenArguments extends ArgumentOptions {
 export interface RunArguments extends ArgumentOptions {
     command: 'run';
     file: string;
+    overrideFile: string | undefined;
 }
 export type ParsedArguments = OpenArguments | RunArguments;
 
@@ -32,10 +33,22 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
             'run <file>',
             'Run the given chain in the command line without opening the GUI',
             (y) => {
-                return y.positional('file', {
-                    type: 'string',
-                    description: 'The chain to run. This should be a .chn file',
-                });
+                return y
+                    .positional('file', {
+                        type: 'string',
+                        description: 'The chain to run. This should be a .chn file',
+                    })
+                    .options({
+                        override: {
+                            type: 'string',
+                            description:
+                                'An optional JSON file with input overrides.' +
+                                ' The file is expected to have the following structure: `{ "inputs": { "<input id>": string | number | null } }`.' +
+                                ' Input ids can be obtained in the GUI by right-clicking on an overridable input.' +
+                                ' Note that not all inputs are overridable.' +
+                                ' Right now, only number, text, file, and directory inputs are supported.',
+                        },
+                    });
             }
         )
         .options({
@@ -67,6 +80,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
             return {
                 command: 'run',
                 file: parsed.file!,
+                overrideFile: parsed.override,
                 ...options,
             };
         default:

@@ -1,11 +1,13 @@
 import { Type } from '@chainner/navi';
 import { Input, InputKind, OfKind, Size } from '../../../common/common-types';
 
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
 export interface InputProps<Kind extends InputKind, Value extends string | number = never> {
     readonly value: Value | undefined;
     readonly setValue: (input: Value) => void;
     readonly resetValue: () => void;
-    readonly input: Omit<OfKind<Input, Kind>, 'id' | 'type' | 'conversion'>;
+    readonly input: Omit<PartialBy<OfKind<Input, Kind>, 'id'>, 'type' | 'conversion'>;
     readonly definitionType: Type;
     readonly isLocked: boolean;
     readonly inputKey: string;
@@ -15,4 +17,5 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
         Readonly<Size> | undefined,
         (size: Readonly<Size>) => void
     ];
+    readonly nodeId?: string;
 }

@@ -8,7 +8,7 @@ import {
     Text,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo, useMemo, useState } from 'react';
+import { MouseEventHandler, memo, useMemo, useState } from 'react';
 import { getTypeAccentColors } from '../../../helpers/getTypeAccentColors';
 
 export interface Scale {
@@ -65,6 +65,8 @@ interface StyledSliderProps {
     tooltip: string;
     onChange: (value: number) => void;
     onChangeEnd: (value: number) => void;
+
+    onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
 }
 export const StyledSlider = memo(
     ({
@@ -79,6 +81,7 @@ export const StyledSlider = memo(
         tooltip,
         onChange,
         onChangeEnd,
+        onContextMenu,
     }: StyledSliderProps) => {
         const [showTooltip, setShowTooltip] = useState(false);
 
@@ -96,6 +99,7 @@ export const StyledSlider = memo(
                 value={scale.toScale(value)}
                 onChange={(n) => onChange(scale.fromScale(n))}
                 onChangeEnd={(n) => onChangeEnd(scale.fromScale(n))}
+                onContextMenu={onContextMenu}
                 onDoubleClick={() => onChangeEnd(def)}
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}

@@ -9,14 +9,15 @@ import {
     MenuList,
     Tooltip,
 } from '@chakra-ui/react';
-import { shell } from 'electron';
+import { clipboard, shell } from 'electron';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
-import { MdFolder } from 'react-icons/md';
+import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
@@ -39,9 +40,11 @@ export const DirectoryInput = memo(
         value,
         setValue,
         isLocked,
+        input,
         inputKey,
         useInputConnected,
         useInputType,
+        nodeId,
     }: InputProps<'directory', string>) => {
         const { t } = useTranslation();
 
@@ -66,8 +69,8 @@ export const DirectoryInput = memo(
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
-                    disabled={isLocked || isInputConnected}
                     icon={<BsFolderPlus />}
+                    isDisabled={isLocked || isInputConnected}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
                 >
@@ -85,6 +88,21 @@ export const DirectoryInput = memo(
                 >
                     {t('inputs.directory.openInFileExplorer', 'Open in File Explorer')}
                 </MenuItem>
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!displayDirectory}
+                    onClick={() => {
+                        if (displayDirectory) {
+                            clipboard.writeText(displayDirectory);
+                        }
+                    }}
+                >
+                    {t('inputs.directory.copyFullDirectoryPath', 'Copy Full Directory Path')}
+                </MenuItem>
+                <CopyOverrideIdSection
+                    inputId={input.id}
+                    nodeId={nodeId}
+                />
             </MenuList>
         ));
 
