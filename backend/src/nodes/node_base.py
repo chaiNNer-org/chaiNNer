@@ -100,7 +100,7 @@ class NodeBase(metaclass=ABCMeta):
 
 class AsyncNodeBase(NodeBase):
     def run(self) -> Any:
-        return
+        raise RuntimeError("AsyncNodeBase shouldn't have its run() method called.")
 
     @abstractmethod
     async def run_async(self) -> Any:

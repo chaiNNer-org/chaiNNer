@@ -29,8 +29,6 @@ def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
     image = Image.open(io.BytesIO(base64.b64decode(image_bytes)))
     image_nparray = np.array(image)
     _, _, c = get_h_w_c(image_nparray)
-    logger.info(image_bytes)
-    logger.info(f"Image channels {c}")
     if c == 3:
         image_nparray = cv2.cvtColor(image_nparray, cv2.COLOR_RGB2BGR)
     elif c == 4:
