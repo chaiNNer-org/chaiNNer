@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 import base64
 import cv2
 import io
@@ -14,15 +15,26 @@ from ..utils.utils import get_h_w_c
 
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
+
 STABLE_DIFFUSION_TEXT2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
 STABLE_DIFFUSION_IMG2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
 STABLE_DIFFUSION_INTERROGATE_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
+STABLE_DIFFUSION_OPTIONS_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
+
+
+async def get_async(url) -> Dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.json()
 
 
 async def post_async(url, json_data: Dict) -> Dict:
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=json_data) as response:
             return await response.json()
+
+
+STABLE_DIFFUSION_OPTIONS = asyncio.run(get_async(STABLE_DIFFUSION_OPTIONS_URL))
 
 
 def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
