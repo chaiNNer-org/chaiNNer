@@ -1,3 +1,4 @@
+aiohttp
 appdirs
 black
 debugpy
