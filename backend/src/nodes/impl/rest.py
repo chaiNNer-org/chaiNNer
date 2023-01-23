@@ -19,13 +19,13 @@ STABLE_DIFFUSION_IMG2IMG_URL     = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFF
 STABLE_DIFFUSION_INTERROGATE_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
 
 
-async def post_async(url, json_data: Dict):
+async def post_async(url, json_data: Dict) -> Dict:
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=json_data) as response:
             return await response.json()
 
 
-def decode_base64_image(image_bytes):
+def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
     image = Image.open(io.BytesIO(base64.b64decode(image_bytes)))
     image_nparray = np.array(image)
     _, _, c = get_h_w_c(image_nparray)
@@ -38,7 +38,7 @@ def decode_base64_image(image_bytes):
     return normalize(image_nparray)
 
 
-def encode_base64_image(image_nparray: np.ndarray):
+def encode_base64_image(image_nparray: np.ndarray) -> str:
     image_nparray = (np.clip(image_nparray, 0, 1) * 255).round().astype("uint8")
     _,_,c = get_h_w_c(image_nparray)
     if c == 1:
