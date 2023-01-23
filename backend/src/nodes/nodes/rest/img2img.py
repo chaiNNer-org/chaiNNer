@@ -39,7 +39,7 @@ class Img2Img(AsyncNodeBase):
 
         self.category = RESTCategory
         self.name = "Image-to-Image"
-        self.icon = "BsFillImageFill"
+        self.icon = "MdChangeCircle"
         self.sub = "Stable Diffusion"
 
     async def run_async(self, image: np.ndarray, prompt: str, negative_prompt: str, denoising_strength: float,

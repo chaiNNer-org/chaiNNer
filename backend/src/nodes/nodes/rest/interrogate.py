@@ -24,7 +24,7 @@ class Interrogate(AsyncNodeBase):
 
         self.category = RESTCategory
         self.name = "CLIP Interrogate"
-        self.icon = "BsFillImageFill"
+        self.icon = "MdTextFields"
         self.sub = "Stable Diffusion"
 
     async def run_async(self, image: np.ndarray) -> str:
