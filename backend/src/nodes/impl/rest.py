@@ -1,21 +1,21 @@
+import aiohttp
 import base64
 import cv2
 import io
 import numpy as np
 import os
-import aiohttp
 from PIL import Image
 from enum import Enum
-from typing import Dict, Union
 from sanic.log import logger
+from typing import Dict, Union
 
 from .image_utils import normalize
 from ..utils.utils import get_h_w_c
 
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
-STABLE_DIFFUSION_TEXT2IMG_URL    = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
-STABLE_DIFFUSION_IMG2IMG_URL     = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
+STABLE_DIFFUSION_TEXT2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
+STABLE_DIFFUSION_IMG2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
 STABLE_DIFFUSION_INTERROGATE_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
 
 
@@ -38,7 +38,7 @@ def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
 
 def encode_base64_image(image_nparray: np.ndarray) -> str:
     image_nparray = (np.clip(image_nparray, 0, 1) * 255).round().astype("uint8")
-    _,_,c = get_h_w_c(image_nparray)
+    _, _, c = get_h_w_c(image_nparray)
     if c == 1:
         # PIL supports grayscale images just fine, so we don't need to do any conversion
         pass
