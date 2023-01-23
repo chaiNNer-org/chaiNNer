@@ -6,7 +6,7 @@ import os
 import aiohttp
 from PIL import Image
 from enum import Enum
-from typing import Dict
+from typing import Dict, Union
 from sanic.log import logger
 
 from .image_utils import normalize
