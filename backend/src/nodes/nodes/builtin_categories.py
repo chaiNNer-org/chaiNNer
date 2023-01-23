@@ -13,7 +13,6 @@ from .onnx import category as ONNXCategory
 
 builtin_categories = [
     ImageCategory,
-    RESTCategory,
     ImageDimensionCategory,
     ImageAdjustmentCategory,
     ImageFilterCategory,
@@ -23,5 +22,6 @@ builtin_categories = [
     PyTorchCategory,
     NCNNCategory,
     ONNXCategory,
+    RESTCategory,
 ]
 category_order = [x.name for x in builtin_categories]
