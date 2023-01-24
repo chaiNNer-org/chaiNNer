@@ -20,8 +20,6 @@ class RandomNumberNode(NodeBase):
                 "Minimum Value",
                 minimum=None,
                 maximum=None,
-                precision=100,
-                controls_step=1,
             ),
             NumberInput(
                 "Maximum Value",
