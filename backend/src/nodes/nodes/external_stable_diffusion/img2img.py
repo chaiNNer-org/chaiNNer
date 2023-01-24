@@ -37,8 +37,9 @@ class Img2Img(NodeBase):
                 minimum=0,
                 default=0.75,
                 maximum=1,
+                slider_step=0.01,
                 controls_step=0.1,
-                precision=1,
+                precision=2,
             ),
             group("seed")(
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
