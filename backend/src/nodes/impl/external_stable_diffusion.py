@@ -1,5 +1,4 @@
-import aiohttp
-import asyncio
+import requests
 import base64
 import cv2
 import io
@@ -8,6 +7,7 @@ import os
 from PIL import Image
 from enum import Enum
 from typing import Dict, Union
+from sanic.log import logger
 
 from .image_utils import normalize
 from ..utils.utils import get_h_w_c
@@ -29,19 +29,20 @@ STABLE_DIFFUSION_OPTIONS_URL = (
 )
 
 
-async def get_async(url) -> Dict:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return await response.json()
+def get(url) -> Dict:
+    response = requests.get(url)
+    return response.json()
 
 
-async def post_async(url, json_data: Dict) -> Dict:
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=json_data) as response:
-            return await response.json()
+def post(url, json_data: Dict) -> Dict:
+    response = requests.post(url, json=json_data)
+    return response.json()
 
 
-STABLE_DIFFUSION_OPTIONS = asyncio.run(get_async(STABLE_DIFFUSION_OPTIONS_URL))
+# Call the API at import time
+# If this fails (because the API isn't up) it will raise an exception and the
+# nodes importing this file won't be registered
+STABLE_DIFFUSION_OPTIONS = get(STABLE_DIFFUSION_OPTIONS_URL)
 
 
 def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:

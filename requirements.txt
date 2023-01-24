@@ -1,4 +1,3 @@
-aiohttp
 appdirs
 black
 debugpy
@@ -18,6 +17,7 @@ pylint
 pyright==1.1.280
 pytest
 pywin32 ; sys_platform=="win32"
+requests
 sanic
 sanic_cors
 # torch

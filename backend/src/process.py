@@ -29,7 +29,7 @@ from chain.chain import Chain, Node, FunctionNode, IteratorNode, SubChain
 from chain.cache import OutputCache, CacheStrategy, get_cache_strategies
 from chain.input import InputMap, EdgeInput
 
-from nodes.node_base import NodeBase, AsyncNodeBase
+from nodes.node_base import NodeBase
 from nodes.impl.image_utils import get_h_w_c
 
 
@@ -345,19 +345,12 @@ class Executor:
         else:
             try:
                 # Run the node and pass in inputs as args
-                if isinstance(node_instance, AsyncNodeBase):
-                    run_func = functools.partial(
-                        node_instance.run_async, *enforced_inputs
-                    )
-                    raw_output, execution_time = await timed_supplier_async(run_func)
-                    del run_func
-                else:
-                    run_func = functools.partial(node_instance.run, *enforced_inputs)
-                    raw_output, execution_time = await self.loop.run_in_executor(
-                        self.pool, timed_supplier(run_func)
-                    )
-                    del run_func
+                run_func = functools.partial(node_instance.run, *enforced_inputs)
+                raw_output, execution_time = await self.loop.run_in_executor(
+                    self.pool, timed_supplier(run_func)
+                )
                 output = to_output(raw_output, node_instance)
+                del run_func
             except Aborted:
                 raise
             except NodeExecutionError:

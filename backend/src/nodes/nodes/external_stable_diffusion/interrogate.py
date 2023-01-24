@@ -2,20 +2,20 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as RESTCategory
-from ...impl.rest import (
+from . import category as ExternalStableDiffusionCategory
+from ...impl.external_stable_diffusion import (
     STABLE_DIFFUSION_INTERROGATE_URL,
-    post_async,
+    post,
     encode_base64_image,
 )
-from ...node_base import AsyncNodeBase
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import TextOutput
 
 
-@NodeFactory.register("chainner:rest:sd_interrogate")
-class Interrogate(AsyncNodeBase):
+@NodeFactory.register("chainner:external_stable_diffusion:interrograte")
+class Interrogate(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
@@ -28,16 +28,14 @@ class Interrogate(AsyncNodeBase):
             TextOutput("Text"),
         ]
 
-        self.category = RESTCategory
+        self.category = ExternalStableDiffusionCategory
         self.name = "CLIP Interrogate"
         self.icon = "MdTextFields"
         self.sub = "Stable Diffusion"
 
-    async def run_async(self, image: np.ndarray) -> str:
+    def run(self, image: np.ndarray) -> str:
         request_data = {
             "image": encode_base64_image(image),
         }
-        response = await post_async(
-            url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data
-        )
+        response = post(url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data)
         return response["caption"]

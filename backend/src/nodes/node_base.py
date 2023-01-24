@@ -99,15 +99,6 @@ class NodeBase(metaclass=ABCMeta):
         return
 
 
-class AsyncNodeBase(NodeBase):
-    def run(self) -> Any:
-        raise RuntimeError("AsyncNodeBase shouldn't have its run() method called.")
-
-    @abstractmethod
-    async def run_async(self) -> Any:
-        return
-
-
 # pylint: disable=abstract-method
 class IteratorNodeBase(NodeBase):
     """Base class for an iterator node"""

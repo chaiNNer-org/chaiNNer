@@ -4,7 +4,7 @@ from .image_filter import category as ImageFilterCategory
 from .image_dimension import category as ImageDimensionCategory
 from .image_channel import category as ImageChannelCategory
 from .image_utility import category as ImageUtilityCategory
-from .rest import category as RESTCategory
+from .external_stable_diffusion import category as ExternalStableDiffusionCategory
 from .utility import category as UtilityCategory
 from .pytorch import category as PyTorchCategory
 from .ncnn import category as NCNNCategory
@@ -22,6 +22,6 @@ builtin_categories = [
     PyTorchCategory,
     NCNNCategory,
     ONNXCategory,
-    RESTCategory,
+    ExternalStableDiffusionCategory,
 ]
 category_order = [x.name for x in builtin_categories]
