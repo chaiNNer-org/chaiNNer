@@ -25,8 +25,6 @@ class RandomNumberNode(NodeBase):
                 "Maximum Value",
                 minimum=None,
                 maximum=None,
-                precision=100,
-                controls_step=1,
             ),
             NumberInput(
                 "Seed",
