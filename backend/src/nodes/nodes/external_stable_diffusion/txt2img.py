@@ -26,7 +26,7 @@ class Txt2Img(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
-            "Generate an image using an external Stable Diffusion service"
+            "Generate an image using Automatic1111"
         )
         self.inputs = [
             TextInput("Prompt", default="an astronaut riding a horse"),
@@ -55,7 +55,7 @@ class Txt2Img(NodeBase):
         self.category = ExternalStableDiffusionCategory
         self.name = "Text-to-Image"
         self.icon = "BsFillImageFill"
-        self.sub = "Stable Diffusion"
+        self.sub = "Automatic1111"
 
     def run(
         self,

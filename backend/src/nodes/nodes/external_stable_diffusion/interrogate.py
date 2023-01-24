@@ -19,7 +19,7 @@ class Interrogate(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
-            "Use an external Stable Diffusion service to get a description of an image"
+            "Use Automatic1111 to get a description of an image"
         )
         self.inputs = [
             ImageInput(),
@@ -31,7 +31,7 @@ class Interrogate(NodeBase):
         self.category = ExternalStableDiffusionCategory
         self.name = "CLIP Interrogate"
         self.icon = "MdTextFields"
-        self.sub = "Stable Diffusion"
+        self.sub = "Automatic1111"
 
     def run(self, image: np.ndarray) -> str:
         request_data = {

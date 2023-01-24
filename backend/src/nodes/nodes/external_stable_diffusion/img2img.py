@@ -27,7 +27,7 @@ from typing import Optional
 class Img2Img(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Modify an image using an external Stable Diffusion service"
+        self.description = "Modify an image using Automatic1111"
         self.inputs = [
             ImageInput(),
             TextInput("Prompt", default="an astronaut riding a horse"),
@@ -64,7 +64,7 @@ class Img2Img(NodeBase):
         self.category = ExternalStableDiffusionCategory
         self.name = "Image-to-Image"
         self.icon = "MdChangeCircle"
-        self.sub = "Stable Diffusion"
+        self.sub = "Automatic1111"
 
     def run(
         self,
