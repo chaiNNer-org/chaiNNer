@@ -31,7 +31,8 @@ class RandomNumberNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NumberOutput("Result", output_type="number")
+            NumberOutput("Result", output_type="int & max(.., Input0) & min(.., Input1)")
+
         ]
 
         self.category = UtilityCategory
