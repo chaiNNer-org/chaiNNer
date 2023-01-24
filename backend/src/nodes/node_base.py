@@ -98,6 +98,7 @@ class NodeBase(metaclass=ABCMeta):
         """Abstract method to run a node's logic"""
         return
 
+
 class AsyncNodeBase(NodeBase):
     def run(self) -> Any:
         raise RuntimeError("AsyncNodeBase shouldn't have its run() method called.")
@@ -105,7 +106,6 @@ class AsyncNodeBase(NodeBase):
     @abstractmethod
     async def run_async(self) -> Any:
         return
-
 
 
 # pylint: disable=abstract-method

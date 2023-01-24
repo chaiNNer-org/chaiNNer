@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from sanic.log import logger
+import numpy as np
 
 from . import category as RESTCategory
-from ...impl.rest import STABLE_DIFFUSION_INTERROGATE_URL, post_async, encode_base64_image
+from ...impl.rest import (
+    STABLE_DIFFUSION_INTERROGATE_URL,
+    post_async,
+    encode_base64_image,
+)
 from ...node_base import AsyncNodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -14,7 +18,9 @@ from ...properties.outputs import TextOutput
 class Interrogate(AsyncNodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Use an external Stable Diffusion service to get a description of an image"
+        self.description = (
+            "Use an external Stable Diffusion service to get a description of an image"
+        )
         self.inputs = [
             ImageInput(),
         ]
@@ -29,7 +35,9 @@ class Interrogate(AsyncNodeBase):
 
     async def run_async(self, image: np.ndarray) -> str:
         request_data = {
-            'image': encode_base64_image(image),
+            "image": encode_base64_image(image),
         }
-        response = await post_async(url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data)
-        return response['caption']
+        response = await post_async(
+            url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data
+        )
+        return response["caption"]

@@ -346,7 +346,9 @@ class Executor:
             try:
                 # Run the node and pass in inputs as args
                 if isinstance(node_instance, AsyncNodeBase):
-                    run_func = functools.partial(node_instance.run_async, *enforced_inputs)
+                    run_func = functools.partial(
+                        node_instance.run_async, *enforced_inputs
+                    )
                     raw_output, execution_time = await timed_supplier_async(run_func)
                     del run_func
                 else:

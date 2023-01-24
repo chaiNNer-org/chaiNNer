@@ -7,7 +7,6 @@ import numpy as np
 import os
 from PIL import Image
 from enum import Enum
-from sanic.log import logger
 from typing import Dict, Union
 
 from .image_utils import normalize
@@ -16,10 +15,18 @@ from ..utils.utils import get_h_w_c
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
 
-STABLE_DIFFUSION_TEXT2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
-STABLE_DIFFUSION_IMG2IMG_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
-STABLE_DIFFUSION_INTERROGATE_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
-STABLE_DIFFUSION_OPTIONS_URL = f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
+STABLE_DIFFUSION_TEXT2IMG_URL = (
+    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
+)
+STABLE_DIFFUSION_IMG2IMG_URL = (
+    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
+)
+STABLE_DIFFUSION_INTERROGATE_URL = (
+    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
+)
+STABLE_DIFFUSION_OPTIONS_URL = (
+    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
+)
 
 
 async def get_async(url) -> Dict:
@@ -63,7 +70,7 @@ def encode_base64_image(image_nparray: np.ndarray) -> str:
     with io.BytesIO() as buffer:
         with Image.fromarray(image_nparray) as image:
             image.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
 class SamplerName(Enum):
@@ -73,16 +80,16 @@ class SamplerName(Enum):
     HEUN = "Heun"
     DPM2 = "DPM2"
     DPM2_A = "DPM2 a"
-    DPMpp_2S_A = 'DPM++ 2S a'
-    DPMpp_2M = 'DPM++ 2M'
-    DPMpp_SDE = 'DPM++ SDE'
-    DPM_FAST = 'DPM fast'
-    DPM_A = 'DPM adaptive'
-    LMS_KARRAS = 'LMS Karras'
-    DPM2_KARRAS = 'DPM2 Karras'
-    DPM2_A_KARRAS = 'DPM2 a Karras'
-    DPMpp_2S_A_KARRAS = 'DPM++ 2S a Karras'
-    DPMpp_2M_KARRAS = 'DPM++ 2M Karras'
-    DPMpp_SDE_KARRAS = 'DPM++ SDE Karras'
-    DDIM = 'DDIM'
-    PLMS = 'PLMS'
+    DPMpp_2S_A = "DPM++ 2S a"
+    DPMpp_2M = "DPM++ 2M"
+    DPMpp_SDE = "DPM++ SDE"
+    DPM_FAST = "DPM fast"
+    DPM_A = "DPM adaptive"
+    LMS_KARRAS = "LMS Karras"
+    DPM2_KARRAS = "DPM2 Karras"
+    DPM2_A_KARRAS = "DPM2 a Karras"
+    DPMpp_2S_A_KARRAS = "DPM++ 2S a Karras"
+    DPMpp_2M_KARRAS = "DPM++ 2M Karras"
+    DPMpp_SDE_KARRAS = "DPM++ SDE Karras"
+    DDIM = "DDIM"
+    PLMS = "PLMS"
