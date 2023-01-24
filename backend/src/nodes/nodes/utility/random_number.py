@@ -40,7 +40,7 @@ class RandomNumberNode(NodeBase):
         self.sub = "Math"
 
     def run(self, a: int, b: int, c: int) -> int:
-        if c != -1:  #if seed value is -1, don't use a seed
-            seed(c)
-        result = randint(a,b)
-        return result
+        if c == -1:  # random seed
+            return randint(a, b)
+        else:
+            return random.Random(c).randint(a, b)
