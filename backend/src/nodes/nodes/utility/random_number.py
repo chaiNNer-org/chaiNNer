@@ -26,14 +26,9 @@ class RandomNumberNode(NodeBase):
                 minimum=None,
                 maximum=None,
             ),
-            NumberInput(
-                "Seed",
-                minimum=-1,
-                maximum=None,
-                default=-1,
-                precision=100,
-                controls_step=1,
-            )
+            group("seed")(
+                NumberInput("Seed", minimum=-1, maximum=None, default=-1),
+            ),
         ]
         self.outputs = [
             NumberOutput("Result", output_type="number")
