@@ -19,7 +19,7 @@ from ...properties.inputs import (
     EnumInput,
     ImageInput,
 )
-from ...properties.outputs import LargeImageOutput
+from ...properties.outputs import ImageOutput
 from typing import Optional
 
 
@@ -59,11 +59,11 @@ class Img2Img(NodeBase):
             TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
-            LargeImageOutput(),
+            ImageOutput(),
         ]
 
         self.category = ExternalStableDiffusionCategory
-        self.name = "Image-to-Image"
+        self.name = "Image to Image"
         self.icon = "MdChangeCircle"
         self.sub = "Automatic1111"
 

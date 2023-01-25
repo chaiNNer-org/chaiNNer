@@ -17,7 +17,7 @@ from ...properties.inputs import (
     SliderInput,
     EnumInput,
 )
-from ...properties.outputs import LargeImageOutput
+from ...properties.outputs import ImageOutput
 from typing import Optional
 
 
@@ -47,11 +47,11 @@ class Txt2Img(NodeBase):
             TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
-            LargeImageOutput(),
+            ImageOutput(),
         ]
 
         self.category = ExternalStableDiffusionCategory
-        self.name = "Text-to-Image"
+        self.name = "Text to Image"
         self.icon = "BsFillImageFill"
         self.sub = "Automatic1111"
 
