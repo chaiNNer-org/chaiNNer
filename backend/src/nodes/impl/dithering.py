@@ -6,11 +6,26 @@ from typing import Tuple
 from ..utils.utils import get_h_w_c
 from .image_utils import MAX_VALUES_BY_DTYPE
 
+class BayerThresholdMapSize(Enum):
+    SIZE0="0"
+    SIZE2="2"
+    SIZE4="4"
+    SIZE8="8"
+    SIZE16="16"
+
+BAYER_THRESHOLD_MAP_SIZE_LABELS = {
+    BayerThresholdMapSize.SIZE0: "No Dithering",
+    BayerThresholdMapSize.SIZE2: "2x2",
+    BayerThresholdMapSize.SIZE4: "4x4",
+    BayerThresholdMapSize.SIZE8: "8x8",
+    BayerThresholdMapSize.SIZE16: "16x16",
+}
+
 # https://en.wikipedia.org/wiki/Ordered_dithering
 BAYER_THRESHOLD_MAPS = {
-    2: np.array([[0, 2], [3, 1]]),
-    4: np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]),
-    8: np.array(
+    BayerThresholdMapSize.SIZE2: np.array([[0, 2], [3, 1]]),
+    BayerThresholdMapSize.SIZE4: np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]),
+    BayerThresholdMapSize.SIZE8: np.array(
         [
             [0, 32, 8, 40, 2, 34, 10, 42],
             [48, 16, 56, 24, 50, 18, 58, 26],
@@ -22,7 +37,7 @@ BAYER_THRESHOLD_MAPS = {
             [63, 31, 55, 23, 61, 29, 53, 21],
         ]
     ),
-    16: np.array(
+    BayerThresholdMapSize.SIZE16: np.array(
         [
             [0, 191, 48, 239, 12, 203, 60, 251, 3, 194, 51, 242, 15, 206, 63, 254],
             [
@@ -147,13 +162,12 @@ BAYER_THRESHOLD_MAPS = {
 }
 
 
-def get_threshold_map(image_shape: Tuple[int, int], map_size: int) -> np.ndarray:
-    if map_size == 0:
+def get_threshold_map(image_shape: Tuple[int, int], map_size: BayerThresholdMapSize) -> np.ndarray:
+    if map_size == BayerThresholdMapSize.SIZE0:
         return np.array([[0]])
-    threshold_map = (
-        BAYER_THRESHOLD_MAPS[map_size].astype("float32") / map_size**2 - 0.5
-    )
-    repeats = (np.array(image_shape) // map_size) + 1
+    threshold_map = BAYER_THRESHOLD_MAPS[map_size].astype("float32")
+    threshold_map = threshold_map / threshold_map.size - 0.5
+    repeats = (np.array(image_shape) // threshold_map.shape[0]) + 1
     threshold_map = np.tile(threshold_map, repeats)
     return threshold_map[: image_shape[0], : image_shape[1]]
 
@@ -174,7 +188,7 @@ def quantize_float_image(image: np.ndarray, num_colors: int) -> np.ndarray:
 
 
 def one_channel_bayer_filter(
-    image: np.ndarray, map_size: int, num_colors: int
+    image: np.ndarray, map_size: BayerThresholdMapSize, num_colors: int
 ) -> np.ndarray:
     """
     Apply a Bayer dithering algorithm to the input greyscale image.  The output will be dithered and
@@ -190,7 +204,7 @@ def one_channel_bayer_filter(
     return float_to_dtype(out_image, image.dtype)
 
 
-def bayer_filter(image: np.ndarray, map_size: int, num_colors: int) -> np.ndarray:
+def bayer_filter(image: np.ndarray, map_size: BayerThresholdMapSize, num_colors: int) -> np.ndarray:
     if image.ndim == 2:
         return one_channel_bayer_filter(image, map_size, num_colors)
 
