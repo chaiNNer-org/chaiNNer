@@ -18,9 +18,7 @@ from ...properties.outputs import TextOutput
 class Interrogate(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Use Automatic1111 to get a description of an image"
-        )
+        self.description = "Use Automatic1111 to get a description of an image"
         self.inputs = [
             ImageInput(),
         ]

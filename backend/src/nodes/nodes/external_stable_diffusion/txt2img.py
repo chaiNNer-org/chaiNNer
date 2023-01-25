@@ -25,9 +25,7 @@ from typing import Optional
 class Txt2Img(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Generate an image using Automatic1111"
-        )
+        self.description = "Generate an image using Automatic1111"
         self.inputs = [
             TextInput("Prompt", default="an astronaut riding a horse"),
             TextInput("Negative Prompt").make_optional(),
