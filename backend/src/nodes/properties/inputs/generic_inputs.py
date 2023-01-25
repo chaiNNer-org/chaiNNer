@@ -379,7 +379,7 @@ def DdsFormatDropdown() -> DropDownInput:
                 "value": "BC3_UNORM",
             },
             {
-                "option": "BC4 (Linear, Unsigned, DX 10+)",
+                "option": "BC4 (Linear, DX 10+)",
                 "value": "BC4_UNORM",
             },
             {
