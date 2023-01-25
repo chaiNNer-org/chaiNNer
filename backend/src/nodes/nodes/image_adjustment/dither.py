@@ -46,7 +46,7 @@ class DitherNode(NodeBase):
                     },
                 ],
                 default_value=16,
-            )
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = ImageAdjustmentCategory
