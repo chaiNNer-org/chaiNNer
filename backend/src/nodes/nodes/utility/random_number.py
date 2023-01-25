@@ -1,5 +1,5 @@
 from __future__ import annotations
-from random import Random, randint
+from random import randint, seed
 from . import category as UtilityCategory
 
 from ...node_base import NodeBase, group
@@ -23,9 +23,19 @@ class RandomNumberNode(NodeBase):
                 "Maximum Value",
                 minimum=None,
                 maximum=None,
+                default=100,
             ),
             group("seed")(
-                NumberInput("Seed", minimum=-1, maximum=None, default=-1),
+                NumberInput(
+                    "Seed",
+                    minimum=0,
+                    maximum=None,
+                ),
+            ),
+            NumberInput(
+                "Index from Iterator",
+                minimum=0,
+                maximum=None,
             ),
         ]
         self.outputs = [
@@ -39,8 +49,6 @@ class RandomNumberNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Math"
 
-    def run(self, a: int, b: int, c: int) -> int:
-        if c == -1:  # random seed
-            return randint(a, b)
-        else:
-            return Random(c).randint(a, b)
+    def run(self, minval: int, maxval: int, seedval: int, frameval: int) -> int:
+        seed((frameval + 1) * (seedval + 1))
+        return randint(minval, maxval)
