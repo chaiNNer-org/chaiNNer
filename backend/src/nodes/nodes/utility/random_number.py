@@ -1,10 +1,8 @@
 from __future__ import annotations
-from random import seed, randint
-from typing import Union
-
+from random import Random, randint
 from . import category as UtilityCategory
 
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import NumberInput
 from ...properties.outputs import NumberOutput
@@ -31,8 +29,9 @@ class RandomNumberNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NumberOutput("Result", output_type="int & max(.., Input0) & min(.., Input1)")
-
+            NumberOutput(
+                "Result", output_type="int & max(.., Input0) & min(.., Input1)"
+            )
         ]
 
         self.category = UtilityCategory
@@ -44,4 +43,4 @@ class RandomNumberNode(NodeBase):
         if c == -1:  # random seed
             return randint(a, b)
         else:
-            return random.Random(c).randint(a, b)
+            return Random(c).randint(a, b)
