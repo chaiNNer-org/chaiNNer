@@ -32,11 +32,7 @@ class RandomNumberNode(NodeBase):
                     maximum=None,
                 ),
             ),
-            NumberInput(
-                "Index from Iterator",
-                minimum=0,
-                maximum=None,
-            ),
+            BaseInput(input_type="uint", label="Index from Iterator", kind="generic").make_optional(),
         ]
         self.outputs = [
             NumberOutput(
