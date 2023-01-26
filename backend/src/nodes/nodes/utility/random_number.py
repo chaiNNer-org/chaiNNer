@@ -50,5 +50,5 @@ class RandomNumberNode(NodeBase):
         self.sub = "Math"
 
     def run(self, minval: int, maxval: int, seedval: int, frameval: int) -> int:
-        seed((frameval + 1) * (seedval + 1))
-        return randint(minval, maxval)
+        return random.Random((frameval + 1) * (seedval + 1)).randint(minval, maxval)
+
