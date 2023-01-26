@@ -43,6 +43,7 @@ interface AdvancedNumberInputProps {
     setInput: (value: number) => void;
 
     onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
+    inputWidth?: string;
 }
 
 export const AdvancedNumberInput = memo(
@@ -63,6 +64,7 @@ export const AdvancedNumberInput = memo(
         setInput,
 
         onContextMenu,
+        inputWidth,
     }: AdvancedNumberInputProps) => {
         const onBlur = () => {
             const valAsNumber =
@@ -119,8 +121,7 @@ export const AdvancedNumberInput = memo(
                             m={0}
                             p={1}
                             size={1}
-                            // dynamic width based on precision
-                            w={`${3 + 0.5 * precision}rem`}
+                            w={inputWidth}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />
@@ -167,6 +168,7 @@ export const AdvancedNumberInput = memo(
                         borderRightRadius="lg"
                         px={unit ? 2 : 4}
                         size={1}
+                        w={inputWidth}
                     />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
