@@ -20,13 +20,14 @@ def next_power_of_two(x: int) -> int:
 def error_sum(history: deque, decay_ratio: float, value_type):
     b = math.e ** (math.log(decay_ratio) / (history.maxlen - 1))
     z = value_type()
-    for i,x in enumerate(history):
-        z += x * b ** i
+    for i, x in enumerate(history):
+        z += x * b**i
     return z
 
 
-def one_channel_riemersma_dither(image: np.ndarray, history_length: int, decay_ratio: float,
-                                 num_colors: int) -> np.ndarray:
+def one_channel_riemersma_dither(
+    image: np.ndarray, history_length: int, decay_ratio: float, num_colors: int
+) -> np.ndarray:
 
     curve_size = next_power_of_two(max(image.shape))
 
@@ -46,15 +47,25 @@ def one_channel_riemersma_dither(image: np.ndarray, history_length: int, decay_r
     return float_to_dtype(out, original_dtype)
 
 
-def riemersma_dither(image: np.ndarray, history_length: int, decay_ratio: float,
-                     num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_riemersma_dither, image, history_length=history_length,
-                                 decay_ratio=decay_ratio, num_colors=num_colors)
+def riemersma_dither(
+    image: np.ndarray, history_length: int, decay_ratio: float, num_colors: int
+) -> np.ndarray:
+    return apply_to_all_channels(
+        one_channel_riemersma_dither,
+        image,
+        history_length=history_length,
+        decay_ratio=decay_ratio,
+        num_colors=num_colors,
+    )
 
 
-def nearest_color_riemersma_dither(image: np.ndarray, palette: np.ndarray,
-                                   color_distance_function: ColorDistanceFunction,
-                                   history_length: int, decay_ratio: float) -> np.ndarray:
+def nearest_color_riemersma_dither(
+    image: np.ndarray,
+    palette: np.ndarray,
+    color_distance_function: ColorDistanceFunction,
+    history_length: int,
+    decay_ratio: float,
+) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)
     if palette.ndim == 2:

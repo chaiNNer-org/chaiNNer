@@ -115,8 +115,9 @@ ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
 }
 
 
-def one_channel_uniform_error_diffusion(image: np.ndarray, num_colors: int,
-                                        error_diffusion_map: ErrorDiffusionMap) -> np.ndarray:
+def one_channel_uniform_error_diffusion(
+    image: np.ndarray, num_colors: int, error_diffusion_map: ErrorDiffusionMap
+) -> np.ndarray:
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
     for j in range(output_image.shape[1]):
@@ -125,20 +126,29 @@ def one_channel_uniform_error_diffusion(image: np.ndarray, num_colors: int,
             output_image[i, j] = find_closest_uniform_color(pixel, num_colors)
             error = pixel - output_image[i, j]
             for (di, dj), coefficient in edm.items():
-                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]: continue
+                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]:
+                    continue
                 output_image[i + di, j + dj] += error * coefficient
     return float_to_dtype(output_image, image.dtype)
 
 
-def uniform_error_diffusion_dither(image: np.ndarray, error_diffusion_map: ErrorDiffusionMap,
-                                   num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_uniform_error_diffusion,
-                                 image, num_colors=num_colors, error_diffusion_map=error_diffusion_map)
+def uniform_error_diffusion_dither(
+    image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int
+) -> np.ndarray:
+    return apply_to_all_channels(
+        one_channel_uniform_error_diffusion,
+        image,
+        num_colors=num_colors,
+        error_diffusion_map=error_diffusion_map,
+    )
 
 
-def nearest_color_error_diffusion_dither(image: np.ndarray, palette: np.ndarray,
-                                         color_distance_function: ColorDistanceFunction,
-                                         error_diffusion_map: ErrorDiffusionMap) -> np.ndarray:
+def nearest_color_error_diffusion_dither(
+    image: np.ndarray,
+    palette: np.ndarray,
+    color_distance_function: ColorDistanceFunction,
+    error_diffusion_map: ErrorDiffusionMap,
+) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)
     if palette.ndim == 2:
@@ -149,9 +159,12 @@ def nearest_color_error_diffusion_dither(image: np.ndarray, palette: np.ndarray,
     for j in range(output_image.shape[1]):
         for i in range(output_image.shape[0]):
             pixel = np.array(output_image[i, j, :])
-            _, output_image[i, j, :] = find_nearest_color(pixel, palette, color_distance_function)
+            _, output_image[i, j, :] = find_nearest_color(
+                pixel, palette, color_distance_function
+            )
             error = pixel - output_image[i, j, :]
             for (di, dj), coefficient in edm.items():
-                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]: continue
+                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]:
+                    continue
                 output_image[i + di, j + dj, :] += error * coefficient
     return float_to_dtype(output_image, image.dtype)

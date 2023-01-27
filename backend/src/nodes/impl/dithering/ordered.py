@@ -22,17 +22,35 @@ THRESHOLD_MAP_LABELS = {
 }
 THRESHOLD_MAPS = {
     # https://en.wikipedia.org/wiki/Ordered_dithering
-    ThresholdMap.BAYER_2: np.array(list(map(int, """
+    ThresholdMap.BAYER_2: np.array(
+        list(
+            map(
+                int,
+                """
         0 2
         3 1
-        """.strip().split()))).reshape((2, 2)),
-    ThresholdMap.BAYER_4: np.array(list(map(int, """
+        """.strip().split(),
+            )
+        )
+    ).reshape((2, 2)),
+    ThresholdMap.BAYER_4: np.array(
+        list(
+            map(
+                int,
+                """
          0  8  2 10
         12  4 14  6
          3 11  1  9
         15  7 13  5
-        """.strip().split()))).reshape((4, 4)),
-    ThresholdMap.BAYER_8: np.array(list(map(int, """
+        """.strip().split(),
+            )
+        )
+    ).reshape((4, 4)),
+    ThresholdMap.BAYER_8: np.array(
+        list(
+            map(
+                int,
+                """
         0  32  8  40  2  34  10  42
         48  16  56  24  50  18  58  26
         12  44  4  36  14  46  6  38
@@ -41,8 +59,15 @@ THRESHOLD_MAPS = {
         51  19  59  27  49  17  57  25
         15  47  7  39  13  45  5  37
         63  31  55  23  61  29  53  21
-        """.strip().split()))).reshape((8, 8)),
-    ThresholdMap.BAYER_16: np.array(list(map(int, """
+        """.strip().split(),
+            )
+        )
+    ).reshape((8, 8)),
+    ThresholdMap.BAYER_16: np.array(
+        list(
+            map(
+                int,
+                """
          0  191  48  239  12  203  60  251  3  194  51  242  15  206  63  254 
          127 64 175 112 139 76 187 124 130 67 178 115 142 79 190 127  
          32 223 16 207 44 235 28 219 35 226 19 210 47 238 31 222
@@ -59,11 +84,16 @@ THRESHOLD_MAPS = {
          137 74 185 122 133 70 181 118 136 73 184 121 132 69 180 117  
          42 233 26 217 38 229 22 213 41 232 25 216 37 228 21 212 
          169 106 153 90 165 102 149 86 168 105 152 89 164 101 148 85  
-        """.strip().split()))).reshape((16, 16)),
+        """.strip().split(),
+            )
+        )
+    ).reshape((16, 16)),
 }
 
 
-def get_threshold_map(image_shape: Tuple[int, int], threshold_map: ThresholdMap) -> np.ndarray:
+def get_threshold_map(
+    image_shape: Tuple[int, int], threshold_map: ThresholdMap
+) -> np.ndarray:
     """
     Normalize the threshold map and tile it to match the given image shape.
     """
@@ -74,7 +104,9 @@ def get_threshold_map(image_shape: Tuple[int, int], threshold_map: ThresholdMap)
     return tm[: image_shape[0], : image_shape[1]]
 
 
-def one_channel_ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, num_colors: int) -> np.ndarray:
+def one_channel_ordered_dither(
+    image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
+) -> np.ndarray:
     """
     Apply an ordered dithering algorithm to the input greyscale image.  The output will be dithered and
     quantized to the given number of evenly-spaced values.
@@ -89,5 +121,12 @@ def one_channel_ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, n
     return float_to_dtype(out_image, image.dtype)
 
 
-def ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_ordered_dither, image, threshold_map=threshold_map, num_colors=num_colors)
+def ordered_dither(
+    image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
+) -> np.ndarray:
+    return apply_to_all_channels(
+        one_channel_ordered_dither,
+        image,
+        threshold_map=threshold_map,
+        num_colors=num_colors,
+    )

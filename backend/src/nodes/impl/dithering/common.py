@@ -12,8 +12,9 @@ def float_to_dtype(image: np.ndarray, dtype: np.dtype) -> np.ndarray:
     return (image * max_value).astype(dtype)
 
 
-
-def apply_to_all_channels(one_channel_filter, image: np.ndarray, *args, **kwargs) -> np.ndarray:
+def apply_to_all_channels(
+    one_channel_filter, image: np.ndarray, *args, **kwargs
+) -> np.ndarray:
     if image.ndim == 2:
         return one_channel_filter(image, *args, **kwargs)
     output_image = np.stack(
@@ -24,5 +25,3 @@ def apply_to_all_channels(one_channel_filter, image: np.ndarray, *args, **kwargs
         axis=2,
     )
     return output_image
-
-
