@@ -6,9 +6,7 @@ import numpy as np
 
 from . import category as ImageAdjustmentCategory
 from ...impl.dithering.color_distance import (
-    batch_manhattan_color_distance,
     ColorDistanceFunction,
-    COLOR_DISTANCE_FUNCTION_LABELS,
 )
 from ...impl.dithering.diffusion import (
     uniform_error_diffusion_dither,
@@ -139,19 +137,14 @@ class PaletteDitherNode(NodeBase):
             ImageInput(),
             ImageInput(label="LUT", image_type=expression.Image(channels_as="Input0")),
             EnumInput(
-                ColorDistanceFunction,
-                option_labels=COLOR_DISTANCE_FUNCTION_LABELS,
-                default_value=ColorDistanceFunction.EUCLIDEAN,
-            ).with_id(2),
-            EnumInput(
                 PaletteDitherAlgorithm,
                 option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
                 default_value=PaletteDitherAlgorithm.DIFFUSION,
-            ).with_id(3),
+            ).with_id(2),
             group(
                 "conditional-enum",
                 {
-                    "enum": 3,
+                    "enum": 2,
                     "conditions": [
                         PaletteDitherAlgorithm.DIFFUSION.value,
                         PaletteDitherAlgorithm.RIEMERSMA.value,
@@ -162,12 +155,12 @@ class PaletteDitherNode(NodeBase):
                     ErrorDiffusionMap,
                     option_labels=ERROR_PROPAGATION_MAP_LABELS,
                     default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
-                ).with_id(4),
+                ).with_id(3),
                 NumberInput(
                     "History Length",
                     minimum=2,
                     default=16,
-                ).with_id(5),
+                ).with_id(4),
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
@@ -180,27 +173,26 @@ class PaletteDitherNode(NodeBase):
         self,
         img: np.ndarray,
         palette: np.ndarray,
-        color_distance_function: ColorDistanceFunction,
         dither_algorithm: PaletteDitherAlgorithm,
         error_diffusion_map: ErrorDiffusionMap,
         history_length: int,
     ) -> np.ndarray:
         if dither_algorithm == PaletteDitherAlgorithm.NONE:
             return nearest_color_quantize(
-                img, palette=palette, color_distance_function=color_distance_function
+                img, palette=palette, color_distance_function=ColorDistanceFunction.EUCLIDEAN
             )
         elif dither_algorithm == PaletteDitherAlgorithm.DIFFUSION:
             return nearest_color_error_diffusion_dither(
                 img,
                 palette=palette,
-                color_distance_function=color_distance_function,
+                color_distance_function=ColorDistanceFunction.EUCLIDEAN,
                 error_diffusion_map=error_diffusion_map,
             )
         elif dither_algorithm == PaletteDitherAlgorithm.RIEMERSMA:
             return nearest_color_riemersma_dither(
                 img,
                 palette,
-                color_distance_function=color_distance_function,
+                color_distance_function=ColorDistanceFunction.EUCLIDEAN,
                 history_length=history_length,
                 decay_ratio=1 / history_length,
             )
