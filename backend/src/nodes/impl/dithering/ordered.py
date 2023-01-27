@@ -1,11 +1,7 @@
+from .common import uniform_quantize_image, dtype_to_float, float_to_dtype, apply_to_all_channels
 import numpy as np
 from enum import Enum
-from sanic.log import logger
-from typing import Tuple, Dict
-
-from .image_utils import MAX_VALUES_BY_DTYPE
-from ..utils.utils import get_h_w_c
-
+from typing import Tuple
 
 class ThresholdMap(Enum):
     BAYER_2 = "B2"
@@ -46,7 +42,6 @@ THRESHOLD_MAP_LABELS = {
     ThresholdMap.CIRCULAR_BLACK_7: "Black Circles 7x7",
     ThresholdMap.CIRCULAR_WHITE_7: "White Circles 7x7",
 }
-
 THRESHOLD_MAPS = {
     # https://en.wikipedia.org/wiki/Ordered_dithering
     ThresholdMap.BAYER_2: np.array(list(map(int, """
@@ -219,111 +214,6 @@ THRESHOLD_MAPS = {
 }
 
 
-class ErrorDiffusionMap(Enum):
-    FLOYD_STEINBERG = "FS"
-    JARVIS_ET_AL = "JJN"
-    STUCKI = "ST"
-    ATKINSON = "A"
-    BURKES = "B"
-    SIERRA = "S"
-    TWO_ROW_SIERRA = "S2"
-    SIERRA_LITE = "SL"
-
-
-ERROR_PROPAGATION_MAP_LABELS = {
-    ErrorDiffusionMap.FLOYD_STEINBERG: "Floyd-Steinberg",
-    ErrorDiffusionMap.JARVIS_ET_AL: "Jarvis, Judice, and Ninke",
-    ErrorDiffusionMap.STUCKI: "Stucki",
-    ErrorDiffusionMap.ATKINSON: "Atkinson",
-    ErrorDiffusionMap.BURKES: "Burkes",
-    ErrorDiffusionMap.SIERRA: "Sierra",
-    ErrorDiffusionMap.TWO_ROW_SIERRA: "Two Row Sierra",
-    ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
-}
-
-ERROR_DIFFUSION_MAP_TYPE = Dict[Tuple[int, int], float]
-ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
-    # https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
-    ErrorDiffusionMap.FLOYD_STEINBERG: {
-        (1, 0): 7 / 16,
-        (-1, 1): 3 / 16,
-        (0, 1): 5 / 16,
-        (1, 1): 1 / 16,
-    },
-    ErrorDiffusionMap.JARVIS_ET_AL: {
-        (1, 0): 7 / 48,
-        (2, 0): 5 / 48,
-        (-2, 1): 3 / 48,
-        (-1, 1): 5 / 48,
-        (0, 1): 7 / 48,
-        (1, 1): 5 / 48,
-        (2, 1): 3 / 48,
-        (-2, 2): 1 / 48,
-        (-1, 2): 3 / 48,
-        (0, 2): 5 / 48,
-        (1, 2): 3 / 48,
-        (2, 2): 1 / 48,
-    },
-    ErrorDiffusionMap.STUCKI: {
-        (1, 0): 8 / 42,
-        (2, 0): 4 / 42,
-        (-2, 1): 2 / 42,
-        (-1, 1): 4 / 42,
-        (0, 1): 8 / 42,
-        (1, 1): 4 / 42,
-        (2, 1): 2 / 42,
-        (-2, 2): 1 / 42,
-        (-1, 2): 2 / 42,
-        (0, 2): 4 / 42,
-        (1, 2): 2 / 42,
-        (2, 2): 1 / 42,
-    },
-    ErrorDiffusionMap.ATKINSON: {
-        (1, 0): 1 / 8,
-        (2, 0): 1 / 8,
-        (-1, 1): 1 / 8,
-        (0, 1): 1 / 8,
-        (1, 1): 1 / 8,
-        (0, 2): 1 / 8,
-    },
-    ErrorDiffusionMap.BURKES: {
-        (1, 0): 8 / 32,
-        (2, 0): 4 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
-        (0, 1): 8 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-    },
-    ErrorDiffusionMap.SIERRA: {
-        (1, 0): 5 / 32,
-        (2, 0): 3 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
-        (0, 1): 5 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-        (-1, 2): 2 / 32,
-        (0, 2): 3 / 32,
-        (1, 2): 2 / 32,
-    },
-    ErrorDiffusionMap.TWO_ROW_SIERRA: {
-        (1, 0): 4 / 16,
-        (2, 0): 3 / 16,
-        (-2, 1): 1 / 16,
-        (-1, 1): 2 / 16,
-        (0, 1): 3 / 16,
-        (1, 1): 2 / 16,
-        (2, 1): 1 / 16,
-    },
-    ErrorDiffusionMap.SIERRA_LITE: {
-        (1, 0): 2 / 4,
-        (-1, 1): 1 / 4,
-        (0, 1): 1 / 4,
-    },
-}
-
-
 def get_threshold_map(image_shape: Tuple[int, int], threshold_map: ThresholdMap) -> np.ndarray:
     """
     Normalize the threshold map and tile it to match the given image shape.
@@ -333,34 +223,6 @@ def get_threshold_map(image_shape: Tuple[int, int], threshold_map: ThresholdMap)
     repeats = (np.array(image_shape) // tm.shape[0]) + 1
     tm = np.tile(tm, repeats)
     return tm[: image_shape[0], : image_shape[1]]
-
-def get_error_diffusion_map(error_diffusion_map: ErrorDiffusionMap) -> ERROR_DIFFUSION_MAP_TYPE:
-    return ERROR_DIFFUSION_MAPS[error_diffusion_map]
-
-
-def dtype_to_float(image: np.ndarray) -> np.ndarray:
-    max_value = MAX_VALUES_BY_DTYPE.get(image.dtype, 1.0)
-    return image.astype(np.dtype("float32")) / max_value
-
-
-def float_to_dtype(image: np.ndarray, dtype: np.dtype) -> np.ndarray:
-    max_value = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
-    return (image * max_value).astype(dtype)
-
-
-def uniform_quantize_image(image: np.ndarray, num_colors: int) -> np.ndarray:
-    return np.floor(image * (num_colors - 1) + 0.5) / (num_colors - 1)
-
-
-def find_closest_uniform_color(value: float, num_colors: int) -> float:
-    return np.floor(value * (num_colors - 1) + 0.5) / (num_colors - 1)
-
-
-def one_channel_uniform_quantize(image: np.ndarray, num_colors: int) -> np.ndarray:
-    out_image = uniform_quantize_image(
-        dtype_to_float(image), num_colors=num_colors
-    )
-    return float_to_dtype(out_image, image.dtype)
 
 
 def one_channel_ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, num_colors: int) -> np.ndarray:
@@ -378,50 +240,5 @@ def one_channel_ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, n
     return float_to_dtype(out_image, image.dtype)
 
 
-def one_channel_error_diffusion(image: np.ndarray, num_colors: int,
-                                error_diffusion_map: ERROR_DIFFUSION_MAP_TYPE) -> np.ndarray:
-    output_image = dtype_to_float(image)
-    edm = get_error_diffusion_map(error_diffusion_map)
-    for j in range(output_image.shape[1]):
-        for i in range(output_image.shape[0]):
-            pixel = output_image[i, j]
-            output_image[i, j] = find_closest_uniform_color(pixel, num_colors)
-            error = pixel - output_image[i, j]
-            for (di, dj), coefficient in edm.items():
-                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]: continue
-                output_image[i + di, j + dj] += error * coefficient
-    return float_to_dtype(output_image, image.dtype)
-
-
-def apply_to_all_channels(one_channel_filter, image: np.ndarray, *args, **kwargs) -> np.ndarray:
-    if image.ndim == 2:
-        return one_channel_filter(image, *args, **kwargs)
-    output_image = np.stack(
-        [
-            one_channel_filter(image[:, :, channel], *args, **kwargs)
-            for channel in range(image.shape[2])
-        ],
-        axis=2,
-    )
-    return output_image
-
-
-def uniform_quantize(image: np.ndarray, num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_uniform_quantize, image, num_colors=num_colors)
-
-
 def ordered_dither(image: np.ndarray, threshold_map: ThresholdMap, num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_ordered_dither,
-                                 image, threshold_map=threshold_map, num_colors=num_colors)
-
-
-def error_diffusion_dither(image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_error_diffusion,
-                                 image, num_colors=num_colors, error_diffusion_map=error_diffusion_map)
-
-
-# TODO handle palettes
-#  extra from image
-#  optimal palette selection
-#  ensure palette different colorspace works
-#  support different color distance functions
+    return apply_to_all_channels(one_channel_ordered_dither, image, threshold_map=threshold_map, num_colors=num_colors)
