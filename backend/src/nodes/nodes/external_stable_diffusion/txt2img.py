@@ -42,12 +42,12 @@ class Txt2Img(NodeBase):
                 controls_step=0.1,
                 precision=1,
             ),
-            SliderInput("Width", minimum=64, default=512, maximum=2048),
-            SliderInput("Height", minimum=64, default=512, maximum=2048),
+            SliderInput("Width", minimum=64, default=512, maximum=2048).with_id(6),
+            SliderInput("Height", minimum=64, default=512, maximum=2048).with_id(7),
             TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
-            ImageOutput(),
+            ImageOutput(image_type="Image {width: Input6, height: Input7, channels: 3}"),
         ]
 
         self.category = ExternalStableDiffusionCategory
