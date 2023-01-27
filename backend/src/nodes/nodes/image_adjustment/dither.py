@@ -10,6 +10,7 @@ from ...impl.dithering.color_distance import batch_manhattan_color_distance, Col
 from ...impl.dithering.diffusion import uniform_error_diffusion_dither, ErrorDiffusionMap, ERROR_PROPAGATION_MAP_LABELS, \
     nearest_color_error_diffusion_dither
 from ...impl.dithering.ordered import ThresholdMap, THRESHOLD_MAP_LABELS, ordered_dither
+from ...impl.dithering.palette import distinct_colors
 from ...impl.dithering.quantize import nearest_color_quantize, uniform_quantize
 from ...impl.dithering.riemersma import riemersma_dither, nearest_color_riemersma_dither
 from ...node_base import NodeBase, group
@@ -160,40 +161,17 @@ class PaletteDitherNode(NodeBase):
                                                   decay_ratio=1 / history_length)
 
 
-@NodeFactory.register("chainner:image:manhattan_test")
+@NodeFactory.register("chainner:image:palette_from_image")
 class TestManhattanNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = ""
-        self.inputs = [
-            ImageInput(),
-            SliderInput(
-                "Red",
-                minimum=0,
-                maximum=255,
-                default=126,
-                gradient=["#000000", "#ff0000"],
-            ),
-            SliderInput(
-                "Green",
-                minimum=0,
-                maximum=255,
-                default=126,
-                gradient=["#000000", "#00ff00"],
-            ),
-            SliderInput(
-                "Blue",
-                minimum=0,
-                maximum=255,
-                default=126,
-                gradient=["#000000", "#0000ff"],
-            ),
-        ]
+        self.description = "Create a palette from all the distinct colors in an image."
+        self.inputs = [ImageInput()]
         self.outputs = [ImageOutput()]
         self.category = ImageAdjustmentCategory
-        self.name = "Manhattan (RGB)"
+        self.name = "Palette from Image"
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
 
-    def run(self, img: np.ndarray, red: float, green: float, blue: float) -> np.ndarray:
-        return batch_manhattan_color_distance(img, np.array([red, green, blue], dtype="uint8"))
+    def run(self, img: np.ndarray) -> np.ndarray:
+        return distinct_colors(img)
