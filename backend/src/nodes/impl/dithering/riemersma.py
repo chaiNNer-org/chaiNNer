@@ -1,8 +1,5 @@
 import math
 from collections import deque
-from typing import Generic
-
-from sanic.log import logger
 
 import numpy as np
 
@@ -11,16 +8,6 @@ from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
 from .quantize import find_closest_uniform_color, find_nearest_color
 from .hilbert import HilbertCurve
 from ..image_utils import as_3d
-
-
-def is_power_of_two(x: int) -> bool:
-    # powers of two have only one bit high
-    if x == 0:
-        return False
-    while x:
-        if x & 0b1:
-            return x == 0b1
-        x >>= 1
 
 
 def next_power_of_two(x: int) -> int:

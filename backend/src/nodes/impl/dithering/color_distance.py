@@ -25,16 +25,22 @@ def euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
 
 
 def red_weighted_euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
+    # https://www.compuphase.com/cmetric.htm
+    # weights that work well when red > 0.5
     _check_inputs(pixel, color, expect_rgb=True)
     return np.dot(np.power(pixel - color, 2).mean(), [3, 4, 2]).sum() / 9
 
 
 def non_red_weighted_euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
+    # https://www.compuphase.com/cmetric.htm
+    # weights that work well when red < 0.5
     _check_inputs(pixel, color, expect_rgb=True)
     return np.dot(np.power(pixel - color, 2).mean(), [2, 4, 3]).sum() / 9
 
 
 def adaptive_weighted_euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
+    # https://www.compuphase.com/cmetric.htm
+    # Interpolate the "red" and "non-red" weights above based on mean red value
     _check_inputs(pixel, color, expect_rgb=True)
     mean_red = (pixel[0] + color[0]) / 2
     return np.dot(np.power(pixel - color, 2).mean(), [2 + mean_red, 4, 3 - mean_red]).sum() / 9

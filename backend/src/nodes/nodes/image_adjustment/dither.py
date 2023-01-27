@@ -71,7 +71,7 @@ class DitherNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.category = ImageAdjustmentCategory
-        self.name = "Dither (Uniform)"
+        self.name = "Dither"
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
 
