@@ -17,7 +17,7 @@ from ...impl.dithering.diffusion import (
     nearest_color_error_diffusion_dither,
 )
 from ...impl.dithering.ordered import ThresholdMap, THRESHOLD_MAP_LABELS, ordered_dither
-from ...impl.dithering.palette import distinct_colors
+from ...impl.dithering.palette import distinct_colors, kmeans_palette
 from ...impl.dithering.quantize import nearest_color_quantize, uniform_quantize
 from ...impl.dithering.riemersma import riemersma_dither, nearest_color_riemersma_dither
 from ...node_base import NodeBase, group
@@ -206,17 +206,53 @@ class PaletteDitherNode(NodeBase):
             )
 
 
+class PaletteExtractionMethod(Enum):
+    ALL="all"
+    KMEANS="k-means"
+
+
+PALETTE_EXTRACTION_METHOD_LABELS = {
+    PaletteExtractionMethod.ALL: "All distinct colors",
+    PaletteExtractionMethod.KMEANS: "K-Means",
+}
+
+
 @NodeFactory.register("chainner:image:palette_from_image")
 class PaletteFromImage(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Create a palette from all the distinct colors in an image."
-        self.inputs = [ImageInput()]
+        self.description = "Create a palette an image."
+        self.inputs = [
+            ImageInput(),
+            EnumInput(
+                PaletteExtractionMethod,
+                option_labels=PALETTE_EXTRACTION_METHOD_LABELS,
+                default_value=PaletteExtractionMethod.KMEANS,
+            ).with_id(1),
+            group(
+                "conditional-enum",
+                {
+                    "enum": 1,
+                    "conditions": [
+                        PaletteExtractionMethod.KMEANS.value,
+                    ],
+                },
+            )(
+                NumberInput(
+                    "Palette Size",
+                    minimum=2,
+                    default=8,
+                ).with_id(2),
+            )
+        ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = ImageAdjustmentCategory
         self.name = "Palette from Image"
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
-        return distinct_colors(img)
+    def run(self, img: np.ndarray, palette_extraction_method: PaletteExtractionMethod, palette_size: int) -> np.ndarray:
+        if palette_extraction_method == PaletteExtractionMethod.ALL:
+            return distinct_colors(img)
+        elif palette_extraction_method == PaletteExtractionMethod.KMEANS:
+            return kmeans_palette(img, palette_size)
