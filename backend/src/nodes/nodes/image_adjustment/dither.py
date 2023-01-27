@@ -15,6 +15,7 @@ from ...impl.dithering.quantize import nearest_color_quantize, uniform_quantize
 from ...impl.dithering.riemersma import riemersma_dither, nearest_color_riemersma_dither
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput, NumberInput, EnumInput, SliderInput
 from ...properties.outputs import ImageOutput
 
@@ -69,7 +70,7 @@ class DitherNode(NodeBase):
                 ).with_id(5),
             )
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageAdjustmentCategory
         self.name = "Dither"
         self.icon = "MdShowChart"
@@ -109,10 +110,10 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
 class PaletteDitherNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply one of a variety of dithering algorithms using colors from a given palette. (A palette is an image with one row.)"
+        self.description = "Apply one of a variety of dithering algorithms using colors from a given palette. (Only the top row of pixels (y=0) of the palette will be used.)"
         self.inputs = [
             ImageInput(),
-            ImageInput(label="LUT"),
+            ImageInput(label="LUT", image_type=expression.Image(channels_as="Input0")),
             EnumInput(ColorDistanceFunction, option_labels=COLOR_DISTANCE_FUNCTION_LABELS,
                       default_value=ColorDistanceFunction.EUCLIDEAN).with_id(2),
             EnumInput(PaletteDitherAlgorithm, option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
@@ -137,7 +138,7 @@ class PaletteDitherNode(NodeBase):
                 ).with_id(5),
             )
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageAdjustmentCategory
         self.name = "Dither (Palette)"
         self.icon = "MdShowChart"
@@ -162,12 +163,12 @@ class PaletteDitherNode(NodeBase):
 
 
 @NodeFactory.register("chainner:image:palette_from_image")
-class TestManhattanNode(NodeBase):
+class PaletteFromImage(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Create a palette from all the distinct colors in an image."
         self.inputs = [ImageInput()]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = ImageAdjustmentCategory
         self.name = "Palette from Image"
         self.icon = "MdShowChart"
