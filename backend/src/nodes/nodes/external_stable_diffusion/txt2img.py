@@ -47,7 +47,9 @@ class Txt2Img(NodeBase):
             TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
-            ImageOutput(image_type="Image {width: Input6, height: Input7, channels: 3}"),
+            ImageOutput(
+                image_type="Image {width: Input6, height: Input7, channels: 3}"
+            ),
         ]
 
         self.category = ExternalStableDiffusionCategory
