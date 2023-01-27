@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Union
-from random import randint, Random
+from random import Random
+
 from . import category as UtilityCategory
 
 from ...node_base import NodeBase, group
