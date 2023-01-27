@@ -1,11 +1,13 @@
-import numpy as np
 from enum import Enum
-from sanic.log import logger
 from typing import Tuple, Dict
 
-from .common import dtype_to_float, float_to_dtype, uniform_quantize_image, find_closest_uniform_color, apply_to_all_channels
-from ..image_utils import MAX_VALUES_BY_DTYPE
-from ...utils.utils import get_h_w_c
+import numpy as np
+from sanic.log import logger
+
+from .color_distance import ColorDistanceFunction
+from .common import dtype_to_float, float_to_dtype, apply_to_all_channels
+from .quantize import find_closest_uniform_color, find_nearest_color
+from ..image_utils import as_3d
 
 
 class ErrorDiffusionMap(Enum):
@@ -113,8 +115,8 @@ ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
 }
 
 
-def one_channel_error_diffusion(image: np.ndarray, num_colors: int,
-                                error_diffusion_map: ERROR_DIFFUSION_MAP_TYPE) -> np.ndarray:
+def one_channel_uniform_error_diffusion(image: np.ndarray, num_colors: int,
+                                        error_diffusion_map: ErrorDiffusionMap) -> np.ndarray:
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
     for j in range(output_image.shape[1]):
@@ -128,6 +130,28 @@ def one_channel_error_diffusion(image: np.ndarray, num_colors: int,
     return float_to_dtype(output_image, image.dtype)
 
 
-def error_diffusion_dither(image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int) -> np.ndarray:
-    return apply_to_all_channels(one_channel_error_diffusion,
+def uniform_error_diffusion_dither(image: np.ndarray, error_diffusion_map: ErrorDiffusionMap,
+                                   num_colors: int) -> np.ndarray:
+    return apply_to_all_channels(one_channel_uniform_error_diffusion,
                                  image, num_colors=num_colors, error_diffusion_map=error_diffusion_map)
+
+
+def nearest_color_error_diffusion_dither(image: np.ndarray, palette: np.ndarray,
+                                         color_distance_function: ColorDistanceFunction,
+                                         error_diffusion_map: ErrorDiffusionMap) -> np.ndarray:
+    if image.ndim == 2:
+        image = as_3d(image)
+    if palette.ndim == 2:
+        palette = as_3d(palette)
+
+    output_image = dtype_to_float(image)
+    edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
+    for j in range(output_image.shape[1]):
+        for i in range(output_image.shape[0]):
+            pixel = np.array(output_image[i, j, :])
+            _, output_image[i, j, :] = find_nearest_color(pixel, palette, color_distance_function)
+            error = pixel - output_image[i, j, :]
+            for (di, dj), coefficient in edm.items():
+                if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]: continue
+                output_image[i + di, j + dj, :] += error * coefficient
+    return float_to_dtype(output_image, image.dtype)

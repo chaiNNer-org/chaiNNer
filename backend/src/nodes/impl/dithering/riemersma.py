@@ -1,11 +1,16 @@
 import math
 from collections import deque
+from typing import Generic
+
 from sanic.log import logger
 
 import numpy as np
 
-from .common import find_closest_uniform_color, apply_to_all_channels, dtype_to_float, float_to_dtype
+from .color_distance import ColorDistanceFunction
+from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
+from .quantize import find_closest_uniform_color, find_nearest_color
 from .hilbert import HilbertCurve
+from ..image_utils import as_3d
 
 
 def is_power_of_two(x: int) -> bool:
@@ -18,27 +23,39 @@ def is_power_of_two(x: int) -> bool:
         x >>= 1
 
 
-def error_sum(history: deque, decay_ratio: float):
+def next_power_of_two(x: int) -> int:
+    n = 1
+    while n < x:
+        n <<= 1
+    return n
+
+
+def error_sum(history: deque, decay_ratio: float, value_type):
     b = math.e ** (math.log(decay_ratio) / (history.maxlen - 1))
-    return sum(x * (b ** i) for i, x in enumerate(history))
+    z = value_type()
+    for i,x in enumerate(history):
+        z += x * b ** i
+    return z
 
 
-def one_channel_riemersma_dither(img: np.ndarray, history_length: int, decay_ratio: float,
+def one_channel_riemersma_dither(image: np.ndarray, history_length: int, decay_ratio: float,
                                  num_colors: int) -> np.ndarray:
-    assert img.shape[0] == img.shape[1] and is_power_of_two(
-        img.shape[0]), "Riemersma dithering only works with square images with a side length that's a power of two."
 
-    original_dtype = img.dtype
-    img = dtype_to_float(img)
+    curve_size = next_power_of_two(max(image.shape))
 
-    out = np.zeros_like(img)
+    original_dtype = image.dtype
+    image = dtype_to_float(image)
+
+    out = np.zeros_like(image)
     history = deque(maxlen=history_length)
 
-    for i, j in HilbertCurve(img.shape[0]):
-        es = error_sum(history, decay_ratio)
-        value = img[i, j] + es
+    for i, j in HilbertCurve(curve_size):
+        if i >= image.shape[0] or j >= image.shape[1]:
+            continue
+        es = error_sum(history, decay_ratio, float)
+        value = image[i, j] + es
         out[i, j] = find_closest_uniform_color(value, num_colors)
-        history.appendleft(img[i, j] - out[i, j])
+        history.appendleft(image[i, j] - out[i, j])
     return float_to_dtype(out, original_dtype)
 
 
@@ -46,3 +63,29 @@ def riemersma_dither(image: np.ndarray, history_length: int, decay_ratio: float,
                      num_colors: int) -> np.ndarray:
     return apply_to_all_channels(one_channel_riemersma_dither, image, history_length=history_length,
                                  decay_ratio=decay_ratio, num_colors=num_colors)
+
+
+def nearest_color_riemersma_dither(image: np.ndarray, palette: np.ndarray,
+                                   color_distance_function: ColorDistanceFunction,
+                                   history_length: int, decay_ratio: float) -> np.ndarray:
+    if image.ndim == 2:
+        image = as_3d(image)
+    if palette.ndim == 2:
+        palette = as_3d(palette)
+
+    curve_size = next_power_of_two(max(image.shape))
+
+    original_dtype = image.dtype
+    image = dtype_to_float(image)
+
+    out = np.zeros_like(image)
+    history = deque(maxlen=history_length)
+
+    for i, j in HilbertCurve(curve_size):
+        if i >= image.shape[0] or j >= image.shape[1]:
+            continue
+        es = error_sum(history, decay_ratio, lambda: np.zeros((image.shape[2])))
+        pixel = image[i, j, :] + es
+        _, out[i, j, :] = find_nearest_color(pixel, palette, color_distance_function)
+        history.appendleft(image[i, j, :] - out[i, j, :])
+    return float_to_dtype(out, original_dtype)

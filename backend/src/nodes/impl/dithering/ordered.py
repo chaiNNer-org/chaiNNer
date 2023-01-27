@@ -3,7 +3,8 @@ from typing import Tuple
 
 import numpy as np
 
-from .common import uniform_quantize_image, dtype_to_float, float_to_dtype, apply_to_all_channels
+from .common import dtype_to_float, float_to_dtype, apply_to_all_channels
+from .quantize import uniform_quantize_image
 
 
 class ThresholdMap(Enum):
