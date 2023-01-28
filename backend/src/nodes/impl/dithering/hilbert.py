@@ -1,4 +1,5 @@
 from enum import Enum
+
 import numpy as np
 
 
@@ -11,10 +12,10 @@ class HilbertCurveOrientation(Enum):
 
 class HilbertCurve:
     def __init__(
-        self,
-        n: int,
-        orientation: HilbertCurveOrientation = HilbertCurveOrientation.A,
-        origin: np.ndarray = None,
+            self,
+            n: int,
+            orientation: HilbertCurveOrientation = HilbertCurveOrientation.A,
+            origin: np.ndarray = None,
     ):
         self.n = n
         self.orientation = orientation

@@ -30,7 +30,7 @@ This takes advantage of numpy's linear algebra implementation, so it'll be faste
 
 
 def _batch_prepare_inputs(
-    image: np.ndarray, color: np.ndarray
+        image: np.ndarray, color: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
     if image.ndim == 2:
         image = as_3d(image)
@@ -66,11 +66,10 @@ COLOR_DISTANCE_FUNCTION_LABELS = {
 
 
 def nearest_palette_color(
-    pixel: np.ndarray,
-    palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
+        pixel: np.ndarray,
+        palette: np.ndarray,
+        color_distance_function: ColorDistanceFunction,
 ) -> Tuple[int, np.ndarray]:
-
     if palette.ndim == 2:
         palette = as_3d(palette)
     func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
@@ -89,9 +88,9 @@ def nearest_palette_color(
 
 
 def batch_nearest_palette_color(
-    image: np.ndarray,
-    palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
+        image: np.ndarray,
+        palette: np.ndarray,
+        color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
     if palette.ndim == 2:
         palette = as_3d(palette)

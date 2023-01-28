@@ -1,121 +1,14 @@
-from enum import Enum
-from typing import Tuple, Dict
-
 import numpy as np
 
 from .color_distance import ColorDistanceFunction, nearest_palette_color
 from .common import dtype_to_float, float_to_dtype, apply_to_all_channels
+from .constants import ErrorDiffusionMap, ERROR_DIFFUSION_MAPS
 from .quantize import one_channel_nearest_uniform_color
 from ..image_utils import as_3d
 
 
-class ErrorDiffusionMap(Enum):
-    FLOYD_STEINBERG = "FS"
-    JARVIS_ET_AL = "JJN"
-    STUCKI = "ST"
-    ATKINSON = "A"
-    BURKES = "B"
-    SIERRA = "S"
-    TWO_ROW_SIERRA = "S2"
-    SIERRA_LITE = "SL"
-
-
-ERROR_PROPAGATION_MAP_LABELS = {
-    ErrorDiffusionMap.FLOYD_STEINBERG: "Floyd-Steinberg",
-    ErrorDiffusionMap.JARVIS_ET_AL: "Jarvis, Judice, and Ninke",
-    ErrorDiffusionMap.STUCKI: "Stucki",
-    ErrorDiffusionMap.ATKINSON: "Atkinson",
-    ErrorDiffusionMap.BURKES: "Burkes",
-    ErrorDiffusionMap.SIERRA: "Sierra",
-    ErrorDiffusionMap.TWO_ROW_SIERRA: "Two Row Sierra",
-    ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
-}
-
-ERROR_DIFFUSION_MAP_TYPE = Dict[Tuple[int, int], float]
-ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
-    # https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
-    ErrorDiffusionMap.FLOYD_STEINBERG: {
-        (1, 0): 7 / 16,
-        (-1, 1): 3 / 16,
-        (0, 1): 5 / 16,
-        (1, 1): 1 / 16,
-    },
-    ErrorDiffusionMap.JARVIS_ET_AL: {
-        (1, 0): 7 / 48,
-        (2, 0): 5 / 48,
-        (-2, 1): 3 / 48,
-        (-1, 1): 5 / 48,
-        (0, 1): 7 / 48,
-        (1, 1): 5 / 48,
-        (2, 1): 3 / 48,
-        (-2, 2): 1 / 48,
-        (-1, 2): 3 / 48,
-        (0, 2): 5 / 48,
-        (1, 2): 3 / 48,
-        (2, 2): 1 / 48,
-    },
-    ErrorDiffusionMap.STUCKI: {
-        (1, 0): 8 / 42,
-        (2, 0): 4 / 42,
-        (-2, 1): 2 / 42,
-        (-1, 1): 4 / 42,
-        (0, 1): 8 / 42,
-        (1, 1): 4 / 42,
-        (2, 1): 2 / 42,
-        (-2, 2): 1 / 42,
-        (-1, 2): 2 / 42,
-        (0, 2): 4 / 42,
-        (1, 2): 2 / 42,
-        (2, 2): 1 / 42,
-    },
-    ErrorDiffusionMap.ATKINSON: {
-        (1, 0): 1 / 8,
-        (2, 0): 1 / 8,
-        (-1, 1): 1 / 8,
-        (0, 1): 1 / 8,
-        (1, 1): 1 / 8,
-        (0, 2): 1 / 8,
-    },
-    ErrorDiffusionMap.BURKES: {
-        (1, 0): 8 / 32,
-        (2, 0): 4 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
-        (0, 1): 8 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-    },
-    ErrorDiffusionMap.SIERRA: {
-        (1, 0): 5 / 32,
-        (2, 0): 3 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
-        (0, 1): 5 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-        (-1, 2): 2 / 32,
-        (0, 2): 3 / 32,
-        (1, 2): 2 / 32,
-    },
-    ErrorDiffusionMap.TWO_ROW_SIERRA: {
-        (1, 0): 4 / 16,
-        (2, 0): 3 / 16,
-        (-2, 1): 1 / 16,
-        (-1, 1): 2 / 16,
-        (0, 1): 3 / 16,
-        (1, 1): 2 / 16,
-        (2, 1): 1 / 16,
-    },
-    ErrorDiffusionMap.SIERRA_LITE: {
-        (1, 0): 2 / 4,
-        (-1, 1): 1 / 4,
-        (0, 1): 1 / 4,
-    },
-}
-
-
 def one_channel_uniform_error_diffusion(
-    image: np.ndarray, num_colors: int, error_diffusion_map: ErrorDiffusionMap
+        image: np.ndarray, num_colors: int, error_diffusion_map: ErrorDiffusionMap
 ) -> np.ndarray:
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
@@ -132,7 +25,7 @@ def one_channel_uniform_error_diffusion(
 
 
 def uniform_error_diffusion_dither(
-    image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int
+        image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int
 ) -> np.ndarray:
     return apply_to_all_channels(
         one_channel_uniform_error_diffusion,
@@ -143,10 +36,10 @@ def uniform_error_diffusion_dither(
 
 
 def nearest_color_error_diffusion_dither(
-    image: np.ndarray,
-    palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
-    error_diffusion_map: ErrorDiffusionMap,
+        image: np.ndarray,
+        palette: np.ndarray,
+        color_distance_function: ColorDistanceFunction,
+        error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)
