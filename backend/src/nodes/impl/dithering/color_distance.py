@@ -62,6 +62,10 @@ def nearest_palette_color(
     palette: np.ndarray,
     color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
+
+    # TODO There is surely some optimization we can do here.  We call this function many times with the same palette
+    #  and different pixels.  Maybe precompute some sort of decision tree
+
     if palette.ndim == 2:
         palette = as_3d(palette)
     func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
