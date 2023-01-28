@@ -13,7 +13,7 @@ from .hilbert import HilbertCurve
 from ..image_utils import as_3d
 
 
-def next_power_of_two(x: int) -> int:
+def _next_power_of_two(x: int) -> int:
     n = 1
     while n < x:
         n <<= 1
@@ -34,7 +34,7 @@ def riemersma_dither(
     if image.ndim == 2:
         image = as_3d(image)
 
-    curve_size = next_power_of_two(max(image.shape))
+    curve_size = _next_power_of_two(max(image.shape))
 
     original_dtype = image.dtype
     image = dtype_to_float(image)
