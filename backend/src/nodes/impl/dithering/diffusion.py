@@ -13,8 +13,7 @@ from ..image_utils import as_3d
 def error_diffusion_dither(
     image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, nearest_color_func
 ) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
 
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
@@ -45,8 +44,7 @@ def palette_error_diffusion_dither(
     color_distance_function: ColorDistanceFunction,
     error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
-    if palette.ndim == 2:
-        palette = as_3d(palette)
+    palette = as_3d(palette)
 
     def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
         return nearest_palette_color(pixel, palette, color_distance_function)

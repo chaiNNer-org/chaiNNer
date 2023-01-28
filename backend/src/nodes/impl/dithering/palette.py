@@ -11,16 +11,14 @@ in the palette.
 
 
 def distinct_colors_palette(image: np.ndarray) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
     return np.unique(image.reshape((-1, image.shape[2])), axis=0).reshape(
         (1, -1, image.shape[2])
     )
 
 
 def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
     flat_image = dtype_to_float(image.reshape((-1, image.shape[2])))
 
     max_iter = 10
@@ -57,8 +55,7 @@ class MedianCutBucket:
 
 
 def median_cut_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
     flat_image = dtype_to_float(image.reshape((-1, image.shape[2])))
 
     buckets = [MedianCutBucket(flat_image)]

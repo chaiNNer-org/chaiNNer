@@ -31,8 +31,7 @@ def _error_sum(history: deque, decay_ratio: float, value_type):
 def riemersma_dither(
     image: np.ndarray, history_length: int, decay_ratio: float, nearest_color_func
 ) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
 
     curve_size = _next_power_of_two(max(image.shape))
 
@@ -68,8 +67,7 @@ def palette_riemersma_dither(
     history_length: int,
     decay_ratio: float,
 ) -> np.ndarray:
-    if palette.ndim == 2:
-        palette = as_3d(palette)
+    palette = as_3d(palette)
 
     def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
         return nearest_palette_color(pixel, palette, color_distance_function)

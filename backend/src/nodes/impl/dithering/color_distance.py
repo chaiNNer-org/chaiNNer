@@ -24,8 +24,7 @@ def euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
 def _batch_prepare_inputs(
     image: np.ndarray, color: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    if image.ndim == 2:
-        image = as_3d(image)
+    image = as_3d(image)
 
     if color.ndim != 1:
         raise RuntimeError("color must be a 1d array")
@@ -62,8 +61,7 @@ def nearest_palette_color(
     color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
 
-    if palette.ndim == 2:
-        palette = as_3d(palette)
+    palette = as_3d(palette)
     func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
 
     closest = None
@@ -84,8 +82,7 @@ def batch_nearest_palette_color(
     palette: np.ndarray,
     color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
-    if palette.ndim == 2:
-        palette = as_3d(palette)
+    palette = as_3d(palette)
     func = COLOR_DISTANCE_BATCH_FUNCTIONS[color_distance_function]
 
     output = np.zeros(
