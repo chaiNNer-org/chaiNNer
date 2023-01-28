@@ -7,13 +7,11 @@ from .common import dtype_to_float, float_to_dtype
 from ..image_utils import as_3d
 
 
-def _check_inputs(pixel: np.ndarray, color: np.ndarray, expect_rgb=False):
+def _check_inputs(pixel: np.ndarray, color: np.ndarray):
     if pixel.shape != color.shape:
         raise RuntimeError(
             "Trying to compare color distance between different numbers of channels."
         )
-    if expect_rgb and pixel.shape != (3,):
-        raise RuntimeError("Weighted euclidean distance functions expect RGB input")
 
 
 def euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
