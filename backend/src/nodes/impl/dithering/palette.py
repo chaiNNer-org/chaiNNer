@@ -1,12 +1,16 @@
 import cv2
 import numpy as np
-from sanic.log import logger
 
 from .common import dtype_to_float
 from ..image_utils import as_3d
 
+"""
+These functions take an image and produce a palette, which is an image with one row with one pixel for each color 
+in the palette.
+"""
 
-def distinct_colors(image: np.ndarray) -> np.ndarray:
+
+def distinct_colors_palette(image: np.ndarray) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)
     return np.unique(image.reshape((-1, image.shape[2])), axis=0).reshape(
@@ -31,7 +35,7 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     return center.reshape((1, -1, image.shape[2]))
 
 
-class MedianCut:
+class MedianCutBucket:
     def __init__(self, data: np.ndarray):
         self.data = data
         self.n_pixels, self.n_channels = data.shape
@@ -44,18 +48,20 @@ class MedianCut:
         widest_channel = np.argmax(self.channel_ranges)
         median = np.median(self.data[:, widest_channel])
         mask = self.data[:, widest_channel] > median
-        return MedianCut(self.data[mask == True]), MedianCut(self.data[mask == False])
+        return MedianCutBucket(self.data[mask == True]), MedianCutBucket(
+            self.data[mask == False]
+        )
 
     def average(self):
         return np.mean(self.data, axis=0)
 
 
-def median_cut(image: np.ndarray, num_colors: int) -> np.ndarray:
+def median_cut_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)
     flat_image = dtype_to_float(image.reshape((-1, image.shape[2])))
 
-    buckets = [MedianCut(flat_image)]
+    buckets = [MedianCutBucket(flat_image)]
     while len(buckets) < num_colors:
         bucket_idx, bucket = max(enumerate(buckets), key=lambda x: x[1].biggest_range)
         if bucket.n_pixels == 1:

@@ -3,10 +3,13 @@ from collections import deque
 
 import numpy as np
 
-from .color_distance import ColorDistanceFunction, nearest_palette_color
-from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
+from .color_distance import (
+    ColorDistanceFunction,
+    nearest_palette_color,
+    nearest_uniform_color,
+)
+from .common import dtype_to_float, float_to_dtype
 from .hilbert import HilbertCurve
-from .quantize import one_channel_nearest_uniform_color
 from ..image_utils import as_3d
 
 
@@ -17,7 +20,7 @@ def next_power_of_two(x: int) -> int:
     return n
 
 
-def error_sum(history: deque, decay_ratio: float, value_type):
+def _error_sum(history: deque, decay_ratio: float, value_type):
     b = math.e ** (math.log(decay_ratio) / (history.maxlen - 1))
     z = value_type()
     for i, x in enumerate(history):
@@ -25,9 +28,12 @@ def error_sum(history: deque, decay_ratio: float, value_type):
     return z
 
 
-def one_channel_riemersma_dither(
-    image: np.ndarray, history_length: int, decay_ratio: float, num_colors: int
+def riemersma_dither(
+    image: np.ndarray, history_length: int, decay_ratio: float, nearest_color_func
 ) -> np.ndarray:
+    if image.ndim == 2:
+        image = as_3d(image)
+
     curve_size = next_power_of_two(max(image.shape))
 
     original_dtype = image.dtype
@@ -39,50 +45,33 @@ def one_channel_riemersma_dither(
     for i, j in HilbertCurve(curve_size):
         if i >= image.shape[0] or j >= image.shape[1]:
             continue
-        es = error_sum(history, decay_ratio, float)
-        value = image[i, j] + es
-        out[i, j] = one_channel_nearest_uniform_color(value, num_colors)
-        history.appendleft(image[i, j] - out[i, j])
+        es = _error_sum(history, decay_ratio, lambda: np.zeros((image.shape[2])))
+        pixel = image[i, j, :] + es
+        out[i, j, :] = nearest_color_func(pixel)
+        history.appendleft(image[i, j, :] - out[i, j, :])
     return float_to_dtype(out, original_dtype)
 
 
-def riemersma_dither(
+def uniform_riemersma_dither(
     image: np.ndarray, history_length: int, decay_ratio: float, num_colors: int
 ) -> np.ndarray:
-    return apply_to_all_channels(
-        one_channel_riemersma_dither,
-        image,
-        history_length=history_length,
-        decay_ratio=decay_ratio,
-        num_colors=num_colors,
-    )
+    def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
+        return nearest_uniform_color(pixel, num_colors)
+
+    return riemersma_dither(image, history_length, decay_ratio, nearest_color_func)
 
 
-def nearest_color_riemersma_dither(
+def palette_riemersma_dither(
     image: np.ndarray,
     palette: np.ndarray,
     color_distance_function: ColorDistanceFunction,
     history_length: int,
     decay_ratio: float,
 ) -> np.ndarray:
-    if image.ndim == 2:
-        image = as_3d(image)
     if palette.ndim == 2:
         palette = as_3d(palette)
 
-    curve_size = next_power_of_two(max(image.shape))
+    def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
+        return nearest_palette_color(pixel, palette, color_distance_function)
 
-    original_dtype = image.dtype
-    image = dtype_to_float(image)
-
-    out = np.zeros_like(image)
-    history = deque(maxlen=history_length)
-
-    for i, j in HilbertCurve(curve_size):
-        if i >= image.shape[0] or j >= image.shape[1]:
-            continue
-        es = error_sum(history, decay_ratio, lambda: np.zeros((image.shape[2])))
-        pixel = image[i, j, :] + es
-        _, out[i, j, :] = nearest_palette_color(pixel, palette, color_distance_function)
-        history.appendleft(image[i, j, :] - out[i, j, :])
-    return float_to_dtype(out, original_dtype)
+    return riemersma_dither(image, history_length, decay_ratio, nearest_color_func)

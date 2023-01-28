@@ -3,7 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
-from .common import dtype_to_float
+from .common import dtype_to_float, float_to_dtype
 from ..image_utils import as_3d
 
 
@@ -19,14 +19,6 @@ def _check_inputs(pixel: np.ndarray, color: np.ndarray, expect_rgb=False):
 def euclidean_color_distance(pixel: np.ndarray, color: np.ndarray) -> float:
     _check_inputs(pixel, color)
     return np.power(pixel - color, 2).mean()
-
-
-"""
-Batch functions take an image and a color and return a greyscale map showing the distance from each pixel in the input
-image to the given color.
-
-This takes advantage of numpy's linear algebra implementation, so it'll be faster than looping over each pixel.
-"""
 
 
 def _batch_prepare_inputs(
@@ -69,7 +61,7 @@ def nearest_palette_color(
     pixel: np.ndarray,
     palette: np.ndarray,
     color_distance_function: ColorDistanceFunction,
-) -> Tuple[int, np.ndarray]:
+) -> np.ndarray:
     if palette.ndim == 2:
         palette = as_3d(palette)
     func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
@@ -115,3 +107,14 @@ def batch_nearest_palette_color(
             distance[closest_mask] = distance[closest_mask]
 
     return output
+
+
+def nearest_uniform_color(value: np.ndarray, num_colors: int) -> np.ndarray:
+    return np.floor(value * (num_colors - 1) + 0.5) / (num_colors - 1)
+
+
+def batch_nearest_uniform_color(image: np.ndarray, num_colors: int) -> np.ndarray:
+    return float_to_dtype(
+        np.floor(dtype_to_float(image) * (num_colors - 1) + 0.5) / (num_colors - 1),
+        image.dtype,
+    )

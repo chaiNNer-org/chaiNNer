@@ -10,8 +10,8 @@ from ...impl.dithering.color_distance import (
     ColorDistanceFunction,
 )
 from ...impl.dithering.constants import ErrorDiffusionMap, ERROR_PROPAGATION_MAP_LABELS
-from ...impl.dithering.diffusion import nearest_color_error_diffusion_dither
-from ...impl.dithering.riemersma import nearest_color_riemersma_dither
+from ...impl.dithering.diffusion import palette_error_diffusion_dither
+from ...impl.dithering.riemersma import palette_riemersma_dither
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -88,14 +88,14 @@ class PaletteDitherNode(NodeBase):
                 color_distance_function=ColorDistanceFunction.EUCLIDEAN,
             )
         elif dither_algorithm == PaletteDitherAlgorithm.DIFFUSION:
-            return nearest_color_error_diffusion_dither(
+            return palette_error_diffusion_dither(
                 img,
                 palette=palette,
                 color_distance_function=ColorDistanceFunction.EUCLIDEAN,
                 error_diffusion_map=error_diffusion_map,
             )
         elif dither_algorithm == PaletteDitherAlgorithm.RIEMERSMA:
-            return nearest_color_riemersma_dither(
+            return palette_riemersma_dither(
                 img,
                 palette,
                 color_distance_function=ColorDistanceFunction.EUCLIDEAN,

@@ -5,6 +5,7 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageAdjustmentCategory
+from ...impl.dithering.color_distance import batch_nearest_uniform_color
 from ...impl.dithering.constants import (
     ErrorDiffusionMap,
     ERROR_PROPAGATION_MAP_LABELS,
@@ -13,8 +14,7 @@ from ...impl.dithering.constants import (
 )
 from ...impl.dithering.diffusion import uniform_error_diffusion_dither
 from ...impl.dithering.ordered import ordered_dither
-from ...impl.dithering.quantize import batch_nearest_uniform_color
-from ...impl.dithering.riemersma import riemersma_dither
+from ...impl.dithering.riemersma import uniform_riemersma_dither
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, EnumInput
@@ -103,7 +103,7 @@ class DitherNode(NodeBase):
                 img, num_colors=num_colors, error_diffusion_map=error_diffusion_map
             )
         elif dither_algorithm == UniformDitherAlgorithm.RIEMERSMA:
-            return riemersma_dither(
+            return uniform_riemersma_dither(
                 img,
                 num_colors=num_colors,
                 history_length=history_length,

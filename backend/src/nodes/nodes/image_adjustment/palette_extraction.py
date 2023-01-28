@@ -5,7 +5,11 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageAdjustmentCategory
-from ...impl.dithering.palette import distinct_colors, kmeans_palette, median_cut
+from ...impl.dithering.palette import (
+    distinct_colors_palette,
+    kmeans_palette,
+    median_cut_palette,
+)
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -70,8 +74,8 @@ class PaletteFromImage(NodeBase):
         palette_size: int,
     ) -> np.ndarray:
         if palette_extraction_method == PaletteExtractionMethod.ALL:
-            return distinct_colors(img)
+            return distinct_colors_palette(img)
         elif palette_extraction_method == PaletteExtractionMethod.KMEANS:
             return kmeans_palette(img, palette_size)
         elif palette_extraction_method == PaletteExtractionMethod.MEDIAN_CUT:
-            return median_cut(img, palette_size)
+            return median_cut_palette(img, palette_size)
