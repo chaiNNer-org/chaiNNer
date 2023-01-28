@@ -115,10 +115,9 @@ def one_channel_ordered_dither(
     """
 
     tm = get_threshold_map(image.shape, threshold_map=threshold_map)
-    out_image = uniform_quantize_image(
-        dtype_to_float(image) + tm, num_colors=num_colors
-    )
-    return float_to_dtype(out_image, image.dtype)
+    return float_to_dtype(
+        np.floor((dtype_to_float(image) + tm) * (num_colors - 1) + 0.5) / (num_colors - 1),
+        image.dtype)
 
 
 def ordered_dither(

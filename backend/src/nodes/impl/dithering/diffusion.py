@@ -2,11 +2,10 @@ from enum import Enum
 from typing import Tuple, Dict
 
 import numpy as np
-from sanic.log import logger
 
-from .color_distance import ColorDistanceFunction
+from .color_distance import ColorDistanceFunction, nearest_palette_color
 from .common import dtype_to_float, float_to_dtype, apply_to_all_channels
-from .quantize import find_closest_uniform_color, find_nearest_color
+from .quantize import one_channel_nearest_uniform_color
 from ..image_utils import as_3d
 
 
@@ -123,7 +122,7 @@ def one_channel_uniform_error_diffusion(
     for j in range(output_image.shape[1]):
         for i in range(output_image.shape[0]):
             pixel = output_image[i, j]
-            output_image[i, j] = find_closest_uniform_color(pixel, num_colors)
+            output_image[i, j] = one_channel_nearest_uniform_color(pixel, num_colors)
             error = pixel - output_image[i, j]
             for (di, dj), coefficient in edm.items():
                 if i + di >= output_image.shape[0] or j + dj >= output_image.shape[1]:
@@ -159,7 +158,7 @@ def nearest_color_error_diffusion_dither(
     for j in range(output_image.shape[1]):
         for i in range(output_image.shape[0]):
             pixel = np.array(output_image[i, j, :])
-            _, output_image[i, j, :] = find_nearest_color(
+            _, output_image[i, j, :] = nearest_palette_color(
                 pixel, palette, color_distance_function
             )
             error = pixel - output_image[i, j, :]

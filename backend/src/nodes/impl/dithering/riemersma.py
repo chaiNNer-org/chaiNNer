@@ -3,9 +3,9 @@ from collections import deque
 
 import numpy as np
 
-from .color_distance import ColorDistanceFunction
+from .color_distance import ColorDistanceFunction, nearest_palette_color
 from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
-from .quantize import find_closest_uniform_color, find_nearest_color
+from .quantize import one_channel_nearest_uniform_color
 from .hilbert import HilbertCurve
 from ..image_utils import as_3d
 
@@ -42,7 +42,7 @@ def one_channel_riemersma_dither(
             continue
         es = error_sum(history, decay_ratio, float)
         value = image[i, j] + es
-        out[i, j] = find_closest_uniform_color(value, num_colors)
+        out[i, j] = one_channel_nearest_uniform_color(value, num_colors)
         history.appendleft(image[i, j] - out[i, j])
     return float_to_dtype(out, original_dtype)
 
@@ -84,6 +84,6 @@ def nearest_color_riemersma_dither(
             continue
         es = error_sum(history, decay_ratio, lambda: np.zeros((image.shape[2])))
         pixel = image[i, j, :] + es
-        _, out[i, j, :] = find_nearest_color(pixel, palette, color_distance_function)
+        _, out[i, j, :] = nearest_palette_color(pixel, palette, color_distance_function)
         history.appendleft(image[i, j, :] - out[i, j, :])
     return float_to_dtype(out, original_dtype)

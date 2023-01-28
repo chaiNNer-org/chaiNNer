@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 
-from .color_distance import ColorDistanceFunction
 from .common import dtype_to_float
 from ..image_utils import as_3d
 

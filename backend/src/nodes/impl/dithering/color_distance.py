@@ -63,3 +63,56 @@ COLOR_DISTANCE_BATCH_FUNCTIONS = {
 COLOR_DISTANCE_FUNCTION_LABELS = {
     ColorDistanceFunction.EUCLIDEAN: "Euclidean Distance",
 }
+
+
+def nearest_palette_color(
+    pixel: np.ndarray,
+    palette: np.ndarray,
+    color_distance_function: ColorDistanceFunction,
+) -> Tuple[int, np.ndarray]:
+
+    if palette.ndim == 2:
+        palette = as_3d(palette)
+    func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
+
+    closest = None
+    closest_distance = None
+
+    for idx in range(palette.shape[1]):
+        color = palette[0, idx, :]
+        distance = func(pixel, color)
+        if closest is None or distance < closest_distance:
+            closest = color
+            closest_distance = distance
+
+    return closest
+
+
+def batch_nearest_palette_color(
+    image: np.ndarray,
+    palette: np.ndarray,
+    color_distance_function: ColorDistanceFunction,
+) -> np.ndarray:
+    if palette.ndim == 2:
+        palette = as_3d(palette)
+    func = COLOR_DISTANCE_BATCH_FUNCTIONS[color_distance_function]
+
+    output = np.zeros(
+        (image.shape[0], image.shape[1], palette.shape[2]), dtype="float32"
+    )
+    low_water_mark = np.zeros((image.shape[0], image.shape[1]), dtype="float32")
+
+    for idx in range(palette.shape[1]):
+        color = palette[0, idx, :]
+        distance = func(image, color)
+        if idx == 0:
+            output[:, :] = color
+            low_water_mark[:, :] = distance
+        else:
+            # boolean mask indicating pixels that are closer to this color than their current assignment
+            closest_mask = distance < low_water_mark
+
+            output[closest_mask] = color
+            distance[closest_mask] = distance[closest_mask]
+
+    return output

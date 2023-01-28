@@ -6,7 +6,7 @@ import numpy as np
 
 from . import category as ImageAdjustmentCategory
 from ...impl.dithering.color_distance import (
-    ColorDistanceFunction,
+    ColorDistanceFunction, batch_nearest_palette_color,
 )
 from ...impl.dithering.diffusion import (
     uniform_error_diffusion_dither,
@@ -16,7 +16,7 @@ from ...impl.dithering.diffusion import (
 )
 from ...impl.dithering.ordered import ThresholdMap, THRESHOLD_MAP_LABELS, ordered_dither
 from ...impl.dithering.palette import distinct_colors, kmeans_palette
-from ...impl.dithering.quantize import nearest_color_quantize, uniform_quantize
+from ...impl.dithering.quantize import batch_nearest_uniform_color
 from ...impl.dithering.riemersma import riemersma_dither, nearest_color_riemersma_dither
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -97,7 +97,7 @@ class DitherNode(NodeBase):
         history_length: int,
     ) -> np.ndarray:
         if dither_algorithm == UniformDitherAlgorithm.NONE:
-            return uniform_quantize(img, num_colors=num_colors)
+            return batch_nearest_uniform_color(img, num_colors=num_colors)
         elif dither_algorithm == UniformDitherAlgorithm.ORDERED:
             return ordered_dither(
                 img, num_colors=num_colors, threshold_map=threshold_map
@@ -178,7 +178,7 @@ class PaletteDitherNode(NodeBase):
         history_length: int,
     ) -> np.ndarray:
         if dither_algorithm == PaletteDitherAlgorithm.NONE:
-            return nearest_color_quantize(
+            return batch_nearest_palette_color(
                 img, palette=palette, color_distance_function=ColorDistanceFunction.EUCLIDEAN
             )
         elif dither_algorithm == PaletteDitherAlgorithm.DIFFUSION:
