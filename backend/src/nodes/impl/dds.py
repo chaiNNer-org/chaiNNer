@@ -71,6 +71,8 @@ def dds_to_png_texconv(path: str) -> str:
 
     __run_texconv(
         [
+            "-f",
+            "rgba",
             "-ft",
             "png",
             "-px",
