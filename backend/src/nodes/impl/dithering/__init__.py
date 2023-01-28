@@ -1,2 +1,0 @@
-# TODO
-#  optimal palette selection
