@@ -33,9 +33,12 @@ def _batch_prepare_inputs(
 
 
 def batch_euclidean_color_distance(image: np.ndarray, color: np.ndarray) -> np.ndarray:
+    """
+    Given an image and a color, return a greyscale image where each pixel contains the distance of the corresponding
+    input pixel from the given color.
+    """
     image, color = _batch_prepare_inputs(image, color)
-    delta = dtype_to_float(image[:, :]) - color
-    return np.power(delta, 2).mean(axis=2)
+    return np.power(image[:, :] - color, 2).mean(axis=2)
 
 
 def nearest_palette_color(
