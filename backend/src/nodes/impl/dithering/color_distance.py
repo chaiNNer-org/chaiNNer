@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy as np
 
@@ -37,9 +37,8 @@ def _batch_prepare_inputs(
 
 def batch_euclidean_color_distance(image: np.ndarray, color: np.ndarray) -> np.ndarray:
     image, color = _batch_prepare_inputs(image, color)
-    max_distance = image.shape[2]
     delta = dtype_to_float(image[:, :]) - color
-    return np.power(delta, 2).sum(axis=2) / max_distance
+    return np.power(delta, 2).mean(axis=2)
 
 
 class ColorDistanceFunction(Enum):
@@ -62,9 +61,6 @@ def nearest_palette_color(
     palette: np.ndarray,
     color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
-
-    # TODO There is surely some optimization we can do here.  We call this function many times with the same palette
-    #  and different pixels.  Maybe precompute some sort of decision tree
 
     if palette.ndim == 2:
         palette = as_3d(palette)
