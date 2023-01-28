@@ -4,7 +4,6 @@ from collections import deque
 import numpy as np
 
 from .color_distance import (
-    ColorDistanceFunction,
     nearest_palette_color,
     nearest_uniform_color,
 )
@@ -63,13 +62,12 @@ def uniform_riemersma_dither(
 def palette_riemersma_dither(
     image: np.ndarray,
     palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
     history_length: int,
     decay_ratio: float,
 ) -> np.ndarray:
     palette = as_3d(palette)
 
     def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
-        return nearest_palette_color(pixel, palette, color_distance_function)
+        return nearest_palette_color(pixel, palette)
 
     return riemersma_dither(image, history_length, decay_ratio, nearest_color_func)

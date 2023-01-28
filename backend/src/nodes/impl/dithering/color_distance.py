@@ -38,36 +38,19 @@ def batch_euclidean_color_distance(image: np.ndarray, color: np.ndarray) -> np.n
     return np.power(delta, 2).mean(axis=2)
 
 
-class ColorDistanceFunction(Enum):
-    EUCLIDEAN = "L2"
-
-
-COLOR_DISTANCE_FUNCTIONS = {
-    ColorDistanceFunction.EUCLIDEAN: euclidean_color_distance,
-}
-COLOR_DISTANCE_BATCH_FUNCTIONS = {
-    ColorDistanceFunction.EUCLIDEAN: batch_euclidean_color_distance,
-}
-COLOR_DISTANCE_FUNCTION_LABELS = {
-    ColorDistanceFunction.EUCLIDEAN: "Euclidean Distance",
-}
-
-
 def nearest_palette_color(
     pixel: np.ndarray,
     palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
 
     palette = as_3d(palette)
-    func = COLOR_DISTANCE_FUNCTIONS[color_distance_function]
 
     closest = None
     closest_distance = None
 
     for idx in range(palette.shape[1]):
         color = palette[0, idx, :]
-        distance = func(pixel, color)
+        distance = euclidean_color_distance(pixel, color)
         if closest is None or distance < closest_distance:
             closest = color
             closest_distance = distance
@@ -78,10 +61,8 @@ def nearest_palette_color(
 def batch_nearest_palette_color(
     image: np.ndarray,
     palette: np.ndarray,
-    color_distance_function: ColorDistanceFunction,
 ) -> np.ndarray:
     palette = as_3d(palette)
-    func = COLOR_DISTANCE_BATCH_FUNCTIONS[color_distance_function]
 
     output = np.zeros(
         (image.shape[0], image.shape[1], palette.shape[2]), dtype="float32"
@@ -90,7 +71,7 @@ def batch_nearest_palette_color(
 
     for idx in range(palette.shape[1]):
         color = palette[0, idx, :]
-        distance = func(image, color)
+        distance = batch_euclidean_color_distance(image, color)
         if idx == 0:
             output[:, :] = color
             low_water_mark[:, :] = distance

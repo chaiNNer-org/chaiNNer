@@ -25,6 +25,19 @@ ERROR_PROPAGATION_MAP_LABELS = {
     ErrorDiffusionMap.TWO_ROW_SIERRA: "Two Row Sierra",
     ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
 }
+
+
+"""
+These diffusion maps indicate where the residual error from each pixel is "pushed" and how much.
+
+The key is a relative coordinate (column, row) (relative to the pixel currently being processed) and the value is the 
+proportion of the error that will get added to this pixel. 
+
+Note that pixels are processed row by row, column by column.  So the error can only be pushed to pixels in later 
+rows, or earlier in the same row.
+"""
+
+
 ERROR_DIFFUSION_MAP_TYPE = Dict[Tuple[int, int], float]
 ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
     # https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
