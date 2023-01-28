@@ -7,7 +7,7 @@ from .constants import ThresholdMap, THRESHOLD_MAPS
 
 
 def get_threshold_map(
-        image_shape: Tuple[int, int], threshold_map: ThresholdMap
+    image_shape: Tuple[int, int], threshold_map: ThresholdMap
 ) -> np.ndarray:
     """
     Normalize the threshold map and tile it to match the given image shape.
@@ -20,7 +20,7 @@ def get_threshold_map(
 
 
 def one_channel_ordered_dither(
-        image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
+    image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
 ) -> np.ndarray:
     """
     Apply an ordered dithering algorithm to the input greyscale image.  The output will be dithered and
@@ -31,12 +31,14 @@ def one_channel_ordered_dither(
 
     tm = get_threshold_map(image.shape, threshold_map=threshold_map)
     return float_to_dtype(
-        np.floor((dtype_to_float(image) + tm) * (num_colors - 1) + 0.5) / (num_colors - 1),
-        image.dtype)
+        np.floor((dtype_to_float(image) + tm) * (num_colors - 1) + 0.5)
+        / (num_colors - 1),
+        image.dtype,
+    )
 
 
 def ordered_dither(
-        image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
+    image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
 ) -> np.ndarray:
     return apply_to_all_channels(
         one_channel_ordered_dither,

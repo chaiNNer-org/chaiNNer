@@ -8,7 +8,7 @@ from ..image_utils import as_3d
 
 
 def one_channel_uniform_error_diffusion(
-        image: np.ndarray, num_colors: int, error_diffusion_map: ErrorDiffusionMap
+    image: np.ndarray, num_colors: int, error_diffusion_map: ErrorDiffusionMap
 ) -> np.ndarray:
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
@@ -25,7 +25,7 @@ def one_channel_uniform_error_diffusion(
 
 
 def uniform_error_diffusion_dither(
-        image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int
+    image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, num_colors: int
 ) -> np.ndarray:
     return apply_to_all_channels(
         one_channel_uniform_error_diffusion,
@@ -36,10 +36,10 @@ def uniform_error_diffusion_dither(
 
 
 def nearest_color_error_diffusion_dither(
-        image: np.ndarray,
-        palette: np.ndarray,
-        color_distance_function: ColorDistanceFunction,
-        error_diffusion_map: ErrorDiffusionMap,
+    image: np.ndarray,
+    palette: np.ndarray,
+    color_distance_function: ColorDistanceFunction,
+    error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
     if image.ndim == 2:
         image = as_3d(image)

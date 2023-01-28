@@ -5,8 +5,12 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageAdjustmentCategory
-from ...impl.dithering.constants import (ErrorDiffusionMap, ERROR_PROPAGATION_MAP_LABELS, ThresholdMap, \
-                                         THRESHOLD_MAP_LABELS)
+from ...impl.dithering.constants import (
+    ErrorDiffusionMap,
+    ERROR_PROPAGATION_MAP_LABELS,
+    ThresholdMap,
+    THRESHOLD_MAP_LABELS,
+)
 from ...impl.dithering.diffusion import uniform_error_diffusion_dither
 from ...impl.dithering.ordered import ordered_dither
 from ...impl.dithering.quantize import batch_nearest_uniform_color
@@ -80,13 +84,13 @@ class DitherNode(NodeBase):
         self.sub = "Adjustments"
 
     def run(
-            self,
-            img: np.ndarray,
-            num_colors: int,
-            dither_algorithm: UniformDitherAlgorithm,
-            threshold_map: ThresholdMap,
-            error_diffusion_map: ErrorDiffusionMap,
-            history_length: int,
+        self,
+        img: np.ndarray,
+        num_colors: int,
+        dither_algorithm: UniformDitherAlgorithm,
+        threshold_map: ThresholdMap,
+        error_diffusion_map: ErrorDiffusionMap,
+        history_length: int,
     ) -> np.ndarray:
         if dither_algorithm == UniformDitherAlgorithm.NONE:
             return batch_nearest_uniform_color(img, num_colors=num_colors)

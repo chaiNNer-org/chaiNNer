@@ -43,7 +43,10 @@ class PaletteFromImage(NodeBase):
                 {
                     "enum": 1,
                     "conditions": [
-                        [PaletteExtractionMethod.KMEANS.value, PaletteExtractionMethod.MEDIAN_CUT.value]
+                        [
+                            PaletteExtractionMethod.KMEANS.value,
+                            PaletteExtractionMethod.MEDIAN_CUT.value,
+                        ]
                     ],
                 },
             )(
@@ -52,7 +55,7 @@ class PaletteFromImage(NodeBase):
                     minimum=2,
                     default=8,
                 ).with_id(2),
-            )
+            ),
         ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = ImageAdjustmentCategory
@@ -60,7 +63,12 @@ class PaletteFromImage(NodeBase):
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
 
-    def run(self, img: np.ndarray, palette_extraction_method: PaletteExtractionMethod, palette_size: int) -> np.ndarray:
+    def run(
+        self,
+        img: np.ndarray,
+        palette_extraction_method: PaletteExtractionMethod,
+        palette_size: int,
+    ) -> np.ndarray:
         if palette_extraction_method == PaletteExtractionMethod.ALL:
             return distinct_colors(img)
         elif palette_extraction_method == PaletteExtractionMethod.KMEANS:

@@ -24,7 +24,9 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, max_iter, epsilon)
 
     attempts = 10
-    ret, label, center = cv2.kmeans(flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS)
+    ret, label, center = cv2.kmeans(
+        flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS
+    )
 
     return center.reshape((1, -1, image.shape[2]))
 
@@ -62,4 +64,6 @@ def median_cut(image: np.ndarray, num_colors: int) -> np.ndarray:
 
         buckets.extend(bucket.split())
 
-    return np.stack([bucket.average() for bucket in buckets], axis=0).reshape((1,-1,image.shape[2]))
+    return np.stack([bucket.average() for bucket in buckets], axis=0).reshape(
+        (1, -1, image.shape[2])
+    )
