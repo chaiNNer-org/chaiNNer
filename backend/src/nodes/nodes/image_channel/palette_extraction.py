@@ -65,7 +65,7 @@ class PaletteFromImage(NodeBase):
         self.category = ImageChannelCategory
         self.name = "Palette from Image"
         self.icon = "MdShowChart"
-        self.sub = "All"
+        self.sub = "Miscellaneous"
 
     def run(
         self,
