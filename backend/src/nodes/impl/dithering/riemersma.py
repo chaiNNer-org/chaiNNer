@@ -19,11 +19,10 @@ def _next_power_of_two(x: int) -> int:
     return n
 
 
-def _error_sum(history: deque, decay_ratio: float, value_type):
-    b = math.e ** (math.log(decay_ratio) / (history.maxlen - 1))
-    z = value_type()
+def _error_sum(history: deque, base: float, channels: int):
+    z = np.zeros((channels,), dtype="float32")
     for i, x in enumerate(history):
-        z += x * b**i
+        z += x * base**i
     return z
 
 
@@ -40,10 +39,12 @@ def riemersma_dither(
     out = np.zeros_like(image)
     history = deque(maxlen=history_length)
 
+    base = math.e ** (math.log(decay_ratio) / (history_length - 1))
+
     for i, j in HilbertCurve(curve_size):
         if i >= image.shape[0] or j >= image.shape[1]:
             continue
-        es = _error_sum(history, decay_ratio, lambda: np.zeros((image.shape[2])))
+        es = _error_sum(history, base, image.shape[2])
         pixel = image[i, j, :] + es
         out[i, j, :] = nearest_color_func(pixel)
         history.appendleft(image[i, j, :] - out[i, j, :])
@@ -65,9 +66,11 @@ def palette_riemersma_dither(
     history_length: int,
     decay_ratio: float,
 ) -> np.ndarray:
-    palette = as_3d(palette)
+    palette = dtype_to_float(as_3d(palette))
+
+    cache = []
 
     def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
-        return nearest_palette_color(pixel, palette)
+        return nearest_palette_color(pixel, palette, cache=cache)
 
     return riemersma_dither(image, history_length, decay_ratio, nearest_color_func)

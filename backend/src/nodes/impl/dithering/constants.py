@@ -2,6 +2,10 @@ from enum import Enum
 from typing import Dict, Tuple
 
 import numpy as np
+from sanic.log import logger
+
+
+# https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
 
 
 class ErrorDiffusionMap(Enum):
@@ -26,99 +30,100 @@ ERROR_PROPAGATION_MAP_LABELS = {
     ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
 }
 
-
 """
 These diffusion maps indicate where the residual error from each pixel is "pushed" and how much.
 
-The key is a relative coordinate (column, row) (relative to the pixel currently being processed) and the value is the 
+The key is a relative coordinate (row, column) (relative to the pixel currently being processed) and the value is the 
 proportion of the error that will get added to this pixel. 
-
-Note that pixels are processed row by row, column by column.  So the error can only be pushed to pixels in later 
-rows, or earlier in the same row.
 """
-
 
 ERROR_DIFFUSION_MAP_TYPE = Dict[Tuple[int, int], float]
 ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
-    # https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
+    ErrorDiffusionMap.ATKINSON: {
+        (0, 1): 1 / 8,
+        (0, 2): 1 / 8,
+        (1, -1): 1 / 8,
+        (1, 0): 1 / 8,
+        (1, 1): 1 / 8,
+        (2, 0): 1 / 8,
+    },
+    ErrorDiffusionMap.BURKES: {
+        (0, 1): 8 / 32,
+        (0, 2): 4 / 32,
+        (1, -2): 2 / 32,
+        (1, -1): 4 / 32,
+        (1, 0): 8 / 32,
+        (1, 1): 4 / 32,
+        (1, 2): 2 / 32,
+    },
     ErrorDiffusionMap.FLOYD_STEINBERG: {
-        (1, 0): 7 / 16,
-        (-1, 1): 3 / 16,
-        (0, 1): 5 / 16,
+        (0, 1): 7 / 16,
+        (1, -1): 3 / 16,
+        (1, 0): 5 / 16,
         (1, 1): 1 / 16,
     },
     ErrorDiffusionMap.JARVIS_ET_AL: {
-        (1, 0): 7 / 48,
-        (2, 0): 5 / 48,
-        (-2, 1): 3 / 48,
-        (-1, 1): 5 / 48,
         (0, 1): 7 / 48,
-        (1, 1): 5 / 48,
-        (2, 1): 3 / 48,
-        (-2, 2): 1 / 48,
-        (-1, 2): 3 / 48,
         (0, 2): 5 / 48,
+        (1, -2): 3 / 48,
+        (1, -1): 5 / 48,
+        (1, 0): 7 / 48,
+        (1, 1): 5 / 48,
         (1, 2): 3 / 48,
+        (2, -2): 1 / 48,
+        (2, -1): 3 / 48,
+        (2, 0): 5 / 48,
+        (2, 1): 3 / 48,
         (2, 2): 1 / 48,
     },
-    ErrorDiffusionMap.STUCKI: {
-        (1, 0): 8 / 42,
-        (2, 0): 4 / 42,
-        (-2, 1): 2 / 42,
-        (-1, 1): 4 / 42,
-        (0, 1): 8 / 42,
-        (1, 1): 4 / 42,
-        (2, 1): 2 / 42,
-        (-2, 2): 1 / 42,
-        (-1, 2): 2 / 42,
-        (0, 2): 4 / 42,
-        (1, 2): 2 / 42,
-        (2, 2): 1 / 42,
-    },
-    ErrorDiffusionMap.ATKINSON: {
-        (1, 0): 1 / 8,
-        (2, 0): 1 / 8,
-        (-1, 1): 1 / 8,
-        (0, 1): 1 / 8,
-        (1, 1): 1 / 8,
-        (0, 2): 1 / 8,
-    },
-    ErrorDiffusionMap.BURKES: {
-        (1, 0): 8 / 32,
-        (2, 0): 4 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
-        (0, 1): 8 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-    },
     ErrorDiffusionMap.SIERRA: {
-        (1, 0): 5 / 32,
-        (2, 0): 3 / 32,
-        (-2, 1): 2 / 32,
-        (-1, 1): 4 / 32,
         (0, 1): 5 / 32,
-        (1, 1): 4 / 32,
-        (2, 1): 2 / 32,
-        (-1, 2): 2 / 32,
         (0, 2): 3 / 32,
+        (1, -2): 2 / 32,
+        (1, -1): 4 / 32,
+        (1, 0): 5 / 32,
+        (1, 1): 4 / 32,
         (1, 2): 2 / 32,
+        (2, -1): 2 / 32,
+        (2, 0): 3 / 32,
+        (2, 1): 2 / 32,
     },
     ErrorDiffusionMap.TWO_ROW_SIERRA: {
-        (1, 0): 4 / 16,
-        (2, 0): 3 / 16,
-        (-2, 1): 1 / 16,
-        (-1, 1): 2 / 16,
-        (0, 1): 3 / 16,
+        (0, 1): 4 / 16,
+        (0, 2): 3 / 16,
+        (1, -2): 1 / 16,
+        (1, -1): 2 / 16,
+        (1, 0): 3 / 16,
         (1, 1): 2 / 16,
-        (2, 1): 1 / 16,
+        (1, 2): 1 / 16,
     },
-    ErrorDiffusionMap.SIERRA_LITE: {
-        (1, 0): 2 / 4,
-        (-1, 1): 1 / 4,
-        (0, 1): 1 / 4,
+    ErrorDiffusionMap.SIERRA_LITE: {(0, 1): 2 / 4, (1, -1): 1 / 4, (1, 0): 1 / 4},
+    ErrorDiffusionMap.STUCKI: {
+        (0, 1): 8 / 42,
+        (0, 2): 4 / 42,
+        (1, -2): 2 / 42,
+        (1, -1): 4 / 42,
+        (1, 0): 8 / 42,
+        (1, 1): 4 / 42,
+        (1, 2): 2 / 42,
+        (2, -2): 1 / 42,
+        (2, -1): 2 / 42,
+        (2, 0): 4 / 42,
+        (2, 1): 2 / 42,
+        (2, 2): 1 / 42,
     },
 }
+
+# Sanity check
+for error_diffusion_map, coords in ERROR_DIFFUSION_MAPS.items():
+    for (row, column) in coords.keys():
+        if row < 0 or (row == 0 and column <= 0):
+            logger.warn(
+                f"Error diffusion map {error_diffusion_map} has an illegal coordinate: {row}, {column}"
+            )
+
+
+# https://en.wikipedia.org/wiki/Ordered_dithering
 
 
 class ThresholdMap(Enum):
@@ -135,7 +140,6 @@ THRESHOLD_MAP_LABELS = {
     ThresholdMap.BAYER_16: "Bayer 16x16",
 }
 THRESHOLD_MAPS = {
-    # https://en.wikipedia.org/wiki/Ordered_dithering
     ThresholdMap.BAYER_2: np.array(
         list(
             map(

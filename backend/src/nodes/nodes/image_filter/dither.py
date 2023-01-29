@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageAdjustmentCategory
+from . import category as ImageFilterCategory
 from ...impl.dithering.color_distance import batch_nearest_uniform_color
 from ...impl.dithering.constants import (
     ErrorDiffusionMap,
@@ -78,10 +78,10 @@ class DitherNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageAdjustmentCategory
+        self.category = ImageFilterCategory
         self.name = "Dither"
         self.icon = "MdShowChart"
-        self.sub = "Adjustments"
+        self.sub = "Quantize"
 
     def run(
         self,

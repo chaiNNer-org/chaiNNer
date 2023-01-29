@@ -16,13 +16,16 @@ def error_diffusion_dither(
 
     output_image = dtype_to_float(image)
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
-    for col in range(output_image.shape[1]):
-        for row in range(output_image.shape[0]):
+    for row in range(output_image.shape[0]):
+        for col in range(output_image.shape[1]):
             pixel = np.array(output_image[row, col, :])
             output_image[row, col, :] = nearest_color_func(pixel)
             error = pixel - output_image[row, col, :]
-            for (delta_col, delta_row), coefficient in edm.items():
-                if row + delta_row >= output_image.shape[0] or col + delta_col >= output_image.shape[1]:
+            for (delta_row, delta_col), coefficient in edm.items():
+                if (
+                    row + delta_row >= output_image.shape[0]
+                    or col + delta_col >= output_image.shape[1]
+                ):
                     continue
                 output_image[row + delta_row, col + delta_col, :] += error * coefficient
     return float_to_dtype(output_image, image.dtype)
@@ -42,9 +45,11 @@ def palette_error_diffusion_dither(
     palette: np.ndarray,
     error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
-    palette = as_3d(palette)
+    palette = dtype_to_float(as_3d(palette))
+
+    cache = []
 
     def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
-        return nearest_palette_color(pixel, palette)
+        return nearest_palette_color(pixel, palette, cache=cache)
 
     return error_diffusion_dither(image, error_diffusion_map, nearest_color_func)

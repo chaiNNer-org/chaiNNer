@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageAdjustmentCategory
+from . import category as ImageChannelCategory
 from ...impl.dithering.palette import (
     distinct_colors_palette,
     kmeans_palette,
@@ -62,10 +62,10 @@ class PaletteFromImage(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
-        self.category = ImageAdjustmentCategory
+        self.category = ImageChannelCategory
         self.name = "Palette from Image"
         self.icon = "MdShowChart"
-        self.sub = "Adjustments"
+        self.sub = "All"
 
     def run(
         self,
