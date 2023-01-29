@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from typing import Dict, List, Literal, Tuple
+from functools import reduce
 import numpy as np
 from scipy import signal
-from functools import reduce
 
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
@@ -18,7 +19,9 @@ from ...impl.image_utils import as_3d
 kernel_scales = [1.4, 1.2, 1.2, 1.2, 1.2, 1.2]
 
 kernel_params = [
-    [[0.862325, 1.624835, 0.767583, 1.862321]],
+    [
+        [0.862325, 1.624835, 0.767583, 1.862321],
+    ],
     [
         [0.886528, 5.268909, 0.411259, -0.548794],
         [1.960518, 1.558213, 0.513282, 4.56111],
@@ -51,29 +54,31 @@ kernel_params = [
     ],
 ]
 
+ParamKey = Literal["a", "b", "A", "B"]
+Params = Dict[ParamKey, float]
 
-def get_parameters(component_count: int = 2) -> tuple:
-    parameter_index = max(0, min(component_count - 1, len(kernel_params)))
+
+def get_parameters(component_count: int) -> Tuple[List[Params], float]:
+    parameter_index = max(0, min(component_count - 1, len(kernel_params) - 1))
+    param_keys: List[ParamKey] = ["a", "b", "A", "B"]
     parameter_dictionaries = [
-        dict(zip(["a", "b", "A", "B"], b)) for b in kernel_params[parameter_index]
+        dict(zip(param_keys, b)) for b in kernel_params[parameter_index]
     ]
     return (parameter_dictionaries, kernel_scales[parameter_index])
 
 
-def complex_kernel_1d(
-    radius: int, scale: float, a: np.ndarray, b: np.ndarray
-) -> np.ndarray:
+def complex_kernel_1d(radius: int, scale: float, a: float, b: float):
     kernel_radius = radius
     kernel_size = kernel_radius * 2 + 1
     ax = np.arange(-kernel_radius, kernel_radius + 1.0, dtype=np.float32)
     ax = ax * scale * (1 / kernel_radius)
     kernel_complex = np.zeros((kernel_size), dtype=np.complex64)
-    kernel_complex.real = np.exp(-a * (ax**2)) * np.cos(b * (ax**2))
-    kernel_complex.imag = np.exp(-a * (ax**2)) * np.sin(b * (ax**2))
+    kernel_complex.real = np.exp(-a * (ax**2)) * np.cos(b * (ax**2))  # type: ignore
+    kernel_complex.imag = np.exp(-a * (ax**2)) * np.sin(b * (ax**2))  # type: ignore
     return kernel_complex.reshape((1, kernel_size))
 
 
-def normalise_kernels(kernels: list, params: list) -> np.ndarray:
+def normalize_kernels(kernels: List[np.ndarray], params: List[Params]):
     total = 0
     for k, p in zip(kernels, params):
         for i in range(k.shape[1]):
@@ -82,24 +87,23 @@ def normalise_kernels(kernels: list, params: list) -> np.ndarray:
                     k[0, i].real * k[0, j].real - k[0, i].imag * k[0, j].imag
                 ) + p["B"] * (k[0, i].real * k[0, j].imag + k[0, i].imag * k[0, j].real)
     scalar = 1 / math.sqrt(total)
-    kernels = np.asarray(kernels) * scalar
-    return kernels
+    return [k * scalar for k in kernels]
 
 
-def weighted_sum(kernel: np.ndarray, params: list) -> np.ndarray:
+def weighted_sum(kernel: np.ndarray, params: Params) -> np.ndarray:
     return np.add(kernel.real * params["A"], kernel.imag * params["B"])
 
 
 def lens_blur(
-    img: np.ndarray, radius: int = 3, components: int = 5, exposure_gamma: float = 5
+    img: np.ndarray, radius: int, component_count: int, exposure_gamma: float
 ) -> np.ndarray:
     img = np.ascontiguousarray(np.transpose(as_3d(img), (2, 0, 1)), dtype=np.float32)
-    parameters, scale = get_parameters(component_count=components)
+    parameters, scale = get_parameters(component_count)
     components = [
         complex_kernel_1d(radius, scale, component_params["a"], component_params["b"])
         for component_params in parameters
     ]
-    components = normalise_kernels(components, parameters)
+    components = normalize_kernels(components, parameters)
     img = np.power(img, exposure_gamma)
     component_output = list()
     for component, component_params in zip(components, parameters):
@@ -134,7 +138,7 @@ class LensBlurNode(NodeBase):
             ImageInput(),
             NumberInput(
                 "Radius",
-                minimum=1,
+                minimum=0,
                 default=3,
                 controls_step=1,
             ),
@@ -165,18 +169,13 @@ class LensBlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        in_radius: int,
-        in_components: int,
-        in_exposure_gamma: float,
+        radius: int,
+        component_count: int,
+        exposure_gamma: float,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        if 0 in [in_radius, in_components, in_exposure_gamma]:
+        if radius == 0:
             return img
-        else:
-            return lens_blur(
-                img,
-                radius=in_radius,
-                components=in_components,
-                exposure_gamma=in_exposure_gamma,
-            )
+
+        return lens_blur(img, radius, component_count, exposure_gamma)
