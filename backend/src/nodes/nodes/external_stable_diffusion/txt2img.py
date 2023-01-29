@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 
 from . import category as ExternalStableDiffusionCategory
@@ -8,6 +10,7 @@ from ...impl.external_stable_diffusion import (
     SamplerName,
     STABLE_DIFFUSION_TEXT2IMG_URL,
     post,
+    nearest_valid_size,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -18,7 +21,7 @@ from ...properties.inputs import (
     EnumInput,
 )
 from ...properties.outputs import ImageOutput
-from typing import Optional
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:txt2img")
@@ -42,14 +45,26 @@ class Txt2Img(NodeBase):
                 controls_step=0.1,
                 precision=1,
             ),
-            SliderInput("Width", minimum=64, default=512, maximum=2048).with_id(6),
-            SliderInput("Height", minimum=64, default=512, maximum=2048).with_id(7),
+            SliderInput(
+                "Width",
+                minimum=64,
+                default=512,
+                maximum=2048,
+                slider_step=8,
+                controls_step=8,
+            ).with_id(6),
+            SliderInput(
+                "Height",
+                minimum=64,
+                default=512,
+                maximum=2048,
+                slider_step=8,
+                controls_step=8,
+            ).with_id(7),
             TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
-            ImageOutput(
-                image_type="Image {width: Input6, height: Input7, channels: 3}"
-            ),
+            ImageOutput(image_type="Image {width: Input6, height: Input7}", channels=3),
         ]
 
         self.category = ExternalStableDiffusionCategory
@@ -69,6 +84,10 @@ class Txt2Img(NodeBase):
         height: int,
         sd_model_checkpoint: Optional[str],
     ) -> np.ndarray:
+        if (width, height) != nearest_valid_size(width, height):
+            raise RuntimeError(
+                "Stable Diffusion nodes can only output images with dimensions that are a multiple of 8."
+            )
         request_data = {
             "prompt": prompt,
             "negative_prompt": negative_prompt or "",
@@ -85,4 +104,10 @@ class Txt2Img(NodeBase):
                 "sd_model_checkpoint"
             ] = sd_model_checkpoint
         response = post(url=STABLE_DIFFUSION_TEXT2IMG_URL, json_data=request_data)
-        return decode_base64_image(response["images"][0])
+        result = decode_base64_image(response["images"][0])
+        h, w, _ = get_h_w_c(result)
+        assert (w, h) == (
+            width,
+            height,
+        ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+        return result

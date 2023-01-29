@@ -1,13 +1,13 @@
-import requests
 import base64
-import cv2
 import io
-import numpy as np
 import os
-from PIL import Image
 from enum import Enum
 from typing import Dict, Union
-from sanic.log import logger
+
+import cv2
+import numpy as np
+import requests
+from PIL import Image
 
 from .image_utils import normalize
 from ..utils.utils import get_h_w_c
@@ -37,6 +37,10 @@ def get(url) -> Dict:
 def post(url, json_data: Dict) -> Dict:
     response = requests.post(url, json=json_data)
     return response.json()
+
+
+def nearest_valid_size(width, height):
+    return (width // 8) * 8, (height // 8) * 8
 
 
 # Call the API at import time
