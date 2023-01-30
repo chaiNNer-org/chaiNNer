@@ -130,7 +130,7 @@
     "react-i18next": "^12.0.0",
     "react-icons": "^4.7.1",
     "react-markdown": "^8.0.3",
-    "reactflow": "^11.2.0",
+    "reactflow": "^11.5.1",
     "rregex": "^1.5.1",
     "scheduler": "^0.22.0",
     "semver": "^7.3.7",
