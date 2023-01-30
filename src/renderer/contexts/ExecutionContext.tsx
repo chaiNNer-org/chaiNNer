@@ -331,11 +331,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             // Try to kill the current executor
             // If it doesn't respond within 1 second, force restart it
             const backendKillPromise = backend.kill();
-            const timeoutPromise = new Promise<string>((resolve) => {
-                setTimeout(() => {
-                    resolve('timeout');
-                }, 1000);
-            });
+            const timeoutPromise = delay(1000).then(() => 'timeout');
             const response = await Promise.race([backendKillPromise, timeoutPromise]);
             if (response === 'timeout') {
                 // Force restart the backend
