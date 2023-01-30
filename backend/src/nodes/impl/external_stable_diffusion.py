@@ -28,14 +28,34 @@ STABLE_DIFFUSION_OPTIONS_URL = (
     f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
 )
 
+ERROR_MSG = f"""
+If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
+
+./webui.sh --api
+
+ChaiNNer is currently configured to look for the API at http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}.  If you
+have it running somewhere else, you can change this using the STABLE_DIFFUSION_HOST and STABLE_DIFFUSION_PORT
+environment variables.
+"""
+
+
+class ExternalServiceConnectionError(Exception):
+    pass
+
 
 def get(url) -> Dict:
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except requests.ConnectionError:
+        raise ExternalServiceConnectionError(ERROR_MSG)
     return response.json()
 
 
 def post(url, json_data: Dict) -> Dict:
-    response = requests.post(url, json=json_data)
+    try:
+        response = requests.post(url, json=json_data)
+    except requests.ConnectionError:
+        raise ExternalServiceConnectionError(ERROR_MSG)
     return response.json()
 
 
