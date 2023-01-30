@@ -90,6 +90,16 @@ class ModelFileIteratorNode(IteratorNodeBase):
                 "The number of param files and bin files are not the same. Please check your directory."
             )
 
+        # Check if the filenames match
+        for param_file, bin_file in zip(just_param_files, just_bin_files):
+            param_file_name, _ = os.path.splitext(param_file)
+            bin_file_name, _ = os.path.splitext(bin_file)
+
+            if param_file_name != bin_file_name:
+                raise ValueError(
+                    f"Param file {param_file_name} does not match bin file {bin_file_name}. Please check your files."
+                )
+
         just_model_files = list(zip(just_param_files, just_bin_files))
 
         def before(filepath_pairs: Tuple[str, str], index: int):
