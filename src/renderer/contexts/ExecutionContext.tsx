@@ -11,7 +11,7 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { assertNever } from '../../common/util';
+import { assertNever, delay } from '../../common/util';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -331,14 +331,17 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             // Try to kill the current executor
             // If it doesn't respond within 1 second, force restart it
             const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(1000).then(() => 'timeout');
+            const timeoutPromise = delay(1000).then(() => ({
+                type: 'timeout',
+                exception: '',
+            }));
             const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            if (response === 'timeout') {
+            if (response.type === 'timeout') {
                 // Force restart the backend
                 await ipcRenderer.invoke('restart-backend');
                 return;
             }
-            if (typeof response !== 'string' && response.type === 'error') {
+            if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
         } catch (err) {
