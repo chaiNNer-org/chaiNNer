@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import cv2
 import math
 from typing import Dict, List, Literal, Tuple
 from functools import reduce
 import numpy as np
-from scipy import signal
 
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
@@ -13,8 +13,9 @@ from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...impl.image_utils import as_3d
 
-# Lens blur adapted from: https://github.com/NatLee/Blur-Generator
-# MIT License; Copyright (c) 2022 Nat Lee
+# Lens blur adapted from GIMP Lens Blur
+# Copyright (c) 2019 Davide Sandona'
+# https://github.com/Davide-sd/GIMP-lens-blur.git
 
 kernel_scales = [1.4, 1.2, 1.2, 1.2, 1.2, 1.2]
 
@@ -108,15 +109,19 @@ def lens_blur(
     component_output = list()
     for component, component_params in zip(components, parameters):
         channels = list()
+        component_real = np.real(component)
+        component_imag = np.imag(component)
+        component_real_t = component_real.transpose()
+        component_imag_t = component_imag.transpose()
         for channel in range(img.shape[0]):
-            inter = signal.convolve2d(
-                img[channel], component, boundary="symm", mode="same"
-            )
-            channels.append(
-                signal.convolve2d(
-                    inter, component.transpose(), boundary="symm", mode="same"
-                )
-            )
+            inter_real = cv2.filter2D(img[channel], -1, component_real)
+            inter_imag = cv2.filter2D(img[channel], -1, component_imag)
+            final_1 = cv2.filter2D(inter_real, -1, component_real_t)
+            final_2 = cv2.filter2D(inter_real, -1, component_imag_t)
+            final_3 = cv2.filter2D(inter_imag, -1, component_real_t)
+            final_4 = cv2.filter2D(inter_imag, -1, component_imag_t)
+            final = final_1 - final_4 + 1j * (final_2 + final_3)
+            channels.append(final)
         component_image = np.stack(
             [weighted_sum(channel, component_params) for channel in channels]
         )
