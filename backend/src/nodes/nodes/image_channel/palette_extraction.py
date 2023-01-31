@@ -34,7 +34,9 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
 class PaletteFromImage(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Use an image to create a palette.  A palette is an image with one row, which can be used in nodes that ask for a LUT."
+        self.description = (
+            "Use an image to create a palette.  A palette is an image with one row."
+        )
         self.inputs = [
             ImageInput(),
             EnumInput(
@@ -61,7 +63,20 @@ class PaletteFromImage(NodeBase):
                 ).with_id(2),
             ),
         ]
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="""
+                match Input1 {
+                    PaletteExtractionMethod::All => int(1..),
+                    _ => Input2
+                }
+            """,
+                    height=1,
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = ImageChannelCategory
         self.name = "Palette from Image"
         self.icon = "MdShowChart"

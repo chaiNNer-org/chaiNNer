@@ -36,7 +36,9 @@ class PaletteDitherNode(NodeBase):
         self.description = "Apply one of a variety of dithering algorithms using colors from a given palette. (Only the top row of pixels (y=0) of the palette will be used.)"
         self.inputs = [
             ImageInput(),
-            ImageInput(label="LUT", image_type=expression.Image(channels_as="Input0")),
+            ImageInput(
+                label="Palette", image_type=expression.Image(channels_as="Input0")
+            ),
             EnumInput(
                 PaletteDitherAlgorithm,
                 option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
