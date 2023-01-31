@@ -141,7 +141,7 @@ THRESHOLD_MAP_LABELS = {
 }
 # fmt: off
 THRESHOLD_MAPS = {
-    ThresholdMap.BAYER_2: np.arrray([
+    ThresholdMap.BAYER_2: np.array([
         [0, 2],
         [3, 1]]),
     ThresholdMap.BAYER_4: np.array([
