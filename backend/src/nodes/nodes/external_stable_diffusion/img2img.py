@@ -75,7 +75,14 @@ class Img2Img(NodeBase):
             ).with_id(9),
         ]
         self.outputs = [
-            ImageOutput(image_type="Image {width: Input8, height: Input9}", channels=3),
+            ImageOutput(
+                image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
+                Image {
+                    width: nearest_valid(Input8),
+                    height: nearest_valid(Input9)
+                }""",
+                channels=3,
+            ),
         ]
 
         self.category = ExternalStableDiffusionCategory
@@ -96,10 +103,9 @@ class Img2Img(NodeBase):
         width: int,
         height: int,
     ) -> np.ndarray:
-        if (width, height) != nearest_valid_size(width, height):
-            raise RuntimeError(
-                "Stable Diffusion nodes can only output images with dimensions that are a multiple of 8."
-            )
+        width, height = nearest_valid_size(
+            width, height
+        )  # This cooperates with the "image_type" of the ImageOutput
         request_data = {
             "init_images": [encode_base64_image(image)],
             "prompt": prompt,
