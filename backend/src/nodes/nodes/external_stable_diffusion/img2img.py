@@ -73,7 +73,6 @@ class Img2Img(NodeBase):
                 slider_step=8,
                 controls_step=8,
             ).with_id(9),
-            TextInput("Model Checkpoint Override").make_optional(),
         ]
         self.outputs = [
             ImageOutput(image_type="Image {width: Input8, height: Input9}", channels=3),
@@ -96,7 +95,6 @@ class Img2Img(NodeBase):
         cfg_scale: float,
         width: int,
         height: int,
-        sd_model_checkpoint: Optional[str],
     ) -> np.ndarray:
         if (width, height) != nearest_valid_size(width, height):
             raise RuntimeError(
@@ -113,12 +111,7 @@ class Img2Img(NodeBase):
             "cfg_scale": cfg_scale,
             "width": width,
             "height": height,
-            "override_settings": {},
         }
-        if sd_model_checkpoint:
-            request_data["override_settings"][
-                "sd_model_checkpoint"
-            ] = sd_model_checkpoint
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
