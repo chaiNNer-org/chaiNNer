@@ -71,10 +71,9 @@ export const ExecutionButtons = memo(() => {
                 <IconButton
                     aria-label={t('header.stopButton', 'Stop button')}
                     colorScheme="red"
-                    disabled={
-                        !(status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED)
-                    }
+                    disabled={![ExecutionStatus.RUNNING, ExecutionStatus.PAUSED].includes(status)}
                     icon={<IoStop />}
+                    isLoading={status === ExecutionStatus.KILLING}
                     size="md"
                     variant="outline"
                     onClick={() => {

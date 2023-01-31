@@ -29,6 +29,7 @@ export enum ExecutionStatus {
     READY,
     RUNNING,
     PAUSED,
+    KILLING,
 }
 
 interface ExecutionStatusContextValue {
@@ -326,17 +327,44 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
+    const statusRef = useRef(status);
+
+    const KILL_TIMEOUT = 2500;
+    useEffect(() => {
+        statusRef.current = status;
+        if (status === ExecutionStatus.KILLING) {
+            setTimeout(() => {
+                if (statusRef.current === ExecutionStatus.KILLING) {
+                    log.info('Executor did not actually kill the backend. Forcing restart.');
+                    ipcRenderer
+                        .invoke('restart-backend')
+                        .then(() => {
+                            log.info('Finished restarting backend');
+                        })
+                        .catch(() => {
+                            sendAlert({
+                                type: AlertType.ERROR,
+                                message: 'An unexpected error occurred.',
+                            });
+                        });
+                }
+            }, KILL_TIMEOUT);
+        }
+    }, [status, sendAlert]);
+
     const kill = useCallback(async () => {
         try {
+            setStatus(ExecutionStatus.KILLING);
             // Try to kill the current executor
             // If it doesn't respond within 1 second, force restart it
             const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(1000).then(() => ({
+            const timeoutPromise = delay(KILL_TIMEOUT).then(() => ({
                 type: 'timeout',
                 exception: '',
             }));
             const response = await Promise.race([backendKillPromise, timeoutPromise]);
             if (response.type === 'timeout') {
+                log.info('Executor did not respond to kill request. Forcing restart.');
                 // Force restart the backend
                 await ipcRenderer.invoke('restart-backend');
                 return;
@@ -359,6 +387,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     run();
                     break;
                 case ExecutionStatus.RUNNING:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -376,6 +405,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     break;
                 case ExecutionStatus.READY:
                 case ExecutionStatus.PAUSED:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -393,6 +423,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     kill();
                     break;
                 case ExecutionStatus.READY:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
