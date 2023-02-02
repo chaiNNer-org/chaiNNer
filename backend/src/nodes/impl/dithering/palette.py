@@ -42,6 +42,9 @@ class MedianCutBucket:
         widest_channel = np.argmax(self.channel_ranges)
         median = np.median(self.data[:, widest_channel])
         mask = self.data[:, widest_channel] > median
+        if mask.sum() == 0:
+            mean = np.mean(self.data[:, widest_channel])
+            mask = self.data[:, widest_channel] > mean
         return MedianCutBucket(self.data[mask == True]), MedianCutBucket(
             self.data[mask == False]
         )
@@ -57,7 +60,7 @@ def median_cut_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     buckets = [MedianCutBucket(flat_image)]
     while len(buckets) < num_colors:
         bucket_idx, bucket = max(enumerate(buckets), key=lambda x: x[1].biggest_range)
-        if bucket.n_pixels == 1:
+        if bucket.biggest_range == 0:
             break
         buckets.pop(bucket_idx)
 

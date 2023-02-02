@@ -3,13 +3,29 @@ import numpy as np
 from ..image_utils import MAX_VALUES_BY_DTYPE
 
 
+def dtype_convert(image: np.ndarray, target_dtype: np.dtype):
+    if image.dtype == target_dtype:
+        return image
+
+    image = dtype_to_float(image)
+    return float_to_dtype(image, target_dtype)
+
+
 def dtype_to_float(image: np.ndarray) -> np.ndarray:
-    max_value = MAX_VALUES_BY_DTYPE.get(image.dtype, 1.0)
+    if image.dtype == np.dtype("float32"):
+        return image
+    max_value = MAX_VALUES_BY_DTYPE[image.dtype]
     return image.astype(np.dtype("float32")) / max_value
 
 
+def dtype_to_uint8(image: np.ndarray) -> np.ndarray:
+    return dtype_convert(image, np.dtype("uint8"))
+
+
 def float_to_dtype(image: np.ndarray, dtype: np.dtype) -> np.ndarray:
-    max_value = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
+    if image.dtype == dtype:
+        return image
+    max_value = MAX_VALUES_BY_DTYPE[dtype]
     return (image * max_value).astype(dtype)
 
 

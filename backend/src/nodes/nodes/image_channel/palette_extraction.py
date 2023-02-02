@@ -88,9 +88,19 @@ class PaletteFromImage(NodeBase):
         palette_extraction_method: PaletteExtractionMethod,
         palette_size: int,
     ) -> np.ndarray:
+
+        distinct_colors = distinct_colors_palette(img)
+
         if palette_extraction_method == PaletteExtractionMethod.ALL:
-            return distinct_colors_palette(img)
-        elif palette_extraction_method == PaletteExtractionMethod.KMEANS:
+            return distinct_colors
+
+        if palette_size > distinct_colors.shape[1]:
+            excess = palette_size - distinct_colors.shape[1]
+            return np.pad(distinct_colors, [(0, 0), (0, excess), (0,0)], mode="edge")
+
+        if palette_extraction_method == PaletteExtractionMethod.KMEANS:
             return kmeans_palette(img, palette_size)
         elif palette_extraction_method == PaletteExtractionMethod.MEDIAN_CUT:
+            if palette_size > distinct_colors.shape[1]:
+                return distinct_colors
             return median_cut_palette(img, palette_size)
