@@ -4,11 +4,6 @@ import numpy as np
 from .common import dtype_to_float
 from ..image_utils import as_3d
 
-"""
-These functions take an image and produce a palette, which is an image with one row with one pixel for each color 
-in the palette.
-"""
-
 
 def distinct_colors_palette(image: np.ndarray) -> np.ndarray:
     image = as_3d(image)
@@ -27,7 +22,7 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
 
     attempts = 10
     cv2.setRNGSeed(0)
-    ret, label, center = cv2.kmeans(
+    _, _, center = cv2.kmeans(
         flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS
     )
 
