@@ -93,17 +93,23 @@ export interface BackendError {
 export class Backend {
     readonly port: number;
 
+    abortController: AbortController;
+
     constructor(port: number) {
         this.port = port;
+        this.abortController = new AbortController();
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
         const options: RequestInit = { method, cache: 'no-cache' };
+        this.abortController = new AbortController();
+        const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
             options.headers = {
                 'Content-Type': 'application/json',
             };
+            options.signal = signal;
         }
 
         const resp = await fetch(`http://localhost:${this.port}${path}`, options);
@@ -141,8 +147,9 @@ export class Backend {
         return this.fetchJson('/resume', 'POST');
     }
 
-    kill(): Promise<BackendExecutorActionResponse> {
-        return this.fetchJson('/kill', 'POST');
+    kill(): void {
+        // await this.fetchJson('/kill', 'POST');
+        return this.abortController.abort('Killing current execution');
     }
 
     /**

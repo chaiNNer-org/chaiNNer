@@ -11,7 +11,7 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { assertNever, delay } from '../../common/util';
+import { assertNever } from '../../common/util';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -40,7 +40,7 @@ interface ExecutionStatusContextValue {
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
-    kill: () => Promise<void>;
+    kill: () => void;
     status: ExecutionStatus;
 }
 
@@ -63,7 +63,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef, restart } =
+        useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -267,10 +268,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            sendAlert({
-                type: AlertType.ERROR,
-                message: `An unexpected error occurred: ${String(err)}`,
-            });
+            if (err instanceof DOMException && err.name === 'AbortError') {
+                // We could maybe send a success message here
+            } else {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `An unexpected error occurred: ${String(err)}`,
+                });
+            }
         } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
@@ -327,51 +332,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
-    const statusRef = useRef(status);
-
-    const KILL_TIMEOUT = 2500;
-    useEffect(() => {
-        statusRef.current = status;
-        if (status === ExecutionStatus.KILLING) {
-            setTimeout(() => {
-                if (statusRef.current === ExecutionStatus.KILLING) {
-                    log.info('Executor did not actually kill the backend. Forcing restart.');
-                    ipcRenderer
-                        .invoke('restart-backend')
-                        .then(() => {
-                            log.info('Finished restarting backend');
-                        })
-                        .catch(() => {
-                            sendAlert({
-                                type: AlertType.ERROR,
-                                message: 'An unexpected error occurred.',
-                            });
-                        });
-                }
-            }, KILL_TIMEOUT);
-        }
-    }, [status, sendAlert]);
-
-    const kill = useCallback(async () => {
+    const kill = useCallback(() => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            // Try to kill the current executor
-            // If it doesn't respond within 1 second, force restart it
-            const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(KILL_TIMEOUT).then(() => ({
-                type: 'timeout',
-                exception: '',
-            }));
-            const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            if (response.type === 'timeout') {
-                log.info('Executor did not respond to kill request. Forcing restart.');
-                // Force restart the backend
-                await ipcRenderer.invoke('restart-backend');
-                return;
-            }
-            if (response.type === 'error') {
-                sendAlert({ type: AlertType.ERROR, message: response.exception });
-            }
+            backend.kill();
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
@@ -419,7 +383,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             switch (status) {
                 case ExecutionStatus.RUNNING:
                 case ExecutionStatus.PAUSED:
-                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
                     kill();
                     break;
                 case ExecutionStatus.READY:

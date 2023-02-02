@@ -73,11 +73,10 @@ export const ExecutionButtons = memo(() => {
                     colorScheme="red"
                     disabled={![ExecutionStatus.RUNNING, ExecutionStatus.PAUSED].includes(status)}
                     icon={<IoStop />}
-                    isLoading={status === ExecutionStatus.KILLING}
+                    isLoading={[ExecutionStatus.KILLING].includes(status)}
                     size="md"
                     variant="outline"
                     onClick={() => {
-                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
                         kill();
                     }}
                 />
