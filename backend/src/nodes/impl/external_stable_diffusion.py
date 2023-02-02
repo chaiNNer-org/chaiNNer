@@ -15,6 +15,10 @@ from ..utils.utils import get_h_w_c
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
 
+STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
+    os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", "600")
+)  # 10 minutes
+
 STABLE_DIFFUSION_TEXT2IMG_URL = (
     f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
 )
@@ -38,24 +42,39 @@ have it running somewhere else, you can change this using the STABLE_DIFFUSION_H
 environment variables.
 """
 
+TIMEOUT_MSG = f"""
+Stable diffusion request timeout reached.  Currently configured as {STABLE_DIFFUSION_REQUEST_TIMEOUT} seconds.  If you
+want to change this, set the STABLE_DIFFUSION_REQUEST_TIMEOUT environment variable.
+"""
+
 
 class ExternalServiceConnectionError(Exception):
     pass
 
 
+class ExternalServiceTimeout(Exception):
+    pass
+
+
 def get(url) -> Dict:
     try:
-        response = requests.get(url)
-    except requests.ConnectionError:
-        raise ExternalServiceConnectionError(ERROR_MSG)
+        response = requests.get(url, timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT)
+    except requests.ConnectionError as exc:
+        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+    except requests.exceptions.ReadTimeout as exc:
+        raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
 
 
 def post(url, json_data: Dict) -> Dict:
     try:
-        response = requests.post(url, json=json_data)
-    except requests.ConnectionError:
-        raise ExternalServiceConnectionError(ERROR_MSG)
+        response = requests.post(
+            url, json=json_data, timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT
+        )
+    except requests.ConnectionError as exc:
+        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+    except requests.exceptions.ReadTimeout as exc:
+        raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
 
 
