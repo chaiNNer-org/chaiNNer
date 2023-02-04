@@ -40,7 +40,7 @@ interface ExecutionStatusContextValue {
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
-    kill: () => void;
+    kill: () => Promise<void>;
     status: ExecutionStatus;
 }
 
@@ -412,6 +412,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             switch (status) {
                 case ExecutionStatus.RUNNING:
                 case ExecutionStatus.PAUSED:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
                     kill();
                     break;
                 case ExecutionStatus.READY:
