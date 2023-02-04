@@ -63,7 +63,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef, restart } =
+        useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -341,10 +342,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 if (statusRef.current === ExecutionStatus.KILLING) {
                     log.info('Executor did not actually kill the backend. Forcing restart.');
 
-                    ipcRenderer
-                        .invoke('restart-backend')
+                    restart()
                         .then(() => {
-                            backend.abort();
                             log.info('Finished restarting backend');
                         })
                         .catch(() => {
@@ -356,7 +355,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 }
             }, KILL_TIMEOUT);
         }
-    }, [status, sendAlert, backend]);
+    }, [status, sendAlert, restart]);
 
     const kill = useCallback(async () => {
         try {
