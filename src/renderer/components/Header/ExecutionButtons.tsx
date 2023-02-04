@@ -73,7 +73,7 @@ export const ExecutionButtons = memo(() => {
                     colorScheme="red"
                     disabled={![ExecutionStatus.RUNNING, ExecutionStatus.PAUSED].includes(status)}
                     icon={<IoStop />}
-                    isLoading={[ExecutionStatus.KILLING].includes(status)}
+                    isLoading={ExecutionStatus.KILLING === status}
                     size="md"
                     variant="outline"
                     onClick={() => {
