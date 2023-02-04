@@ -758,7 +758,6 @@ class RestoreFormer(nn.Module):
         self.load_state_dict(state_dict)
 
     def encode(self, x):
-
         hs = self.encoder(x)
         h = self.quant_conv(hs["out"])
         quant, emb_loss, info = self.quantize(h)

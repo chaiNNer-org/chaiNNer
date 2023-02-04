@@ -153,7 +153,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         if writer["out"] is not None:
             writer["out"].stdin.write(out_frame.tobytes())
         else:
-            raise Exception("Failed to open video writer")
+            raise RuntimeError("Failed to open video writer")
 
 
 @NodeFactory.register("chainner:image:video_frame_iterator")
@@ -202,26 +202,26 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         probe = ffmpeg.probe(path, cmd=ffprobe_path)
         video_format = probe.get("format", None)
         if video_format is None:
-            raise Exception("Failed to get video format. Please report.")
+            raise RuntimeError("Failed to get video format. Please report.")
         video_stream = next(
             (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
             None,
         )
 
         if video_stream is None:
-            raise Exception("No video stream found in file")
+            raise RuntimeError("No video stream found in file")
 
         width = video_stream.get("width", None)
         if width is None:
-            raise Exception("No width found in video stream")
+            raise RuntimeError("No width found in video stream")
         width = int(width)
         height = video_stream.get("height", None)
         if height is None:
-            raise Exception("No height found in video stream")
+            raise RuntimeError("No height found in video stream")
         height = int(height)
         fps = video_stream.get("r_frame_rate", None)
         if fps is None:
-            raise Exception("No fps found in video stream")
+            raise RuntimeError("No fps found in video stream")
         fps = int(fps.split("/")[0]) / int(fps.split("/")[1])
         frame_count = video_stream.get("nb_frames", None)
         if frame_count is None:
@@ -231,7 +231,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             if duration is not None:
                 frame_count = float(duration) * fps
             else:
-                raise Exception(
+                raise RuntimeError(
                     "No frame count or duration found in video stream. Unable to determine video length. Please report."
                 )
         frame_count = int(frame_count)

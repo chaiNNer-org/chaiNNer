@@ -9,7 +9,7 @@ class WaylandClipboard(ClipboardBase):
     def __init__(self) -> None:
         self.wl_copy = shutil.which("wl-copy")
         if not self.wl_copy:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "wl-copy must be installed. "
                 "Please install wl-copy using your system package manager"
             )
@@ -22,7 +22,7 @@ class WaylandClipboard(ClipboardBase):
 
         stdout, stderr = proc.communicate(image_bytes)
         if proc.returncode != 0:
-            raise Exception(
+            raise RuntimeError(
                 f"Copy failed. wl_copy returned code: {proc.returncode!r} "
                 f"Stderr: {stderr!r} "
                 f"Stdout: {stdout!r}"
@@ -36,7 +36,7 @@ class WaylandClipboard(ClipboardBase):
 
         stdout, stderr = proc.communicate(text.encode("utf-8"))
         if proc.returncode != 0:
-            raise Exception(
+            raise RuntimeError(
                 f"Copy failed. wl_copy returned code: {proc.returncode!r} "
                 f"Stderr: {stderr!r} "
                 f"Stdout: {stdout!r}"
