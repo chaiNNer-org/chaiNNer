@@ -268,9 +268,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            if (err instanceof DOMException && err.name === 'AbortError') {
-                // We could maybe send a success message here
-            } else {
+            if (!(err instanceof DOMException && err.name === 'AbortError')) {
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `An unexpected error occurred: ${String(err)}`,
@@ -334,10 +332,17 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const statusRef = useRef(status);
 
-    const KILL_TIMEOUT = 2500;
     useEffect(() => {
         statusRef.current = status;
-        if (status === ExecutionStatus.KILLING) {
+    }, [status]);
+
+    const kill = useCallback(async () => {
+        try {
+            setStatus(ExecutionStatus.KILLING);
+            const response = await backend.kill();
+            if (response.type === 'error') {
+                sendAlert({ type: AlertType.ERROR, message: response.exception });
+            }
             setTimeout(() => {
                 if (statusRef.current === ExecutionStatus.KILLING) {
                     log.info('Executor did not actually kill the backend. Forcing restart.');
@@ -353,21 +358,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                             });
                         });
                 }
-            }, KILL_TIMEOUT);
-        }
-    }, [status, sendAlert, restart]);
-
-    const kill = useCallback(async () => {
-        try {
-            setStatus(ExecutionStatus.KILLING);
-            const response = await backend.kill();
-            if (response.type === 'error') {
-                sendAlert({ type: AlertType.ERROR, message: response.exception });
-            }
+            }, 2500);
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    }, [backend, sendAlert]);
+    }, [backend, restart, sendAlert]);
 
     useHotkeys(
         'F5',

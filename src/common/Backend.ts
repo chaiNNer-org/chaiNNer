@@ -128,7 +128,6 @@ export class Backend {
     run(
         data: BackendRunRequest
     ): Promise<BackendSuccessResponse | BackendExceptionResponse | BackendAlreadyRunningResponse> {
-        this.abortController = new AbortController();
         return this.fetchJson('/run', 'POST', data);
     }
 
@@ -152,7 +151,8 @@ export class Backend {
     }
 
     abort(): void {
-        return this.abortController.abort('Aborting current execution');
+        this.abortController.abort('Aborting current execution');
+        this.abortController = new AbortController();
     }
 
     /**

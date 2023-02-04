@@ -98,9 +98,9 @@ export const BackendProvider = memo(
                 do {
                     needsNewRestartRef.current = false;
                     try {
+                        backend.abort();
                         // eslint-disable-next-line no-await-in-loop
                         await ipcRenderer.invoke('restart-backend');
-                        backend.abort();
                         error = null;
                     } catch (e) {
                         error = e;
