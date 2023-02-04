@@ -93,7 +93,7 @@ export interface BackendError {
 export class Backend {
     readonly port: number;
 
-    abortController: AbortController;
+    private abortController: AbortController;
 
     constructor(port: number) {
         this.port = port;
