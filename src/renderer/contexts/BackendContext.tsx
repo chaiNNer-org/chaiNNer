@@ -118,7 +118,7 @@ export const BackendProvider = memo(
                 }
             })();
             return restartPromiseRef.current;
-        }, [refreshNodes]);
+        }, [backend, refreshNodes]);
 
         const value = useMemoObject<BackendContextState>({
             port,

@@ -77,6 +77,7 @@ export const ExecutionButtons = memo(() => {
                     size="md"
                     variant="outline"
                     onClick={() => {
+                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
                         kill();
                     }}
                 />
