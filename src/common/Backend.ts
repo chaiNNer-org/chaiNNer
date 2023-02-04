@@ -102,7 +102,6 @@ export class Backend {
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
         const options: RequestInit = { method, cache: 'no-cache' };
-        this.abortController = new AbortController();
         const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
@@ -129,6 +128,7 @@ export class Backend {
     run(
         data: BackendRunRequest
     ): Promise<BackendSuccessResponse | BackendExceptionResponse | BackendAlreadyRunningResponse> {
+        this.abortController = new AbortController();
         return this.fetchJson('/run', 'POST', data);
     }
 
@@ -147,9 +147,12 @@ export class Backend {
         return this.fetchJson('/resume', 'POST');
     }
 
-    kill(): void {
-        // await this.fetchJson('/kill', 'POST');
-        return this.abortController.abort('Killing current execution');
+    kill(): Promise<BackendExecutorActionResponse> {
+        return this.fetchJson('/kill', 'POST');
+    }
+
+    abort(): void {
+        return this.abortController.abort('Aborting current execution');
     }
 
     /**

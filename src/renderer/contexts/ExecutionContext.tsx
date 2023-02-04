@@ -63,8 +63,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef } =
-        useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -332,10 +331,54 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
-    const kill = useCallback(() => {
+    const statusRef = useRef(status);
+
+    const KILL_TIMEOUT = 2500;
+    useEffect(() => {
+        statusRef.current = status;
+        if (status === ExecutionStatus.KILLING) {
+            setTimeout(() => {
+                if (statusRef.current === ExecutionStatus.KILLING) {
+                    log.info('Executor did not actually kill the backend. Forcing restart.');
+
+                    ipcRenderer
+                        .invoke('restart-backend')
+                        .then(() => {
+                            backend.abort();
+                            log.info('Finished restarting backend');
+                        })
+                        .catch(() => {
+                            sendAlert({
+                                type: AlertType.ERROR,
+                                message: 'An unexpected error occurred.',
+                            });
+                        });
+                }
+            }, KILL_TIMEOUT);
+        }
+    }, [status, sendAlert, backend]);
+
+    const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            backend.kill();
+            // Try to kill the current executor
+            // If it doesn't respond within 1 second, force restart it
+            const response = await backend.kill();
+            // const timeoutPromise = delay(KILL_TIMEOUT).then(() => ({
+            //     type: 'timeout',
+            //     exception: '',
+            // }));
+            // const response = await Promise.race([backendKillPromise, timeoutPromise]);
+            // if (response.type === 'timeout') {
+            //     log.info('Executor did not respond to kill request. Forcing restart.');
+            //     // Force restart the backend
+            //     await ipcRenderer.invoke('restart-backend');
+            //     backend.abort();
+            //     return;
+            // }
+            if (response.type === 'error') {
+                sendAlert({ type: AlertType.ERROR, message: response.exception });
+            }
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
