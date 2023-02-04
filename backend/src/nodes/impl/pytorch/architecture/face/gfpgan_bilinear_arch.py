@@ -182,7 +182,6 @@ class GFPGANBilinear(nn.Module):
         narrow=1,
         sft_half=False,
     ):
-
         super(GFPGANBilinear, self).__init__()
         self.input_is_latent = input_is_latent
         self.different_w = different_w

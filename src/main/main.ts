@@ -24,6 +24,8 @@ log.transports.file.level = 'info';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
+app.setPath('userData', getRootDirSync());
+
 app.on('quit', () => {
     log.info('Cleaning up temp folders...');
     const tempDir = os.tmpdir();

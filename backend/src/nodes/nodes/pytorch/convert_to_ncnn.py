@@ -40,7 +40,7 @@ class ConvertTorchToNCNNNode(NodeBase):
 
     def run(self, model: PyTorchSRModel, is_fp16: int) -> Any:
         if ConvertOnnxToNcnnNode is None:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."

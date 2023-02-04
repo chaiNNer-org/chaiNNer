@@ -159,12 +159,12 @@ class IteratorContext:
                 await self.run_iteration(index, length)
             except Aborted:
                 raise
-            except Exception as e:
+            except RuntimeError as e:
                 logger.error(e)
                 errors.append(str(e))
 
         if len(errors) > 0:
-            raise Exception(
+            raise RuntimeError(
                 # pylint: disable=consider-using-f-string
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
@@ -211,7 +211,7 @@ class IteratorContext:
             )
 
         if len(errors) > 0:
-            raise Exception(
+            raise RuntimeError(
                 # pylint: disable=consider-using-f-string
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
