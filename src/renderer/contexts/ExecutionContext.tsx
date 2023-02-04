@@ -361,21 +361,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            // Try to kill the current executor
-            // If it doesn't respond within 1 second, force restart it
             const response = await backend.kill();
-            // const timeoutPromise = delay(KILL_TIMEOUT).then(() => ({
-            //     type: 'timeout',
-            //     exception: '',
-            // }));
-            // const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            // if (response.type === 'timeout') {
-            //     log.info('Executor did not respond to kill request. Forcing restart.');
-            //     // Force restart the backend
-            //     await ipcRenderer.invoke('restart-backend');
-            //     backend.abort();
-            //     return;
-            // }
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
