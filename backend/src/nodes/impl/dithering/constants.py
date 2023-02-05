@@ -116,7 +116,7 @@ ERROR_DIFFUSION_MAPS: Dict[ErrorDiffusionMap, ERROR_DIFFUSION_MAP_TYPE] = {
 
 # Sanity check
 for error_diffusion_map, coords in ERROR_DIFFUSION_MAPS.items():
-    for (row, column),_ in coords.items():
+    for (row, column), _ in coords.items():
         if row < 0 or (row == 0 and column <= 0):
             logger.warning(
                 f"Error diffusion map {error_diffusion_map} has an illegal coordinate: {row}, {column}"
