@@ -11,7 +11,7 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { assertNever } from '../../common/util';
+import { assertNever, delay } from '../../common/util';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -29,6 +29,7 @@ export enum ExecutionStatus {
     READY,
     RUNNING,
     PAUSED,
+    KILLING,
 }
 
 interface ExecutionStatusContextValue {
@@ -62,7 +63,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef, restart } =
+        useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -266,10 +268,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            sendAlert({
-                type: AlertType.ERROR,
-                message: `An unexpected error occurred: ${String(err)}`,
-            });
+            if (!(err instanceof DOMException && err.name === 'AbortError')) {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `An unexpected error occurred: ${String(err)}`,
+                });
+            }
         } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
@@ -328,14 +332,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const kill = useCallback(async () => {
         try {
-            const response = await backend.kill();
+            setStatus(ExecutionStatus.KILLING);
+            const backendKillPromise = backend.kill();
+            const timeoutPromise = delay(2500).then(() => ({
+                type: 'timeout',
+                exception: '',
+            }));
+            const response = await Promise.race([backendKillPromise, timeoutPromise]);
+            if (response.type === 'timeout') {
+                await restart();
+                log.info('Finished restarting backend');
+            }
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    }, [backend, sendAlert]);
+    }, [backend, restart, sendAlert]);
 
     useHotkeys(
         'F5',
@@ -347,6 +361,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     run();
                     break;
                 case ExecutionStatus.RUNNING:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -364,6 +379,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     break;
                 case ExecutionStatus.READY:
                 case ExecutionStatus.PAUSED:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -381,6 +397,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     kill();
                     break;
                 case ExecutionStatus.READY:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
