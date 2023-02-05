@@ -11,7 +11,7 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { assertNever } from '../../common/util';
+import { assertNever, delay } from '../../common/util';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -330,35 +330,22 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
-    const statusRef = useRef(status);
-
-    useEffect(() => {
-        statusRef.current = status;
-    }, [status]);
-
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            const response = await backend.kill();
+            const backendKillPromise = backend.kill();
+            const timeoutPromise = delay(2500).then(() => ({
+                type: 'timeout',
+                exception: '',
+            }));
+            const response = await Promise.race([backendKillPromise, timeoutPromise]);
+            if (response.type === 'timeout') {
+                await restart();
+                log.info('Finished restarting backend');
+            }
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
-            setTimeout(() => {
-                if (statusRef.current === ExecutionStatus.KILLING) {
-                    log.info('Executor did not actually kill the backend. Forcing restart.');
-
-                    restart()
-                        .then(() => {
-                            log.info('Finished restarting backend');
-                        })
-                        .catch(() => {
-                            sendAlert({
-                                type: AlertType.ERROR,
-                                message: 'An unexpected error occurred.',
-                            });
-                        });
-                }
-            }, 2500);
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
