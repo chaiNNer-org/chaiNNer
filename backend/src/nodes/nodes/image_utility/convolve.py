@@ -48,7 +48,6 @@ class ImageConvolveNode(NodeBase):
         kernel_in: str,
         padding: int,
     ) -> np.ndarray:
-
         kernel = np.stack([l.split() for l in kernel_in.splitlines()], axis=0).astype(
             float
         )

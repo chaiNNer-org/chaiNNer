@@ -43,7 +43,6 @@ const checkForUpdate = () => {
             });
             if (buttonResult.response === 0) {
                 await shell.openExternal(latest.releaseUrl);
-                app.exit();
             }
         })
         .catch((reason) => log.error(reason));
