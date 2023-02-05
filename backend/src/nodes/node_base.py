@@ -15,6 +15,7 @@ NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 NestedGroup = Group[Union[BaseInput, "NestedGroup"]]
 NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
 
+
 # pylint: disable-next=redefined-builtin
 def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
     info = GroupInfo(GroupId(id), kind, options)

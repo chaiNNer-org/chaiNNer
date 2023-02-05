@@ -79,7 +79,15 @@ class ImWriteNode(NodeBase):
                 "conditional-enum",
                 {
                     "enum": 4,
-                    "conditions": [["jpg", "webp"], "jpg", "jpg", "dds", "dds", "dds"],
+                    "conditions": [
+                        ["jpg", "webp"],
+                        "jpg",
+                        "jpg",
+                        "dds",
+                        "dds",
+                        "dds",
+                        "dds",
+                    ],
                 },
             )(
                 SliderInput(
@@ -118,6 +126,9 @@ class ImWriteNode(NodeBase):
                     BoolInput("Dithering", default=False).with_id(8),
                 ),
                 DdsMipMapsDropdown().with_id(10),
+                group("conditional-enum", {"enum": 10, "conditions": [0]})(
+                    BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
+                ),
             ),
         ]
         self.category = ImageCategory
@@ -143,6 +154,7 @@ class ImWriteNode(NodeBase):
         dds_error_metric: DDSErrorMetric,
         dds_dithering: bool,
         dds_mipmap_levels: int,
+        dds_separate_alpha: bool,
     ) -> None:
         """Write an image to the specified path and return write status"""
 
@@ -180,6 +192,7 @@ class ImWriteNode(NodeBase):
                 minimal_compression=dds_bc7_compression == BC7Compression.BEST_SPEED,
                 maximum_compression=dds_bc7_compression == BC7Compression.BEST_QUALITY,
                 dx9=legacy_dds,
+                separate_alpha=dds_separate_alpha,
             )
             return
 

@@ -4,8 +4,10 @@ import { clipboard } from 'electron';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
+import { useContextSelector } from 'use-context-selector';
 import { Input, OfKind } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
@@ -39,6 +41,17 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
     }
 };
 
+const wholeNumberDigitsOf = (n: number) => Math.floor(Math.abs(n)).toString().length;
+const computeInputWidthRem = (
+    input: Pick<OfKind<Input, 'slider'>, 'min' | 'max' | 'precision'>
+) => {
+    const { min, max, precision } = input;
+
+    const digits = Math.max(wholeNumberDigitsOf(min), wholeNumberDigitsOf(max)) + precision;
+    const sign = min < 0 ? 1 : 0;
+    return 1.75 + (digits + sign) * 0.4;
+};
+
 export const SliderInput = memo(
     ({
         value,
@@ -48,6 +61,7 @@ export const SliderInput = memo(
         useInputConnected,
         useInputType,
         nodeId,
+        nodeSchemaId,
     }: InputProps<'slider', number>) => {
         const {
             def,
@@ -90,6 +104,23 @@ export const SliderInput = memo(
             setInputString(numberAsString);
             setSliderValue(Number(numberAsString));
         };
+
+        // dynamic number input width based on precision
+        const schema = useContextSelector(
+            BackendContext,
+            (c) => nodeSchemaId && c.schemata.get(nodeSchemaId)
+        );
+        const inputWidthRem = useMemo(() => {
+            const ownWidth = computeInputWidthRem(input);
+            if (!schema) return ownWidth;
+            return Math.max(
+                ownWidth,
+                ...schema.inputs.map((i) => {
+                    if (i.kind === 'slider') return computeInputWidthRem(i);
+                    return -Infinity;
+                })
+            );
+        }, [input, schema]);
 
         const isInputConnected = useInputConnected();
         const inputType = useInputType();
@@ -173,6 +204,7 @@ export const SliderInput = memo(
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
                         inputString={isInputConnected ? typeNumberString : inputString}
+                        inputWidth={`${inputWidthRem}rem`}
                         isDisabled={isLocked || isInputConnected}
                         max={max}
                         min={min}

@@ -517,7 +517,6 @@ class TransformerSALayer(nn.Module):
         tgt_key_padding_mask: Optional[Tensor] = None,
         query_pos: Optional[Tensor] = None,
     ):
-
         # self attention
         tgt2 = self.norm1(tgt)
         q = k = self.with_pos_embed(tgt2, query_pos)
@@ -604,7 +603,6 @@ class Fuse_sft_block(nn.Module):
 
 class CodeFormer(VQAutoEncoder):
     def __init__(self, state_dict):
-
         dim_embd = 512
         n_head = 8
         n_layers = 9
