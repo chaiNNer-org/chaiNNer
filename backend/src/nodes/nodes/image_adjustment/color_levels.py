@@ -117,7 +117,9 @@ class ColorLevelsNode(NodeBase):
                 out_black_all[i], out_white_all[i] = 0, 255
 
         img = np.clip((img - in_black_all) / (in_white_all - in_black_all), 0, 255)
-        img = (img ** (1 / in_gamma_all)) * (out_white_all - out_black_all) + out_black_all
+        img = (img ** (1 / in_gamma_all)) * (
+            out_white_all - out_black_all
+        ) + out_black_all
         img = np.clip(img, 0, 255).astype("uint8")
 
         return img.astype("float32") / 255
