@@ -451,9 +451,6 @@ export const usePaneNodeSearchMenu = (
 
     const onConnectStart = useCallback(
         (event: React.MouseEvent | React.TouchEvent, handle: OnConnectStartParams) => {
-            if (!(event instanceof MouseEvent)) {
-                return;
-            }
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
@@ -466,9 +463,6 @@ export const usePaneNodeSearchMenu = (
 
     const onConnectStop = useCallback(
         (event: MouseEvent | TouchEvent) => {
-            if (!(event instanceof MouseEvent)) {
-                return;
-            }
             const target = event.target as Element | SVGTextPathElement;
 
             setMousePosition({
