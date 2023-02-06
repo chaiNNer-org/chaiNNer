@@ -88,7 +88,6 @@ class PaletteFromImage(NodeBase):
         palette_extraction_method: PaletteExtractionMethod,
         palette_size: int,
     ) -> np.ndarray:
-
         distinct_colors = distinct_colors_palette(img)
 
         if palette_extraction_method == PaletteExtractionMethod.ALL:
