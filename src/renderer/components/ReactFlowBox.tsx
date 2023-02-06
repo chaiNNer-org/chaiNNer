@@ -635,7 +635,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     borderRadius: '0.5rem',
                 }}
                 onConnect={createConnection}
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 onConnectEnd={onConnectStop}
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
                 // onEdgeUpdate={onEdgeUpdate}

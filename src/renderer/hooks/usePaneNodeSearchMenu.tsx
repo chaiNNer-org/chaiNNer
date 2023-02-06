@@ -313,11 +313,8 @@ const getConnectionTarget = (
 };
 
 interface UsePaneNodeSearchMenuValue {
-    readonly onConnectStart: (
-        event: React.MouseEvent | React.TouchEvent,
-        handle: OnConnectStartParams
-    ) => void;
-    readonly onConnectStop: (event: MouseEvent | TouchEvent) => void;
+    readonly onConnectStart: (event: React.MouseEvent, handle: OnConnectStartParams) => void;
+    readonly onConnectStop: (event: MouseEvent) => void;
     readonly onPaneContextMenu: (event: React.MouseEvent) => void;
 }
 
@@ -450,7 +447,7 @@ export const usePaneNodeSearchMenu = (
     ));
 
     const onConnectStart = useCallback(
-        (event: React.MouseEvent | React.TouchEvent, handle: OnConnectStartParams) => {
+        (event: React.MouseEvent, handle: OnConnectStartParams) => {
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
@@ -462,7 +459,7 @@ export const usePaneNodeSearchMenu = (
     );
 
     const onConnectStop = useCallback(
-        (event: MouseEvent | TouchEvent) => {
+        (event: MouseEvent) => {
             const target = event.target as Element | SVGTextPathElement;
 
             setMousePosition({
