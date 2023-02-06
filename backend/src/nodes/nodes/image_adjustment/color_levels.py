@@ -33,18 +33,18 @@ class ColorLevelsNode(NodeBase):
             SliderInput(
                 "In Black",
                 minimum=0,
-                maximum=255,
+                maximum=1,
                 default=0,
-                precision=1,
-                controls_step=1,
+                precision=3,
+                controls_step=0.01,
             ),
             SliderInput(
                 "In White",
                 minimum=0,
-                maximum=255,
-                default=255,
-                precision=1,
-                controls_step=1,
+                maximum=1,
+                default=1,
+                precision=3,
+                controls_step=0.01,
             ),
             SliderInput(
                 "Gamma",
@@ -58,18 +58,18 @@ class ColorLevelsNode(NodeBase):
             SliderInput(
                 "Out Black",
                 minimum=0,
-                maximum=255,
+                maximum=1,
                 default=0,
-                precision=1,
-                controls_step=1,
+                precision=3,
+                controls_step=0.01,
             ),
             SliderInput(
                 "Out White",
                 minimum=0,
-                maximum=255,
-                default=255,
-                precision=1,
-                controls_step=1,
+                maximum=1,
+                default=1,
+                precision=3,
+                controls_step=0.01,
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
@@ -100,7 +100,6 @@ class ColorLevelsNode(NodeBase):
             img = as_3d(img)
             red, green, blue = True, True, True
 
-        img = (img * 255).astype("uint8")
         in_gamma = max(0.001, in_gamma)
 
         in_black_all = np.full(c, in_black, dtype="float32")
@@ -113,13 +112,12 @@ class ColorLevelsNode(NodeBase):
 
         for i, channel in enumerate(selected_channels):
             if not channel:
-                in_black_all[i], in_white_all[i], in_gamma_all[i] = 0, 255, 1
-                out_black_all[i], out_white_all[i] = 0, 255
+                in_black_all[i], in_white_all[i], in_gamma_all[i] = 0, 1, 1
+                out_black_all[i], out_white_all[i] = 0, 1
 
-        img = np.clip((img - in_black_all) / (in_white_all - in_black_all), 0, 255)
+        img = np.clip((img - in_black_all) / (in_white_all - in_black_all), 0, 1)
         img = (img ** (1 / in_gamma_all)) * (
             out_white_all - out_black_all
         ) + out_black_all
-        img = np.clip(img, 0, 255).astype("uint8")
 
-        return img.astype("float32") / 255
+        return np.clip(img, 0, 1)
