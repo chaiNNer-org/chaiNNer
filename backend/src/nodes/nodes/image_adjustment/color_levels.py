@@ -98,26 +98,26 @@ class ColorLevelsNode(NodeBase):
 
         if c == 1:
             img = as_3d(img)
-            red, green, blue = 1, 1, 1
+            red, green, blue = True, True, True
 
         img = (img * 255).astype("uint8")
         in_gamma = max(0.001, in_gamma)
 
-        in_black = np.full(c, in_black, dtype="float32")
-        in_white = np.full(c, in_white, dtype="float32")
-        in_gamma = np.full(c, in_gamma, dtype="float32")
-        out_black = np.full(c, out_black, dtype="float32")
-        out_white = np.full(c, out_white, dtype="float32")
+        in_black_all = np.full(c, in_black, dtype="float32")
+        in_white_all = np.full(c, in_white, dtype="float32")
+        in_gamma_all = np.full(c, in_gamma, dtype="float32")
+        out_black_all = np.full(c, out_black, dtype="float32")
+        out_white_all = np.full(c, out_white, dtype="float32")
 
         selected_channels = [blue, green, red, alpha] if c == 4 else [blue, green, red]
 
         for i, channel in enumerate(selected_channels):
             if not channel:
-                in_black[i], in_white[i], in_gamma[i] = 0, 255, 1
-                out_black[i], out_white[i] = 0, 255
+                in_black_all[i], in_white_all[i], in_gamma_all[i] = 0, 255, 1
+                out_black_all[i], out_white_all[i] = 0, 255
 
-        img = np.clip((img - in_black) / (in_white - in_black), 0, 255)
-        img = (img ** (1 / in_gamma)) * (out_white - out_black) + out_black
+        img = np.clip((img - in_black_all) / (in_white_all - in_black_all), 0, 255)
+        img = (img ** (1 / in_gamma_all)) * (out_white_all - out_black_all) + out_black_all
         img = np.clip(img, 0, 255).astype("uint8")
 
         return img.astype("float32") / 255
