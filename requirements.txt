@@ -19,5 +19,6 @@ pytest
 pywin32 ; sys_platform=="win32"
 sanic==21.9.3
 sanic_cors==1.0.1
+scipy==1.9.3
 # torch
 # torchvision

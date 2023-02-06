@@ -89,6 +89,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '3.20.2',
                     sizeEstimate: 500 * KB,
                 },
+                {
+                    packageName: 'scipy',
+                    version: '1.9.3',
+                    sizeEstimate: 42 * MB,
+                },
             ],
             description:
                 'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
