@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import io
 import os
@@ -137,3 +139,24 @@ class SamplerName(Enum):
     DPMpp_SDE_KARRAS = "DPM++ SDE Karras"
     DDIM = "DDIM"
     PLMS = "PLMS"
+
+
+class ResizeMode(Enum):
+    JUST_RESIZE = 0
+    CROP_AND_RESIZE = 1
+    RESIZE_AND_FILL = 2
+    LATENT_UPSCALE = 3
+
+
+RESIZE_MODE_LABELS = {
+    ResizeMode.JUST_RESIZE: "Just resize",
+    ResizeMode.CROP_AND_RESIZE: "Crop and resize",
+    ResizeMode.RESIZE_AND_FILL: "Resize and fill",
+    ResizeMode.LATENT_UPSCALE: "Just resize (Latent upscale)",
+}
+
+class InpaintingFill(Enum):
+    FILL = 0
+    ORIGINAL = 1
+    LATENT_NOISE = 2
+    LATENT_NOTHING = 3
