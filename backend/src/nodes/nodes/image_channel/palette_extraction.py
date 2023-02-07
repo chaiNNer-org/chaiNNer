@@ -75,7 +75,7 @@ class PaletteFromImage(NodeBase):
             """,
                     height=1,
                     channels_as="Input0",
-                )
+                ),
             )
         ]
         self.category = ImageChannelCategory
