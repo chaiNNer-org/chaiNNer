@@ -95,7 +95,7 @@ class PaletteFromImage(NodeBase):
 
         if palette_size > distinct_colors.shape[1]:
             excess = palette_size - distinct_colors.shape[1]
-            return np.pad(distinct_colors, [(0, 0), (0, excess), (0, 0)], mode="edge")
+            return np.pad(distinct_colors, [(0, 0), (0, excess), (0, 0)], mode="edge")  # type: ignore
 
         if palette_extraction_method == PaletteExtractionMethod.KMEANS:
             return kmeans_palette(img, palette_size)

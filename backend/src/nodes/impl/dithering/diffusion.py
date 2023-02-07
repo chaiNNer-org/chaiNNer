@@ -20,7 +20,7 @@ def error_diffusion_dither(
         for col in range(output_image.shape[1]):
             pixel = np.array(output_image[row, col, :])
             output_image[row, col, :] = nearest_color_func(pixel)
-            error = pixel - output_image[row, col, :]
+            error = pixel - output_image[row, col, :]  # type: ignore
             for (delta_row, delta_col), coefficient in edm.items():
                 if (
                     row + delta_row >= output_image.shape[0]

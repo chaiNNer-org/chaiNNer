@@ -15,7 +15,7 @@ def get_threshold_map(
     tm = THRESHOLD_MAPS[threshold_map].astype("float32")
     tm = tm / tm.size - 0.5
     repeats = (np.array(image_shape) // tm.shape[0]) + 1
-    tm = np.tile(tm, repeats)
+    tm = np.tile(tm, repeats)  # type: ignore
     return tm[: image_shape[0], : image_shape[1]]
 
 
