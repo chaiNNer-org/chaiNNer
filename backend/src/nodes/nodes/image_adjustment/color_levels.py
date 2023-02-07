@@ -25,7 +25,7 @@ class ColorLevelsNode(NodeBase):
         super().__init__()
         self.description = "Adjust color levels"
         self.inputs = [
-            ImageInput(),
+            ImageInput(channels=[1, 3, 4]),
             BoolInput("Red", default=True),
             BoolInput("Green", default=True),
             BoolInput("Blue", default=True),
@@ -94,7 +94,6 @@ class ColorLevelsNode(NodeBase):
         """Adjust color levels of image"""
 
         _, _, c = get_h_w_c(img)
-        c = min(c, 4)
 
         if c == 1:
             img = as_3d(img)
