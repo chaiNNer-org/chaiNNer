@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 import cv2
-import cv2.ml
 import numpy as np
 
 from .common import dtype_to_float, float_to_dtype
@@ -55,12 +54,12 @@ def nearest_palette_color(
 
         for idx in range(palette.shape[1]):
             color = palette[0, idx, :]
-            distance = np.power(pixel - color, 2).mean()
+            distance = np.power(pixel - color, 2).mean()  # type: ignore
             if closest is None or distance < closest_distance:
                 closest = color
                 closest_distance = distance
 
-        return closest
+        return closest  # type: ignore
 
 
 def batch_nearest_palette_color(
@@ -82,7 +81,7 @@ def batch_nearest_palette_color(
 
     for idx in range(palette.shape[1]):
         color = palette[0, idx, :]
-        distance = np.power(image[:, :] - color, 2).mean(axis=2)
+        distance = np.power(image[:, :] - color, 2).mean(axis=2)  # type: ignore
         if idx == 0:
             output[:, :] = color
             low_water_mark[:, :] = distance

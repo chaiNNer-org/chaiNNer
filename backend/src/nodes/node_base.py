@@ -67,7 +67,7 @@ class NodeBase(metaclass=ABCMeta):
                     g: NestedIdGroup = Group(x.info, [])
                     groups.append(g)
                     layout.append(g)
-                    g.items.extend(add_inputs(x.items))
+                    g.items.extend(add_inputs(x.items))  # type: ignore
                 else:
                     if x.id == -1:
                         x.id = InputId(len(inputs))

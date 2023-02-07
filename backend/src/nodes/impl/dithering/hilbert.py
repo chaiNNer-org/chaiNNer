@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 import numpy as np
 
@@ -15,7 +16,7 @@ class HilbertCurve:
         self,
         n: int,
         orientation: HilbertCurveOrientation = HilbertCurveOrientation.A,
-        origin: np.ndarray = None,
+        origin: Union[np.ndarray, None] = None,
     ):
         self.n = n
         self.orientation = orientation
