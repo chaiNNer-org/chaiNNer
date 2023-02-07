@@ -97,7 +97,8 @@ class Img2ImgOutpainting(NodeBase):
         ]
         self.outputs = [
             ImageOutput(
-                channels=3,
+                channels=3,  # XXX TODO need to encode the type here.  It's based on the pixels to expand,
+                             # the directions to extend, and some rounding
             ),
         ]
 
