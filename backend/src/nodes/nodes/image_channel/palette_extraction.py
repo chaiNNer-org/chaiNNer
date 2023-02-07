@@ -65,6 +65,7 @@ class PaletteFromImage(NodeBase):
         ]
         self.outputs = [
             ImageOutput(
+                "Palette",
                 image_type=expression.Image(
                     width="""
                 match Input1 {
