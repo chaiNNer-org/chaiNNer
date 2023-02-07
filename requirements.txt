@@ -17,6 +17,7 @@ pylint==2.16.1
 pyright==1.1.280
 pytest
 pywin32 ; sys_platform=="win32"
+requests
 sanic==21.12.2
 sanic_cors==1.0.1
 # torch
