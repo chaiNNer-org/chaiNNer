@@ -63,7 +63,7 @@ class Img2Img(NodeBase):
                 ResizeMode,
                 default_value=ResizeMode.JUST_RESIZE,
                 option_labels=RESIZE_MODE_LABELS,
-            ),
+            ).with_id(10),
             SliderInput(
                 "Width",
                 minimum=64,
@@ -71,7 +71,7 @@ class Img2Img(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(9),
+            ).with_id(8),
             SliderInput(
                 "Height",
                 minimum=64,
@@ -79,14 +79,14 @@ class Img2Img(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(10),
+            ).with_id(9),
         ]
         self.outputs = [
             ImageOutput(
                 image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
                 Image {
-                    width: nearest_valid(Input9),
-                    height: nearest_valid(Input10)
+                    width: nearest_valid(Input8),
+                    height: nearest_valid(Input9)
                 }""",
                 channels=3,
             ),
