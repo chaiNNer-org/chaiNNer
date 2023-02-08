@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from math import ceil
 from typing import Optional
 
@@ -29,6 +30,11 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+
+
+class OutpaintingMethod(Enum):
+    POOR_MAN_OUTPAINTING = 0
+    OUTPAINTING_MK2 = 1
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:img2img_outpainting")
@@ -97,11 +103,44 @@ class Img2ImgOutpainting(NodeBase):
                 default=4,
                 maximum=64,
             ),
-            EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
-            BoolInput("Extend Left", default=True).with_id(14),
-            BoolInput("Extend Right", default=True).with_id(15),
-            BoolInput("Extend Up", default=True).with_id(16),
-            BoolInput("Extend Down", default=True).with_id(17),
+            BoolInput("Extend Left", default=True).with_id(13),
+            BoolInput("Extend Right", default=True).with_id(14),
+            BoolInput("Extend Up", default=True).with_id(15),
+            BoolInput("Extend Down", default=True).with_id(16),
+            EnumInput(
+                OutpaintingMethod, default_value=OutpaintingMethod.POOR_MAN_OUTPAINTING
+            ).with_id(17),
+            group(
+                "conditional-enum",
+                {
+                    "enum": 17,
+                    "conditions": [
+                        OutpaintingMethod.POOR_MAN_OUTPAINTING.value,
+                        OutpaintingMethod.OUTPAINTING_MK2.value,
+                        OutpaintingMethod.OUTPAINTING_MK2.value,
+                    ],
+                },
+            )(
+                EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
+                SliderInput(
+                    "Fall-off Exponent (lower=higher detail)",
+                    minimum=0,
+                    default=1,
+                    maximum=4,
+                    precision=2,
+                    slider_step=0.01,
+                    controls_step=0.01,
+                ),
+                SliderInput(
+                    "Color Variation",
+                    minimum=0,
+                    default=0.05,
+                    maximum=1,
+                    precision=2,
+                    slider_step=0.01,
+                    controls_step=0.01,
+                ),
+            ),
         ]
 
         # target_w = math.ceil((init_img.width + left + right) / 64) * 64
@@ -113,13 +152,13 @@ class Img2ImgOutpainting(NodeBase):
                 Image {
                     width: nearest_valid(
                         Input0.width
+                        + if Input13 { Input11 } else { 0 }
                         + if Input14 { Input11 } else { 0 }
-                        + if Input15 { Input11 } else { 0 }
                     ),
                     height: nearest_valid(
                         Input0.height
+                        + if Input15 { Input11 } else { 0 }
                         + if Input16 { Input11 } else { 0 }
-                        + if Input17 { Input11 } else { 0 }
                     ),
                 }""",
                 channels=3,
@@ -146,11 +185,14 @@ class Img2ImgOutpainting(NodeBase):
         height: int,
         pixels_to_expand: int,
         mask_blur: int,
-        inpainting_fill: InpaintingFill,
         extend_left: bool,
         extend_right: bool,
         extend_up: bool,
         extend_down: bool,
+        outpainting_method: OutpaintingMethod,
+        inpainting_fill: InpaintingFill,
+        falloff_exponent: float,
+        color_variation: float,
     ) -> np.ndarray:
         width, height = nearest_valid_size(width, height)
 
@@ -186,16 +228,39 @@ class Img2ImgOutpainting(NodeBase):
             "width": width,
             "height": height,
             "resize_mode": resize_mode.value,
-            "script_name": "Poor man's outpainting",
-            "script_args": list(
-                {
-                    "pixels": pixels_to_expand,
-                    "mask_blur": mask_blur,
-                    "inpainting_fill": inpainting_fill.value,
-                    "direction": direction,
-                }.values()
-            ),
         }
+        if outpainting_method == OutpaintingMethod.POOR_MAN_OUTPAINTING:
+            request_data.update(
+                {
+                    "script_name": "Poor man's outpainting",
+                    "script_args": list(
+                        {
+                            "pixels": pixels_to_expand,
+                            "mask_blur": mask_blur,
+                            "inpainting_fill": inpainting_fill.value,
+                            "direction": direction,
+                        }.values()
+                    ),
+                }
+            )
+
+        if outpainting_method == OutpaintingMethod.OUTPAINTING_MK2:
+            request_data.update(
+                {
+                    "script_name": "Outpainting MK2",
+                    "script_args": list(
+                        {
+                            "_": "",
+                            "pixels": pixels_to_expand,
+                            "mask_blur": mask_blur,
+                            "direction": direction,
+                            "noise_q": falloff_exponent,
+                            "color_variation": color_variation,
+                        }.values()
+                    ),
+                }
+            )
+
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
