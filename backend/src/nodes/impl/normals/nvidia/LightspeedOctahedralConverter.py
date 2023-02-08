@@ -56,7 +56,7 @@ class LightspeedOctahedralConverter:
     @staticmethod
     def _check_for_spherical_normals(image):
         # Check for blue values below 128.
-        mask = image[:, :, 2] < 128
+        mask = image[:, :, 2] < (128.0 / 255.0)
         num_negative = image[mask].shape[0]
         if num_negative > 0:
             # pylint: disable=logging-not-lazy
@@ -68,24 +68,24 @@ class LightspeedOctahedralConverter:
             )
 
         # Mirror the normal to point out from surface.
-        image[mask, 2] = 255 - image[mask, 2]
+        image[mask, 2] = 1 - image[mask, 2]
         return image
 
     @staticmethod
     def _pixels_to_normals(image):
-        image = image[:, :, 0:3].astype("float32") / 255
+        image = image[:, :, 0:3]
         image = image * 2.0 - 1.0
         return image / np.linalg.norm(image, axis=2)[:, :, np.newaxis]
 
     @staticmethod
     def _octahedrals_to_pixels(octahedrals):
-        image = np.floor(octahedrals * 255 + 0.5).astype("uint8")
+        image = octahedrals + (0.5 / 255)
         return np.pad(image, ((0, 0), (0, 0), (0, 1)), mode="constant")  # type: ignore
 
     @staticmethod
     def ogl_to_dx(image):
         # flip the g channel to convert to DX style
-        image[:, :, (1)] = 255 - image[:, :, (1)]
+        image[:, :, (1)] = 1 - image[:, :, (1)]
         return image
 
     @staticmethod

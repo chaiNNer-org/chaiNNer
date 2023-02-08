@@ -68,7 +68,6 @@ class SpecularToMetal(NodeBase):
         img = img[:, :, :3]
         # bgr to rgb
         img = img[..., ::-1]
-        img = (img * 255).astype(np.uint8)
 
         if (from_type == NormalMapType.DIRECTX and to_type == NormalMapType.OPENGL) or (
             from_type == NormalMapType.OPENGL and to_type == NormalMapType.DIRECTX
@@ -78,4 +77,4 @@ class SpecularToMetal(NodeBase):
             img = LightspeedOctahedralConverter.convert_dx_to_octahedral(img)
         if from_type == NormalMapType.OPENGL and to_type == NormalMapType.OCTAHEDRAL:
             img = LightspeedOctahedralConverter.convert_ogl_to_octahedral(img)
-        return (img[..., ::-1] / 255).astype(np.float32)
+        return img[..., ::-1]
