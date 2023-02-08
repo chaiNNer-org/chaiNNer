@@ -8,6 +8,7 @@ from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
     decode_base64_image,
     SamplerName,
+    SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_TEXT2IMG_URL,
     post,
     nearest_valid_size,
@@ -36,7 +37,7 @@ class Txt2Img(NodeBase):
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
             ),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
-            EnumInput(SamplerName, default_value=SamplerName.EULER),
+            EnumInput(SamplerName, default_value=SamplerName.EULER, option_labels=SAMPLER_NAME_LABELS),
             SliderInput(
                 "CFG Scale",
                 minimum=1,

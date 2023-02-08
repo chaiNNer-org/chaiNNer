@@ -141,6 +141,29 @@ class SamplerName(Enum):
     PLMS = "PLMS"
 
 
+SAMPLER_NAME_LABELS = {
+    SamplerName.EULER: "Euler",
+    SamplerName.EULER_A: "Euler a",
+    SamplerName.LMS: "LMS",
+    SamplerName.HEUN: "Heun",
+    SamplerName.PM2: "DPM2",
+    SamplerName.PM2_A: "DPM2 a",
+    SamplerName.PMpp_2S_A: "DPM++ 2S a",
+    SamplerName.PMpp_2M: "DPM++ 2M",
+    SamplerName.PMpp_SDE: "DPM++ SDE",
+    SamplerName.PM_FAST: "DPM fast",
+    SamplerName.PM_A: "DPM adaptive",
+    SamplerName.MS_KARRAS: "LMS Karras",
+    SamplerName.PM2_KARRAS: "DPM2 Karras",
+    SamplerName.PM2_A_KARRAS: "DPM2 a Karras",
+    SamplerName.PMpp_2S_A_KARRAS: "DPM++ 2S a Karras",
+    SamplerName.PMpp_2M_KARRAS: "DPM++ 2M Karras",
+    SamplerName.PMpp_SDE_KARRAS: "DPM++ SDE Karras",
+    SamplerName.DIM: "DDIM",
+    SamplerName.LMS: "PLMS",
+}
+
+
 class ResizeMode(Enum):
     JUST_RESIZE = 0
     CROP_AND_RESIZE = 1
