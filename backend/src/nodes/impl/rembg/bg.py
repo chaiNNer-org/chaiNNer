@@ -122,6 +122,8 @@ def remove(
     masks = session.predict(img)
     cutouts = []
 
+    assert len(masks) > 0, "Model failed to generate masks"
+
     for mask in masks:
         if post_process_mask:
             mask = Image.fromarray(post_process(np.array(mask)))
@@ -146,4 +148,4 @@ def remove(
     if len(cutouts) > 0:
         cutout = get_concat_v_multi(cutouts)
 
-    return cvtColor(np.asarray(cutout), COLOR_RGBA2BGRA), np.asarray(mask)
+    return cvtColor(np.asarray(cutout), COLOR_RGBA2BGRA), np.asarray(mask)  # type: ignore
