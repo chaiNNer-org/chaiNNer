@@ -39,10 +39,10 @@ class RemBgNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Image",
-                image_type="""Input1""",
+                image_type="""Input0""",
             ),
             ImageOutput(
-                "Mask", image_type=expression.Image(size_as="Input1"), channels=1
+                "Mask", image_type=expression.Image(size_as="Input0"), channels=1
             ),
         ]
 
@@ -53,8 +53,8 @@ class RemBgNode(NodeBase):
 
     def run(
         self,
-        model: OnnxModel,
         img: np.ndarray,
+        model: OnnxModel,
         post_process_mask: int,
         alpha_matting: int,
         foreground_threshold: int,
