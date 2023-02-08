@@ -80,7 +80,7 @@ class LightspeedOctahedralConverter:
     @staticmethod
     def _octahedrals_to_pixels(octahedrals):
         image = np.floor(octahedrals * 255 + 0.5).astype("uint8")
-        return np.pad(image, ((0, 0), (0, 0), (0, 1)), mode="constant")
+        return np.pad(image, ((0, 0), (0, 0), (0, 1)), mode="constant")  # type: ignore
 
     @staticmethod
     def ogl_to_dx(image):
