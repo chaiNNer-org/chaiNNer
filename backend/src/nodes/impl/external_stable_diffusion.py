@@ -155,6 +155,7 @@ RESIZE_MODE_LABELS = {
     ResizeMode.LATENT_UPSCALE: "Just resize (Latent upscale)",
 }
 
+
 class InpaintingFill(Enum):
     FILL = 0
     ORIGINAL = 1

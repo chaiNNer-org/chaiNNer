@@ -12,7 +12,10 @@ from ...impl.external_stable_diffusion import (
     STABLE_DIFFUSION_IMG2IMG_URL,
     post,
     encode_base64_image,
-    nearest_valid_size, ResizeMode, RESIZE_MODE_LABELS, InpaintingFill,
+    nearest_valid_size,
+    ResizeMode,
+    RESIZE_MODE_LABELS,
+    InpaintingFill,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -21,7 +24,8 @@ from ...properties.inputs import (
     NumberInput,
     SliderInput,
     EnumInput,
-    ImageInput, BoolInput,
+    ImageInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
@@ -31,7 +35,7 @@ from ...utils.utils import get_h_w_c
 class Img2ImgOutpainting(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Outpaint an image using the \"Poor man's outpainting\" script from Automatic1111"
+        self.description = 'Outpaint an image using the "Poor man\'s outpainting" script from Automatic1111'
         self.inputs = [
             ImageInput().with_id(0),
             TextInput("Prompt", default="an astronaut riding a horse"),
@@ -58,7 +62,11 @@ class Img2ImgOutpainting(NodeBase):
                 controls_step=0.1,
                 precision=1,
             ),
-            EnumInput(ResizeMode, default_value=ResizeMode.JUST_RESIZE, option_labels=RESIZE_MODE_LABELS),
+            EnumInput(
+                ResizeMode,
+                default_value=ResizeMode.JUST_RESIZE,
+                option_labels=RESIZE_MODE_LABELS,
+            ),
             SliderInput(
                 "Tile Width",
                 minimum=64,
@@ -124,29 +132,27 @@ class Img2ImgOutpainting(NodeBase):
         self.sub = "Automatic1111"
 
     def run(
-            self,
-            image: np.ndarray,
-            prompt: str,
-            negative_prompt: Optional[str],
-            denoising_strength: float,
-            seed: int,
-            steps: int,
-            sampler_name: SamplerName,
-            cfg_scale: float,
-            resize_mode: ResizeMode,
-            width: int,
-            height: int,
-            pixels_to_expand: int,
-            mask_blur: int,
-            inpainting_fill: InpaintingFill,
-            extend_left: bool,
-            extend_right: bool,
-            extend_up: bool,
-            extend_down: bool,
+        self,
+        image: np.ndarray,
+        prompt: str,
+        negative_prompt: Optional[str],
+        denoising_strength: float,
+        seed: int,
+        steps: int,
+        sampler_name: SamplerName,
+        cfg_scale: float,
+        resize_mode: ResizeMode,
+        width: int,
+        height: int,
+        pixels_to_expand: int,
+        mask_blur: int,
+        inpainting_fill: InpaintingFill,
+        extend_left: bool,
+        extend_right: bool,
+        extend_up: bool,
+        extend_down: bool,
     ) -> np.ndarray:
-        width, height = nearest_valid_size(
-            width, height
-        )
+        width, height = nearest_valid_size(width, height)
 
         expected_output_height, expected_output_width, _ = get_h_w_c(image)
 
@@ -164,8 +170,8 @@ class Img2ImgOutpainting(NodeBase):
             direction.append("down")
             expected_output_height += pixels_to_expand
 
-        expected_output_width = int(ceil(expected_output_width/64)*64)
-        expected_output_height = int(ceil(expected_output_height/64)*64)
+        expected_output_width = int(ceil(expected_output_width / 64) * 64)
+        expected_output_height = int(ceil(expected_output_height / 64) * 64)
 
         direction = ",".join(direction)
         request_data = {
@@ -181,12 +187,14 @@ class Img2ImgOutpainting(NodeBase):
             "height": height,
             "resize_mode": resize_mode.value,
             "script_name": "Poor man's outpainting",
-            "script_args": list({
-                'pixels': pixels_to_expand,
-                'mask_blur': mask_blur,
-                'inpainting_fill': inpainting_fill.value,
-                'direction': direction,
-            }.values())
+            "script_args": list(
+                {
+                    "pixels": pixels_to_expand,
+                    "mask_blur": mask_blur,
+                    "inpainting_fill": inpainting_fill.value,
+                    "direction": direction,
+                }.values()
+            ),
         }
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])

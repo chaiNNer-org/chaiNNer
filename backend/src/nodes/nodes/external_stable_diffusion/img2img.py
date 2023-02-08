@@ -11,7 +11,9 @@ from ...impl.external_stable_diffusion import (
     STABLE_DIFFUSION_IMG2IMG_URL,
     post,
     encode_base64_image,
-    nearest_valid_size, ResizeMode, RESIZE_MODE_LABELS,
+    nearest_valid_size,
+    ResizeMode,
+    RESIZE_MODE_LABELS,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -57,7 +59,11 @@ class Img2Img(NodeBase):
                 controls_step=0.1,
                 precision=1,
             ),
-            EnumInput(ResizeMode, default_value=ResizeMode.JUST_RESIZE, option_labels=RESIZE_MODE_LABELS),
+            EnumInput(
+                ResizeMode,
+                default_value=ResizeMode.JUST_RESIZE,
+                option_labels=RESIZE_MODE_LABELS,
+            ),
             SliderInput(
                 "Width",
                 minimum=64,
@@ -92,18 +98,18 @@ class Img2Img(NodeBase):
         self.sub = "Automatic1111"
 
     def run(
-            self,
-            image: np.ndarray,
-            prompt: str,
-            negative_prompt: Optional[str],
-            denoising_strength: float,
-            seed: int,
-            steps: int,
-            sampler_name: SamplerName,
-            cfg_scale: float,
-            resize_mode: ResizeMode,
-            width: int,
-            height: int,
+        self,
+        image: np.ndarray,
+        prompt: str,
+        negative_prompt: Optional[str],
+        denoising_strength: float,
+        seed: int,
+        steps: int,
+        sampler_name: SamplerName,
+        cfg_scale: float,
+        resize_mode: ResizeMode,
+        width: int,
+        height: int,
     ) -> np.ndarray:
         width, height = nearest_valid_size(
             width, height
