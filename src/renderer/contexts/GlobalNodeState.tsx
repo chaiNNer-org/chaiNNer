@@ -134,7 +134,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNodes: (nodeIds: readonly string[]) => void;
+    duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
     clearNodes: (ids: readonly string[]) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
@@ -1134,7 +1134,7 @@ export const GlobalProvider = memo(
         );
 
         const duplicateNodes = useCallback(
-            (ids: readonly string[]) => {
+            (ids: readonly string[], withInputEdges = false) => {
                 const nodesToCopy = expandSelection(getNodes(), ids);
 
                 const duplicationId = createUniqueId();
@@ -1162,6 +1162,28 @@ export const GlobalProvider = memo(
                         }),
                         deriveId
                     );
+
+                    if (withInputEdges) {
+                        const inputEdges = edges.filter((e) => {
+                            return nodesToCopy.has(e.target) && !nodesToCopy.has(e.source);
+                        });
+                        newEdge.push(
+                            ...inputEdges.map<Mutable<Edge<EdgeData>>>((e) => {
+                                let { target, targetHandle } = e;
+                                target = deriveId(target);
+                                targetHandle = targetHandle?.replace(e.target, target);
+
+                                return {
+                                    ...e,
+                                    id: createUniqueId(),
+                                    target,
+                                    targetHandle,
+                                    selected: false,
+                                };
+                            })
+                        );
+                    }
+
                     return [...setSelected(edges, false), ...newEdge];
                 });
             },
@@ -1208,9 +1230,16 @@ export const GlobalProvider = memo(
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
         }, [changeNodes, changeEdges]);
-        const duplFn = useCallback(() => {
+        const duplicateFn = useCallback(() => {
             const nodesToCopy = getNodes().filter((n) => n.selected);
             duplicateNodes(nodesToCopy.map((n) => n.id));
+        }, [getNodes, duplicateNodes]);
+        const duplicateWithInputEdgesFn = useCallback(() => {
+            const nodesToCopy = getNodes().filter((n) => n.selected);
+            duplicateNodes(
+                nodesToCopy.map((n) => n.id),
+                true
+            );
         }, [getNodes, duplicateNodes]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn);
@@ -1219,8 +1248,11 @@ export const GlobalProvider = memo(
         useIpcRendererListener('copy', copyFn);
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
+        useHotkeys('ctrl+d, cmd+d', duplicateFn);
+        useIpcRendererListener('duplicate', duplicateFn);
+        useHotkeys('ctrl+shift+d, cmd+shift+d', duplicateWithInputEdgesFn);
+        useIpcRendererListener('duplicate-with-input-edges', duplicateWithInputEdgesFn);
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
-        useHotkeys('ctrl+d, cmd+d', duplFn);
 
         const [zoom, setZoom] = useState(1);
 

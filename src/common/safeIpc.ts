@@ -82,6 +82,8 @@ export interface SendChannels {
     cut: SendChannelInfo;
     copy: SendChannelInfo;
     paste: SendChannelInfo;
+    duplicate: SendChannelInfo;
+    'duplicate-with-input-edges': SendChannelInfo;
 }
 export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];
