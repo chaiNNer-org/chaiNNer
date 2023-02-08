@@ -165,6 +165,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                     enabled,
                 },
+                { type: 'separator' },
+                {
+                    label: 'Duplicate',
+                    accelerator: 'CmdOrCtrl+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Duplicate with Connections',
+                    accelerator: 'CmdOrCtrl+Shift+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate-with-input-edges');
+                    },
+                    enabled,
+                },
             ],
         },
         {
