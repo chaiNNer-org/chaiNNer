@@ -33,7 +33,7 @@ class Img2ImgOutpainting(NodeBase):
         super().__init__()
         self.description = "Outpaint an image using the \"Poor man's outpainting\" script from Automatic1111"
         self.inputs = [
-            ImageInput(),
+            ImageInput().with_id(0),
             TextInput("Prompt", default="an astronaut riding a horse"),
             TextInput("Negative Prompt").make_optional(),
             SliderInput(
@@ -66,7 +66,7 @@ class Img2ImgOutpainting(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(9),
+            ),
             SliderInput(
                 "Tile Height",
                 minimum=64,
@@ -74,7 +74,7 @@ class Img2ImgOutpainting(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(10),
+            ),
             SliderInput(
                 "Pixels to Expand",
                 minimum=8,
@@ -82,7 +82,7 @@ class Img2ImgOutpainting(NodeBase):
                 maximum=256,
                 slider_step=8,
                 controls_step=8,
-            ),
+            ).with_id(11),
             SliderInput(
                 "Mask Blur",
                 minimum=0,
@@ -90,15 +90,31 @@ class Img2ImgOutpainting(NodeBase):
                 maximum=64,
             ),
             EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
-            BoolInput("Extend Left", default=True),
-            BoolInput("Extend Right", default=True),
-            BoolInput("Extend Up", default=True),
-            BoolInput("Extend Down", default=True),
+            BoolInput("Extend Left", default=True).with_id(14),
+            BoolInput("Extend Right", default=True).with_id(15),
+            BoolInput("Extend Up", default=True).with_id(16),
+            BoolInput("Extend Down", default=True).with_id(17),
         ]
+
+        # target_w = math.ceil((init_img.width + left + right) / 64) * 64
+        # target_h = math.ceil((init_img.height + up + down) / 64) * 64
+
         self.outputs = [
             ImageOutput(
-                channels=3,  # XXX TODO need to encode the type here.  It's based on the pixels to expand,
-                             # the directions to extend, and some rounding
+                image_type="""def nearest_valid(n: number) = int & ceil(n / 64) * 64;
+                Image {
+                    width: nearest_valid(
+                        Input0.width
+                        + if Input14 { Input11 } else { 0 }
+                        + if Input15 { Input11 } else { 0 }
+                    ),
+                    height: nearest_valid(
+                        Input0.height
+                        + if Input16 { Input11 } else { 0 }
+                        + if Input17 { Input11 } else { 0 }
+                    ),
+                }""",
+                channels=3,
             ),
         ]
 
