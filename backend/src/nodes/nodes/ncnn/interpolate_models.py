@@ -47,7 +47,7 @@ class NcnnInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, interp: NcnnModelWrapper):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = NcnnUpscaleImageNode().run(interp, fake_img, NO_TILING)
+        result = NcnnUpscaleImageNode().run(fake_img, interp, NO_TILING)
 
         mean_color = np.mean(result)
         del result
