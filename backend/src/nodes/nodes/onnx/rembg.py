@@ -10,7 +10,7 @@ from ...impl.rembg.bg import remove
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
-from ...properties.inputs import ImageInput, OnnxModelInput
+from ...properties.inputs import ImageInput, OnnxRemBgModelInput
 from ...properties.inputs.generic_inputs import BoolInput
 from ...properties.inputs.numeric_inputs import NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
@@ -24,8 +24,8 @@ class RemBgNode(NodeBase):
         super().__init__()
         self.description = "Run rembg"
         self.inputs = [
-            OnnxModelInput(),
             ImageInput(),
+            OnnxRemBgModelInput(),
             BoolInput("Post-process Mask", default=False),
             BoolInput("Alpha Matting", default=False),
             group("conditional-enum", {"enum": 3, "conditions": [1, 1, 1],},)(

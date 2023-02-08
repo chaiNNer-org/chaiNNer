@@ -130,6 +130,10 @@ export const requiredDependencies: Dependency[] = [
         name: 'FFMPEG',
         packages: [{ packageName: 'ffmpeg-python', version: '0.2.0', sizeEstimate: 25 * KB }],
     },
+    {
+        name: 're2',
+        packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
+    },
 ];
 
 if (isMac && !isM1) {

@@ -15,7 +15,7 @@ from ...impl.upscale.auto_split_tiles import TileSize, parse_tile_size_input
 from ...impl.upscale.convenient_upscale import convenient_upscale
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, OnnxModelInput, TileSizeDropdown
+from ...properties.inputs import ImageInput, OnnxGenericModelInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.utils import get_h_w_c
@@ -30,7 +30,7 @@ class OnnxImageUpscaleNode(NodeBase):
             ONNX does not support automatic out-of-memory handling via automatic tiling. \
             Therefore, you must set a Smart Tiling Mode manually. If you get an out-of-memory error, try picking a setting further down the list."
         self.inputs = [
-            OnnxModelInput(),
+            OnnxGenericModelInput(),
             ImageInput(),
             TileSizeDropdown(estimate=False),
         ]

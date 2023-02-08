@@ -11,7 +11,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFileInput
 from ...properties.outputs import OnnxModelOutput, DirectoryOutput, FileNameOutput
-from ...impl.onnx.model import OnnxModel
+from ...impl.onnx.model import OnnxModel, load_onnx_model
 from ...utils.utils import split_file_path
 
 
@@ -47,7 +47,7 @@ class OnnxLoadModelNode(NodeBase):
         logger.debug(f"Reading onnx model from path: {path}")
         model = onnx.load_model(path)
 
-        model_as_string = model.SerializeToString()  # type: ignore
+        model_as_string = model.SerializeToString()
 
         dirname, basename, _ = split_file_path(path)
-        return OnnxModel(model_as_string), dirname, basename
+        return load_onnx_model(model_as_string), dirname, basename

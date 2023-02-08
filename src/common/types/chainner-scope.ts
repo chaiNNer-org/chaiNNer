@@ -67,7 +67,17 @@ struct OnnxModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
+    arch: string,
+    subType: string,
 }
+let OnnxRemBgModel = OnnxModel {
+    arch: "OnnxRemBgModel",
+    subType: "RemBg",
+};
+let OnnxGenericModel = OnnxModel {
+    arch: "OnnxGenericModel",
+    subType: "Generic",
+};
 
 struct IteratorAuto;
 
