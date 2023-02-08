@@ -67,8 +67,8 @@ class OnnxImageUpscaleNode(NodeBase):
             ONNX does not support automatic out-of-memory handling via automatic tiling. \
             Therefore, you must set a Smart Tiling Mode manually. If you get an out-of-memory error, try picking a setting further down the list."
         self.inputs = [
-            OnnxModelInput().with_id(0),
             ImageInput().with_id(1),
+            OnnxModelInput().with_id(0),
             TileSizeDropdown(estimate=False).with_id(2),
         ]
         self.outputs = [
