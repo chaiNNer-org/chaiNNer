@@ -32,9 +32,9 @@ class ImageUpscaleNode(NodeBase):
         self.description = "Upscales an image using a PyTorch Super-Resolution model. \
             Select a manual number of tiles if you are having issues with the automatic mode. "
         self.inputs = [
-            SrModelInput(),
-            ImageInput(),
-            TileSizeDropdown(),
+            ImageInput().with_id(1),
+            SrModelInput().with_id(0),
+            TileSizeDropdown().with_id(2),
         ]
         self.outputs = [
             ImageOutput(
@@ -96,8 +96,8 @@ class ImageUpscaleNode(NodeBase):
 
     def run(
         self,
-        model: PyTorchSRModel,
         img: np.ndarray,
+        model: PyTorchSRModel,
         tile_size: TileSize,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
