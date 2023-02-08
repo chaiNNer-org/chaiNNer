@@ -32,8 +32,8 @@ class FaceUpscaleNode(NodeBase):
         self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN, RestoreFormer, and CodeFormer."
         self.inputs = [
             ImageInput().with_id(1),
-            ImageInput("Upscaled Background").with_id(2).make_optional(),
             FaceModelInput("Model").with_id(0),
+            ImageInput("Upscaled Background").with_id(2).make_optional(),
             NumberInput(
                 label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
             ).with_id(3),
@@ -139,8 +139,8 @@ class FaceUpscaleNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        background_img: Union[np.ndarray, None],
         face_model: PyTorchFaceModel,
+        background_img: Union[np.ndarray, None],
         upscale: int,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
