@@ -185,7 +185,7 @@ const evaluateOutputs = (
             throw new Error(`Unable to evaluate output type of ${name}: ${String(error)}`);
         }
         if (type.type === 'never') {
-            throw new Error(`The input type of ${name} is always 'never'. This is a bug.`);
+            throw new Error(`The output type of ${name} is always 'never'. This is a bug.`);
         }
 
         defaults.set(output.id, type);
