@@ -160,7 +160,7 @@ SAMPLER_NAME_LABELS = {
     SamplerName.PMpp_2M_KARRAS: "DPM++ 2M Karras",
     SamplerName.PMpp_SDE_KARRAS: "DPM++ SDE Karras",
     SamplerName.DIM: "DDIM",
-    SamplerName.LMS: "PLMS",
+    SamplerName.PLMS: "PLMS",
 }
 
 

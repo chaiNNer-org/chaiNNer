@@ -37,7 +37,11 @@ class Txt2Img(NodeBase):
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
             ),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
-            EnumInput(SamplerName, default_value=SamplerName.EULER, option_labels=SAMPLER_NAME_LABELS),
+            EnumInput(
+                SamplerName,
+                default_value=SamplerName.EULER,
+                option_labels=SAMPLER_NAME_LABELS,
+            ),
             SliderInput(
                 "CFG Scale",
                 minimum=1,
