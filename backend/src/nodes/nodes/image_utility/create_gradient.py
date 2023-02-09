@@ -244,7 +244,7 @@ class CreateGradientNode(NodeBase):
         inner_radius_percent: float,
         outer_radius_percent: float,
         conic_rotation: float,
-        middle_position: int,
+        middle_position: float,
         color_mode: ColorMode,
         red1: int,
         green1: int,
