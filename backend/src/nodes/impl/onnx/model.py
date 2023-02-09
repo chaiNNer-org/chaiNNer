@@ -3,8 +3,6 @@
 from typing import Union
 
 import re2
-from sanic.log import logger
-
 
 re2_options = re2.Options()
 re2_options.dot_nl = True

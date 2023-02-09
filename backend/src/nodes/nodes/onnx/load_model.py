@@ -6,13 +6,13 @@ from typing import Tuple
 import onnx
 from sanic.log import logger
 
-from . import category as ONNXCategory
+from ...impl.onnx.model import OnnxModel, load_onnx_model
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFileInput
-from ...properties.outputs import OnnxModelOutput, DirectoryOutput, FileNameOutput
-from ...impl.onnx.model import OnnxModel, load_onnx_model
+from ...properties.outputs import DirectoryOutput, FileNameOutput, OnnxModelOutput
 from ...utils.utils import split_file_path
+from . import category as ONNXCategory
 
 
 @NodeFactory.register("chainner:onnx:load_model")

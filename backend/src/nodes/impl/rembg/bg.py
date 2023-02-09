@@ -1,10 +1,11 @@
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import onnxruntime as ort
 from cv2 import (
     BORDER_DEFAULT,
     COLOR_BGR2RGB,
+    COLOR_BGRA2RGB,
     COLOR_RGBA2BGRA,
     MORPH_ELLIPSE,
     MORPH_OPEN,
@@ -17,10 +18,10 @@ from PIL import Image
 from PIL.Image import Image as PILImage
 from scipy.ndimage import binary_erosion
 
+from ...utils.utils import get_h_w_c
 from .pymatting.estimate_alpha_cf import estimate_alpha_cf
 from .pymatting.estimate_foreground_ml import estimate_foreground_ml
 from .pymatting.util import stack_images
-from .session_base import BaseSession
 from .session_factory import new_session
 
 kernel = getStructuringElement(MORPH_ELLIPSE, (3, 3))
@@ -103,23 +104,26 @@ def post_process(mask: np.ndarray) -> np.ndarray:
 
 
 def remove_bg(
-    data: np.ndarray,
+    img: np.ndarray,
     ort_session: ort.InferenceSession,
     alpha_matting: bool = False,
     alpha_matting_foreground_threshold: int = 240,
     alpha_matting_background_threshold: int = 10,
     alpha_matting_erode_size: int = 10,
-    session: Optional[BaseSession] = None,
     post_process_mask: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    data = (data * 255).astype(np.uint8)
-    data = cvtColor(data, COLOR_BGR2RGB)
-    img = Image.fromarray(data)
+    # Flip channels to RGB mode and convert to PIL Image
+    img = (img * 255).astype(np.uint8)
+    _, _, c = get_h_w_c(img)
+    if c == 3:
+        img = cvtColor(img, COLOR_BGR2RGB)
+    elif c == 4:
+        img = cvtColor(img, COLOR_BGRA2RGB)
+    pimg = Image.fromarray(img)
 
-    if session is None:
-        session = new_session(ort_session)
+    session = new_session(ort_session)
 
-    masks = session.predict(img)
+    masks = session.predict(pimg)
     cutouts = []
 
     assert len(masks) > 0, "Model failed to generate masks"
@@ -131,20 +135,20 @@ def remove_bg(
         if alpha_matting:
             try:
                 cutout = alpha_matting_cutout(
-                    img,
+                    pimg,
                     mask,
                     alpha_matting_foreground_threshold,
                     alpha_matting_background_threshold,
                     alpha_matting_erode_size,
                 )
             except ValueError:
-                cutout = naive_cutout(img, mask)
+                cutout = naive_cutout(pimg, mask)
         else:
-            cutout = naive_cutout(img, mask)
+            cutout = naive_cutout(pimg, mask)
 
         cutouts.append(cutout)
 
-    cutout = img
+    cutout = pimg
     if len(cutouts) > 0:
         cutout = get_concat_v_multi(cutouts)
 
