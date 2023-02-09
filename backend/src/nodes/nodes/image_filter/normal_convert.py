@@ -12,6 +12,7 @@ from ...impl.image_utils import NormalMapType
 from ...impl.normals.nvidia.LightspeedOctahedralConverter import (
     LightspeedOctahedralConverter,
 )
+from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
 
 
 @NodeFactory.register("chainner:image:convert_normal_map")
@@ -64,17 +65,14 @@ class SpecularToMetal(NodeBase):
         if from_type == to_type:
             return img
 
-        # Chop off alpha channel if present
-        img = img[:, :, :3]
-        # bgr to rgb
-        img = img[..., ::-1]
+        normal = np.stack(gr_to_xyz(img), axis=2)
 
         if (from_type == NormalMapType.DIRECTX and to_type == NormalMapType.OPENGL) or (
             from_type == NormalMapType.OPENGL and to_type == NormalMapType.DIRECTX
         ):
-            img = LightspeedOctahedralConverter.ogl_to_dx(img)
+            normal = LightspeedOctahedralConverter.ogl_to_dx(normal)
         if from_type == NormalMapType.DIRECTX and to_type == NormalMapType.OCTAHEDRAL:
-            img = LightspeedOctahedralConverter.convert_dx_to_octahedral(img)
+            normal = LightspeedOctahedralConverter.convert_dx_to_octahedral(normal)
         if from_type == NormalMapType.OPENGL and to_type == NormalMapType.OCTAHEDRAL:
-            img = LightspeedOctahedralConverter.convert_ogl_to_octahedral(img)
-        return img[..., ::-1]
+            normal = LightspeedOctahedralConverter.convert_ogl_to_octahedral(normal)
+        return xyz_to_bgr(np.split(normal, 3, axis=2))

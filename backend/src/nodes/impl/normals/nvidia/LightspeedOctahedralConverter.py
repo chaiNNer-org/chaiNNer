@@ -24,7 +24,6 @@
 # This code has been modified from its original form
 
 import numpy as np
-from sanic.log import logger
 
 
 # Converts either OpenGL or DirectX style normal maps to RTX Remix compatible Hemispherical Octahedral maps.
@@ -41,9 +40,7 @@ from sanic.log import logger
 class LightspeedOctahedralConverter:
     # Convert DirectX style normal maps (green is down)
     @staticmethod
-    def convert_dx_to_octahedral(image):
-        image = LightspeedOctahedralConverter._check_for_spherical_normals(image)
-        normals = LightspeedOctahedralConverter._pixels_to_normals(image)
+    def convert_dx_to_octahedral(normals):
         octahedrals = LightspeedOctahedralConverter._convert_to_octahedral(normals)
         return LightspeedOctahedralConverter._octahedrals_to_pixels(octahedrals)
 
@@ -52,30 +49,6 @@ class LightspeedOctahedralConverter:
     def convert_ogl_to_octahedral(image):
         dx_image = LightspeedOctahedralConverter.ogl_to_dx(image)
         return LightspeedOctahedralConverter.convert_dx_to_octahedral(dx_image)
-
-    @staticmethod
-    def _check_for_spherical_normals(image):
-        # Check for blue values below 128.
-        mask = image[:, :, 2] < (128.0 / 255.0)
-        num_negative = image[mask].shape[0]
-        if num_negative > 0:
-            # pylint: disable=logging-not-lazy
-            logger.warning(
-                " img contained "
-                + str(num_negative)
-                + " pixels with inward pointing normals (z < 0.0, or b < 128).  RTX Remix only supports hemispherical"
-                + " normals, with the normal pointing away from the surface."
-            )
-
-        # Mirror the normal to point out from surface.
-        image[mask, 2] = 1 - image[mask, 2]
-        return image
-
-    @staticmethod
-    def _pixels_to_normals(image):
-        image = image[:, :, 0:3]
-        image = image * 2.0 - 1.0
-        return image / np.linalg.norm(image, axis=2)[:, :, np.newaxis]
 
     @staticmethod
     def _octahedrals_to_pixels(octahedrals):
@@ -96,4 +69,4 @@ class LightspeedOctahedralConverter:
         result = snorm_octahedrals.copy()
         result[:, :, 0] = snorm_octahedrals[:, :, 0] + snorm_octahedrals[:, :, 1]
         result[:, :, 1] = snorm_octahedrals[:, :, 0] - snorm_octahedrals[:, :, 1]
-        return result * 0.5 + 0.5
+        return result
