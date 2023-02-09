@@ -16,7 +16,7 @@ from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
 
 
 @NodeFactory.register("chainner:image:convert_normal_map")
-class SpecularToMetal(NodeBase):
+class ConvertNormalMap(NodeBase):
     def __init__(self):
         super().__init__()
         self.inputs = [
