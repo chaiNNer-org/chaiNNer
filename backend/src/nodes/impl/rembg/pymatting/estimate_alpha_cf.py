@@ -5,12 +5,8 @@ from .cg import cg
 import numpy as np
 
 
-def estimate_alpha_cf(
-    image,
-    trimap,
-    preconditioner=None,
-    laplacian_kwargs={},
-    cg_kwargs={},  # pylint: disable=dangerous-default-value
+def estimate_alpha_cf(  # pylint: disable=dangerous-default-value
+    image, trimap, preconditioner=None, laplacian_kwargs={}, cg_kwargs={}
 ):
     """
     Estimate alpha from an input image and an input trimap using Closed-Form Alpha Matting as proposed by :cite:`levin2007closed`.
