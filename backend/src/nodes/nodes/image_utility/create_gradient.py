@@ -5,13 +5,20 @@ from enum import Enum
 import numpy as np
 
 from . import category as ImageUtilityCategory
-from ...impl.gradients import horizontal_gradient, vertical_gradient, diagonal_gradient, radial_gradient, conic_gradient
+from ...impl.gradients import (
+    horizontal_gradient,
+    vertical_gradient,
+    diagonal_gradient,
+    radial_gradient,
+    conic_gradient,
+)
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
-from ...properties import expression
 from ...properties.inputs import (
     NumberInput,
-    EnumInput, SliderInput, )
+    EnumInput,
+    SliderInput,
+)
 from ...properties.outputs import ImageOutput
 
 
@@ -102,24 +109,112 @@ class CreateGradientNode(NodeBase):
                     ],
                 },
             )(
-                SliderInput("Red 1", minimum=0, maximum=255, default=0, gradient=["#000000", "#ff0000"]),
-                SliderInput("Green 1", minimum=0, maximum=255, default=0, gradient=["#000000", "#00ff00"]),
-                SliderInput("Blue 1", minimum=0, maximum=255, default=0, gradient=["#000000", "#0000ff"]),
-                SliderInput("Alpha 1", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-                SliderInput("Gray 1", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-
-                SliderInput("Red 2", minimum=0, maximum=255, default=0, gradient=["#000000", "#ff0000"]),
-                SliderInput("Green 2", minimum=0, maximum=255, default=0, gradient=["#000000", "#00ff00"]),
-                SliderInput("Blue 2", minimum=0, maximum=255, default=0, gradient=["#000000", "#0000ff"]),
-                SliderInput("Alpha 2", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-                SliderInput("Gray 2", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-
-                SliderInput("Red 3", minimum=0, maximum=255, default=0, gradient=["#000000", "#ff0000"]),
-                SliderInput("Green 3", minimum=0, maximum=255, default=0, gradient=["#000000", "#00ff00"]),
-                SliderInput("Blue 3", minimum=0, maximum=255, default=0, gradient=["#000000", "#0000ff"]),
-                SliderInput("Alpha 3", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-                SliderInput("Gray 3", minimum=0, maximum=255, default=0, gradient=["#000000", "#ffffff"]),
-            )
+                SliderInput(
+                    "Red 1",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ff0000"],
+                ),
+                SliderInput(
+                    "Green 1",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#00ff00"],
+                ),
+                SliderInput(
+                    "Blue 1",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#0000ff"],
+                ),
+                SliderInput(
+                    "Alpha 1",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+                SliderInput(
+                    "Gray 1",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+                SliderInput(
+                    "Red 2",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ff0000"],
+                ),
+                SliderInput(
+                    "Green 2",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#00ff00"],
+                ),
+                SliderInput(
+                    "Blue 2",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#0000ff"],
+                ),
+                SliderInput(
+                    "Alpha 2",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+                SliderInput(
+                    "Gray 2",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+                SliderInput(
+                    "Red 3",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ff0000"],
+                ),
+                SliderInput(
+                    "Green 3",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#00ff00"],
+                ),
+                SliderInput(
+                    "Blue 3",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#0000ff"],
+                ),
+                SliderInput(
+                    "Alpha 3",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+                SliderInput(
+                    "Gray 3",
+                    minimum=0,
+                    maximum=255,
+                    default=0,
+                    gradient=["#000000", "#ffffff"],
+                ),
+            ),
         ]
         self.outputs = [
             ImageOutput(
@@ -142,17 +237,31 @@ class CreateGradientNode(NodeBase):
         self.sub = "Create Images"
 
     def run(
-            self, width: int, height: int,
-            gradient_style: GradientStyle,
-            inner_radius_percent: float, outer_radius_percent: float,
-            conic_rotation: float,
-            middle_position: int,
-            color_mode: ColorMode,
-            red1: int, green1: int, blue1: int, alpha1: int, gray1: int,
-            red2: int, green2: int, blue2: int, alpha2: int, gray2: int,
-            red3: int, green3: int, blue3: int, alpha3: int, gray3: int,
+        self,
+        width: int,
+        height: int,
+        gradient_style: GradientStyle,
+        inner_radius_percent: float,
+        outer_radius_percent: float,
+        conic_rotation: float,
+        middle_position: int,
+        color_mode: ColorMode,
+        red1: int,
+        green1: int,
+        blue1: int,
+        alpha1: int,
+        gray1: int,
+        red2: int,
+        green2: int,
+        blue2: int,
+        alpha2: int,
+        gray2: int,
+        red3: int,
+        green3: int,
+        blue3: int,
+        alpha3: int,
+        gray3: int,
     ) -> np.ndarray:
-
         middle_position = middle_position / 100
 
         img, color1, color2, color3 = None, None, None, None
@@ -182,12 +291,24 @@ class CreateGradientNode(NodeBase):
             diagonal_gradient(img, color1, color2, color3, middle_position)
 
         elif gradient_style == GradientStyle.RADIAL:
-            radial_gradient(img, color1, color2, color3, middle_position,
-                            inner_radius_percent=inner_radius_percent / 100,
-                            outer_radius_percent=outer_radius_percent / 100)
+            radial_gradient(
+                img,
+                color1,
+                color2,
+                color3,
+                middle_position,
+                inner_radius_percent=inner_radius_percent / 100,
+                outer_radius_percent=outer_radius_percent / 100,
+            )
 
         elif gradient_style == GradientStyle.CONIC:
-            conic_gradient(img, color1, color2, color3, middle_position,
-                           rotation=conic_rotation * np.pi / 180)
+            conic_gradient(
+                img,
+                color1,
+                color2,
+                color3,
+                middle_position,
+                rotation=conic_rotation * np.pi / 180,
+            )
 
         return img
