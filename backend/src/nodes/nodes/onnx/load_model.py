@@ -50,7 +50,4 @@ class OnnxLoadModelNode(NodeBase):
         model_as_string = model.SerializeToString()
 
         dirname, basename, _ = split_file_path(path)
-        model = load_onnx_model(model_as_string)
-        logger.info(model.arch)
-        logger.info(model.sub_type)
-        return model, dirname, basename
+        return load_onnx_model(model_as_string), dirname, basename
