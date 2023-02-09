@@ -22,7 +22,8 @@ from . import category as ONNXCategory
 class RemBgNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Run rembg"
+        self.description = """Removes background from image.
+        Currently supports u2net models from the rembg project (links found in readme)."""
         self.inputs = [
             ImageInput(),
             OnnxRemBgModelInput(),
@@ -61,7 +62,8 @@ class RemBgNode(NodeBase):
         background_threshold: int,
         kernel_size: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Upscales an image with a pretrained model"""
+        """Removes background from image"""
+
         session = get_onnx_session(model, get_execution_options())
 
         return remove_bg(

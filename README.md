@@ -128,6 +128,10 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 - Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
 
+#### Background Removal
+
+- [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
+
 ## Troubleshooting
 
 For troubleshooting information, view the [troubleshooting document](https://github.com/chaiNNer-org/chaiNNer/blob/main/troubleshooting.md).
