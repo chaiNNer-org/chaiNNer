@@ -144,9 +144,6 @@ class Img2ImgOutpainting(NodeBase):
             ),
         ]
 
-        # target_w = math.ceil((init_img.width + left + right) / 64) * 64
-        # target_h = math.ceil((init_img.height + up + down) / 64) * 64
-
         self.outputs = [
             ImageOutput(
                 image_type="""def nearest_valid(n: number) = int & ceil(n / 64) * 64;
