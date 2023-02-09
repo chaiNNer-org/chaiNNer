@@ -56,9 +56,10 @@ class LightspeedOctahedralConverter:
 
     @staticmethod
     def ogl_to_dx(image):
+        img = image.copy()
         # flip the g channel to convert to DX style
-        image[:, :, (1)] = 1 - image[:, :, (1)]
-        return image
+        img[:, :, (1)] = 1 - img[:, :, (1)]
+        return img
 
     @staticmethod
     def _convert_to_octahedral(image):
