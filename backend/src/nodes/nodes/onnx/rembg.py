@@ -29,7 +29,13 @@ class RemBgNode(NodeBase):
             OnnxRemBgModelInput(),
             BoolInput("Post-process Mask", default=False),
             BoolInput("Alpha Matting", default=False),
-            group("conditional-enum", {"enum": 3, "conditions": [1, 1, 1],},)(
+            group(
+                "conditional-enum",
+                {
+                    "enum": 3,
+                    "conditions": [1, 1, 1],
+                },
+            )(
                 SliderInput(
                     "Foreground Threshold", minimum=1, maximum=255, default=240
                 ),

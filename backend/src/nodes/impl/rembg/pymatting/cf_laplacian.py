@@ -37,7 +37,6 @@ def _cf_laplacian(image, epsilon, r, values, indices, indptr, is_known):
     # For each pixel of image
     for y in range(r, h - r):
         for x in range(r, w - r):
-
             if np.all(is_known[y - r : y + r + 1, x - r : x + r + 1]):
                 continue
 
