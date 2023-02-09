@@ -8,25 +8,9 @@ import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
 interface OnnxModelData {
-    inNc: number;
-    outNc: number;
-    scale: number;
     arch: string;
-    sub_type: string;
+    subType: string;
 }
-
-const getColorMode = (channels: number) => {
-    switch (channels) {
-        case 1:
-            return 'GRAY';
-        case 3:
-            return 'RGB';
-        case 4:
-            return 'RGBA';
-        default:
-            return channels;
-    }
-};
 
 export const OnnxModelOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
@@ -45,7 +29,7 @@ export const OnnxModelOutput = memo(
                         outputId,
                         new NamedExpression('OnnxModel', [
                             new NamedExpressionField('arch', literal(current.arch)),
-                            new NamedExpressionField('subType', literal(current.sub_type)),
+                            new NamedExpressionField('subType', literal(current.subType)),
                         ])
                     );
                 } else {
