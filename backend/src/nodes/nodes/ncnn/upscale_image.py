@@ -58,9 +58,9 @@ class NcnnUpscaleImageNode(NodeBase):
         self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
             Select a manual number of tiles if you are having issues with the automatic mode."
         self.inputs = [
-            NcnnModelInput(),
-            ImageInput(),
-            TileSizeDropdown(),
+            ImageInput().with_id(1),
+            NcnnModelInput().with_id(0),
+            TileSizeDropdown().with_id(2),
         ]
         self.outputs = [
             ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
@@ -111,7 +111,7 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(
-        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: TileSize
+        self, img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize
     ) -> np.ndarray:
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]

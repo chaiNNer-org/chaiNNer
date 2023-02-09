@@ -4,6 +4,7 @@ debugpy
 einops
 facexlib
 ffmpeg-python
+google-re2
 ncnn_vulkan
 numpy
 onnx
@@ -17,8 +18,8 @@ pylint==2.16.1
 pyright==1.1.280
 pytest
 pywin32 ; sys_platform=="win32"
-google-re2
-sanic==21.9.3
+requests
+sanic==21.12.2
 sanic_cors==1.0.1
 scipy==1.9.3
 # torch

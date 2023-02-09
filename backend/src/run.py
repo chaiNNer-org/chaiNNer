@@ -423,6 +423,8 @@ async def kill(request: Request):
     try:
         logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
+        while ctx.executor:
+            await asyncio.sleep(0.0001)
         return json(successResponse("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)

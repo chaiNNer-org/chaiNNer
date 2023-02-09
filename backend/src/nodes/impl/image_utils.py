@@ -1,14 +1,26 @@
-from enum import Enum
-from typing import List
+import cv2
+import numpy as np
 import os
 import random
 import string
-
-import cv2
-import numpy as np
+from enum import Enum
 from sanic.log import logger
+from typing import List
 
 from ..utils.utils import get_h_w_c, Padding, split_file_path
+
+MAX_VALUES_BY_DTYPE = {
+    np.dtype("int8"): 127,
+    np.dtype("uint8"): 255,
+    np.dtype("int16"): 32767,
+    np.dtype("uint16"): 65535,
+    np.dtype("int32"): 2147483647,
+    np.dtype("uint32"): 4294967295,
+    np.dtype("int64"): 9223372036854775807,
+    np.dtype("uint64"): 18446744073709551615,
+    np.dtype("float32"): 1.0,
+    np.dtype("float64"): 1.0,
+}
 
 
 class FillColor(Enum):
@@ -47,6 +59,12 @@ class BorderType(Enum):
     REPLICATE = 1
     BLACK = 0
     TRANSPARENT = 5
+
+
+class NormalMapType(Enum):
+    DIRECTX = "DirectX"
+    OPENGL = "OpenGL"
+    OCTAHEDRAL = "Octahedral"
 
 
 def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:

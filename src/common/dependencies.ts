@@ -131,6 +131,10 @@ export const requiredDependencies: Dependency[] = [
         packages: [{ packageName: 'ffmpeg-python', version: '0.2.0', sizeEstimate: 25 * KB }],
     },
     {
+        name: 'Requests',
+        packages: [{ packageName: 'requests', version: '2.28.2', sizeEstimate: 452 * KB }],
+    },
+    {
         name: 're2',
         packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
     },
