@@ -102,7 +102,7 @@ def post_process(mask: np.ndarray) -> np.ndarray:
     return mask
 
 
-def remove(
+def remove_bg(
     data: np.ndarray,
     ort_session: ort.InferenceSession,
     alpha_matting: bool = False,

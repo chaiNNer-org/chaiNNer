@@ -20,11 +20,15 @@ U2NET_CLOTH = re2.compile(
 class OnnxGenericModel:
     def __init__(self, model_as_bytes: bytes):
         self.bytes: bytes = model_as_bytes
+        self.arch = "generic"
+        self.sub_type = "Generic"
 
 
 class OnnxRemBgModel:
     def __init__(self, model_as_bytes: bytes):
         self.bytes: bytes = model_as_bytes
+        self.arch = "u2net"
+        self.sub_type = "RemBg"
 
 
 OnnxModels = (OnnxGenericModel, OnnxRemBgModel)
@@ -37,17 +41,13 @@ def isRemBgModel(model_as_bytes: bytes) -> bool:
         or U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None
     ):
         return True
-
     return False
 
 
 def load_onnx_model(model_as_bytes: bytes) -> OnnxModel:
-    logger.info("1")
     if isRemBgModel(model_as_bytes):
-        logger.info("2")
         model = OnnxRemBgModel(model_as_bytes)
     else:
-        logger.info("3")
-    model = OnnxGenericModel(model_as_bytes)
+        model = OnnxGenericModel(model_as_bytes)
 
     return model

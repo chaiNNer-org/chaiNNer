@@ -24,7 +24,7 @@ class OnnxLoadModelNode(NodeBase):
         )
         self.inputs = [OnnxFileInput(primary_input=True)]
         self.outputs = [
-            OnnxModelOutput(),
+            OnnxModelOutput(label="Model", kind="onnx"),
             DirectoryOutput("Model Directory", of_input=0).with_id(2),
             FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
@@ -50,4 +50,7 @@ class OnnxLoadModelNode(NodeBase):
         model_as_string = model.SerializeToString()
 
         dirname, basename, _ = split_file_path(path)
-        return load_onnx_model(model_as_string), dirname, basename
+        model = load_onnx_model(model_as_string)
+        logger.info(model.arch)
+        logger.info(model.sub_type)
+        return model, dirname, basename

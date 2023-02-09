@@ -64,18 +64,15 @@ struct NcnnNetwork {
 
 struct OnnxFile { path: string }
 struct OnnxModel {
-    scale: int(1..),
-    inputChannels: int(1..),
-    outputChannels: int(1..),
     arch: string,
     subType: string,
 }
 let OnnxRemBgModel = OnnxModel {
-    arch: "OnnxRemBgModel",
+    arch: "u2net",
     subType: "RemBg",
 };
 let OnnxGenericModel = OnnxModel {
-    arch: "OnnxGenericModel",
+    arch: invStrSet(OnnxRemBgModel.arch),
     subType: "Generic",
 };
 
@@ -104,7 +101,7 @@ def FpMode::toString(mode: FpMode) {
     }
 }
 
-def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Image) {
+def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,

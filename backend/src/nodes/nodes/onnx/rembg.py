@@ -4,9 +4,9 @@ from typing import Tuple
 
 import numpy as np
 
-from ...impl.onnx.model import OnnxModel
+from ...impl.onnx.model import OnnxRemBgModel
 from ...impl.onnx.session import get_onnx_session
-from ...impl.rembg.bg import remove
+from ...impl.rembg.bg import remove_bg
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -54,7 +54,7 @@ class RemBgNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        model: OnnxModel,
+        model: OnnxRemBgModel,
         post_process_mask: int,
         alpha_matting: int,
         foreground_threshold: int,
@@ -64,7 +64,7 @@ class RemBgNode(NodeBase):
         """Upscales an image with a pretrained model"""
         session = get_onnx_session(model, get_execution_options())
 
-        return remove(
+        return remove_bg(
             img,
             session,
             bool(alpha_matting),

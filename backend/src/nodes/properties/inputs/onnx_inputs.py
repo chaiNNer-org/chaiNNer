@@ -1,3 +1,4 @@
+from ...impl.onnx.model import isRemBgModel
 from ...properties.expression import ExpressionJson, intersect
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
@@ -17,6 +18,7 @@ class OnnxGenericModelInput(OnnxModelInput):
         super().__init__(label, intersect(input_type, "OnnxGenericModel"))
 
     def enforce(self, value):
+        assert not isRemBgModel(value.bytes), "Expected a non-rembg model"
         return value
 
 
@@ -27,6 +29,7 @@ class OnnxRemBgModelInput(OnnxModelInput):
         super().__init__(label, intersect(input_type, "OnnxRemBgModel"))
 
     def enforce(self, value):
+        assert isRemBgModel(value.bytes), "Expected a rembg model"
         return value
 
 

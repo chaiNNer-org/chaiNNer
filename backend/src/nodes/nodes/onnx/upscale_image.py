@@ -34,12 +34,7 @@ class OnnxImageUpscaleNode(NodeBase):
             ImageInput(),
             TileSizeDropdown(estimate=False),
         ]
-        self.outputs = [
-            ImageOutput(
-                "Upscaled Image",
-                image_type="""convenientUpscale(Input0, Input1)""",
-            )
-        ]
+        self.outputs = [ImageOutput("Upscaled Image")]
 
         self.category = ONNXCategory
         self.name = "Upscale Image"
