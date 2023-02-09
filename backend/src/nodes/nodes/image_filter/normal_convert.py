@@ -75,4 +75,4 @@ class SpecularToMetal(NodeBase):
             normal = LightspeedOctahedralConverter.convert_dx_to_octahedral(normal)
         if from_type == NormalMapType.OPENGL and to_type == NormalMapType.OCTAHEDRAL:
             normal = LightspeedOctahedralConverter.convert_ogl_to_octahedral(normal)
-        return xyz_to_bgr(np.split(normal, 3, axis=2))
+        return xyz_to_bgr(np.split(normal, 3, axis=2))  # type: ignore
