@@ -4,19 +4,18 @@ from copy import deepcopy
 from typing import List, Tuple
 
 import numpy as np
+import onnx
 import onnxoptimizer
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
+from onnx import numpy_helper as onph
 from sanic.log import logger
 
-import onnx
-from onnx import numpy_helper as onph
-
+from ...impl.onnx.model import OnnxModel, load_onnx_model
+from ...impl.upscale.auto_split_tiles import NO_TILING
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, SliderInput
 from ...properties.outputs import NumberOutput, OnnxModelOutput
-from ...impl.upscale.auto_split_tiles import NO_TILING
-from ...impl.onnx.model import OnnxModel
 from . import category as ONNXCategory
 from .upscale_image import OnnxImageUpscaleNode
 
@@ -126,7 +125,7 @@ class OnnxInterpolateModelsNode(NodeBase):
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
         model_interp = model_proto_interp.SerializeToString()  # type: ignore
 
-        model = OnnxModel(model_interp)
+        model = load_onnx_model(model_interp)
         if not self.check_will_upscale(model):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"

@@ -5,15 +5,15 @@ from typing import Tuple
 
 import torch
 
-from . import category as PyTorchCategory
+from ...impl.onnx.model import OnnxModel, load_onnx_model
+from ...impl.pytorch.types import PyTorchSRModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import SrModelInput, OnnxFpDropdown
+from ...properties.inputs import OnnxFpDropdown, SrModelInput
 from ...properties.outputs import OnnxModelOutput, TextOutput
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.utils import to_pytorch_execution_options
-from ...impl.onnx.model import OnnxModel
-from ...impl.pytorch.types import PyTorchSRModel
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
@@ -79,4 +79,4 @@ class ConvertTorchToONNXNode(NodeBase):
 
         fp_mode = "fp16" if should_use_fp16 else "fp32"
 
-        return OnnxModel(onnx_model_bytes), fp_mode
+        return load_onnx_model(onnx_model_bytes), fp_mode
