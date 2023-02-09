@@ -9,16 +9,22 @@ from ...properties.inputs import ImageInput, EnumInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...impl.image_utils import NormalMapType
-from ...impl.normals.nvidia.LightspeedOctahedralConverter import (
-    LightspeedOctahedralConverter,
+from ...impl.normals.util import (
+    gr_to_xyz,
+    octahedral_gr_to_xyz,
+    xyz_to_bgr,
+    xyz_to_octahedral_bgr,
+    XYZ,
 )
-from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
 
 
 @NodeFactory.register("chainner:image:convert_normal_map")
 class ConvertNormalMap(NodeBase):
     def __init__(self):
         super().__init__()
+        self.description = """Convert between different normal map formats. Only the R and G
+            channels of the input image will be used. For DirectX and OpenGL, the output normal map
+            is guaranteed to be normalized."""
         self.inputs = [
             ImageInput("Normal Map", channels=[3, 4]),
             EnumInput(
@@ -62,17 +68,28 @@ class ConvertNormalMap(NodeBase):
         from_type: NormalMapType,
         to_type: NormalMapType,
     ) -> np.ndarray:
-        if from_type == to_type:
-            return img
+        # Step 1: Read/decode the image to get the XYZ components of the normals
 
-        normal = np.stack(gr_to_xyz(img), axis=2)
+        # we define this as DirectX normals
+        xyz: XYZ
+        if from_type == NormalMapType.DIRECTX:
+            xyz = gr_to_xyz(img)
+        elif from_type == NormalMapType.OPENGL:
+            xyz = gr_to_xyz(img)
+            # OpenGL to DirectX
+            _, y, _ = xyz
+            np.negative(y, out=y)
+        elif from_type == NormalMapType.OCTAHEDRAL:
+            xyz = octahedral_gr_to_xyz(img)
 
-        if (from_type == NormalMapType.DIRECTX and to_type == NormalMapType.OPENGL) or (
-            from_type == NormalMapType.OPENGL and to_type == NormalMapType.DIRECTX
-        ):
-            normal = LightspeedOctahedralConverter.ogl_to_dx(normal)
-        if from_type == NormalMapType.DIRECTX and to_type == NormalMapType.OCTAHEDRAL:
-            normal = LightspeedOctahedralConverter.convert_dx_to_octahedral(normal)
-        if from_type == NormalMapType.OPENGL and to_type == NormalMapType.OCTAHEDRAL:
-            normal = LightspeedOctahedralConverter.convert_ogl_to_octahedral(normal)
-        return xyz_to_bgr(np.split(normal, 3, axis=2))  # type: ignore
+        # Step 2: Convert/encode the XYZ components of the normals to BGR
+
+        if to_type == NormalMapType.DIRECTX:
+            return xyz_to_bgr(xyz)
+        elif to_type == NormalMapType.OPENGL:
+            # DirectX to OpenGL
+            _, y, _ = xyz
+            np.negative(y, out=y)
+            return xyz_to_bgr(xyz)
+        elif to_type == NormalMapType.OCTAHEDRAL:
+            return xyz_to_octahedral_bgr(xyz)
