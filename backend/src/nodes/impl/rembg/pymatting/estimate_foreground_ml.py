@@ -20,7 +20,7 @@ def _resize_nearest_multichannel(dst, src):
     h_src, w_src, depth = src.shape
     h_dst, w_dst, depth = dst.shape
 
-    for y_dst in prange(h_dst):
+    for y_dst in prange(h_dst):  # pylint: disable=not-an-iterable
         for x_dst in range(w_dst):
             x_src = max(0, min(w_src - 1, x_dst * w_src // w_dst))
             y_src = max(0, min(h_src - 1, y_dst * h_src // h_dst))
@@ -47,7 +47,7 @@ def _resize_nearest(dst, src):
     h_src, w_src = src.shape
     h_dst, w_dst = dst.shape
 
-    for y_dst in prange(h_dst):
+    for y_dst in prange(h_dst):  # pylint: disable=not-an-iterable
         for x_dst in range(w_dst):
             x_src = max(0, min(w_src - 1, x_dst * w_src // w_dst))
             y_src = max(0, min(h_src - 1, y_dst * h_src // h_dst))
@@ -113,7 +113,7 @@ def _estimate_fb_ml(
         dy = [0, 0, -1, 1]
 
         for _ in range(n_iter):
-            for y in prange(h):
+            for y in prange(h):  # pylint: disable=not-an-iterable
                 for x in range(w):
                     a0 = alpha[y, x]
                     a1 = 1.0 - a0
