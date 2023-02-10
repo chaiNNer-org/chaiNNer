@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import io
 import os
@@ -137,3 +139,48 @@ class SamplerName(Enum):
     DPMpp_SDE_KARRAS = "DPM++ SDE Karras"
     DDIM = "DDIM"
     PLMS = "PLMS"
+
+
+SAMPLER_NAME_LABELS = {
+    SamplerName.EULER: "Euler",
+    SamplerName.EULER_A: "Euler a",
+    SamplerName.LMS: "LMS",
+    SamplerName.HEUN: "Heun",
+    SamplerName.DPM2: "DPM2",
+    SamplerName.DPM2_A: "DPM2 a",
+    SamplerName.DPMpp_2S_A: "DPM++ 2S a",
+    SamplerName.DPMpp_2M: "DPM++ 2M",
+    SamplerName.DPMpp_SDE: "DPM++ SDE",
+    SamplerName.DPM_FAST: "DPM fast",
+    SamplerName.DPM_A: "DPM adaptive",
+    SamplerName.LMS_KARRAS: "LMS Karras",
+    SamplerName.DPM2_KARRAS: "DPM2 Karras",
+    SamplerName.DPM2_A_KARRAS: "DPM2 a Karras",
+    SamplerName.DPMpp_2S_A_KARRAS: "DPM++ 2S a Karras",
+    SamplerName.DPMpp_2M_KARRAS: "DPM++ 2M Karras",
+    SamplerName.DPMpp_SDE_KARRAS: "DPM++ SDE Karras",
+    SamplerName.DDIM: "DDIM",
+    SamplerName.PLMS: "PLMS",
+}
+
+
+class ResizeMode(Enum):
+    JUST_RESIZE = 0
+    CROP_AND_RESIZE = 1
+    RESIZE_AND_FILL = 2
+    LATENT_UPSCALE = 3
+
+
+RESIZE_MODE_LABELS = {
+    ResizeMode.JUST_RESIZE: "Just resize",
+    ResizeMode.CROP_AND_RESIZE: "Crop and resize",
+    ResizeMode.RESIZE_AND_FILL: "Resize and fill",
+    ResizeMode.LATENT_UPSCALE: "Just resize (Latent upscale)",
+}
+
+
+class InpaintingFill(Enum):
+    FILL = 0
+    ORIGINAL = 1
+    LATENT_NOISE = 2
+    LATENT_NOTHING = 3

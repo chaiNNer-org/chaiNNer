@@ -8,10 +8,13 @@ from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
     decode_base64_image,
     SamplerName,
+    SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_IMG2IMG_URL,
     post,
     encode_base64_image,
     nearest_valid_size,
+    ResizeMode,
+    RESIZE_MODE_LABELS,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -48,7 +51,11 @@ class Img2Img(NodeBase):
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
             ),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
-            EnumInput(SamplerName, default_value=SamplerName.EULER),
+            EnumInput(
+                SamplerName,
+                default_value=SamplerName.EULER,
+                option_labels=SAMPLER_NAME_LABELS,
+            ),
             SliderInput(
                 "CFG Scale",
                 minimum=1,
@@ -57,6 +64,11 @@ class Img2Img(NodeBase):
                 controls_step=0.1,
                 precision=1,
             ),
+            EnumInput(
+                ResizeMode,
+                default_value=ResizeMode.JUST_RESIZE,
+                option_labels=RESIZE_MODE_LABELS,
+            ).with_id(10),
             SliderInput(
                 "Width",
                 minimum=64,
@@ -100,6 +112,7 @@ class Img2Img(NodeBase):
         steps: int,
         sampler_name: SamplerName,
         cfg_scale: float,
+        resize_mode: ResizeMode,
         width: int,
         height: int,
     ) -> np.ndarray:
@@ -117,6 +130,7 @@ class Img2Img(NodeBase):
             "cfg_scale": cfg_scale,
             "width": width,
             "height": height,
+            "resize_mode": resize_mode.value,
         }
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
