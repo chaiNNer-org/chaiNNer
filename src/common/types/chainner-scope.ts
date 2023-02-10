@@ -80,6 +80,8 @@ let OnnxGenericModel = OnnxModel {
     subType: "Generic",
 };
 
+struct SDKitModel;
+
 struct IteratorAuto;
 
 // various inputs

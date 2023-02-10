@@ -15,3 +15,7 @@ try:
     from .pytorch_outputs import *
 except:
     pass
+try:
+    from .sdkit_outputs import *
+except:
+    pass

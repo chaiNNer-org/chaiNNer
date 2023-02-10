@@ -17,3 +17,7 @@ try:
     from .pytorch_inputs import *
 except:
     pass
+try:
+    from .sdkit_inputs import *
+except:
+    pass

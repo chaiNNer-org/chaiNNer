@@ -14,6 +14,7 @@ import { OnnxModelOutput } from '../outputs/OnnxModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps, UseOutputData } from '../outputs/props';
 import { PyTorchOutput } from '../outputs/PyTorchOutput';
+import { SDKitOutput } from '../outputs/SDKitOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
@@ -30,12 +31,14 @@ const OutputComponents: Readonly<
     onnx: OnnxModelOutput,
     directory: GenericOutput,
     text: GenericOutput,
+    sdkit: SDKitOutput,
     generic: GenericOutput,
 };
 const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     image: true,
     'large-image': false,
     pytorch: false,
+    sdkit: false,
     ncnn: false,
     onnx: true,
     directory: true,
