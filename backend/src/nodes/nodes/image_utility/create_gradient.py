@@ -14,6 +14,7 @@ from ...impl.gradients import (
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import (
     NumberInput,
     EnumInput,
@@ -75,9 +76,11 @@ class CreateGradientNode(NodeBase):
         ]
         self.outputs = [
             ImageOutput(
-                width="Input0",
-                height="Input1",
-                channels=1,
+                image_type=expression.Image(
+                    width="Input0",
+                    height="Input1",
+                    channels=1,
+                )
             )
         ]
         self.category = ImageUtilityCategory
