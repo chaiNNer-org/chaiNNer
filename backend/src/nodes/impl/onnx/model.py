@@ -13,6 +13,7 @@ U2NET_CLOTH = re2.compile(
     b"output.+d1.+Concat_1876.+Concat_1896.+Concat_1916.+Concat_1936.+Concat_1956",
     re2_options,
 )
+U2NET_SILUETA = re2.compile(b"1808.+1827.+1828.+2296.+1831.+1850.+1958", re2_options)
 
 
 class OnnxGeneric:
@@ -48,13 +49,17 @@ def isRemBgModel(model_as_bytes: bytes) -> bool:
     if (
         U2NET_STANDARD.search(model_as_bytes[-600:]) is not None
         or U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None
+        or U2NET_SILUETA.search(model_as_bytes[-600:]) is not None
     ):
         return True
     return False
 
 
 def load_onnx_model(model_as_bytes: bytes) -> OnnxModel:
-    if U2NET_STANDARD.search(model_as_bytes[-600:]) is not None:
+    if (
+        U2NET_STANDARD.search(model_as_bytes[-1000:]) is not None
+        or U2NET_SILUETA.search(model_as_bytes[-600:]) is not None
+    ):
         model = OnnxU2Net(model_as_bytes)
     elif U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None:
         model = OnnxU2NetCloth(model_as_bytes)
