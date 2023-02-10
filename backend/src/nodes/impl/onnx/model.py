@@ -15,22 +15,33 @@ U2NET_CLOTH = re2.compile(
 )
 
 
-class OnnxGenericModel:
+class OnnxGeneric:
     def __init__(self, model_as_bytes: bytes):
         self.bytes: bytes = model_as_bytes
         self.arch = "generic"
         self.sub_type = "Generic"
 
 
-class OnnxRemBgModel:
+class OnnxU2Net:
     def __init__(self, model_as_bytes: bytes):
         self.bytes: bytes = model_as_bytes
         self.arch = "u2net"
         self.sub_type = "RemBg"
 
 
-OnnxModels = (OnnxGenericModel, OnnxRemBgModel)
-OnnxModel = Union[OnnxGenericModel, OnnxRemBgModel]
+class OnnxU2NetCloth:
+    def __init__(self, model_as_bytes: bytes):
+        self.bytes: bytes = model_as_bytes
+        self.arch = "u2net_cloth"
+        self.sub_type = "RemBg"
+
+
+OnnxRemBgModels = (OnnxU2Net, OnnxU2NetCloth)
+OnnxRemBgModel = Union[OnnxU2Net, OnnxU2NetCloth]
+
+
+OnnxModels = (OnnxGeneric, *OnnxRemBgModels)
+OnnxModel = Union[OnnxGeneric, OnnxRemBgModel]
 
 
 def isRemBgModel(model_as_bytes: bytes) -> bool:
@@ -43,9 +54,11 @@ def isRemBgModel(model_as_bytes: bytes) -> bool:
 
 
 def load_onnx_model(model_as_bytes: bytes) -> OnnxModel:
-    if isRemBgModel(model_as_bytes):
-        model = OnnxRemBgModel(model_as_bytes)
+    if U2NET_STANDARD.search(model_as_bytes[-600:]) is not None:
+        model = OnnxU2Net(model_as_bytes)
+    elif U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None:
+        model = OnnxU2NetCloth(model_as_bytes)
     else:
-        model = OnnxGenericModel(model_as_bytes)
+        model = OnnxGeneric(model_as_bytes)
 
     return model

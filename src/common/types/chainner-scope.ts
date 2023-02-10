@@ -68,7 +68,7 @@ struct OnnxModel {
     subType: string,
 }
 let OnnxRemBgModel = OnnxModel {
-    arch: "u2net",
+    arch: "u2net" | "u2net_cloth",
     subType: "RemBg",
 };
 let OnnxGenericModel = OnnxModel {
@@ -110,6 +110,18 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
         } else {
             model.outputChannels
         }
+    }
+}
+
+def removeBackground(model: OnnxRemBgModel, image:Image) {
+    Image {
+        width: image.width,
+        height: if model.arch == "u2net_cloth" {
+            image.height * 3
+        } else {
+            image.height
+        },
+        channels: 4,
     }
 }
 

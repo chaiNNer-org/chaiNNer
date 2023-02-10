@@ -46,7 +46,7 @@ class RemBgNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Image",
-                image_type="""Input0""",
+                image_type="""removeBackground(Input1, Input0)""",
             ),
             ImageOutput(
                 "Mask", image_type=expression.Image(size_as="Input0"), channels=1
