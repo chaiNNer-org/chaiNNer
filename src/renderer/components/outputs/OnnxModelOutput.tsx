@@ -1,10 +1,11 @@
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
-import { memo, useEffect, useMemo } from 'react';
-import { useContext } from 'use-context-selector';
+import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { ModelDataTags } from './elements/ModelDataTags';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 interface OnnxModelData {
@@ -13,7 +14,11 @@ interface OnnxModelData {
 }
 
 export const OnnxModelOutput = memo(
-    ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
+    ({ label, id, outputId, useOutputData, schemaId }: OutputProps) => {
+        const type = useContextSelector(GlobalVolatileContext, (c) =>
+            c.typeState.functions.get(id)?.outputs.get(outputId)
+        );
+
         const { current } = useOutputData<OnnxModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -38,17 +43,35 @@ export const OnnxModelOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
-        const tags = useMemo(() => {
-            if (!current) return undefined;
-
-            return [];
-        }, [current]);
-
         return (
-            <ModelDataTags
-                loading={animated}
-                tags={tags}
-            />
+            <Flex
+                h="full"
+                minH="2rem"
+                verticalAlign="middle"
+                w="full"
+            >
+                <Spacer />
+                {type && (
+                    <Center
+                        h="2rem"
+                        verticalAlign="middle"
+                    >
+                        <TypeTags
+                            isOptional={false}
+                            type={type}
+                        />
+                    </Center>
+                )}
+                <Text
+                    h="full"
+                    lineHeight="2rem"
+                    marginInlineEnd="0.5rem"
+                    ml={1}
+                    textAlign="right"
+                >
+                    {label}
+                </Text>
+            </Flex>
         );
     }
 );

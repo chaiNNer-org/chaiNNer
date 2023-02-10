@@ -37,7 +37,7 @@ const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     'large-image': false,
     pytorch: false,
     ncnn: false,
-    onnx: false,
+    onnx: true,
     directory: true,
     text: true,
     generic: true,
