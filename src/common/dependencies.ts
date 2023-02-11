@@ -94,6 +94,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '1.9.3',
                     sizeEstimate: 42 * MB,
                 },
+                {
+                    packageName: 'numba',
+                    version: '0.56.3',
+                    sizeEstimate: 2.5 * MB,
+                },
             ],
             description:
                 'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
