@@ -113,7 +113,7 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     }
 }
 
-def removeBackground(model: OnnxRemBgModel, image:Image) {
+def removeBackground(model: OnnxRemBgModel, image: Image) {
     Image {
         width: image.width,
         height: if model.arch == "u2net_cloth" {

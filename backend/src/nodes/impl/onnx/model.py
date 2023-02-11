@@ -45,7 +45,7 @@ OnnxModels = (OnnxGeneric, *OnnxRemBgModels)
 OnnxModel = Union[OnnxGeneric, OnnxRemBgModel]
 
 
-def isRemBgModel(model_as_bytes: bytes) -> bool:
+def is_rembg_model(model_as_bytes: bytes) -> bool:
     if (
         U2NET_STANDARD.search(model_as_bytes[-600:]) is not None
         or U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None
