@@ -7,6 +7,7 @@ import numpy as np
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput, NumberInput, EnumInput
 from ...properties.outputs import ImageOutput
 
@@ -20,7 +21,7 @@ class InpaintAlgorithm(Enum):
 class InpaintNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Inpaint Image"
+        self.description = "Inpaint an image with given mask."
         self.inputs = [
             ImageInput(channels=[1, 3]),
             ImageInput(label="Mask", channels=1),
@@ -39,7 +40,17 @@ class InpaintNode(NodeBase):
                 controls_step=1,
             ),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0.width & Input1.width",
+                    height="Input0.height & Input1.height",
+                    channels="Input0.channels",
+                )
+            ).with_never_reason(
+                "The given image and mask must have the same resolution."
+            )
+        ]
         self.category = ImageUtilityCategory
         self.name = "Inpaint"
         self.icon = "MdOutlineAutoFixHigh"
@@ -52,8 +63,7 @@ class InpaintNode(NodeBase):
         inpaint_method: InpaintAlgorithm,
         radius: float,
     ) -> np.ndarray:
-        """Inpaint can be used to remove unwanted elements from an image,
-        such as dust and scratches in scanned photographs."""
+        """Inpaint an image"""
 
         assert (
             img.shape[:2] == mask.shape[:2]
