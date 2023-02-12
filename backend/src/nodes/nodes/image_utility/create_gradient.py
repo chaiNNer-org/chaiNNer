@@ -19,6 +19,7 @@ from ...properties.inputs import (
     NumberInput,
     EnumInput,
     SliderInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput
 
@@ -39,18 +40,34 @@ class CreateGradientNode(NodeBase):
         self.inputs = [
             NumberInput("Width", minimum=1, unit="px", default=64),
             NumberInput("Height", minimum=1, unit="px", default=64),
-            EnumInput(GradientStyle, default_value=GradientStyle.HORIZONTAL).with_id(2),
+            BoolInput("Reverse", default=False),
+            EnumInput(GradientStyle, default_value=GradientStyle.HORIZONTAL).with_id(3),
             group(
                 "conditional-enum",
                 {
-                    "enum": 2,
+                    "enum": 3,
                     "conditions": [
+                        [GradientStyle.DIAGONAL.value],
+                        [GradientStyle.DIAGONAL.value],
                         [GradientStyle.RADIAL.value],
                         [GradientStyle.RADIAL.value],
                         [GradientStyle.CONIC.value],
                     ],
                 },
             )(
+                SliderInput(
+                    "Angle",
+                    minimum=0,
+                    maximum=360,
+                    default=45,
+                    unit="deg",
+                ),
+                NumberInput(
+                    "Width",
+                    minimum=0,
+                    default=100,
+                    unit="px",
+                ),
                 SliderInput(
                     "Inner Radius",
                     minimum=0,
@@ -92,7 +109,10 @@ class CreateGradientNode(NodeBase):
         self,
         width: int,
         height: int,
+        reverse: bool,
         gradient_style: GradientStyle,
+        diagonal_angle: float,
+        diagonal_width: float,
         inner_radius_percent: float,
         outer_radius_percent: float,
         conic_rotation: float,
@@ -106,7 +126,7 @@ class CreateGradientNode(NodeBase):
             vertical_gradient(img)
 
         elif gradient_style == GradientStyle.DIAGONAL:
-            diagonal_gradient(img)
+            diagonal_gradient(img, diagonal_angle * np.pi / 180, diagonal_width)
 
         elif gradient_style == GradientStyle.RADIAL:
             radial_gradient(
@@ -117,5 +137,8 @@ class CreateGradientNode(NodeBase):
 
         elif gradient_style == GradientStyle.CONIC:
             conic_gradient(img, rotation=conic_rotation * np.pi / 180)
+
+        if reverse:
+            img = 1 - img
 
         return img

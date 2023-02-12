@@ -14,16 +14,17 @@ def vertical_gradient(img: np.ndarray):
     img[:, :] = p.reshape((-1, 1))
 
 
-def diagonal_gradient(img: np.ndarray):
-    diagonal = np.array(img.shape[:2], dtype="float32")
-    diagonal_length = np.sqrt(np.sum(diagonal**2))
-    diagonal /= diagonal_length
+def diagonal_gradient(img: np.ndarray, angle: float, width: float):
+    center = np.array([img.shape[0], img.shape[1]], dtype=np.float32) / 2
+    direction = np.array([np.cos(angle), np.sin(angle)], dtype=np.float32)
+
+    start = center - direction * width / 2
 
     pixels = np.array(
         [[(r, c) for r in range(img.shape[0]) for c in range(img.shape[1])]]
     )
-    projection = pixels.dot(diagonal)
-    p = (projection / (diagonal_length - np.sqrt(2))).ravel()
+    projection = (pixels - start).dot(direction)
+    p = np.clip((projection / width).ravel(), 0, 1)
     img[:] = p.reshape(img.shape)
 
 
