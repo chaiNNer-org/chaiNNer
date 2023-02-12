@@ -31,7 +31,6 @@ class ConvertTorchToONNXNode(NodeBase):
                 model_type="OnnxGenericModel",
                 label="ONNX Model",
                 kind="onnx",
-                should_broadcast=True,
             ),
             TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
