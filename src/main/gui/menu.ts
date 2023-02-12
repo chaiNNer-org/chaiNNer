@@ -113,6 +113,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     enabled,
                 },
                 { type: 'separator' },
+                {
+                    label: 'Export viewport as PNG',
+                    accelerator: 'CmdOrCtrl+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'file');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Export viewport to clipboard',
+                    accelerator: 'CmdOrCtrl+Shift+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'clipboard');
+                    },
+                    enabled,
+                },
+                { type: 'separator' },
                 isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },

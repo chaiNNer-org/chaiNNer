@@ -73,6 +73,7 @@ export interface SendChannels {
     'save-before-exit': SendChannelInfo;
     'exit-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
+    'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
 
     // history
     'history-undo': SendChannelInfo;
