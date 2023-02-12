@@ -21,7 +21,6 @@ class OnnxModelOutput(BaseOutput):
             return None
 
         return {
-            "arch": value.arch,
             "subType": value.sub_type,
             "scaleHeight": value.scale_height,
             "scaleWidth": value.scale_width,

@@ -66,20 +66,14 @@ struct OnnxFile { path: string }
 struct OnnxModel {
     arch: string,
     subType: string,
-    scaleHeight: int(1..) | null,
-    scaleWidth: int(1..) | null,
+    scaleHeight: int(1..),
+    scaleWidth: int(1..),
 }
 let OnnxRemBgModel = OnnxModel {
-    arch: "u2net",
     subType: "RemBg",
-    scaleHeight: 1 | 3,
-    scaleWidth: 1,
 };
 let OnnxGenericModel = OnnxModel {
-    arch: invStrSet(OnnxRemBgModel.arch),
     subType: "Generic",
-    scaleHeight: null,
-    scaleWidth: null,
 };
 
 struct IteratorAuto;

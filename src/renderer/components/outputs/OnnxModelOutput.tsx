@@ -31,10 +31,7 @@ export const OnnxModelOutput = memo(
         useEffect(() => {
             if (isStartingNode(schema)) {
                 if (current) {
-                    const fields = [
-                        new NamedExpressionField('arch', literal(current.arch)),
-                        new NamedExpressionField('subType', literal(current.subType)),
-                    ];
+                    const fields = [new NamedExpressionField('subType', literal(current.subType))];
 
                     if (current.scaleHeight) {
                         fields.push(

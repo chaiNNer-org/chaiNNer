@@ -19,7 +19,6 @@ U2NET_SILUETA = re2.compile(b"1808.+1827.+1828.+2296.+1831.+1850.+1958", re2_opt
 class OnnxGeneric:
     def __init__(self, model_as_bytes: bytes):
         self.bytes: bytes = model_as_bytes
-        self.arch = "generic"
         self.sub_type = "Generic"
         self.scale_height = None
         self.scale_width = None
@@ -28,7 +27,6 @@ class OnnxGeneric:
 class OnnxRemBg:
     def __init__(self, model_as_bytes: bytes, scale_height: int = 1):
         self.bytes: bytes = model_as_bytes
-        self.arch = "u2net"
         self.sub_type = "RemBg"
         self.scale_height = scale_height
         self.scale_width = 1
