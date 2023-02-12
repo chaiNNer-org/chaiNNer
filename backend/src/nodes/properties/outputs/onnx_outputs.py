@@ -17,6 +17,9 @@ class OnnxModelOutput(BaseOutput):
         self.should_broadcast = should_broadcast
 
     def get_broadcast_data(self, value: OnnxModel):
+        if not self.should_broadcast:
+            return None
+
         return {
             "arch": value.arch,
             "subType": value.sub_type,
