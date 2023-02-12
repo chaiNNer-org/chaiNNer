@@ -70,7 +70,7 @@ struct OnnxModel {
     scaleWidth: int(1..) | null,
 }
 let OnnxRemBgModel = OnnxModel {
-    arch: "u2net" | "u2net_cloth",
+    arch: "u2net",
     subType: "RemBg",
     scaleHeight: 1 | 3,
     scaleWidth: 1,
