@@ -18,6 +18,7 @@ from ...impl.external_stable_diffusion import (
     ResizeMode,
     RESIZE_MODE_LABELS,
     InpaintingFill,
+    verify_api_connection,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -31,6 +32,8 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+
+verify_api_connection()
 
 
 class OutpaintingMethod(Enum):

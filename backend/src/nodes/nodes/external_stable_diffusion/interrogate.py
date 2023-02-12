@@ -7,11 +7,14 @@ from ...impl.external_stable_diffusion import (
     STABLE_DIFFUSION_INTERROGATE_URL,
     post,
     encode_base64_image,
+    verify_api_connection,
 )
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import TextOutput
+
+verify_api_connection()
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:interrograte")

@@ -15,6 +15,7 @@ from ...impl.external_stable_diffusion import (
     nearest_valid_size,
     ResizeMode,
     RESIZE_MODE_LABELS,
+    verify_api_connection,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
@@ -27,6 +28,8 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+
+verify_api_connection()
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:img2img")

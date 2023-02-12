@@ -84,10 +84,23 @@ def nearest_valid_size(width, height):
     return (width // 8) * 8, (height // 8) * 8
 
 
-# Call the API at import time
-# If this fails (because the API isn't up) it will raise an exception and the
-# nodes importing this file won't be registered
-STABLE_DIFFUSION_OPTIONS = get(STABLE_DIFFUSION_OPTIONS_URL)
+has_api_connection: Union[bool, None] = None
+
+
+def verify_api_connection():
+    """
+    This function will throw if the stable diffusion API service is unavailable.
+
+    Call this function at import time if you want to make certain node available only when the API is up.
+    """
+    global has_api_connection
+    if has_api_connection is None:
+        has_api_connection = False
+        get(STABLE_DIFFUSION_OPTIONS_URL)
+        has_api_connection = True
+
+    if not has_api_connection:
+        raise ValueError("Cannot connect to stable diffusion API service.")
 
 
 def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
