@@ -1,6 +1,5 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
-import { toPng } from 'html-to-image';
 import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -51,6 +50,12 @@ import {
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
+import {
+    PngDataUrl,
+    saveDataUrlAsFile,
+    takeScreenshot,
+    writeDataUrlToClipboard,
+} from '../helpers/nodeScreenshot';
 import {
     NodeProto,
     copyEdges,
@@ -1217,6 +1222,50 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const [viewportExportPadding] = useViewportExportPadding;
+        const exportViewportScreenshotAs = useCallback(
+            (saveAs: (dataUrl: PngDataUrl) => void) => {
+                const currentFlowWrapper = reactFlowWrapper.current;
+                if (!(currentFlowWrapper instanceof HTMLElement)) return;
+
+                if (currentReactFlowInstance.getNodes().length === 0) {
+                    sendToast({
+                        status: 'warning',
+                        description: 'Cannot export viewport because there are no nodes.',
+                    });
+                }
+
+                takeScreenshot(currentFlowWrapper, currentReactFlowInstance, viewportExportPadding)
+                    .then(saveAs)
+                    .catch((error) => {
+                        log.error(error);
+                    });
+            },
+            [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
+        );
+        const exportViewportScreenshot = useCallback(() => {
+            const currentChainName = savePath ? parse(savePath).name : 'Untitled';
+
+            const date = new Date();
+            const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+
+            const hourString = date.getHours().toString().padStart(2, '0');
+            const minuteString = date.getMinutes().toString().padStart(2, '0');
+            const timeString = `${hourString}-${minuteString}`;
+
+            const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
+
+            exportViewportScreenshotAs((dataUrl) => {
+                saveDataUrlAsFile(dataUrl, fileName);
+            });
+        }, [exportViewportScreenshotAs, savePath]);
+        const exportViewportScreenshotToClipboard = useCallback(() => {
+            exportViewportScreenshotAs((dataUrl) => {
+                writeDataUrlToClipboard(dataUrl);
+                sendToast({ status: 'success', description: 'Viewport copied to clipboard.' });
+            });
+        }, [exportViewportScreenshotAs, sendToast]);
+
         const cutFn = useCallback(() => {
             cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
         }, [getNodes, getEdges, changeNodes, changeEdges]);
@@ -1252,120 +1301,26 @@ export const GlobalProvider = memo(
         useIpcRendererListener('duplicate', duplicateFn);
         useHotkeys('ctrl+shift+d, cmd+shift+d', duplicateWithInputEdgesFn);
         useIpcRendererListener('duplicate-with-input-edges', duplicateWithInputEdgesFn);
+        useHotkeys('ctrl+p, cmd+p', exportViewportScreenshot);
+        useHotkeys('ctrl+shift+p, cmd++shift+p', exportViewportScreenshotToClipboard);
+        useIpcRendererListener(
+            'export-viewport',
+            useCallback(
+                (_, kind) => {
+                    if (kind === 'file') {
+                        exportViewportScreenshot();
+                    } else {
+                        exportViewportScreenshotToClipboard();
+                    }
+                },
+                [exportViewportScreenshot, exportViewportScreenshotToClipboard]
+            )
+        );
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
 
         const [zoom, setZoom] = useState(1);
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
-
-        const getNodesBoundingBox = useCallback(() => {
-            const nodes = getNodes().filter((n) => !n.parentNode);
-
-            if (nodes.length === 0) return;
-
-            const minX = Math.min(...nodes.map((n) => n.position.x));
-            const minY = Math.min(...nodes.map((n) => n.position.y));
-            const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
-            const maxY = Math.max(...nodes.map((n) => n.position.y + (n.height ?? 0)));
-
-            return {
-                x: minX,
-                y: minY,
-                width: maxX - minX,
-                height: maxY - minY,
-            };
-        }, [getNodes]);
-
-        const downloadImage = (dataUrl: string, fileName: string) => {
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        };
-
-        const [viewportExportPadding] = useViewportExportPadding;
-        const exportViewportScreenshot = useCallback(() => {
-            const currentFlowWrapper = reactFlowWrapper.current;
-            if (!(currentFlowWrapper instanceof HTMLElement)) return;
-
-            const oldViewport = currentReactFlowInstance.getViewport();
-
-            const reactFlowViewport = currentFlowWrapper.getBoundingClientRect();
-            const nodesBoundingBox = getNodesBoundingBox();
-
-            if (!nodesBoundingBox) return;
-
-            const paddedBoundingBox = {
-                x: nodesBoundingBox.x - viewportExportPadding,
-                y: nodesBoundingBox.y - viewportExportPadding,
-                width: nodesBoundingBox.width + viewportExportPadding * 2,
-                height: nodesBoundingBox.height + viewportExportPadding * 2,
-            };
-
-            const exportZoom = Math.min(
-                reactFlowViewport.width / paddedBoundingBox.width,
-                reactFlowViewport.height / paddedBoundingBox.height
-            );
-
-            currentReactFlowInstance.setViewport({
-                x: paddedBoundingBox.x * -1 * exportZoom,
-                y: paddedBoundingBox.y * -1 * exportZoom,
-                zoom: exportZoom,
-            });
-
-            // wait for the viewport to be updated
-            setTimeout(() => {
-                toPng(currentFlowWrapper, {
-                    style: {
-                        padding: '0',
-                        margin: '0',
-                        pointerEvents: 'none',
-                    },
-                    pixelRatio: 1 / exportZoom,
-                    width: paddedBoundingBox.width * exportZoom,
-                    height: paddedBoundingBox.height * exportZoom,
-                    filter: (node: unknown) => {
-                        if (
-                            node instanceof HTMLElement &&
-                            (node.classList.contains('react-flow__minimap') ||
-                                node.classList.contains('react-flow__controls'))
-                        ) {
-                            return false;
-                        }
-
-                        return true;
-                    },
-                })
-                    .then((dataUrl: string) => {
-                        currentReactFlowInstance.setViewport(oldViewport);
-
-                        const currentChainName = savePath ? parse(savePath).name : 'Untitled';
-
-                        const date = new Date();
-                        const dateString = `${date.getFullYear()}-${
-                            date.getMonth() + 1
-                        }-${date.getDate()}`;
-
-                        const hourString = date.getHours().toString().padStart(2, '0');
-                        const minuteString = date.getMinutes().toString().padStart(2, '0');
-                        const timeString = `${hourString}-${minuteString}`;
-
-                        const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
-                        downloadImage(dataUrl, fileName);
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                    });
-            }, 10);
-        }, [
-            reactFlowWrapper,
-            currentReactFlowInstance,
-            getNodesBoundingBox,
-            viewportExportPadding,
-            savePath,
-        ]);
 
         useEffect(() => {
             // remove invalid nodes on schemata changes
