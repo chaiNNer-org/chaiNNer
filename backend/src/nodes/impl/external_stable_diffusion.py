@@ -93,7 +93,7 @@ def verify_api_connection():
 
     Call this function at import time if you want to make certain node available only when the API is up.
     """
-    global has_api_connection
+    global has_api_connection  # pylint: disable=global-statement
     if has_api_connection is None:
         has_api_connection = False
         get(STABLE_DIFFUSION_OPTIONS_URL)
