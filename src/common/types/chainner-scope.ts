@@ -64,10 +64,17 @@ struct NcnnNetwork {
 
 struct OnnxFile { path: string }
 struct OnnxModel {
-    scale: int(1..),
-    inputChannels: int(1..),
-    outputChannels: int(1..),
+    arch: string,
+    subType: string,
+    scaleHeight: int(1..),
+    scaleWidth: int(1..),
 }
+let OnnxRemBgModel = OnnxModel {
+    subType: "RemBg",
+};
+let OnnxGenericModel = OnnxModel {
+    subType: "Generic",
+};
 
 struct IteratorAuto;
 
@@ -94,7 +101,7 @@ def FpMode::toString(mode: FpMode) {
     }
 }
 
-def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Image) {
+def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,
@@ -103,6 +110,14 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Imag
         } else {
             model.outputChannels
         }
+    }
+}
+
+def removeBackground(model: OnnxRemBgModel, image: Image) {
+    Image {
+        width: image.width,
+        height: image.height * model.scaleHeight,
+        channels: 4,
     }
 }
 
