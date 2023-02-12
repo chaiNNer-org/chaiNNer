@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-from ...impl.onnx.model import OnnxRemBgModel
+from ...impl.onnx.model import OnnxRemBg
 from ...impl.onnx.session import get_onnx_session
 from ...impl.rembg.bg import remove_bg
 from ...node_base import NodeBase, group
@@ -61,7 +61,7 @@ class RemBgNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        model: OnnxRemBgModel,
+        model: OnnxRemBg,
         post_process_mask: int,
         alpha_matting: int,
         foreground_threshold: int,

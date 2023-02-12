@@ -66,14 +66,20 @@ struct OnnxFile { path: string }
 struct OnnxModel {
     arch: string,
     subType: string,
+    scaleHeight: int(1..) | null,
+    scaleWidth: int(1..) | null,
 }
 let OnnxRemBgModel = OnnxModel {
     arch: "u2net" | "u2net_cloth",
     subType: "RemBg",
+    scaleHeight: 1 | 3,
+    scaleWidth: 1,
 };
 let OnnxGenericModel = OnnxModel {
     arch: invStrSet(OnnxRemBgModel.arch),
     subType: "Generic",
+    scaleHeight: null,
+    scaleWidth: null,
 };
 
 struct IteratorAuto;
@@ -116,11 +122,7 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
 def removeBackground(model: OnnxRemBgModel, image: Image) {
     Image {
         width: image.width,
-        height: if model.arch == "u2net_cloth" {
-            image.height * 3
-        } else {
-            image.height
-        },
+        height: image.height * model.scaleHeight,
         channels: 4,
     }
 }

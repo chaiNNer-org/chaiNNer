@@ -21,28 +21,21 @@ class OnnxGeneric:
         self.bytes: bytes = model_as_bytes
         self.arch = "generic"
         self.sub_type = "Generic"
+        self.scale_height = None
+        self.scale_width = None
 
 
-class OnnxU2Net:
-    def __init__(self, model_as_bytes: bytes):
+class OnnxRemBg:
+    def __init__(self, model_as_bytes: bytes, scale_height: int = 1):
         self.bytes: bytes = model_as_bytes
         self.arch = "u2net"
         self.sub_type = "RemBg"
+        self.scale_height = scale_height
+        self.scale_width = 1
 
 
-class OnnxU2NetCloth:
-    def __init__(self, model_as_bytes: bytes):
-        self.bytes: bytes = model_as_bytes
-        self.arch = "u2net_cloth"
-        self.sub_type = "RemBg"
-
-
-OnnxRemBgModels = (OnnxU2Net, OnnxU2NetCloth)
-OnnxRemBgModel = Union[OnnxU2Net, OnnxU2NetCloth]
-
-
-OnnxModels = (OnnxGeneric, *OnnxRemBgModels)
-OnnxModel = Union[OnnxGeneric, OnnxRemBgModel]
+OnnxModels = (OnnxGeneric, OnnxRemBg)
+OnnxModel = Union[OnnxGeneric, OnnxRemBg]
 
 
 def is_rembg_model(model_as_bytes: bytes) -> bool:
@@ -60,9 +53,9 @@ def load_onnx_model(model_as_bytes: bytes) -> OnnxModel:
         U2NET_STANDARD.search(model_as_bytes[-1000:]) is not None
         or U2NET_SILUETA.search(model_as_bytes[-600:]) is not None
     ):
-        model = OnnxU2Net(model_as_bytes)
+        model = OnnxRemBg(model_as_bytes)
     elif U2NET_CLOTH.search(model_as_bytes[-1000:]) is not None:
-        model = OnnxU2NetCloth(model_as_bytes)
+        model = OnnxRemBg(model_as_bytes, scale_height=3)
     else:
         model = OnnxGeneric(model_as_bytes)
 

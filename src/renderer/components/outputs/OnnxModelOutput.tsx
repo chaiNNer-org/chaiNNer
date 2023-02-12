@@ -11,6 +11,8 @@ import { OutputProps } from './props';
 interface OnnxModelData {
     arch: string;
     subType: string;
+    scaleHeight: number | null;
+    scaleWidth: number | null;
 }
 
 export const OnnxModelOutput = memo(
@@ -29,14 +31,24 @@ export const OnnxModelOutput = memo(
         useEffect(() => {
             if (isStartingNode(schema)) {
                 if (current) {
-                    setManualOutputType(
-                        id,
-                        outputId,
-                        new NamedExpression('OnnxModel', [
-                            new NamedExpressionField('arch', literal(current.arch)),
-                            new NamedExpressionField('subType', literal(current.subType)),
-                        ])
-                    );
+                    const fields = [
+                        new NamedExpressionField('arch', literal(current.arch)),
+                        new NamedExpressionField('subType', literal(current.subType)),
+                    ];
+
+                    if (current.scaleHeight) {
+                        fields.push(
+                            new NamedExpressionField('scaleHeight', literal(current.scaleHeight))
+                        );
+                    }
+
+                    if (current.scaleWidth) {
+                        fields.push(
+                            new NamedExpressionField('scaleWidth', literal(current.scaleWidth))
+                        );
+                    }
+
+                    setManualOutputType(id, outputId, new NamedExpression('OnnxModel', fields));
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }
