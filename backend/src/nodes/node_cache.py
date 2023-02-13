@@ -32,7 +32,7 @@ class OutputCache:
     def _args_to_key(args) -> Tuple:
         key = []
         for arg in args:
-            if isinstance(arg, (int, float, str, bytes)):
+            if isinstance(arg, (int, float, bool, str, bytes)):
                 key.append(arg)
             elif arg is None:
                 key.append(None)
