@@ -10,6 +10,7 @@ from ...impl.external_stable_diffusion import (
     verify_api_connection,
 )
 from ...node_base import NodeBase
+from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import TextOutput
@@ -34,6 +35,7 @@ class Interrogate(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Automatic1111"
 
+    @cached
     def run(self, image: np.ndarray) -> str:
         request_data = {
             "image": encode_base64_image(image),
