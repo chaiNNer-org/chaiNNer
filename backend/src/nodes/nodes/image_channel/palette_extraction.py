@@ -10,7 +10,8 @@ from ...impl.dithering.palette import (
     kmeans_palette,
     median_cut_palette,
 )
-from ...node_base import NodeBase, group
+from ...groups import conditional_group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import ImageInput, EnumInput, NumberInput
@@ -44,23 +45,14 @@ class PaletteFromImage(NodeBase):
                 option_labels=PALETTE_EXTRACTION_METHOD_LABELS,
                 default_value=PaletteExtractionMethod.KMEANS,
             ).with_id(1),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 1,
-                    "conditions": [
-                        [
-                            PaletteExtractionMethod.KMEANS.value,
-                            PaletteExtractionMethod.MEDIAN_CUT.value,
-                        ]
-                    ],
-                },
+            conditional_group(
+                enum=1,
+                condition=[
+                    PaletteExtractionMethod.KMEANS.value,
+                    PaletteExtractionMethod.MEDIAN_CUT.value,
+                ],
             )(
-                NumberInput(
-                    "Palette Size",
-                    minimum=2,
-                    default=8,
-                ).with_id(2),
+                NumberInput("Palette Size", minimum=2, default=8).with_id(2),
             ),
         ]
         self.outputs = [
