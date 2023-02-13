@@ -7,7 +7,8 @@ import numpy as np
 from ...impl.onnx.model import OnnxRemBg
 from ...impl.onnx.session import get_onnx_session
 from ...impl.rembg.bg import remove_bg
-from ...node_base import NodeBase, group
+from ...groups import conditional_group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import ImageInput, OnnxRemBgModelInput
@@ -29,13 +30,7 @@ class RemBgNode(NodeBase):
             OnnxRemBgModelInput(),
             BoolInput("Post-process Mask", default=False),
             BoolInput("Alpha Matting", default=False),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 3,
-                    "conditions": [1, 1, 1],
-                },
-            )(
+            conditional_group(enum=3, condition=1)(
                 SliderInput(
                     "Foreground Threshold", minimum=1, maximum=255, default=240
                 ),

@@ -20,6 +20,7 @@ from ...impl.external_stable_diffusion import (
     InpaintingFill,
     verify_api_connection,
 )
+from ...groups import conditional_group
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -118,18 +119,10 @@ class Img2ImgOutpainting(NodeBase):
             EnumInput(
                 OutpaintingMethod, default_value=OutpaintingMethod.POOR_MAN_OUTPAINTING
             ).with_id(17),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 17,
-                    "conditions": [
-                        OutpaintingMethod.POOR_MAN_OUTPAINTING.value,
-                        OutpaintingMethod.OUTPAINTING_MK2.value,
-                        OutpaintingMethod.OUTPAINTING_MK2.value,
-                    ],
-                },
-            )(
+            conditional_group(17, OutpaintingMethod.POOR_MAN_OUTPAINTING.value)(
                 EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
+            ),
+            conditional_group(17, OutpaintingMethod.OUTPAINTING_MK2.value)(
                 SliderInput(
                     "Fall-off Exponent (lower=higher detail)",
                     minimum=0,

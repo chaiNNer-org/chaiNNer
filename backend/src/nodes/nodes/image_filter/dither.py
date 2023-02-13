@@ -15,7 +15,8 @@ from ...impl.dithering.constants import (
 from ...impl.dithering.diffusion import uniform_error_diffusion_dither
 from ...impl.dithering.ordered import ordered_dither
 from ...impl.dithering.riemersma import uniform_riemersma_dither
-from ...node_base import NodeBase, group
+from ...groups import conditional_group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, EnumInput
 from ...properties.outputs import ImageOutput
@@ -49,27 +50,21 @@ class DitherNode(NodeBase):
                 option_labels=UNIFORM_DITHER_ALGORITHM_LABELS,
                 default_value=UniformDitherAlgorithm.DIFFUSION,
             ).with_id(2),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 2,
-                    "conditions": [
-                        UniformDitherAlgorithm.ORDERED.value,
-                        UniformDitherAlgorithm.DIFFUSION.value,
-                        UniformDitherAlgorithm.RIEMERSMA.value,
-                    ],
-                },
-            )(
+            conditional_group(2, UniformDitherAlgorithm.ORDERED.value)(
                 EnumInput(
                     ThresholdMap,
                     option_labels=THRESHOLD_MAP_LABELS,
                     default_value=ThresholdMap.BAYER_16,
                 ).with_id(3),
+            ),
+            conditional_group(2, UniformDitherAlgorithm.DIFFUSION.value)(
                 EnumInput(
                     ErrorDiffusionMap,
                     option_labels=ERROR_PROPAGATION_MAP_LABELS,
                     default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
                 ).with_id(4),
+            ),
+            conditional_group(2, UniformDitherAlgorithm.RIEMERSMA.value)(
                 NumberInput(
                     "History Length",
                     minimum=2,
