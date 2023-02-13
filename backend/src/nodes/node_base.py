@@ -20,7 +20,7 @@ NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
 def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
     info = GroupInfo(GroupId(id), kind, options)
 
-    def ret(*items) -> NestedGroup:
+    def ret(*items: Union[BaseInput, NestedGroup]) -> NestedGroup:
         return Group(info, list(items))
 
     return ret
