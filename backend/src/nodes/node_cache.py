@@ -48,9 +48,7 @@ class OutputCache:
     def empty(self):
         return len(self._data) == 0
 
-    def oldest(self) -> Optional[Tuple[Tuple, float]]:
-        if not self._access_time:
-            return None
+    def oldest(self) -> Tuple[Tuple, float]:
         return min(self._access_time.items(), key=lambda x: x[1])
 
     def size(self):
