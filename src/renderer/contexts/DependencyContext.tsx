@@ -8,6 +8,7 @@ import {
     Button,
     Center,
     Collapse,
+    Divider,
     Flex,
     HStack,
     IconButton,
@@ -34,6 +35,7 @@ import { BsTerminalFill } from 'react-icons/bs';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
+import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
@@ -383,6 +385,37 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         availableUpdates,
     });
 
+    const [loadingExtInts, setLoadingExtInts] = useState(true);
+    const [externalIntegrationConnections, setExternalIntegrationConnections] = useState<
+        {
+            integration: Integration;
+            connected: boolean;
+        }[]
+    >([]);
+
+    useAsyncEffect(
+        () => ({
+            supplier: async () => {
+                const connections = await Promise.all(
+                    externalIntegrations.map(async (integration) => {
+                        try {
+                            const connected = await fetch(
+                                `http://${integration.url}:${integration.port}`
+                            );
+                            return { integration, connected: connected.ok };
+                        } catch (e) {
+                            return { integration, connected: false };
+                        }
+                    })
+                );
+                return connections;
+            },
+            successEffect: setExternalIntegrationConnections,
+            finallyEffect: () => setLoadingExtInts(false),
+        }),
+        []
+    );
+
     return (
         <DependencyContext.Provider value={value}>
             {children}
@@ -533,6 +566,35 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 </Center>
                                 {/* </Collapse> */}
                             </Center>
+                            <Divider w="full" />
+                            {loadingExtInts ? (
+                                <Spinner />
+                            ) : (
+                                <VStack
+                                    textAlign="left"
+                                    w="full"
+                                >
+                                    <Text
+                                        fontWeight="bold"
+                                        w="full"
+                                    >
+                                        External Connections
+                                    </Text>
+                                    {externalIntegrationConnections.map(
+                                        ({ integration, connected }) => (
+                                            <HStack
+                                                key={integration.name}
+                                                w="full"
+                                            >
+                                                <Text>{integration.name}</Text>
+                                                <Text color={connected ? 'green.500' : 'gray.500'}>
+                                                    {connected ? 'Connected' : 'Not Connected'}
+                                                </Text>
+                                            </HStack>
+                                        )
+                                    )}
+                                </VStack>
+                            )}
                         </VStack>
                     </ModalBody>
 
