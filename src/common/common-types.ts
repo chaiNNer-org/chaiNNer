@@ -130,6 +130,7 @@ export type OutputKind =
     | 'directory'
     | 'pytorch'
     | 'ncnn'
+    | 'onnx'
     | 'generic';
 
 export interface Output {

@@ -89,6 +89,16 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '3.20.2',
                     sizeEstimate: 500 * KB,
                 },
+                {
+                    packageName: 'scipy',
+                    version: '1.9.3',
+                    sizeEstimate: 42 * MB,
+                },
+                {
+                    packageName: 'numba',
+                    version: '0.56.3',
+                    sizeEstimate: 2.5 * MB,
+                },
             ],
             description:
                 'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
@@ -124,6 +134,14 @@ export const requiredDependencies: Dependency[] = [
     {
         name: 'FFMPEG',
         packages: [{ packageName: 'ffmpeg-python', version: '0.2.0', sizeEstimate: 25 * KB }],
+    },
+    {
+        name: 'Requests',
+        packages: [{ packageName: 'requests', version: '2.28.2', sizeEstimate: 452 * KB }],
+    },
+    {
+        name: 're2',
+        packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
     },
 ];
 

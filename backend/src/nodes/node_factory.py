@@ -6,6 +6,7 @@ from .node_base import NodeBase
 
 T = TypeVar("T", bound=NodeBase)
 
+
 # Implementation based on https://medium.com/@geoffreykoh/implementing-the-factory-pattern-via-dynamic-registry-and-python-decorators-479fc1537bbe
 class NodeFactory:
     """The factory class for creating nodes"""

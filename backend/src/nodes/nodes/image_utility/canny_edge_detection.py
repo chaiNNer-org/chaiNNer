@@ -38,7 +38,6 @@ class CannyEdgeDetectionNode(NodeBase):
         t_lower: int,
         t_upper: int,
     ) -> np.ndarray:
-
         img = (img * 255).astype(np.uint8)
 
         edges = cv2.Canny(img, t_lower, t_upper)

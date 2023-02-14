@@ -113,6 +113,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     enabled,
                 },
                 { type: 'separator' },
+                {
+                    label: 'Export viewport as PNG',
+                    accelerator: 'CmdOrCtrl+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'file');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Export viewport to clipboard',
+                    accelerator: 'CmdOrCtrl+Shift+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'clipboard');
+                    },
+                    enabled,
+                },
+                { type: 'separator' },
                 isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },
@@ -162,6 +181,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     registerAccelerator: false,
                     click: () => {
                         mainWindow.webContents.send('paste');
+                    },
+                    enabled,
+                },
+                { type: 'separator' },
+                {
+                    label: 'Duplicate',
+                    accelerator: 'CmdOrCtrl+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Duplicate with Connections',
+                    accelerator: 'CmdOrCtrl+Shift+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate-with-input-edges');
                     },
                     enabled,
                 },

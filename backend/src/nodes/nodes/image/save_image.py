@@ -2,17 +2,17 @@ from __future__ import annotations
 from enum import Enum
 
 import os
-from typing import Union
-
 import cv2
 import numpy as np
 from PIL import Image
 from sanic.log import logger
 
 from . import category as ImageCategory
-from ...node_base import NodeBase, group
+from ...groups import conditional_group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
+    SUPPORTED_DDS_FORMATS,
     ImageInput,
     DirectoryInput,
     TextInput,
@@ -25,18 +25,21 @@ from ...properties.inputs import (
 )
 from ...utils.utils import get_h_w_c
 from ...impl.image_utils import cv_save_image
-from ...impl.dds import save_as_dds
-
-BC7_FORMATS = "BC7_UNORM_SRGB", "BC7_UNORM"
-BC123_FORMATS = (
-    "BC1_UNORM_SRGB",
-    "BC1_UNORM",
-    "BC3_UNORM_SRGB",
-    "BC3_UNORM",
-    "DXT1",
-    "DXT3",
-    "DXT5",
+from ...impl.dds.format import (
+    BC123_FORMATS,
+    BC7_FORMATS,
+    LEGACY_TO_DXGI,
+    WITH_ALPHA,
+    DDSFormat,
+    to_dxgi,
 )
+from ...impl.dds.texconv import save_as_dds
+
+
+SUPPORTED_FORMATS = {f for f, _ in SUPPORTED_DDS_FORMATS}
+SUPPORTED_BC7_FORMATS = list(SUPPORTED_FORMATS.intersection(BC7_FORMATS))
+SUPPORTED_BC123_FORMATS = list(SUPPORTED_FORMATS.intersection(BC123_FORMATS))
+SUPPORTED_WITH_ALPHA = list(SUPPORTED_FORMATS.intersection(WITH_ALPHA))
 
 
 class DDSErrorMetric(Enum):
@@ -48,13 +51,6 @@ class BC7Compression(Enum):
     BEST_SPEED = 1
     DEFAULT = 0
     BEST_QUALITY = 2
-
-
-_LEGACY_DDS_FORMATS = {
-    "DXT1": "BC1_UNORM",
-    "DXT3": "BC2_UNORM",
-    "DXT5": "BC3_UNORM",
-}
 
 
 class JpegSubsampling(Enum):
@@ -75,21 +71,7 @@ class ImWriteNode(NodeBase):
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown().with_id(4),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 4,
-                    "conditions": [
-                        ["jpg", "webp"],
-                        "jpg",
-                        "jpg",
-                        "dds",
-                        "dds",
-                        "dds",
-                        "dds",
-                    ],
-                },
-            )(
+            conditional_group(enum=4, condition=["jpg", "webp"])(
                 SliderInput(
                     "Quality",
                     minimum=0,
@@ -97,6 +79,8 @@ class ImWriteNode(NodeBase):
                     default=95,
                     slider_step=1,
                 ),
+            ),
+            conditional_group(enum=4, condition="jpg")(
                 EnumInput(
                     JpegSubsampling,
                     label="Chroma Subsampling",
@@ -109,25 +93,27 @@ class ImWriteNode(NodeBase):
                     },
                 ).with_id(11),
                 BoolInput("Progressive", default=False).with_id(12),
+            ),
+            conditional_group(enum=4, condition="dds")(
                 DdsFormatDropdown().with_id(6),
-                group(
-                    "conditional-enum",
-                    {
-                        "enum": 6,
-                        "conditions": [BC7_FORMATS, BC123_FORMATS, BC123_FORMATS],
-                    },
-                )(
+                conditional_group(enum=6, condition=SUPPORTED_BC7_FORMATS)(
                     EnumInput(
                         BC7Compression,
                         label="BC7 Compression",
                         default_value=BC7Compression.DEFAULT,
                     ).with_id(7),
+                ),
+                conditional_group(enum=6, condition=SUPPORTED_BC123_FORMATS)(
                     EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
                     BoolInput("Dithering", default=False).with_id(8),
                 ),
                 DdsMipMapsDropdown().with_id(10),
-                group("conditional-enum", {"enum": 10, "conditions": [0]})(
-                    BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
+                conditional_group(enum=6, condition=SUPPORTED_WITH_ALPHA)(
+                    conditional_group(enum=10, condition=0)(
+                        BoolInput("Separate Alpha for Mip Maps", default=False).with_id(
+                            13
+                        ),
+                    )
                 ),
             ),
         ]
@@ -143,13 +129,13 @@ class ImWriteNode(NodeBase):
         self,
         img: np.ndarray,
         base_directory: str,
-        relative_path: Union[str, None],
+        relative_path: str | None,
         filename: str,
         extension: str,
         quality: int,
         chroma_subsampling: JpegSubsampling,
         progressive: bool,
-        dds_format: str,
+        dds_format: DDSFormat,
         dds_bc7_compression: BC7Compression,
         dds_error_metric: DDSErrorMetric,
         dds_dithering: bool,
@@ -178,14 +164,12 @@ class ImWriteNode(NodeBase):
         # DDS files are handled separately
         if extension == "dds":
             # remap legacy DX9 formats
-            legacy_dds = dds_format in _LEGACY_DDS_FORMATS
-            if legacy_dds:
-                dds_format = _LEGACY_DDS_FORMATS[dds_format]
+            legacy_dds = dds_format in LEGACY_TO_DXGI
 
             save_as_dds(
                 full_path,
                 img,
-                dds_format,
+                to_dxgi(dds_format),
                 mipmap_levels=dds_mipmap_levels,
                 dithering=dds_dithering,
                 uniform_weighting=dds_error_metric == DDSErrorMetric.UNIFORM,

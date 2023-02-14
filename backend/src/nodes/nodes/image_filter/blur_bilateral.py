@@ -49,7 +49,6 @@ class BlurNode(NodeBase):
         sigma_color: int,
         sigma_space: int,
     ) -> np.ndarray:
-
         if diameter == 0 or sigma_color == 0 or sigma_space == 0:
             return img
 

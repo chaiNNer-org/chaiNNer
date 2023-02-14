@@ -11,8 +11,9 @@ import numpy as np
 
 from sanic.log import logger
 
-from .image_utils import cv_save_image
-from ..utils.utils import split_file_path
+from .format import SRGB_FORMATS, DxgiFormat
+from ..image_utils import cv_save_image
+from ...utils.utils import split_file_path
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__), "texconv"  # type: ignore
@@ -87,21 +88,10 @@ def dds_to_png_texconv(path: str) -> str:
     return os.path.join(tempdir, prefix + basename + ".png")
 
 
-__SRGB_DDS_FORMATS = {
-    "BC1_UNORM_SRGB",
-    "BC2_UNORM_SRGB",
-    "BC3_UNORM_SRGB",
-    "BC7_UNORM_SRGB",
-    "B8G8R8A8_UNORM_SRGB",
-    "B8G8R8X8_UNORM_SRGB",
-    "R8G8B8A8_UNORM_SRGB",
-}
-
-
 def save_as_dds(
     path: str,
     image: np.ndarray,
-    dds_format: str,
+    dds_format: DxgiFormat,
     mipmap_levels: int = 0,
     uniform_weighting: bool = False,
     dithering: bool = False,
@@ -145,7 +135,7 @@ def save_as_dds(
         if bc:
             args.extend(["-bc", f"-{bc}"])
 
-        if dds_format in __SRGB_DDS_FORMATS:
+        if dds_format in SRGB_FORMATS:
             args.append("-srgbi")
 
         if separate_alpha:
