@@ -52,6 +52,11 @@ export interface DependencyContextValue {
     availableUpdates: number;
 }
 
+export interface ExternalIntegrationConnectionStatus {
+    integration: Integration;
+    connected: boolean;
+}
+
 export const DependencyContext = createContext<Readonly<DependencyContextValue>>({
     openDependencyManager: noop,
     availableUpdates: 0,
@@ -387,10 +392,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const [loadingExtInts, setLoadingExtInts] = useState(true);
     const [externalIntegrationConnections, setExternalIntegrationConnections] = useState<
-        {
-            integration: Integration;
-            connected: boolean;
-        }[]
+        ExternalIntegrationConnectionStatus[]
     >([]);
 
     useAsyncEffect(
