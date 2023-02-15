@@ -141,6 +141,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         crf=crf,
                         preset=video_preset if video_preset != "none" else None,
                         vcodec=codec_map[video_type],
+                        movflags="faststart",
                     )
                     .overwrite_output()
                     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
