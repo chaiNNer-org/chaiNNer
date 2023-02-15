@@ -4,7 +4,7 @@ import os
 import tempfile
 import time
 from enum import Enum
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Union, Any
 
 import numpy as np
 from sanic.log import logger
@@ -77,9 +77,12 @@ class NodeOutputCache:
     def _enforce_limits():
         while True:
             total_bytes = sum([cache.size() for cache in CACHE_REGISTRY])
+            logger.debug(
+                f"Cache size: {total_bytes} ({100*total_bytes/CACHE_MAX_BYTES:0.1f}% of limit)"
+            )
             if total_bytes <= CACHE_MAX_BYTES:
                 return
-            logger.info("Dropping oldest cache key")
+            logger.debug("Dropping oldest cache key")
 
             oldest_keys = [
                 (cache, cache.oldest()) for cache in CACHE_REGISTRY if not cache.empty()
@@ -103,13 +106,16 @@ class NodeOutputCache:
         ]
 
     @staticmethod
-    def _output_to_list(output):
-        if not isinstance(output, (list, tuple)):
+    def _output_to_list(output) -> List:
+        if isinstance(output, list):
+            return output
+        elif isinstance(output, tuple):
+            return list(output)
+        else:
             return [output]
-        return output
 
     @staticmethod
-    def _list_to_output(output):
+    def _list_to_output(output: List):
         if len(output) == 1:
             return output[0]
         return output
@@ -117,10 +123,10 @@ class NodeOutputCache:
     def get(self, args) -> Optional[List]:
         key = self._args_to_key(args)
         if key in self._data:
-            logger.info("Cache hit")
+            logger.debug("Cache hit")
             self._access_time[key] = time.time()
             return self._list_to_output(self._read_arrays_from_disk(self._data[key]))
-        logger.info("Cache miss")
+        logger.debug("Cache miss")
         return None
 
     def put(self, args, output):
