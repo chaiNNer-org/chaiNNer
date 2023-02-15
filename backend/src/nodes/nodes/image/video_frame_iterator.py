@@ -267,14 +267,17 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             out_path = writer["video_save_path"]
             if out_path is not None:
                 base, ext = os.path.splitext(out_path)
-                full_out_path = f"{base}_audio{ext}"
-                audio_stream = ffmpeg.input(path).audio
-                video_stream = ffmpeg.input(writer["video_save_path"])
-                # output_video = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
-                output_video = ffmpeg.output(
-                    audio_stream,
-                    video_stream,
-                    full_out_path,
-                    c="copy",
-                ).overwrite_output()
-                ffmpeg.run(output_video)
+                if "gif" not in ext.lower():
+                    full_out_path = f"{base}_audio{ext}"
+                    audio_stream = ffmpeg.input(path).audio
+                    video_stream = ffmpeg.input(writer["video_save_path"])
+                    output_video = ffmpeg.output(
+                        audio_stream,
+                        video_stream,
+                        full_out_path,
+                        vcodec="copy",
+                    ).overwrite_output()
+                    ffmpeg.run(output_video)
+                    # delete original, rename new
+                    os.remove(out_path)
+                    os.rename(full_out_path, out_path)
