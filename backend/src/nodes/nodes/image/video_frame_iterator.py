@@ -21,6 +21,7 @@ from ...properties.inputs import (
     VideoFileInput,
     VideoPresetDropdown,
     SliderInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
 from ...impl.image_utils import normalize
@@ -90,6 +91,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 default=23,
                 ends=("Best", "Worst"),
             ),
+            BoolInput("Copy Audio", default=True),
         ]
         self.outputs = []
 
@@ -110,6 +112,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         video_type: str,
         video_preset: str,
         crf: int,
+        copy_audio: bool,
         writer,
         fps: float,
     ) -> None:
@@ -145,6 +148,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                     .overwrite_output()
                     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
                 )
+                writer["copy_audio"] = copy_audio
+                writer["video_save_path"] = video_save_path
                 logger.debug(writer["out"])
             except Exception as e:
                 logger.warning(f"Failed to open video writer: {e}")
@@ -251,3 +256,25 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             )
 
         await context.run_while(frame_count, before, fail_fast=True)
+
+        ffmpeg_reader.stdout.close()
+        ffmpeg_reader.wait()
+        if writer["out"] is not None:
+            writer["out"].stdin.close()
+            writer["out"].wait()
+
+        if writer["copy_audio"]:
+            out_path = writer["video_save_path"]
+            if out_path is not None:
+                base, ext = os.path.splitext(out_path)
+                full_out_path = f"{base}_audio{ext}"
+                audio_stream = ffmpeg.input(path).audio
+                video_stream = ffmpeg.input(writer["video_save_path"])
+                # output_video = ffmpeg.concat(video_stream, audio_stream, v=1, a=1)
+                output_video = ffmpeg.output(
+                    audio_stream,
+                    video_stream,
+                    full_out_path,
+                    c="copy",
+                ).overwrite_output()
+                ffmpeg.run(output_video)
