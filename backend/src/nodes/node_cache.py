@@ -4,7 +4,7 @@ import os
 import tempfile
 import time
 from enum import Enum
-from typing import List, Dict, Tuple, Optional, Union, Any
+from typing import List, Dict, Tuple, Optional
 
 import numpy as np
 from sanic.log import logger
