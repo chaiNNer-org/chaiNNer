@@ -21,7 +21,7 @@ class CachedNumpyArray:
         self.shape = arr.shape
         self.dtype = arr.dtype
 
-    def get(self) -> np.ndarray:
+    def value(self) -> np.ndarray:
         self.file.seek(0)
         return np.frombuffer(self.file.read(), dtype=self.dtype).reshape(self.shape)
 
@@ -101,7 +101,7 @@ class NodeOutputCache:
     @staticmethod
     def _read_arrays_from_disk(output: List) -> List:
         return [
-            item.get() if isinstance(item, CachedNumpyArray) else item
+            item.value() if isinstance(item, CachedNumpyArray) else item
             for item in output
         ]
 
