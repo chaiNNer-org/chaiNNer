@@ -270,7 +270,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 if "gif" not in ext.lower():
                     full_out_path = f"{base}_audio{ext}"
                     audio_stream = ffmpeg.input(path).audio
-                    video_stream = ffmpeg.input(writer["video_save_path"])
+                    video_stream = ffmpeg.input(out_path)
                     output_video = ffmpeg.output(
                         audio_stream,
                         video_stream,
