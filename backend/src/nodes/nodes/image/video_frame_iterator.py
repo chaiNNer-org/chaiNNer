@@ -1,7 +1,9 @@
 from __future__ import annotations
+from dataclasses import dataclass
 
 import os
 from typing import Tuple
+from subprocess import Popen
 
 import numpy as np
 import cv2
@@ -40,6 +42,13 @@ codec_map = {
     "webm": "libvpx-vp9",
     "gif": "gif",
 }
+
+
+@dataclass
+class Writer:
+    out: Popen | None = None
+    copy_audio: bool = False
+    video_save_path: str | None = None
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -113,7 +122,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         video_preset: str,
         crf: int,
         copy_audio: bool,
-        writer,
+        writer: Writer,
         fps: float,
     ) -> None:
         if video_type == "none":
@@ -126,10 +135,10 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 h % 2 == 0 and w % 2 == 0
             ), f'The codec "libx264" used for video type "{video_type}" requires an even-number frame resolution.'
 
-        if writer["out"] is None:
+        if writer.out is None:
             try:
                 video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
-                writer["out"] = (
+                writer.out = (
                     ffmpeg.input(
                         "pipe:",
                         format="rawvideo",
@@ -149,15 +158,16 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                     .overwrite_output()
                     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
                 )
-                writer["copy_audio"] = copy_audio
-                writer["video_save_path"] = video_save_path
-                logger.debug(writer["out"])
+                writer.copy_audio = copy_audio
+                writer.video_save_path = video_save_path
+                logger.debug(writer.out)
             except Exception as e:
                 logger.warning(f"Failed to open video writer: {e}")
 
         out_frame = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_BGR2RGB)
-        if writer["out"] is not None:
-            writer["out"].stdin.write(out_frame.tobytes())
+        if writer.out is not None:
+            if writer.out.stdin is not None:
+                writer.out.stdin.write(out_frame.tobytes())
         else:
             raise RuntimeError("Failed to open video writer")
 
@@ -203,7 +213,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             .run_async(pipe_stdout=True, cmd=ffmpeg_path)
         )
 
-        writer = {"out": None}
+        writer = Writer()
 
         probe = ffmpeg.probe(path, cmd=ffprobe_path)
         video_format = probe.get("format", None)
@@ -260,25 +270,25 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         ffmpeg_reader.stdout.close()
         ffmpeg_reader.wait()
-        if writer["out"] is not None:
-            writer["out"].stdin.close()
-            writer["out"].wait()
+        if writer.out is not None:
+            if writer.out.stdin is not None:
+                writer.out.stdin.close()
+            writer.out.wait()
 
-        if writer["copy_audio"]:
-            out_path = writer["video_save_path"]
-            if out_path is not None:
-                base, ext = os.path.splitext(out_path)
-                if "gif" not in ext.lower():
-                    full_out_path = f"{base}_audio{ext}"
-                    audio_stream = ffmpeg.input(path).audio
-                    video_stream = ffmpeg.input(out_path)
-                    output_video = ffmpeg.output(
-                        audio_stream,
-                        video_stream,
-                        full_out_path,
-                        vcodec="copy",
-                    ).overwrite_output()
-                    ffmpeg.run(output_video)
-                    # delete original, rename new
-                    os.remove(out_path)
-                    os.rename(full_out_path, out_path)
+        if writer.copy_audio and writer.video_save_path is not None:
+            out_path = writer.video_save_path
+            base, ext = os.path.splitext(out_path)
+            if "gif" not in ext.lower():
+                full_out_path = f"{base}_audio{ext}"
+                audio_stream = ffmpeg.input(path).audio
+                video_stream = ffmpeg.input(out_path)
+                output_video = ffmpeg.output(
+                    audio_stream,
+                    video_stream,
+                    full_out_path,
+                    vcodec="copy",
+                ).overwrite_output()
+                ffmpeg.run(output_video)
+                # delete original, rename new
+                os.remove(out_path)
+                os.rename(full_out_path, out_path)
