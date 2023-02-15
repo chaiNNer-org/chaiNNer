@@ -58,9 +58,14 @@ class ExternalServiceTimeout(Exception):
     pass
 
 
-def get(url) -> Dict:
+def get(url, timeout=None) -> Dict:
     try:
-        response = requests.get(url, timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT)
+        response = requests.get(
+            url,
+            timeout=timeout
+            if timeout is not None
+            else STABLE_DIFFUSION_REQUEST_TIMEOUT,
+        )
     except requests.ConnectionError as exc:
         raise ExternalServiceConnectionError(ERROR_MSG) from exc
     except requests.exceptions.ReadTimeout as exc:
@@ -96,7 +101,7 @@ def verify_api_connection():
     global has_api_connection  # pylint: disable=global-statement
     if has_api_connection is None:
         has_api_connection = False
-        get(STABLE_DIFFUSION_OPTIONS_URL)
+        get(STABLE_DIFFUSION_OPTIONS_URL, timeout=0.5)
         has_api_connection = True
 
     if not has_api_connection:
