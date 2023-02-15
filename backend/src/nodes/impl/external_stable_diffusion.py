@@ -58,7 +58,7 @@ class ExternalServiceTimeout(Exception):
     pass
 
 
-def get(url, timeout=None) -> Dict:
+def get(url, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
         response = requests.get(
             url,
