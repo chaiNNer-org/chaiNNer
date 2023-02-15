@@ -60,12 +60,7 @@ class ExternalServiceTimeout(Exception):
 
 def get(url, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
-        response = requests.get(
-            url,
-            timeout=timeout
-            if timeout is not None
-            else STABLE_DIFFUSION_REQUEST_TIMEOUT,
-        )
+        response = requests.get(url, timeout=timeout)
     except requests.ConnectionError as exc:
         raise ExternalServiceConnectionError(ERROR_MSG) from exc
     except requests.exceptions.ReadTimeout as exc:
