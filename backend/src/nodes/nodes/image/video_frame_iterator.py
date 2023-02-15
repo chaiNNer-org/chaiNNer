@@ -165,9 +165,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 logger.warning(f"Failed to open video writer: {e}")
 
         out_frame = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_BGR2RGB)
-        if writer.out is not None:
-            if writer.out.stdin is not None:
-                writer.out.stdin.write(out_frame.tobytes())
+        if writer.out is not None and writer.out.stdin is not None:
+            writer.out.stdin.write(out_frame.tobytes())
         else:
             raise RuntimeError("Failed to open video writer")
 
