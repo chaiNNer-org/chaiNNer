@@ -9,7 +9,8 @@ from ...impl.dithering.color_distance import batch_nearest_palette_color
 from ...impl.dithering.constants import ErrorDiffusionMap, ERROR_PROPAGATION_MAP_LABELS
 from ...impl.dithering.diffusion import palette_error_diffusion_dither
 from ...impl.dithering.riemersma import palette_riemersma_dither
-from ...node_base import NodeBase, group
+from ...groups import conditional_group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import ImageInput, EnumInput, NumberInput
@@ -44,21 +45,14 @@ class PaletteDitherNode(NodeBase):
                 option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
                 default_value=PaletteDitherAlgorithm.DIFFUSION,
             ).with_id(2),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 2,
-                    "conditions": [
-                        PaletteDitherAlgorithm.DIFFUSION.value,
-                        PaletteDitherAlgorithm.RIEMERSMA.value,
-                    ],
-                },
-            )(
+            conditional_group(2, PaletteDitherAlgorithm.DIFFUSION.value)(
                 EnumInput(
                     ErrorDiffusionMap,
                     option_labels=ERROR_PROPAGATION_MAP_LABELS,
                     default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
                 ).with_id(3),
+            ),
+            conditional_group(2, PaletteDitherAlgorithm.RIEMERSMA.value)(
                 NumberInput(
                     "History Length",
                     minimum=2,
