@@ -5,7 +5,11 @@ from typing import List, Tuple
 
 import numpy as np
 import onnx
-import onnxoptimizer
+
+try:
+    import onnxoptimizer
+except ImportError:
+    onnxoptimizer = None
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from sanic.log import logger
@@ -99,15 +103,22 @@ class OnnxInterpolateModelsNode(NodeBase):
             return b, 0, 100
 
         # Just to be sure there is no mismatch from opt/un-opt models
-        passes = onnxoptimizer.get_fuse_and_elimination_passes()
+        if onnxoptimizer is not None:
+            passes = onnxoptimizer.get_fuse_and_elimination_passes()
 
-        model_proto_a = onnx.load_from_string(a.bytes)
-        model_proto_a = onnxoptimizer.optimize(model_proto_a, passes)
-        model_a_weights = model_proto_a.graph.initializer  # type: ignore
+            model_proto_a = onnx.load_from_string(a.bytes)
+            model_proto_a = onnxoptimizer.optimize(model_proto_a, passes)
+            model_a_weights = model_proto_a.graph.initializer  # type: ignore
 
-        model_proto_b = onnx.load_from_string(b.bytes)
-        model_proto_b = onnxoptimizer.optimize(model_proto_b, passes)
-        model_b_weights = model_proto_b.graph.initializer  # type: ignore
+            model_proto_b = onnx.load_from_string(b.bytes)
+            model_proto_b = onnxoptimizer.optimize(model_proto_b, passes)
+            model_b_weights = model_proto_b.graph.initializer  # type: ignore
+        else:
+            model_proto_a = onnx.load_from_string(a.bytes)
+            model_a_weights = model_proto_a.graph.initializer
+
+            model_proto_b = onnx.load_from_string(b.bytes)
+            model_b_weights = model_proto_b.graph.initializer
 
         assert len(model_a_weights) == len(
             model_b_weights

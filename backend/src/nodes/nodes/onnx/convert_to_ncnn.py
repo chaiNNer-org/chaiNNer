@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Tuple
 
 import onnx
-import onnxoptimizer
+
+try:
+    import onnxoptimizer
+except ImportError:
+    onnxoptimizer = None
 from . import category as ONNXCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -36,8 +40,11 @@ class ConvertOnnxToNcnnNode(NodeBase):
         fp16 = bool(is_fp16)
 
         model_proto = onnx.load_model_from_string(model.bytes)
-        passes = onnxoptimizer.get_fuse_and_elimination_passes()
-        opt_model = onnxoptimizer.optimize(model_proto, passes)
+        if onnxoptimizer is not None:
+            passes = onnxoptimizer.get_fuse_and_elimination_passes()
+            opt_model = onnxoptimizer.optimize(model_proto, passes)
+        else:
+            opt_model = model_proto
 
         converter = Onnx2NcnnConverter(opt_model)
         ncnn_model = NcnnModelWrapper(converter.convert(fp16, False))
