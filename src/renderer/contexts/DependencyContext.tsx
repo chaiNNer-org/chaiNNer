@@ -468,6 +468,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     <HStack>
                                         <Switch
                                             isChecked={usePipDirectly}
+                                            isDisabled={isRunningShell}
                                             onChange={() => {
                                                 setUsePipDirectly(!usePipDirectly);
                                             }}
