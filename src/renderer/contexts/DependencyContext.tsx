@@ -284,7 +284,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-    const [useProgressBars, setUseProgressBars] = useState(false);
+    const [usePipDirectly, setUsePipDirectly] = useState(false);
 
     useAsyncEffect(() => {
         if (pipList) return;
@@ -355,14 +355,14 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const installPackage = (dep: Dependency) => {
         setInstallingPackage(dep);
         changePackages(() =>
-            runPipInstall(pythonInfo, [dep], useProgressBars ? setProgress : undefined, onStdio)
+            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
         );
     };
 
     const uninstallPackage = (dep: Dependency) => {
         setUninstallingPackage(dep);
         changePackages(() =>
-            runPipUninstall(pythonInfo, [dep], useProgressBars ? setProgress : undefined, onStdio)
+            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
         );
     };
 
@@ -467,18 +467,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 <HStack>
                                     <HStack>
                                         <Switch
-                                            isChecked={useProgressBars}
+                                            isChecked={usePipDirectly}
                                             onChange={() => {
-                                                setUseProgressBars(!useProgressBars);
+                                                setUsePipDirectly(!usePipDirectly);
                                             }}
                                         />
-                                        <Text>Use Progress Bars</Text>
+                                        <Text>Use Pip Directly</Text>
                                         <Tooltip
                                             hasArrow
                                             borderRadius={8}
-                                            label={
-                                                "Show actual progress bars for accurate download progress reporting. This uses a different download method, and as such may cause issues when downloading, so it's disabled by default."
-                                            }
+                                            label="Disable progress bars and use pip to directly download and install the packages. Use this setting if you are having issues installing normally."
                                             maxW="auto"
                                             openDelay={500}
                                             px={2}
@@ -490,12 +488,12 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         </Tooltip>
                                     </HStack>
                                     <Button
-                                        aria-label="View Console"
+                                        aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
                                         leftIcon={<BsTerminalFill />}
                                         size="sm"
                                         onClick={() => setIsConsoleOpen(!isConsoleOpen)}
                                     >
-                                        View Console
+                                        {isConsoleOpen ? 'Hide Console' : 'View Console'}
                                     </Button>
                                 </HStack>
                             </Flex>
@@ -545,7 +543,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 key={dep.name}
                                                 pipList={pipList}
                                                 progress={
-                                                    useProgressBars &&
+                                                    !usePipDirectly &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
                                                         ?.name === dep.name
