@@ -201,6 +201,7 @@ async def nodes(_):
 class RunRequest(TypedDict):
     data: List[JsonNode]
     options: JsonExecutionOptions
+    sendBroadcastData: bool
 
 
 @app.route("/run", methods=["POST"])
@@ -229,6 +230,7 @@ async def run(request: Request):
         executor = Executor(
             chain,
             inputs,
+            full_data["sendBroadcastData"],
             app.loop,
             ctx.queue,
             ctx.pool,
@@ -421,6 +423,8 @@ async def kill(request: Request):
     try:
         logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
+        while ctx.executor:
+            await asyncio.sleep(0.0001)
         return json(successResponse("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
@@ -441,6 +445,14 @@ async def list_ncnn_gpus(_request: Request):
     except Exception as exception:
         logger.error(exception, exc_info=True)
         return json([])
+
+
+@app.route("/python-info", methods=["GET"])
+async def python_info(_request: Request):
+    version = (
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
+    return json({"python": sys.executable, "version": version})
 
 
 if __name__ == "__main__":

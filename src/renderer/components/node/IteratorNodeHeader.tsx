@@ -1,6 +1,6 @@
 import { Box, Center, HStack, Heading, LayoutProps, Tooltip, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
-import { DisabledStatus } from '../../helpers/disabled';
+import { DisabledStatus } from '../../../common/nodes/disabled';
 import { IconFactory } from '../CustomIcons';
 
 interface IteratorNodeHeaderProps {

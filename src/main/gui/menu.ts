@@ -2,11 +2,12 @@
 import { Menu, MenuItemConstructorOptions, app, dialog, shell } from 'electron';
 import os from 'os';
 import path from 'path';
-import { isMac } from '../common/env';
-import { links } from '../common/links';
-import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
-import { openSaveFile } from '../common/SaveFile';
-import { getCpuInfo, getGpuInfo } from './systemInfo';
+import { isMac } from '../../common/env';
+import { links } from '../../common/links';
+import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
+import { openSaveFile } from '../../common/SaveFile';
+import { getRootDirSync } from '../platform';
+import { getCpuInfo, getGpuInfo } from '../systemInfo';
 
 export interface MenuData {
     openRecentRev: readonly string[];
@@ -112,6 +113,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     enabled,
                 },
                 { type: 'separator' },
+                {
+                    label: 'Export viewport as PNG',
+                    accelerator: 'CmdOrCtrl+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'file');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Export viewport to clipboard',
+                    accelerator: 'CmdOrCtrl+Shift+P',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('export-viewport', 'clipboard');
+                    },
+                    enabled,
+                },
+                { type: 'separator' },
                 isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },
@@ -164,6 +184,25 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                     enabled,
                 },
+                { type: 'separator' },
+                {
+                    label: 'Duplicate',
+                    accelerator: 'CmdOrCtrl+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate');
+                    },
+                    enabled,
+                },
+                {
+                    label: 'Duplicate with Connections',
+                    accelerator: 'CmdOrCtrl+Shift+D',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('duplicate-with-input-edges');
+                    },
+                    enabled,
+                },
             ],
         },
         {
@@ -194,7 +233,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 {
                     label: 'Open logs folder',
                     click: async () => {
-                        await shell.openPath(app.getPath('logs'));
+                        await shell.openPath(path.join(getRootDirSync(), 'logs'));
                     },
                 },
                 {

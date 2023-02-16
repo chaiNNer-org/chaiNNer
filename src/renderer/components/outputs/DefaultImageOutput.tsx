@@ -64,9 +64,21 @@ export const DefaultImageOutput = memo(
                 w="full"
             >
                 <Center
+                    _hover={{
+                        backgroundColor: 'var(--node-image-preview-button-bg-hover)',
+                    }}
+                    bgColor="var(--node-image-preview-button-bg)"
+                    borderRadius="md"
                     cursor="pointer"
-                    h="2rem"
-                    w="2rem"
+                    h="1.75rem"
+                    maxH="1.75rem"
+                    maxW="1.75rem"
+                    minH="1.75rem"
+                    minW="1.75rem"
+                    my="0.125rem"
+                    overflow="hidden"
+                    transition="0.15s ease-in-out"
+                    w="1.75rem"
                     onClick={() => {
                         const byId = new Map(getNodes().map((n) => [n.id, n]));
 
@@ -121,27 +133,10 @@ export const DefaultImageOutput = memo(
                         }
                     }}
                 >
-                    <Center
-                        _hover={{
-                            backgroundColor: 'var(--node-image-preview-button-bg-hover)',
-                        }}
-                        bgColor="var(--node-image-preview-button-bg)"
-                        borderRadius="md"
-                        cursor="pointer"
-                        h="1.75rem"
-                        maxH="1.75rem"
-                        maxW="1.75rem"
-                        minH="1.75rem"
-                        minW="1.75rem"
-                        overflow="hidden"
-                        transition="0.15s ease-in-out"
-                        w="1.75rem"
-                    >
-                        <Icon
-                            as={BsEyeFill}
-                            color="var(--node-image-preview-button-fg)"
-                        />
-                    </Center>
+                    <Icon
+                        as={BsEyeFill}
+                        color="var(--node-image-preview-button-fg)"
+                    />
                 </Center>
                 <Spacer />
                 {type && (

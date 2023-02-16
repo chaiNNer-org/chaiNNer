@@ -71,23 +71,33 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             packages: [
                 {
                     packageName: 'onnx',
-                    version: '1.12.0',
+                    version: '1.13.0',
                     sizeEstimate: 12 * MB,
                 },
                 {
                     packageName: 'onnxoptimizer',
-                    version: '0.3.1',
+                    version: '0.3.6',
                     sizeEstimate: 300 * KB,
                 },
                 {
                     packageName: canCuda ? 'onnxruntime-gpu' : 'onnxruntime',
                     sizeEstimate: canCuda ? 110 * MB : 5 * MB,
-                    version: '1.12.1',
+                    version: '1.13.1',
                 },
                 {
                     packageName: 'protobuf',
-                    version: '3.16.0',
+                    version: '3.20.2',
                     sizeEstimate: 500 * KB,
+                },
+                {
+                    packageName: 'scipy',
+                    version: '1.9.3',
+                    sizeEstimate: 42 * MB,
+                },
+                {
+                    packageName: 'numba',
+                    version: '0.56.3',
+                    sizeEstimate: 2.5 * MB,
                 },
             ],
             description:
@@ -107,7 +117,7 @@ export const requiredDependencies: Dependency[] = [
     },
     {
         name: 'OpenCV',
-        packages: [{ packageName: 'opencv-python', version: '4.6.0.66', sizeEstimate: 30 * MB }],
+        packages: [{ packageName: 'opencv-python', version: '4.7.0.68', sizeEstimate: 30 * MB }],
     },
     {
         name: 'NumPy',
@@ -124,6 +134,14 @@ export const requiredDependencies: Dependency[] = [
     {
         name: 'FFMPEG',
         packages: [{ packageName: 'ffmpeg-python', version: '0.2.0', sizeEstimate: 25 * KB }],
+    },
+    {
+        name: 'Requests',
+        packages: [{ packageName: 'requests', version: '2.28.2', sizeEstimate: 452 * KB }],
+    },
+    {
+        name: 're2',
+        packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
     },
 ];
 

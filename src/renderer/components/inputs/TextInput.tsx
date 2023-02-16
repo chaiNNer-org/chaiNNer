@@ -1,9 +1,14 @@
 import { FunctionCallExpression, Type, evaluate } from '@chainner/navi';
-import { Input } from '@chakra-ui/react';
+import { Input, MenuItem, MenuList } from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useDebouncedCallback } from 'use-debounce';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { stopPropagation } from '../../../common/util';
+import { useContextMenu } from '../../hooks/useContextMenu';
+import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
 const typeToString = (type: Type): Type => {
@@ -19,6 +24,7 @@ export const TextInput = memo(
         isLocked,
         useInputConnected,
         useInputType,
+        nodeId,
     }: InputProps<'text-line', string>) => {
         const { label, minLength, maxLength, def, placeholder } = input;
 
@@ -57,6 +63,48 @@ export const TextInput = memo(
             strType.underlying === 'string' && strType.type === 'literal'
                 ? strType.value
                 : undefined;
+        const displayText = isInputConnected ? typeText : tempText;
+
+        const { t } = useTranslation();
+
+        const menu = useContextMenu(() => (
+            <MenuList className="nodrag">
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!displayText}
+                    onClick={() => {
+                        if (displayText !== undefined) {
+                            clipboard.writeText(displayText);
+                        }
+                    }}
+                >
+                    {t('inputs.text.copyText', 'Copy Text')}
+                </MenuItem>
+                <MenuItem
+                    icon={<MdContentPaste />}
+                    isDisabled={isInputConnected}
+                    onClick={() => {
+                        let text = clipboard.readText();
+                        // replace new lines with spaces
+                        text = text.replace(/\r?\n|\r/g, ' ');
+                        if (text) {
+                            if (maxLength) {
+                                text = text.slice(0, maxLength);
+                            }
+                            if (!minLength || text.length >= minLength) {
+                                setValue(text);
+                            }
+                        }
+                    }}
+                >
+                    {t('inputs.text.paste', 'Paste')}
+                </MenuItem>
+                <CopyOverrideIdSection
+                    inputId={input.id}
+                    nodeId={nodeId}
+                />
+            </MenuList>
+        ));
 
         return (
             <Input
@@ -67,11 +115,12 @@ export const TextInput = memo(
                 maxLength={maxLength ?? undefined}
                 placeholder={placeholder ?? label}
                 size="sm"
-                value={isInputConnected ? typeText ?? '' : tempText}
+                value={displayText ?? ''}
                 onChange={(event) => {
                     setTempText(event.target.value);
                     handleChange(event);
                 }}
+                onContextMenu={menu.onContextMenu}
                 onKeyDown={stopPropagation}
             />
         );

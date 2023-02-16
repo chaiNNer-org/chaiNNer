@@ -1,13 +1,10 @@
-/* eslint-disable no-nested-ternary */
 import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
-import { ViewOffIcon } from '@chakra-ui/icons';
-import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo, useEffect, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { ModelDataTags } from './elements/ModelDataTags';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
@@ -34,8 +31,6 @@ const getColorMode = (channels: number) => {
 
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated, schemaId }: OutputProps) => {
-        const { t } = useTranslation();
-
         const { current } = useOutputData<PyTorchModelData>(outputId);
 
         const { setManualOutputType } = useContext(GlobalContext);
@@ -64,68 +59,21 @@ export const PyTorchOutput = memo(
             }
         }, [id, schemaId, current, outputId, schema, setManualOutputType]);
 
-        const tagColor = 'var(--tag-bg)';
-        const fontColor = 'var(--tag-fg)';
+        const tags = useMemo(() => {
+            if (!current) return undefined;
+
+            return [
+                current.arch,
+                `${getColorMode(current.inNc)}→${getColorMode(current.outNc)}`,
+                ...current.size,
+            ];
+        }, [current]);
 
         return (
-            <Center
-                h="full"
-                minH="2rem"
-                overflow="hidden"
-                verticalAlign="middle"
-                w="full"
-            >
-                {current && !animated ? (
-                    <Center mt={1}>
-                        <Wrap
-                            justify="center"
-                            maxW={60}
-                            spacing={2}
-                        >
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {current.arch}
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {getColorMode(current.inNc)}→{getColorMode(current.outNc)}
-                                </Tag>
-                            </WrapItem>
-                            {current.size.map((size) => (
-                                <WrapItem key={size}>
-                                    <Tag
-                                        bgColor={tagColor}
-                                        key={size}
-                                        textAlign="center"
-                                        textColor={fontColor}
-                                    >
-                                        {size}
-                                    </Tag>
-                                </WrapItem>
-                            ))}
-                        </Wrap>
-                    </Center>
-                ) : animated ? (
-                    <Spinner />
-                ) : (
-                    <HStack>
-                        <ViewOffIcon />
-                        <Text
-                            fontSize="sm"
-                            lineHeight="0.5rem"
-                        >
-                            {t('outputs.model.modelNotAvailable', 'Model data not available.')}
-                        </Text>
-                    </HStack>
-                )}
-            </Center>
+            <ModelDataTags
+                loading={animated}
+                tags={tags}
+            />
         );
     }
 );

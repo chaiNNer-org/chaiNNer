@@ -1,6 +1,5 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
-import { toPng } from 'html-to-image';
 import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -27,6 +26,8 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import {
@@ -34,6 +35,7 @@ import {
     printErrorTrace,
     simpleError,
 } from '../../common/types/mismatch';
+import { withoutNull } from '../../common/types/util';
 import {
     EMPTY_SET,
     createUniqueId,
@@ -48,7 +50,12 @@ import {
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
-import { getEffectivelyDisabledNodes } from '../helpers/disabled';
+import {
+    PngDataUrl,
+    saveDataUrlAsFile,
+    takeScreenshot,
+    writeDataUrlToClipboard,
+} from '../helpers/nodeScreenshot';
 import {
     NodeProto,
     copyEdges,
@@ -60,7 +67,6 @@ import {
     setSelected,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
-import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     ChangeCounter,
@@ -133,7 +139,7 @@ interface Global {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
-    duplicateNodes: (nodeIds: readonly string[]) => void;
+    duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
     clearNodes: (ids: readonly string[]) => void;
     setIteratorSize: (id: string, size: IteratorSize) => void;
@@ -868,7 +874,9 @@ export const GlobalProvider = memo(
                 if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
                     const schema = schemata.get(targetNode.data.schemaId);
                     const input = schema.inputs.find((i) => i.id === targetHandleId)!;
-                    const inputType = targetFn.definition.inputDefaults.get(targetHandleId)!;
+                    const inputType = withoutNull(
+                        targetFn.definition.inputDefaults.get(targetHandleId)!
+                    );
 
                     const error = simpleError(outputType, inputType);
                     if (error) {
@@ -1131,7 +1139,7 @@ export const GlobalProvider = memo(
         );
 
         const duplicateNodes = useCallback(
-            (ids: readonly string[]) => {
+            (ids: readonly string[], withInputEdges = false) => {
                 const nodesToCopy = expandSelection(getNodes(), ids);
 
                 const duplicationId = createUniqueId();
@@ -1159,6 +1167,28 @@ export const GlobalProvider = memo(
                         }),
                         deriveId
                     );
+
+                    if (withInputEdges) {
+                        const inputEdges = edges.filter((e) => {
+                            return nodesToCopy.has(e.target) && !nodesToCopy.has(e.source);
+                        });
+                        newEdge.push(
+                            ...inputEdges.map<Mutable<Edge<EdgeData>>>((e) => {
+                                let { target, targetHandle } = e;
+                                target = deriveId(target);
+                                targetHandle = targetHandle?.replace(e.target, target);
+
+                                return {
+                                    ...e,
+                                    id: createUniqueId(),
+                                    target,
+                                    targetHandle,
+                                    selected: false,
+                                };
+                            })
+                        );
+                    }
+
                     return [...setSelected(edges, false), ...newEdge];
                 });
             },
@@ -1192,6 +1222,50 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const [viewportExportPadding] = useViewportExportPadding;
+        const exportViewportScreenshotAs = useCallback(
+            (saveAs: (dataUrl: PngDataUrl) => void) => {
+                const currentFlowWrapper = reactFlowWrapper.current;
+                if (!(currentFlowWrapper instanceof HTMLElement)) return;
+
+                if (currentReactFlowInstance.getNodes().length === 0) {
+                    sendToast({
+                        status: 'warning',
+                        description: 'Cannot export viewport because there are no nodes.',
+                    });
+                }
+
+                takeScreenshot(currentFlowWrapper, currentReactFlowInstance, viewportExportPadding)
+                    .then(saveAs)
+                    .catch((error) => {
+                        log.error(error);
+                    });
+            },
+            [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
+        );
+        const exportViewportScreenshot = useCallback(() => {
+            const currentChainName = savePath ? parse(savePath).name : 'Untitled';
+
+            const date = new Date();
+            const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+
+            const hourString = date.getHours().toString().padStart(2, '0');
+            const minuteString = date.getMinutes().toString().padStart(2, '0');
+            const timeString = `${hourString}-${minuteString}`;
+
+            const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
+
+            exportViewportScreenshotAs((dataUrl) => {
+                saveDataUrlAsFile(dataUrl, fileName);
+            });
+        }, [exportViewportScreenshotAs, savePath]);
+        const exportViewportScreenshotToClipboard = useCallback(() => {
+            exportViewportScreenshotAs((dataUrl) => {
+                writeDataUrlToClipboard(dataUrl);
+                sendToast({ status: 'success', description: 'Viewport copied to clipboard.' });
+            });
+        }, [exportViewportScreenshotAs, sendToast]);
+
         const cutFn = useCallback(() => {
             cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
         }, [getNodes, getEdges, changeNodes, changeEdges]);
@@ -1205,9 +1279,16 @@ export const GlobalProvider = memo(
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
         }, [changeNodes, changeEdges]);
-        const duplFn = useCallback(() => {
+        const duplicateFn = useCallback(() => {
             const nodesToCopy = getNodes().filter((n) => n.selected);
             duplicateNodes(nodesToCopy.map((n) => n.id));
+        }, [getNodes, duplicateNodes]);
+        const duplicateWithInputEdgesFn = useCallback(() => {
+            const nodesToCopy = getNodes().filter((n) => n.selected);
+            duplicateNodes(
+                nodesToCopy.map((n) => n.id),
+                true
+            );
         }, [getNodes, duplicateNodes]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn);
@@ -1216,121 +1297,30 @@ export const GlobalProvider = memo(
         useIpcRendererListener('copy', copyFn);
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
+        useHotkeys('ctrl+d, cmd+d', duplicateFn);
+        useIpcRendererListener('duplicate', duplicateFn);
+        useHotkeys('ctrl+shift+d, cmd+shift+d', duplicateWithInputEdgesFn);
+        useIpcRendererListener('duplicate-with-input-edges', duplicateWithInputEdgesFn);
+        useHotkeys('ctrl+p, cmd+p', exportViewportScreenshot);
+        useHotkeys('ctrl+shift+p, cmd++shift+p', exportViewportScreenshotToClipboard);
+        useIpcRendererListener(
+            'export-viewport',
+            useCallback(
+                (_, kind) => {
+                    if (kind === 'file') {
+                        exportViewportScreenshot();
+                    } else {
+                        exportViewportScreenshotToClipboard();
+                    }
+                },
+                [exportViewportScreenshot, exportViewportScreenshotToClipboard]
+            )
+        );
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
-        useHotkeys('ctrl+d, cmd+d', duplFn);
 
         const [zoom, setZoom] = useState(1);
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
-
-        const getNodesBoundingBox = useCallback(() => {
-            const nodes = getNodes().filter((n) => !n.parentNode);
-
-            if (nodes.length === 0) return;
-
-            const minX = Math.min(...nodes.map((n) => n.position.x));
-            const minY = Math.min(...nodes.map((n) => n.position.y));
-            const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
-            const maxY = Math.max(...nodes.map((n) => n.position.y + (n.height ?? 0)));
-
-            return {
-                x: minX,
-                y: minY,
-                width: maxX - minX,
-                height: maxY - minY,
-            };
-        }, [getNodes]);
-
-        const downloadImage = (dataUrl: string, fileName: string) => {
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        };
-
-        const [viewportExportPadding] = useViewportExportPadding;
-        const exportViewportScreenshot = useCallback(() => {
-            const currentFlowWrapper = reactFlowWrapper.current;
-            if (!(currentFlowWrapper instanceof HTMLElement)) return;
-
-            const oldViewport = currentReactFlowInstance.getViewport();
-
-            const reactFlowViewport = currentFlowWrapper.getBoundingClientRect();
-            const nodesBoundingBox = getNodesBoundingBox();
-
-            if (!nodesBoundingBox) return;
-
-            const paddedBoundingBox = {
-                x: nodesBoundingBox.x - viewportExportPadding,
-                y: nodesBoundingBox.y - viewportExportPadding,
-                width: nodesBoundingBox.width + viewportExportPadding * 2,
-                height: nodesBoundingBox.height + viewportExportPadding * 2,
-            };
-
-            const exportZoom = Math.min(
-                reactFlowViewport.width / paddedBoundingBox.width,
-                reactFlowViewport.height / paddedBoundingBox.height
-            );
-
-            currentReactFlowInstance.setViewport({
-                x: paddedBoundingBox.x * -1 * exportZoom,
-                y: paddedBoundingBox.y * -1 * exportZoom,
-                zoom: exportZoom,
-            });
-
-            // wait for the viewport to be updated
-            setTimeout(() => {
-                toPng(currentFlowWrapper, {
-                    style: {
-                        padding: '0',
-                        margin: '0',
-                        pointerEvents: 'none',
-                    },
-                    pixelRatio: 1 / exportZoom,
-                    width: paddedBoundingBox.width * exportZoom,
-                    height: paddedBoundingBox.height * exportZoom,
-                    filter: (node: unknown) => {
-                        if (
-                            node instanceof HTMLElement &&
-                            (node.classList.contains('react-flow__minimap') ||
-                                node.classList.contains('react-flow__controls'))
-                        ) {
-                            return false;
-                        }
-
-                        return true;
-                    },
-                })
-                    .then((dataUrl: string) => {
-                        currentReactFlowInstance.setViewport(oldViewport);
-
-                        const currentChainName = savePath ? parse(savePath).name : 'Untitled';
-
-                        const date = new Date();
-                        const dateString = `${date.getFullYear()}-${
-                            date.getMonth() + 1
-                        }-${date.getDate()}`;
-
-                        const hourString = date.getHours().toString().padStart(2, '0');
-                        const minuteString = date.getMinutes().toString().padStart(2, '0');
-                        const timeString = `${hourString}-${minuteString}`;
-
-                        const fileName = `chaiNNer-${currentChainName}-${dateString}_${timeString}.png`;
-                        downloadImage(dataUrl, fileName);
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                    });
-            }, 10);
-        }, [
-            reactFlowWrapper,
-            currentReactFlowInstance,
-            getNodesBoundingBox,
-            viewportExportPadding,
-            savePath,
-        ]);
 
         useEffect(() => {
             // remove invalid nodes on schemata changes

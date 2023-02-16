@@ -1,9 +1,9 @@
 import { EvaluationError, NonNeverType, StructType, Type } from '@chainner/navi';
 import log from 'electron-log';
-import { Edge, Node } from 'reactflow';
-import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
-import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
-import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../../common/util';
+import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
+import { FunctionDefinition, FunctionInstance } from '../types/function';
+import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../util';
+import type { Edge, Node } from 'reactflow';
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;

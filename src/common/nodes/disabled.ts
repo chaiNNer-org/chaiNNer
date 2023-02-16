@@ -1,5 +1,5 @@
-import { Edge, Node } from 'reactflow';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { EdgeData, NodeData } from '../common-types';
+import type { Edge, Node } from 'reactflow';
 
 export enum DisabledStatus {
     Enabled,
