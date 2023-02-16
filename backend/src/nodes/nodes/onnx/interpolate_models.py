@@ -6,10 +6,6 @@ from typing import List, Tuple
 import numpy as np
 import onnx
 
-try:
-    import onnxoptimizer
-except ImportError:
-    onnxoptimizer = None
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from sanic.log import logger
