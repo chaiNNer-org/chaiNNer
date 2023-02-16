@@ -1,4 +1,3 @@
-import fetch from 'cross-fetch';
 import {
     BackendJsonNode,
     Category,
@@ -111,7 +110,7 @@ export class Backend {
             options.signal = signal;
         }
 
-        const resp = await fetch(`http://localhost:${this.port}${path}`, options);
+        const resp = await fetch(`http://127.0.0.1:${this.port}${path}`, options);
         return (await resp.json()) as T;
     }
 
