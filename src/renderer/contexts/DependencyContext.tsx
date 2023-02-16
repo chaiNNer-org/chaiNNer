@@ -11,7 +11,7 @@ import {
     Divider,
     Flex,
     HStack,
-    IconButton,
+    Icon,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -22,6 +22,7 @@ import {
     Progress,
     Spacer,
     Spinner,
+    Switch,
     Tag,
     Text,
     Textarea,
@@ -31,7 +32,7 @@ import {
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BsTerminalFill } from 'react-icons/bs';
+import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
@@ -283,6 +284,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+    const [usePipDirectly, setUsePipDirectly] = useState(false);
 
     useAsyncEffect(() => {
         if (pipList) return;
@@ -352,12 +354,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const installPackage = (dep: Dependency) => {
         setInstallingPackage(dep);
-        changePackages(() => runPipInstall(pythonInfo, [dep], setProgress, onStdio));
+        changePackages(() =>
+            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     const uninstallPackage = (dep: Dependency) => {
         setUninstallingPackage(dep);
-        changePackages(() => runPipUninstall(pythonInfo, [dep], setProgress, onStdio));
+        changePackages(() =>
+            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     useEffect(() => {
@@ -458,12 +464,39 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     Python ({pythonInfo.version}) [
                                     {isSystemPython ? 'System' : 'Integrated'}]
                                 </Text>
-                                <IconButton
-                                    aria-label="Open Console View"
-                                    icon={<BsTerminalFill />}
-                                    size="sm"
-                                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-                                />
+                                <HStack>
+                                    <HStack>
+                                        <Switch
+                                            isChecked={usePipDirectly}
+                                            isDisabled={isRunningShell}
+                                            onChange={() => {
+                                                setUsePipDirectly(!usePipDirectly);
+                                            }}
+                                        />
+                                        <Text>Use Pip Directly</Text>
+                                        <Tooltip
+                                            hasArrow
+                                            borderRadius={8}
+                                            label="Disable progress bars and use pip to directly download and install the packages. Use this setting if you are having issues installing normally."
+                                            maxW="auto"
+                                            openDelay={500}
+                                            px={2}
+                                            py={0}
+                                        >
+                                            <Center>
+                                                <Icon as={BsQuestionCircle} />
+                                            </Center>
+                                        </Tooltip>
+                                    </HStack>
+                                    <Button
+                                        aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
+                                        leftIcon={<BsTerminalFill />}
+                                        size="sm"
+                                        onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                                    >
+                                        {isConsoleOpen ? 'Hide Console' : 'View Console'}
+                                    </Button>
+                                </HStack>
                             </Flex>
                             {!pipList ? (
                                 <Spinner />
@@ -511,6 +544,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 key={dep.name}
                                                 pipList={pipList}
                                                 progress={
+                                                    !usePipDirectly &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
                                                         ?.name === dep.name
