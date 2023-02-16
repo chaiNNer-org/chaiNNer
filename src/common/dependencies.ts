@@ -21,14 +21,26 @@ export interface Dependency {
     description?: string;
 }
 
-const getOnnxRuntime = (canCuda: boolean) => {
+const getOnnxRuntime = (canCuda: boolean): PyPiPackage => {
     if (isM1) {
-        return 'onnxruntime-silicon';
+        return {
+            packageName: 'onnxruntime-silicon',
+            sizeEstimate: 6 * MB,
+            version: '1.13.1',
+        };
     }
     if (canCuda) {
-        return 'onnxruntime-gpu';
+        return {
+            packageName: 'onnxruntime-gpu',
+            sizeEstimate: 110 * MB,
+            version: '1.13.1',
+        };
     }
-    return 'onnxruntime';
+    return {
+        packageName: 'onnxruntime',
+        sizeEstimate: 5 * MB,
+        version: '1.13.1',
+    };
 };
 
 export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => {
@@ -93,11 +105,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                           },
                       ] as PyPiPackage[])
                     : []),
-                {
-                    packageName: getOnnxRuntime(canCuda),
-                    sizeEstimate: canCuda ? 110 * MB : 5 * MB,
-                    version: '1.13.1',
-                },
+                getOnnxRuntime(canCuda),
                 {
                     packageName: 'protobuf',
                     version: '3.20.2',
