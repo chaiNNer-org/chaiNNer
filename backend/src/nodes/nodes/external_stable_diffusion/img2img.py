@@ -18,6 +18,7 @@ from ...impl.external_stable_diffusion import (
     verify_api_connection,
 )
 from ...node_base import NodeBase, group
+from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     TextInput,
@@ -105,6 +106,7 @@ class Img2Img(NodeBase):
         self.icon = "MdChangeCircle"
         self.sub = "Automatic1111"
 
+    @cached
     def run(
         self,
         image: np.ndarray,
