@@ -34,7 +34,7 @@ def ncnn_auto_split(
     staging_vkallocator,
     tiler: Tiler,
 ) -> np.ndarray:
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         ex = net.create_extractor()
         ex.set_blob_vkallocator(blob_vkallocator)
         ex.set_workspace_vkallocator(blob_vkallocator)
