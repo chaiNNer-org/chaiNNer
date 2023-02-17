@@ -11,8 +11,10 @@ const colors = {
 };
 
 const fonts = {
-    heading: `RobotoCondensed-Bold, sans-serif`,
-    body: `Roboto-Regular, sans-serif`,
+    // heading: `Roboto-Regular, sans-serif`,
+    // body: `Roboto-Regular, sans-serif`,
+    heading: `Supreme-Variable, sans-serif`,
+    body: `Supreme-Variable, sans-serif`,
 };
 
 export const theme = extendTheme({ config, colors, fonts } as const) as Theme;
