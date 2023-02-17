@@ -27,7 +27,7 @@ class InpaintNode(NodeBase):
         super().__init__()
         self.description = "Inpaint an image with given mask."
         self.inputs = [
-            ImageInput(channels=[1, 3]),
+            ImageInput(channels=3),
             ImageInput(label="Mask", channels=1),
             InpaintModelInput(),
         ]
