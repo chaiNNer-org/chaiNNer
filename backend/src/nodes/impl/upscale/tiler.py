@@ -7,10 +7,10 @@ class Tiler(ABC):
     @abstractmethod
     def allow_smaller_tile_size(self) -> bool:
         """
-        Whether auto split may also use tile sizes than the ones returned by this tiler.
+        Whether the split implementation may use tile sizes smaller than the ones returned by this tiler.
 
-        If False is returned, then auto split guarantees that the all tiles are of exactly the size returned by this tiler.
-        If the image is smaller than the returned tile size, then it will be padded to reach the given size.
+        If False, then the split implementation guarantees that the all tiles are of exactly the size returned by this tiler.
+        If the image is smaller than the returned tile size, then it has to be padded to reach the given size.
         """
 
     @abstractmethod
