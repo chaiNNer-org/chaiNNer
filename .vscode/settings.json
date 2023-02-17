@@ -28,6 +28,7 @@
     "downscaled",
     "dstack",
     "dtype",
+    "DXGI",
     "einops",
     "ESRGAN",
     "facexlib",

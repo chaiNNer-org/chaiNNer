@@ -73,6 +73,7 @@ export interface SendChannels {
     'save-before-exit': SendChannelInfo;
     'exit-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
+    'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
 
     // history
     'history-undo': SendChannelInfo;
@@ -82,6 +83,8 @@ export interface SendChannels {
     cut: SendChannelInfo;
     copy: SendChannelInfo;
     paste: SendChannelInfo;
+    duplicate: SendChannelInfo;
+    'duplicate-with-input-edges': SendChannelInfo;
 }
 export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];

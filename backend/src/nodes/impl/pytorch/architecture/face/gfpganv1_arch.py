@@ -279,7 +279,6 @@ class GFPGANv1(nn.Module):
         narrow=1,
         sft_half=False,
     ):
-
         super(GFPGANv1, self).__init__()
         self.input_is_latent = input_is_latent
         self.different_w = different_w

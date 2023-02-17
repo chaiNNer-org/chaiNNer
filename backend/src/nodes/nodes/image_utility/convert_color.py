@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from . import category as ImageUtilityCategory
+from ...groups import conditional_group
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -39,10 +40,7 @@ class ColorConvertNode(NodeBase):
                 ColorSpaceDetectorInput(label="From").with_id(1),
                 ColorSpaceInput(label="To").with_id(2),
             ),
-            group(
-                "conditional-enum",
-                {"enum": 2, "conditions": [COLOR_SPACES_WITH_ALPHA_PARTNER]},
-            )(
+            conditional_group(enum=2, condition=COLOR_SPACES_WITH_ALPHA_PARTNER)(
                 BoolInput("Output Alpha", default=False),
             ),
         ]

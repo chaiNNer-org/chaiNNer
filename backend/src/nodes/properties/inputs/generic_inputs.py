@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Dict, Generic, List, Literal, Type, TypeVar, Union, TypedDict
+from typing import Dict, Generic, List, Literal, Tuple, Type, TypeVar, Union, TypedDict
 import numpy as np
 from sanic.log import logger
 
@@ -8,6 +8,7 @@ from .. import expression
 
 from .base_input import BaseInput
 from ...impl.blend import BlendMode
+from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
 from ...utils.utils import (
     split_snake_case,
@@ -357,52 +358,26 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     )
 
 
+SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
+    ("BC1_UNORM_SRGB", "BC1 (sRGB, DX 10+)"),
+    ("BC1_UNORM", "BC1 (Linear, DX 10+)"),
+    ("BC3_UNORM_SRGB", "BC3 (sRGB, DX 10+)"),
+    ("BC3_UNORM", "BC3 (Linear, DX 10+)"),
+    ("BC4_UNORM", "BC4 (DX 10+)"),
+    ("BC5_UNORM", "BC5 (DX 10+)"),
+    ("BC7_UNORM_SRGB", "BC7 (sRGB, DX 11+)"),
+    ("BC7_UNORM", "BC7 (Linear, DX 11+)"),
+    ("DXT1", "DXT1 (Legacy)"),
+    ("DXT3", "DXT3 (Legacy)"),
+    ("DXT5", "DXT5 (Legacy)"),
+]
+
+
 def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsFormat",
         label="DDS Format",
-        options=[
-            {
-                "option": "BC1 (sRGB, DX 10+)",
-                "value": "BC1_UNORM_SRGB",
-            },
-            {
-                "option": "BC1 (Linear, DX 10+)",
-                "value": "BC1_UNORM",
-            },
-            {
-                "option": "BC3 (sRGB, DX 10+)",
-                "value": "BC3_UNORM_SRGB",
-            },
-            {
-                "option": "BC3 (Linear, DX 10+)",
-                "value": "BC3_UNORM",
-            },
-            {
-                "option": "BC4 (Linear, Unsigned, DX 10+)",
-                "value": "BC4_UNORM",
-            },
-            {
-                "option": "BC7 (sRGB, DX 11+)",
-                "value": "BC7_UNORM_SRGB",
-            },
-            {
-                "option": "BC7 (Linear, DX 11+)",
-                "value": "BC7_UNORM",
-            },
-            {
-                "option": "DXT1 (Legacy)",
-                "value": "DXT1",
-            },
-            {
-                "option": "DXT3 (Legacy)",
-                "value": "DXT3",
-            },
-            {
-                "option": "DXT5 (Legacy)",
-                "value": "DXT5",
-            },
-        ],
+        options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
     )
 
 

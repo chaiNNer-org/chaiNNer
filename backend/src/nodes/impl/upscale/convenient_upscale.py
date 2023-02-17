@@ -68,7 +68,7 @@ def convenient_upscale(
             upscale(as_target_channels(white, model_in_nc, True)), 3, True
         )
 
-        alpha = 1 - np.mean(white_up - black_up, axis=2)
+        alpha = 1 - np.mean(white_up - black_up, axis=2)  # type: ignore
         return np.dstack((black_up, alpha))
 
     return as_target_channels(

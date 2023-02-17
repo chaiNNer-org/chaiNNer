@@ -53,7 +53,11 @@ const getTypeText = (type: Type): TagValue[] => {
             }
         }
 
-        if (type.name === 'PyTorchModel' || type.name === 'NcnnNetwork') {
+        if (
+            type.name === 'PyTorchModel' ||
+            type.name === 'NcnnNetwork' ||
+            type.name === 'OnnxModel'
+        ) {
             const scale = getField(type, 'scale') ?? NeverType.instance;
             if (isNumericLiteral(scale)) {
                 tags.push({ kind: 'literal', value: `${scale.toString()}x` });

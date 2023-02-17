@@ -1,9 +1,9 @@
 try:
     import torch
     from ...impl.pytorch.types import (
-        isPyTorchSRModel,
-        isPyTorchFaceModel,
-        isPyTorchModel,
+        is_pytorch_sr_model,
+        is_pytorch_face_model,
+        is_pytorch_model,
     )
 except:
     torch = None
@@ -25,7 +25,7 @@ class ModelInput(BaseInput):
     def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert isPyTorchModel(value), "Expected a supported PyTorch model."
+            assert is_pytorch_model(value), "Expected a supported PyTorch model."
         return value
 
 
@@ -43,7 +43,9 @@ class SrModelInput(ModelInput):
     def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert isPyTorchSRModel(value), "Expected a regular Super-Resolution model."
+            assert is_pytorch_sr_model(
+                value
+            ), "Expected a regular Super-Resolution model."
         return value
 
 
@@ -59,7 +61,7 @@ class FaceModelInput(ModelInput):
     def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert isPyTorchFaceModel(
+            assert is_pytorch_face_model(
                 value
             ), "Expected a Face-specific Super-Resolution model."
         return value

@@ -4,19 +4,19 @@ from copy import deepcopy
 from typing import List, Tuple
 
 import numpy as np
-import onnxoptimizer
+import onnx
+
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
+from onnx import numpy_helper as onph
 from sanic.log import logger
 
-import onnx
-from onnx import numpy_helper as onph
-
+from ...impl.onnx.model import OnnxModel, load_onnx_model
+from ...impl.upscale.auto_split_tiles import NO_TILING
+from ...impl.onnx.utils import safely_optimize_onnx_model
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, SliderInput
 from ...properties.outputs import NumberOutput, OnnxModelOutput
-from ...impl.upscale.auto_split_tiles import NO_TILING
-from ...impl.onnx.model import OnnxModel
 from . import category as ONNXCategory
 from .upscale_image import OnnxImageUpscaleNode
 
@@ -82,7 +82,7 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, model: OnnxModel):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(model, fake_img, NO_TILING)
+        result = OnnxImageUpscaleNode().run(fake_img, model, NO_TILING)
 
         mean_color = np.mean(result)
         del result
@@ -100,15 +100,13 @@ class OnnxInterpolateModelsNode(NodeBase):
             return b, 0, 100
 
         # Just to be sure there is no mismatch from opt/un-opt models
-        passes = onnxoptimizer.get_fuse_and_elimination_passes()
-
         model_proto_a = onnx.load_from_string(a.bytes)
-        model_proto_a = onnxoptimizer.optimize(model_proto_a, passes)
-        model_a_weights = model_proto_a.graph.initializer  # type: ignore
+        model_proto_a = safely_optimize_onnx_model(model_proto_a)
+        model_a_weights = model_proto_a.graph.initializer
 
         model_proto_b = onnx.load_from_string(b.bytes)
-        model_proto_b = onnxoptimizer.optimize(model_proto_b, passes)
-        model_b_weights = model_proto_b.graph.initializer  # type: ignore
+        model_proto_b = safely_optimize_onnx_model(model_proto_b)
+        model_b_weights = model_proto_b.graph.initializer
 
         assert len(model_a_weights) == len(
             model_b_weights
@@ -126,7 +124,7 @@ class OnnxInterpolateModelsNode(NodeBase):
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
         model_interp = model_proto_interp.SerializeToString()  # type: ignore
 
-        model = OnnxModel(model_interp)
+        model = load_onnx_model(model_interp)
         if not self.check_will_upscale(model):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
