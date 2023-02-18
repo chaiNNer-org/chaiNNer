@@ -64,7 +64,7 @@ class ImageUpscaleNode(NodeBase):
             device = torch.device(options.full_device)
 
             def estimate():
-                if "cuda" in options.full_device and tile_size is not None:
+                if "cuda" in options.full_device:
                     mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                     free, _total = mem_info
                     element_size = 2 if use_fp16 else 4
