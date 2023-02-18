@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.image_utils import FillColor, shift
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, FillColorDropdown, NumberInput
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.image_utils import shift, FillColor
+from ...properties.inputs import FillColorDropdown, ImageInput, NumberInput
+from ...properties.outputs import ImageOutput
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:shift")

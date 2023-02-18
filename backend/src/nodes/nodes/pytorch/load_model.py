@@ -6,17 +6,17 @@ from typing import Tuple
 import torch
 from sanic.log import logger
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.model_loading import load_state_dict
+from ...impl.pytorch.types import PyTorchModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import PthFileInput
-from ...properties.outputs import ModelOutput, DirectoryOutput, FileNameOutput
+from ...properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.types import PyTorchModel
-from ...impl.pytorch.model_loading import load_state_dict
-from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...utils.unpickler import RestrictedUnpickle
 from ...utils.utils import split_file_path
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:load_model")

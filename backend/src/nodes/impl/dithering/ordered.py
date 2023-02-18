@@ -2,8 +2,8 @@ from typing import Tuple
 
 import numpy as np
 
-from .common import dtype_to_float, float_to_dtype, apply_to_all_channels
-from .constants import ThresholdMap, THRESHOLD_MAPS
+from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
+from .constants import THRESHOLD_MAPS, ThresholdMap
 
 
 def get_threshold_map(

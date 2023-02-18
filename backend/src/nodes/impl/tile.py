@@ -1,7 +1,8 @@
-from enum import Enum
 import math
-import numpy as np
+from enum import Enum
+
 import cv2
+import numpy as np
 
 from ..utils.utils import get_h_w_c
 

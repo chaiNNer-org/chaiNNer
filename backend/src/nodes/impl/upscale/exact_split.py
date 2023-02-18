@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, List
 import math
 from dataclasses import dataclass
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 from sanic.log import logger
 
-from ...utils.utils import get_h_w_c, Region, Padding
-from ..image_utils import create_border, BorderType
+from ...utils.utils import Padding, Region, Size, get_h_w_c
+from ..image_utils import BorderType, create_border
 
 
-def pad_image(img: np.ndarray, min_size: Tuple[int, int]):
+def _pad_image(img: np.ndarray, min_size: Size):
     h, w, _ = get_h_w_c(img)
 
     min_w, min_h = min_size
@@ -24,7 +24,7 @@ def pad_image(img: np.ndarray, min_size: Tuple[int, int]):
 
 
 @dataclass
-class Segment:
+class _Segment:
     start: int
     end: int
     startPadding: int
@@ -39,21 +39,21 @@ class Segment:
         return self.end + self.endPadding - (self.start - self.startPadding)
 
 
-def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Segment]:
+def _exact_split_into_segments(length: int, exact: int, overlap: int) -> List[_Segment]:
     """
     Splits the given length into segments of `exact` (padded) length.
     Segments will overlap into each other with at least the given overlap.
     """
     if length == exact:
         # trivial
-        return [Segment(0, exact, 0, 0)]
+        return [_Segment(0, exact, 0, 0)]
 
     assert length > exact
     assert exact > overlap * 2
 
-    result: List[Segment] = []
+    result: List[_Segment] = []
 
-    def add(s: Segment):
+    def add(s: _Segment):
         assert s.padded_length == exact
         result.append(s)
 
@@ -65,7 +65,7 @@ def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Seg
     # However, this is complex to implement and the current method also works.
 
     # we know that the first segment looks like this
-    add(Segment(0, exact - overlap, 0, overlap))
+    add(_Segment(0, exact - overlap, 0, overlap))
 
     innerStart = exact - overlap
     while innerStart < length:
@@ -80,14 +80,14 @@ def exact_split_into_segments(length: int, exact: int, overlap: int) -> List[Seg
             end = length
             startPadding = exact - (end - start)
 
-        result.append(Segment(start, end, startPadding, endPadding))
+        result.append(_Segment(start, end, startPadding, endPadding))
 
         start = end
 
     return result
 
 
-def exact_split_into_regions(
+def _exact_split_into_regions(
     w: int,
     h: int,
     exact_w: int,
@@ -101,8 +101,8 @@ def exact_split_into_regions(
     """
 
     # we can split x and y independently from each other and then combine the results
-    x_segments = exact_split_into_segments(w, exact_w, overlap)
-    y_segments = exact_split_into_segments(h, exact_h, overlap)
+    x_segments = _exact_split_into_segments(w, exact_w, overlap)
+    y_segments = _exact_split_into_segments(h, exact_h, overlap)
 
     logger.info(
         f"Image is split into {len(x_segments)}x{len(y_segments)} tiles each exactly {exact_w}x{exact_h}px."
@@ -120,10 +120,10 @@ def exact_split_into_regions(
     return result
 
 
-def exact_split_without_padding(
+def _exact_split_without_padding(
     img: np.ndarray,
-    exact_size: Tuple[int, int],
-    upscale: Callable[[np.ndarray], np.ndarray],
+    exact_size: Size,
+    upscale: Callable[[np.ndarray, Region], np.ndarray],
     overlap: int,
 ) -> np.ndarray:
     h, w, c = get_h_w_c(img)
@@ -131,18 +131,18 @@ def exact_split_without_padding(
     assert w >= exact_w and h >= exact_h
 
     if (w, h) == exact_size:
-        return upscale(img)
+        return upscale(img, Region(0, 0, w, h))
 
     # To allocate the result image, we need to know the upscale factor first,
     # and we only get to know this factor after the first successful upscale.
     result: Optional[np.ndarray] = None
     scale: int = 0
 
-    regions = exact_split_into_regions(w, h, exact_w, exact_h, overlap)
+    regions = _exact_split_into_regions(w, h, exact_w, exact_h, overlap)
     for tile, pad in regions:
         padded_tile = tile.add_padding(pad)
 
-        upscale_result = upscale(padded_tile.read_from(img))
+        upscale_result = upscale(padded_tile.read_from(img), padded_tile)
 
         # figure out by how much the image was upscaled by
         up_h, up_w, _ = get_h_w_c(upscale_result)
@@ -172,8 +172,8 @@ def exact_split_without_padding(
 
 def exact_split(
     img: np.ndarray,
-    exact_size: Tuple[int, int],
-    upscale: Callable[[np.ndarray], np.ndarray],
+    exact_size: Size,
+    upscale: Callable[[np.ndarray, Region], np.ndarray],
     overlap: int = 16,
 ) -> np.ndarray:
     """
@@ -183,10 +183,10 @@ def exact_split(
     """
 
     # ensure that the image is at least as large as the given size
-    img, base_padding = pad_image(img, exact_size)
+    img, base_padding = _pad_image(img, exact_size)
     h, w, _ = get_h_w_c(img)
 
-    result = exact_split_without_padding(img, exact_size, upscale, overlap)
+    result = _exact_split_without_padding(img, exact_size, upscale, overlap)
     scale = get_h_w_c(result)[0] // h
 
     if base_padding.empty:

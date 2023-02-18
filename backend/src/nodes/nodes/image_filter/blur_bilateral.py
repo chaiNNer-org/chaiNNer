@@ -3,12 +3,12 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:bilateral_blur")

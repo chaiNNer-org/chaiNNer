@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
-import uuid
 import time
+import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import (
     Any,
     Callable,
@@ -18,20 +18,18 @@ from typing import (
     TypeVar,
     Union,
 )
+
 import numpy as np
-
 from sanic.log import logger
-from progress import ProgressToken, Aborted, ProgressController
-from events import EventQueue, Event, InputsDict
+
 from base_types import NodeId, OutputId
-
-from chain.chain import Chain, Node, FunctionNode, IteratorNode, SubChain
-from chain.cache import OutputCache, CacheStrategy, get_cache_strategies
-from chain.input import InputMap, EdgeInput
-
-from nodes.node_base import NodeBase
+from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
+from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
+from chain.input import EdgeInput, InputMap
+from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-
+from nodes.node_base import NodeBase
+from progress import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
 

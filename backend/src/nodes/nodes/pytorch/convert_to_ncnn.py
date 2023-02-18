@@ -2,19 +2,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.architecture.Swin2SR import Swin2SR
+from ...impl.pytorch.architecture.SwinIR import SwinIR
+from ...impl.pytorch.types import PyTorchSRModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import SrModelInput, OnnxFpDropdown
+from ...properties.inputs import OnnxFpDropdown, SrModelInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...impl.pytorch.types import PyTorchSRModel
-from ...impl.pytorch.architecture.SwinIR import SwinIR
-from ...impl.pytorch.architecture.Swin2SR import Swin2SR
-
+from . import category as PyTorchCategory
 from .convert_to_onnx import ConvertTorchToONNXNode
 
 try:
-    from ..onnx.convert_to_ncnn import ConvertOnnxToNcnnNode, FP_MODE_32
+    from ..onnx.convert_to_ncnn import FP_MODE_32, ConvertOnnxToNcnnNode
 except:
     ConvertOnnxToNcnnNode = None
 

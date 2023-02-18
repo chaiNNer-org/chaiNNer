@@ -1,19 +1,18 @@
 import os
-import sys
+import platform
+import shutil
 import subprocess
+import sys
 import uuid
 from tempfile import mkdtemp
 from typing import List
-import shutil
-import platform
 
 import numpy as np
-
 from sanic.log import logger
 
-from .format import SRGB_FORMATS, DxgiFormat
-from ..image_utils import cv_save_image
 from ...utils.utils import split_file_path
+from ..image_utils import cv_save_image
+from .format import SRGB_FORMATS, DxgiFormat
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__), "texconv"  # type: ignore

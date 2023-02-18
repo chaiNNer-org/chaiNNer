@@ -3,13 +3,10 @@ from collections import deque
 
 import numpy as np
 
-from .color_distance import (
-    nearest_palette_color,
-    nearest_uniform_color,
-)
+from ..image_utils import as_3d
+from .color_distance import nearest_palette_color, nearest_uniform_color
 from .common import dtype_to_float, float_to_dtype
 from .hilbert import HilbertCurve
-from ..image_utils import as_3d
 
 
 def _next_power_of_two(x: int) -> int:

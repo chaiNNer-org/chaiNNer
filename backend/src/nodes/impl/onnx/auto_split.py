@@ -5,7 +5,7 @@ import gc
 import numpy as np
 import onnxruntime as ort
 
-from ..upscale.auto_split import auto_split, Tiler
+from ..upscale.auto_split import Tiler, auto_split
 from .np_tensor_utils import np2nptensor, nptensor2np
 
 
@@ -20,7 +20,7 @@ def onnx_auto_split(
 
     is_fp16_model = session.get_inputs()[0].type == "tensor(float16)"
 
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         try:
             lr_img = np2nptensor(img, change_range=False)
             lr_img = lr_img.astype(np.float16) if is_fp16_model else lr_img

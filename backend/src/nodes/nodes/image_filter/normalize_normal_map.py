@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.normals.util import gr_to_xyz, xyz_to_bgr
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:normalize_normal_map")

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.image_utils import FlipAxis
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, EnumInput
+from ...properties.inputs import EnumInput, ImageInput
 from ...properties.outputs import ImageOutput
-from ...impl.image_utils import FlipAxis
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:flip")

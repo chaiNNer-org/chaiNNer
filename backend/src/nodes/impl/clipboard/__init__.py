@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import numpy as np
 from sanic.log import logger
 

@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 from typing import Type
 
+import numpy as np
 import torch
 from torch import Tensor
-import numpy as np
 
 from ...utils.exec_options import ExecutionOptions
 from ..image_utils import as_3d
-from ..onnx.np_tensor_utils import np_denorm, MAX_VALUES_BY_DTYPE
+from ..onnx.np_tensor_utils import MAX_VALUES_BY_DTYPE, np_denorm
 
 
 def to_pytorch_execution_options(options: ExecutionOptions):

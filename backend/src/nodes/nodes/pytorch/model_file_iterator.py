@@ -4,16 +4,17 @@ import os
 from typing import List, Tuple
 
 from sanic.log import logger
+
 from process import IteratorContext
 
-from .load_model import LoadModelNode
-from . import category as PyTorchCategory
-from ...node_base import NodeBase, IteratorNodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import IteratorInput, DirectoryInput
-from ...properties.outputs import ModelOutput, DirectoryOutput, TextOutput, NumberOutput
 from ...impl.pytorch.types import PyTorchModel
+from ...node_base import IteratorNodeBase, NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import DirectoryInput, IteratorInput
+from ...properties.outputs import DirectoryOutput, ModelOutput, NumberOutput, TextOutput
 from ...utils.utils import list_all_files_sorted
+from . import category as PyTorchCategory
+from .load_model import LoadModelNode
 
 PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"
 

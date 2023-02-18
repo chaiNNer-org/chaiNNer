@@ -1,21 +1,22 @@
 from __future__ import annotations
+
 from enum import Enum
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.noise import (
+    NoiseColor,
+    gaussian_noise,
+    poisson_noise,
+    salt_and_pepper_noise,
+    speckle_noise,
+    uniform_noise,
+)
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, EnumInput, NumberInput
+from ...properties.inputs import EnumInput, ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...impl.noise import (
-    gaussian_noise,
-    uniform_noise,
-    salt_and_pepper_noise,
-    poisson_noise,
-    speckle_noise,
-    NoiseColor,
-)
+from . import category as ImageFilterCategory
 
 
 class NoiseType(Enum):

@@ -1,5 +1,6 @@
 import os
 from typing import TypedDict
+
 from sanic.log import logger
 
 

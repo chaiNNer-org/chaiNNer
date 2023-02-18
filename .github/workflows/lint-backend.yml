@@ -37,6 +37,8 @@ jobs:
                   pip install -r requirements.txt
             - name: Black
               run: black --check backend/
+            - name: isort
+              run: isort backend/ --check --profile=black --src=backend/src
     backend-lint:
         runs-on: ubuntu-latest
         steps:

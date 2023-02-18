@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
     STABLE_DIFFUSION_INTERROGATE_URL,
-    post,
     encode_base64_image,
+    post,
     verify_api_connection,
 )
 from ...node_base import NodeBase
@@ -14,6 +13,7 @@ from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import TextOutput
+from . import category as ExternalStableDiffusionCategory
 
 verify_api_connection()
 

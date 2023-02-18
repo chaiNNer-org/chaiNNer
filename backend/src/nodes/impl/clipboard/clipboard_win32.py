@@ -1,6 +1,7 @@
-from ctypes import wintypes
 import ctypes
 import sys
+from ctypes import wintypes
+
 import cv2
 import numpy as np
 

@@ -4,8 +4,8 @@ from typing import Tuple
 import numpy as np
 from PIL import Image
 
-from .image_utils import FillColor, convert_to_BGRA
 from ..utils.utils import get_h_w_c
+from .image_utils import FillColor, convert_to_BGRA
 
 
 class InterpolationMethod(Enum):

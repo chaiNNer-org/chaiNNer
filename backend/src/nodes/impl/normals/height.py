@@ -1,5 +1,7 @@
 from enum import Enum
+
 import numpy as np
+
 from ...utils.utils import get_h_w_c
 
 

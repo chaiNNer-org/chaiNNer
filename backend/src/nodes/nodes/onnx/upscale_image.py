@@ -10,9 +10,9 @@ from ...impl.onnx.auto_split import onnx_auto_split
 from ...impl.onnx.model import OnnxModel
 from ...impl.onnx.session import get_onnx_session
 from ...impl.onnx.utils import get_input_shape, get_output_shape
-from ...impl.upscale.auto_split import ExactTileSize
 from ...impl.upscale.auto_split_tiles import TileSize, parse_tile_size_input
 from ...impl.upscale.convenient_upscale import convenient_upscale
+from ...impl.upscale.tiler import ExactTileSize
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, OnnxGenericModelInput, TileSizeDropdown

@@ -5,14 +5,13 @@ from typing import List, Tuple
 
 import numpy as np
 import onnx
-
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from sanic.log import logger
 
 from ...impl.onnx.model import OnnxModel, load_onnx_model
-from ...impl.upscale.auto_split_tiles import NO_TILING
 from ...impl.onnx.utils import safely_optimize_onnx_model
+from ...impl.upscale.auto_split_tiles import NO_TILING
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, SliderInput

@@ -3,13 +3,11 @@ from __future__ import annotations
 from typing import Union
 
 from ...impl import clipboard
-
-from . import category as UtilityCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import *
+from . import category as UtilityCategory
 
 
 @NodeFactory.register("chainner:utility:copy_to_clipboard")

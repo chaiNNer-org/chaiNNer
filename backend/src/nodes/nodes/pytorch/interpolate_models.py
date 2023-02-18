@@ -3,18 +3,18 @@ from __future__ import annotations
 import gc
 from typing import Tuple
 
-import torch
 import numpy as np
+import torch
 from sanic.log import logger
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.model_loading import load_state_dict
+from ...impl.pytorch.types import PyTorchModel
+from ...impl.pytorch.utils import np2tensor, tensor2np
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, SliderInput
 from ...properties.outputs import ModelOutput, NumberOutput
-from ...impl.pytorch.types import PyTorchModel
-from ...impl.pytorch.model_loading import load_state_dict
-from ...impl.pytorch.utils import np2tensor, tensor2np
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:interpolate_models")
