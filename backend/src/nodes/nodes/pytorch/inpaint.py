@@ -37,7 +37,7 @@ class InpaintNode(NodeBase):
                     width="Input0.width & Input1.width",
                     height="Input0.height & Input1.height",
                 ),
-                channel=3,
+                channels=3,
             ).with_never_reason(
                 "The given image and mask must have the same resolution."
             )
