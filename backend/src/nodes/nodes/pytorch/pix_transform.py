@@ -20,7 +20,12 @@ from . import category as PyTorchCategory
 class PixTransformNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """TODO"""
+        self.description = (
+            "Trains a NN to convert the guide image into the source image."
+            " This is most useful for very small source images."
+            " Note that this operation is very expensive, because it needs to train a NN."
+            " Try a small number of iterations before going back to around 30k."
+        )
         self.inputs = [
             ImageInput("Source"),
             ImageInput("Guide"),
