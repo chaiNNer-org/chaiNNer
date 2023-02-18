@@ -9,6 +9,11 @@ import os
 import numpy as np
 from sanic.log import logger
 
+Size = Tuple[int, int]
+"""
+The width and height (in that order) of an image.
+"""
+
 NUMBERS = re.compile(r"(\d+)")
 
 ALPHABET = [*"ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
@@ -173,7 +178,7 @@ class Region:
     height: int
 
     @property
-    def size(self) -> Tuple[int, int]:
+    def size(self) -> Size:
         return self.width, self.height
 
     def scale(self, factor: int) -> Region:

@@ -18,7 +18,7 @@ from ...impl.upscale.auto_split_tiles import (
     parse_tile_size_input,
     TileSize,
 )
-from ...impl.upscale.auto_split import MaxTileSize
+from ...impl.upscale.tiler import MaxTileSize
 from ...impl.upscale.convenient_upscale import convenient_upscale
 from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...impl.pytorch.auto_split import pytorch_auto_split
