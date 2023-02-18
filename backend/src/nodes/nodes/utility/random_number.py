@@ -1,13 +1,13 @@
 from __future__ import annotations
-from typing import Union
-from random import Random
 
-from . import category as UtilityCategory
+from random import Random
+from typing import Union
 
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
-from ...properties.inputs import NumberInput, BaseInput
+from ...properties.inputs import BaseInput, NumberInput
 from ...properties.outputs import NumberOutput
+from . import category as UtilityCategory
 
 
 @NodeFactory.register("chainner:utility:random_number")

@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Literal, Union
 
 import os
+from typing import Literal, Union
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats

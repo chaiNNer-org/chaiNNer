@@ -5,11 +5,11 @@ import os
 import torch
 from sanic.log import logger
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.types import PyTorchModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput, DirectoryInput, TextInput
-from ...impl.pytorch.types import PyTorchModel
+from ...properties.inputs import DirectoryInput, ModelInput, TextInput
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:save_model")

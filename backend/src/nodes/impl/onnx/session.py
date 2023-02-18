@@ -1,6 +1,8 @@
 from __future__ import annotations
-import onnxruntime as ort
+
 from weakref import WeakKeyDictionary
+
+import onnxruntime as ort
 
 from ...utils.exec_options import ExecutionOptions
 from .model import OnnxModel

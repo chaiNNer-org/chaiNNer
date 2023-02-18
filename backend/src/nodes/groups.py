@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from typing import List, Tuple, Union
 
-from .properties.inputs.base_input import BaseInput
-from .node_base import NestedGroup
 from .group import Group, GroupId, GroupInfo
+from .node_base import NestedGroup
+from .properties.inputs.base_input import BaseInput
 
 InputValue = Union[int, str]
 

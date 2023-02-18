@@ -1,7 +1,6 @@
+from ...impl.pytorch.types import PyTorchModel
 from .. import expression
 from .base_output import BaseOutput, OutputKind
-
-from ...impl.pytorch.types import PyTorchModel
 
 
 class ModelOutput(BaseOutput):

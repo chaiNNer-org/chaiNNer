@@ -2,20 +2,20 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageFilterCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, EnumInput
-from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...impl.image_utils import NormalMapType
 from ...impl.normals.util import (
+    XYZ,
     gr_to_xyz,
     octahedral_gr_to_xyz,
     xyz_to_bgr,
     xyz_to_octahedral_bgr,
-    XYZ,
 )
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties import expression
+from ...properties.inputs import EnumInput, ImageInput
+from ...properties.outputs import ImageOutput
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:convert_normal_map")

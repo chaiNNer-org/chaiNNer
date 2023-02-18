@@ -6,8 +6,8 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from ..upscale.auto_split import auto_split, Split, Tiler
 from ...utils.utils import get_h_w_c
+from ..upscale.auto_split import Split, Tiler, auto_split
 
 
 def fix_dtype_range(img):

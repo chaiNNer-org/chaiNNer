@@ -10,10 +10,10 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from . import category as ImageCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
+from . import category as ImageCategory
 
 
 @NodeFactory.register("chainner:image:preview")

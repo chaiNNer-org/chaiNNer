@@ -1,14 +1,15 @@
 import cv2
 
-# pylint: disable=relative-beyond-top-level
-from ...impl.image_utils import BorderType
-from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
 from ...impl.color.convert_data import (
     color_spaces,
     color_spaces_or_detectors,
-    is_alpha_partner,
     get_alpha_partner,
+    is_alpha_partner,
 )
+
+# pylint: disable=relative-beyond-top-level
+from ...impl.image_utils import BorderType
+from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
 from ..expression import named
 from .generic_inputs import DropDownInput, EnumInput
 

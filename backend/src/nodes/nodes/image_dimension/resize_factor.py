@@ -3,14 +3,14 @@ from __future__ import annotations
 import numpy as np
 from sanic.log import logger
 
-from . import category as ImageDimensionCategory
+from ...impl.pil_utils import InterpolationMethod, resize
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, InterpolationInput
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.pil_utils import resize, InterpolationMethod
+from ...properties.inputs import ImageInput, InterpolationInput, NumberInput
+from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c, round_half_up
+from . import category as ImageDimensionCategory
 
 
 @NodeFactory.register("chainner:image:resize_factor")

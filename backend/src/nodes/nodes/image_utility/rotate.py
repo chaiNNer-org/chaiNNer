@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.pil_utils import (
+    FillColor,
+    RotateSizeChange,
+    RotationInterpolationMethod,
+    rotate,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
-    ImageInput,
-    SliderInput,
-    RotateInterpolationInput,
     EnumInput,
     FillColorDropdown,
+    ImageInput,
+    RotateInterpolationInput,
+    SliderInput,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import (
-    rotate,
-    RotateSizeChange,
-    FillColor,
-    RotationInterpolationMethod,
-)
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:rotate")

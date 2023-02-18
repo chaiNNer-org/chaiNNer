@@ -1,8 +1,9 @@
-from .util import sanity_check_image, trimap_split
-from .cf_laplacian import cf_laplacian
-from .ichol import ichol
-from .cg import cg
 import numpy as np
+
+from .cf_laplacian import cf_laplacian
+from .cg import cg
+from .ichol import ichol
+from .util import sanity_check_image, trimap_split
 
 
 def estimate_alpha_cf(  # pylint: disable=dangerous-default-value

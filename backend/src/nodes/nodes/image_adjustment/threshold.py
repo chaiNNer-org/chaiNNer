@@ -4,11 +4,11 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from . import category as ImageAdjustmentCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput, ThresholdInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageAdjustmentCategory
 
 
 @NodeFactory.register("chainner:image:threshold")

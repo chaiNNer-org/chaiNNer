@@ -1,6 +1,5 @@
 from typing import Dict, Literal, Set, Union, cast
 
-
 DxgiFormat = Literal[
     "UNKNOWN",
     "R32G32B32A32_TYPELESS",

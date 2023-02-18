@@ -1,12 +1,9 @@
 import numpy as np
 
-from .color_distance import (
-    nearest_palette_color,
-    nearest_uniform_color,
-)
-from .common import dtype_to_float, float_to_dtype
-from .constants import ErrorDiffusionMap, ERROR_DIFFUSION_MAPS
 from ..image_utils import as_3d
+from .color_distance import nearest_palette_color, nearest_uniform_color
+from .common import dtype_to_float, float_to_dtype
+from .constants import ERROR_DIFFUSION_MAPS, ErrorDiffusionMap
 
 
 def error_diffusion_dither(

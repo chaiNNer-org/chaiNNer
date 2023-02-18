@@ -1,42 +1,41 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
+import importlib
 import logging
+import os
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
 from typing import Any, Dict, List, Optional, TypedDict
-import importlib
-import os
 
 # pylint: disable-next=unused-import
 import cv2  # type: ignore
 from sanic import Sanic
-from sanic.log import logger, access_logger
+from sanic.log import access_logger, logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.node_factory import NodeFactory
-from nodes.utils.exec_options import (
-    set_execution_options,
-    parse_execution_options,
-    JsonExecutionOptions,
-)
-from nodes.nodes.builtin_categories import category_order
-from nodes.group import Group
-
 from base_types import NodeId, OutputId
 from chain.cache import OutputCache
-from chain.json import parse_json, JsonNode
+from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
+from nodes.group import Group
+from nodes.node_factory import NodeFactory
+from nodes.nodes.builtin_categories import category_order
+from nodes.utils.exec_options import (
+    JsonExecutionOptions,
+    parse_execution_options,
+    set_execution_options,
+)
 from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
 from progress import Aborted
 from response import (
-    errorResponse,
     alreadyRunningResponse,
+    errorResponse,
     noExecutorResponse,
     successResponse,
 )

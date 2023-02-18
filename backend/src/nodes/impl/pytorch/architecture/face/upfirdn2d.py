@@ -3,6 +3,7 @@
 # modify from https://github.com/rosinality/stylegan2-pytorch/blob/master/op/upfirdn2d.py  # noqa:E501
 
 import os
+
 import torch
 from torch.autograd import Function
 from torch.nn import functional as F

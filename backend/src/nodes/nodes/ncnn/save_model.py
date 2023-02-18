@@ -2,10 +2,10 @@ import os
 
 from sanic.log import logger
 
+from ...impl.ncnn.model import NcnnModelWrapper
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import DirectoryInput, NcnnModelInput, TextInput
-from ...impl.ncnn.model import NcnnModelWrapper
 from . import category as NCNNCategory
 
 

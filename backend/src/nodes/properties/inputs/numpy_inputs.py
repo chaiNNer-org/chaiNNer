@@ -1,10 +1,11 @@
 # pylint: disable=relative-beyond-top-level
 
 from typing import List, Optional, Union
-from ...impl.image_utils import normalize, get_h_w_c
+
+from ...impl.image_utils import get_h_w_c, normalize
 from ...utils.format import format_image_with_channels
-from .base_input import BaseInput
 from .. import expression
+from .base_input import BaseInput
 
 
 class AudioInput(BaseInput):

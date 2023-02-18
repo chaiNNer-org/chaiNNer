@@ -4,12 +4,12 @@ from typing import Tuple
 
 import numpy as np
 
+from ...impl.ncnn.model import NcnnModelWrapper
+from ...impl.upscale.auto_split_tiles import NO_TILING
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput, SliderInput
 from ...properties.outputs import NcnnModelOutput, NumberOutput
-from ...impl.upscale.auto_split_tiles import NO_TILING
-from ...impl.ncnn.model import NcnnModelWrapper
 from . import category as NCNNCategory
 from .upscale_image import NcnnUpscaleImageNode
 

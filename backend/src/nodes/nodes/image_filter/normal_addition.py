@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.normals.addition import AdditionMethod, add_normals
+from ...impl.normals.util import xyz_to_bgr
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, EnumInput
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.normals.addition import add_normals, AdditionMethod
-from ...impl.normals.util import xyz_to_bgr
+from ...properties.inputs import EnumInput, ImageInput, SliderInput
+from ...properties.outputs import ImageOutput
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:add_normals")

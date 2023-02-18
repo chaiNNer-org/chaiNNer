@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.types import PyTorchModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput
 from ...properties.outputs import NumberOutput
-from ...impl.pytorch.types import PyTorchModel
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:model_dim")

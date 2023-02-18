@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+
 import numpy as np
 
 from .clipboard_base import ClipboardBase

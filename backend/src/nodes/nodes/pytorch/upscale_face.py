@@ -1,27 +1,25 @@
 from __future__ import annotations
+
 import os
 from typing import Union
 
+import cv2
 import numpy as np
 import torch
-from sanic.log import logger
-import cv2
-
-from torchvision.transforms.functional import normalize as tv_normalize
-from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-
 from appdirs import user_data_dir
+from facexlib.utils.face_restoration_helper import FaceRestoreHelper
+from sanic.log import logger
+from torchvision.transforms.functional import normalize as tv_normalize
 
-from . import category as PyTorchCategory
+from ...impl.pytorch.types import PyTorchFaceModel
+from ...impl.pytorch.utils import np2tensor, tensor2np, to_pytorch_execution_options
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import FaceModelInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from ...utils.utils import get_h_w_c
-from ...impl.pytorch.utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.types import PyTorchFaceModel
-from ...impl.pytorch.utils import to_pytorch_execution_options
+from ...utils.utils import get_h_w_c
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
