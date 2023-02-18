@@ -114,7 +114,7 @@ def PixTransform(
 
     epochs = params["batch_size"] * params["iteration"] // (M * M)
     for _epoch in range(0, epochs):
-        for (x, y) in train_loader:
+        for x, y in train_loader:
             optimizer.zero_grad()
 
             y_pred = mynet(x)
