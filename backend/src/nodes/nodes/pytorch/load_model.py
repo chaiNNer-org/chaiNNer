@@ -23,7 +23,8 @@ from ...utils.utils import split_file_path
 class LoadModelNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
+        self.description = """Load PyTorch state dict (.pth) or TorchScript (.pt) file
+            into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
             Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT."""
