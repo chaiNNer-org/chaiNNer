@@ -3,7 +3,7 @@ import numpy as np
 from sanic.log import logger
 
 from ...utils.utils import get_h_w_c
-from .auto_split import Tiler, MaxTileSize, NoTiling
+from .tiler import Tiler, MaxTileSize, NoTiling
 
 
 def estimate_tile_size(

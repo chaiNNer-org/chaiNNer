@@ -22,7 +22,7 @@ def pytorch_auto_split(
     model = model.to(device)
     model = model.half() if use_fp16 else model.float()
 
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         img_tensor = np2tensor(img, change_range=True)
 
         d_img = None

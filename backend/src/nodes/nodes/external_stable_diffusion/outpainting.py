@@ -22,6 +22,7 @@ from ...impl.external_stable_diffusion import (
 )
 from ...groups import conditional_group
 from ...node_base import NodeBase, group
+from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     TextInput,
@@ -168,6 +169,7 @@ class Img2ImgOutpainting(NodeBase):
         self.icon = "MdChangeCircle"
         self.sub = "Automatic1111"
 
+    @cached
     def run(
         self,
         image: np.ndarray,
