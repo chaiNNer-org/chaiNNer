@@ -48,8 +48,12 @@ let PyTorchFaceModel = PyTorchModel {
     subType: "Face SR"
 };
 let PyTorchSRModel = PyTorchModel {
-    arch: invStrSet(PyTorchFaceModel.arch),
+    arch: invStrSet(PyTorchFaceModel.arch | PyTorchInpaintModel.arch),
     subType: "SR"
+};
+let PyTorchInpaintModel = PyTorchModel {
+    arch: "LaMa",
+    subType: "Inpaint"
 };
 
 struct NcnnBinFile { path: string }

@@ -11,7 +11,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
-from ...impl.upscale.auto_split import MaxTileSize
+from ...impl.upscale.tiler import MaxTileSize
 from ...impl.upscale.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,

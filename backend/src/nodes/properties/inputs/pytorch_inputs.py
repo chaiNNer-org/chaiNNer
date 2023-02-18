@@ -1,9 +1,11 @@
 try:
     import torch
+
     from ...impl.pytorch.types import (
-        is_pytorch_sr_model,
         is_pytorch_face_model,
+        is_pytorch_inpaint_model,
         is_pytorch_model,
+        is_pytorch_sr_model,
     )
 except:
     torch = None
@@ -64,6 +66,24 @@ class FaceModelInput(ModelInput):
             assert is_pytorch_face_model(
                 value
             ), "Expected a Face-specific Super-Resolution model."
+        return value
+
+
+class InpaintModelInput(ModelInput):
+    def __init__(
+        self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"
+    ):
+        super().__init__(
+            label,
+            intersect(input_type, "PyTorchInpaintModel"),
+        )
+
+    def enforce(self, value):
+        if torch is not None:
+            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
+            assert is_pytorch_inpaint_model(
+                value
+            ), "Expected an inpainting-specific model."
         return value
 
 
