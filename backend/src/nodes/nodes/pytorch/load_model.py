@@ -51,11 +51,18 @@ class LoadModelNode(NodeBase):
 
         try:
             logger.debug(f"Reading state dict from path: {path}")
-            state_dict = torch.load(
-                path,
-                map_location=torch.device(exec_options.full_device),
-                pickle_module=RestrictedUnpickle,  # type: ignore
-            )
+
+            if os.path.splitext(path)[1] == ".pt":
+                state_dict = torch.jit.load(  # type: ignore
+                    path, map_location=torch.device(exec_options.full_device)
+                ).state_dict()
+            else:
+                state_dict = torch.load(
+                    path,
+                    map_location=torch.device(exec_options.full_device),
+                    pickle_module=RestrictedUnpickle,  # type: ignore
+                )
+
             model = load_state_dict(state_dict)
 
             for _, v in model.named_parameters():
