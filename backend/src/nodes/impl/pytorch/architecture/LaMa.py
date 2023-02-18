@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 Model adapted from advimman's lama project: https://github.com/advimman/lama
 """
