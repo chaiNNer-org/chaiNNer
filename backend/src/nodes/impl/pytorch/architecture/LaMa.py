@@ -681,6 +681,6 @@ class LaMa(nn.Module):
 
     def forward(self, img, mask):
         masked_img = img * (1 - mask)
-        _0 = mask * self.model.forward(masked_img, mask)
-        _1 = _0 + (1 - mask) * img
-        return _1
+        inpainted_mask = mask * self.model.forward(masked_img, mask)
+        result = inpainted_mask + (1 - mask) * img
+        return result

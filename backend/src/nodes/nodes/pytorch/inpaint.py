@@ -71,7 +71,7 @@ class InpaintNode(NodeBase):
                 d_img = d_img.half() if use_fp16 else d_img.float()
 
                 d_mask = mask_tensor.to(device)
-                d_mask = (d_mask > 0) * 1
+                d_mask = (d_mask > 0.5) * 1
 
                 result = model(d_img, d_mask)
                 result = tensor2np(
