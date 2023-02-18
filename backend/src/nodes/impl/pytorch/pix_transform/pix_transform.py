@@ -31,8 +31,8 @@ DEFAULT_PARAMS: Params = {
 
 
 def PixTransform(
-    source_img,
-    guide_img,
+    source_img: np.ndarray,
+    guide_img: np.ndarray,
     device: torch.device,
     params: Params | None = None,
 ) -> np.ndarray:
