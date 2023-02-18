@@ -12,7 +12,7 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.transforms.functional import rotate, InterpolationMode
+from torchvision.transforms.functional import InterpolationMode, rotate
 
 
 class LearnableSpatialTransformWrapper(nn.Module):
@@ -40,7 +40,9 @@ class LearnableSpatialTransformWrapper(nn.Module):
         height, width = x.shape[2:]
         pad_h, pad_w = int(height * self.pad_coef), int(width * self.pad_coef)
         x_padded = F.pad(x, [pad_w, pad_w, pad_h, pad_h], mode="reflect")
-        x_padded_rotated = rotate(x_padded, self.angle.to(x_padded), InterpolationMode.BILINEAR, fill=0)
+        x_padded_rotated = rotate(
+            x_padded, self.angle.to(x_padded), InterpolationMode.BILINEAR, fill=0
+        )
 
         return x_padded_rotated
 
@@ -48,7 +50,12 @@ class LearnableSpatialTransformWrapper(nn.Module):
         height, width = orig_x.shape[2:]
         pad_h, pad_w = int(height * self.pad_coef), int(width * self.pad_coef)
 
-        y_padded = rotate(y_padded_rotated, -self.angle.to(y_padded_rotated), InterpolationMode.BILINEAR, fill=0)
+        y_padded = rotate(
+            y_padded_rotated,
+            -self.angle.to(y_padded_rotated),
+            InterpolationMode.BILINEAR,
+            fill=0,
+        )
         y_height, y_width = y_padded.shape[2:]
         y = y_padded[:, :, pad_h : y_height - pad_h, pad_w : y_width - pad_w]
         return y
@@ -250,7 +257,6 @@ class SpectralTransform(nn.Module):
         )
 
     def forward(self, x):
-
         x = self.downsample(x)
         x = self.conv1(x)
         output = self.fu(x)
@@ -667,7 +673,10 @@ class LaMa(nn.Module):
         self.scale = 1
 
         self.model = FFCResNetGenerator(self.in_nc, self.out_nc)
-        self.state = {k.replace("generator.model", "model.model"): v for k, v in state_dict.items()}
+        self.state = {
+            k.replace("generator.model", "model.model"): v
+            for k, v in state_dict.items()
+        }
         self.load_state_dict(self.state, strict=False)
 
     def forward(self, img, mask):

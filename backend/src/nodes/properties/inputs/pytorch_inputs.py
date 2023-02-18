@@ -68,8 +68,11 @@ class FaceModelInput(ModelInput):
             ), "Expected a Face-specific Super-Resolution model."
         return value
 
+
 class InpaintModelInput(ModelInput):
-    def __init__(self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"):
+    def __init__(
+        self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"
+    ):
         super().__init__(
             label,
             intersect(input_type, "PyTorchInpaintModel"),

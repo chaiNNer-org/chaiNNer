@@ -72,7 +72,7 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # LaMa
     elif (
         "model.model.1.bn_l.running_mean" in state_dict_keys
-        or 'generator.model.1.bn_l.running_mean' in state_dict_keys
+        or "generator.model.1.bn_l.running_mean" in state_dict_keys
     ):
         model = LaMa(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1

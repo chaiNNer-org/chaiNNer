@@ -35,8 +35,10 @@ PyTorchFaceModel = Union[GFPGANv1Clean, RestoreFormer, CodeFormer]
 def is_pytorch_face_model(model: object):
     return isinstance(model, PyTorchFaceModels)
 
+
 PyTorchInpaintModels = (LaMa,)
 PyTorchInpaintModel = LaMa
+
 
 def is_pytorch_inpaint_model(model: object):
     return isinstance(model, PyTorchInpaintModels)

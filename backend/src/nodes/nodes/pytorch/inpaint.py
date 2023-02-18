@@ -47,7 +47,8 @@ class InpaintNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Processing"
 
-    def inpaint(self,
+    def inpaint(
+        self,
         img: np.ndarray,
         mask: np.ndarray,
         model: PyTorchInpaintModel,
@@ -100,7 +101,6 @@ class InpaintNode(NodeBase):
                 torch.cuda.empty_cache()
 
                 raise
-
 
     def run(
         self,
