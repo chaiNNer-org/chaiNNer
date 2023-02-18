@@ -14,68 +14,6 @@ import torch.nn.functional as F
 from torchvision.transforms.functional import rotate, InterpolationMode
 
 
-class DepthWiseSeperableConv(nn.Module):
-    def __init__(self, in_dim, out_dim, *args, **kwargs):
-        super().__init__()
-        if "groups" in kwargs:
-            # ignoring groups for Depthwise Sep Conv
-            del kwargs["groups"]
-
-        self.depthwise = nn.Conv2d(in_dim, in_dim, *args, groups=in_dim, **kwargs)
-        self.pointwise = nn.Conv2d(in_dim, out_dim, kernel_size=1)
-
-    def forward(self, x):
-        out = self.depthwise(x)
-        out = self.pointwise(out)
-        return out
-
-
-class SimpleMultiStepGenerator(nn.Module):
-    def __init__(self, steps: List[nn.Module]):
-        super().__init__()
-        self.steps = nn.ModuleList(steps)
-
-    def forward(self, x):
-        cur_in = x
-        outs = []
-        for step in self.steps:
-            cur_out = step(cur_in)
-            outs.append(cur_out)
-            cur_in = torch.cat((cur_in, cur_out), dim=1)
-        return torch.cat(outs[::-1], dim=1)
-
-
-def deconv_factory(kind, ngf, mult, norm_layer, activation, max_features):
-    if kind == "convtranspose":
-        return [
-            nn.ConvTranspose2d(
-                min(max_features, ngf * mult),
-                min(max_features, int(ngf * mult / 2)),
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                output_padding=1,
-            ),
-            norm_layer(min(max_features, int(ngf * mult / 2))),
-            activation,
-        ]
-    elif kind == "bilinear":
-        return [
-            nn.Upsample(scale_factor=2, mode="bilinear"),
-            DepthWiseSeperableConv(
-                min(max_features, ngf * mult),
-                min(max_features, int(ngf * mult / 2)),
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            ),
-            norm_layer(min(max_features, int(ngf * mult / 2))),
-            activation,
-        ]
-    else:
-        raise Exception(f"Invalid deconv kind: {kind}")
-
-
 class LearnableSpatialTransformWrapper(nn.Module):
     def __init__(self, impl, pad_coef=0.5, angle_init_range=80, train_angle=True):
         super().__init__()
@@ -132,41 +70,6 @@ class SELayer(nn.Module):
         y = self.fc(y).view(b, c, 1, 1)
         res = x * y.expand_as(x)
         return res
-
-
-class FFCSE_block(nn.Module):
-    def __init__(self, channels, ratio_g):
-        super(FFCSE_block, self).__init__()
-        in_cg = int(channels * ratio_g)
-        in_cl = channels - in_cg
-        r = 16
-
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.conv1 = nn.Conv2d(channels, channels // r, kernel_size=1, bias=True)
-        self.relu1 = nn.ReLU(inplace=True)
-        self.conv_a2l = (
-            None
-            if in_cl == 0
-            else nn.Conv2d(channels // r, in_cl, kernel_size=1, bias=True)
-        )
-        self.conv_a2g = (
-            None
-            if in_cg == 0
-            else nn.Conv2d(channels // r, in_cg, kernel_size=1, bias=True)
-        )
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        x = x if type(x) is tuple else (x, 0)
-        id_l, id_g = x
-
-        x = id_l if type(id_g) is int else torch.cat([id_l, id_g], dim=1)
-        x = self.avgpool(x)
-        x = self.relu1(self.conv1(x))
-
-        x_l = 0 if self.conv_a2l is None else id_l * self.sigmoid(self.conv_a2l(x))
-        x_g = 0 if self.conv_a2g is None else id_g * self.sigmoid(self.conv_a2g(x))
-        return x_l, x_g
 
 
 class FourierUnit(nn.Module):
@@ -229,7 +132,6 @@ class FourierUnit(nn.Module):
                 align_corners=False,
             )
 
-        r_size = x.size()
         # (batch, c, h, w/2+1, 2)
         fft_dim = (-3, -2, -1) if self.ffc3d else (-2, -1)
         if half_check == True:
@@ -338,7 +240,7 @@ class SpectralTransform(nn.Module):
             nn.BatchNorm2d(out_channels // 2),
             nn.ReLU(inplace=True),
         )
-        fu_class = SeparableFourierUnit if separable_fu else FourierUnit
+        fu_class = FourierUnit
         self.fu = fu_class(out_channels // 2, out_channels // 2, groups, **fu_kwargs)
         if self.enable_lfu:
             self.lfu = fu_class(out_channels // 2, out_channels // 2, groups)
@@ -353,7 +255,7 @@ class SpectralTransform(nn.Module):
         output = self.fu(x)
 
         if self.enable_lfu:
-            n, c, h, w = x.shape
+            _, c, h, _ = x.shape
             split_no = 2
             split_s = h // split_no
             xs = torch.cat(
