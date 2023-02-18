@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.image_utils import BorderType, create_border
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, BorderInput, NumberInput
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...impl.image_utils import create_border, BorderType
+from ...properties.inputs import BorderInput, ImageInput, NumberInput
+from ...properties.outputs import ImageOutput
 from ...utils.utils import Padding
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:create_edges")

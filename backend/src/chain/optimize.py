@@ -1,5 +1,6 @@
 from sanic.log import logger
-from .chain import Chain, IteratorNode, Node, EdgeSource
+
+from .chain import Chain, EdgeSource, IteratorNode, Node
 
 
 def __has_side_effects(node: Node) -> bool:

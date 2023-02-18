@@ -1,4 +1,5 @@
 from typing import Callable, Dict, Iterable, Tuple
+
 import numpy as np
 
 from ...utils.format import format_image_with_channels

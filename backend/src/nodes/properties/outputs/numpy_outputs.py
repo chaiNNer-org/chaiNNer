@@ -1,13 +1,14 @@
 import base64
 from typing import Optional, Tuple
-import numpy as np
-import cv2
 
-from ...utils.utils import get_h_w_c
+import cv2
+import numpy as np
+
+from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
-from ...impl.pil_utils import resize, InterpolationMethod
-from .base_output import BaseOutput, OutputKind
+from ...utils.utils import get_h_w_c
 from .. import expression
+from .base_output import BaseOutput, OutputKind
 
 
 class NumPyOutput(BaseOutput):

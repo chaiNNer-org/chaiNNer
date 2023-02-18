@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import Union
 
-from . import category as UtilityCategory
-
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput
 from ...utils.replacement import ReplacementString
+from . import category as UtilityCategory
 
 
 @NodeFactory.register("chainner:utility:text_pattern")

@@ -3,11 +3,11 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, NoteTextAreaInput
+from ...properties.inputs import ImageInput, NoteTextAreaInput, NumberInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:image_convolve")

@@ -2,7 +2,7 @@ from typing import Tuple, Type
 
 import numpy as np
 
-from ..image_utils import as_3d, MAX_VALUES_BY_DTYPE
+from ..image_utils import MAX_VALUES_BY_DTYPE, as_3d
 
 
 def np_denorm(x: np.ndarray, min_max: Tuple[float, float] = (-1.0, 1.0)) -> np.ndarray:

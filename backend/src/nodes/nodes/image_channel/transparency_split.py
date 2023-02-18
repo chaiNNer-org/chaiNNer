@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 from typing import Tuple
 
 import numpy as np
 
-from . import category as ImageChannelCategory
+from ...impl.image_utils import as_target_channels
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.image_utils import as_target_channels
+from . import category as ImageChannelCategory
 
 
 @NodeFactory.register("chainner:image:split_transparency")

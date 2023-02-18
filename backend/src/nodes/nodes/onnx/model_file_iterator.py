@@ -3,21 +3,22 @@ from __future__ import annotations
 import os
 
 from sanic.log import logger
+
 from process import IteratorContext
 
-from .load_model import OnnxLoadModelNode
-from . import category as OnnxCategory
-from ...node_base import NodeBase, IteratorNodeBase
+from ...impl.onnx.model import OnnxModel
+from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import (
-    OnnxModelOutput,
     DirectoryOutput,
-    TextOutput,
     NumberOutput,
+    OnnxModelOutput,
+    TextOutput,
 )
-from ...impl.onnx.model import OnnxModel
 from ...utils.utils import list_all_files_sorted
+from . import category as OnnxCategory
+from .load_model import OnnxLoadModelNode
 
 ONNX_ITERATOR_NODE_ID = "chainner:onnx:model_iterator_load"
 

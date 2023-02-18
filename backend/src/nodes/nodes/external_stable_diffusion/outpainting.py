@@ -6,34 +6,34 @@ from typing import Optional
 
 import numpy as np
 
-from . import category as ExternalStableDiffusionCategory
+from ...groups import conditional_group
 from ...impl.external_stable_diffusion import (
-    decode_base64_image,
-    SamplerName,
+    RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_IMG2IMG_URL,
-    post,
+    InpaintingFill,
+    ResizeMode,
+    SamplerName,
+    decode_base64_image,
     encode_base64_image,
     nearest_valid_size,
-    ResizeMode,
-    RESIZE_MODE_LABELS,
-    InpaintingFill,
+    post,
     verify_api_connection,
 )
-from ...groups import conditional_group
 from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
-    TextInput,
-    NumberInput,
-    SliderInput,
+    BoolInput,
     EnumInput,
     ImageInput,
-    BoolInput,
+    NumberInput,
+    SliderInput,
+    TextInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+from . import category as ExternalStableDiffusionCategory
 
 verify_api_connection()
 

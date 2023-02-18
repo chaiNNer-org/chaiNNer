@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import math
+
 import cv2
 import numpy as np
 
-from .blend import BlendMode, blend_images
 from ..utils.utils import get_h_w_c
+from .blend import BlendMode, blend_images
 
 
 class ImageAverage:

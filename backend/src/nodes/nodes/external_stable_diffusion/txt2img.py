@@ -4,27 +4,22 @@ from typing import Optional
 
 import numpy as np
 
-from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
-    decode_base64_image,
-    SamplerName,
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_TEXT2IMG_URL,
-    post,
+    SamplerName,
+    decode_base64_image,
     nearest_valid_size,
+    post,
     verify_api_connection,
 )
 from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    TextInput,
-    NumberInput,
-    SliderInput,
-    EnumInput,
-)
+from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+from . import category as ExternalStableDiffusionCategory
 
 verify_api_connection()
 

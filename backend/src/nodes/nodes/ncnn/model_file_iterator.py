@@ -3,21 +3,22 @@ from __future__ import annotations
 import os
 
 from sanic.log import logger
+
 from process import IteratorContext
 
-from .load_model import NcnnLoadModelNode
-from . import category as NcnnCategory
-from ...node_base import NodeBase, IteratorNodeBase
+from ...impl.ncnn.model import NcnnModelWrapper
+from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import (
-    NcnnModelOutput,
     DirectoryOutput,
-    TextOutput,
+    NcnnModelOutput,
     NumberOutput,
+    TextOutput,
 )
-from ...impl.ncnn.model import NcnnModelWrapper
 from ...utils.utils import list_all_files_sorted
+from . import category as NcnnCategory
+from .load_model import NcnnLoadModelNode
 
 NCNN_ITERATOR_NODE_ID = "chainner:ncnn:model_iterator_load"
 

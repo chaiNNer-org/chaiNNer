@@ -1,15 +1,7 @@
 import asyncio
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    TypedDict,
-    Union,
-)
+from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
-from base_types import NodeId, InputId, OutputId
+from base_types import InputId, NodeId, OutputId
 
 
 class FinishData(TypedDict):

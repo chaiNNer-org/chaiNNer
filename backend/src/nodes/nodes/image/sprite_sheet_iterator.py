@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
+
 from process import IteratorContext
 
-from . import category as ImageCategory
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import IteratorInput, ImageInput, NumberInput
+from ...properties.inputs import ImageInput, IteratorInput, NumberInput
 from ...properties.outputs import ImageOutput, NumberOutput
 from ...utils.utils import get_h_w_c
+from . import category as ImageCategory
 
 SPRITESHEET_ITERATOR_INPUT_NODE_ID = "chainner:image:spritesheet_iterator_load"
 SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"

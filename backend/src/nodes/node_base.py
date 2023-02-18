@@ -4,11 +4,9 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from base_types import InputId, OutputId
 
 from .category import Category
-from .group import Group, GroupInfo, GroupId
-
+from .group import Group, GroupId, GroupInfo
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
-
 
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 

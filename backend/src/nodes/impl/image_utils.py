@@ -1,13 +1,14 @@
-import cv2
-import numpy as np
 import os
 import random
 import string
 from enum import Enum
-from sanic.log import logger
 from typing import List
 
-from ..utils.utils import get_h_w_c, Padding, split_file_path
+import cv2
+import numpy as np
+from sanic.log import logger
+
+from ..utils.utils import Padding, get_h_w_c, split_file_path
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,

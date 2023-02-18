@@ -1,17 +1,18 @@
 from __future__ import annotations
-from typing import Tuple
+
 import math
+from typing import Tuple
 
-import numpy as np
 import cv2
+import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.image_utils import calculate_ssim
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import NumberOutput
-from ...impl.image_utils import calculate_ssim
 from ...utils.utils import get_h_w_c
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:image_metrics")

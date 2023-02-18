@@ -1,10 +1,10 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
+import os
+import re
 from dataclasses import dataclass
 from typing import List, Tuple, Union
-import re
-import os
 
 import numpy as np
 from sanic.log import logger

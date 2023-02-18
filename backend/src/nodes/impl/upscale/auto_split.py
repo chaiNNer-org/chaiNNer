@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import Callable, Optional, Union
+
 import math
+from typing import Callable, Optional, Union
 
 import numpy as np
 from sanic.log import logger
 
-from ...utils.utils import get_h_w_c, Region, Size
+from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split
 from .tiler import Tiler
 

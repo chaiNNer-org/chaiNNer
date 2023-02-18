@@ -2,10 +2,12 @@
 # type: ignore
 import math
 import random
+
 import torch
-from .fused_act import FusedLeakyReLU, fused_leaky_relu
 from torch import nn
 from torch.nn import functional as F
+
+from .fused_act import FusedLeakyReLU, fused_leaky_relu
 
 
 class NormStyleCode(nn.Module):

@@ -5,7 +5,7 @@ import gc
 import numpy as np
 import onnxruntime as ort
 
-from ..upscale.auto_split import auto_split, Tiler
+from ..upscale.auto_split import Tiler, auto_split
 from .np_tensor_utils import np2nptensor, nptensor2np
 
 

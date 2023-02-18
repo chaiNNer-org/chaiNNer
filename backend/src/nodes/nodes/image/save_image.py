@@ -1,40 +1,40 @@
 from __future__ import annotations
-from enum import Enum
 
 import os
+from enum import Enum
+
 import cv2
 import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from . import category as ImageCategory
 from ...groups import conditional_group
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    SUPPORTED_DDS_FORMATS,
-    ImageInput,
-    DirectoryInput,
-    TextInput,
-    ImageExtensionDropdown,
-    SliderInput,
-    DdsFormatDropdown,
-    BoolInput,
-    EnumInput,
-    DdsMipMapsDropdown,
-)
-from ...utils.utils import get_h_w_c
-from ...impl.image_utils import cv_save_image
 from ...impl.dds.format import (
-    BC123_FORMATS,
     BC7_FORMATS,
+    BC123_FORMATS,
     LEGACY_TO_DXGI,
     WITH_ALPHA,
     DDSFormat,
     to_dxgi,
 )
 from ...impl.dds.texconv import save_as_dds
-
+from ...impl.image_utils import cv_save_image
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
+    SUPPORTED_DDS_FORMATS,
+    BoolInput,
+    DdsFormatDropdown,
+    DdsMipMapsDropdown,
+    DirectoryInput,
+    EnumInput,
+    ImageExtensionDropdown,
+    ImageInput,
+    SliderInput,
+    TextInput,
+)
+from ...utils.utils import get_h_w_c
+from . import category as ImageCategory
 
 SUPPORTED_FORMATS = {f for f, _ in SUPPORTED_DDS_FORMATS}
 SUPPORTED_BC7_FORMATS = list(SUPPORTED_FORMATS.intersection(BC7_FORMATS))

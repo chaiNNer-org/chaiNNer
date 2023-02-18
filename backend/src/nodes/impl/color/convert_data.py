@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import Dict, List
+
 import math
-import numpy as np
+from typing import Dict, List
+
 import cv2
+import numpy as np
 
-from .convert_model import ColorSpace, ColorSpaceDetector, Conversion
 from ...utils.utils import get_h_w_c
-
+from .convert_model import ColorSpace, ColorSpaceDetector, Conversion
 
 GRAY = ColorSpace(0, "Gray", 1)
 RGB = ColorSpace(1, "RGB", 3)

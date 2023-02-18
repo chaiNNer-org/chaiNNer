@@ -5,12 +5,12 @@
 # -----------------------------------------------------------------------------------
 
 import math
+import re
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-import re
-import math
 
 # Originally from the timm package
 from .timm.drop import DropPath

@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from typing import Literal
+
 from base_types import InputId
+
 from .. import expression
 
 InputKind = Literal[
