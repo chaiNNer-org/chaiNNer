@@ -76,17 +76,17 @@ def PixTransform(
     # guide_patches is M^2 x C x D x D
     # source_pixels is M^2 x 1
 
-    guide_img = torch.from_numpy(guide_img).float().to(device)
-    source_img = torch.from_numpy(source_img).float().to(device)
+    guide_tensor = torch.from_numpy(guide_img).float().to(device)
+    source_tensor = torch.from_numpy(source_img).float().to(device)
 
-    guide_patches = torch.zeros((M * M, guide_img.shape[0], D, D)).to(device)
+    guide_patches = torch.zeros((M * M, guide_tensor.shape[0], D, D)).to(device)
     source_pixels = torch.zeros((M * M, 1)).to(device)
     for i in range(0, M):
         for j in range(0, M):
-            guide_patches[j + i * M, :, :, :] = guide_img[
+            guide_patches[j + i * M, :, :, :] = guide_tensor[
                 :, i * D : (i + 1) * D, j * D : (j + 1) * D
             ]
-            source_pixels[j + i * M] = source_img[i : (i + 1), j : (j + 1)]
+            source_pixels[j + i * M] = source_tensor[i : (i + 1), j : (j + 1)]
 
     train_data = torch.utils.data.TensorDataset(guide_patches, source_pixels)
     train_loader = torch.utils.data.DataLoader(
@@ -97,7 +97,7 @@ def PixTransform(
     #### setup network ############################################################################
     mynet = (
         PixTransformNet(
-            channels_in=guide_img.shape[0],
+            channels_in=guide_tensor.shape[0],
             weights_regularizer=params["weights_regularizer"],
         )
         .train()
@@ -127,7 +127,7 @@ def PixTransform(
 
     # compute final prediction, un-normalize, and back to numpy
     mynet.eval()
-    predicted_target_img = mynet(guide_img.unsqueeze(0)).squeeze()
+    predicted_target_img = mynet(guide_tensor.unsqueeze(0)).squeeze()
     predicted_target_img = source_img_mean + source_img_std * predicted_target_img
     predicted_target_img = predicted_target_img.cpu().detach().squeeze().numpy()
 
