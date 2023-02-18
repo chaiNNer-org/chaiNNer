@@ -3,6 +3,8 @@
 		"ms-python.vscode-pylance",
 		"streetsidesoftware.code-spell-checker",
 		"dbaeumer.vscode-eslint",
-		"ms-python.pylint"
+		"ms-python.pylint",
+		"ms-python.black-formatter",
+		"ms-python.isort"
 	]
 }
