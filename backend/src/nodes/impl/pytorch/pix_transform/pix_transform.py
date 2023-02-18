@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Literal, Tuple, TypedDict
-import numpy as np
 
+from typing import Literal, Tuple, TypedDict
+
+import numpy as np
 import torch
 import torch.optim as optim
 import torch.utils.data

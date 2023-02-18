@@ -1,8 +1,7 @@
 from typing import Callable
-from typing_extensions import ParamSpec, Concatenate
 
 import numpy as np
-
+from typing_extensions import Concatenate, ParamSpec
 
 ImageOp = Callable[[np.ndarray], np.ndarray]
 """
