@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, List
 import math
 from dataclasses import dataclass
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 from sanic.log import logger
 
-from ...utils.utils import get_h_w_c, Region, Padding, Size
-from ..image_utils import create_border, BorderType
+from ...utils.utils import Padding, Region, Size, get_h_w_c
+from ..image_utils import BorderType, create_border
 
 
 def _pad_image(img: np.ndarray, min_size: Size):

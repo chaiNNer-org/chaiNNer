@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageDimensionCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...utils.utils import get_h_w_c
+from . import category as ImageDimensionCategory
 
 
 @NodeFactory.register("chainner:image:crop_edges")

@@ -4,17 +4,17 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...groups import conditional_group
 from ...impl.dithering.color_distance import batch_nearest_palette_color
-from ...impl.dithering.constants import ErrorDiffusionMap, ERROR_PROPAGATION_MAP_LABELS
+from ...impl.dithering.constants import ERROR_PROPAGATION_MAP_LABELS, ErrorDiffusionMap
 from ...impl.dithering.diffusion import palette_error_diffusion_dither
 from ...impl.dithering.riemersma import palette_riemersma_dither
-from ...groups import conditional_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
-from ...properties.inputs import ImageInput, EnumInput, NumberInput
+from ...properties.inputs import EnumInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageFilterCategory
 
 
 class PaletteDitherAlgorithm(Enum):

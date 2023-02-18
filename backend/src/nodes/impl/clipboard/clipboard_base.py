@@ -1,8 +1,8 @@
-from typing import Tuple
 from abc import ABC, abstractmethod
+from typing import Tuple
 
-import numpy as np
 import cv2
+import numpy as np
 
 
 class ClipboardBase(ABC):

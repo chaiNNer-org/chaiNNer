@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from .common import dtype_to_float
 from ..image_utils import as_3d
+from .common import dtype_to_float
 
 
 def distinct_colors_palette(image: np.ndarray) -> np.ndarray:

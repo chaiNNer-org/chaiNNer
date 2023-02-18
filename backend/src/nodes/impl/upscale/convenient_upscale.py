@@ -2,9 +2,9 @@ from typing import Tuple
 
 import numpy as np
 
+from ...utils.utils import get_h_w_c
 from ..image_op import ImageOp, clipped
 from ..image_utils import as_target_channels
-from ...utils.utils import get_h_w_c
 
 
 def with_black_and_white_backgrounds(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

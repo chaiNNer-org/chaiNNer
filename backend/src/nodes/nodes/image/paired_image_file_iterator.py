@@ -1,25 +1,21 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
-from process import IteratorContext
 from sanic.log import logger
 
-from . import category as ImageCategory
-from ..image.load_image import ImReadNode
+from process import IteratorContext
+
+from ...impl.image_formats import get_available_image_formats
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import IteratorInput, DirectoryInput
-from ...properties.outputs import (
-    ImageOutput,
-    DirectoryOutput,
-    TextOutput,
-    NumberOutput,
-)
-from ...impl.image_formats import get_available_image_formats
+from ...properties.inputs import DirectoryInput, IteratorInput
+from ...properties.outputs import DirectoryOutput, ImageOutput, NumberOutput, TextOutput
 from ...utils.utils import list_all_files_sorted
+from ..image.load_image import ImReadNode
+from . import category as ImageCategory
 
 PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 

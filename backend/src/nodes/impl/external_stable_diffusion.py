@@ -11,8 +11,8 @@ import numpy as np
 import requests
 from PIL import Image
 
-from .image_utils import normalize
 from ..utils.utils import get_h_w_c
+from .image_utils import normalize
 
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")

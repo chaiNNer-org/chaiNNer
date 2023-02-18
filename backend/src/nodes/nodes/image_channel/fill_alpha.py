@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 from enum import Enum
 
 import numpy as np
 
-from . import category as ImageChannelCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, EnumInput
-from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...impl.fill_alpha import (
     convert_to_binary_alpha,
-    fill_alpha_fragment_blur,
     fill_alpha_edge_extend,
+    fill_alpha_fragment_blur,
 )
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties import expression
+from ...properties.inputs import EnumInput, ImageInput
+from ...properties.outputs import ImageOutput
+from . import category as ImageChannelCategory
 
 
 class AlphaFillMethod(Enum):

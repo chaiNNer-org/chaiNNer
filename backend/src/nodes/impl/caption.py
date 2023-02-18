@@ -1,6 +1,6 @@
-from enum import Enum
 import os
 import sys
+from enum import Enum
 
 import cv2
 import numpy as np

@@ -1,33 +1,34 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
 import os
-from typing import Tuple
+from dataclasses import dataclass
 from subprocess import Popen
+from typing import Tuple
 
-import numpy as np
 import cv2
-from process import IteratorContext
-from sanic.log import logger
 import ffmpeg
+import numpy as np
+from sanic.log import logger
 
-from . import category as ImageCategory
+from process import IteratorContext
+
+from ...impl.image_utils import normalize
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
-    IteratorInput,
-    ImageInput,
+    BoolInput,
     DirectoryInput,
+    ImageInput,
+    IteratorInput,
+    SliderInput,
     TextInput,
-    VideoTypeDropdown,
     VideoFileInput,
     VideoPresetDropdown,
-    SliderInput,
-    BoolInput,
+    VideoTypeDropdown,
 )
-from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
-from ...impl.image_utils import normalize
+from ...properties.outputs import DirectoryOutput, ImageOutput, NumberOutput, TextOutput
 from ...utils.utils import get_h_w_c, split_file_path
+from . import category as ImageCategory
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"

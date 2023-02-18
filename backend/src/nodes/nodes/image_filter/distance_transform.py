@@ -3,13 +3,13 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from . import category as ImageFilterCategory
 from ...impl.dithering.common import dtype_to_uint8
 from ...impl.image_utils import as_3d
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:distance_transform")

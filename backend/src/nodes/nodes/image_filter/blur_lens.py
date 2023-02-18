@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import cv2
 import math
-from typing import Dict, List, Literal, Tuple
 from functools import reduce
+from typing import Dict, List, Literal, Tuple
+
+import cv2
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.image_utils import as_3d
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...impl.image_utils import as_3d
+from . import category as ImageFilterCategory
 
 # Lens blur adapted from GIMP Lens Blur
 # Copyright (c) 2019 Davide Sandona'

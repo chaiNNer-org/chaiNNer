@@ -4,24 +4,19 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
 from ...impl.gradients import (
-    horizontal_gradient,
-    vertical_gradient,
-    diagonal_gradient,
-    radial_gradient,
     conic_gradient,
+    diagonal_gradient,
+    horizontal_gradient,
+    radial_gradient,
+    vertical_gradient,
 )
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties import expression
-from ...properties.inputs import (
-    NumberInput,
-    EnumInput,
-    SliderInput,
-    BoolInput,
-)
+from ...properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageUtilityCategory
 
 
 class GradientStyle(Enum):

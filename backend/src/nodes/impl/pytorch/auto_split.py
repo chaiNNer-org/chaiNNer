@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import gc
 
-import torch
 import numpy as np
+import torch
 
+from ..upscale.auto_split import Split, Tiler, auto_split
 from .types import PyTorchModel
-
-from ..upscale.auto_split import auto_split, Split, Tiler
-from .utils import tensor2np, np2tensor
+from .utils import np2tensor, tensor2np
 
 
 @torch.inference_mode()

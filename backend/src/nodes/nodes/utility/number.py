@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from . import category as UtilityCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NumberInput
 from ...properties.outputs import NumberOutput
+from . import category as UtilityCategory
 
 
 @NodeFactory.register("chainner:utility:number")

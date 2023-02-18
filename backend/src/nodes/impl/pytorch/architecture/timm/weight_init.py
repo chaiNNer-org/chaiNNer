@@ -1,8 +1,7 @@
 import math
 import warnings
+
 import torch
-
-
 from torch.nn.init import _calculate_fan_in_and_fan_out
 
 

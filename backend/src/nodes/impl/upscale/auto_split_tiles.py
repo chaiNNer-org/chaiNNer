@@ -1,9 +1,10 @@
 from typing import Callable, NewType
+
 import numpy as np
 from sanic.log import logger
 
 from ...utils.utils import get_h_w_c
-from .tiler import Tiler, MaxTileSize, NoTiling
+from .tiler import MaxTileSize, NoTiling, Tiler
 
 
 def estimate_tile_size(

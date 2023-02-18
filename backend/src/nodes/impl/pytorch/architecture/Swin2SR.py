@@ -6,12 +6,13 @@
 # -----------------------------------------------------------------------------------
 
 import math
+import re
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-import re
 
 # Originally from the timm package
 from .timm.drop import DropPath
