@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import List, Tuple
 
 from sanic.log import logger
 from process import IteratorContext
@@ -9,8 +10,8 @@ from .load_model import LoadModelNode
 from . import category as PyTorchCategory
 from ...node_base import NodeBase, IteratorNodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import *
-from ...properties.outputs import *
+from ...properties.inputs import IteratorInput, DirectoryInput
+from ...properties.outputs import ModelOutput, DirectoryOutput, TextOutput, NumberOutput
 from ...impl.pytorch.types import PyTorchModel
 from ...utils.utils import list_all_files_sorted
 
