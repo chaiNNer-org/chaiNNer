@@ -8,7 +8,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageFilterCategory
+from . import category
 
 
 @NodeFactory.register("chainner:image:normalize_normal_map")
@@ -27,7 +27,7 @@ class NormalizeNode(NodeBase):
                 channels=3,
             ),
         ]
-        self.category = ImageFilterCategory
+        self.category = category
         self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"

@@ -15,7 +15,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import EnumInput, ImageInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageFilterCategory
+from . import category
 
 
 @NodeFactory.register("chainner:image:convert_normal_map")
@@ -57,7 +57,7 @@ class ConvertNormalMap(NodeBase):
                 channels=3,
             ),
         ]
-        self.category = ImageFilterCategory
+        self.category = category
         self.name = "Convert Normals"
         self.icon = "BsBoxArrowUpRight"
         self.sub = "Normal Map"
