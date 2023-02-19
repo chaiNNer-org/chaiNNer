@@ -53,7 +53,7 @@ class LoadModelNode(NodeBase):
         try:
             logger.debug(f"Reading state dict from path: {path}")
 
-            if os.path.splitext(path)[1] == ".pt":
+            if os.path.splitext(path)[1].lower() == ".pt":
                 state_dict = torch.jit.load(  # type: ignore
                     path, map_location=torch.device(exec_options.full_device)
                 ).state_dict()
