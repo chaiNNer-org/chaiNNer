@@ -9,7 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import EnumInput, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageFilterCategory
+from . import category
 
 
 @NodeFactory.register("chainner:image:add_normals")
@@ -42,7 +42,7 @@ class NormalAdditionNode(NodeBase):
                 "The given normal maps have different sizes but must be the same size."
             ),
         ]
-        self.category = ImageFilterCategory
+        self.category = category
         self.name = "Add Normals"
         self.icon = "MdAddCircleOutline"
         self.sub = "Normal Map"

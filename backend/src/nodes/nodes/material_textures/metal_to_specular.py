@@ -11,7 +11,7 @@ from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
-from . import category as ImageUtilityCategory
+from . import category
 
 
 def get_size(img: np.ndarray) -> Tuple[int, int]:
@@ -72,7 +72,7 @@ class MetalToSpecular(NodeBase):
             ),
             ImageOutput("Gloss", image_type="Input2", channels=1),
         ]
-        self.category = ImageUtilityCategory
+        self.category = category
         self.name = "Metal to Specular"
         self.icon = "MdChangeCircle"
         self.sub = "Conversion"
