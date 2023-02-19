@@ -48,16 +48,16 @@ import { useThemeColor } from './useThemeColor';
 interface SchemaItemProps {
     schema: NodeSchema;
     isFavorite?: boolean;
-    accentColor?: string;
+    accentColor: string;
     onClick: (schema: NodeSchema) => void;
 }
 const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
     const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
 
-    const gradL = interpolateColor(accentColor ?? '#CCCCCC', menuBgColor, 0.95);
+    const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
     const gradR = menuBgColor;
-    const hoverGradL = interpolateColor(accentColor ?? '#CCCCCC', bgColor, 0.95);
+    const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
     const hoverGradR = bgColor;
 
     return (
