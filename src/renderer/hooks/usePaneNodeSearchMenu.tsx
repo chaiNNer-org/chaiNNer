@@ -37,6 +37,7 @@ import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
@@ -197,9 +198,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                         </HStack>
                         {favoriteNodes.map((favorite) => (
                             <SchemaItem
-                                accentColor={
-                                    categories.find((c) => c.name === favorite.category)?.color
-                                }
+                                accentColor={getCategoryAccentColor(categories, favorite.category)}
                                 key={favorite.schemaId}
                                 schema={favorite}
                                 onClick={onClickHandler}
@@ -210,8 +209,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
 
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
-                        const accentColor =
-                            categories.find((c) => c.name === category)?.color ?? '#CCCCCC';
+                        const accentColor = getCategoryAccentColor(categories, category);
                         return (
                             <Box key={category}>
                                 <HStack

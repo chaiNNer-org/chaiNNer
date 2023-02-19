@@ -9,9 +9,9 @@ import { isStartingNode, parseSourceHandle } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
@@ -67,8 +67,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { validity } = useValidity(id, schema, inputData);
 
     const regularBorderColor = 'var(--node-border-color)';
-    const currentCategory = categories.find((c) => c.name === category);
-    const accentColor = currentCategory?.color ?? '#CCCCCC';
+    const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]

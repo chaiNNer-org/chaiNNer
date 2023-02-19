@@ -5,6 +5,7 @@ import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
@@ -49,8 +50,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const { inputs, outputs, icon, category, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
-    const currentCategory = categories.find((c) => c.name === category);
-    const accentColor = currentCategory?.color ?? '#CCCCCC';
+    const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]

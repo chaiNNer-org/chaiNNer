@@ -12,7 +12,7 @@ import { ExecutionStatusContext } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { shadeColor } from '../../helpers/colorTools';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../../helpers/accentColors';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
