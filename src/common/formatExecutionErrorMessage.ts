@@ -30,7 +30,7 @@ export const formatExecutionErrorMessage = (
         } else if (typeof value === 'number') {
             valueStr = String(value);
             if ((i.kind === 'number' || i.kind === 'slider') && i.unit) {
-                valueStr += ` ${i.unit}`;
+                valueStr += i.unit;
             }
         } else if (typeof value === 'string') {
             valueStr = JSON.stringify(value);
