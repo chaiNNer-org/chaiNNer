@@ -9,7 +9,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo, useMemo, useState } from 'react';
-import { getTypeAccentColors } from '../../../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../../../helpers/accentColors';
 
 export interface Scale {
     toScale(value: number): number;

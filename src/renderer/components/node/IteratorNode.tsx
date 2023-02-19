@@ -5,8 +5,8 @@ import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useValidity } from '../../hooks/useValidity';
@@ -30,7 +30,7 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
-    const { schemata } = useContext(BackendContext);
+    const { schemata, categories } = useContext(BackendContext);
 
     const {
         id,
@@ -50,7 +50,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const { inputs, outputs, icon, category, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getNodeAccentColor(category);
+    const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]

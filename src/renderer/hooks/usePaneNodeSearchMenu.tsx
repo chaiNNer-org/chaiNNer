@@ -38,8 +38,8 @@ import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
@@ -48,10 +48,10 @@ import { useThemeColor } from './useThemeColor';
 interface SchemaItemProps {
     schema: NodeSchema;
     isFavorite?: boolean;
+    accentColor: string;
     onClick: (schema: NodeSchema) => void;
 }
-const SchemaItem = memo(({ schema, onClick, isFavorite }: SchemaItemProps) => {
-    const accentColor = getNodeAccentColor(schema.category);
+const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
     const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
 
@@ -210,6 +210,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                         </HStack>
                         {favoriteNodes.map((favorite) => (
                             <SchemaItem
+                                accentColor={getCategoryAccentColor(categories, favorite.category)}
                                 key={favorite.schemaId}
                                 schema={favorite}
                                 onClick={onClickHandler}
@@ -220,7 +221,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
 
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
-                        const accentColor = getNodeAccentColor(category);
+                        const accentColor = getCategoryAccentColor(categories, category);
                         return (
                             <Box key={category}>
                                 <HStack
@@ -237,6 +238,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                                 </HStack>
                                 {categorySchemata.map((schema) => (
                                     <SchemaItem
+                                        accentColor={accentColor}
                                         isFavorite={favorites.has(schema.schemaId)}
                                         key={schema.schemaId}
                                         schema={schema}
