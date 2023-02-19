@@ -41,6 +41,6 @@ export const getTypeAccentColors = (inputType: Type): readonly [string, ...strin
     return colors.length > 0 ? (colors as [string, ...string[]]) : defaultColorList;
 };
 
-export const getCategoryAccentColor = (categories: Category[], category: string) => {
+export const getCategoryAccentColor = (categories: readonly Category[], category: string) => {
     return categories.find((c) => c.name === category)?.color ?? '#718096';
 };
