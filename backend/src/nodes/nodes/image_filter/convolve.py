@@ -7,7 +7,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NoteTextAreaInput, NumberInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageUtilityCategory
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:image_convolve")
@@ -37,7 +37,7 @@ class ImageConvolveNode(NodeBase):
                 """,
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageFilterCategory
         self.name = "Convolve"
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"

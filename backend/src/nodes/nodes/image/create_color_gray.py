@@ -7,7 +7,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageUtilityCategory
+from . import category as ImageCategory
 
 
 @NodeFactory.register("chainner:image:create_color_gray")
@@ -35,10 +35,10 @@ class CreateColorNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageCategory
         self.name = "Create Color (Gray)"
         self.icon = "MdFormatColorFill"
-        self.sub = "Create Images"
+        self.sub = "Make Images"
 
     def run(self, width: int, height: int, gray: int) -> np.ndarray:
         img = np.full((height, width), (gray), dtype=np.uint8)

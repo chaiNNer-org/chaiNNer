@@ -16,7 +16,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageUtilityCategory
+from . import category as ImageCategory
 
 
 class GradientStyle(Enum):
@@ -95,10 +95,10 @@ class CreateGradientNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageCategory
         self.name = "Create Gradient"
         self.icon = "MdFormatColorFill"
-        self.sub = "Create Images"
+        self.sub = "Make Images"
 
     def run(
         self,

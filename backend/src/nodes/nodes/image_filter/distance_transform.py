@@ -25,7 +25,7 @@ class DistanceTransformNode(NodeBase):
         self.category = ImageFilterCategory
         self.name = "Distance Transform"
         self.icon = "MdBlurOff"
-        self.sub = "Misc"
+        self.sub = "Miscellaneous"
 
     def run(self, img: np.ndarray, spread: int) -> np.ndarray:
         img = as_3d(dtype_to_uint8(img))

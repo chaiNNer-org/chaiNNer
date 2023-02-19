@@ -30,6 +30,7 @@ import {
     createUniqueId,
     parseSourceHandle,
     parseTargetHandle,
+    stopPropagation,
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
@@ -135,6 +136,12 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
         },
         [setSearchQuery, onSelect, targets]
     );
+    const onEnterHandler = useCallback(() => {
+        const nodes = [...byCategories.values()].flat();
+        if (nodes.length === 1) {
+            onClickHandler(nodes[0]);
+        }
+    }, [byCategories, onClickHandler]);
 
     return (
         <MenuList
@@ -142,7 +149,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
             borderWidth={0}
             className="nodrag"
             overflow="hidden"
-            onContextMenu={(e) => e.stopPropagation()}
+            onContextMenu={stopPropagation}
         >
             <InputGroup
                 borderBottomWidth={1}
@@ -163,6 +170,11 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                     value={searchQuery}
                     variant="filled"
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            onEnterHandler();
+                        }
+                    }}
                 />
                 <InputRightElement
                     _hover={{ color: 'var(--fg-000)' }}

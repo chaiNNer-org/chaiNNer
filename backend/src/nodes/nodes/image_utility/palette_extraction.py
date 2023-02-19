@@ -15,7 +15,7 @@ from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import EnumInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageChannelCategory
+from . import category as ImageUtilityCategory
 
 
 class PaletteExtractionMethod(Enum):
@@ -70,9 +70,9 @@ class PaletteFromImage(NodeBase):
                 ),
             )
         ]
-        self.category = ImageChannelCategory
+        self.category = ImageUtilityCategory
         self.name = "Palette from Image"
-        self.icon = "MdShowChart"
+        self.icon = "MdGradient"
         self.sub = "Miscellaneous"
 
     def run(

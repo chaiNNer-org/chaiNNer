@@ -9,7 +9,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from . import category as ImageUtilityCategory
+from . import category as ImageFilterCategory
 
 
 class MorphShape(Enum):
@@ -18,11 +18,11 @@ class MorphShape(Enum):
     CROSS = cv2.MORPH_CROSS
 
 
-@NodeFactory.register("chainner:image:erode")
-class ErodeNode(NodeBase):
+@NodeFactory.register("chainner:image:dilate")
+class DilateNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Erode an image"
+        self.description = "Dilate an image"
         self.inputs = [
             ImageInput(),
             EnumInput(
@@ -47,8 +47,8 @@ class ErodeNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageUtilityCategory
-        self.name = "Erode"
+        self.category = ImageFilterCategory
+        self.name = "Dilate"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Miscellaneous"
 
@@ -59,7 +59,7 @@ class ErodeNode(NodeBase):
         radius: int,
         iterations: int,
     ) -> np.ndarray:
-        """Erode an image"""
+        """Dilate an image"""
 
         if radius == 0 or iterations == 0:
             return img
@@ -67,4 +67,4 @@ class ErodeNode(NodeBase):
         size = 2 * radius + 1
         element = cv2.getStructuringElement(morph_shape.value, (size, size))
 
-        return cv2.erode(img, element, iterations=iterations)
+        return cv2.dilate(img, element, iterations=iterations)

@@ -9,7 +9,7 @@ from ...properties import expression
 from ...properties.inputs import BorderInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import Padding
-from . import category as ImageUtilityCategory
+from . import category as ImageDimensionCategory
 
 
 @NodeFactory.register("chainner:image:create_border")
@@ -31,10 +31,10 @@ class CreateBorderNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageDimensionCategory
         self.name = "Create Border"
         self.icon = "BsBorderOuter"
-        self.sub = "Miscellaneous"
+        self.sub = "Border"
 
     def run(self, img: np.ndarray, border_type: BorderType, amount: int) -> np.ndarray:
         return create_border(img, border_type, Padding.all(amount))
