@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Tuple, TypedDict
+from dataclasses import dataclass
+from typing import Literal, Tuple
 
 import numpy as np
 import torch
@@ -10,35 +11,23 @@ import torch.utils.data
 from .pix_transform_net import PixTransformNet
 
 
-class Params(TypedDict):
-    spatial_features_input: bool
-    weights_regularizer: Tuple[float, float, float] | None
-    loss: Literal["mse", "l1"]
-    optim: Literal["adam"]
-    lr: float
-    batch_size: int
-    iteration: int
-
-
-DEFAULT_PARAMS: Params = {
-    "spatial_features_input": True,
-    "weights_regularizer": (0.0001, 0.001, 0.001),  # spatial color head
-    "loss": "l1",
-    "optim": "adam",
-    "lr": 0.001,
-    "batch_size": 32,
-    "iteration": 1024 * 32 // 8,
-}
+@dataclass
+class Params:
+    spatial_features_input: bool = True
+    # spatial color head
+    weights_regularizer: Tuple[float, float, float] | None = (0.0001, 0.001, 0.001)
+    loss: Literal["mse", "l1"] = "l1"
+    lr: float = 0.001
+    batch_size: int = 32
+    iteration: int = 32 * 1024
 
 
 def PixTransform(
     source_img: np.ndarray,
     guide_img: np.ndarray,
     device: torch.device,
-    params: Params | None = None,
+    params: Params,
 ) -> np.ndarray:
-    params = DEFAULT_PARAMS if params is None else params
-
     if len(guide_img.shape) < 3:
         guide_img = np.expand_dims(guide_img, 0)
 
@@ -64,7 +53,7 @@ def PixTransform(
     source_img_std = np.std(source_img)
     source_img = (source_img - source_img_mean) / source_img_std
 
-    if params["spatial_features_input"]:
+    if params.spatial_features_input:
         x = np.linspace(-0.5, 0.5, hr_width)
         x_grid, y_grid = np.meshgrid(x, x, indexing="ij")
 
@@ -91,7 +80,7 @@ def PixTransform(
 
     train_data = torch.utils.data.TensorDataset(guide_patches, source_pixels)
     train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=params["batch_size"], shuffle=True
+        train_data, batch_size=params.batch_size, shuffle=True
     )
     ###############################################################################################
 
@@ -99,21 +88,21 @@ def PixTransform(
     mynet = (
         PixTransformNet(
             channels_in=guide_tensor.shape[0],
-            weights_regularizer=params["weights_regularizer"],
+            weights_regularizer=params.weights_regularizer,
         )
         .train()
         .to(device)
     )
-    optimizer = optim.Adam(mynet.params_with_regularizer, lr=params["lr"])
-    if params["loss"] == "mse":
+    optimizer = optim.Adam(mynet.params_with_regularizer, lr=params.lr)
+    if params.loss == "mse":
         myloss = torch.nn.MSELoss()
-    elif params["loss"] == "l1":
+    elif params.loss == "l1":
         myloss = torch.nn.L1Loss()
     else:
         assert False, "unknown loss!"
     ###############################################################################################
 
-    epochs = params["batch_size"] * params["iteration"] // (M * M)
+    epochs = params.batch_size * params.iteration // (M * M)
     for _epoch in range(0, epochs):
         for x, y in train_loader:
             optimizer.zero_grad()

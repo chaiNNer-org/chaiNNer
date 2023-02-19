@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from ...impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
-from ...impl.pytorch.pix_transform.pix_transform import DEFAULT_PARAMS
+from ...impl.pytorch.pix_transform.pix_transform import Params
 from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -73,5 +73,5 @@ class PixTransformNode(NodeBase):
             source=source,
             guide=guide,
             device=torch.device(exec_options.full_device),
-            params={**DEFAULT_PARAMS, "iteration": iterations * 1000},
+            params=Params(iteration=iterations * 1000),
         )
