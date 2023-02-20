@@ -188,26 +188,6 @@ export const IteratorNodeBody = memo(
                         w="full"
                     >
                         <DotPattern id={id} />
-                        {/* <Flex
-                            mt={-2.5}
-                            w="full"
-                        >
-                            <Spacer />
-                            <Icon
-                                color="var(--fg-300)"
-                                mr={-1.5}
-                                opacity={0.75}
-                                position="relative"
-                                stroke="var(--fg-300)"
-                            >
-                                <polyline
-                                    fill="none"
-                                    points="8 20 20 20 20 8"
-                                    stroke="var(--fg-300)"
-                                    strokeWidth="2"
-                                />
-                            </Icon>
-                        </Flex> */}
                     </Box>
                 </Box>
             </Resizable>
