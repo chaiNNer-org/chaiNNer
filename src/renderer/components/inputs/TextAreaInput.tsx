@@ -1,4 +1,4 @@
-import { MenuItem, MenuList, Textarea } from '@chakra-ui/react';
+import { Center, MenuItem, MenuList, Textarea } from '@chakra-ui/react';
 import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useEffect, useRef, useState } from 'react';
@@ -9,6 +9,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { DragHandleSVG } from '../CustomIcons';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
@@ -91,6 +92,22 @@ export const TextAreaInput = memo(
                     bottomRight: !isLocked && resizable,
                     bottomLeft: false,
                     topLeft: false,
+                }}
+                handleComponent={{
+                    bottomRight: (
+                        <Center
+                            cursor="nwse-resize"
+                            h="full"
+                            ml={-1}
+                            mt={-1}
+                            w="full"
+                        >
+                            <DragHandleSVG
+                                color="var(--fg-300)"
+                                opacity={0.75}
+                            />
+                        </Center>
+                    ),
                 }}
                 minHeight={80}
                 minWidth={240}
