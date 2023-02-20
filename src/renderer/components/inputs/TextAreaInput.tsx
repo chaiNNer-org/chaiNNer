@@ -12,6 +12,8 @@ import { useContextMenu } from '../../hooks/useContextMenu';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
+const DEFAULT_SIZE = { width: 240, height: 80 };
+
 export const TextAreaInput = memo(
     ({ value, setValue, input, isLocked, useInputSize, nodeId }: InputProps<'text', string>) => {
         const { label, resizable } = input;
@@ -28,7 +30,7 @@ export const TextAreaInput = memo(
 
         useEffect(() => {
             if (!size) {
-                setSize({ width: 240, height: 80 });
+                setSize(DEFAULT_SIZE);
             }
         }, [size, setSize]);
 
@@ -77,7 +79,7 @@ export const TextAreaInput = memo(
         return (
             <Resizable
                 className="nodrag"
-                defaultSize={size ?? { width: 240, height: 80 }}
+                defaultSize={size ?? DEFAULT_SIZE}
                 enable={{
                     top: false,
                     right: !isLocked && resizable,
