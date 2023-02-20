@@ -1,7 +1,7 @@
 import { MenuItem, MenuList, Textarea } from '@chakra-ui/react';
 import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
-import { ChangeEvent, memo, useEffect, useState } from 'react';
+import { ChangeEvent, memo, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
@@ -76,6 +76,8 @@ export const TextAreaInput = memo(
             </MenuList>
         ));
 
+        const startSize = useRef(size ?? DEFAULT_SIZE);
+
         return (
             <Resizable
                 className="nodrag"
@@ -94,13 +96,16 @@ export const TextAreaInput = memo(
                 minWidth={240}
                 scale={zoom}
                 size={size}
-                onResizeStop={(e, direction, ref, d) => {
+                onResize={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: (size?.width ?? 0) + d.width,
-                            height: (size?.height ?? 0) + d.height,
+                            width: (startSize.current.width ?? 0) + d.width,
+                            height: (startSize.current.height ?? 0) + d.height,
                         });
                     }
+                }}
+                onResizeStart={() => {
+                    startSize.current = size ?? DEFAULT_SIZE;
                 }}
             >
                 <Textarea
