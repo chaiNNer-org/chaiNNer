@@ -24,7 +24,7 @@ from ...properties.inputs import (
     ImageInput,
     NumberInput,
     SliderInput,
-    TextInput,
+    TextAreaInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
@@ -40,8 +40,8 @@ class Img2Img(NodeBase):
         self.description = "Modify an image using Automatic1111"
         self.inputs = [
             ImageInput(),
-            TextInput("Prompt", default="an astronaut riding a horse"),
-            TextInput("Negative Prompt").make_optional(),
+            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Negative Prompt").make_optional(),
             SliderInput(
                 "Denoising Strength",
                 minimum=0,

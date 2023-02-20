@@ -82,7 +82,7 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
 }
-export interface NoteTextAreaInput extends InputBase {
+export interface TextAreaInput extends InputBase {
     readonly kind: 'text';
     readonly resizable: boolean;
 }
@@ -118,7 +118,7 @@ export type Input =
     | FileInput
     | DirectoryInput
     | TextInput
-    | NoteTextAreaInput
+    | TextAreaInput
     | DropDownInput
     | SliderInput
     | NumberInput;
