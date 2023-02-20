@@ -28,7 +28,7 @@ export const TextAreaInput = memo(
 
         useEffect(() => {
             if (!size) {
-                setSize({ width: 320, height: 240 });
+                setSize({ width: 240, height: 80 });
             }
         }, [size, setSize]);
 
@@ -77,7 +77,7 @@ export const TextAreaInput = memo(
         return (
             <Resizable
                 className="nodrag"
-                defaultSize={size}
+                defaultSize={size ?? { width: 240, height: 80 }}
                 enable={{
                     top: false,
                     right: !isLocked && resizable,
