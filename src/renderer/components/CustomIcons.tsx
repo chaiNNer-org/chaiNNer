@@ -162,3 +162,48 @@ export const IconFactory = memo(
         );
     }
 );
+
+export const DragHandleSVG = createIcon({
+    displayName: 'DragHandle',
+    viewBox: '0 0 30 30',
+    path: (
+        <svg fill="currentColor">
+            <circle
+                cx="1.5"
+                cy="13.5"
+                fill="currentColor"
+                r="1.5"
+            />
+            <circle
+                cx="7.5"
+                cy="13.5"
+                fill="currentColor"
+                r="1.5"
+            />
+            <circle
+                cx="7.5"
+                cy="7.5"
+                fill="currentColor"
+                r="1.5"
+            />
+            <circle
+                cx="13.5"
+                cy="1.5"
+                fill="currentColor"
+                r="1.5"
+            />
+            <circle
+                cx="13.5"
+                cy="13.5"
+                fill="currentColor"
+                r="1.5"
+            />
+            <circle
+                cx="13.5"
+                cy="7.5"
+                fill="currentColor"
+                r="1.5"
+            />
+        </svg>
+    ),
+});
