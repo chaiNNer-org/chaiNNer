@@ -93,6 +93,7 @@ export const TextAreaInput = memo(
                 minHeight={80}
                 minWidth={240}
                 scale={zoom}
+                size={size}
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({

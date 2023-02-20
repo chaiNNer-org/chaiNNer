@@ -964,10 +964,17 @@ export const GlobalProvider = memo(
                 const setInputSize = (size: Readonly<Size>) => {
                     modifyNode(id, (old) => {
                         const nodeCopy = copyNode(old);
-                        nodeCopy.data.inputSize = {
+                        const newInputSize: Record<string, Size> = {
                             ...nodeCopy.data.inputSize,
                             [inputId]: size,
                         };
+                        Object.entries(newInputSize).forEach(([key, value]) => {
+                            newInputSize[key] = {
+                                ...value,
+                                width: size.width,
+                            };
+                        });
+                        nodeCopy.data.inputSize = newInputSize;
                         return nodeCopy;
                     });
                 };
