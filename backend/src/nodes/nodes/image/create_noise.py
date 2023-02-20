@@ -4,20 +4,20 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
-from ...impl.image_utils import cartesian_product
-from ...impl.noise_functions.simplex import SimplexNoise
-from ...impl.noise_functions.value import ValueNoise
-from ...node_base import NodeBase, group
-from ...node_factory import NodeFactory
-from ...properties import expression
-from ...properties.inputs import (
+from . import category as ImageCategory
+from nodes.impl.image_utils import cartesian_product
+from nodes.impl.noise_functions.simplex import SimplexNoise
+from nodes.impl.noise_functions.value import ValueNoise
+from nodes.node_base import NodeBase, group
+from nodes.node_factory import NodeFactory
+from nodes.properties import expression
+from nodes.properties.inputs import (
     NumberInput,
     EnumInput,
     SliderInput,
     BoolInput,
 )
-from ...properties.outputs import ImageOutput
+from nodes.properties.outputs import ImageOutput
 
 
 class NoiseMethod(Enum):
@@ -89,10 +89,10 @@ class CreateNoiseNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageCategory
         self.name = "Create Noise"
         self.icon = "MdFormatColorFill"
-        self.sub = "Create Images"
+        self.sub = "Make Images"
 
     def _add_noise(
         self,
