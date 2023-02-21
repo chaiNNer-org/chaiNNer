@@ -25,6 +25,7 @@ from ...properties.inputs import (
     NumberInput,
     SliderInput,
     TextAreaInput,
+    BoolInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
@@ -89,6 +90,7 @@ class Img2Img(NodeBase):
                 slider_step=8,
                 controls_step=8,
             ).with_id(9),
+            BoolInput("Tiling", default=False),
         ]
         self.outputs = [
             ImageOutput(
@@ -120,6 +122,7 @@ class Img2Img(NodeBase):
         resize_mode: ResizeMode,
         width: int,
         height: int,
+        tiling: bool,
     ) -> np.ndarray:
         width, height = nearest_valid_size(
             width, height
@@ -136,6 +139,7 @@ class Img2Img(NodeBase):
             "width": width,
             "height": height,
             "resize_mode": resize_mode.value,
+            "tiling": tiling,
         }
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
