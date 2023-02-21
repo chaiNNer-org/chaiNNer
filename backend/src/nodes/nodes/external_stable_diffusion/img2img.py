@@ -20,12 +20,12 @@ from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
+    BoolInput,
     EnumInput,
     ImageInput,
     NumberInput,
     SliderInput,
     TextAreaInput,
-    BoolInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
@@ -90,7 +90,7 @@ class Img2Img(NodeBase):
                 slider_step=8,
                 controls_step=8,
             ).with_id(9),
-            BoolInput("Tiling", default=False),
+            BoolInput("Seamless Edges", default=False),
         ]
         self.outputs = [
             ImageOutput(
