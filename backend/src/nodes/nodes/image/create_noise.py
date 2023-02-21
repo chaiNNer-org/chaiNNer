@@ -13,8 +13,8 @@ from nodes.properties import expression
 from nodes.properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from . import category as ImageCategory
 from ...groups import conditional_group
+from . import category as ImageCategory
 
 
 class NoiseMethod(Enum):
