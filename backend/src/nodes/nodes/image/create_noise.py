@@ -4,20 +4,16 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageCategory
 from nodes.impl.image_utils import cartesian_product
 from nodes.impl.noise_functions.simplex import SimplexNoise
 from nodes.impl.noise_functions.value import ValueNoise
 from nodes.node_base import NodeBase, group
 from nodes.node_factory import NodeFactory
 from nodes.properties import expression
-from nodes.properties.inputs import (
-    NumberInput,
-    EnumInput,
-    SliderInput,
-    BoolInput,
-)
+from nodes.properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
+
+from . import category as ImageCategory
 
 
 class NoiseMethod(Enum):
