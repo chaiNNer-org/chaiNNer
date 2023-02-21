@@ -85,6 +85,7 @@ export interface TextInput extends InputBase {
 export interface TextAreaInput extends InputBase {
     readonly kind: 'text';
     readonly resizable: boolean;
+    readonly def: string | null;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
