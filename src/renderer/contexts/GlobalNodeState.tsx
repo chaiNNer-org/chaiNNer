@@ -964,7 +964,7 @@ export const GlobalProvider = memo(
                 const setInputSize = (size: Readonly<Size>) => {
                     modifyNode(id, (old) => {
                         const nodeCopy = copyNode(old);
-                        const newInputSize: Record<InputId, Size> = {
+                        const newInputSize: Record<string, Size> = {
                             ...nodeCopy.data.inputSize,
                             [inputId]: size,
                         };
