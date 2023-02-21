@@ -16,7 +16,13 @@ from ...impl.external_stable_diffusion import (
 from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
-from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextAreaInput
+from ...properties.inputs import (
+    BoolInput,
+    EnumInput,
+    NumberInput,
+    SliderInput,
+    TextAreaInput,
+)
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
 from . import category as ExternalStableDiffusionCategory
@@ -65,6 +71,7 @@ class Txt2Img(NodeBase):
                 slider_step=8,
                 controls_step=8,
             ).with_id(7),
+            BoolInput("Seamless Edges", default=False),
         ]
         self.outputs = [
             ImageOutput(
@@ -93,6 +100,7 @@ class Txt2Img(NodeBase):
         cfg_scale: float,
         width: int,
         height: int,
+        tiling: bool,
     ) -> np.ndarray:
         width, height = nearest_valid_size(
             width, height
@@ -106,6 +114,7 @@ class Txt2Img(NodeBase):
             "cfg_scale": cfg_scale,
             "width": width,
             "height": height,
+            "tiling": tiling,
         }
         response = post(url=STABLE_DIFFUSION_TEXT2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
