@@ -14,6 +14,7 @@ from nodes.properties.inputs import BoolInput, EnumInput, NumberInput, SliderInp
 from nodes.properties.outputs import ImageOutput
 
 from . import category as ImageCategory
+from ...groups import conditional_group
 
 
 class NoiseMethod(Enum):
