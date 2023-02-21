@@ -16,7 +16,7 @@ from ...impl.external_stable_diffusion import (
 from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
-from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextInput
+from ...properties.inputs import EnumInput, NumberInput, SliderInput, TextAreaInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
 from . import category as ExternalStableDiffusionCategory
@@ -30,8 +30,8 @@ class Txt2Img(NodeBase):
         super().__init__()
         self.description = "Generate an image using Automatic1111"
         self.inputs = [
-            TextInput("Prompt", default="an astronaut riding a horse"),
-            TextInput("Negative Prompt").make_optional(),
+            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Negative Prompt").make_optional(),
             group("seed")(
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
             ),

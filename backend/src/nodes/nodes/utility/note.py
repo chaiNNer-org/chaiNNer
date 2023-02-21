@@ -4,7 +4,7 @@ from typing import Union
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NoteTextAreaInput
+from ...properties.inputs import TextAreaInput
 from . import category as UtilityCategory
 
 
@@ -14,7 +14,7 @@ class NoteNode(NodeBase):
         super().__init__()
         self.description = "Make a sticky note for whatever notes or comments you want to leave in the chain."
         self.inputs = [
-            NoteTextAreaInput().make_optional(),
+            TextAreaInput(label="Note Text").make_optional(),
         ]
         self.outputs = []
 

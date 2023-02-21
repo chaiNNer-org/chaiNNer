@@ -29,7 +29,7 @@ from ...properties.inputs import (
     ImageInput,
     NumberInput,
     SliderInput,
-    TextInput,
+    TextAreaInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
@@ -50,8 +50,8 @@ class Img2ImgOutpainting(NodeBase):
         self.description = 'Outpaint an image using the "Poor man\'s outpainting" script from Automatic1111'
         self.inputs = [
             ImageInput().with_id(0),
-            TextInput("Prompt", default="an astronaut riding a horse"),
-            TextInput("Negative Prompt").make_optional(),
+            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Negative Prompt").make_optional(),
             SliderInput(
                 "Denoising Strength",
                 minimum=0,
