@@ -54,18 +54,7 @@ class CreateNoiseNode(NodeBase):
                 default_value=FractalMethod.NONE,
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 6,
-                    "conditions": [
-                        FractalMethod.PINK.value,
-                        FractalMethod.PINK.value,
-                        FractalMethod.PINK.value,
-                        FractalMethod.PINK.value,
-                    ],
-                },
-            )(
+            conditional_group(enum=6, condition=FractalMethod.PINK.value)(
                 NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
                 NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
                     8
