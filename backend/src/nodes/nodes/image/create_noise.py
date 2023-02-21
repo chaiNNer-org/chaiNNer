@@ -70,8 +70,8 @@ class CreateNoiseNode(NodeBase):
                 image_type=expression.Image(
                     width="Input0",
                     height="Input1",
-                    channels="1",
-                )
+                ),
+                channels=1,
             )
         ]
         self.category = ImageCategory
