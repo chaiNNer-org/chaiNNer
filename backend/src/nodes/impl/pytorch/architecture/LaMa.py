@@ -677,6 +677,10 @@ class LaMa(nn.Module):
             k.replace("generator.model", "model.model"): v
             for k, v in state_dict.items()
         }
+
+        self.supports_fp16 = True
+        self.support_bf16 = True
+
         self.load_state_dict(self.state, strict=False)
 
     def forward(self, img, mask):
