@@ -47,7 +47,7 @@ class InpaintArea(Enum):
 class Img2Img(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Modify an image using Automatic1111"
+        self.description = "Modify a masked part of an image using Automatic1111"
         self.inputs = [
             ImageInput(),
             ImageInput(
