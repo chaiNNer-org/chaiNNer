@@ -50,7 +50,7 @@ class Img2ImgOutpainting(NodeBase):
         self.description = 'Outpaint an image using the "Poor man\'s outpainting" script from Automatic1111'
         self.inputs = [
             ImageInput().with_id(0),
-            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),
             SliderInput(
                 "Denoising Strength",
@@ -173,7 +173,7 @@ class Img2ImgOutpainting(NodeBase):
     def run(
         self,
         image: np.ndarray,
-        prompt: str,
+        prompt: Optional[str],
         negative_prompt: Optional[str],
         denoising_strength: float,
         seed: int,
@@ -218,7 +218,7 @@ class Img2ImgOutpainting(NodeBase):
         direction = ",".join(direction)
         request_data = {
             "init_images": [encode_base64_image(image)],
-            "prompt": prompt,
+            "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "denoising_strength": denoising_strength,
             "seed": seed,

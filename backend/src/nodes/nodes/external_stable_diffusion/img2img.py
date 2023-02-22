@@ -41,7 +41,7 @@ class Img2Img(NodeBase):
         self.description = "Modify an image using Automatic1111"
         self.inputs = [
             ImageInput(),
-            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),
             SliderInput(
                 "Denoising Strength",
@@ -112,7 +112,7 @@ class Img2Img(NodeBase):
     def run(
         self,
         image: np.ndarray,
-        prompt: str,
+        prompt: Optional[str],
         negative_prompt: Optional[str],
         denoising_strength: float,
         seed: int,
@@ -129,7 +129,7 @@ class Img2Img(NodeBase):
         )  # This cooperates with the "image_type" of the ImageOutput
         request_data = {
             "init_images": [encode_base64_image(image)],
-            "prompt": prompt,
+            "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "denoising_strength": denoising_strength,
             "seed": seed,

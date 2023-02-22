@@ -36,7 +36,7 @@ class Txt2Img(NodeBase):
         super().__init__()
         self.description = "Generate an image using Automatic1111"
         self.inputs = [
-            TextAreaInput("Prompt", default="an astronaut riding a horse"),
+            TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),
             group("seed")(
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
@@ -92,7 +92,7 @@ class Txt2Img(NodeBase):
     @cached
     def run(
         self,
-        prompt: str,
+        prompt: Optional[str],
         negative_prompt: Optional[str],
         seed: int,
         steps: int,
@@ -106,7 +106,7 @@ class Txt2Img(NodeBase):
             width, height
         )  # This cooperates with the "image_type" of the ImageOutput
         request_data = {
-            "prompt": prompt,
+            "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "seed": seed,
             "steps": steps,
