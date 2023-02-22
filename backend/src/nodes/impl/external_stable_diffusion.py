@@ -4,7 +4,7 @@ import base64
 import io
 import os
 from enum import Enum
-from typing import Dict, Union, Optional
+from typing import Dict, Optional, Union
 
 import cv2
 import numpy as np
