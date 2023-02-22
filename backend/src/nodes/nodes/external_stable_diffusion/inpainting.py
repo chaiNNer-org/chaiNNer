@@ -39,8 +39,8 @@ verify_api_connection()
 
 
 class InpaintArea(Enum):
-    WholePicture = "WholePicture"
-    OnlyMasked = "OnlyMasked"
+    WHOLE_PICTURE = "WholePicture"
+    ONLY_MASKED = "OnlyMasked"
 
 
 @NodeFactory.register("chainner:external_stable_diffusion:img2img_inpainting")
@@ -111,8 +111,8 @@ class Img2Img(NodeBase):
                 unit="px",
             ),
             EnumInput(InpaintingFill, default_value=InpaintingFill.ORIGINAL),
-            EnumInput(InpaintArea, default_value=InpaintArea.WholePicture),
-            conditional_group(enum=15, condition=InpaintArea.OnlyMasked.value)(
+            EnumInput(InpaintArea, default_value=InpaintArea.WHOLE_PICTURE),
+            conditional_group(enum=15, condition=InpaintArea.ONLY_MASKED.value)(
                 SliderInput(
                     "Only masked padding",
                     minimum=0,
@@ -128,8 +128,8 @@ class Img2Img(NodeBase):
             ImageOutput(
                 image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
                 Image {
-                    width: if Input15==InpaintArea::Onlymasked {Input0.width} else {nearest_valid(Input10)},
-                    height: if Input15==InpaintArea::Onlymasked {Input0.height} else {nearest_valid(Input11)}
+                    width: if Input15==InpaintArea::OnlyMasked {Input0.width} else {nearest_valid(Input10)},
+                    height: if Input15==InpaintArea::OnlyMasked {Input0.height} else {nearest_valid(Input11)}
                 }""",
                 channels=3,
             ),
@@ -169,7 +169,7 @@ class Img2Img(NodeBase):
             "mask": encode_base64_image(mask),
             "inpainting_fill": inpainting_fill.value,
             "mask_blur": mask_blur,
-            "inpaint_full_res": inpaint_area == InpaintArea.OnlyMasked,
+            "inpaint_full_res": inpaint_area == InpaintArea.ONLY_MASKED,
             "inpaint_full_res_padding": inpaint_full_res_padding,
             "prompt": prompt,
             "negative_prompt": negative_prompt or "",
@@ -186,7 +186,7 @@ class Img2Img(NodeBase):
         response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
-        if inpaint_area == InpaintArea.OnlyMasked:
+        if inpaint_area == InpaintArea.ONLY_MASKED:
             in_h, in_w, _ = get_h_w_c(image)
             assert (w, h) == (
                 in_w,
