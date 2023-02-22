@@ -4,7 +4,7 @@ import base64
 import io
 import os
 from enum import Enum
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 import cv2
 import numpy as np
@@ -65,7 +65,7 @@ def _auto_detect_endpoint(timeout=0.5):
     )
     ports = [STABLE_DIFFUSION_PORT] if STABLE_DIFFUSION_PORT else ["7860", "7861"]
 
-    last_error = None
+    last_error: Optional[Exception] = None
     for STABLE_DIFFUSION_PROTOCOL in protocols:
         for STABLE_DIFFUSION_PORT in ports:
             try:
@@ -74,10 +74,13 @@ def _auto_detect_endpoint(timeout=0.5):
                     f"Found stable diffusion API at {STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}"
                 )
                 return
-            except ExternalServiceConnectionError as error:
+            except Exception as error:
                 last_error = error
 
-    raise last_error
+    if last_error:
+        raise last_error
+    else:
+        raise RuntimeError
 
 
 def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
