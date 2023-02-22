@@ -136,7 +136,7 @@ class Img2Img(NodeBase):
         ]
 
         self.category = ExternalStableDiffusionCategory
-        self.name = "Inpainting"
+        self.name = "Inpaint"
         self.icon = "MdChangeCircle"
         self.sub = "Automatic1111"
 
