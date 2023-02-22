@@ -14,6 +14,7 @@ from PIL import Image
 from ..utils.utils import get_h_w_c
 from .image_utils import normalize
 
+STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", "http")
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
 STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
 
@@ -21,26 +22,20 @@ STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
     os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", "600")
 )  # 10 minutes
 
-STABLE_DIFFUSION_TEXT2IMG_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
-)
-STABLE_DIFFUSION_IMG2IMG_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
-)
-STABLE_DIFFUSION_INTERROGATE_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
-)
-STABLE_DIFFUSION_OPTIONS_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
-)
+STABLE_DIFFUSION_TEXT2IMG_URL = f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
+STABLE_DIFFUSION_IMG2IMG_URL = f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
+STABLE_DIFFUSION_INTERROGATE_URL = f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
+STABLE_DIFFUSION_OPTIONS_URL = f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
 
 ERROR_MSG = f"""
 If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
 
 ./webui.sh --api
 
-ChaiNNer is currently configured to look for the API at http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}.  If you
-have it running somewhere else, you can change this using the STABLE_DIFFUSION_HOST and STABLE_DIFFUSION_PORT
+ChaiNNer is currently configured to look for the API at
+{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}.
+If you have it running somewhere else, you can change this using the
+STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_HOST, and STABLE_DIFFUSION_PORT
 environment variables.
 """
 
