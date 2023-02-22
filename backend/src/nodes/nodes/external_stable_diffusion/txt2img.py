@@ -6,7 +6,7 @@ import numpy as np
 
 from ...impl.external_stable_diffusion import (
     SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_TEXT2IMG_URL,
+    STABLE_DIFFUSION_TEXT2IMG_PATH,
     SamplerName,
     decode_base64_image,
     nearest_valid_size,
@@ -116,7 +116,7 @@ class Txt2Img(NodeBase):
             "height": height,
             "tiling": tiling,
         }
-        response = post(url=STABLE_DIFFUSION_TEXT2IMG_URL, json_data=request_data)
+        response = post(path=STABLE_DIFFUSION_TEXT2IMG_PATH, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
         assert (w, h) == (
