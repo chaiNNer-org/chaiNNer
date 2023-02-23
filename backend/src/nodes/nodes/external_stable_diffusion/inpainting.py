@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Optional
 
 import numpy as np
 
+from ...groups import conditional_group
 from ...impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_IMG2IMG_PATH,
+    InpaintingFill,
     ResizeMode,
     SamplerName,
     decode_base64_image,
@@ -19,6 +22,7 @@ from ...impl.external_stable_diffusion import (
 from ...node_base import NodeBase, group
 from ...node_cache import cached
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import (
     BoolInput,
     EnumInput,
@@ -34,13 +38,21 @@ from . import category as ExternalStableDiffusionCategory
 verify_api_connection()
 
 
-@NodeFactory.register("chainner:external_stable_diffusion:img2img")
+class InpaintArea(Enum):
+    WHOLE_PICTURE = "WholePicture"
+    ONLY_MASKED = "OnlyMasked"
+
+
+@NodeFactory.register("chainner:external_stable_diffusion:img2img_inpainting")
 class Img2Img(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Modify an image using Automatic1111"
+        self.description = "Modify a masked part of an image using Automatic1111"
         self.inputs = [
             ImageInput(),
+            ImageInput(
+                "Mask", channels=1, image_type=expression.Image(size_as="Input0")
+            ),
             TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),
             SliderInput(
@@ -73,7 +85,7 @@ class Img2Img(NodeBase):
                 ResizeMode,
                 default_value=ResizeMode.JUST_RESIZE,
                 option_labels=RESIZE_MODE_LABELS,
-            ).with_id(10),
+            ),
             SliderInput(
                 "Width",
                 minimum=64,
@@ -81,7 +93,7 @@ class Img2Img(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(8),
+            ),
             SliderInput(
                 "Height",
                 minimum=64,
@@ -89,22 +101,42 @@ class Img2Img(NodeBase):
                 maximum=2048,
                 slider_step=8,
                 controls_step=8,
-            ).with_id(9),
+            ),
             BoolInput("Seamless Edges", default=False),
+            SliderInput(
+                "Mask Blur",
+                minimum=0,
+                default=4,
+                maximum=64,
+                unit="px",
+            ),
+            EnumInput(InpaintingFill, default_value=InpaintingFill.ORIGINAL),
+            EnumInput(InpaintArea, default_value=InpaintArea.WHOLE_PICTURE),
+            conditional_group(enum=15, condition=InpaintArea.ONLY_MASKED.value)(
+                SliderInput(
+                    "Only masked padding",
+                    minimum=0,
+                    default=32,
+                    maximum=256,
+                    slider_step=4,
+                    controls_step=4,
+                    unit="px",
+                ),
+            ),
         ]
         self.outputs = [
             ImageOutput(
                 image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
                 Image {
-                    width: nearest_valid(Input8),
-                    height: nearest_valid(Input9)
+                    width: if Input15==InpaintArea::OnlyMasked {Input0.width} else {nearest_valid(Input10)},
+                    height: if Input15==InpaintArea::OnlyMasked {Input0.height} else {nearest_valid(Input11)}
                 }""",
                 channels=3,
             ),
         ]
 
         self.category = ExternalStableDiffusionCategory
-        self.name = "Image to Image"
+        self.name = "Inpaint"
         self.icon = "MdChangeCircle"
         self.sub = "Automatic1111"
 
@@ -112,6 +144,7 @@ class Img2Img(NodeBase):
     def run(
         self,
         image: np.ndarray,
+        mask: np.ndarray,
         prompt: Optional[str],
         negative_prompt: Optional[str],
         denoising_strength: float,
@@ -123,12 +156,21 @@ class Img2Img(NodeBase):
         width: int,
         height: int,
         tiling: bool,
+        mask_blur: float,
+        inpainting_fill: InpaintingFill,
+        inpaint_area: InpaintArea,
+        inpaint_full_res_padding: int,
     ) -> np.ndarray:
         width, height = nearest_valid_size(
             width, height
         )  # This cooperates with the "image_type" of the ImageOutput
         request_data = {
             "init_images": [encode_base64_image(image)],
+            "mask": encode_base64_image(mask),
+            "inpainting_fill": inpainting_fill.value,
+            "mask_blur": mask_blur,
+            "inpaint_full_res": inpaint_area == InpaintArea.ONLY_MASKED,
+            "inpaint_full_res_padding": inpaint_full_res_padding,
             "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "denoising_strength": denoising_strength,
@@ -144,8 +186,15 @@ class Img2Img(NodeBase):
         response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
-        assert (w, h) == (
-            width,
-            height,
-        ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+        if inpaint_area == InpaintArea.ONLY_MASKED:
+            in_h, in_w, _ = get_h_w_c(image)
+            assert (w, h) == (
+                in_w,
+                in_h,
+            ), f"Expected the returned image to be {in_w}x{in_h}px but found {w}x{h}px instead "
+        else:
+            assert (w, h) == (
+                width,
+                height,
+            ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
         return result
