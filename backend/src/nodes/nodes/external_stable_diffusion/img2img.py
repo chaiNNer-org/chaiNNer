@@ -7,7 +7,7 @@ import numpy as np
 from ...impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_IMG2IMG_URL,
+    STABLE_DIFFUSION_IMG2IMG_PATH,
     ResizeMode,
     SamplerName,
     decode_base64_image,
@@ -141,7 +141,7 @@ class Img2Img(NodeBase):
             "resize_mode": resize_mode.value,
             "tiling": tiling,
         }
-        response = post(url=STABLE_DIFFUSION_IMG2IMG_URL, json_data=request_data)
+        response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
         assert (w, h) == (
