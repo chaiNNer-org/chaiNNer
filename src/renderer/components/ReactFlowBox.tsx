@@ -638,7 +638,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnect={createConnection}
                 onConnectEnd={onConnectStop}
                 onConnectStart={onConnectStart}
-                // onEdgeUpdate={onEdgeUpdate}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
