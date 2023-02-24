@@ -52,7 +52,7 @@ let PyTorchSRModel = PyTorchModel {
     subType: "SR"
 };
 let PyTorchInpaintModel = PyTorchModel {
-    arch: "LaMa",
+    arch: "LaMa" | "MAT",
     subType: "Inpaint"
 };
 
