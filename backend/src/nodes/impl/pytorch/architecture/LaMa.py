@@ -672,6 +672,10 @@ class LaMa(nn.Module):
         self.out_nc = 3
         self.scale = 1
 
+        self.min_size = None
+        self.pad_mod = 8
+        self.pad_to_square = False
+
         self.model = FFCResNetGenerator(self.in_nc, self.out_nc)
         self.state = {
             k.replace("generator.model", "model.model"): v
