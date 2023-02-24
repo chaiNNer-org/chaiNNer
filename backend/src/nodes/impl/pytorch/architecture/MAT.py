@@ -1,3 +1,4 @@
+# pylint: skip-file
 """Original MAT project is copyright of fenglingwb: https://github.com/fenglinglwb/MAT
 Code used for this implementation of MAT is modified from lama-cleaner,
 copyright of Sanster: https://github.com/fenglinglwb/MAT"""
