@@ -120,7 +120,7 @@ def _bias_act_ref(x, b=None, dim=1, act="linear", alpha=None, gain=None, clamp=N
         assert isinstance(b, torch.Tensor) and b.ndim == 1
         assert 0 <= dim < x.ndim
         assert b.shape[0] == x.shape[dim]
-        x = x + b.reshape([-1 if i == dim else 1 for i in range(x.ndim)])
+        x = x + b.reshape([-1 if i == dim else 1 for i in range(x.ndim)]).to(x.device)
 
     # Evaluate activation function.
     alpha = float(alpha)
@@ -447,11 +447,13 @@ class FullyConnectedLayer(torch.nn.Module):
 
         if self.activation == "linear" and b is not None:
             # out = torch.addmm(b.unsqueeze(0), x, w.t())
-            x = x.matmul(w.t())
-            out = x + b.reshape([-1 if i == x.ndim - 1 else 1 for i in range(x.ndim)])
+            x = x.matmul(w.t().to(x.device))
+            out = x + b.reshape(
+                [-1 if i == x.ndim - 1 else 1 for i in range(x.ndim)]
+            ).to(x.device)
         else:
-            x = x.matmul(w.t())
-            out = bias_act(x, b, act=self.activation, dim=x.ndim - 1)
+            x = x.matmul(w.t().to(x.device))
+            out = bias_act(x, b, act=self.activation, dim=x.ndim - 1).to(x.device)
         return out
 
 

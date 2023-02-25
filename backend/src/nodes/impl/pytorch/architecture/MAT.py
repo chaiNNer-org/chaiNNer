@@ -61,8 +61,8 @@ class ModulatedConv2d(nn.Module):
 
     def forward(self, x, style):
         batch, in_channels, height, width = x.shape
-        style = self.affine(style).view(batch, 1, in_channels, 1, 1)
-        weight = self.weight * self.weight_gain * style
+        style = self.affine(style).view(batch, 1, in_channels, 1, 1).to(x.device)
+        weight = self.weight.to(x.device) * self.weight_gain * style
 
         if self.demodulate:
             decoefs = (weight.pow(2).sum(dim=[2, 3, 4]) + 1e-8).rsqrt()
@@ -194,7 +194,7 @@ class ToRGB(torch.nn.Module):
 
 
 def get_style_code(a, b):
-    return torch.cat([a, b], dim=1)
+    return torch.cat([a, b.to(a.device)], dim=1)
 
 
 class DecBlockFirst(nn.Module):
@@ -1419,20 +1419,20 @@ class FirstStage(nn.Module):
                 x, x_size, mask = block(x, x_size, None)
 
                 mul_map = torch.ones_like(x) * 0.5
-                mul_map = F.dropout(mul_map, training=True)
-                ws = self.ws_style(ws[:, -1])
-                add_n = self.to_square(ws).unsqueeze(1)
+                mul_map = F.dropout(mul_map, training=True).to(x.device)
+                ws = self.ws_style(ws[:, -1]).to(x.device)
+                add_n = self.to_square(ws).unsqueeze(1).to(x.device)
                 add_n = (
                     F.interpolate(
                         add_n, size=x.size(1), mode="linear", align_corners=False
                     )
                     .squeeze(1)
                     .unsqueeze(-1)
-                )
+                ).to(x.device)
                 x = x * mul_map + add_n * (1 - mul_map)
                 gs = self.to_style(
                     self.down_conv(token2feature(x, x_size)).flatten(start_dim=1)
-                )
+                ).to(x.device)
                 style = torch.cat([gs, ws], dim=1)
 
         x = token2feature(x, x_size).contiguous()
@@ -1505,21 +1505,21 @@ class SynthesisNet(nn.Module):
         x = torch.cat([masks_in - 0.5, x, images_in * masks_in], dim=1)
         E_features = self.enc(x)
 
-        fea_16 = E_features[4]
+        fea_16 = E_features[4].to(x.device)
         mul_map = torch.ones_like(fea_16) * 0.5
-        mul_map = F.dropout(mul_map, training=True)
+        mul_map = F.dropout(mul_map, training=True).to(x.device)
         add_n = self.to_square(ws[:, 0]).view(-1, 16, 16).unsqueeze(1)
         add_n = F.interpolate(
             add_n, size=fea_16.size()[-2:], mode="bilinear", align_corners=False
-        )
+        ).to(x.device)
         fea_16 = fea_16 * mul_map + add_n * (1 - mul_map)
         E_features[4] = fea_16
 
         # style
-        gs = self.to_style(fea_16)
+        gs = self.to_style(fea_16).to(x.device)
 
         # decoder
-        img = self.dec(fea_16, ws, gs, E_features, noise_mode=noise_mode)
+        img = self.dec(fea_16, ws, gs, E_features, noise_mode=noise_mode).to(x.device)
 
         # ensemble
         img = img * (1 - masks_in) + images_in * masks_in
@@ -1594,6 +1594,9 @@ class MAT(nn.Module):
         self.out_nc = 3
         self.scale = 1
 
+        self.supports_fp16 = False
+        self.supports_bf16 = True
+
         self.min_size = 512
         self.pad_mod = 512
         self.pad_to_square = True
@@ -1625,6 +1628,9 @@ class MAT(nn.Module):
 
         image = image * 2 - 1  # [0, 1] -> [-1, 1]
         mask = 1 - mask
+
+        # self.z = self.z.to(image.device)
+        # self.label = self.label.to(image.device)
 
         output = self.model(
             image, mask, self.z, self.label, truncation_psi=1, noise_mode="none"
