@@ -1629,9 +1629,6 @@ class MAT(nn.Module):
         image = image * 2 - 1  # [0, 1] -> [-1, 1]
         mask = 1 - mask
 
-        # self.z = self.z.to(image.device)
-        # self.label = self.label.to(image.device)
-
         output = self.model(
             image, mask, self.z, self.label, truncation_psi=1, noise_mode="none"
         )
