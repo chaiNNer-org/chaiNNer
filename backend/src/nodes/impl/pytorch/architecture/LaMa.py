@@ -682,7 +682,7 @@ class LaMa(nn.Module):
             for k, v in state_dict.items()
         }
 
-        self.supports_fp16 = True
+        self.supports_fp16 = False
         self.support_bf16 = True
 
         self.load_state_dict(self.state, strict=False)
