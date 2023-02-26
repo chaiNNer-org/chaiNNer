@@ -70,10 +70,10 @@ class MathNode(NodeBase):
                     MathOperation::Subtract => a - b,
                     MathOperation::Multiply => a * b,
                     MathOperation::Divide   => a / b,
-                    MathOperation::Power    => pow(a, b),
+                    MathOperation::Power    => number::pow(a, b),
                     MathOperation::Maximum  => max(a, b),
                     MathOperation::Minimum  => min(a, b),
-                    MathOperation::Modulo   => mod(a, b),
+                    MathOperation::Modulo   => number::mod(a, b),
                 }
                 """,
             )

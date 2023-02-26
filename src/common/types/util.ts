@@ -1,8 +1,11 @@
 import {
+    Expression,
     IntIntervalType,
     NonNeverType,
     NumericLiteralType,
     StringPrimitive,
+    StructExpression,
+    StructExpressionField,
     StructType,
     Type,
     UnionType,
@@ -43,3 +46,10 @@ export const getField = (struct: StructType, field: string): NonNeverType | unde
 const nullType = new StructType('null');
 
 export const withoutNull = (type: Type): Type => without(type, nullType);
+
+export const struct = (name: string, fields: Record<string, Expression>): StructExpression => {
+    return new StructExpression(
+        name,
+        Object.entries(fields).map(([n, e]) => new StructExpressionField(n, e))
+    );
+};
