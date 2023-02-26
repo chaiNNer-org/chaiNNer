@@ -70,6 +70,8 @@ class LoadModelNode(NodeBase):
                 v.requires_grad = False
             model.eval()
             model = model.to(torch.device(exec_options.full_device))
+            if not hasattr(model, "supports_fp16"):
+                model.supports_fp16 = False  # type: ignore
             should_use_fp16 = exec_options.fp16 and model.supports_fp16
             if should_use_fp16:
                 model = model.half()
