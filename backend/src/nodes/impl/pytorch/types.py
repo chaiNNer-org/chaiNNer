@@ -5,6 +5,7 @@ from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.face.restoreformer_arch import RestoreFormer
 from .architecture.HAT import HAT
 from .architecture.LaMa import LaMa
+from .architecture.MAT import MAT
 from .architecture.RRDB import RRDBNet as ESRGAN
 from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
@@ -36,8 +37,8 @@ def is_pytorch_face_model(model: object):
     return isinstance(model, PyTorchFaceModels)
 
 
-PyTorchInpaintModels = (LaMa,)
-PyTorchInpaintModel = LaMa
+PyTorchInpaintModels = (LaMa, MAT)
+PyTorchInpaintModel = Union[LaMa, MAT]
 
 
 def is_pytorch_inpaint_model(model: object):

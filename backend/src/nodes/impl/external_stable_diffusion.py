@@ -4,43 +4,42 @@ import base64
 import io
 import os
 from enum import Enum
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import cv2
 import numpy as np
 import requests
 from PIL import Image
+from sanic.log import logger
 
 from ..utils.utils import get_h_w_c
 from .image_utils import normalize
 
+STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
-STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", "7860")
+STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", None)
 
 STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
     os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", "600")
 )  # 10 minutes
 
-STABLE_DIFFUSION_TEXT2IMG_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/txt2img"
-)
-STABLE_DIFFUSION_IMG2IMG_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/img2img"
-)
-STABLE_DIFFUSION_INTERROGATE_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/interrogate"
-)
-STABLE_DIFFUSION_OPTIONS_URL = (
-    f"http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}/sdapi/v1/options"
-)
+STABLE_DIFFUSION_TEXT2IMG_PATH = f"/sdapi/v1/txt2img"
+STABLE_DIFFUSION_IMG2IMG_PATH = f"/sdapi/v1/img2img"
+STABLE_DIFFUSION_INTERROGATE_PATH = f"/sdapi/v1/interrogate"
+STABLE_DIFFUSION_OPTIONS_PATH = f"/sdapi/v1/options"
+
+
+def _stable_diffusion_url(path):
+    return f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}{path}"
+
 
 ERROR_MSG = f"""
 If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
 
 ./webui.sh --api
 
-ChaiNNer is currently configured to look for the API at http://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}.  If you
-have it running somewhere else, you can change this using the STABLE_DIFFUSION_HOST and STABLE_DIFFUSION_PORT
+To manually set where ChaiNNer looks for the API, use the
+STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_HOST, and STABLE_DIFFUSION_PORT
 environment variables.
 """
 
@@ -58,9 +57,35 @@ class ExternalServiceTimeout(Exception):
     pass
 
 
-def get(url, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
+def _auto_detect_endpoint(timeout=0.5):
+    global STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_PORT  # pylint: disable=global-statement
+
+    protocols = (
+        [STABLE_DIFFUSION_PROTOCOL] if STABLE_DIFFUSION_PROTOCOL else ["http", "https"]
+    )
+    ports = [STABLE_DIFFUSION_PORT] if STABLE_DIFFUSION_PORT else ["7860", "7861"]
+
+    last_error: Optional[Exception] = None
+    for STABLE_DIFFUSION_PROTOCOL in protocols:
+        for STABLE_DIFFUSION_PORT in ports:
+            try:
+                get(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
+                logger.info(
+                    f"Found stable diffusion API at {STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}"
+                )
+                return
+            except Exception as error:
+                last_error = error
+
+    if last_error:
+        raise last_error
+    else:
+        raise RuntimeError
+
+
+def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
-        response = requests.get(url, timeout=timeout)
+        response = requests.get(_stable_diffusion_url(path), timeout=timeout)
     except requests.ConnectionError as exc:
         raise ExternalServiceConnectionError(ERROR_MSG) from exc
     except requests.exceptions.ReadTimeout as exc:
@@ -68,10 +93,12 @@ def get(url, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     return response.json()
 
 
-def post(url, json_data: Dict) -> Dict:
+def post(path, json_data: Dict) -> Dict:
     try:
         response = requests.post(
-            url, json=json_data, timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT
+            _stable_diffusion_url(path),
+            json=json_data,
+            timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
         )
     except requests.ConnectionError as exc:
         raise ExternalServiceConnectionError(ERROR_MSG) from exc
@@ -96,7 +123,7 @@ def verify_api_connection():
     global has_api_connection  # pylint: disable=global-statement
     if has_api_connection is None:
         has_api_connection = False
-        get(STABLE_DIFFUSION_OPTIONS_URL, timeout=0.5)
+        _auto_detect_endpoint()
         has_api_connection = True
 
     if not has_api_connection:

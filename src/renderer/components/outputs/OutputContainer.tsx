@@ -8,7 +8,7 @@ import { OutputId } from '../../../common/common-types';
 import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
 import { VALID, Validity, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../../helpers/accentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTags } from '../TypeTag';
 

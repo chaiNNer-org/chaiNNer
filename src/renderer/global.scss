@@ -5,7 +5,7 @@
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle) */
 
-:not(input, textarea, button, svg, path, g, span) {
+:not(input, textarea, button, svg, path, g, span, circle) {
     &,
     &::after,
     &::before {

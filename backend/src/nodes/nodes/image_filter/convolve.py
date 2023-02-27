@@ -5,7 +5,7 @@ import numpy as np
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NoteTextAreaInput, NumberInput
+from ...properties.inputs import ImageInput, NumberInput, TextAreaInput
 from ...properties.outputs import ImageOutput
 from . import category as ImageFilterCategory
 
@@ -17,7 +17,7 @@ class ImageConvolveNode(NodeBase):
         self.description = "Convolves input image with input kernel"
         self.inputs = [
             ImageInput("Image"),
-            NoteTextAreaInput("Kernel String"),
+            TextAreaInput("Kernel String"),
             NumberInput("Padding", minimum=0, default=0),
         ]
         self.outputs = [

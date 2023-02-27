@@ -9,10 +9,9 @@ import { isStartingNode, parseSourceHandle } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
@@ -53,7 +52,7 @@ export interface NodeProps {
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
-    const { schemata } = useContext(BackendContext);
+    const { schemata, categories } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
@@ -68,7 +67,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { validity } = useValidity(id, schema, inputData);
 
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getNodeAccentColor(category);
+    const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]

@@ -1,15 +1,18 @@
 import {
+    Arg,
     Int,
+    Intrinsic,
     NeverType,
     StringLiteralType,
     StringPrimitive,
     StringType,
     StructType,
     StructTypeField,
-    ValueType,
-    builtin,
+    handleNumberLiterals,
     intersect,
     literal,
+    wrapTernary,
+    wrapUnary,
 } from '@chainner/navi';
 import path from 'path';
 
@@ -94,7 +97,6 @@ class ReplacementString {
     }
 }
 
-type Arg<T extends ValueType> = builtin.Arg<T>;
 export const formatTextPattern = (
     pattern: Arg<StringPrimitive>,
     ...args: Arg<StringPrimitive | StructType>[]
@@ -136,7 +138,7 @@ export const formatTextPattern = (
         }
     }
 
-    return builtin.concat(...concatArgs);
+    return Intrinsic.concat(...concatArgs);
 };
 
 // Python-conform padding implementations.
@@ -178,12 +180,12 @@ const pyPadCenter = (text: string, width: number, char: string): string => {
     return char.repeat(missingStart) + text + char.repeat(missing - missingStart);
 };
 
-export const padStart = builtin.wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
+export const padStart = wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
     (text, width, padding) => {
         if (text.type !== 'literal') return StringType.instance;
         if (padding.type !== 'literal') return StringType.instance;
         try {
-            return builtin.handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
+            return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
                 literal(pyPadStart(text.value, i, padding.value))
             );
         } catch {
@@ -191,12 +193,12 @@ export const padStart = builtin.wrapTernary<StringPrimitive, Int, StringPrimitiv
         }
     }
 );
-export const padEnd = builtin.wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
+export const padEnd = wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
     (text, width, padding) => {
         if (text.type !== 'literal') return StringType.instance;
         if (padding.type !== 'literal') return StringType.instance;
         try {
-            return builtin.handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
+            return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
                 literal(pyPadEnd(text.value, i, padding.value))
             );
         } catch {
@@ -204,47 +206,42 @@ export const padEnd = builtin.wrapTernary<StringPrimitive, Int, StringPrimitive,
         }
     }
 );
-export const padCenter = builtin.wrapTernary<
-    StringPrimitive,
-    Int,
-    StringPrimitive,
-    StringPrimitive
->((text, width, padding) => {
-    if (text.type !== 'literal') return StringType.instance;
-    if (padding.type !== 'literal') return StringType.instance;
-    try {
-        return builtin.handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
-            literal(pyPadCenter(text.value, i, padding.value))
-        );
-    } catch {
-        return NeverType.instance;
-    }
-});
-
-export const splitFilePath = builtin.wrapUnary<StringPrimitive, StructType>(
-    (filePath: StringPrimitive) => {
-        if (filePath.type === 'literal') {
-            const base = path.basename(filePath.value);
-            const ext = path.extname(base);
-            const basename = ext ? base.slice(0, -ext.length) : base;
-            return new StructType('SplitFilePath', [
-                new StructTypeField(
-                    'dir',
-                    new StructType('Directory', [
-                        new StructTypeField('path', literal(path.dirname(filePath.value))),
-                    ])
-                ),
-                new StructTypeField('basename', literal(basename)),
-                new StructTypeField('ext', literal(ext)),
-            ]);
+export const padCenter = wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
+    (text, width, padding) => {
+        if (text.type !== 'literal') return StringType.instance;
+        if (padding.type !== 'literal') return StringType.instance;
+        try {
+            return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
+                literal(pyPadCenter(text.value, i, padding.value))
+            );
+        } catch {
+            return NeverType.instance;
         }
+    }
+);
+
+export const splitFilePath = wrapUnary<StringPrimitive, StructType>((filePath: StringPrimitive) => {
+    if (filePath.type === 'literal') {
+        const base = path.basename(filePath.value);
+        const ext = path.extname(base);
+        const basename = ext ? base.slice(0, -ext.length) : base;
         return new StructType('SplitFilePath', [
             new StructTypeField(
                 'dir',
-                new StructType('Directory', [new StructTypeField('path', StringType.instance)])
+                new StructType('Directory', [
+                    new StructTypeField('path', literal(path.dirname(filePath.value))),
+                ])
             ),
-            new StructTypeField('basename', StringType.instance),
-            new StructTypeField('ext', StringType.instance),
+            new StructTypeField('basename', literal(basename)),
+            new StructTypeField('ext', literal(ext)),
         ]);
     }
-);
+    return new StructType('SplitFilePath', [
+        new StructTypeField(
+            'dir',
+            new StructType('Directory', [new StructTypeField('path', StringType.instance)])
+        ),
+        new StructTypeField('basename', StringType.instance),
+        new StructTypeField('ext', StringType.instance),
+    ]);
+});

@@ -123,6 +123,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 #### Inpainting
 
 - [LaMa](https://github.com/advimman/lama) | [Model](https://github.com/Sanster/models/releases/download/add_big_lama/big-lama.pt)
+- [MAT](https://github.com/fenglinglwb/MAT) | [Model](https://github.com/Sanster/models/releases/download/add_mat/Places_512_FullData_G.pth)
 
 ### NCNN
 

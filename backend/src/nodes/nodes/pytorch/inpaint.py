@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import gc
+from typing import Optional
 
 import numpy as np
 import torch
 
+from ...impl.image_utils import as_3d
 from ...impl.pytorch.types import PyTorchInpaintModel
 from ...impl.pytorch.utils import np2tensor, tensor2np, to_pytorch_execution_options
 from ...node_base import NodeBase
@@ -14,6 +16,7 @@ from ...properties.inputs import ImageInput
 from ...properties.inputs.pytorch_inputs import InpaintModelInput
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import ExecutionOptions, get_execution_options
+from ...utils.utils import get_h_w_c
 from . import category as PyTorchCategory
 
 
@@ -43,6 +46,36 @@ class InpaintNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Processing"
 
+    @staticmethod
+    def ceil_modulo(x: int, mod: int) -> int:
+        if x % mod == 0:
+            return x
+        return (x // mod + 1) * mod
+
+    def pad_img_to_modulo(
+        self,
+        img: np.ndarray,
+        mod: int,
+        square: bool = False,
+        min_size: Optional[int] = None,
+    ):
+        img = as_3d(img)
+        h, w, _ = get_h_w_c(img)
+        out_h = self.ceil_modulo(h, mod)
+        out_w = self.ceil_modulo(w, mod)
+
+        if min_size is not None:
+            assert min_size % mod == 0
+            out_w = max(min_size, out_w)
+            out_h = max(min_size, out_h)
+
+        if square:
+            max_size = max(out_h, out_w)
+            out_h = max_size
+            out_w = max_size
+
+        return np.pad(img, ((0, out_h - h), (0, out_w - w), (0, 0)), mode="symmetric")
+
     def inpaint(
         self,
         img: np.ndarray,
@@ -57,6 +90,15 @@ class InpaintNode(NodeBase):
             model = model.to(device)
             model = model.half() if use_fp16 else model.float()
 
+            orig_height, orig_width, _ = get_h_w_c(img)
+
+            img = self.pad_img_to_modulo(
+                img, model.pad_mod, model.pad_to_square, model.min_size
+            )
+            mask = self.pad_img_to_modulo(
+                mask, model.pad_mod, model.pad_to_square, model.min_size
+            )
+
             img_tensor = np2tensor(img, change_range=True)
             mask_tensor = np2tensor(mask, change_range=True)
 
@@ -68,6 +110,7 @@ class InpaintNode(NodeBase):
 
                 d_mask = mask_tensor.to(device)
                 d_mask = (d_mask > 0.5) * 1
+                d_mask = d_mask.half() if use_fp16 else d_mask.float()
 
                 result = model(d_img, d_mask)
                 result = tensor2np(
@@ -78,7 +121,8 @@ class InpaintNode(NodeBase):
 
                 del d_img
                 del d_mask
-                return result
+
+                return result[0:orig_height, 0:orig_width]
             except RuntimeError:
                 # Collect garbage (clear VRAM)
                 if d_img is not None:
