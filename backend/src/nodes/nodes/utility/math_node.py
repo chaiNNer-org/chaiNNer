@@ -32,7 +32,7 @@ OP_LABEL: Dict[MathOperation, str] = {
     MathOperation.MULTIPLY: "Multiply: a × b",
     MathOperation.DIVIDE: "Divide: a ÷ b",
     MathOperation.POWER: "Exponent: a ^ b",
-    MathOperation.LOG: "Logarithm: log b of a",
+    MathOperation.LOG: "Logarithm: log a of b",
     MathOperation.MAXIMUM: "Maximum: max(a, b)",
     MathOperation.MINIMUM: "Minimum: min(a, b)",
     MathOperation.MODULO: "Modulo: a mod b",
@@ -83,9 +83,9 @@ class MathNode(NodeBase):
                     MathOperation::Maximum  => max(a, b),
                     MathOperation::Minimum  => min(a, b),
                     MathOperation::Modulo   => number::mod(a, b),
-                    MathOperation::Percent   => a * b / 100,
-                    MathOperation::Floor   => int & number::floor(a / b) * b,
-                    MathOperation::Ceiling   => int & number::ceil(a / b) * b,
+                    MathOperation::Percent  => a * b / 100,
+                    MathOperation::Floor    => int & number::floor(a / b) * b,
+                    MathOperation::Ceiling  => int & number::ceil(a / b) * b,
                 }
                 """,
             )
@@ -110,7 +110,7 @@ class MathNode(NodeBase):
         elif op == MathOperation.POWER:
             return a**b
         elif op == MathOperation.LOG:
-            return math.log(a, b)
+            return math.log(b, a)
         elif op == MathOperation.MAXIMUM:
             return max(a, b)
         elif op == MathOperation.MINIMUM:
