@@ -23,7 +23,8 @@ from . import category as PyTorchCategory
 class LoadModelNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
+        self.description = """Load PyTorch state dict (.pth) or TorchScript (.pt) file
+            into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
             Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT."""
@@ -51,17 +52,26 @@ class LoadModelNode(NodeBase):
 
         try:
             logger.debug(f"Reading state dict from path: {path}")
-            state_dict = torch.load(
-                path,
-                map_location=torch.device(exec_options.full_device),
-                pickle_module=RestrictedUnpickle,  # type: ignore
-            )
+
+            if os.path.splitext(path)[1].lower() == ".pt":
+                state_dict = torch.jit.load(  # type: ignore
+                    path, map_location=torch.device(exec_options.full_device)
+                ).state_dict()
+            else:
+                state_dict = torch.load(
+                    path,
+                    map_location=torch.device(exec_options.full_device),
+                    pickle_module=RestrictedUnpickle,  # type: ignore
+                )
+
             model = load_state_dict(state_dict)
 
             for _, v in model.named_parameters():
                 v.requires_grad = False
             model.eval()
             model = model.to(torch.device(exec_options.full_device))
+            if not hasattr(model, "supports_fp16"):
+                model.supports_fp16 = False  # type: ignore
             should_use_fp16 = exec_options.fp16 and model.supports_fp16
             if should_use_fp16:
                 model = model.half()

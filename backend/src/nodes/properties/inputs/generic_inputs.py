@@ -224,12 +224,13 @@ class TextInput(BaseInput):
         }
 
 
-class NoteTextAreaInput(BaseInput):
-    """Input for note text"""
+class TextAreaInput(BaseInput):
+    """Input for large text"""
 
-    def __init__(self, label: str = "Note Text"):
+    def __init__(self, label: str = "Text", default: Union[str, None] = None):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
+        self.default = default
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -241,6 +242,7 @@ class NoteTextAreaInput(BaseInput):
         return {
             **super().toDict(),
             "resizable": self.resizable,
+            "def": self.default,
         }
 
 

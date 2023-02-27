@@ -1,7 +1,8 @@
-import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
+import { Expression, literal } from '@chainner/navi';
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -31,21 +32,18 @@ export const OnnxModelOutput = memo(
         useEffect(() => {
             if (isStartingNode(schema)) {
                 if (current) {
-                    const fields = [new NamedExpressionField('subType', literal(current.subType))];
+                    const fields: Record<string, Expression> = {
+                        subType: literal(current.subType),
+                    };
 
                     if (current.scaleHeight) {
-                        fields.push(
-                            new NamedExpressionField('scaleHeight', literal(current.scaleHeight))
-                        );
+                        fields.scaleHeight = literal(current.scaleHeight);
                     }
-
                     if (current.scaleWidth) {
-                        fields.push(
-                            new NamedExpressionField('scaleWidth', literal(current.scaleWidth))
-                        );
+                        fields.scaleWidth = literal(current.scaleWidth);
                     }
 
-                    setManualOutputType(id, outputId, new NamedExpression('OnnxModel', fields));
+                    setManualOutputType(id, outputId, struct('OnnxModel', fields));
                 } else {
                     setManualOutputType(id, outputId, undefined);
                 }

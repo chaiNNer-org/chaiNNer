@@ -9,7 +9,7 @@ import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../
 import { VALID, Validity, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTag } from '../TypeTag';
 

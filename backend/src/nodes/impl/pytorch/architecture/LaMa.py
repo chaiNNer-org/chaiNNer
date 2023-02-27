@@ -672,11 +672,19 @@ class LaMa(nn.Module):
         self.out_nc = 3
         self.scale = 1
 
+        self.min_size = None
+        self.pad_mod = 8
+        self.pad_to_square = False
+
         self.model = FFCResNetGenerator(self.in_nc, self.out_nc)
         self.state = {
             k.replace("generator.model", "model.model"): v
             for k, v in state_dict.items()
         }
+
+        self.supports_fp16 = False
+        self.support_bf16 = True
+
         self.load_state_dict(self.state, strict=False)
 
     def forward(self, img, mask):

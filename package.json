@@ -1,11 +1,12 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
-  "version": "0.17.1",
+  "version": "0.18.1",
   "description": "A flowchart based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
+    "frontend": "electron-forge start -- --no-backend",
     "dev": "concurrently \"cd backend/src && nodemon ./run.py 8000\" \"electron-forge start -- --no-backend\"",
     "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --no-backend\"",
     "debug:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
@@ -101,7 +102,7 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
-    "@chainner/navi": "^0.3.0",
+    "@chainner/navi": "^0.4.2",
     "@chakra-ui/icons": "^2.0.11",
     "@chakra-ui/react": "^2.3.5",
     "@emotion/react": "^11.9.0",

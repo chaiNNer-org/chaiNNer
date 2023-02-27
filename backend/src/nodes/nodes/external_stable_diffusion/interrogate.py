@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from ...impl.external_stable_diffusion import (
-    STABLE_DIFFUSION_INTERROGATE_URL,
+    STABLE_DIFFUSION_INTERROGATE_PATH,
     encode_base64_image,
     post,
     verify_api_connection,
@@ -40,5 +40,5 @@ class Interrogate(NodeBase):
         request_data = {
             "image": encode_base64_image(image),
         }
-        response = post(url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data)
+        response = post(path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data)
         return response["caption"]

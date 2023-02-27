@@ -100,7 +100,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         input_type_name="PthFile",
         label="Pretrained Model",
         file_kind="pth",
-        filetypes=[".pth"],
+        filetypes=[".pt", ".pth"],
         primary_input=primary_input,
     )
 

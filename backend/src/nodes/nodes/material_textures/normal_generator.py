@@ -18,7 +18,7 @@ from ...properties.inputs import (
     SliderInput,
 )
 from ...properties.outputs import ImageOutput
-from . import category as ImageFilterCategory
+from . import category
 
 
 class AlphaOutput(Enum):
@@ -113,7 +113,7 @@ class NormalMapGenerator(NodeBase):
                 ),
             ),
         ]
-        self.category = ImageFilterCategory
+        self.category = category
         self.name = "Normal Map Generator"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"

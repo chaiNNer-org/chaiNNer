@@ -44,7 +44,7 @@ def riemersma_dither(
         es = _error_sum(history, base, image.shape[2])
         pixel = image[i, j, :] + es
         out[i, j, :] = nearest_color_func(pixel)
-        history.appendleft(image[i, j, :] - out[i, j, :])
+        history.appendleft(image[i, j, :] - out[i, j, :])  # type: ignore
     return float_to_dtype(out, original_dtype)
 
 

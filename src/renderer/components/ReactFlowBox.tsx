@@ -623,6 +623,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
                 elevateEdgesOnSelect={false}
+                elevateNodesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
@@ -638,7 +639,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectEnd={onConnectStop}
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
-                // onEdgeUpdate={onEdgeUpdate}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}

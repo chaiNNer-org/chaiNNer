@@ -9,7 +9,7 @@ from ...properties import expression
 from ...properties.inputs import BorderInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import Padding
-from . import category as ImageUtilityCategory
+from . import category as ImageDimensionCategory
 
 
 @NodeFactory.register("chainner:image:create_edges")
@@ -34,10 +34,10 @@ class CreateEdgesNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageDimensionCategory
         self.name = "Create Edges"
         self.icon = "BsBorderOuter"
-        self.sub = "Miscellaneous"
+        self.sub = "Border"
 
     def run(
         self,

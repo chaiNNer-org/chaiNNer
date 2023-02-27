@@ -1,6 +1,7 @@
-import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
+import { literal } from '@chainner/navi';
 import { memo, useEffect, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -44,14 +45,14 @@ export const PyTorchOutput = memo(
                     setManualOutputType(
                         id,
                         outputId,
-                        new NamedExpression('PyTorchModel', [
-                            new NamedExpressionField('scale', literal(current.scale)),
-                            new NamedExpressionField('inputChannels', literal(current.inNc)),
-                            new NamedExpressionField('outputChannels', literal(current.outNc)),
-                            new NamedExpressionField('arch', literal(current.arch)),
-                            new NamedExpressionField('size', literal(current.size.join('x'))),
-                            new NamedExpressionField('subType', literal(current.subType)),
-                        ])
+                        struct('PyTorchModel', {
+                            scale: literal(current.scale),
+                            inputChannels: literal(current.inNc),
+                            outputChannels: literal(current.outNc),
+                            arch: literal(current.arch),
+                            size: literal(current.size.join('x')),
+                            subType: literal(current.subType),
+                        })
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);

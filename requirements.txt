@@ -9,20 +9,20 @@ isort==5.11.5
 ncnn_vulkan
 numba!=0.49.0
 numpy
-onnx
+onnx==1.13.0
 onnxoptimizer
 onnxruntime
 opencv-python
 pasteboard ; sys_platform=="darwin"
 Pillow
-protobuf==3.16.0
+protobuf==3.20.2
 pylint==2.16.1
-pyright==1.1.280
+pyright==1.1.294
 pytest
 pywin32 ; sys_platform=="win32"
 requests
 sanic==21.12.2
-sanic_cors==1.0.1
+sanic_cors==2.2.0
 scipy==1.9.3
 # torch
 # torchvision
