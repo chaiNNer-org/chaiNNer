@@ -59,7 +59,7 @@ class TextSliceNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let text = Input0;
+                let text = toString(Input0);
                 let operation = Input1;
                 let start = Input2;
                 let length = Input3;
@@ -71,11 +71,11 @@ class TextSliceNode(NodeBase):
                     SliceOperation::StartAndLength => string::slice(text, start, length),
                     SliceOperation::MaxLength => {
                         match alignment {
-                            SliceAlignment::Start => string.slice(text, 0, maxLength),
+                            SliceAlignment::Start => string::slice(text, 0, maxLength),
                             SliceAlignment::End => {
                                 match maxLength {
                                     0 => "",
-                                    _ as maxLength => string.slice(text, -maxLength, inf),
+                                    _ as maxLength => string::slice(text, -maxLength, inf),
                                 }
                             },
                         }
@@ -110,4 +110,4 @@ class TextSliceNode(NodeBase):
             if alignment == SliceAlignment.START:
                 return text[:max_length]
             elif alignment == SliceAlignment.END:
-                return text[-max_length]
+                return text[-max_length:]

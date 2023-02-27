@@ -16,7 +16,7 @@ class TextLengthNode(NodeBase):
             TextInput("Text", min_length=0),
         ]
         self.outputs = [
-            NumberOutput("Length", output_type="string::length(Input0)"),
+            NumberOutput("Length", output_type="string::len(toString(Input0))"),
         ]
 
         self.category = UtilityCategory
