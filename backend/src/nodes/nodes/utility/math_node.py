@@ -35,8 +35,8 @@ OP_LABEL: Dict[MathOperation, str] = {
     MathOperation.MINIMUM: "Minimum: min(a, b)",
     MathOperation.MODULO: "Modulo: a mod b",
     MathOperation.PERCENT: "Percent: a × b ÷ 100",
-    MathOperation.FLOOR: "Round Down: floor(a ÷ b) × b",
-    MathOperation.CEILING: "Round Up: ceiling(a ÷ b) × b",
+    MathOperation.FLOOR: "Round Down: ⌊a ÷ b⌋ × b",
+    MathOperation.CEILING: "Round Up: ⌈a ÷ b⌉ × b",
 }
 
 _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
