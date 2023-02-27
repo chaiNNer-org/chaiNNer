@@ -1,10 +1,11 @@
 /* eslint-disable no-nested-ternary */
-import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
+import { literal } from '@chainner/navi';
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -53,11 +54,11 @@ export const LargeImageOutput = memo(
                     setManualOutputType(
                         id,
                         outputId,
-                        new NamedExpression('Image', [
-                            new NamedExpressionField('width', literal(current.width)),
-                            new NamedExpressionField('height', literal(current.height)),
-                            new NamedExpressionField('channels', literal(current.channels)),
-                        ])
+                        struct('Image', {
+                            width: literal(current.width),
+                            height: literal(current.height),
+                            channels: literal(current.channels),
+                        })
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);

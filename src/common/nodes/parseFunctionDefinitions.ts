@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 import { ScopeBuilder, SourceDocument, parseDefinitions } from '@chainner/navi';
 import { NodeSchema, SchemaId } from '../common-types';
 import { getChainnerScope } from '../types/chainner-scope';
@@ -17,7 +18,6 @@ export const parseFunctionDefinitions = (
             const { typeDefinitions } = input;
             if (typeDefinitions) {
                 if (processedDeclarations.has(typeDefinitions)) {
-                    // eslint-disable-next-line no-continue
                     continue;
                 }
                 processedDeclarations.add(typeDefinitions);
@@ -31,6 +31,11 @@ export const parseFunctionDefinitions = (
                             errors.push(
                                 `Duplicate type definitions for ${d.name} in ${schema.schemaId} > ${input.label} (id: ${input.id}). The type definition is already defined in chainner scope (see "src/common/types/chainner-scope.ts")`
                             );
+                            continue;
+                        }
+                        if (d.underlying === 'declaration') {
+                            errors.push(`Intrinsic function definitions are not allowed.`);
+                            continue;
                         }
                         scopeBuilder.add(d);
                     }

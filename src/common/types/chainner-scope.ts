@@ -1,15 +1,12 @@
 import {
-    BuiltinFunctionDefinition,
+    IntrinsicFunctionDefinition,
+    NeverType,
     Scope,
     ScopeBuilder,
     SourceDocument,
-    StringType,
-    StructType,
     Type,
     globalScope,
-    intInterval,
     parseDefinitions,
-    union,
 } from '@chainner/navi';
 import { lazy } from '../util';
 import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from './chainner-builtin';
@@ -130,49 +127,37 @@ struct SplitFilePath {
     basename: string,
     ext: string,
 }
+
+intrinsic def formatPattern(pattern: string, ...args: string | null): string;
+intrinsic def padStart(text: string, width: uint, padding: string): string;
+intrinsic def padEnd(text: string, width: uint, padding: string): string;
+intrinsic def padCenter(text: string, width: uint, padding: string): string;
+intrinsic def splitFilePath(path: string): SplitFilePath;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
     const builder = new ScopeBuilder('Chainner scope', globalScope);
 
+    const intrinsic: Record<string, (...args: NeverType[]) => Type> = {
+        formatPattern: formatTextPattern,
+        padStart,
+        padEnd,
+        padCenter,
+        splitFilePath,
+    };
+
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));
     for (const d of definitions) {
-        builder.add(d);
+        if (d.underlying === 'declaration') {
+            if (!(d.name in intrinsic)) {
+                throw new Error(`Unable to find definition for intrinsic ${d.name}`);
+            }
+            const fn = intrinsic[d.name] as (...args: Type[]) => Type;
+            builder.add(IntrinsicFunctionDefinition.from(d, fn));
+        } else {
+            builder.add(d);
+        }
     }
-
-    builder.add(
-        new BuiltinFunctionDefinition(
-            'formatPattern',
-            formatTextPattern as (..._: Type[]) => Type,
-            [StringType.instance],
-            union(StringType.instance, new StructType('null'))
-        )
-    );
-
-    builder.add(
-        new BuiltinFunctionDefinition('padStart', padStart as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        new BuiltinFunctionDefinition('padEnd', padEnd as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        new BuiltinFunctionDefinition('padCenter', padCenter as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        BuiltinFunctionDefinition.unary('splitFilePath', splitFilePath, StringType.instance)
-    );
 
     return builder.createScope();
 });
