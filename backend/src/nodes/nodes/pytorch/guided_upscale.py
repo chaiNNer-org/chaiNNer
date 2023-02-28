@@ -15,15 +15,16 @@ from ...utils.exec_options import get_execution_options
 from . import category as PyTorchCategory
 
 
-@NodeFactory.register("chainner:pytorch:pix_transform")
-class PixTransformNode(NodeBase):
+@NodeFactory.register("chainner:pytorch:guided_upscale")
+class GuidedUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
-            "Trains a NN to convert the guide image into the source image."
+            "Upscales a source image using a guide."
             " This is most useful for very small source images."
+            "\n\nUnder the hood, PixTransform is used which trains a NN to convert the guide image into the source image."
             " Note that this operation is very expensive, because it needs to train a NN."
-            " Try a small number of iterations before going back to around 30k."
+            " Try a small number of iterations before going up to around 30k."
         )
         self.inputs = [
             ImageInput("Source"),
@@ -70,7 +71,7 @@ class PixTransformNode(NodeBase):
         ]
 
         self.category = PyTorchCategory
-        self.name = "Pix Transform"
+        self.name = "Guided Upscale"
         self.icon = "PyTorch"
         self.sub = "Processing"
 
