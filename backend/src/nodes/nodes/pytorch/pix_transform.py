@@ -32,7 +32,7 @@ class PixTransformNode(NodeBase):
                 "Iterations",
                 minimum=1,
                 maximum=1000,
-                default=32,
+                default=1,
                 scale="log",
                 unit="k",
             ),
