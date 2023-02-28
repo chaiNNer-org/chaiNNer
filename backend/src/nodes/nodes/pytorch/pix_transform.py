@@ -30,9 +30,10 @@ class PixTransformNode(NodeBase):
             ImageInput("Guide"),
             SliderInput(
                 "Iterations",
-                minimum=1,
-                maximum=1000,
+                minimum=0.1,
+                maximum=100,
                 default=1,
+                precision=1,
                 scale="log",
                 unit="k",
             ),
@@ -77,7 +78,7 @@ class PixTransformNode(NodeBase):
         self,
         source: np.ndarray,
         guide: np.ndarray,
-        iterations: int,
+        iterations: float,
         split_mode: SplitMode,
     ) -> np.ndarray:
         exec_options = to_pytorch_execution_options(get_execution_options())
@@ -86,6 +87,6 @@ class PixTransformNode(NodeBase):
             source=source,
             guide=guide,
             device=torch.device(exec_options.full_device),
-            params=Params(iteration=iterations * 1000),
+            params=Params(iteration=int(iterations * 1000)),
             split_mode=split_mode,
         )
