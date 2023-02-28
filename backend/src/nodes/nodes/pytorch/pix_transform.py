@@ -6,9 +6,10 @@ import torch
 from ...impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
 from ...impl.pytorch.pix_transform.pix_transform import Params
 from ...impl.pytorch.utils import to_pytorch_execution_options
+from ...impl.upscale.grayscale import SplitMode
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput
+from ...properties.inputs import EnumInput, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options
 from . import category as PyTorchCategory
@@ -34,6 +35,12 @@ class PixTransformNode(NodeBase):
                 default=32,
                 scale="log",
                 unit="k",
+            ),
+            EnumInput(
+                SplitMode,
+                "Channel split mode",
+                SplitMode.LAB,
+                option_labels={SplitMode.RGB: "RGB", SplitMode.LAB: "L*a*b"},
             ),
         ]
         self.outputs = [
@@ -66,7 +73,13 @@ class PixTransformNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Processing"
 
-    def run(self, source: np.ndarray, guide: np.ndarray, iterations: int) -> np.ndarray:
+    def run(
+        self,
+        source: np.ndarray,
+        guide: np.ndarray,
+        iterations: int,
+        split_mode: SplitMode,
+    ) -> np.ndarray:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         return pix_transform_auto_split(

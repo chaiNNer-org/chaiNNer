@@ -8,7 +8,7 @@ import torch
 from ....utils.utils import Region, Size, get_h_w_c
 from ...image_op import to_op
 from ...upscale.auto_split import Split, auto_split
-from ...upscale.grayscale import grayscale_split
+from ...upscale.grayscale import SplitMode, grayscale_split
 from ...upscale.tiler import Tiler
 from .pix_transform import Params, PixTransform
 
@@ -37,6 +37,7 @@ def pix_transform_auto_split(
     guide: np.ndarray,
     device: torch.device,
     params: Params,
+    split_mode: SplitMode = SplitMode.LAB,
 ) -> np.ndarray:
     """
     Automatically splits the source and guide image into segments that can be processed by PixTransform.
@@ -66,7 +67,7 @@ def pix_transform_auto_split(
                 params=params,
             )
 
-            return grayscale_split(tile, pix_op)
+            return grayscale_split(tile, pix_op, split_mode)
         except RuntimeError as e:
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
