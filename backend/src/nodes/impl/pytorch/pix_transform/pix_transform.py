@@ -45,13 +45,13 @@ def PixTransform(
     _N = hr_height
 
     # normalize guide and source
-    guide_img = (guide_img - np.mean(guide_img, axis=(1, 2), keepdims=True)) / np.std(
-        guide_img, axis=(1, 2), keepdims=True
-    )
+    guide_img = (
+        guide_img - np.mean(guide_img, axis=(1, 2), keepdims=True)
+    ) / np.maximum(0.0001, np.std(guide_img, axis=(1, 2), keepdims=True))
 
     source_img_mean = np.mean(source_img)
     source_img_std = np.std(source_img)
-    source_img = (source_img - source_img_mean) / source_img_std
+    source_img = (source_img - source_img_mean) / np.maximum(0.0001, source_img_std)
 
     if params.spatial_features_input:
         x = np.linspace(-0.5, 0.5, hr_width)
