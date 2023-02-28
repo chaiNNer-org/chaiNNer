@@ -22,8 +22,6 @@ class MathOperation(Enum):
     MINIMUM = "min"
     MODULO = "mod"
     PERCENT = "percent"
-    FLOOR = "floor"
-    CEILING = "ceiling"
 
 
 OP_LABEL: Dict[MathOperation, str] = {
@@ -37,8 +35,6 @@ OP_LABEL: Dict[MathOperation, str] = {
     MathOperation.MINIMUM: "Minimum: min(a, b)",
     MathOperation.MODULO: "Modulo: a mod b",
     MathOperation.PERCENT: "Percent: a × b ÷ 100",
-    MathOperation.FLOOR: "Round Down: ⌊a ÷ b⌋ × b",
-    MathOperation.CEILING: "Round Up: ⌈a ÷ b⌉ × b",
 }
 
 _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
@@ -84,8 +80,6 @@ class MathNode(NodeBase):
                     MathOperation::Minimum  => min(a, b),
                     MathOperation::Modulo   => number::mod(a, b),
                     MathOperation::Percent  => a * b / 100,
-                    MathOperation::Floor    => int & number::floor(a / b) * b,
-                    MathOperation::Ceiling  => int & number::ceil(a / b) * b,
                 }
                 """,
             )
@@ -122,9 +116,5 @@ class MathNode(NodeBase):
                 return a % b
         elif op == MathOperation.PERCENT:
             return a * b / 100
-        elif op == MathOperation.FLOOR:
-            return math.floor(a / b) * b
-        elif op == MathOperation.CEILING:
-            return math.ceil(a / b) * b
         else:
             raise RuntimeError(f"Unknown operator {op}")
