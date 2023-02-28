@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from enum import Enum
-from typing import Dict, Union
+from typing import Union
 
 from ...groups import conditional_group
 from ...node_base import NodeBase
@@ -13,15 +13,15 @@ from . import category as UtilityCategory
 
 
 class RoundOperation(Enum):
-    FLOOR="Down"
-    CEILING="Up"
-    ROUND="Either way"
+    FLOOR = "Down"
+    CEILING = "Up"
+    ROUND = "Either way"
 
 
 class RoundScale(Enum):
-    UNIT="Whole Number"
-    MULTIPLE="Multiple of..."
-    POWER="Power of..."
+    UNIT = "Whole Number"
+    MULTIPLE = "Multiple of..."
+    POWER = "Power of..."
 
 
 @NodeFactory.register("chainner:utility:math_round")
@@ -37,13 +37,21 @@ class RoundNode(NodeBase):
                 precision=100,
                 controls_step=1,
             ),
-            EnumInput(RoundOperation, "Round", option_labels={k: k.value for k in RoundOperation}),
-            EnumInput(RoundScale, "to the nearest", option_labels={k: k.value for k in RoundScale}),
+            EnumInput(
+                RoundOperation,
+                "Round",
+                option_labels={k: k.value for k in RoundOperation},
+            ),
+            EnumInput(
+                RoundScale,
+                "to the nearest",
+                option_labels={k: k.value for k in RoundScale},
+            ),
             conditional_group(enum=2, condition=RoundScale.MULTIPLE.value)(
                 NumberInput(
                     "Multiple",
                     default=1,
-                    minimum=1E-100,
+                    minimum=1e-100,
                     maximum=None,
                     precision=100,
                     controls_step=1,
@@ -53,12 +61,12 @@ class RoundNode(NodeBase):
                 NumberInput(
                     "Power",
                     default=2,
-                    minimum=(1+1E-100),
+                    minimum=(1 + 1e-100),
                     maximum=None,
                     precision=100,
                     controls_step=1,
                 )
-            )
+            ),
         ]
         self.outputs = [
             NumberOutput(
@@ -95,7 +103,12 @@ class RoundNode(NodeBase):
         self.sub = "Math"
 
     def run(
-        self, a: Union[int, float], operation: RoundOperation, scale: RoundScale, m: Union[int, float], p: Union[int, float]
+        self,
+        a: Union[int, float],
+        operation: RoundOperation,
+        scale: RoundScale,
+        m: Union[int, float],
+        p: Union[int, float],
     ) -> Union[int, float]:
         if operation == RoundOperation.FLOOR:
             op = math.floor
@@ -111,6 +124,6 @@ class RoundNode(NodeBase):
         elif scale == RoundScale.MULTIPLE:
             return op(a / m) * m
         elif scale == RoundScale.POWER:
-            return p**op(math.log(a, p))
+            return p ** op(math.log(a, p))
         else:
             raise RuntimeError(f"Unknown scale {scale}")
