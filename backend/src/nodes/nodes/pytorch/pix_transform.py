@@ -87,4 +87,5 @@ class PixTransformNode(NodeBase):
             guide=guide,
             device=torch.device(exec_options.full_device),
             params=Params(iteration=iterations * 1000),
+            split_mode=split_mode,
         )
