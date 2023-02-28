@@ -94,7 +94,7 @@ export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesP
                         {nodes.map((node) => (
                             <RepresentativeNodeWrapper
                                 collapsed={collapsed}
-                                key={node.name}
+                                key={node.schemaId}
                                 node={node}
                             />
                         ))}
