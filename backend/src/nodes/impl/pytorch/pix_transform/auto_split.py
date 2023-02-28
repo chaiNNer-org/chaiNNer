@@ -9,6 +9,7 @@ from ....utils.utils import Region, Size, get_h_w_c
 from ...image_op import to_op
 from ...upscale.auto_split import Split, auto_split
 from ...upscale.grayscale import SplitMode, grayscale_split
+from ...upscale.passthrough import passthrough_single_color
 from ...upscale.tiler import Tiler
 from .pix_transform import Params, PixTransform
 
@@ -66,8 +67,10 @@ def pix_transform_auto_split(
                 device=device,
                 params=params,
             )
+            # passthrough single colors to speed up alpha channels
+            pass_op = to_op(passthrough_single_color)(scale, pix_op)
 
-            return grayscale_split(tile, pix_op, split_mode)
+            return grayscale_split(tile, pass_op, split_mode)
         except RuntimeError as e:
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
