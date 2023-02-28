@@ -62,6 +62,9 @@ def _exact_split(
     overlap: int,
 ) -> np.ndarray:
     h, w, c = get_h_w_c(img)
+    logger.info(
+        f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {starting_tile_size[0]}x{starting_tile_size[1]}px."
+    )
 
     def no_split_upscale(i: np.ndarray, r: Region) -> np.ndarray:
         result = upscale(i, r)
@@ -72,9 +75,6 @@ def _exact_split(
     MAX_ITER = 20
     for _ in range(MAX_ITER):
         try:
-            logger.info(
-                f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {starting_tile_size[0]}x{starting_tile_size[1]}px."
-            )
             max_overlap = min(*starting_tile_size) // 4
             return exact_split(
                 img=img,
