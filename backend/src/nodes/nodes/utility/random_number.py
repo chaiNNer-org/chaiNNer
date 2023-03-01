@@ -2,8 +2,9 @@ from random import Random
 
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
-from ...properties.inputs import NumberInput
+from ...properties.inputs import NumberInput, SeedInput
 from ...properties.outputs import NumberOutput
+from ...utils.seed import Seed
 from . import category as UtilityCategory
 
 
@@ -24,13 +25,7 @@ class RandomNumberNode(NodeBase):
                 maximum=None,
                 default=100,
             ),
-            group("seed")(
-                NumberInput(
-                    "Seed",
-                    minimum=0,
-                    maximum=None,
-                ),
-            ),
+            group("seed")(SeedInput()),
         ]
         self.outputs = [
             NumberOutput(
@@ -43,5 +38,5 @@ class RandomNumberNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Random"
 
-    def run(self, min_val: int, max_val: int, seed: int) -> int:
-        return Random(seed).randint(min_val, max_val)
+    def run(self, min_val: int, max_val: int, seed: Seed) -> int:
+        return Random(seed.value).randint(min_val, max_val)

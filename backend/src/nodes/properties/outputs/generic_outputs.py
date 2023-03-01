@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ...utils.seed import Seed
 from .. import expression
 from .base_output import BaseOutput, OutputKind
 
@@ -40,3 +41,11 @@ def FileNameOutput(label: str = "Name", of_input: int | None = None):
     )
 
     return TextOutput(label=label, output_type=output_type)
+
+
+class SeedOutput(BaseOutput):
+    def __init__(self, label: str = "Seed"):
+        super().__init__(output_type="Seed", label=label, kind="generic")
+
+    def validate(self, value) -> None:
+        assert isinstance(value, Seed)

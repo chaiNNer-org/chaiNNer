@@ -2,31 +2,32 @@ from __future__ import annotations
 
 import hashlib
 import struct
-from random import Random
 from typing import Union
 
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
-from ...properties.inputs import BaseInput, NumberInput
-from ...properties.outputs import NumberOutput
+from ...properties.inputs import BaseInput, SeedInput
+from ...properties.outputs import SeedOutput
+from ...utils.seed import Seed
 from ...utils.utils import ALPHABET
 from . import category as UtilityCategory
 
-SEED_MAX = 999_999
-Source = Union[int, float, str]
+Source = Union[int, float, str, Seed]
 
 
 def SourceInput(label: str):
     return BaseInput(
         kind="generic",
         label=label,
-        input_type="number | string | Directory",
+        input_type="number | string | Directory | Seed",
     ).make_optional()
 
 
 def _to_bytes(s: Source) -> bytes:
     if isinstance(s, str):
         return s.encode(errors="backslashreplace")
+    if isinstance(s, Seed):
+        s = s.value
 
     i = int(s)
     if isinstance(s, int) or s == i:
@@ -41,20 +42,14 @@ class RandomNumberNode(NodeBase):
         super().__init__()
         self.description = "Creates a new seed from multiple sources of randomness."
         self.inputs = [
-            group("seed")(
-                NumberInput(
-                    "Seed",
-                    minimum=0,
-                    maximum=None,
-                ),
-            ),
+            group("seed")(SeedInput(has_handle=False)),
             SourceInput(f"Source A"),
             group("optional-list")(
                 *[SourceInput(f"Source {letter}") for letter in ALPHABET[1:10]],
             ),
         ]
         self.outputs = [
-            NumberOutput("Seed", output_type=f"int(0..{SEED_MAX})"),
+            SeedOutput(),
         ]
 
         self.category = UtilityCategory
@@ -62,7 +57,7 @@ class RandomNumberNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Random"
 
-    def run(self, seed: int, *sources: Source | None) -> int:
+    def run(self, seed: Seed, *sources: Source | None) -> Seed:
         h = hashlib.sha256()
 
         h.update(_to_bytes(seed))
@@ -70,4 +65,4 @@ class RandomNumberNode(NodeBase):
             if s is not None:
                 h.update(_to_bytes(s))
 
-        return Random(h.digest()).randint(0, SEED_MAX)
+        return Seed.from_bytes(h.digest())

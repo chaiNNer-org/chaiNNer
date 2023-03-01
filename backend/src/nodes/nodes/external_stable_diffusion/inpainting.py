@@ -27,11 +27,12 @@ from ...properties.inputs import (
     BoolInput,
     EnumInput,
     ImageInput,
-    NumberInput,
+    SeedInput,
     SliderInput,
     TextAreaInput,
 )
 from ...properties.outputs import ImageOutput
+from ...utils.seed import Seed
 from ...utils.utils import get_h_w_c
 from . import category as ExternalStableDiffusionCategory
 
@@ -64,9 +65,7 @@ class Img2Img(NodeBase):
                 controls_step=0.1,
                 precision=2,
             ),
-            group("seed")(
-                NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
-            ),
+            group("seed")(SeedInput()),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
             EnumInput(
                 SamplerName,
@@ -148,7 +147,7 @@ class Img2Img(NodeBase):
         prompt: Optional[str],
         negative_prompt: Optional[str],
         denoising_strength: float,
-        seed: int,
+        seed: Seed,
         steps: int,
         sampler_name: SamplerName,
         cfg_scale: float,
@@ -174,7 +173,7 @@ class Img2Img(NodeBase):
             "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "denoising_strength": denoising_strength,
-            "seed": seed,
+            "seed": seed.to_u32(),
             "steps": steps,
             "sampler_name": sampler_name.value,
             "cfg_scale": cfg_scale,

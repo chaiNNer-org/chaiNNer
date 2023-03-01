@@ -203,67 +203,65 @@ const getInputDataAdapters = (
     for (const input of schema.inputs) {
         const inputName = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
 
-        switch (input.kind) {
-            case 'number':
-            case 'slider':
-            case 'text':
-            case 'text-line': {
-                adapters.set(input.id, (value) => literal(value as never));
-                break;
+        if (input.adapt != null) {
+            const adoptExpression = fromJson(input.adapt);
+            const conversionScope = getConversionScope(scope);
+
+            // verify that it's a valid conversion
+            try {
+                conversionScope.assignParameter(
+                    'Input',
+                    union(NumberType.instance, StringType.instance)
+                );
+                evaluate(adoptExpression, conversionScope);
+            } catch (error) {
+                const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+                throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
             }
 
-            case 'dropdown': {
-                const options = new Map<InputSchemaValue, NonNeverType>();
-                for (const o of input.options) {
-                    if (o.type !== undefined) {
-                        const name = `${o.option}=${JSON.stringify(o.value)} in ${inputName}`;
-
-                        let type;
-                        try {
-                            type = evaluate(fromJson(o.type), scope);
-                        } catch (error) {
-                            throw new Error(
-                                `Unable to evaluate type of option ${name}: ${String(error)}`
-                            );
-                        }
-                        if (type.type === 'never') {
-                            throw new Error(`Type of ${name} cannot be 'never'.`);
-                        }
-
-                        options.set(o.value, type);
-                    }
+            adapters.set(input.id, (value) => {
+                conversionScope.assignParameter('Input', literal(value as never));
+                const result = evaluate(adoptExpression, conversionScope);
+                if (result.type === 'never') return undefined;
+                return result;
+            });
+        } else {
+            switch (input.kind) {
+                case 'number':
+                case 'slider':
+                case 'text':
+                case 'text-line': {
+                    adapters.set(input.id, (value) => literal(value as never));
+                    break;
                 }
-                adapters.set(input.id, (value) => options.get(value));
-                break;
-            }
 
-            default: {
-                if (input.adapt != null) {
-                    const adoptExpression = fromJson(input.adapt);
-                    const conversionScope = getConversionScope(scope);
+                case 'dropdown': {
+                    const options = new Map<InputSchemaValue, NonNeverType>();
+                    for (const o of input.options) {
+                        if (o.type !== undefined) {
+                            const name = `${o.option}=${JSON.stringify(o.value)} in ${inputName}`;
 
-                    // verify that it's a valid conversion
-                    try {
-                        conversionScope.assignParameter(
-                            'Input',
-                            union(NumberType.instance, StringType.instance)
-                        );
-                        evaluate(adoptExpression, conversionScope);
-                    } catch (error) {
-                        const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
-                        throw new Error(
-                            `The conversion of input ${name} is invalid: ${String(error)}`
-                        );
+                            let type;
+                            try {
+                                type = evaluate(fromJson(o.type), scope);
+                            } catch (error) {
+                                throw new Error(
+                                    `Unable to evaluate type of option ${name}: ${String(error)}`
+                                );
+                            }
+                            if (type.type === 'never') {
+                                throw new Error(`Type of ${name} cannot be 'never'.`);
+                            }
+
+                            options.set(o.value, type);
+                        }
                     }
-
-                    adapters.set(input.id, (value) => {
-                        conversionScope.assignParameter('Input', literal(value as never));
-                        const result = evaluate(adoptExpression, conversionScope);
-                        if (result.type === 'never') return undefined;
-                        return result;
-                    });
+                    adapters.set(input.id, (value) => options.get(value));
+                    break;
                 }
-                break;
+
+                default:
+                    break;
             }
         }
     }
