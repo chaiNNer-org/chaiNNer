@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Tuple
 
+from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
+from ...impl.ncnn.optimizer import NcnnOptimizer
 from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
-from ...properties.outputs import NcnnModelOutput, FileNameOutput
-from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
-from ...impl.ncnn.optimizer import NcnnOptimizer
+from ...properties.outputs import FileNameOutput, NcnnModelOutput
 from ...utils.utils import split_file_path
 from . import category as NCNNCategory
 

@@ -1,21 +1,22 @@
 from __future__ import annotations
+
 from enum import Enum
-from typing import Dict, Generic, List, Literal, Tuple, Type, TypeVar, Union, TypedDict
+from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
+
 import numpy as np
 from sanic.log import logger
 
-from .. import expression
-
-from .base_input import BaseInput
 from ...impl.blend import BlendMode
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
 from ...utils.utils import (
-    split_snake_case,
-    split_pascal_case,
     join_pascal_case,
     join_space_case,
+    split_pascal_case,
+    split_snake_case,
 )
+from .. import expression
+from .base_input import BaseInput
 
 
 class UntypedOption(TypedDict):
@@ -223,12 +224,13 @@ class TextInput(BaseInput):
         }
 
 
-class NoteTextAreaInput(BaseInput):
-    """Input for note text"""
+class TextAreaInput(BaseInput):
+    """Input for large text"""
 
-    def __init__(self, label: str = "Note Text"):
+    def __init__(self, label: str = "Text", default: Union[str, None] = None):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
+        self.default = default
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -240,6 +242,7 @@ class NoteTextAreaInput(BaseInput):
         return {
             **super().toDict(),
             "resizable": self.resizable,
+            "def": self.default,
         }
 
 

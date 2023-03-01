@@ -1,16 +1,17 @@
 from __future__ import annotations
+
 from typing import Tuple
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.pil_utils import InterpolationMethod, resize
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.pil_utils import resize, InterpolationMethod
 from ...utils.utils import get_h_w_c
+from . import category
 
 
 def get_size(img: np.ndarray) -> Tuple[int, int]:
@@ -71,7 +72,7 @@ class MetalToSpecular(NodeBase):
             ),
             ImageOutput("Gloss", image_type="Input2", channels=1),
         ]
-        self.category = ImageUtilityCategory
+        self.category = category
         self.name = "Metal to Specular"
         self.icon = "MdChangeCircle"
         self.sub = "Conversion"

@@ -1,15 +1,15 @@
 # pylint: skip-file
 # HAT from https://github.com/XPixelGroup/HAT/blob/main/hat/archs/hat_arch.py
 import math
+import re
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import re
+from einops import rearrange
 
 from .timm.helpers import to_2tuple
 from .timm.weight_init import trunc_normal_
-
-from einops import rearrange
 
 
 def drop_path(x, drop_prob: float = 0.0, training: bool = False):

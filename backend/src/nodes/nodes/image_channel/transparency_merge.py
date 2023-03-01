@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import cv2
 import numpy as np
 from sanic.log import logger
-import cv2
 
-from . import category as ImageChannelCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
+from . import category as ImageChannelCategory
 
 
 @NodeFactory.register("chainner:image:merge_transparency")

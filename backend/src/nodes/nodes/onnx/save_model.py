@@ -4,11 +4,11 @@ import os
 
 from sanic.log import logger
 
-from . import category as ONNXCategory
+from ...impl.onnx.model import OnnxModel
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import OnnxModelInput, DirectoryInput, TextInput
-from ...impl.onnx.model import OnnxModel
+from ...properties.inputs import DirectoryInput, OnnxModelInput, TextInput
+from . import category as ONNXCategory
 
 
 @NodeFactory.register("chainner:onnx:save_model")

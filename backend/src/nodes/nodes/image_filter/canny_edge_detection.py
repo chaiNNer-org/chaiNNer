@@ -3,13 +3,13 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.image_utils import normalize
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.image_utils import normalize
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:canny_edge_detection")
@@ -27,7 +27,7 @@ class CannyEdgeDetectionNode(NodeBase):
         self.outputs = [
             ImageOutput(image_type=expression.Image(size_as="Input0"), channels=1)
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageFilterCategory
         self.name = "Canny Edge Detection"
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"

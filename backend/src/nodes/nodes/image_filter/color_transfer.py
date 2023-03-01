@@ -2,17 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.color_transfer import OverflowMethod, TransferColorSpace, color_transfer
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    ImageInput,
-    EnumInput,
-    BoolInput,
-)
+from ...properties.inputs import BoolInput, EnumInput, ImageInput
 from ...properties.outputs import ImageOutput
-from ...impl.color_transfer import color_transfer, TransferColorSpace, OverflowMethod
 from ...utils.utils import get_h_w_c
+from . import category as ImageFilterCategory
 
 
 @NodeFactory.register("chainner:image:color_transfer")

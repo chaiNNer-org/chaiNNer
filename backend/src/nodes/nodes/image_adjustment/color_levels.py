@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageAdjustmentCategory
+from ...impl.image_utils import as_3d
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, BoolInput
+from ...properties.inputs import BoolInput, ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...impl.image_utils import as_3d
 from ...utils.utils import get_h_w_c
+from . import category as ImageAdjustmentCategory
 
 
 @NodeFactory.register("chainner:image:color_levels")
@@ -114,9 +114,10 @@ class ColorLevelsNode(NodeBase):
                 in_black_all[i], in_white_all[i], in_gamma_all[i] = 0, 1, 1
                 out_black_all[i], out_white_all[i] = 0, 1
 
-        img = np.clip((img - in_black_all) / (in_white_all - in_black_all), 0, 1)
+        img = (img - in_black_all) / (in_white_all - in_black_all)  # type: ignore
+        img = np.clip(img, 0, 1)
         img = (img ** (1 / in_gamma_all)) * (
-            out_white_all - out_black_all
+            out_white_all - out_black_all  # type: ignore
         ) + out_black_all
 
         return np.clip(img, 0, 1)

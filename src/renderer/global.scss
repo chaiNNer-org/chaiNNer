@@ -112,7 +112,7 @@ Usage:
     src: url('../public/fonts/Roboto/Roboto-Light.ttf') format('truetype');
 }
 
-:not(input, textarea, button, svg, path, g, span) {
+:not(input, textarea, button, svg, path, g, span, circle) {
     &,
     &::after,
     &::before {

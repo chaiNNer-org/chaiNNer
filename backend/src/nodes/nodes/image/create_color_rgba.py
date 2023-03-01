@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    NumberInput,
-    SliderInput,
-)
-from ...properties.outputs import ImageOutput
 from ...properties import expression
+from ...properties.inputs import NumberInput, SliderInput
+from ...properties.outputs import ImageOutput
+from . import category as ImageCategory
 
 
 @NodeFactory.register("chainner:image:create_color_rgba")
@@ -59,10 +56,10 @@ class CreateColorNode(NodeBase):
                 )
             )
         ]
-        self.category = ImageUtilityCategory
+        self.category = ImageCategory
         self.name = "Create Color (RGBA)"
         self.icon = "MdFormatColorFill"
-        self.sub = "Create Images"
+        self.sub = "Make Images"
 
     def run(
         self, width: int, height: int, red: int, green: int, blue: int, alpha: int

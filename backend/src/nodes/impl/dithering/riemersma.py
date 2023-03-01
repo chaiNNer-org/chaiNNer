@@ -3,13 +3,10 @@ from collections import deque
 
 import numpy as np
 
-from .color_distance import (
-    nearest_palette_color,
-    nearest_uniform_color,
-)
+from ..image_utils import as_3d
+from .color_distance import nearest_palette_color, nearest_uniform_color
 from .common import dtype_to_float, float_to_dtype
 from .hilbert import HilbertCurve
-from ..image_utils import as_3d
 
 
 def _next_power_of_two(x: int) -> int:
@@ -47,7 +44,7 @@ def riemersma_dither(
         es = _error_sum(history, base, image.shape[2])
         pixel = image[i, j, :] + es
         out[i, j, :] = nearest_color_func(pixel)
-        history.appendleft(image[i, j, :] - out[i, j, :])
+        history.appendleft(image[i, j, :] - out[i, j, :])  # type: ignore
     return float_to_dtype(out, original_dtype)
 
 

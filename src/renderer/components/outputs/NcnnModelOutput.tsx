@@ -1,6 +1,7 @@
-import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
+import { literal } from '@chainner/navi';
 import { memo, useEffect, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
+import { struct } from '../../../common/types/util';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -43,13 +44,13 @@ export const NcnnModelOutput = memo(
                     setManualOutputType(
                         id,
                         outputId,
-                        new NamedExpression('NcnnNetwork', [
-                            new NamedExpressionField('scale', literal(current.scale)),
-                            new NamedExpressionField('inputChannels', literal(current.inNc)),
-                            new NamedExpressionField('outputChannels', literal(current.outNc)),
-                            new NamedExpressionField('nf', literal(current.nf)),
-                            new NamedExpressionField('fp', literal(current.fp)),
-                        ])
+                        struct('NcnnNetwork', {
+                            scale: literal(current.scale),
+                            inputChannels: literal(current.inNc),
+                            outputChannels: literal(current.outNc),
+                            nf: literal(current.nf),
+                            fp: literal(current.fp),
+                        })
                     );
                 } else {
                     setManualOutputType(id, outputId, undefined);

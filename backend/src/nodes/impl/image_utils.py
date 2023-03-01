@@ -1,13 +1,15 @@
-import cv2
-import numpy as np
+import itertools
 import os
 import random
 import string
 from enum import Enum
-from sanic.log import logger
 from typing import List
 
-from ..utils.utils import get_h_w_c, Padding, split_file_path
+import cv2
+import numpy as np
+from sanic.log import logger
+
+from ..utils.utils import Padding, get_h_w_c, split_file_path
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -245,3 +247,20 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
             _, buf_img = cv2.imencode(f".{extension}", img, params)
             with open(path, "wb") as outf:
                 outf.write(buf_img)
+
+
+def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:
+    """
+    Returns the cartesian product of the given arrays. Good for initializing coordinates, for example.
+
+    This is cartesian_product_transpose_pp from this following SO post by Paul Panzer:
+    https://stackoverflow.com/questions/11144513/cartesian-product-of-x-and-y-array-points-into-single-array-of-2d-points/49445693#49445693
+    """
+    #
+    la = len(arrays)
+    dtype = np.result_type(*arrays)
+    arr = np.empty((la, *map(len, arrays)), dtype=dtype)
+    idx = slice(None), *itertools.repeat(None, la)
+    for i, a in enumerate(arrays):
+        arr[i, ...] = a[idx[: la - i]]
+    return arr.reshape(la, -1).T

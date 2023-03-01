@@ -1,14 +1,14 @@
 from __future__ import annotations
-from enum import Enum
-import math
-from typing import Dict, Union
 
-from . import category as UtilityCategory
+import math
+from enum import Enum
+from typing import Dict, Union
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NumberInput, EnumInput
+from ...properties.inputs import EnumInput, NumberInput
 from ...properties.outputs import NumberOutput
+from . import category as UtilityCategory
 
 
 class MathOperation(Enum):
@@ -70,10 +70,10 @@ class MathNode(NodeBase):
                     MathOperation::Subtract => a - b,
                     MathOperation::Multiply => a * b,
                     MathOperation::Divide   => a / b,
-                    MathOperation::Power    => pow(a, b),
+                    MathOperation::Power    => number::pow(a, b),
                     MathOperation::Maximum  => max(a, b),
                     MathOperation::Minimum  => min(a, b),
-                    MathOperation::Modulo   => mod(a, b),
+                    MathOperation::Modulo   => number::mod(a, b),
                 }
                 """,
             )

@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.pil_utils import (
+    FillColor,
+    RotateSizeChange,
+    RotationInterpolationMethod,
+    rotate,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
-    ImageInput,
-    SliderInput,
-    RotateInterpolationInput,
     EnumInput,
     FillColorDropdown,
+    ImageInput,
+    RotateInterpolationInput,
+    SliderInput,
 )
 from ...properties.outputs import ImageOutput
-from ...impl.pil_utils import (
-    rotate,
-    RotateSizeChange,
-    FillColor,
-    RotationInterpolationMethod,
-)
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:rotate")
@@ -61,12 +61,12 @@ class RotateNode(NodeBase):
                     y: Input0.height / 2,
                 };
 
-                let angle = -degToRad(Input1);
-                let m0 = cos(angle);
-                let m1 = sin(angle);
+                let angle = -number::degToRad(Input1);
+                let m0 = number::cos(angle);
+                let m1 = number::sin(angle);
                 let m2 = rot_center.x + m0 * -rot_center.x + m1 * -rot_center.y;
-                let m3 = -sin(angle);
-                let m4 = cos(angle);
+                let m3 = -number::sin(angle);
+                let m4 = number::cos(angle);
                 let m5 = rot_center.y + m3 * -rot_center.x + m4 * -rot_center.y;
 
                 def transform(x: number, y: number) {

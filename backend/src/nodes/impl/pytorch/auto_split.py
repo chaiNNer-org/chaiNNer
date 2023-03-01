@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import gc
 
-import torch
 import numpy as np
+import torch
 
+from ..upscale.auto_split import Split, Tiler, auto_split
 from .types import PyTorchModel
-
-from ..upscale.auto_split import auto_split, Split, Tiler
-from .utils import tensor2np, np2tensor
+from .utils import np2tensor, tensor2np
 
 
 @torch.inference_mode()
@@ -22,7 +21,7 @@ def pytorch_auto_split(
     model = model.to(device)
     model = model.half() if use_fp16 else model.float()
 
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         img_tensor = np2tensor(img, change_range=True)
 
         d_img = None

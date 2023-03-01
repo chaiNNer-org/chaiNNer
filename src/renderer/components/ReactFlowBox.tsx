@@ -618,10 +618,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         >
             <ReactFlow
                 connectionLineContainerStyle={{ zIndex: 1000 }}
+                connectionRadius={23}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
                 elevateEdgesOnSelect={false}
+                elevateNodesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
@@ -638,7 +640,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
-                // onEdgeUpdate={onEdgeUpdate}
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
@@ -650,7 +651,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
-                onPaneClick={closeContextMenu}
                 onPaneContextMenu={onPaneContextMenu}
                 onSelectionContextMenu={onSelectionContextMenu}
                 onSelectionDragStop={onSelectionDragStop}

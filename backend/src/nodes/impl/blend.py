@@ -1,4 +1,5 @@
 from enum import Enum
+
 import cv2
 import numpy as np
 

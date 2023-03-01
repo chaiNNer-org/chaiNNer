@@ -1,4 +1,5 @@
 from typing import Tuple
+
 import numpy as np
 
 XYZ = Tuple[np.ndarray, np.ndarray, np.ndarray]

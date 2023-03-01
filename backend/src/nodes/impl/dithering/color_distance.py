@@ -3,8 +3,8 @@ from typing import List, Optional
 import cv2
 import numpy as np
 
-from .common import dtype_to_float, float_to_dtype
 from ..image_utils import as_3d
+from .common import dtype_to_float, float_to_dtype
 
 
 def nearest_uniform_color(value: np.ndarray, num_colors: int) -> np.ndarray:

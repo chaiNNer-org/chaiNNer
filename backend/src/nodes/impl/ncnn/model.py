@@ -9,7 +9,6 @@ from sanic.log import logger
 
 from ...utils.checked_cast import checked_cast
 
-
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "param_schema.json"
 )

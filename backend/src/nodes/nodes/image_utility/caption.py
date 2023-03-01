@@ -2,17 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
+from ...impl.caption import CaptionPosition, add_caption
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    ImageInput,
-    TextInput,
-    NumberInput,
-    EnumInput,
-)
+from ...properties.inputs import EnumInput, ImageInput, NumberInput, TextInput
 from ...properties.outputs import ImageOutput
-from ...impl.caption import add_caption, CaptionPosition
+from . import category as ImageUtilityCategory
 
 
 @NodeFactory.register("chainner:image:caption")

@@ -2,27 +2,27 @@ from __future__ import annotations
 
 from typing import Tuple
 
-import torch
 import numpy as np
+import torch
 from sanic.log import logger
 
-from . import category as PyTorchCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import SrModelInput, ImageInput, TileSizeDropdown
-from ...properties.outputs import ImageOutput
-from ...utils.exec_options import get_execution_options, ExecutionOptions
+from ...impl.pytorch.auto_split import pytorch_auto_split
 from ...impl.pytorch.types import PyTorchSRModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...impl.upscale.auto_split_tiles import (
+    TileSize,
     estimate_tile_size,
     parse_tile_size_input,
-    TileSize,
 )
-from ...impl.upscale.auto_split import MaxTileSize
 from ...impl.upscale.convenient_upscale import convenient_upscale
-from ...impl.pytorch.utils import to_pytorch_execution_options
-from ...impl.pytorch.auto_split import pytorch_auto_split
+from ...impl.upscale.tiler import MaxTileSize
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, SrModelInput, TileSizeDropdown
+from ...properties.outputs import ImageOutput
+from ...utils.exec_options import ExecutionOptions, get_execution_options
 from ...utils.utils import get_h_w_c
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
@@ -64,7 +64,7 @@ class ImageUpscaleNode(NodeBase):
             device = torch.device(options.full_device)
 
             def estimate():
-                if "cuda" in options.full_device and tile_size is not None:
+                if "cuda" in options.full_device:
                     mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                     free, _total = mem_info
                     element_size = 2 if use_fp16 else 4

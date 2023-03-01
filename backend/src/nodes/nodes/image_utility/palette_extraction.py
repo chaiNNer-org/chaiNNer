@@ -4,18 +4,18 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageChannelCategory
+from ...groups import conditional_group
 from ...impl.dithering.palette import (
     distinct_colors_palette,
     kmeans_palette,
     median_cut_palette,
 )
-from ...groups import conditional_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
-from ...properties.inputs import ImageInput, EnumInput, NumberInput
+from ...properties.inputs import EnumInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageUtilityCategory
 
 
 class PaletteExtractionMethod(Enum):
@@ -70,9 +70,9 @@ class PaletteFromImage(NodeBase):
                 ),
             )
         ]
-        self.category = ImageChannelCategory
+        self.category = ImageUtilityCategory
         self.name = "Palette from Image"
-        self.icon = "MdShowChart"
+        self.icon = "MdGradient"
         self.sub = "Miscellaneous"
 
     def run(

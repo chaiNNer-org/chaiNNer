@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
-    STABLE_DIFFUSION_INTERROGATE_URL,
-    post,
+    STABLE_DIFFUSION_INTERROGATE_PATH,
     encode_base64_image,
+    post,
     verify_api_connection,
 )
 from ...node_base import NodeBase
+from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import TextOutput
+from . import category as ExternalStableDiffusionCategory
 
 verify_api_connection()
 
@@ -34,9 +35,10 @@ class Interrogate(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Automatic1111"
 
+    @cached
     def run(self, image: np.ndarray) -> str:
         request_data = {
             "image": encode_base64_image(image),
         }
-        response = post(url=STABLE_DIFFUSION_INTERROGATE_URL, json_data=request_data)
+        response = post(path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data)
         return response["caption"]

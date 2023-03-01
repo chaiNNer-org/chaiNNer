@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from typing import Union
 
 import numpy as np
 
-from . import category as ImageChannelCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
+from . import category as ImageChannelCategory
 
 
 @NodeFactory.register("chainner:image:combine_rgba")

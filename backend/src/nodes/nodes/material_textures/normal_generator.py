@@ -1,23 +1,24 @@
 from __future__ import annotations
+
 from enum import Enum
 
 import cv2
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...impl.image_utils import get_h_w_c
+from ...impl.normals.edge_filter import EdgeFilter, get_filter_kernels
+from ...impl.normals.height import HeightSource, get_height_map
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import (
-    ImageInput,
-    SliderInput,
-    NormalChannelInvertInput,
     EnumInput,
+    ImageInput,
+    NormalChannelInvertInput,
+    SliderInput,
 )
 from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.normals.edge_filter import EdgeFilter, get_filter_kernels
-from ...impl.normals.height import get_height_map, HeightSource
-from ...impl.image_utils import get_h_w_c
+from . import category
 
 
 class AlphaOutput(Enum):
@@ -112,7 +113,7 @@ class NormalMapGenerator(NodeBase):
                 ),
             ),
         ]
-        self.category = ImageFilterCategory
+        self.category = category
         self.name = "Normal Map Generator"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"

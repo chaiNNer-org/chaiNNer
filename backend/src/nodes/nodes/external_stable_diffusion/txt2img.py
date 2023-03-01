@@ -4,26 +4,28 @@ from typing import Optional
 
 import numpy as np
 
-from . import category as ExternalStableDiffusionCategory
 from ...impl.external_stable_diffusion import (
-    decode_base64_image,
-    SamplerName,
     SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_TEXT2IMG_URL,
-    post,
+    STABLE_DIFFUSION_TEXT2IMG_PATH,
+    SamplerName,
+    decode_base64_image,
     nearest_valid_size,
+    post,
     verify_api_connection,
 )
 from ...node_base import NodeBase, group
+from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
-    TextInput,
+    BoolInput,
+    EnumInput,
     NumberInput,
     SliderInput,
-    EnumInput,
+    TextAreaInput,
 )
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+from . import category as ExternalStableDiffusionCategory
 
 verify_api_connection()
 
@@ -34,8 +36,8 @@ class Txt2Img(NodeBase):
         super().__init__()
         self.description = "Generate an image using Automatic1111"
         self.inputs = [
-            TextInput("Prompt", default="an astronaut riding a horse"),
-            TextInput("Negative Prompt").make_optional(),
+            TextAreaInput("Prompt").make_optional(),
+            TextAreaInput("Negative Prompt").make_optional(),
             group("seed")(
                 NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
             ),
@@ -69,6 +71,7 @@ class Txt2Img(NodeBase):
                 slider_step=8,
                 controls_step=8,
             ).with_id(7),
+            BoolInput("Seamless Edges", default=False),
         ]
         self.outputs = [
             ImageOutput(
@@ -86,9 +89,10 @@ class Txt2Img(NodeBase):
         self.icon = "BsFillImageFill"
         self.sub = "Automatic1111"
 
+    @cached
     def run(
         self,
-        prompt: str,
+        prompt: Optional[str],
         negative_prompt: Optional[str],
         seed: int,
         steps: int,
@@ -96,12 +100,13 @@ class Txt2Img(NodeBase):
         cfg_scale: float,
         width: int,
         height: int,
+        tiling: bool,
     ) -> np.ndarray:
         width, height = nearest_valid_size(
             width, height
         )  # This cooperates with the "image_type" of the ImageOutput
         request_data = {
-            "prompt": prompt,
+            "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
             "seed": seed,
             "steps": steps,
@@ -109,8 +114,9 @@ class Txt2Img(NodeBase):
             "cfg_scale": cfg_scale,
             "width": width,
             "height": height,
+            "tiling": tiling,
         }
-        response = post(url=STABLE_DIFFUSION_TEXT2IMG_URL, json_data=request_data)
+        response = post(path=STABLE_DIFFUSION_TEXT2IMG_PATH, json_data=request_data)
         result = decode_base64_image(response["images"][0])
         h, w, _ = get_h_w_c(result)
         assert (w, h) == (

@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Literal, Union
 
 import os
+from typing import Literal, Union
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
@@ -100,7 +100,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         input_type_name="PthFile",
         label="Pretrained Model",
         file_kind="pth",
-        filetypes=[".pth"],
+        filetypes=[".pt", ".pth"],
         primary_input=primary_input,
     )
 

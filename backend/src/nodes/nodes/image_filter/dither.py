@@ -4,22 +4,22 @@ from enum import Enum
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...groups import conditional_group
 from ...impl.dithering.color_distance import batch_nearest_uniform_color
 from ...impl.dithering.constants import (
-    ErrorDiffusionMap,
     ERROR_PROPAGATION_MAP_LABELS,
-    ThresholdMap,
     THRESHOLD_MAP_LABELS,
+    ErrorDiffusionMap,
+    ThresholdMap,
 )
 from ...impl.dithering.diffusion import uniform_error_diffusion_dither
 from ...impl.dithering.ordered import ordered_dither
 from ...impl.dithering.riemersma import uniform_riemersma_dither
-from ...groups import conditional_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput, EnumInput
+from ...properties.inputs import EnumInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
+from . import category as ImageFilterCategory
 
 
 class UniformDitherAlgorithm(Enum):

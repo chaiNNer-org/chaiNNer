@@ -1,8 +1,10 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+import { BackendContext } from '../../contexts/BackendContext';
+import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { IconFactory } from '../CustomIcons';
 
@@ -26,8 +28,10 @@ export const RepresentativeNode = memo(
         collapsed = false,
         createNodeFromSelector,
     }: RepresentativeNodeProps) => {
+        const { categories } = useContext(BackendContext);
+
         const bgColor = 'var(--selector-node-bg)';
-        const accentColor = getNodeAccentColor(category);
+        const accentColor = getCategoryAccentColor(categories, category);
 
         const [hover, setHover] = useState<boolean>(false);
 

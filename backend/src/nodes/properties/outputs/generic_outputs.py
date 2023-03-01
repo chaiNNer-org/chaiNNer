@@ -1,6 +1,7 @@
 from __future__ import annotations
-from .base_output import BaseOutput, OutputKind
+
 from .. import expression
+from .base_output import BaseOutput, OutputKind
 
 
 class NumberOutput(BaseOutput):

@@ -4,10 +4,10 @@ from typing import Tuple
 
 import numpy as np
 
+from ...groups import conditional_group
 from ...impl.onnx.model import OnnxRemBg
 from ...impl.onnx.session import get_onnx_session
 from ...impl.rembg.bg import remove_bg
-from ...groups import conditional_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression

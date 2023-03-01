@@ -1,4 +1,4 @@
-import { Box, Flex, Icon, Spacer } from '@chakra-ui/react';
+import { Box, Center } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { memo, useLayoutEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -7,6 +7,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useMemoArray } from '../../hooks/useMemo';
 import { usePaneNodeSearchMenu } from '../../hooks/usePaneNodeSearchMenu';
+import { DragHandleSVG } from '../CustomIcons';
 
 const createGridDotsPath = (size: number, fill: string) => (
     <circle
@@ -125,6 +126,22 @@ export const IteratorNodeBody = memo(
                 grid={useMemoArray<[number, number]>(
                     isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
                 )}
+                handleComponent={{
+                    bottomRight: (
+                        <Center
+                            cursor="nwse-resize"
+                            h="full"
+                            ml={-1}
+                            mt={-1}
+                            w="full"
+                        >
+                            <DragHandleSVG
+                                color="var(--fg-300)"
+                                opacity={0.75}
+                            />
+                        </Center>
+                    ),
+                }}
                 minHeight={minHeight}
                 minWidth={minWidth}
                 ref={(r) => {
@@ -171,26 +188,6 @@ export const IteratorNodeBody = memo(
                         w="full"
                     >
                         <DotPattern id={id} />
-                        <Flex
-                            mt={-2.5}
-                            w="full"
-                        >
-                            <Spacer />
-                            <Icon
-                                color="var(--fg-300)"
-                                mr={-1.5}
-                                opacity={0.75}
-                                position="relative"
-                                stroke="var(--fg-300)"
-                            >
-                                <polyline
-                                    fill="none"
-                                    points="8 20 20 20 20 8"
-                                    stroke="var(--fg-300)"
-                                    strokeWidth="2"
-                                />
-                            </Icon>
-                        </Flex>
                     </Box>
                 </Box>
             </Resizable>

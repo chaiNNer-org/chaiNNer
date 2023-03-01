@@ -6,8 +6,8 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from ..upscale.auto_split import auto_split, Split, Tiler
 from ...utils.utils import get_h_w_c
+from ..upscale.auto_split import Split, Tiler, auto_split
 
 
 def fix_dtype_range(img):
@@ -34,7 +34,7 @@ def ncnn_auto_split(
     staging_vkallocator,
     tiler: Tiler,
 ) -> np.ndarray:
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         ex = net.create_extractor()
         ex.set_blob_vkallocator(blob_vkallocator)
         ex.set_workspace_vkallocator(blob_vkallocator)

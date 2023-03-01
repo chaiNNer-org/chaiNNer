@@ -8,10 +8,11 @@ import {
     MatchArm,
     MatchExpression,
     NamedExpression,
-    NamedExpressionField,
     NumericLiteralType,
     SourceDocument,
     StringLiteralType,
+    StructExpression,
+    StructExpressionField,
     UnionExpression,
     parseExpression,
 } from '@chainner/navi';
@@ -130,15 +131,19 @@ export const toJson = (e: Expression): ExpressionJson => {
         case 'intersection':
             return { type: 'intersection', items: e.items.map(toJson) };
         case 'struct':
-        case 'named':
             return {
                 type: 'named',
                 name: e.name,
                 fields: Object.fromEntries(e.fields.map((f) => [e.name, toJson(f.type)])),
             };
+        case 'named':
+            return {
+                type: 'named',
+                name: e.name,
+            };
         case 'field-access':
             return { type: 'field-access', of: toJson(e.of), field: e.field };
-        case 'builtin-function':
+        case 'function-call':
             return { type: 'function-call', name: e.functionName, args: e.args.map(toJson) };
         case 'match': {
             return {
@@ -189,10 +194,13 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'intersection':
             return new IntersectionExpression(e.items.map(fromJson));
         case 'named':
-            return new NamedExpression(
+            if (Object.keys(e.fields ?? {}).length === 0) {
+                return new NamedExpression(e.name);
+            }
+            return new StructExpression(
                 e.name,
                 Object.entries(e.fields ?? {}).map(
-                    ([name, type]) => new NamedExpressionField(name, fromJson(type))
+                    ([name, type]) => new StructExpressionField(name, fromJson(type))
                 )
             );
         case 'field-access':

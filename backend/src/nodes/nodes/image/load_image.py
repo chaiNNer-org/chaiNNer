@@ -1,23 +1,23 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple, Union
 import platform
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from . import category as ImageCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import ImageFileInput
-from ...properties.outputs import LargeImageOutput, DirectoryOutput, FileNameOutput
 from ...impl.dds.texconv import dds_to_png_texconv
 from ...impl.image_formats import get_opencv_formats, get_pil_formats
 from ...impl.image_utils import normalize
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageFileInput
+from ...properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from ...utils.utils import get_h_w_c, split_file_path
+from . import category as ImageCategory
 
 
 @NodeFactory.register("chainner:image:load")

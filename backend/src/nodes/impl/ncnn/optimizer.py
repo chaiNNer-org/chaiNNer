@@ -1,4 +1,5 @@
 import numpy as np
+
 from ...utils.checked_cast import checked_cast
 from .model import BinaryOpTypes as BOT
 from .model import EltwiseOpTypes as EOT

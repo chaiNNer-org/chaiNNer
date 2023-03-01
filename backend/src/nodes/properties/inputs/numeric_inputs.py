@@ -1,8 +1,8 @@
-from typing import Union, Tuple, List, Literal
+from typing import List, Literal, Tuple, Union
 
-from .base_input import BaseInput, InputKind
 from ...utils.utils import round_half_up
 from .. import expression
+from .base_input import BaseInput, InputKind
 
 
 def clampNumber(

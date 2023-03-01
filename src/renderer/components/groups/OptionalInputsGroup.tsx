@@ -71,6 +71,7 @@ export const OptionalInputsGroup = memo(
                                 }}
                                 aria-label="Add Input"
                                 bg="var(--bg-700)"
+                                className="nodrag"
                                 height="auto"
                                 mb={-1}
                                 minWidth={0}

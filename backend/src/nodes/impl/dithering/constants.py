@@ -4,7 +4,6 @@ from typing import Dict, Tuple
 import numpy as np
 from sanic.log import logger
 
-
 # https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html
 
 
