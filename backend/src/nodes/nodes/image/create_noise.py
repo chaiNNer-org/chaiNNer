@@ -4,16 +4,22 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.impl.image_utils import cartesian_product
-from nodes.impl.noise_functions.simplex import SimplexNoise
-from nodes.impl.noise_functions.value import ValueNoise
-from nodes.node_base import NodeBase, group
-from nodes.node_factory import NodeFactory
-from nodes.properties import expression
-from nodes.properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
-from nodes.properties.outputs import ImageOutput
-
 from ...groups import conditional_group
+from ...impl.image_utils import cartesian_product
+from ...impl.noise_functions.simplex import SimplexNoise
+from ...impl.noise_functions.value import ValueNoise
+from ...node_base import NodeBase, group
+from ...node_factory import NodeFactory
+from ...properties import expression
+from ...properties.inputs import (
+    BoolInput,
+    EnumInput,
+    NumberInput,
+    SeedInput,
+    SliderInput,
+)
+from ...properties.outputs import ImageOutput
+from ...utils.seed import Seed
 from . import category as ImageCategory
 
 
@@ -35,9 +41,7 @@ class CreateNoiseNode(NodeBase):
         self.inputs = [
             NumberInput("Width", minimum=1, unit="px", default=256),
             NumberInput("Height", minimum=1, unit="px", default=256),
-            group("seed")(
-                NumberInput("Seed", minimum=0, maximum=2**32 - 1, default=0),
-            ),
+            group("seed")(SeedInput()),
             EnumInput(
                 NoiseMethod,
                 default_value=NoiseMethod.SIMPLEX,
@@ -129,7 +133,7 @@ class CreateNoiseNode(NodeBase):
         self,
         width: int,
         height: int,
-        seed: int,
+        seed: Seed,
         noise_method: NoiseMethod,
         scale: float,
         brightness: float,
@@ -151,7 +155,7 @@ class CreateNoiseNode(NodeBase):
             "tile_spherical": tile_spherical,
             "scale": scale,
             "brightness": brightness,
-            "seed": seed,
+            "seed": seed.to_u32(),
         }
 
         generator_class = None

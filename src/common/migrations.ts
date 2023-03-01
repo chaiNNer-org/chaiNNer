@@ -748,6 +748,116 @@ const changeColorSpaceAlpha: ModernMigration = (data) => {
     return data;
 };
 
+const deriveSeed: ModernMigration = (data) => {
+    const newNodes: N[] = [];
+    const newEdges: E[] = [];
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:utility:random_number') {
+            const sourceEdge = data.edges.find((e) => e.targetHandle === `${node.id}-3`);
+            if (sourceEdge) {
+                const id = deriveUniqueId(node.id);
+                newNodes.push({
+                    data: {
+                        schemaId: 'chainner:utility:derive_seed' as SchemaId,
+                        inputData: { 0: node.data.inputData[2] },
+                        id,
+                    },
+                    id,
+                    position: { x: node.position.x - 280, y: node.position.y - 20 },
+                    type: 'regularNode',
+                    selected: false,
+                    height: 356,
+                    width: 242,
+                    zIndex: node.zIndex,
+                    parentNode: node.parentNode,
+                });
+                sourceEdge.target = id;
+                sourceEdge.targetHandle = `${id}-1`;
+
+                const seedEdge = data.edges.find((e) => e.targetHandle === `${node.id}-2`);
+                if (seedEdge) {
+                    sourceEdge.target = id;
+                    sourceEdge.targetHandle = `${id}-2`;
+                }
+
+                newEdges.push({
+                    id: deriveUniqueId(node.id + id),
+                    source: id,
+                    sourceHandle: `${id}-0`,
+                    target: node.id,
+                    targetHandle: `${node.id}-2`,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                    zIndex: sourceEdge.zIndex,
+                });
+            }
+        }
+    });
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    return data;
+};
+
+const seedInput: ModernMigration = (data) => {
+    const changedInputs: Record<string, number> = {
+        'chainner:external_stable_diffusion:img2img': 4,
+        'chainner:external_stable_diffusion:img2img_inpainting': 5,
+        'chainner:external_stable_diffusion:img2img_outpainting': 4,
+        'chainner:external_stable_diffusion:txt2img': 2,
+        'chainner:image:create_noise': 2,
+        'chainner:image:add_noise': 4,
+    };
+
+    const newNodes: N[] = [];
+    const newEdges: E[] = [];
+
+    data.nodes.forEach((node) => {
+        const inputId = changedInputs[node.data.schemaId];
+        if (typeof inputId === 'number') {
+            const seedEdge = data.edges.find((e) => e.targetHandle === `${node.id}-${inputId}`);
+            if (seedEdge) {
+                const id = deriveUniqueId(`${node.id}seedInput`);
+                newNodes.push({
+                    data: {
+                        schemaId: 'chainner:utility:derive_seed' as SchemaId,
+                        inputData: { 0: 0 },
+                        id,
+                    },
+                    id,
+                    position: { x: node.position.x - 280, y: node.position.y - 20 },
+                    type: 'regularNode',
+                    selected: false,
+                    height: 356,
+                    width: 242,
+                    zIndex: node.zIndex,
+                    parentNode: node.parentNode,
+                });
+                seedEdge.target = id;
+                seedEdge.targetHandle = `${id}-1`;
+
+                newEdges.push({
+                    id: deriveUniqueId(node.id + id),
+                    source: id,
+                    sourceHandle: `${id}-0`,
+                    target: node.id,
+                    targetHandle: `${node.id}-${inputId}`,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                    zIndex: seedEdge.zIndex,
+                });
+            }
+        }
+    });
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -791,6 +901,8 @@ const migrations = [
     clearEdgeData,
     gammaCheckbox,
     changeColorSpaceAlpha,
+    deriveSeed,
+    seedInput,
 ];
 
 export const currentMigration = migrations.length;

@@ -9,6 +9,7 @@ from sanic.log import logger
 from ...impl.blend import BlendMode
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
     join_space_case,
@@ -17,6 +18,7 @@ from ...utils.utils import (
 )
 from .. import expression
 from .base_input import BaseInput
+from .numeric_inputs import NumberInput
 
 
 class UntypedOption(TypedDict):
@@ -276,6 +278,35 @@ class AnyInput(BaseInput):
     def enforce_(self, value):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
         return value
+
+
+class SeedInput(NumberInput):
+    def __init__(self, label: str = "Seed", has_handle: bool = True):
+        super().__init__(
+            label=label,
+            minimum=None,
+            maximum=None,
+            precision=0,
+            default=0,
+        )
+        self.has_handle = has_handle
+
+        self.input_type = "Seed"
+        self.input_conversion = None
+        self.input_adapt = """
+            match Input {
+                int => Seed,
+                _ => never
+            }
+        """
+
+    def enforce(self, value) -> Seed:
+        if isinstance(value, Seed):
+            return value
+        return Seed(int(value))
+
+    def make_optional(self):
+        raise ValueError("SeedInput cannot be made optional")
 
 
 def IteratorInput():
