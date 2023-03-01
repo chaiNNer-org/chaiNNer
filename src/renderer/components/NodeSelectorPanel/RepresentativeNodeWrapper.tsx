@@ -86,7 +86,6 @@ export const RepresentativeNodeWrapper = memo(
 
         return (
             <Box
-                key={node.name}
                 my={1.5}
                 onContextMenu={onContextMenu}
             >
