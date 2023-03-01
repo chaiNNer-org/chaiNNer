@@ -11,8 +11,8 @@ const colors = {
 };
 
 const fonts = {
-    heading: `Roboto-Flex, sans-serif`,
-    body: `Roboto-Flex, sans-serif`,
+    heading: `Open Sans, sans-serif`,
+    body: `Open Sans, sans-serif`,
     monospace: `Roboto-Mono, monospace`,
 };
 
