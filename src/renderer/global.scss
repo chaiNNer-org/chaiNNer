@@ -5,111 +5,17 @@
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle) */
 
-/* latin */
 @font-face {
-    font-family: Supreme-Variable;
-    font-weight: 100 800;
+    font-family: 'Roboto-Mono';
     font-display: swap;
-    font-style: normal;
-    src: url('../public/fonts/Supreme/Supreme-Variable.woff2') format('woff2'),
-        url('../public/fonts/Supreme/Supreme-Variable.woff') format('woff');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-        U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-    font-family: Supreme-VariableItalic;
-    font-weight: 100 800;
-    font-display: swap;
-    font-style: normal;
-    src: url('../public/fonts/Supreme/Supreme-VariableItalic.woff2') format('woff2'),
-        url('../public/fonts/Supreme/Supreme-VariableItalic.woff') format('woff');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-        U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-/* -------------------------------------------------------
-Variable font.
-Usage:
-
-  html { font-family: 'Inter', sans-serif; }
-  @supports (font-variation-settings: normal) {
-    html { font-family: 'Inter var', sans-serif; }
-  }
-*/
-@font-face {
-    font-family: 'Inter-Variable';
-    font-weight: 100 900;
-    font-display: swap;
-    font-style: normal;
-    font-named-instance: 'Regular';
-    src: url('../public/fonts/Inter/Inter-roman.var.woff2?v=3.19') format('woff2');
-}
-@font-face {
-    font-family: 'Inter var';
-    font-weight: 100 900;
-    font-display: swap;
-    font-style: italic;
-    font-named-instance: 'Italic';
-    src: url('../public/fonts/Inter/Inter-italic.var.woff2?v=3.19') format('woff2');
-}
-
-/* --------------------------------------------------------------------------
-  [EXPERIMENTAL] Multi-axis, single variable font.
-
-  Slant axis is not yet widely supported (as of February 2019) and thus this
-  multi-axis single variable font is opt-in rather than the default.
-
-  When using this, you will probably need to set font-variation-settings
-  explicitly, e.g.
-
-    * { font-variation-settings: "slnt" 0deg }
-    .italic { font-variation-settings: "slnt" 10deg }
-
-  */
-@font-face {
-    font-family: 'Inter var experimental';
-    font-weight: 100 900;
-    font-display: swap;
-    font-style: oblique 0deg 10deg;
-    src: url('../public/fonts/Inter/Inter.var.woff2?v=3.19') format('woff2');
+    src: url('../public/fonts/Roboto Mono/RobotoMono-VariableFont_wght.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'JetBrains Mono';
-    // font-weight: 400;
+    font-family: 'Roboto-Flex';
     font-display: swap;
-    font-style: normal;
-    src: url('../public/fonts/JetBrains Mono/JetBrainsMono-Regular.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'RobotoCondensed';
-    font-display: swap;
-    src: url('../public/fonts/Roboto Condensed/RobotoCondensed-Regular.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: 'RobotoCondensed-Light';
-    font-display: swap;
-    src: url('../public/fonts/Roboto Condensed/RobotoCondensed-Light.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: 'RobotoCondensed-Bold';
-    font-display: swap;
-    src: url('../public/fonts/Roboto Condensed/RobotoCondensed-Bold.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: 'Roboto-Regular';
-    font-display: swap;
-    src: url('../public/fonts/Roboto/Roboto-Regular.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: 'Roboto-Light';
-    font-display: swap;
-    src: url('../public/fonts/Roboto/Roboto-Light.ttf') format('truetype');
+    src: url('../public/fonts/Roboto Flex/RobotoFlex-VariableFont_GRAD,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf')
+        format('truetype');
 }
 
 :not(input, textarea, button, svg, path, g, span, circle) {
