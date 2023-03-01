@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import math
-import numpy as np
 from enum import Enum
 from typing import Union
+
+import numpy as np
 
 from ...groups import conditional_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput
 from ...properties.outputs import NumberOutput
-from . import category as UtilityCategory
 from ...utils.utils import round_half_up
+from . import category as UtilityCategory
 
 
 class RoundOperation(Enum):
