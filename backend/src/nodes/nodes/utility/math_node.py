@@ -17,9 +17,11 @@ class MathOperation(Enum):
     MULTIPLY = "mul"
     DIVIDE = "div"
     POWER = "pow"
+    LOG = "log"
     MAXIMUM = "max"
     MINIMUM = "min"
     MODULO = "mod"
+    PERCENT = "percent"
 
 
 OP_LABEL: Dict[MathOperation, str] = {
@@ -28,9 +30,11 @@ OP_LABEL: Dict[MathOperation, str] = {
     MathOperation.MULTIPLY: "Multiply: a × b",
     MathOperation.DIVIDE: "Divide: a ÷ b",
     MathOperation.POWER: "Exponent: a ^ b",
+    MathOperation.LOG: "Logarithm: log a of b",
     MathOperation.MAXIMUM: "Maximum: max(a, b)",
     MathOperation.MINIMUM: "Minimum: min(a, b)",
     MathOperation.MODULO: "Modulo: a mod b",
+    MathOperation.PERCENT: "Percent: a × b ÷ 100",
 }
 
 _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
@@ -71,9 +75,11 @@ class MathNode(NodeBase):
                     MathOperation::Multiply => a * b,
                     MathOperation::Divide   => a / b,
                     MathOperation::Power    => number::pow(a, b),
+                    MathOperation::Log      => number::log(a) / number::log(b),
                     MathOperation::Maximum  => max(a, b),
                     MathOperation::Minimum  => min(a, b),
                     MathOperation::Modulo   => number::mod(a, b),
+                    MathOperation::Percent  => a * b / 100,
                 }
                 """,
             )
@@ -97,6 +103,8 @@ class MathNode(NodeBase):
             return a / b
         elif op == MathOperation.POWER:
             return a**b
+        elif op == MathOperation.LOG:
+            return math.log(b, a)
         elif op == MathOperation.MAXIMUM:
             return max(a, b)
         elif op == MathOperation.MINIMUM:
@@ -106,5 +114,7 @@ class MathNode(NodeBase):
                 return a - b * math.floor(a / b)
             else:
                 return a % b
+        elif op == MathOperation.PERCENT:
+            return a * b / 100
         else:
             raise RuntimeError(f"Unknown operator {op}")
