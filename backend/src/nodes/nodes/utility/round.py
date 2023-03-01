@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import numpy as np
 from enum import Enum
 from typing import Union
 
@@ -10,16 +11,17 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput
 from ...properties.outputs import NumberOutput
 from . import category as UtilityCategory
+from ...utils.utils import round_half_up
 
 
 class RoundOperation(Enum):
-    FLOOR = "Down"
-    CEILING = "Up"
-    ROUND = "Either way"
+    FLOOR = "Round down"
+    CEILING = "Round up"
+    ROUND = "Round"
 
 
 class RoundScale(Enum):
-    UNIT = "Whole Number"
+    UNIT = "Integer"
     MULTIPLE = "Multiple of..."
     POWER = "Power of..."
 
@@ -39,12 +41,12 @@ class RoundNode(NodeBase):
             ),
             EnumInput(
                 RoundOperation,
-                "Round",
+                "Operation",
                 option_labels={k: k.value for k in RoundOperation},
             ),
             EnumInput(
                 RoundScale,
-                "to the nearest",
+                "To the nearest",
                 option_labels={k: k.value for k in RoundScale},
             ),
             conditional_group(enum=2, condition=RoundScale.MULTIPLE.value)(
@@ -61,7 +63,7 @@ class RoundNode(NodeBase):
                 NumberInput(
                     "Power",
                     default=2,
-                    minimum=(1 + 1e-100),
+                    minimum=np.nextafter(1.0, np.inf),
                     maximum=None,
                     precision=100,
                     controls_step=1,
@@ -115,7 +117,7 @@ class RoundNode(NodeBase):
         elif operation == RoundOperation.CEILING:
             op = math.ceil
         elif operation == RoundOperation.ROUND:
-            op = round
+            op = round_half_up
         else:
             raise RuntimeError(f"Unknown operation {operation}")
 
