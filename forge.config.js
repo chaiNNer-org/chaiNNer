@@ -1,6 +1,7 @@
 const AdmZip = require('adm-zip');
 
-module.exports = {
+/** @type {import("@electron-forge/shared-types").ForgeConfig} */
+const config = {
     packagerConfig: {
         executableName: 'chainner',
         extraResource: './backend/src/',
@@ -100,3 +101,5 @@ module.exports = {
         },
     },
 };
+
+module.exports = config;
