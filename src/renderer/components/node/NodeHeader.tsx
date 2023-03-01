@@ -56,6 +56,7 @@ export const NodeHeader = memo(
                             alignContent="center"
                             as="h5"
                             fontWeight={700}
+                            letterSpacing="-0.05em"
                             lineHeight="auto"
                             m={0}
                             opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.5}
