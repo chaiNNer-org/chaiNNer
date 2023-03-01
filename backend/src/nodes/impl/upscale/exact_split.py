@@ -67,10 +67,9 @@ def _exact_split_into_segments(length: int, exact: int, overlap: int) -> List[_S
     # we know that the first segment looks like this
     add(_Segment(0, exact - overlap, 0, overlap))
 
-    innerStart = exact - overlap
-    while innerStart < length:
+    while result[-1].end < length:
         startPadding = overlap
-        start = innerStart
+        start = result[-1].end
         end = start + exact - overlap * 2
         endPadding = overlap
 
@@ -80,9 +79,7 @@ def _exact_split_into_segments(length: int, exact: int, overlap: int) -> List[_S
             end = length
             startPadding = exact - (end - start)
 
-        result.append(_Segment(start, end, startPadding, endPadding))
-
-        start = end
+        add(_Segment(start, end, startPadding, endPadding))
 
     return result
 
@@ -114,7 +111,7 @@ def _exact_split_into_regions(
             result.append(
                 (
                     Region(x.start, y.start, x.length, y.length),
-                    Padding(y.startPadding, x.endPadding, y.endPadding, y.startPadding),
+                    Padding(y.startPadding, x.endPadding, y.endPadding, x.startPadding),
                 )
             )
     return result
