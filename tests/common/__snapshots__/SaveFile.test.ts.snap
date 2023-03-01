@@ -1,5 +1,172 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Read save file add noise with seed edge.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "01c37d90-c15a-44a6-95af-fa105b9f7caf",
+      "source": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+      "sourceHandle": "4b44b642-8003-41d7-9fed-6d7bac837b1c-0",
+      "target": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+      "targetHandle": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "51c5608b-3ac4-4062-ae29-d06a6af47979",
+      "source": "7bd9efef-3506-42cb-942a-062f3e410085",
+      "sourceHandle": "7bd9efef-3506-42cb-942a-062f3e410085-0",
+      "target": "545c6463-b978-4987-a3c3-a44a774184be",
+      "targetHandle": "545c6463-b978-4987-a3c3-a44a774184be-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "7ad71b84-1fc7-4d06-a729-aa0927fa9c6b",
+      "source": "545c6463-b978-4987-a3c3-a44a774184be",
+      "sourceHandle": "545c6463-b978-4987-a3c3-a44a774184be-0",
+      "target": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+      "targetHandle": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e4a21d62-cc17-42ea-85c3-5ab8013767b2",
+      "source": "7bd9efef-3506-42cb-942a-062f3e410085",
+      "sourceHandle": "7bd9efef-3506-42cb-942a-062f3e410085-2",
+      "target": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+      "targetHandle": "4b44b642-8003-41d7-9fed-6d7bac837b1c-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "161e3e49-745d-58fe-aae4-e0bdefa50dff",
+      "source": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+      "sourceHandle": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f-0",
+      "target": "545c6463-b978-4987-a3c3-a44a774184be",
+      "targetHandle": "545c6463-b978-4987-a3c3-a44a774184be-4",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+        "inputData": Object {
+          "0": "",
+        },
+        "schemaId": "chainner:utility:text_length",
+      },
+      "height": 164,
+      "id": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+      "position": Object {
+        "x": 496,
+        "y": 800,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "545c6463-b978-4987-a3c3-a44a774184be",
+        "inputData": Object {
+          "1": "gaussian",
+          "2": "rgb",
+          "3": 50,
+          "4": 0,
+        },
+        "schemaId": "chainner:image:add_noise",
+      },
+      "height": 356,
+      "id": "545c6463-b978-4987-a3c3-a44a774184be",
+      "position": Object {
+        "x": 800,
+        "y": 544,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "7bd9efef-3506-42cb-942a-062f3e410085",
+        "inputData": Object {
+          "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\face.png",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 420,
+      "id": "7bd9efef-3506-42cb-942a-062f3e410085",
+      "position": Object {
+        "x": 192,
+        "y": 480,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+        "inputData": Object {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 332,
+      "id": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+      "position": Object {
+        "x": 1104,
+        "y": 544,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 240,
+      "zIndex": 70,
+    },
+    Object {
+      "data": Object {
+        "id": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+        "inputData": Object {
+          "0": 0,
+        },
+        "schemaId": "chainner:utility:derive_seed",
+      },
+      "height": 356,
+      "id": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+      "parentNode": undefined,
+      "position": Object {
+        "x": 520,
+        "y": 524,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": -172.3368816369316,
+    "y": -148.94747837726254,
+    "zoom": 1.1486983549970347,
+  },
+}
+`;
+
 exports[`Read save file big ol test.chn 1`] = `
 Object {
   "edges": Array [
@@ -5026,6 +5193,175 @@ Object {
     "y": 0,
     "zoom": 1,
   },
+}
+`;
+
+exports[`Write save file add noise with seed edge.chn 1`] = `
+Object {
+  "checksum": "5893bba761593cdd2c35cb69dff2a6ae",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "01c37d90-c15a-44a6-95af-fa105b9f7caf",
+        "source": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+        "sourceHandle": "4b44b642-8003-41d7-9fed-6d7bac837b1c-0",
+        "target": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+        "targetHandle": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "51c5608b-3ac4-4062-ae29-d06a6af47979",
+        "source": "7bd9efef-3506-42cb-942a-062f3e410085",
+        "sourceHandle": "7bd9efef-3506-42cb-942a-062f3e410085-0",
+        "target": "545c6463-b978-4987-a3c3-a44a774184be",
+        "targetHandle": "545c6463-b978-4987-a3c3-a44a774184be-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "7ad71b84-1fc7-4d06-a729-aa0927fa9c6b",
+        "source": "545c6463-b978-4987-a3c3-a44a774184be",
+        "sourceHandle": "545c6463-b978-4987-a3c3-a44a774184be-0",
+        "target": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+        "targetHandle": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "e4a21d62-cc17-42ea-85c3-5ab8013767b2",
+        "source": "7bd9efef-3506-42cb-942a-062f3e410085",
+        "sourceHandle": "7bd9efef-3506-42cb-942a-062f3e410085-2",
+        "target": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+        "targetHandle": "4b44b642-8003-41d7-9fed-6d7bac837b1c-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "161e3e49-745d-58fe-aae4-e0bdefa50dff",
+        "source": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+        "sourceHandle": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f-0",
+        "target": "545c6463-b978-4987-a3c3-a44a774184be",
+        "targetHandle": "545c6463-b978-4987-a3c3-a44a774184be-4",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+          "inputData": Object {
+            "0": "",
+          },
+          "schemaId": "chainner:utility:text_length",
+        },
+        "height": 164,
+        "id": "4b44b642-8003-41d7-9fed-6d7bac837b1c",
+        "position": Object {
+          "x": 496,
+          "y": 800,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "545c6463-b978-4987-a3c3-a44a774184be",
+          "inputData": Object {
+            "1": "gaussian",
+            "2": "rgb",
+            "3": 50,
+            "4": 0,
+          },
+          "schemaId": "chainner:image:add_noise",
+        },
+        "height": 356,
+        "id": "545c6463-b978-4987-a3c3-a44a774184be",
+        "position": Object {
+          "x": 800,
+          "y": 544,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "7bd9efef-3506-42cb-942a-062f3e410085",
+          "inputData": Object {
+            "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\face.png",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 420,
+        "id": "7bd9efef-3506-42cb-942a-062f3e410085",
+        "position": Object {
+          "x": 192,
+          "y": 480,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+          "inputData": Object {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 332,
+        "id": "e67d0c33-3f14-40c7-8bce-f6c67cfee6bc",
+        "position": Object {
+          "x": 1104,
+          "y": 544,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 240,
+        "zIndex": 70,
+      },
+      Object {
+        "data": Object {
+          "id": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+          "inputData": Object {
+            "0": 0,
+          },
+          "schemaId": "chainner:utility:derive_seed",
+        },
+        "height": 356,
+        "id": "fbc19ef9-0b32-52a8-94f4-ef1be1a9063f",
+        "position": Object {
+          "x": 520,
+          "y": 524,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": -172.3368816369316,
+      "y": -148.94747837726254,
+      "zoom": 1.1486983549970347,
+    },
+  },
+  "version": "0.0.0-test",
 }
 `;
 
