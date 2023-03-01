@@ -1,11 +1,12 @@
 import { StarIcon } from '@chakra-ui/icons';
-import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
+import { Box, Center, Checkbox, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { IconFactory } from '../CustomIcons';
 
 interface RepresentativeNodeProps {
@@ -14,6 +15,7 @@ interface RepresentativeNodeProps {
     icon: string;
     name: string;
     collapsed?: boolean;
+    visModeActive?: boolean;
     schemaId: SchemaId;
     createNodeFromSelector: () => void;
 }
@@ -26,6 +28,7 @@ export const RepresentativeNode = memo(
         icon,
         schemaId,
         collapsed = false,
+        visModeActive = false,
         createNodeFromSelector,
     }: RepresentativeNodeProps) => {
         const { categories } = useContext(BackendContext);
@@ -37,6 +40,9 @@ export const RepresentativeNode = memo(
 
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(schemaId);
+
+        const { hidden, addHidden, removeHidden } = useNodeHidden();
+        const isHidden = hidden.has(schemaId);
 
         const isIterator = subcategory === 'Iteration';
         let bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 100%)`;
@@ -56,6 +62,7 @@ export const RepresentativeNode = memo(
                 borderRadius="lg"
                 borderWidth="0px"
                 boxShadow="lg"
+                opacity={visModeActive && isHidden ? '50%' : '100%'}
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
@@ -135,30 +142,44 @@ export const RepresentativeNode = memo(
                                     verticalAlign="middle"
                                     w="fit-content"
                                 >
-                                    <StarIcon
-                                        _hover={{
-                                            stroke: 'yellow.500',
-                                            color: isFavorite ? 'yellow.500' : bgColor,
-                                            transition: '0.15s ease-in-out',
-                                        }}
-                                        aria-label="Favorites"
-                                        color={isFavorite ? 'gray.500' : bgColor}
-                                        opacity={isFavorite || hover ? '100%' : '0%'}
-                                        overflow="hidden"
-                                        stroke="gray.500"
-                                        strokeWidth={isFavorite ? 0 : 2}
-                                        transition="0.15s ease-in-out"
-                                        verticalAlign="middle"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (isFavorite) {
-                                                removeFavorite(schemaId);
-                                            } else {
-                                                addFavorites(schemaId);
-                                            }
-                                        }}
-                                        onDoubleClick={(e) => e.stopPropagation()}
-                                    />
+                                    {visModeActive ? (
+                                        <Checkbox
+                                            isChecked={!isHidden}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                if (isHidden) {
+                                                    removeHidden(schemaId);
+                                                } else {
+                                                    addHidden(schemaId);
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <StarIcon
+                                            _hover={{
+                                                stroke: 'yellow.500',
+                                                color: isFavorite ? 'yellow.500' : bgColor,
+                                                transition: '0.15s ease-in-out',
+                                            }}
+                                            aria-label="Favorites"
+                                            color={isFavorite ? 'gray.500' : bgColor}
+                                            opacity={isFavorite || hover ? '100%' : '0%'}
+                                            overflow="hidden"
+                                            stroke="gray.500"
+                                            strokeWidth={isFavorite ? 0 : 2}
+                                            transition="0.15s ease-in-out"
+                                            verticalAlign="middle"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isFavorite) {
+                                                    removeFavorite(schemaId);
+                                                } else {
+                                                    addFavorites(schemaId);
+                                                }
+                                            }}
+                                            onDoubleClick={(e) => e.stopPropagation()}
+                                        />
+                                    )}
                                 </HStack>
                             </Flex>
                         )}

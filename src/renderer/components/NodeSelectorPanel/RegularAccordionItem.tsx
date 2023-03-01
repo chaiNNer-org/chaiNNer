@@ -76,34 +76,38 @@ export const RegularAccordionItem = memo(
 
 interface SubcategoriesProps {
     collapsed: boolean;
+    visModeActive: boolean;
     subcategoryMap: Map<string, NodeSchema[]>;
 }
 
-export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
-    return (
-        <>
-            {[...subcategoryMap].map(([subcategory, nodes]) => (
-                <Box key={subcategory}>
-                    <Center>
-                        <SubcategoryHeading
-                            collapsed={collapsed}
-                            subcategory={subcategory}
-                        />
-                    </Center>
-                    <Box>
-                        {nodes.map((node) => (
-                            <RepresentativeNodeWrapper
+export const Subcategories = memo(
+    ({ collapsed, visModeActive, subcategoryMap }: SubcategoriesProps) => {
+        return (
+            <>
+                {[...subcategoryMap].map(([subcategory, nodes]) => (
+                    <Box key={subcategory}>
+                        <Center>
+                            <SubcategoryHeading
                                 collapsed={collapsed}
-                                key={node.schemaId}
-                                node={node}
+                                subcategory={subcategory}
                             />
-                        ))}
+                        </Center>
+                        <Box>
+                            {nodes.map((node) => (
+                                <RepresentativeNodeWrapper
+                                    collapsed={collapsed}
+                                    key={node.schemaId}
+                                    node={node}
+                                    visModeActive={visModeActive}
+                                />
+                            ))}
+                        </Box>
                     </Box>
-                </Box>
-            ))}
-        </>
-    );
-});
+                ))}
+            </>
+        );
+    }
+);
 
 interface PackageHintProps {
     collapsed: boolean;

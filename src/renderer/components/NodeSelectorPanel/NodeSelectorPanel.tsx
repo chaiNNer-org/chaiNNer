@@ -8,6 +8,7 @@ import {
     ExpandedIndex,
     HStack,
     Icon,
+    IconButton,
     Input,
     InputGroup,
     InputLeftElement,
@@ -21,6 +22,7 @@ import {
 import { motion } from 'framer-motion';
 import { ChangeEventHandler, memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
+import { RiNodeTree } from 'react-icons/ri';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
@@ -32,6 +34,7 @@ import {
     sortSchemata,
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
 import { presets } from './presets';
@@ -90,7 +93,15 @@ export const NodeSelector = memo(() => {
         searchQuery,
         sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
     );
-    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+
+    const [visMode, setVisMode] = useContextSelector(SettingsContext, (c) => c.useNodeVisMode);
+    const { hidden } = useNodeHidden();
+
+    const visibleNodes = visMode
+        ? matchingNodes
+        : matchingNodes.filter((n) => !hidden.has(n.schemaId));
+
+    const byCategories = useMemo(() => getNodesByCategory(visibleNodes), [visibleNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
         SettingsContext,
@@ -155,15 +166,26 @@ export const NodeSelector = memo(() => {
                                 overflowX="hidden"
                                 p={0}
                             >
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        setSearchQuery(e.target.value);
-                                        setCollapsed(false);
-                                    }}
-                                    onClick={() => setCollapsed(false)}
-                                    onClose={() => setSearchQuery('')}
-                                />
+                                <HStack>
+                                    <SearchBar
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCollapsed(false);
+                                        }}
+                                        onClick={() => setCollapsed(false)}
+                                        onClose={() => setSearchQuery('')}
+                                    />
+                                    <IconButton
+                                        aria-label="Node Visibility Settings"
+                                        icon={<RiNodeTree />}
+                                        isActive={visMode}
+                                        onChange={() => {
+                                            setVisMode(!visMode);
+                                        }}
+                                        onClick={() => setVisMode(!visMode)}
+                                    />
+                                </HStack>
                                 <Box
                                     h="calc(100vh - 165px)"
                                     overflowX="hidden"
@@ -205,11 +227,13 @@ export const NodeSelector = memo(() => {
                                         index={accordionIndex}
                                         onChange={(event) => setAccordionIndex(event)}
                                     >
-                                        <FavoritesAccordionItem
-                                            collapsed={collapsed}
-                                            favoriteNodes={favoriteNodes}
-                                            noFavorites={favorites.size === 0}
-                                        />
+                                        {!visMode && (
+                                            <FavoritesAccordionItem
+                                                collapsed={collapsed}
+                                                favoriteNodes={favoriteNodes}
+                                                noFavorites={favorites.size === 0}
+                                            />
+                                        )}
                                         {categories.map((category) => {
                                             const categoryNodes = byCategories.get(category.name);
                                             const categoryIsMissingNodes =
@@ -241,6 +265,7 @@ export const NodeSelector = memo(() => {
                                                         <Subcategories
                                                             collapsed={collapsed}
                                                             subcategoryMap={subcategoryMap}
+                                                            visModeActive={visMode}
                                                         />
                                                     )}
                                                 </RegularAccordionItem>
