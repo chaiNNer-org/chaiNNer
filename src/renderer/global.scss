@@ -12,9 +12,16 @@
 }
 
 @font-face {
-    font-family: Roboto-Flex;
+    font-family: 'Open Sans';
     font-display: swap;
-    src: url('../public/fonts/Roboto Flex/RobotoFlex-VariableFont_GRAD,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf')
+    font-style: normal;
+    src: url('../public/fonts/Open Sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Open Sans';
+    font-display: swap;
+    font-style: italic;
+    src: url('../public/fonts/Open Sans/OpenSans-Italic-VariableFont_wdth,wght.ttf')
         format('truetype');
 }
 
