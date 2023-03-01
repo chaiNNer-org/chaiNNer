@@ -41,7 +41,7 @@ class RandomNumberNode(NodeBase):
         self.category = UtilityCategory
         self.name = "Random Number"
         self.icon = "MdCalculate"
-        self.sub = "Math"
+        self.sub = "Random"
 
     def run(self, min_val: int, max_val: int, seed: int) -> int:
         return Random(seed).randint(min_val, max_val)

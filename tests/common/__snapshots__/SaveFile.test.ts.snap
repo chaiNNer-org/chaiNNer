@@ -4748,7 +4748,7 @@ Object {
         "inputData": Object {
           "0": 123,
         },
-        "schemaId": "chainner:utility:random_seed",
+        "schemaId": "chainner:utility:derive_seed",
       },
       "height": 356,
       "id": "7e4ee660-b958-5ac7-9914-7887f3c49eff",
@@ -9566,7 +9566,7 @@ Object {
 
 exports[`Write save file rnd.chn 1`] = `
 Object {
-  "checksum": "e3f173e1b124c43d627d55a388d80121",
+  "checksum": "12beb05cab258628f98e7cf064373eec",
   "content": Object {
     "edges": Array [
       Object {
@@ -9667,7 +9667,7 @@ Object {
           "inputData": Object {
             "0": 123,
           },
-          "schemaId": "chainner:utility:random_seed",
+          "schemaId": "chainner:utility:derive_seed",
         },
         "height": 356,
         "id": "7e4ee660-b958-5ac7-9914-7887f3c49eff",

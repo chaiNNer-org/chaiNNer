@@ -35,11 +35,11 @@ def _to_bytes(s: Source) -> bytes:
     return struct.pack("d", s)
 
 
-@NodeFactory.register("chainner:utility:random_seed")
+@NodeFactory.register("chainner:utility:derive_seed")
 class RandomNumberNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Creates a random seed from multiple sources of randomness."
+        self.description = "Creates a new seed from multiple sources of randomness."
         self.inputs = [
             group("seed")(
                 NumberInput(
@@ -58,9 +58,9 @@ class RandomNumberNode(NodeBase):
         ]
 
         self.category = UtilityCategory
-        self.name = "Random Seed"
+        self.name = "Derive Seed"
         self.icon = "MdCalculate"
-        self.sub = "Math"
+        self.sub = "Random"
 
     def run(self, seed: int, *sources: Source | None) -> int:
         h = hashlib.sha256()

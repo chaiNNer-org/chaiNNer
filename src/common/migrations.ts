@@ -759,7 +759,7 @@ const deriveSeed: ModernMigration = (data) => {
                 const id = deriveUniqueId(node.id);
                 newNodes.push({
                     data: {
-                        schemaId: 'chainner:utility:random_seed' as SchemaId,
+                        schemaId: 'chainner:utility:derive_seed' as SchemaId,
                         inputData: { 0: node.data.inputData[2] },
                         id,
                     },
