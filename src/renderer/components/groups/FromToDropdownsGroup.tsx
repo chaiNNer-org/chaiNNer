@@ -24,7 +24,7 @@ const SmallDropDown = memo(({ nodeId, input, inputData, isLocked }: SmallDropDow
     );
 
     return (
-        <Box w="6em">
+        <Box w="full">
             <DropDown
                 isDisabled={isLocked}
                 options={input.options}
