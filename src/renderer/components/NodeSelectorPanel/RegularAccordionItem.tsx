@@ -19,7 +19,7 @@ import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
 import { TextBox } from './TextBox';
 
-enum Checked {
+export enum Checked {
     All,
     None,
     Some,
@@ -28,10 +28,21 @@ enum Checked {
 interface RegularAccordionItemProps {
     category: Category;
     collapsed: boolean;
+    nodes?: NodeSchema[];
+    visMode: boolean;
+    visState: Checked;
 }
 
 export const RegularAccordionItem = memo(
-    ({ children, category, collapsed }: React.PropsWithChildren<RegularAccordionItemProps>) => {
+    ({
+        children,
+        category,
+        collapsed,
+        nodes,
+        visMode,
+        visState,
+    }: React.PropsWithChildren<RegularAccordionItemProps>) => {
+        const { addHidden, removeHidden } = useNodeHidden();
         return (
             <AccordionItem key={category.name}>
                 <Tooltip
@@ -69,6 +80,19 @@ export const RegularAccordionItem = memo(
                             )}
                         </HStack>
                         <AccordionIcon />
+                        {visMode && (
+                            <Checkbox
+                                isChecked={visState === Checked.All}
+                                isIndeterminate={visState === Checked.Some}
+                                onChange={() => {
+                                    if (visState === Checked.All) {
+                                        nodes?.map((n) => addHidden(n.schemaId));
+                                    } else {
+                                        nodes?.map((n) => removeHidden(n.schemaId));
+                                    }
+                                }}
+                            />
+                        )}
                     </AccordionButton>
                 </Tooltip>
                 <AccordionPanel
@@ -119,9 +143,9 @@ export const Subcategories = memo(
                                         }
                                         onChange={() => {
                                             if (visStateMap.get(subcategory) === Checked.All) {
-                                                nodes.map((node) => addHidden(node.schemaId));
+                                                nodes.map((n) => addHidden(n.schemaId));
                                             } else {
-                                                nodes.map((node) => removeHidden(node.schemaId));
+                                                nodes.map((n) => removeHidden(n.schemaId));
                                             }
                                         }}
                                     />

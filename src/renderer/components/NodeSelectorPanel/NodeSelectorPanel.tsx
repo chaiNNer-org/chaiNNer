@@ -38,7 +38,7 @@ import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
 import { presets } from './presets';
-import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
+import { Checked, PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 interface SearchBarProps {
@@ -191,36 +191,38 @@ export const NodeSelector = memo(() => {
                                     overflowX="hidden"
                                     overflowY="scroll"
                                 >
-                                    <Center>
-                                        <Button
-                                            _hover={{
-                                                bg: 'var(--bg-600)',
-                                                opacity: 1,
-                                            }}
-                                            aria-label="Collapse/Expand Categories"
-                                            bg="var(--bg-700)"
-                                            borderRadius="0px 0px 8px 8px"
-                                            h="0.5rem"
-                                            opacity={showCollapseButtons ? 0.75 : 0}
-                                            position="absolute"
-                                            top="154px"
-                                            w={collapsed ? 'auto' : '100px'}
-                                            zIndex={999}
-                                            onClick={toggleAccordion}
-                                        >
-                                            <Icon
-                                                h="14px"
-                                                pt="2px"
-                                                w="20px"
+                                    {!visMode && (
+                                        <Center>
+                                            <Button
+                                                _hover={{
+                                                    bg: 'var(--bg-600)',
+                                                    opacity: 1,
+                                                }}
+                                                aria-label="Collapse/Expand Categories"
+                                                bg="var(--bg-700)"
+                                                borderRadius="0px 0px 8px 8px"
+                                                h="0.5rem"
+                                                opacity={showCollapseButtons ? 0.75 : 0}
+                                                position="absolute"
+                                                top="154px"
+                                                w={collapsed ? 'auto' : '100px'}
+                                                zIndex={999}
+                                                onClick={toggleAccordion}
                                             >
-                                                {accordionIsCollapsed ? (
-                                                    <BsCaretDownFill />
-                                                ) : (
-                                                    <BsCaretUpFill />
-                                                )}
-                                            </Icon>
-                                        </Button>
-                                    </Center>
+                                                <Icon
+                                                    h="14px"
+                                                    pt="2px"
+                                                    w="20px"
+                                                >
+                                                    {accordionIsCollapsed ? (
+                                                        <BsCaretDownFill />
+                                                    ) : (
+                                                        <BsCaretUpFill />
+                                                    )}
+                                                </Icon>
+                                            </Button>
+                                        </Center>
+                                    )}
                                     <Accordion
                                         allowMultiple
                                         defaultIndex={defaultIndex}
@@ -243,32 +245,54 @@ export const NodeSelector = memo(() => {
                                                 return null;
                                             }
 
+                                            let visState;
+                                            if (categoryNodes === undefined) {
+                                                visState = Checked.All;
+                                            } else {
+                                                const hiddenNodeCount = categoryNodes.filter((n) =>
+                                                    hidden.has(n.schemaId)
+                                                ).length;
+                                                const partialState =
+                                                    hiddenNodeCount === categoryNodes.length
+                                                        ? Checked.None
+                                                        : Checked.Some;
+                                                visState =
+                                                    hiddenNodeCount === 0
+                                                        ? Checked.All
+                                                        : partialState;
+                                            }
+
                                             const subcategoryMap = categoryNodes
                                                 ? getSubcategories(categoryNodes)
                                                 : null;
 
                                             return (
-                                                <RegularAccordionItem
-                                                    category={category}
-                                                    collapsed={collapsed}
-                                                    key={category.name}
-                                                >
-                                                    {categoryIsMissingNodes && (
-                                                        <PackageHint
-                                                            collapsed={collapsed}
-                                                            hint={category.installHint ?? ''}
-                                                            packageName={category.name}
-                                                            onClick={openDependencyManager}
-                                                        />
-                                                    )}
-                                                    {subcategoryMap && (
-                                                        <Subcategories
-                                                            collapsed={collapsed}
-                                                            subcategoryMap={subcategoryMap}
-                                                            visModeActive={visMode}
-                                                        />
-                                                    )}
-                                                </RegularAccordionItem>
+                                                (visMode || visState !== Checked.None) && (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                        nodes={categoryNodes}
+                                                        visMode={visMode}
+                                                        visState={visState}
+                                                    >
+                                                        {categoryIsMissingNodes && (
+                                                            <PackageHint
+                                                                collapsed={collapsed}
+                                                                hint={category.installHint ?? ''}
+                                                                packageName={category.name}
+                                                                onClick={openDependencyManager}
+                                                            />
+                                                        )}
+                                                        {subcategoryMap && (
+                                                            <Subcategories
+                                                                collapsed={collapsed}
+                                                                subcategoryMap={subcategoryMap}
+                                                                visModeActive={visMode}
+                                                            />
+                                                        )}
+                                                    </RegularAccordionItem>
+                                                )
                                             );
                                         })}
                                         <AccordionItem>
@@ -336,7 +360,7 @@ export const NodeSelector = memo(() => {
                 size="none"
                 w="0.75rem"
                 zIndex={999}
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={() => (!visMode ? setCollapsed(!collapsed) : setCollapsed(false))}
             >
                 <Icon
                     pl={1}
