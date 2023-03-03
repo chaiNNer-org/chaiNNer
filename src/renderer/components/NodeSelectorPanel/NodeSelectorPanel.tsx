@@ -18,11 +18,18 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
+    Tooltip,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { ChangeEventHandler, memo, useMemo, useState } from 'react';
-import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
-import { RiNodeTree } from 'react-icons/ri';
+import {
+    BsCaretDownFill,
+    BsCaretLeftFill,
+    BsCaretRightFill,
+    BsCaretUpFill,
+    BsEye,
+    BsEyeFill,
+} from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
@@ -176,15 +183,29 @@ export const NodeSelector = memo(() => {
                                         onClick={() => setCollapsed(false)}
                                         onClose={() => setSearchQuery('')}
                                     />
-                                    <IconButton
-                                        aria-label="Node Visibility Settings"
-                                        icon={<RiNodeTree />}
-                                        isActive={visMode}
-                                        onChange={() => {
-                                            setVisMode(!visMode);
-                                        }}
-                                        onClick={() => setVisMode(!visMode)}
-                                    />
+                                    <Tooltip
+                                        hasArrow
+                                        borderRadius={8}
+                                        label={
+                                            visMode
+                                                ? 'Turn off node visibility mode.'
+                                                : 'Turn on node visibility mode.'
+                                        }
+                                        openDelay={500}
+                                        placement="bottom"
+                                        px={2}
+                                        py={1}
+                                    >
+                                        <IconButton
+                                            aria-label="Node Visibility Settings"
+                                            icon={visMode ? <BsEyeFill /> : <BsEye />}
+                                            isActive={visMode}
+                                            onChange={() => {
+                                                setVisMode(!visMode);
+                                            }}
+                                            onClick={() => setVisMode(!visMode)}
+                                        />
+                                    </Tooltip>
                                 </HStack>
                                 <Box
                                     h="calc(100vh - 165px)"
