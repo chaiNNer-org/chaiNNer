@@ -28,7 +28,7 @@ export const RepresentativeNode = memo(
         icon,
         schemaId,
         collapsed = false,
-        visModeActive = false,
+        visModeActive: visMode = false,
         createNodeFromSelector,
     }: RepresentativeNodeProps) => {
         const { categories } = useContext(BackendContext);
@@ -62,7 +62,7 @@ export const RepresentativeNode = memo(
                 borderRadius="lg"
                 borderWidth="0px"
                 boxShadow="lg"
-                opacity={visModeActive && isHidden ? '50%' : '100%'}
+                opacity={visMode && isHidden ? '50%' : '100%'}
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
@@ -142,7 +142,7 @@ export const RepresentativeNode = memo(
                                     verticalAlign="middle"
                                     w="fit-content"
                                 >
-                                    {visModeActive ? (
+                                    {visMode ? (
                                         <Checkbox
                                             isChecked={!isHidden}
                                             onChange={(e) => {

@@ -5,6 +5,7 @@ import {
     AccordionPanel,
     Box,
     Center,
+    Checkbox,
     HStack,
     Heading,
     Text,
@@ -12,10 +13,17 @@ import {
 } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Category, NodeSchema } from '../../../common/common-types';
+import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
 import { TextBox } from './TextBox';
+
+enum Checked {
+    All,
+    None,
+    Some,
+}
 
 interface RegularAccordionItemProps {
     category: Category;
@@ -82,15 +90,43 @@ interface SubcategoriesProps {
 
 export const Subcategories = memo(
     ({ collapsed, visModeActive, subcategoryMap }: SubcategoriesProps) => {
+        const { hidden, addHidden, removeHidden } = useNodeHidden();
+
+        const visStateMap = new Map(
+            [...subcategoryMap].map(([subcategory, nodes]) => {
+                const count = nodes.filter((n) => hidden.has(n.schemaId)).length;
+                const partialState = count === nodes.length ? Checked.None : Checked.Some;
+                const state = count === 0 ? Checked.All : partialState;
+                return [subcategory, state];
+            })
+        );
+
         return (
             <>
                 {[...subcategoryMap].map(([subcategory, nodes]) => (
                     <Box key={subcategory}>
                         <Center>
-                            <SubcategoryHeading
-                                collapsed={collapsed}
-                                subcategory={subcategory}
-                            />
+                            <HStack w="full">
+                                <SubcategoryHeading
+                                    collapsed={collapsed}
+                                    subcategory={subcategory}
+                                />
+                                {visModeActive && (
+                                    <Checkbox
+                                        isChecked={visStateMap.get(subcategory) === Checked.All}
+                                        isIndeterminate={
+                                            visStateMap.get(subcategory) === Checked.Some
+                                        }
+                                        onChange={() => {
+                                            if (visStateMap.get(subcategory) === Checked.All) {
+                                                nodes.map((node) => addHidden(node.schemaId));
+                                            } else {
+                                                nodes.map((node) => removeHidden(node.schemaId));
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </HStack>
                         </Center>
                         <Box>
                             {nodes.map((node) => (
