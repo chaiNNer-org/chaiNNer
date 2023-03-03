@@ -30,3 +30,6 @@ class Seed:
         Returns the value of the seed as a 32bit unsigned integer.
         """
         return self.to_range(0, _U32_MAX - 1)
+
+    def cache_key_func(self):
+        return self.value

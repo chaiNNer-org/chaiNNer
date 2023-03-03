@@ -48,6 +48,9 @@ class NodeOutputCache:
                 key.append(tuple(arg.shape))
                 key.append(arg.dtype.str)
                 key.append(hashlib.sha256(arg.tobytes()).digest())
+            elif hasattr(arg, "cache_key_func"):
+                key.append(arg.__class__.__name__)
+                key.append(arg.cache_key_func())
             else:
                 raise RuntimeError(f"Unexpected argument type {arg.__class__.__name__}")
         return tuple(key)
