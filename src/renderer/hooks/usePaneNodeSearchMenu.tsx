@@ -38,11 +38,13 @@ import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { SettingsContext } from '../contexts/SettingsContext';
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
+import { useNodeHidden } from './useNodeHidden';
 import { useThemeColor } from './useThemeColor';
 
 interface SchemaItemProps {
@@ -112,154 +114,166 @@ interface MenuProps {
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: Category[];
+    hiddenNodes: ReadonlySet<SchemaId>;
+    visMode: boolean;
 }
 
-const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {
-    const [searchQuery, setSearchQuery] = useState('');
+const Menu = memo(
+    ({ onSelect, targets, schemata, favorites, categories, hiddenNodes, visMode }: MenuProps) => {
+        const [searchQuery, setSearchQuery] = useState('');
+        const matchingNodes = getMatchingNodes(searchQuery, sortSchemata(schemata));
 
-    const byCategories: ReadonlyMap<string, readonly NodeSchema[]> = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
-        [searchQuery, schemata]
-    );
+        const visibleNodes = visMode
+            ? matchingNodes
+            : matchingNodes.filter((n) => !hiddenNodes.has(n.schemaId));
 
-    const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
-        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    }, [byCategories, favorites]);
+        const byCategories: ReadonlyMap<string, readonly NodeSchema[]> = useMemo(
+            () => getNodesByCategory(visibleNodes),
+            [visibleNodes]
+        );
 
-    const menuBgColor = useThemeColor('--bg-800');
-    const inputColor = 'var(--fg-300)';
+        const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
+            return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
+        }, [byCategories, favorites]);
 
-    const onClickHandler = useCallback(
-        (schema: NodeSchema) => {
-            setSearchQuery('');
-            onSelect(schema, targets.get(schema)!);
-        },
-        [setSearchQuery, onSelect, targets]
-    );
-    const onEnterHandler = useCallback(() => {
-        const nodes = [...byCategories.values()].flat();
-        if (nodes.length === 1) {
-            onClickHandler(nodes[0]);
-        }
-    }, [byCategories, onClickHandler]);
+        const menuBgColor = useThemeColor('--bg-800');
+        const inputColor = 'var(--fg-300)';
 
-    return (
-        <MenuList
-            bgColor={menuBgColor}
-            borderWidth={0}
-            className="nodrag"
-            overflow="hidden"
-            onContextMenu={stopPropagation}
-        >
-            <InputGroup
-                borderBottomWidth={1}
-                borderRadius={0}
+        const onClickHandler = useCallback(
+            (schema: NodeSchema) => {
+                setSearchQuery('');
+                onSelect(schema, targets.get(schema)!);
+            },
+            [setSearchQuery, onSelect, targets]
+        );
+        const onEnterHandler = useCallback(() => {
+            const nodes = [...byCategories.values()].flat();
+            if (nodes.length === 1) {
+                onClickHandler(nodes[0]);
+            }
+        }, [byCategories, onClickHandler]);
+
+        return (
+            <MenuList
+                bgColor={menuBgColor}
+                borderWidth={0}
+                className="nodrag"
+                overflow="hidden"
+                onContextMenu={stopPropagation}
             >
-                <InputLeftElement
-                    color={inputColor}
-                    pointerEvents="none"
-                >
-                    <SearchIcon />
-                </InputLeftElement>
-                <Input
-                    autoFocus
+                <InputGroup
+                    borderBottomWidth={1}
                     borderRadius={0}
-                    placeholder="Search..."
-                    spellCheck={false}
-                    type="text"
-                    value={searchQuery}
-                    variant="filled"
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            onEnterHandler();
-                        }
-                    }}
-                />
-                <InputRightElement
-                    _hover={{ color: 'var(--fg-000)' }}
-                    style={{
-                        color: inputColor,
-                        cursor: 'pointer',
-                        display: searchQuery ? undefined : 'none',
-                        fontSize: '66%',
-                    }}
-                    onClick={() => setSearchQuery('')}
                 >
-                    <CloseIcon />
-                </InputRightElement>
-            </InputGroup>
-            <Box
-                h="auto"
-                maxH={400}
-                overflowY="scroll"
-                p={1}
-            >
-                {favoriteNodes.length > 0 && (
-                    <Box>
-                        <HStack
-                            borderRadius="md"
-                            mx={1}
-                            py={0.5}
-                        >
-                            <StarIcon
-                                boxSize={3}
-                                color="yellow.500"
-                            />
-                            <Text fontSize="xs">Favorites</Text>
-                        </HStack>
-                        {favoriteNodes.map((favorite) => (
-                            <SchemaItem
-                                accentColor={getCategoryAccentColor(categories, favorite.category)}
-                                key={favorite.schemaId}
-                                schema={favorite}
-                                onClick={onClickHandler}
-                            />
-                        ))}
-                    </Box>
-                )}
-
-                {byCategories.size > 0 ? (
-                    [...byCategories].map(([category, categorySchemata]) => {
-                        const accentColor = getCategoryAccentColor(categories, category);
-                        return (
-                            <Box key={category}>
-                                <HStack
-                                    borderRadius="md"
-                                    mx={1}
-                                    py={0.5}
-                                >
-                                    <IconFactory
-                                        accentColor={accentColor}
-                                        boxSize={3}
-                                        icon={categories.find((c) => c.name === category)?.icon}
-                                    />
-                                    <Text fontSize="xs">{category}</Text>
-                                </HStack>
-                                {categorySchemata.map((schema) => (
-                                    <SchemaItem
-                                        accentColor={accentColor}
-                                        isFavorite={favorites.has(schema.schemaId)}
-                                        key={schema.schemaId}
-                                        schema={schema}
-                                        onClick={onClickHandler}
-                                    />
-                                ))}
-                            </Box>
-                        );
-                    })
-                ) : (
-                    <Center
-                        opacity="50%"
-                        w="full"
+                    <InputLeftElement
+                        color={inputColor}
+                        pointerEvents="none"
                     >
-                        No compatible nodes found.
-                    </Center>
-                )}
-            </Box>
-        </MenuList>
-    );
-});
+                        <SearchIcon />
+                    </InputLeftElement>
+                    <Input
+                        autoFocus
+                        borderRadius={0}
+                        placeholder="Search..."
+                        spellCheck={false}
+                        type="text"
+                        value={searchQuery}
+                        variant="filled"
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                onEnterHandler();
+                            }
+                        }}
+                    />
+                    <InputRightElement
+                        _hover={{ color: 'var(--fg-000)' }}
+                        style={{
+                            color: inputColor,
+                            cursor: 'pointer',
+                            display: searchQuery ? undefined : 'none',
+                            fontSize: '66%',
+                        }}
+                        onClick={() => setSearchQuery('')}
+                    >
+                        <CloseIcon />
+                    </InputRightElement>
+                </InputGroup>
+                <Box
+                    h="auto"
+                    maxH={400}
+                    overflowY="scroll"
+                    p={1}
+                >
+                    {favoriteNodes.length > 0 && (
+                        <Box>
+                            <HStack
+                                borderRadius="md"
+                                mx={1}
+                                py={0.5}
+                            >
+                                <StarIcon
+                                    boxSize={3}
+                                    color="yellow.500"
+                                />
+                                <Text fontSize="xs">Favorites</Text>
+                            </HStack>
+                            {favoriteNodes.map((favorite) => (
+                                <SchemaItem
+                                    accentColor={getCategoryAccentColor(
+                                        categories,
+                                        favorite.category
+                                    )}
+                                    key={favorite.schemaId}
+                                    schema={favorite}
+                                    onClick={onClickHandler}
+                                />
+                            ))}
+                        </Box>
+                    )}
+
+                    {byCategories.size > 0 ? (
+                        [...byCategories].map(([category, categorySchemata]) => {
+                            const accentColor = getCategoryAccentColor(categories, category);
+                            return (
+                                <Box key={category}>
+                                    <HStack
+                                        borderRadius="md"
+                                        mx={1}
+                                        py={0.5}
+                                    >
+                                        <IconFactory
+                                            accentColor={accentColor}
+                                            boxSize={3}
+                                            icon={categories.find((c) => c.name === category)?.icon}
+                                        />
+                                        <Text fontSize="xs">{category}</Text>
+                                    </HStack>
+                                    {categorySchemata.map((schema) => (
+                                        <SchemaItem
+                                            accentColor={accentColor}
+                                            isFavorite={favorites.has(schema.schemaId)}
+                                            key={schema.schemaId}
+                                            schema={schema}
+                                            onClick={onClickHandler}
+                                        />
+                                    ))}
+                                </Box>
+                            );
+                        })
+                    ) : (
+                        <Center
+                            opacity="50%"
+                            w="full"
+                        >
+                            No compatible nodes found.
+                        </Center>
+                    )}
+                </Box>
+            </MenuList>
+        );
+    }
+);
 
 const getConnectionTarget = (
     connectingFrom: OnConnectStartParams | null,
@@ -349,6 +363,8 @@ export const usePaneNodeSearchMenu = (
     const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
+    const [visMode] = useContextSelector(SettingsContext, (c) => c.useNodeVisMode);
+    const { hidden } = useNodeHidden();
 
     const { favorites } = useNodeFavorites();
 
@@ -454,6 +470,8 @@ export const usePaneNodeSearchMenu = (
         schemata: matchingSchemata,
         favorites,
         categories,
+        hiddenNodes: hidden,
+        visMode,
     };
 
     const menu = useContextMenu(() => (
