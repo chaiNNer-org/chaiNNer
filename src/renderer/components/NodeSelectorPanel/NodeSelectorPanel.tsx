@@ -173,7 +173,7 @@ export const NodeSelector = memo(() => {
                                 overflowX="hidden"
                                 p={0}
                             >
-                                <HStack>
+                                <HStack spacing={1}>
                                     <SearchBar
                                         value={searchQuery}
                                         onChange={(e) => {
@@ -193,8 +193,6 @@ export const NodeSelector = memo(() => {
                                         }
                                         openDelay={500}
                                         placement="bottom"
-                                        px={2}
-                                        py={1}
                                     >
                                         <IconButton
                                             aria-label="Node Visibility Settings"
