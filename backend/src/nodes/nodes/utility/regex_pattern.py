@@ -25,7 +25,7 @@ class RegexNode(NodeBase):
         self.category = UtilityCategory
         self.name = "Regex Replace"
         self.icon = "MdTextFields"
-        self.sub = "Value"
+        self.sub = "Regex"
 
     def run(self, text: str, reg: str, rep: str) -> str:
         return re.sub(reg, rep, text, count=0, flags=0)
