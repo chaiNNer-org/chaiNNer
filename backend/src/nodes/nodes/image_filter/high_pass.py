@@ -18,6 +18,7 @@ class HighPassFilterNode(NodeBase):
         self.inputs = [
             ImageInput(),
             NumberInput("Radius", minimum=0, default=1, precision=2, controls_step=1),
+            NumberInput("Contrast", minimum=0, default=1, precision=2, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -29,14 +30,17 @@ class HighPassFilterNode(NodeBase):
         self,
         img: np.ndarray,
         radius: float,
+        contrast: float,
     ) -> np.ndarray:
         """High Pass filter"""
 
-        if radius == 0:
+        if radius == 0 or contrast == 0:
             return img * 0 + 0.5
         else:
             return np.clip(
-                img - cv2.GaussianBlur(img, (0, 0), sigmaX=radius, sigmaY=radius) + 0.5,
+                contrast
+                * (img - cv2.GaussianBlur(img, (0, 0), sigmaX=radius, sigmaY=radius))
+                + 0.5,
                 0,
                 1,
             )
