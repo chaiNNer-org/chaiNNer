@@ -36,19 +36,19 @@ class TextAppendNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let sep = toString(Input0);
+                let sep = Input0;
                 string::concat(
-                    toString(Input1),
+                    Input1,
                     sep,
-                    toString(Input2),
-                    match Input3 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input4 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input5 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input6 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input7 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input8 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input9 { null => "", _ as s => string::concat(sep, toString(s)) },
-                    match Input10 { null => "", _ as s => string::concat(sep, toString(s)) }
+                    Input2,
+                    match Input3 { null => "", _ as s => string::concat(sep, s) },
+                    match Input4 { null => "", _ as s => string::concat(sep, s) },
+                    match Input5 { null => "", _ as s => string::concat(sep, s) },
+                    match Input6 { null => "", _ as s => string::concat(sep, s) },
+                    match Input7 { null => "", _ as s => string::concat(sep, s) },
+                    match Input8 { null => "", _ as s => string::concat(sep, s) },
+                    match Input9 { null => "", _ as s => string::concat(sep, s) },
+                    match Input10 { null => "", _ as s => string::concat(sep, s) }
                 )
                 """,
             )

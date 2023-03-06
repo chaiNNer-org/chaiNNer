@@ -200,7 +200,7 @@ class TextInput(BaseInput):
         default: Union[str, None] = None,
     ):
         super().__init__(
-            ["string", "number"] if allow_numbers else "string",
+            "string",
             label,
             has_handle=has_handle,
             kind="text-line",
@@ -209,6 +209,14 @@ class TextInput(BaseInput):
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+
+        if allow_numbers:
+            self.input_conversion = """
+                match Input {
+                    number => toString(Input),
+                    _ => Input
+                }
+            """
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
