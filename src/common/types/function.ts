@@ -392,12 +392,8 @@ export class FunctionDefinition {
         return !isDisjointWith(inputType, this.convertInput(inputId, type));
     }
 
-    canAssignOutput(outputId: OutputId, type: Type): boolean {
-        const outputType = this.outputDefaults.get(outputId);
-        if (!outputType) {
-            throw new Error('Invalid output id');
-        }
-        return !isDisjointWith(outputType, type);
+    hasInput(inputId: InputId): boolean {
+        return this.inputDefaults.has(inputId);
     }
 }
 

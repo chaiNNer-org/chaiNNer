@@ -14,7 +14,18 @@ export const getConnectedInputs = (
     return new Set(targetedInputs);
 };
 
-export const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | undefined =>
-    fn.schema.inputs.find((i) => i.hasHandle && fn.canAssignInput(i.id, type))?.id;
-export const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | undefined =>
-    fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
+export const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | undefined => {
+    return fn.schema.inputs.find((i) => i.hasHandle && fn.canAssignInput(i.id, type))?.id;
+};
+export const getFirstPossibleOutput = (
+    outputFn: FunctionDefinition,
+    inputFn: FunctionDefinition,
+    inputId: InputId
+): OutputId | undefined => {
+    for (const [id, type] of outputFn.outputDefaults) {
+        if (inputFn.canAssignInput(inputId, type)) {
+            return id;
+        }
+    }
+    return undefined;
+};
