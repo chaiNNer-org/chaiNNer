@@ -6,6 +6,7 @@ from enum import Enum
 import cv2
 import numpy as np
 from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 from sanic.log import logger
 
 from ...groups import conditional_group
@@ -116,6 +117,13 @@ class ImWriteNode(NodeBase):
                     )
                 ),
             ),
+            conditional_group(enum=4, condition="png")(
+                BoolInput("Save with Pnginfo", default=False).with_id(14),
+                conditional_group(enum=14, condition=1)(
+                    TextInput("Pnginfo Key", default="parameters").with_id(15),
+                    TextInput("Pnginfo Text", default="").with_id(16),
+                ),
+            ),
         ]
         self.category = ImageCategory
         self.name = "Save Image"
@@ -141,6 +149,9 @@ class ImWriteNode(NodeBase):
         dds_dithering: bool,
         dds_mipmap_levels: int,
         dds_separate_alpha: bool,
+        png_info: bool,
+        png_info_key: str | None,
+        png_info_text: str | None,
     ) -> None:
         """Write an image to the specified path and return write status"""
 
@@ -180,8 +191,17 @@ class ImWriteNode(NodeBase):
             )
             return
 
-        # Any image not supported by cv2, will be handled by pillow.
-        if extension not in ["png", "jpg", "tiff", "webp"]:
+        # Any image not supported by cv2, or that requires pnginfo will be handled by pillow.
+        if (
+            extension
+            not in [
+                "png",
+                "jpg",
+                "tiff",
+                "webp",
+            ]
+            or png_info
+        ):
             channels = get_h_w_c(img)[2]
             if channels == 1:
                 # PIL supports grayscale images just fine, so we don't need to do any conversion
@@ -195,8 +215,17 @@ class ImWriteNode(NodeBase):
                     f"Unsupported number of channels. Saving .{extension} images is only supported for "
                     f"grayscale, RGB, and RGBA images."
                 )
-            with Image.fromarray(img) as image:
-                image.save(full_path)
+            if png_info and png_info_key and png_info_text:
+                metadata = PngInfo()
+                png_info_text = png_info_text.replace(r"\n", "\n")
+
+                metadata.add_text(f"{png_info_key}", f"{png_info_text}")
+
+                with Image.fromarray(img) as image:
+                    image.save(full_path, pnginfo=metadata)
+            else:
+                with Image.fromarray(img) as image:
+                    image.save(full_path)
         else:
             if extension == "jpg":
                 params = [
