@@ -58,6 +58,11 @@ class RandomNumberNode(NodeBase):
         self.sub = "Random"
 
     def run(self, seed: Seed, *sources: Source | None) -> Seed:
+        if all([s is None for s in sources]):
+            # return seed as is if there are no sources of randomness
+            # this is useful for extracting out seeds
+            return seed
+
         h = hashlib.sha256()
 
         h.update(_to_bytes(seed))
