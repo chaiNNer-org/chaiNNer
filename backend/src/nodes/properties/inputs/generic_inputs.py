@@ -291,8 +291,13 @@ class SeedInput(NumberInput):
         )
         self.has_handle = has_handle
 
-        self.input_type = "Seed"
-        self.input_conversion = None
+        self.input_type = "Seed | int"
+        self.input_conversion = """
+            match Input {
+                int => Seed,
+                _ as i => i
+            }
+        """
         self.input_adapt = """
             match Input {
                 int => Seed,
