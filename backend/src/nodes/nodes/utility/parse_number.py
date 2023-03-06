@@ -19,7 +19,7 @@ class ParseNumberNode(NodeBase):
         self.outputs = [
             NumberOutput(
                 "Value",
-                output_type="int & number::parseInt(Input0, Input1)",
+                output_type="int & number::parseInt(toString(Input0), Input1)",
             ).with_never_reason("The given text cannot be parsed into a number."),
         ]
 
