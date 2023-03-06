@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal
+from dataclasses import dataclass
+from typing import List, Literal
 
 from base_types import InputId
 
@@ -18,6 +19,35 @@ InputKind = Literal[
 ]
 
 
+@dataclass
+class InputConversion:
+    """
+    An input conversion can be used to convert the assigned type of an input.
+    This is useful to model the changes `enforce` makes to values.
+
+    `type` is used to declare which type is intended to be converted by this
+    conversion. `convert` is the expression that does the actual conversion. It
+    will be given a special parameter called `Input` that will be the value to
+    convert. The `Input` parameter is guaranteed to be a non-empty sub type of
+    `type`.
+
+    Example:
+    To convert all numbers to string, use this conversions:
+    ```
+    InputConversion("number", "toString(Input)")
+    ```
+    """
+
+    type: expression.ExpressionJson
+    convert: expression.ExpressionJson
+
+    def toDict(self):
+        return {
+            "type": self.type,
+            "convert": self.convert,
+        }
+
+
 class BaseInput:
     def __init__(
         self,
@@ -27,7 +57,7 @@ class BaseInput:
         has_handle=True,
     ):
         self.input_type: expression.ExpressionJson = input_type
-        self.input_conversion: expression.ExpressionJson | None = None
+        self.input_conversions: List[InputConversion] = []
         self.input_adapt: expression.ExpressionJson | None = None
         self.type_definitions: str | None = None
         self.kind: InputKind = kind
@@ -56,7 +86,7 @@ class BaseInput:
         return {
             "id": self.id,
             "type": actual_type,
-            "conversion": self.input_conversion,
+            "conversions": [c.toDict() for c in self.input_conversions],
             "adapt": self.input_adapt,
             "typeDefinitions": self.type_definitions,
             "kind": self.kind,

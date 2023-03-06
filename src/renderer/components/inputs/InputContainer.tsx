@@ -63,11 +63,11 @@ const Div = chakra('div', {
 export interface HandleWrapperProps {
     id: string;
     inputId: InputId;
-    definitionType: Type;
+    connectableType: Type;
 }
 
 export const HandleWrapper = memo(
-    ({ children, id, inputId, definitionType }: React.PropsWithChildren<HandleWrapperProps>) => {
+    ({ children, id, inputId, connectableType }: React.PropsWithChildren<HandleWrapperProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
@@ -110,7 +110,7 @@ export const HandleWrapper = memo(
 
         const { functionDefinitions } = useContext(BackendContext);
 
-        const handleColors = getTypeAccentColors(definitionType);
+        const handleColors = getTypeAccentColors(connectableType);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
