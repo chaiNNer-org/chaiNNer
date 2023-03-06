@@ -38,9 +38,7 @@ class HighPassFilterNode(NodeBase):
             return img * 0 + 0.5
         else:
             return np.clip(
-                contrast
-                * (img - cv2.GaussianBlur(img, (0, 0), sigmaX=radius, sigmaY=radius))
-                + 0.5,
+                contrast * (img - cv2.GaussianBlur(img, (0, 0), radius)) + 0.5,
                 0,
                 1,
             )
