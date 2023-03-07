@@ -16,7 +16,7 @@ class HighPassFilterNode(NodeBase):
         super().__init__()
         self.description = "Apply High Pass filter on image"
         self.inputs = [
-            ImageInput(),
+            ImageInput(channels=[1, 3, 4]),
             NumberInput("Radius", minimum=0, default=3, precision=2, controls_step=1),
             SliderInput(
                 "Contrast",
