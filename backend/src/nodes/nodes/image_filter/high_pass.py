@@ -5,7 +5,7 @@ import numpy as np
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, NumberInput
+from ...properties.inputs import ImageInput, NumberInput, SliderInput
 from ...properties.outputs import ImageOutput
 from . import category as ImageFilterCategory
 
@@ -17,8 +17,16 @@ class HighPassFilterNode(NodeBase):
         self.description = "Apply High Pass filter on image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Radius", minimum=0, default=1, precision=2, controls_step=1),
-            NumberInput("Contrast", minimum=0, default=1, precision=2, controls_step=1),
+            NumberInput("Radius", minimum=0, default=3, precision=2, controls_step=1),
+            SliderInput(
+                "Contrast",
+                minimum=0,
+                maximum=100,
+                default=1,
+                precision=2,
+                controls_step=0.1,
+                scale="log-offset",
+            ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -32,13 +40,18 @@ class HighPassFilterNode(NodeBase):
         radius: float,
         contrast: float,
     ) -> np.ndarray:
-        """High Pass filter"""
+
+        alpha = None
+        if img.shape[2] > 3:
+            alpha = img[:, :, 3]
+            img = img[:, :, :3]
 
         if radius == 0 or contrast == 0:
-            return img * 0 + 0.5
+            img = img * 0 + 0.5
         else:
-            return np.clip(
-                contrast * (img - cv2.GaussianBlur(img, (0, 0), radius)) + 0.5,
-                0,
-                1,
-            )
+            img = contrast * (img - cv2.GaussianBlur(img, (0, 0), radius)) + 0.5
+
+        if alpha is not None:
+            img = np.dstack((img, alpha))
+
+        return np.clip(img, 0, 1)
