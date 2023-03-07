@@ -59,7 +59,7 @@ class TextSliceNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let text = toString(Input0);
+                let text = Input0;
                 let operation = Input1;
                 let start = Input2;
                 let length = Input3;

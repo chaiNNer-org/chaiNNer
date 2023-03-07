@@ -30,24 +30,17 @@ class TextPatternNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                def convert(value: string | number | null) {
-                    match value {
-                        number as n => toString(n),
-                        _ as v => v
-                    }
-                }
-
                 formatPattern(
-                    toString(Input0),
-                    convert(Input1),
-                    convert(Input2),
-                    convert(Input3),
-                    convert(Input4),
-                    convert(Input5),
-                    convert(Input6),
-                    convert(Input7),
-                    convert(Input8),
-                    convert(Input9)
+                    Input0,
+                    Input1,
+                    Input2,
+                    Input3,
+                    Input4,
+                    Input5,
+                    Input6,
+                    Input7,
+                    Input8,
+                    Input9
                 )
                 """,
             ).with_never_reason(

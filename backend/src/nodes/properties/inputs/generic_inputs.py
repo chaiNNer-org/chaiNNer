@@ -17,7 +17,7 @@ from ...utils.utils import (
     split_snake_case,
 )
 from .. import expression
-from .base_input import BaseInput
+from .base_input import BaseInput, InputConversion
 from .numeric_inputs import NumberInput
 
 
@@ -200,7 +200,7 @@ class TextInput(BaseInput):
         default: Union[str, None] = None,
     ):
         super().__init__(
-            ["string", "number"] if allow_numbers else "string",
+            "string",
             label,
             has_handle=has_handle,
             kind="text-line",
@@ -209,6 +209,9 @@ class TextInput(BaseInput):
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+
+        if allow_numbers:
+            self.input_conversions = [InputConversion("number", "toString(Input)")]
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -253,12 +256,7 @@ class ClipboardInput(BaseInput):
 
     def __init__(self, label: str = "Clipboard input"):
         super().__init__(["Image", "string", "number"], label, kind="text-line")
-        self.input_conversion = """
-            match Input {
-                Image => "<Image>",
-                _ as i => i,
-            }
-        """
+        self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
     def enforce(self, value):
         if isinstance(value, np.ndarray):
@@ -292,12 +290,7 @@ class SeedInput(NumberInput):
         self.has_handle = has_handle
 
         self.input_type = "Seed | int"
-        self.input_conversion = """
-            match Input {
-                int => Seed,
-                _ as i => i
-            }
-        """
+        self.input_conversions = [InputConversion("int", "Seed")]
         self.input_adapt = """
             match Input {
                 int => Seed,

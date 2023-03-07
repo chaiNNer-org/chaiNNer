@@ -304,8 +304,7 @@ const getConnectionTarget = (
             }
 
             const { inputId } = parseTargetHandle(connectingFrom.handleId);
-            const sourceType = sourceFn.inputDefaults.get(inputId);
-            if (!sourceType) {
+            if (!sourceFn.hasInput(inputId)) {
                 return undefined;
             }
 
@@ -314,7 +313,7 @@ const getConnectionTarget = (
                 return undefined;
             }
 
-            const output = getFirstPossibleOutput(targetFn, sourceType);
+            const output = getFirstPossibleOutput(targetFn, sourceFn, inputId);
             if (output === undefined) {
                 return undefined;
             }

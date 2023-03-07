@@ -1,6 +1,6 @@
 import {
-    AnyType,
     Expression,
+    NeverType,
     NonNeverType,
     NumberType,
     ParameterDefinition,
@@ -14,6 +14,7 @@ import {
     isDisjointWith,
     literal,
     union,
+    without,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, lazyKeyed, topologicalSort } from '../util';
@@ -269,28 +270,78 @@ const getInputDataAdapters = (
     return adapters;
 };
 
-const getConversions = (schema: NodeSchema, scope: Scope): Map<InputId, Expression> => {
-    const result = new Map<InputId, Expression>();
+const getConversions = (schema: NodeSchema, scope: Scope): Map<InputId, InputConversion> => {
+    const result = new Map<InputId, InputConversion>();
     for (const input of schema.inputs) {
         // eslint-disable-next-line no-continue
-        if (!input.conversion) continue;
+        if (input.conversions.length === 0) continue;
 
-        const e = fromJson(input.conversion);
+        const conversions: InputConversionItem[] = [];
+        for (const item of input.conversions) {
+            try {
+                const type = evaluate(fromJson(item.type), scope);
+                const convert = fromJson(item.convert);
+                if (type.type === 'never') {
+                    throw new Error('Conversion type cannot be never');
+                }
 
-        // verify that it's a valid conversion
-        try {
-            const conversionScope = getConversionScope(scope);
-            conversionScope.assignParameter('Input', AnyType.instance);
-            evaluate(e, conversionScope);
-        } catch (error) {
-            const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
-            throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
+                // verify that it's a valid conversion
+                const conversionScope = getConversionScope(scope);
+                conversionScope.assignParameter('Input', type);
+                evaluate(convert, conversionScope);
+
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                conversions.push(new InputConversionItem(type, convert));
+            } catch (error) {
+                const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+                throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
+            }
         }
 
-        result.set(input.id, e);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        result.set(input.id, new InputConversion(conversions, scope));
     }
     return result;
 };
+
+export class InputConversionItem {
+    readonly type: NonNeverType;
+
+    readonly convert: Expression;
+
+    constructor(type: NonNeverType, convert: Expression) {
+        this.type = type;
+        this.convert = convert;
+    }
+}
+export class InputConversion {
+    readonly convertibleTypes: Type;
+
+    readonly conversions: readonly InputConversionItem[];
+
+    private readonly scope: Scope;
+
+    constructor(conversions: InputConversionItem[], scope: Scope) {
+        this.conversions = conversions;
+        this.convertibleTypes = union(...conversions.map((c) => c.type));
+        this.scope = getConversionScope(scope);
+    }
+
+    convert(type: Type): Type {
+        const converted: Type[] = [];
+        for (const item of this.conversions) {
+            const i = intersect(item.type, type);
+            if (i.type !== 'never') {
+                this.scope.assignParameter('Input', i);
+                converted.push(evaluate(item.convert, this.scope));
+                // eslint-disable-next-line no-param-reassign
+                type = without(type, item.type);
+            }
+        }
+
+        return union(type, ...converted);
+    }
+}
 
 export class FunctionDefinition {
     readonly schema: NodeSchema;
@@ -299,13 +350,15 @@ export class FunctionDefinition {
 
     readonly inputDefaults: ReadonlyMap<InputId, NonNeverType>;
 
+    readonly inputConvertibleDefaults: ReadonlyMap<InputId, NonNeverType>;
+
     readonly inputExpressions: ReadonlyMap<InputId, Expression>;
 
     readonly inputGenerics: ReadonlySet<InputId>;
 
     readonly inputEvaluationOrder: readonly InputId[];
 
-    readonly inputConversions: ReadonlyMap<InputId, Expression>;
+    readonly inputConversions: ReadonlyMap<InputId, InputConversion>;
 
     readonly outputDefaults: ReadonlyMap<OutputId, NonNeverType>;
 
@@ -347,6 +400,12 @@ export class FunctionDefinition {
         );
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
         this.inputConversions = getConversions(schema, scope);
+        this.inputConvertibleDefaults = new Map(
+            [...this.inputDefaults].map(([id, d]) => {
+                const c = this.inputConversions.get(id)?.convertibleTypes ?? NeverType.instance;
+                return [id, union(d, c)];
+            })
+        );
 
         // outputs
         const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
@@ -378,10 +437,7 @@ export class FunctionDefinition {
         if (!conversion) {
             return type;
         }
-
-        const scope = getConversionScope(this.scope);
-        scope.assignParameter('Input', type);
-        return evaluate(conversion, scope);
+        return conversion.convert(type);
     }
 
     canAssignInput(inputId: InputId, type: Type): boolean {
@@ -392,12 +448,8 @@ export class FunctionDefinition {
         return !isDisjointWith(inputType, this.convertInput(inputId, type));
     }
 
-    canAssignOutput(outputId: OutputId, type: Type): boolean {
-        const outputType = this.outputDefaults.get(outputId);
-        if (!outputType) {
-            throw new Error('Invalid output id');
-        }
-        return !isDisjointWith(outputType, type);
+    hasInput(inputId: InputId): boolean {
+        return this.inputDefaults.has(inputId);
     }
 }
 

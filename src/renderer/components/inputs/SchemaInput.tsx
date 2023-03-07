@@ -70,12 +70,13 @@ export const SchemaInput = memo(
             setNodeInputValue,
             useInputSize: useInputSizeContext,
         } = useContext(GlobalContext);
-        const definitionType = useContextSelector(
-            BackendContext,
-            (c) =>
-                c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId) ??
-                NeverType.instance
+
+        const functionDefinition = useContextSelector(BackendContext, (c) =>
+            c.functionDefinitions.get(schemaId)
         );
+        const definitionType = functionDefinition?.inputDefaults.get(inputId) ?? NeverType.instance;
+        const connectableType =
+            functionDefinition?.inputConvertibleDefaults.get(inputId) ?? NeverType.instance;
 
         const value = getNodeInputValue(inputId, inputData);
         const setValue = useCallback(
@@ -146,7 +147,7 @@ export const SchemaInput = memo(
             <InputContainer>
                 {hasHandle ? (
                     <HandleWrapper
-                        definitionType={definitionType}
+                        connectableType={connectableType}
                         id={nodeId}
                         inputId={inputId}
                     >

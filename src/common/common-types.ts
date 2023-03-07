@@ -23,18 +23,22 @@ export type GroupId = number & { readonly __groupId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
+export interface InputConversionSchema {
+    readonly type: ExpressionJson;
+    readonly convert: ExpressionJson;
+}
 
 interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
     /**
-     * Optional type conversion that occurs before the type system checks
-     * whether 2 types are compatible.
+     * A list of input conversions. Before checking for compatibility, the type
+     * system will attempt to convert any assigned type using input conversions.
      *
      * This can be used to implement e.g. number rounding or type wrapping for
      * edges.
      */
-    readonly conversion?: ExpressionJson | null;
+    readonly conversions: InputConversionSchema[];
     /**
      * Optional type conversion for adapting input data.
      *
