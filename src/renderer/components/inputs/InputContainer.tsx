@@ -158,7 +158,7 @@ export const HandleWrapper = memo(
                             position: 'absolute',
                             top: '50%',
                             left: '50%',
-                            height: '45px',
+                            height: '30px',
                             width: '45px',
                             cursor: 'crosshair',
                             transform: 'translate(-50%, -50%)',
