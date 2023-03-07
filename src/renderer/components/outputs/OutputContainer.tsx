@@ -1,15 +1,14 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text, Tooltip, chakra } from '@chakra-ui/react';
+import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Connection, Handle, Position, useReactFlow } from 'reactflow';
+import { Connection, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
 import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
-import { VALID, Validity, invalid } from '../../../common/Validity';
+import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/accentColors';
-import { noContextMenu } from '../../hooks/useContextMenu';
+import { Handle } from '../Handle';
 import { TypeTags } from '../TypeTag';
 
 interface OutputContainerProps {
@@ -20,53 +19,6 @@ interface OutputContainerProps {
     label: string;
     generic: boolean;
 }
-
-interface RightHandleProps {
-    isValidConnection: (connection: Readonly<Connection>) => boolean;
-    validity: Validity;
-}
-
-// Had to do this garbage to prevent chakra from clashing the position prop
-const RightHandle = memo(
-    ({
-        children,
-        isValidConnection,
-        validity,
-        ...props
-    }: React.PropsWithChildren<RightHandleProps>) => (
-        <Tooltip
-            hasArrow
-            borderRadius={8}
-            display={validity.isValid ? 'none' : 'block'}
-            label={
-                validity.isValid ? undefined : (
-                    <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
-                )
-            }
-            mt={1}
-            opacity={validity.isValid ? 0 : 1}
-            openDelay={500}
-            px={2}
-            py={1}
-        >
-            <Handle
-                isConnectable
-                className="output-handle"
-                isValidConnection={isValidConnection}
-                position={Position.Right}
-                type="source"
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            >
-                {children}
-            </Handle>
-        </Tooltip>
-    )
-);
-
-const Div = chakra('div', {
-    baseStyle: {},
-});
 
 export const OutputContainer = memo(
     ({
@@ -122,8 +74,7 @@ export const OutputContainer = memo(
         }, [connectingFrom, id, outputId, isValidConnection]);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(type || definitionType);
-        const connectedColor = 'var(--connection-color)';
+        const handleColors = getTypeAccentColors(type || definitionType);
         if (hasHandle) {
             contents = (
                 <HStack h="full">
@@ -132,42 +83,13 @@ export const OutputContainer = memo(
                         position="absolute"
                         right="-6px"
                     >
-                        <Div
-                            _before={{
-                                content: '" "',
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                height: '45px',
-                                width: '45px',
-                                cursor: 'crosshair',
-                                transform: 'translate(-50%, -50%)',
-                                borderRadius: '100%',
-                            }}
-                            _hover={{
-                                width: '22px',
-                                height: '22px',
-                                marginRight: '-3px',
-                                opacity: validity.isValid ? 1 : 0,
-                            }}
-                            as={RightHandle}
-                            className="output-handle"
+                        <Handle
+                            connectedColor={isConnected ? handleColors[0] : undefined}
+                            handleColors={handleColors}
                             id={stringifySourceHandle({ nodeId: id, outputId })}
                             isValidConnection={isValidConnectionForRf}
-                            sx={{
-                                width: '16px',
-                                height: '16px',
-                                borderWidth: '2px',
-                                borderColor: handleColor,
-                                transition: '0.15s ease-in-out',
-                                background: isConnected ? connectedColor : handleColor,
-                                boxShadow: '-2px 2px 2px #00000014',
-                                filter: validity.isValid ? undefined : 'grayscale(100%)',
-                                opacity: validity.isValid ? 1 : 0.3,
-                                position: 'relative',
-                            }}
+                            type="output"
                             validity={validity}
-                            onContextMenu={noContextMenu}
                         />
                     </Center>
                 </HStack>

@@ -618,7 +618,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         >
             <ReactFlow
                 connectionLineContainerStyle={{ zIndex: 1000 }}
-                connectionRadius={23}
+                connectionRadius={15}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
