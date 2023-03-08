@@ -40,7 +40,6 @@ class HighPassFilterNode(NodeBase):
         radius: float,
         contrast: float,
     ) -> np.ndarray:
-
         alpha = None
         if img.shape[2] > 3:
             alpha = img[:, :, 3]
