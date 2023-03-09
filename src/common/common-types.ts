@@ -179,6 +179,13 @@ interface ConditionalEnumGroup extends GroupBase {
         readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
     };
 }
+interface ConditionalTypeGroup extends GroupBase {
+    readonly kind: 'conditional-type';
+    readonly options: {
+        readonly input: InputId;
+        readonly condition: ExpressionJson;
+    };
+}
 interface SeedGroup extends GroupBase {
     readonly kind: 'seed';
     readonly options: Readonly<Record<string, never>>;
@@ -189,6 +196,7 @@ export type Group =
     | FromToDropdownsGroup
     | OptionalListGroup
     | ConditionalEnumGroup
+    | ConditionalTypeGroup
     | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {

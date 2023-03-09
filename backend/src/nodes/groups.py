@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import List, Tuple, Union
 
 from .group import Group, GroupId, GroupInfo
-from .node_base import NestedGroup
+from .node_base import NestedGroup, group
+from .properties.expression import ExpressionJson
 from .properties.inputs.base_input import BaseInput
 
 InputValue = Union[int, str]
@@ -22,3 +23,16 @@ def conditional_group(
         return Group(info, list(items))
 
     return ret
+
+
+def type_conditional_group(
+    input_id: int,
+    condition: ExpressionJson,
+):
+    return group(
+        "conditional-type",
+        {
+            "input": input_id,
+            "condition": condition,
+        },
+    )

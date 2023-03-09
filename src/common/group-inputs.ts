@@ -1,3 +1,4 @@
+import { evaluate } from '@chainner/navi';
 import {
     DropDownInput,
     FileInput,
@@ -9,6 +10,8 @@ import {
     NumberInput,
     OfKind,
 } from './common-types';
+import { getChainnerScope } from './types/chainner-scope';
+import { fromJson } from './types/json';
 import { VALID, Validity, invalid } from './Validity';
 
 export interface GroupInputItem {
@@ -23,6 +26,7 @@ type InputGuarantees<T extends Record<GroupKind, readonly InputItem[]>> = T;
 
 type DeclaredGroupInputs = InputGuarantees<{
     'conditional-enum': readonly InputItem[];
+    'conditional-type': readonly InputItem[];
     'from-to-dropdowns': readonly [DropDownInput, DropDownInput];
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
@@ -69,6 +73,20 @@ const groupInputsChecks: {
             const invalidValue = condition.find((c) => !allowed.has(c));
             if (invalidValue !== undefined)
                 return `Invalid condition value ${JSON.stringify(invalidValue)}`;
+        }
+    },
+    'conditional-type': (inputs, { options: { input: inputId, condition } }, schema) => {
+        if (inputs.length === 0) return 'Expected at least 1 item';
+
+        const input = schema.inputs.find((i) => i.id === inputId);
+        if (input === undefined) return `Invalid input: There is no input with the id ${inputId}`;
+
+        try {
+            const cond = evaluate(fromJson(condition), getChainnerScope());
+            if (cond.type === 'never')
+                return `Invalid condition: A condition type 'never' will result in the conditional inputs never being shown`;
+        } catch (e) {
+            return String(e);
         }
     },
     'from-to-dropdowns': (inputs) => {
