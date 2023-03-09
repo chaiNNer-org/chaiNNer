@@ -175,3 +175,14 @@ def tensor2np(
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32
     return img_np.astype(imtype)
+
+
+def safe_cuda_cache_empty():
+    """
+    Empties the CUDA cache if CUDA is available. Hopefully without causing any errors.
+    """
+    try:
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except:
+        pass

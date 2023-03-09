@@ -8,7 +8,12 @@ import torch
 
 from ...impl.image_utils import as_3d
 from ...impl.pytorch.types import PyTorchInpaintModel
-from ...impl.pytorch.utils import np2tensor, tensor2np, to_pytorch_execution_options
+from ...impl.pytorch.utils import (
+    np2tensor,
+    safe_cuda_cache_empty,
+    tensor2np,
+    to_pytorch_execution_options,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -138,7 +143,7 @@ class InpaintNode(NodeBase):
                         pass
                     del d_mask
                 gc.collect()
-                torch.cuda.empty_cache()
+                safe_cuda_cache_empty()
 
                 raise
 

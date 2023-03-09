@@ -7,7 +7,7 @@ import torch
 
 from ..upscale.auto_split import Split, Tiler, auto_split
 from .types import PyTorchModel
-from .utils import np2tensor, tensor2np
+from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
 
 
 @torch.inference_mode()
@@ -49,7 +49,7 @@ def pytorch_auto_split(
                         pass
                     del d_img
                 gc.collect()
-                torch.cuda.empty_cache()
+                safe_cuda_cache_empty()
                 return Split()
             else:
                 # Re-raise the exception if not an OOM error
@@ -61,4 +61,4 @@ def pytorch_auto_split(
         del model
         del device
         gc.collect()
-        torch.cuda.empty_cache()
+        safe_cuda_cache_empty()

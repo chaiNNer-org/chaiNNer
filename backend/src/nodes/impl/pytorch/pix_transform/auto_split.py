@@ -11,6 +11,7 @@ from ...upscale.auto_split import Split, auto_split
 from ...upscale.grayscale import SplitMode, grayscale_split
 from ...upscale.passthrough import passthrough_single_color
 from ...upscale.tiler import Tiler
+from ..utils import safe_cuda_cache_empty
 from .pix_transform import Params, PixTransform
 
 
@@ -82,7 +83,7 @@ def pix_transform_auto_split(
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
                 gc.collect()
-                torch.cuda.empty_cache()
+                safe_cuda_cache_empty()
                 return Split()
             else:
                 # Re-raise the exception if not an OOM error
@@ -93,4 +94,4 @@ def pix_transform_auto_split(
     finally:
         del device
         gc.collect()
-        torch.cuda.empty_cache()
+        safe_cuda_cache_empty()
