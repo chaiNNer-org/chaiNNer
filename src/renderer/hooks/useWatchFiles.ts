@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 const listeners = new Set<(file: string) => void>();
 const callListeners = (file: string) => {
+    log.info(file);
     for (const l of listeners) {
         try {
             l(file);
@@ -37,8 +38,7 @@ export const useWatchFiles = (files: readonly string[], onChange: () => void): v
         return () => {
             listeners.delete(l);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onChange, ...files]);
+    }, [onChange, files]);
 
     useEffect(() => {
         if (files.length === 0) return;
@@ -47,6 +47,5 @@ export const useWatchFiles = (files: readonly string[], onChange: () => void): v
         return () => {
             watcher.unwatch(files);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, files);
+    }, [files]);
 };
