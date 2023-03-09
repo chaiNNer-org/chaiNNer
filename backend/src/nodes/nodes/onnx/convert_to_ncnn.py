@@ -7,7 +7,7 @@ import onnx
 from ...impl.ncnn.model import NcnnModelWrapper
 from ...impl.onnx.model import OnnxModel
 from ...impl.onnx.onnx_to_ncnn import Onnx2NcnnConverter
-from ...impl.onnx.utils import safely_optimize_onnx_model
+from ...impl.onnx.utils import is_optimizer_available, safely_optimize_onnx_model
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFpDropdown, OnnxModelInput
@@ -15,6 +15,12 @@ from ...properties.outputs import NcnnModelOutput, TextOutput
 from . import category as ONNXCategory
 
 FP_MODE_32 = 0
+
+if not is_optimizer_available():
+    raise ValueError(
+        "ONNXOptimizer is required for ONNX -> NCNN conversion, but it is not installed."
+        " Conversions from ONNX -> NCNN and PyTorch -> NCNN are not supported on M1 machines."
+    )
 
 
 @NodeFactory.register("chainner:onnx:convert_to_ncnn")

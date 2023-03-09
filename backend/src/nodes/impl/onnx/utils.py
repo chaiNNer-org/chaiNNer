@@ -49,6 +49,14 @@ def get_output_shape(
     return parse_onnx_shape(session.get_outputs()[0].shape)
 
 
+def is_optimizer_available() -> bool:
+    """
+    Optimizes the model using onnxoptimizer. If onnxoptimizer is not installed, the model is returned as is.
+    """
+
+    return onnxoptimizer is not None
+
+
 def safely_optimize_onnx_model(model_proto: onnx.ModelProto) -> onnx.ModelProto:
     """
     Optimizes the model using onnxoptimizer. If onnxoptimizer is not installed, the model is returned as is.
