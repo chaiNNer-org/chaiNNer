@@ -1,0 +1,43 @@
+name: Make
+
+on:
+  pull_request:
+    branches: ['*']
+    types:
+      - opened
+      - synchronize
+      - closed
+  push:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  release:
+    needs: [setup]
+    if: ${{ needs.setup.outputs.COMMITS }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Get current time
+        uses: josStorer/get-current-time@v2.0.1
+        id: current-time
+        with:
+          format: YYYY.MM.DD
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@master
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm ci --force
+      - name: Install necessary FlatPak tools
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt update && sudo apt install flatpak flatpak-builder elfutils
+      - name: Build nightly release
+        run: npm run make
