@@ -36,6 +36,9 @@ module.exports = {
                 resourceRegExp: /^fsevents$/,
             }),
     ].filter(Boolean),
+    externals: {
+        fsevents: "require('fsevents')",
+    },
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
