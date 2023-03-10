@@ -15,8 +15,6 @@ on:
 
 jobs:
   release:
-    needs: [setup]
-    if: ${{ needs.setup.outputs.COMMITS }}
     runs-on: ${{ matrix.os }}
 
     strategy:
