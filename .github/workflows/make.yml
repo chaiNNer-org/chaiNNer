@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  test-build-release:
     # Set this to `true` to enable the workflow.
     # This workflow is disabled by default because it takes multiple minutes in CI which slows down development.
     if: false
