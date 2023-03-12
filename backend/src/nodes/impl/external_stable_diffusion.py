@@ -88,9 +88,13 @@ def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
         response = requests.get(_stable_diffusion_url(path), timeout=timeout)
         if response.status_code != 200:
-            raise ExternalServiceHTTPError(f"webui GET request to {path} returned status code: {response.status_code}: {response.text}")
+            raise ExternalServiceHTTPError(
+                f"webui GET request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(f"webui GET request to {path} connection failed") from exc
+        raise ExternalServiceConnectionError(
+            f"webui GET request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
@@ -104,9 +108,13 @@ def post(path, json_data: Dict) -> Dict:
             timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
         )
         if response.status_code != 200:
-            raise ExternalServiceHTTPError(f"webui POST request to {path} returned status code: {response.status_code}: {response.text}")
+            raise ExternalServiceHTTPError(
+                f"webui POST request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(f"webui POST request to {path} connection failed") from exc
+        raise ExternalServiceConnectionError(
+            f"webui POST request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
