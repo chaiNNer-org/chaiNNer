@@ -1,4 +1,8 @@
-from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar
+from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union
+
+from base_types import InputId
+
+from .properties.inputs.base_input import BaseInput
 
 T = TypeVar("T")
 
@@ -30,3 +34,17 @@ class Group(Generic[T]):
             "options": self.info.options,
             "items": [i.toDict() if isinstance(i, Group) else i for i in self.items],
         }
+
+
+NestedGroup = Group[Union[BaseInput, "NestedGroup"]]
+NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
+
+
+# pylint: disable-next=redefined-builtin
+def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
+    info = GroupInfo(GroupId(id), kind, options)
+
+    def ret(*items: Union[BaseInput, NestedGroup]) -> NestedGroup:
+        return Group(info, list(items))
+
+    return ret

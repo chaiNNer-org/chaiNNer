@@ -150,6 +150,30 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
+export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
+export interface AndCondition {
+    readonly kind: 'and';
+    readonly items: readonly Condition[];
+}
+export interface OrCondition {
+    readonly kind: 'or';
+    readonly items: readonly Condition[];
+}
+export interface NotCondition {
+    readonly kind: 'not';
+    readonly condition: Condition;
+}
+export interface EnumCondition {
+    readonly kind: 'enum';
+    readonly enum: InputId;
+    readonly values: readonly InputSchemaValue[] | InputSchemaValue;
+}
+export interface TypeCondition {
+    readonly kind: 'type';
+    readonly input: InputId;
+    readonly condition: ExpressionJson;
+}
+
 interface GroupBase {
     readonly id: GroupId;
     readonly kind: GroupKind;
@@ -172,18 +196,10 @@ interface OptionalListGroup extends GroupBase {
     readonly kind: 'optional-list';
     readonly options: Readonly<Record<string, never>>;
 }
-interface ConditionalEnumGroup extends GroupBase {
-    readonly kind: 'conditional-enum';
+interface ConditionalGroup extends GroupBase {
+    readonly kind: 'conditional';
     readonly options: {
-        readonly enum: InputId;
-        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
-    };
-}
-interface ConditionalTypeGroup extends GroupBase {
-    readonly kind: 'conditional-type';
-    readonly options: {
-        readonly input: InputId;
-        readonly condition: ExpressionJson;
+        readonly condition: Condition;
     };
 }
 interface SeedGroup extends GroupBase {
@@ -195,8 +211,7 @@ export type Group =
     | NcnnFileInputGroup
     | FromToDropdownsGroup
     | OptionalListGroup
-    | ConditionalEnumGroup
-    | ConditionalTypeGroup
+    | ConditionalGroup
     | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {

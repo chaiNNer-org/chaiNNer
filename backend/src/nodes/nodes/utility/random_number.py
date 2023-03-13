@@ -1,6 +1,7 @@
 from random import Random
 
-from ...node_base import NodeBase, group
+from ...group import group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NumberInput, SeedInput
 from ...properties.outputs import NumberOutput

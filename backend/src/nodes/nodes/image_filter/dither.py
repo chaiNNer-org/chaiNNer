@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...groups import if_enum_group
 from ...impl.dithering.color_distance import batch_nearest_uniform_color
 from ...impl.dithering.constants import (
     ERROR_PROPAGATION_MAP_LABELS,
@@ -50,21 +50,21 @@ class DitherNode(NodeBase):
                 option_labels=UNIFORM_DITHER_ALGORITHM_LABELS,
                 default_value=UniformDitherAlgorithm.DIFFUSION,
             ).with_id(2),
-            conditional_group(2, UniformDitherAlgorithm.ORDERED.value)(
+            if_enum_group(2, UniformDitherAlgorithm.ORDERED)(
                 EnumInput(
                     ThresholdMap,
                     option_labels=THRESHOLD_MAP_LABELS,
                     default_value=ThresholdMap.BAYER_16,
                 ).with_id(3),
             ),
-            conditional_group(2, UniformDitherAlgorithm.DIFFUSION.value)(
+            if_enum_group(2, UniformDitherAlgorithm.DIFFUSION)(
                 EnumInput(
                     ErrorDiffusionMap,
                     option_labels=ERROR_PROPAGATION_MAP_LABELS,
                     default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
                 ).with_id(4),
             ),
-            conditional_group(2, UniformDitherAlgorithm.RIEMERSMA.value)(
+            if_enum_group(2, UniformDitherAlgorithm.RIEMERSMA)(
                 NumberInput(
                     "History Length",
                     minimum=2,

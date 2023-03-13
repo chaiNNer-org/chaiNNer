@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Union
 
-from ...node_base import NodeBase, group
+from ...group import group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput

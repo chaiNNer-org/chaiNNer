@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...groups import if_enum_group
 from ...impl.dithering.color_distance import batch_nearest_palette_color
 from ...impl.dithering.constants import ERROR_PROPAGATION_MAP_LABELS, ErrorDiffusionMap
 from ...impl.dithering.diffusion import palette_error_diffusion_dither
@@ -45,14 +45,14 @@ class PaletteDitherNode(NodeBase):
                 option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
                 default_value=PaletteDitherAlgorithm.DIFFUSION,
             ).with_id(2),
-            conditional_group(2, PaletteDitherAlgorithm.DIFFUSION.value)(
+            if_enum_group(2, PaletteDitherAlgorithm.DIFFUSION)(
                 EnumInput(
                     ErrorDiffusionMap,
                     option_labels=ERROR_PROPAGATION_MAP_LABELS,
                     default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
                 ).with_id(3),
             ),
-            conditional_group(2, PaletteDitherAlgorithm.RIEMERSMA.value)(
+            if_enum_group(2, PaletteDitherAlgorithm.RIEMERSMA)(
                 NumberInput(
                     "History Length",
                     minimum=2,

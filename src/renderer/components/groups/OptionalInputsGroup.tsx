@@ -1,10 +1,10 @@
 import { Box, Button, Center, Icon } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { IoAddOutline } from 'react-icons/io5';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { getUniqueKey } from '../../../common/group-inputs';
-import { findLastIndex } from '../../../common/util';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { findLastIndex, getInputValue } from '../../../common/util';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
@@ -18,7 +18,6 @@ export const OptionalInputsGroup = memo(
         schemaId,
         ItemRenderer,
     }: GroupProps<'optional-list'>) => {
-        const { getNodeInputValue } = useContext(GlobalContext);
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
             (c) => c.isNodeInputLocked
@@ -29,12 +28,12 @@ export const OptionalInputsGroup = memo(
             return (
                 findLastIndex(inputs, (item) => {
                     return someInput(item, (input) => {
-                        const value = getNodeInputValue(input.id, inputData);
+                        const value = getInputValue(input.id, inputData);
                         return value !== undefined || isNodeInputLocked(nodeId, input.id);
                     });
                 }) + 1
             );
-        }, [inputs, inputData, nodeId, getNodeInputValue, isNodeInputLocked]);
+        }, [inputs, inputData, nodeId, isNodeInputLocked]);
 
         // number of inputs the user set to be uncovered
         const [userUncovered, setUserUncovered] = useState(0);

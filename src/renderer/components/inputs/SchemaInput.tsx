@@ -10,6 +10,7 @@ import {
     InputValue,
     SchemaId,
 } from '../../../common/common-types';
+import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from './DirectoryInput';
@@ -65,11 +66,7 @@ export const SchemaInput = memo(
     }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle } = input;
 
-        const {
-            getNodeInputValue,
-            setNodeInputValue,
-            useInputSize: useInputSizeContext,
-        } = useContext(GlobalContext);
+        const { setNodeInputValue, useInputSize: useInputSizeContext } = useContext(GlobalContext);
 
         const functionDefinition = useContextSelector(BackendContext, (c) =>
             c.functionDefinitions.get(schemaId)
@@ -78,7 +75,7 @@ export const SchemaInput = memo(
         const connectableType =
             functionDefinition?.inputConvertibleDefaults.get(inputId) ?? NeverType.instance;
 
-        const value = getNodeInputValue(inputId, inputData);
+        const value = getInputValue(inputId, inputData);
         const setValue = useCallback(
             (data: NonNullable<InputValue>) => {
                 setNodeInputValue(nodeId, inputId, data);

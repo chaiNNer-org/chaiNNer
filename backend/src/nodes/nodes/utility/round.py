@@ -6,7 +6,7 @@ from typing import Union
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...groups import if_enum_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput
@@ -50,7 +50,7 @@ class RoundNode(NodeBase):
                 "To the nearest",
                 option_labels={k: k.value for k in RoundScale},
             ),
-            conditional_group(enum=2, condition=RoundScale.MULTIPLE.value)(
+            if_enum_group(2, RoundScale.MULTIPLE)(
                 NumberInput(
                     "Multiple",
                     default=1,
@@ -60,7 +60,7 @@ class RoundNode(NodeBase):
                     controls_step=1,
                 )
             ),
-            conditional_group(enum=2, condition=RoundScale.POWER.value)(
+            if_enum_group(2, RoundScale.POWER)(
                 NumberInput(
                     "Power",
                     default=2,
