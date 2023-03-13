@@ -167,7 +167,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
         if (files.length === 0) return EMPTY_ARRAY;
         return files;
-    }, [startingNode, data.inputData, getInputValue, schema]);
+    }, [startingNode, data.inputData, schema]);
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
