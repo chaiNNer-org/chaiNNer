@@ -129,6 +129,12 @@ class Condition:
             }
         )
 
+    @staticmethod
+    def const(value: bool) -> Condition:
+        if value:
+            return Condition({"kind": "and", "items": []})
+        return Condition({"kind": "or", "items": []})
+
 
 def if_group(condition: Condition):
     return group("conditional", {"condition": condition.to_json()})
@@ -136,3 +142,30 @@ def if_group(condition: Condition):
 
 def if_enum_group(enum: int, condition: EnumValues):
     return if_group(Condition.enum(enum, condition))
+
+
+def required(condition: Condition | None = None):
+    """
+    Given generic inputs (meaning of kind "generic") that are optional, this group marks them as
+    being required under the given condition. If no condition is given, `True` will be used.
+
+    In addition to the given condition, if the require group is nested within conditional group
+    (`if_group` and derivatives), then the conditions of all ancestor conditional groups must also
+    be met.
+
+    Example:
+    ```py
+    if_group(someCondition)(
+        required()(
+            GenericInput("Foo").make_optional(),
+        )
+    )
+    ```
+
+    In this example, the input "Foo" is required if and only if the input is visible (by virtue of
+    the parent conditional group).
+    """
+
+    if condition is None:
+        condition = Condition.const(True)
+    return group("conditional", {"condition": condition.to_json()})

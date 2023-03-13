@@ -202,6 +202,12 @@ interface ConditionalGroup extends GroupBase {
         readonly condition: Condition;
     };
 }
+interface RequiredGroup extends GroupBase {
+    readonly kind: 'required';
+    readonly options: {
+        readonly condition: Condition;
+    };
+}
 interface SeedGroup extends GroupBase {
     readonly kind: 'seed';
     readonly options: Readonly<Record<string, never>>;
@@ -212,6 +218,7 @@ export type Group =
     | FromToDropdownsGroup
     | OptionalListGroup
     | ConditionalGroup
+    | RequiredGroup
     | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
