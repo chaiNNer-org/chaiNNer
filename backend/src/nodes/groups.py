@@ -153,6 +153,9 @@ def required(condition: Condition | None = None):
     (`if_group` and derivatives), then the conditions of all ancestor conditional groups must also
     be met.
 
+    Note that this group only guarantees **best effort**. It cannot guarantee that the optional
+    input is going to have a value if the condition is met. You must always check `None`.
+
     Example:
     ```py
     if_group(someCondition)(
