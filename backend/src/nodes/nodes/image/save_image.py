@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from ...groups import Cond, if_group
+from ...groups import Cond, if_enum_group, if_group
 from ...impl.dds.format import (
     BC7_FORMATS,
     BC123_FORMATS,
@@ -71,7 +71,7 @@ class ImWriteNode(NodeBase):
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown().with_id(4),
-            if_group(Cond.enum(4, ["jpg", "webp"]))(
+            if_enum_group(4, ["jpg", "webp"])(
                 SliderInput(
                     "Quality",
                     minimum=0,
@@ -80,7 +80,7 @@ class ImWriteNode(NodeBase):
                     slider_step=1,
                 ),
             ),
-            if_group(Cond.enum(4, "jpg"))(
+            if_enum_group(4, "jpg")(
                 EnumInput(
                     JpegSubsampling,
                     label="Chroma Subsampling",
@@ -94,16 +94,16 @@ class ImWriteNode(NodeBase):
                 ).with_id(11),
                 BoolInput("Progressive", default=False).with_id(12),
             ),
-            if_group(Cond.enum(4, "dds"))(
+            if_enum_group(4, "dds")(
                 DdsFormatDropdown().with_id(6),
-                if_group(Cond.enum(6, SUPPORTED_BC7_FORMATS))(
+                if_enum_group(6, SUPPORTED_BC7_FORMATS)(
                     EnumInput(
                         BC7Compression,
                         label="BC7 Compression",
                         default_value=BC7Compression.DEFAULT,
                     ).with_id(7),
                 ),
-                if_group(Cond.enum(6, SUPPORTED_BC123_FORMATS))(
+                if_enum_group(6, SUPPORTED_BC123_FORMATS)(
                     EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
                     BoolInput("Dithering", default=False).with_id(8),
                 ),

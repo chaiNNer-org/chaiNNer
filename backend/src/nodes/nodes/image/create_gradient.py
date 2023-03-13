@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from ...groups import Cond, if_group
+from ...groups import if_enum_group
 from ...impl.gradients import (
     conic_gradient,
     diagonal_gradient,
@@ -38,7 +38,7 @@ class CreateGradientNode(NodeBase):
             NumberInput("Height", minimum=1, unit="px", default=64),
             BoolInput("Reverse", default=False),
             EnumInput(GradientStyle, default_value=GradientStyle.HORIZONTAL).with_id(3),
-            if_group(Cond.enum(3, GradientStyle.DIAGONAL))(
+            if_enum_group(3, GradientStyle.DIAGONAL)(
                 SliderInput(
                     "Angle",
                     minimum=0,
@@ -53,7 +53,7 @@ class CreateGradientNode(NodeBase):
                     unit="px",
                 ),
             ),
-            if_group(Cond.enum(3, GradientStyle.RADIAL))(
+            if_enum_group(3, GradientStyle.RADIAL)(
                 SliderInput(
                     "Inner Radius",
                     minimum=0,
@@ -69,7 +69,7 @@ class CreateGradientNode(NodeBase):
                     unit="%",
                 ),
             ),
-            if_group(Cond.enum(3, GradientStyle.CONIC))(
+            if_enum_group(3, GradientStyle.CONIC)(
                 SliderInput(
                     "Rotation",
                     minimum=0,

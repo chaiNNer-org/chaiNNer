@@ -128,3 +128,7 @@ class Cond:
 
 def if_group(condition: Cond):
     return group("conditional", {"condition": condition.to_json()})
+
+
+def if_enum_group(enum: int, condition: EnumValues):
+    return if_group(Cond.enum(enum, condition))

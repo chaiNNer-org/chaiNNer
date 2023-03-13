@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from ...group import group
-from ...groups import Cond, if_group
+from ...groups import if_enum_group
 from ...impl.color.convert import (
     color_space_from_id,
     color_space_or_detector_from_id,
@@ -41,7 +41,7 @@ class ColorConvertNode(NodeBase):
                 ColorSpaceDetectorInput(label="From").with_id(1),
                 ColorSpaceInput(label="To").with_id(2),
             ),
-            if_group(Cond.enum(2, COLOR_SPACES_WITH_ALPHA_PARTNER))(
+            if_enum_group(2, COLOR_SPACES_WITH_ALPHA_PARTNER)(
                 BoolInput("Output Alpha", default=False),
             ),
         ]
