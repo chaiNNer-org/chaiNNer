@@ -1,8 +1,9 @@
 import { memo, useMemo } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { InputItem, getUniqueKey } from '../../../common/group-inputs';
+import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
@@ -18,7 +19,6 @@ export const ConditionalEnumGroup = memo(
         ItemRenderer,
     }: GroupProps<'conditional-enum'>) => {
         const { schemata } = useContext(BackendContext);
-        const { getNodeInputValue } = useContext(GlobalContext);
 
         const enumInput = useMemo(() => {
             const schema = schemata.get(schemaId);
@@ -27,7 +27,7 @@ export const ConditionalEnumGroup = memo(
             return input;
         }, [schemata, schemaId, group.options.enum]);
 
-        const enumValue = getNodeInputValue(enumInput.id, inputData) ?? enumInput.def;
+        const enumValue = getInputValue(enumInput.id, inputData) ?? enumInput.def;
 
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,

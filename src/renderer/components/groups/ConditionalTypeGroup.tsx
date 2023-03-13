@@ -1,10 +1,11 @@
 import { NeverType, evaluate, isDisjointWith } from '@chainner/navi';
 import { memo, useMemo } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { InputItem, getUniqueKey } from '../../../common/group-inputs';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { fromJson } from '../../../common/types/json';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getInputValue } from '../../../common/util';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
@@ -19,7 +20,6 @@ export const ConditionalTypeGroup = memo(
         group,
         ItemRenderer,
     }: GroupProps<'conditional-type'>) => {
-        const { getNodeInputValue } = useContext(GlobalContext);
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
             (c) => c.isNodeInputLocked
@@ -28,7 +28,7 @@ export const ConditionalTypeGroup = memo(
         const fn = typeState.functions.get(nodeId);
 
         const inputType = fn?.inputs.get(group.options.input) ?? NeverType.instance;
-        const inputHasDataValue = getNodeInputValue(group.options.input, inputData) !== undefined;
+        const inputHasDataValue = getInputValue(group.options.input, inputData) !== undefined;
 
         const conditionType = useMemo(() => {
             return evaluate(fromJson(group.options.condition), getChainnerScope());

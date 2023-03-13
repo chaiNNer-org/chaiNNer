@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Tuple
 
+from ...group import group
 from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from ...impl.ncnn.optimizer import NcnnOptimizer
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import FileNameOutput, NcnnModelOutput

@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from ...groups import conditional_group
+from ...groups import Cond, if_group
 from ...impl.dds.format import (
     BC7_FORMATS,
     BC123_FORMATS,
@@ -71,7 +71,7 @@ class ImWriteNode(NodeBase):
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown().with_id(4),
-            conditional_group(enum=4, condition=["jpg", "webp"])(
+            if_group(Cond.enum(4, ["jpg", "webp"]))(
                 SliderInput(
                     "Quality",
                     minimum=0,
@@ -80,7 +80,7 @@ class ImWriteNode(NodeBase):
                     slider_step=1,
                 ),
             ),
-            conditional_group(enum=4, condition="jpg")(
+            if_group(Cond.enum(4, "jpg"))(
                 EnumInput(
                     JpegSubsampling,
                     label="Chroma Subsampling",
@@ -94,26 +94,22 @@ class ImWriteNode(NodeBase):
                 ).with_id(11),
                 BoolInput("Progressive", default=False).with_id(12),
             ),
-            conditional_group(enum=4, condition="dds")(
+            if_group(Cond.enum(4, "dds"))(
                 DdsFormatDropdown().with_id(6),
-                conditional_group(enum=6, condition=SUPPORTED_BC7_FORMATS)(
+                if_group(Cond.enum(6, SUPPORTED_BC7_FORMATS))(
                     EnumInput(
                         BC7Compression,
                         label="BC7 Compression",
                         default_value=BC7Compression.DEFAULT,
                     ).with_id(7),
                 ),
-                conditional_group(enum=6, condition=SUPPORTED_BC123_FORMATS)(
+                if_group(Cond.enum(6, SUPPORTED_BC123_FORMATS))(
                     EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
                     BoolInput("Dithering", default=False).with_id(8),
                 ),
                 DdsMipMapsDropdown().with_id(10),
-                conditional_group(enum=6, condition=SUPPORTED_WITH_ALPHA)(
-                    conditional_group(enum=10, condition=0)(
-                        BoolInput("Separate Alpha for Mip Maps", default=False).with_id(
-                            13
-                        ),
-                    )
+                if_group(Cond.enum(6, SUPPORTED_WITH_ALPHA) & Cond.enum(10, 0))(
+                    BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
                 ),
             ),
         ]

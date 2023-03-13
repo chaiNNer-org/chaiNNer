@@ -5,7 +5,12 @@ import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
-import { EMPTY_ARRAY, isStartingNode, parseSourceHandle } from '../../../common/util';
+import {
+    EMPTY_ARRAY,
+    getInputValue,
+    isStartingNode,
+    parseSourceHandle,
+} from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -52,8 +57,7 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode, setNodeInputValue, getNodeInputValue } =
-        useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata, categories } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
@@ -154,7 +158,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         const files: string[] = [];
         for (const input of schema.inputs) {
             if (input.kind === 'file') {
-                const value = getNodeInputValue<string>(input.id, data.inputData);
+                const value = getInputValue<string>(input.id, data.inputData);
                 if (value) {
                     files.push(value);
                 }
@@ -163,7 +167,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
         if (files.length === 0) return EMPTY_ARRAY;
         return files;
-    }, [startingNode, data.inputData, getNodeInputValue, schema]);
+    }, [startingNode, data.inputData, getInputValue, schema]);
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);

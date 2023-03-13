@@ -4,7 +4,8 @@ import hashlib
 import struct
 from typing import Union
 
-from ...node_base import NodeBase, group
+from ...group import group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import BaseInput, SeedInput
 from ...properties.outputs import SeedOutput

@@ -150,6 +150,30 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
+export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
+export interface AndCondition {
+    readonly kind: 'and';
+    readonly items: readonly Condition[];
+}
+export interface OrCondition {
+    readonly kind: 'or';
+    readonly items: readonly Condition[];
+}
+export interface NotCondition {
+    readonly kind: 'not';
+    readonly condition: Condition;
+}
+export interface EnumCondition {
+    readonly kind: 'enum';
+    readonly enum: InputId;
+    readonly values: readonly InputSchemaValue[] | InputSchemaValue;
+}
+export interface TypeCondition {
+    readonly kind: 'type';
+    readonly input: InputId;
+    readonly condition: ExpressionJson;
+}
+
 interface GroupBase {
     readonly id: GroupId;
     readonly kind: GroupKind;
@@ -186,6 +210,12 @@ interface ConditionalTypeGroup extends GroupBase {
         readonly condition: ExpressionJson;
     };
 }
+interface ConditionalGroup extends GroupBase {
+    readonly kind: 'conditional';
+    readonly options: {
+        readonly condition: Condition;
+    };
+}
 interface SeedGroup extends GroupBase {
     readonly kind: 'seed';
     readonly options: Readonly<Record<string, never>>;
@@ -197,6 +227,7 @@ export type Group =
     | OptionalListGroup
     | ConditionalEnumGroup
     | ConditionalTypeGroup
+    | ConditionalGroup
     | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {

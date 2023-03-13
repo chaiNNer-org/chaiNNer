@@ -6,7 +6,8 @@ from typing import Optional
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...group import group
+from ...groups import Cond, if_group
 from ...impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
@@ -20,7 +21,7 @@ from ...impl.external_stable_diffusion import (
     post,
     verify_api_connection,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -119,10 +120,10 @@ class Img2ImgOutpainting(NodeBase):
             EnumInput(
                 OutpaintingMethod, default_value=OutpaintingMethod.POOR_MAN_OUTPAINTING
             ).with_id(17),
-            conditional_group(17, OutpaintingMethod.POOR_MAN_OUTPAINTING.value)(
+            if_group(Cond.enum(17, OutpaintingMethod.POOR_MAN_OUTPAINTING))(
                 EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
             ),
-            conditional_group(17, OutpaintingMethod.OUTPAINTING_MK2.value)(
+            if_group(Cond.enum(17, OutpaintingMethod.OUTPAINTING_MK2))(
                 SliderInput(
                     "Fall-off Exponent (lower=higher detail)",
                     minimum=0,

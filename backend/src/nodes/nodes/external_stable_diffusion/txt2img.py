@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 
+from ...group import group
 from ...impl.external_stable_diffusion import (
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_TEXT2IMG_PATH,
@@ -13,7 +14,7 @@ from ...impl.external_stable_diffusion import (
     post,
     verify_api_connection,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (

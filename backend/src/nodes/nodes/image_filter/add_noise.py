@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+from ...group import group
 from ...impl.noise import (
     NoiseColor,
     gaussian_noise,
@@ -12,7 +13,7 @@ from ...impl.noise import (
     speckle_noise,
     uniform_noise,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, ImageInput, SeedInput, SliderInput
 from ...properties.outputs import ImageOutput

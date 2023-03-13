@@ -5,7 +5,8 @@ from typing import Optional
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...group import group
+from ...groups import Cond, if_group
 from ...impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
@@ -19,7 +20,7 @@ from ...impl.external_stable_diffusion import (
     post,
     verify_api_connection,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -111,7 +112,7 @@ class Img2Img(NodeBase):
             ),
             EnumInput(InpaintingFill, default_value=InpaintingFill.ORIGINAL),
             EnumInput(InpaintArea, default_value=InpaintArea.WHOLE_PICTURE),
-            conditional_group(enum=15, condition=InpaintArea.ONLY_MASKED.value)(
+            if_group(Cond.enum(15, InpaintArea.ONLY_MASKED))(
                 SliderInput(
                     "Only masked padding",
                     minimum=0,

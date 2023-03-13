@@ -4,11 +4,12 @@ from enum import Enum
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...group import group
+from ...groups import Cond, if_group
 from ...impl.image_utils import cartesian_product
 from ...impl.noise_functions.simplex import SimplexNoise
 from ...impl.noise_functions.value import ValueNoise
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import (
@@ -59,7 +60,7 @@ class CreateNoiseNode(NodeBase):
                 default_value=FractalMethod.NONE,
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
-            conditional_group(enum=6, condition=FractalMethod.PINK.value)(
+            if_group(Cond.enum(6, FractalMethod.PINK))(
                 NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
                 NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
                     8
