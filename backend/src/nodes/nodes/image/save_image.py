@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from ...groups import Cond, if_enum_group, if_group
+from ...groups import Condition, if_enum_group, if_group
 from ...impl.dds.format import (
     BC7_FORMATS,
     BC123_FORMATS,
@@ -108,7 +108,9 @@ class ImWriteNode(NodeBase):
                     BoolInput("Dithering", default=False).with_id(8),
                 ),
                 DdsMipMapsDropdown().with_id(10),
-                if_group(Cond.enum(6, SUPPORTED_WITH_ALPHA) & Cond.enum(10, 0))(
+                if_group(
+                    Condition.enum(6, SUPPORTED_WITH_ALPHA) & Condition.enum(10, 0)
+                )(
                     BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
                 ),
             ),

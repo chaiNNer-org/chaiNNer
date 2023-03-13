@@ -20,56 +20,60 @@ RawEnumValues = Union[
     InputValue, List[str], List[int], Tuple[str, ...], Tuple[int, ...]
 ]
 
-_Condition = Union[
-    "_AndCondition", "_OrCondition", "_NotCondition", "_EnumCondition", "_TypeCondition"
+_ConditionJson = Union[
+    "_AndConditionJson",
+    "_OrConditionJson",
+    "_NotConditionJson",
+    "_EnumConditionJson",
+    "_TypeConditionJson",
 ]
 
 
-class _AndCondition(TypedDict):
+class _AndConditionJson(TypedDict):
     kind: Literal["and"]
-    items: List[_Condition]
+    items: List[_ConditionJson]
 
 
-class _OrCondition(TypedDict):
+class _OrConditionJson(TypedDict):
     kind: Literal["or"]
-    items: List[_Condition]
+    items: List[_ConditionJson]
 
 
-class _NotCondition(TypedDict):
+class _NotConditionJson(TypedDict):
     kind: Literal["not"]
-    condition: _Condition
+    condition: _ConditionJson
 
 
-class _EnumCondition(TypedDict):
+class _EnumConditionJson(TypedDict):
     kind: Literal["enum"]
     enum: InputId
     values: List[str | int]
 
 
-class _TypeCondition(TypedDict):
+class _TypeConditionJson(TypedDict):
     kind: Literal["type"]
     input: InputId
     condition: ExpressionJson
 
 
-class Cond:
-    def __init__(self, value: _Condition) -> None:
-        self._value: _Condition = value
+class Condition:
+    def __init__(self, value: _ConditionJson) -> None:
+        self._value: _ConditionJson = value
 
     def to_json(self):
         return self._value
 
-    def __and__(self, other: Cond) -> Cond:
-        return Cond({"kind": "and", "items": [self._value, other._value]})
+    def __and__(self, other: Condition) -> Condition:
+        return Condition({"kind": "and", "items": [self._value, other._value]})
 
-    def __or__(self, other: Cond) -> Cond:
-        return Cond({"kind": "or", "items": [self._value, other._value]})
+    def __or__(self, other: Condition) -> Condition:
+        return Condition({"kind": "or", "items": [self._value, other._value]})
 
-    def __invert__(self) -> Cond:
-        return Cond({"kind": "not", "condition": self._value})
+    def __invert__(self) -> Condition:
+        return Condition({"kind": "not", "condition": self._value})
 
     @staticmethod
-    def enum(enum: int, values: EnumValues) -> Cond:
+    def enum(enum: int, values: EnumValues) -> Condition:
         """
         A condition to check whether a certain dropdown/enum input has a certain value.
         """
@@ -90,7 +94,7 @@ class Cond:
             for value in values:
                 convert(value)
 
-        return Cond(
+        return Condition(
             {
                 "kind": "enum",
                 "enum": InputId(enum),
@@ -99,11 +103,11 @@ class Cond:
         )
 
     @staticmethod
-    def bool(input_id: int, value: bool) -> Cond:
+    def bool(input_id: int, value: bool) -> Condition:
         """
         A condition to check whether a certain bool input has a certain value.
         """
-        return Cond(
+        return Condition(
             {
                 "kind": "enum",
                 "enum": InputId(input_id),
@@ -112,12 +116,12 @@ class Cond:
         )
 
     @staticmethod
-    def type(input_id: int, condition: ExpressionJson) -> Cond:
+    def type(input_id: int, condition: ExpressionJson) -> Condition:
         """
         A condition to check whether a certain input is compatible a certain type.
         Here "compatible" is defined as overlapping.
         """
-        return Cond(
+        return Condition(
             {
                 "kind": "type",
                 "input": InputId(input_id),
@@ -126,9 +130,9 @@ class Cond:
         )
 
 
-def if_group(condition: Cond):
+def if_group(condition: Condition):
     return group("conditional", {"condition": condition.to_json()})
 
 
 def if_enum_group(enum: int, condition: EnumValues):
-    return if_group(Cond.enum(enum, condition))
+    return if_group(Condition.enum(enum, condition))
