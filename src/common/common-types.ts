@@ -196,20 +196,6 @@ interface OptionalListGroup extends GroupBase {
     readonly kind: 'optional-list';
     readonly options: Readonly<Record<string, never>>;
 }
-interface ConditionalEnumGroup extends GroupBase {
-    readonly kind: 'conditional-enum';
-    readonly options: {
-        readonly enum: InputId;
-        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
-    };
-}
-interface ConditionalTypeGroup extends GroupBase {
-    readonly kind: 'conditional-type';
-    readonly options: {
-        readonly input: InputId;
-        readonly condition: ExpressionJson;
-    };
-}
 interface ConditionalGroup extends GroupBase {
     readonly kind: 'conditional';
     readonly options: {
@@ -225,8 +211,6 @@ export type Group =
     | NcnnFileInputGroup
     | FromToDropdownsGroup
     | OptionalListGroup
-    | ConditionalEnumGroup
-    | ConditionalTypeGroup
     | ConditionalGroup
     | SeedGroup;
 

@@ -28,8 +28,6 @@ type InputGuarantees<T extends Record<GroupKind, readonly InputItem[]>> = T;
 
 type DeclaredGroupInputs = InputGuarantees<{
     conditional: readonly InputItem[];
-    'conditional-enum': readonly InputItem[];
-    'conditional-type': readonly InputItem[];
     'from-to-dropdowns': readonly [DropDownInput, DropDownInput];
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
@@ -109,40 +107,6 @@ const groupInputsChecks: {
                 default:
                     return assertNever(c);
             }
-        }
-    },
-    'conditional-enum': (inputs, { options: { enum: enumId, conditions } }, schema) => {
-        if (inputs.length === 0) return 'Expected at least 1 item';
-
-        const dropdown = schema.inputs.find((i) => i.id === enumId);
-        if (!dropdown) return `There is no input with the id ${enumId}`;
-        if (dropdown.kind !== 'dropdown') return 'The first item must be a dropdown';
-        if (dropdown.hasHandle) return 'The first dropdown must not have a handle';
-        const allowed = new Set(dropdown.options.map((o) => o.value));
-
-        if (conditions.length !== inputs.length)
-            return `The number of conditions (${conditions.length}) must match the number of items (${inputs.length}).`;
-
-        for (const cond of conditions) {
-            const condition = typeof cond === 'object' ? cond : [cond];
-            if (condition.length === 0) return 'All items must have at least one condition value';
-            const invalidValue = condition.find((c) => !allowed.has(c));
-            if (invalidValue !== undefined)
-                return `Invalid condition value ${JSON.stringify(invalidValue)}`;
-        }
-    },
-    'conditional-type': (inputs, { options: { input: inputId, condition } }, schema) => {
-        if (inputs.length === 0) return 'Expected at least 1 item';
-
-        const input = schema.inputs.find((i) => i.id === inputId);
-        if (input === undefined) return `Invalid input: There is no input with the id ${inputId}`;
-
-        try {
-            const cond = evaluate(fromJson(condition), getChainnerScope());
-            if (cond.type === 'never')
-                return `Invalid condition: A condition type 'never' will result in the conditional inputs never being shown`;
-        } catch (e) {
-            return String(e);
         }
     },
     'from-to-dropdowns': (inputs) => {

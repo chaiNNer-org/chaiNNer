@@ -5,9 +5,8 @@ from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
 from base_types import InputId
 
-from .group import Group, GroupId, GroupInfo, NestedGroup, group
+from .group import group
 from .properties.expression import ExpressionJson
-from .properties.inputs.base_input import BaseInput
 
 InputValue = Union[int, str]
 EnumValues = Union[
@@ -129,28 +128,3 @@ class Cond:
 
 def if_group(condition: Cond):
     return group("conditional", {"condition": condition.to_json()})
-
-
-def conditional_group(enum: int, condition: RawEnumValues):
-    def ret(*items: BaseInput | NestedGroup) -> NestedGroup:
-        info = GroupInfo(
-            GroupId(-1),
-            "conditional-enum",
-            {"enum": enum, "conditions": (condition,) * len(items)},
-        )
-        return Group(info, list(items))
-
-    return ret
-
-
-def type_conditional_group(
-    input_id: int,
-    condition: ExpressionJson,
-):
-    return group(
-        "conditional-type",
-        {
-            "input": input_id,
-            "condition": condition,
-        },
-    )
