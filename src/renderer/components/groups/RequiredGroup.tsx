@@ -1,12 +1,14 @@
 import { memo, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
-import { InputItem, getUniqueKey } from '../../../common/group-inputs';
+import { GenericInput } from '../../../common/common-types';
+import { getUniqueKey } from '../../../common/group-inputs';
 import { testInputConditionTypeState } from '../../../common/nodes/condition';
+import { getRequireCondition } from '../../../common/nodes/required';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
-import { someInput } from './util';
 
-export const ConditionalGroup = memo(
+export const RequiredGroup = memo(
     ({
         inputs,
         inputData,
@@ -16,30 +18,24 @@ export const ConditionalGroup = memo(
         schemaId,
         group,
         ItemRenderer,
-    }: GroupProps<'conditional'>) => {
-        const { condition } = group.options;
-
-        const isNodeInputLocked = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.isNodeInputLocked
-        );
+    }: GroupProps<'required'>) => {
+        const schema = useContextSelector(BackendContext, (c) => c.schemata.get(schemaId));
         const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
-        const isEnabled = useMemo(
+        const condition = getRequireCondition(schema, group);
+
+        const isRequired = useMemo(
             () => testInputConditionTypeState(condition, inputData, nodeId, typeState),
             [condition, nodeId, inputData, typeState]
         );
 
-        const showInput = (input: InputItem): boolean => {
-            if (isEnabled) return true;
-
-            // input or some input of the group is connected to another node
-            return someInput(input, ({ id }) => isNodeInputLocked(nodeId, id));
-        };
+        const requiredInputs: GenericInput[] = useMemo(() => {
+            return inputs.map((i) => ({ ...i, optional: false }));
+        }, [inputs]);
 
         return (
             <>
-                {inputs.filter(showInput).map((item) => (
+                {(isRequired ? requiredInputs : inputs).map((item) => (
                     <ItemRenderer
                         inputData={inputData}
                         inputSize={inputSize}

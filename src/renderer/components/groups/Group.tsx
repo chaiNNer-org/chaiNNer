@@ -6,12 +6,14 @@ import { FromToDropdownsGroup } from './FromToDropdownsGroup';
 import { NcnnFileInputsGroup } from './NcnnFileInputsGroup';
 import { OptionalInputsGroup } from './OptionalInputsGroup';
 import { GroupProps, InputItemRenderer } from './props';
+import { RequiredGroup } from './RequiredGroup';
 import { SeedGroup } from './SeedGroup';
 
 const GroupComponents: {
     readonly [K in GroupKind]: React.MemoExoticComponent<(props: GroupProps<K>) => JSX.Element>;
 } = {
     conditional: ConditionalGroup,
+    required: RequiredGroup,
     'from-to-dropdowns': FromToDropdownsGroup,
     'ncnn-file-inputs': NcnnFileInputsGroup,
     'optional-list': OptionalInputsGroup,
