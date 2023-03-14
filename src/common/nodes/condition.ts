@@ -3,6 +3,7 @@ import { Condition, InputData, InputId, OfKind } from '../common-types';
 import { getChainnerScope } from '../types/chainner-scope';
 import { ExpressionJson, fromJson } from '../types/json';
 import { getInputValue } from '../util';
+import { TypeState } from './TypeState';
 
 type Primitives = {
     [K in Exclude<Condition['kind'], 'and' | 'or' | 'not'>]: (
@@ -68,4 +69,18 @@ export const testInputCondition = (
             return true;
         },
     });
+};
+
+export const testInputConditionTypeState = (
+    condition: Condition,
+    inputData: InputData,
+    nodeId: string,
+    typeState: TypeState
+): boolean => {
+    return testInputCondition(
+        condition,
+        inputData,
+        (id) => typeState.functions.get(nodeId)?.inputs.get(id),
+        (id) => typeState.isInputConnected(nodeId, id)
+    );
 };

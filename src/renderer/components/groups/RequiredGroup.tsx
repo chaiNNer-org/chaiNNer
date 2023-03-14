@@ -2,8 +2,8 @@ import { memo, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { GenericInput } from '../../../common/common-types';
 import { getUniqueKey } from '../../../common/group-inputs';
-import { testInputCondition } from '../../../common/nodes/condition';
-import { getFullRequireCondition } from '../../../common/nodes/required';
+import { testInputConditionTypeState } from '../../../common/nodes/condition';
+import { getRequireCondition } from '../../../common/nodes/required';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
@@ -22,16 +22,12 @@ export const RequiredGroup = memo(
         const schema = useContextSelector(BackendContext, (c) => c.schemata.get(schemaId));
         const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
-        const condition = useMemo(() => getFullRequireCondition(schema, group), [schema, group]);
+        const condition = getRequireCondition(schema, group);
 
-        const isRequired = useMemo(() => {
-            return testInputCondition(
-                condition,
-                inputData,
-                (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-                (id) => typeState.isInputConnected(nodeId, id)
-            );
-        }, [condition, nodeId, inputData, typeState]);
+        const isRequired = useMemo(
+            () => testInputConditionTypeState(condition, inputData, nodeId, typeState),
+            [condition, nodeId, inputData, typeState]
+        );
 
         const requiredInputs: GenericInput[] = useMemo(() => {
             return inputs.map((i) => ({ ...i, optional: false }));

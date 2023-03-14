@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { InputItem, getUniqueKey } from '../../../common/group-inputs';
-import { testInputCondition } from '../../../common/nodes/condition';
+import { testInputConditionTypeState } from '../../../common/nodes/condition';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
@@ -17,20 +17,18 @@ export const ConditionalGroup = memo(
         group,
         ItemRenderer,
     }: GroupProps<'conditional'>) => {
+        const { condition } = group.options;
+
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
             (c) => c.isNodeInputLocked
         );
         const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
-        const isEnabled = useMemo(() => {
-            return testInputCondition(
-                group.options.condition,
-                inputData,
-                (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-                (id) => typeState.isInputConnected(nodeId, id)
-            );
-        }, [group.options.condition, nodeId, inputData, typeState]);
+        const isEnabled = useMemo(
+            () => testInputConditionTypeState(condition, inputData, nodeId, typeState),
+            [condition, nodeId, inputData, typeState]
+        );
 
         const showInput = (input: InputItem): boolean => {
             if (isEnabled) return true;

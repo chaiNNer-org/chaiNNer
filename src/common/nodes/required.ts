@@ -1,33 +1,55 @@
-import { Condition, Group, InputId, NodeSchema, OfKind } from '../common-types';
+import { Condition, Group, GroupId, InputId, NodeSchema, OfKind } from '../common-types';
+import { lazyKeyed } from '../util';
 
-const getRequiredConditionStack = (
-    inputs: readonly (InputId | Group)[],
-    target: OfKind<Group, 'required'>
-): Condition[] | undefined => {
-    for (const i of inputs) {
-        if (typeof i === 'object') {
-            if (i === target) {
-                return [target.options.condition];
-            }
-            if (i.kind === 'conditional') {
-                const inner = getRequiredConditionStack(i.items, target);
-                if (inner) {
-                    inner.push(i.options.condition);
-                    return inner;
+const analyseInputs = lazyKeyed(
+    (
+        schema: NodeSchema
+    ): readonly [ReadonlyMap<InputId, Condition>, ReadonlyMap<GroupId, Condition>] => {
+        const byInput = new Map<InputId, Condition>();
+        const byGroup = new Map<GroupId, Condition>();
+
+        const conditionStack: Condition[] = [];
+        const recurse = (inputs: readonly (InputId | Group)[]): void => {
+            for (const i of inputs) {
+                if (typeof i === 'object') {
+                    if (i.kind === 'required') {
+                        const condition: Condition = {
+                            kind: 'and',
+                            items: [...conditionStack, i.options.condition],
+                        };
+
+                        byGroup.set(i.id, condition);
+                        for (const j of i.items) {
+                            if (typeof j === 'number') {
+                                byInput.set(j, condition);
+                            }
+                        }
+                    } else if (i.kind === 'conditional') {
+                        conditionStack.push(i.options.condition);
+                        recurse(i.items);
+                        conditionStack.pop();
+                    }
                 }
             }
-        }
-    }
-    return undefined;
-};
+        };
 
-export const getFullRequireCondition = (
+        recurse(schema.groupLayout);
+
+        return [byInput, byGroup];
+    }
+);
+
+export const getRequireCondition = (
     schema: NodeSchema,
     group: OfKind<Group, 'required'>
 ): Condition => {
-    const result = getRequiredConditionStack(schema.groupLayout, group);
+    const result = analyseInputs(schema)[1].get(group.id);
     if (!result) {
         throw new Error('The given group was not part of the given schema');
     }
-    return { kind: 'and', items: result };
+    return result;
+};
+
+export const getRequireConditions = (schema: NodeSchema): ReadonlyMap<InputId, Condition> => {
+    return analyseInputs(schema)[0];
 };

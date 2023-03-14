@@ -171,4 +171,4 @@ def required(condition: Condition | None = None):
 
     if condition is None:
         condition = Condition.const(True)
-    return group("conditional", {"condition": condition.to_json()})
+    return group("required", {"condition": condition.to_json()})
