@@ -67,6 +67,7 @@ class ImageOutput(NumPyOutput):
 
     def validate(self, value) -> None:
         assert isinstance(value, np.ndarray)
+        assert value.dtype == np.float32
 
         _, _, c = get_h_w_c(value)
 
