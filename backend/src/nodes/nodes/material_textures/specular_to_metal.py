@@ -22,7 +22,7 @@ def get_size(img: np.ndarray) -> Tuple[int, int]:
 def spec_to_metal(
     diff: np.ndarray,
     spec: np.ndarray,
-    gloss: np.ndarray,
+    gloss: np.ndarray | None,
     metallic_min: float,
     metallic_max: float,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -58,7 +58,10 @@ def spec_to_metal(
     metal3_scaled = np.dstack((metal_scaled,) * 3)
     albedo = metal3_scaled * sped_scaled + (1 - metal3_scaled) * diff
 
-    roughness = 1 - gloss
+    if gloss is None:
+        roughness = np.zeros((1, 1), np.float32) + 0.5
+    else:
+        roughness = 1 - gloss
 
     return albedo, metal, roughness
 
@@ -73,7 +76,7 @@ class SpecularToMetal(NodeBase):
         self.inputs = [
             ImageInput("Diffuse", channels=[3, 4]),
             ImageInput("Specular", channels=3),
-            ImageInput("Gloss", channels=1),
+            ImageInput("Gloss", channels=1).make_optional(),
             SliderInput(
                 "Metallic Min",
                 minimum=0,
@@ -98,7 +101,16 @@ class SpecularToMetal(NodeBase):
                 image_type=expression.Image(size_as="Input1"),
                 channels=1,
             ),
-            ImageOutput("Roughness", image_type="Input2", channels=1),
+            ImageOutput(
+                "Roughness",
+                image_type="""
+                    match Input2 {
+                        Image as i => i,
+                        null => Image { width: 1, height: 1, channels: 1 }
+                    }
+                """,
+                channels=1,
+            ),
         ]
         self.category = category
         self.name = "Specular to Metal"
@@ -109,7 +121,7 @@ class SpecularToMetal(NodeBase):
         self,
         diff: np.ndarray,
         spec: np.ndarray,
-        gloss: np.ndarray,
+        gloss: np.ndarray | None,
         metallic_min: float,
         metallic_max: float,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
