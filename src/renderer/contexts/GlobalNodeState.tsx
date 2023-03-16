@@ -143,6 +143,7 @@ interface Global {
     setCollidingNode: (value: string | undefined) => void;
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
+    exportViewportScreenshotToClipboard: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
@@ -1373,6 +1374,7 @@ export const GlobalProvider = memo(
             setNodeDisabled,
             setZoom,
             exportViewportScreenshot,
+            exportViewportScreenshotToClipboard,
             setManualOutputType,
             typeStateRef,
             releaseNodeFromParent,
