@@ -186,6 +186,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         setEdgesRef,
         removeEdgeById,
         exportViewportScreenshot,
+        exportViewportScreenshotToClipboard,
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
@@ -665,8 +666,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 <Controls>
                     <ControlButton
                         disabled={nodes.length === 0}
-                        title="Export viewport as PNG"
-                        onClick={exportViewportScreenshot}
+                        title={'Export viewport as PNG\nCtrl+Click to export to clipboard instead'}
+                        onClick={(e) => {
+                            if (e.ctrlKey) {
+                                exportViewportScreenshotToClipboard();
+                            } else {
+                                exportViewportScreenshot();
+                            }
+                        }}
                     >
                         <FaFileExport />
                     </ControlButton>
