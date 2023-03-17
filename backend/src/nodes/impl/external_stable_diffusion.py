@@ -33,7 +33,7 @@ def _stable_diffusion_url(path):
     return f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}{path}"
 
 
-ERROR_MSG = f"""
+INFO_MSG = f"""
 If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
 
 ./webui.sh --api
@@ -43,10 +43,11 @@ STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_HOST, and STABLE_DIFFUSION_PORT
 environment variables.
 """
 
-TIMEOUT_MSG = f"""
-Stable diffusion request timeout reached.  Currently configured as {STABLE_DIFFUSION_REQUEST_TIMEOUT} seconds.  If you
-want to change this, set the STABLE_DIFFUSION_REQUEST_TIMEOUT environment variable.
-"""
+TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+
+
+class ExternalServiceHTTPError(Exception):
+    pass
 
 
 class ExternalServiceConnectionError(Exception):
@@ -78,7 +79,7 @@ def _auto_detect_endpoint(timeout=0.5):
                 last_error = error
 
     if last_error:
-        raise last_error
+        raise RuntimeError(INFO_MSG) from last_error
     else:
         raise RuntimeError
 
@@ -86,8 +87,14 @@ def _auto_detect_endpoint(timeout=0.5):
 def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
         response = requests.get(_stable_diffusion_url(path), timeout=timeout)
+        if response.status_code != 200:
+            raise ExternalServiceHTTPError(
+                f"webui GET request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+        raise ExternalServiceConnectionError(
+            f"webui GET request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
@@ -100,8 +107,14 @@ def post(path, json_data: Dict) -> Dict:
             json=json_data,
             timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
         )
+        if response.status_code != 200:
+            raise ExternalServiceHTTPError(
+                f"webui POST request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+        raise ExternalServiceConnectionError(
+            f"webui POST request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
