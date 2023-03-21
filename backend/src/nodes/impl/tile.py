@@ -32,7 +32,9 @@ def tile_image(img: np.ndarray, width: int, height: int, mode: TileMode) -> np.n
         assert False, f"Invalid tile mode {mode}"
 
     h, w, _ = get_h_w_c(img)
-    img = np.tile(img, (math.ceil(height / h), math.ceil(width / w), 1))
+    tile_w = math.ceil(width / w)
+    tile_h = math.ceil(height / h)
+    img = np.tile(img, (tile_h, tile_w) if img.ndim == 2 else (tile_h, tile_w, 1))
 
     # crop to make sure the dimensions are correct
     return img[:height, :width]
