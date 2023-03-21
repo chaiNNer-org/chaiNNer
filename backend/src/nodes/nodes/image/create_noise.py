@@ -7,6 +7,7 @@ import numpy as np
 from ...group import group
 from ...groups import if_enum_group
 from ...impl.image_utils import cartesian_product
+from ...impl.noise_functions.blue import create_blue_noise
 from ...impl.noise_functions.simplex import SimplexNoise
 from ...impl.noise_functions.value import ValueNoise
 from ...node_base import NodeBase
@@ -27,6 +28,7 @@ from . import category as ImageCategory
 class NoiseMethod(Enum):
     VALUE = "Value Noise"
     SIMPLEX = "Simplex"
+    BLUE_NOISE = "Blue Noise"
 
 
 class FractalMethod(Enum):
@@ -48,27 +50,39 @@ class CreateNoiseNode(NodeBase):
                 default_value=NoiseMethod.SIMPLEX,
                 option_labels={key: key.value for key in NoiseMethod},
             ).with_id(3),
-            NumberInput("Scale", minimum=1, default=50, precision=1).with_id(4),
-            SliderInput(
-                "Brightness", minimum=0, default=100, maximum=100, precision=2
-            ).with_id(5),
-            BoolInput("Tile Horizontal", default=False).with_id(10),
-            BoolInput("Tile Vertical", default=False).with_id(11),
-            BoolInput("Tile Spherical", default=False).with_id(12),
-            EnumInput(
-                FractalMethod,
-                default_value=FractalMethod.NONE,
-                option_labels={key: key.value for key in FractalMethod},
-            ).with_id(6),
-            if_enum_group(6, FractalMethod.PINK)(
-                NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
-                NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
-                    8
+            if_enum_group(3, (NoiseMethod.SIMPLEX, NoiseMethod.VALUE))(
+                NumberInput("Scale", minimum=1, default=50, precision=1).with_id(4),
+                SliderInput(
+                    "Brightness", minimum=0, default=100, maximum=100, precision=2
+                ).with_id(5),
+                BoolInput("Tile Horizontal", default=False).with_id(10),
+                BoolInput("Tile Vertical", default=False).with_id(11),
+                BoolInput("Tile Spherical", default=False).with_id(12),
+                EnumInput(
+                    FractalMethod,
+                    default_value=FractalMethod.NONE,
+                    option_labels={key: key.value for key in FractalMethod},
+                ).with_id(6),
+                if_enum_group(6, FractalMethod.PINK)(
+                    NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
+                    NumberInput(
+                        "Scale Ratio", minimum=1, default=2, precision=2
+                    ).with_id(8),
+                    NumberInput(
+                        "Brightness Ratio", minimum=1, default=2, precision=2
+                    ).with_id(9),
+                    BoolInput("Increment Seed", default=True).with_id(13),
                 ),
-                NumberInput(
-                    "Brightness Ratio", minimum=1, default=2, precision=2
-                ).with_id(9),
-                BoolInput("Increment Seed", default=True).with_id(13),
+            ),
+            if_enum_group(3, NoiseMethod.BLUE_NOISE)(
+                SliderInput(
+                    "Standard Deviation",
+                    minimum=1,
+                    maximum=100,
+                    default=1.5,
+                    precision=3,
+                    scale="log",
+                ).with_id(14)
             ),
         ]
         self.outputs = [
@@ -146,7 +160,15 @@ class CreateNoiseNode(NodeBase):
         scale_ratio: float,
         brightness_ratio: float,
         increment_seed: bool,
+        standard_deviation: float,
     ) -> np.ndarray:
+        if noise_method == NoiseMethod.BLUE_NOISE:
+            return create_blue_noise(
+                (height, width),
+                standard_deviation=standard_deviation,
+                seed=seed.to_u32(),
+            ).astype(np.float32) / (width * height - 1)
+
         img = np.zeros((height, width), dtype="float32")
         brightness /= 100
 
