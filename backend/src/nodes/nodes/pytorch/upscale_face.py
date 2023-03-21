@@ -11,6 +11,7 @@ from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from sanic.log import logger
 from torchvision.transforms.functional import normalize as tv_normalize
 
+from ...impl.image_utils import to_uint8
 from ...impl.pytorch.types import PyTorchFaceModel
 from ...impl.pytorch.utils import (
     np2tensor,
@@ -60,7 +61,7 @@ class FaceUpscaleNode(NodeBase):
         self.sub = "Restoration"
 
     def denormalize(self, img: np.ndarray):
-        img = (img * 255).astype(np.uint8)
+        img = to_uint8(img, normalized=True)
         _, _, c = get_h_w_c(img)
         if c == 4:
             img = img[:, :, :3]

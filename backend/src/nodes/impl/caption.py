@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from ..utils.utils import get_h_w_c
+from .image_utils import normalize, to_uint8
 
 
 class CaptionPosition(Enum):
@@ -30,7 +31,7 @@ def add_caption(
     else:
         raise RuntimeError(f"Unknown position {position}")
 
-    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = Image.fromarray(to_uint8(img))
     font_path = os.path.join(
         os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
     )
@@ -58,6 +59,6 @@ def add_caption(
         fill=font_color,
     )
 
-    img = np.array(pimg).astype("float32") / 255
+    img = normalize(np.array(pimg))
 
     return img

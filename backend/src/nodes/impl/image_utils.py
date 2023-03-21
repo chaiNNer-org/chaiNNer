@@ -92,6 +92,38 @@ def normalize(img: np.ndarray) -> np.ndarray:
     return np.clip(img, 0, 1)
 
 
+def to_uint8(
+    img: np.ndarray,
+    normalized=False,
+    dither=False,
+) -> np.ndarray:
+    """
+    Returns a new uint8 image with the given image data.
+
+    If `normalized` is `False`, then the image will be normalized before being converted to uint8.
+
+    If `dither` is `True`, then dithering will be used to minimize the quantization error.
+    """
+    if img.dtype == np.uint8:
+        return img.copy()
+
+    if not normalized or img.dtype != np.float32:
+        img = normalize(img)
+
+    if not dither:
+        return (img * 255).round().astype(np.uint8)
+
+    # random dithering
+    truth = img * 255
+    quant = truth.round()
+
+    err = truth - quant
+    r = np.random.default_rng(0).uniform(0, 1, img.shape).astype(np.float32)
+    quant += np.sign(err) * (np.abs(err) > r)
+
+    return quant.astype(np.uint8)
+
+
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:

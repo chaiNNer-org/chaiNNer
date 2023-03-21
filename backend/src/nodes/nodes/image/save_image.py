@@ -18,7 +18,7 @@ from ...impl.dds.format import (
     to_dxgi,
 )
 from ...impl.dds.texconv import save_as_dds
-from ...impl.image_utils import cv_save_image
+from ...impl.image_utils import cv_save_image, to_uint8
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -155,7 +155,7 @@ class ImWriteNode(NodeBase):
         logger.debug(f"Writing image to path: {full_path}")
 
         # Put image back in int range
-        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+        img = to_uint8(img, normalized=True)
 
         os.makedirs(base_directory, exist_ok=True)
 
