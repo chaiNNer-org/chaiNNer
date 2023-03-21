@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from ...impl.image_utils import normalize
+from ...impl.image_utils import normalize, to_uint8
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -38,8 +38,5 @@ class CannyEdgeDetectionNode(NodeBase):
         t_lower: int,
         t_upper: int,
     ) -> np.ndarray:
-        img = (img * 255).astype(np.uint8)
-
-        edges = cv2.Canny(img, t_lower, t_upper)
-
+        edges = cv2.Canny(to_uint8(img, normalized=True), t_lower, t_upper)
         return normalize(edges)

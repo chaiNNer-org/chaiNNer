@@ -5,6 +5,7 @@ from enum import Enum
 import cv2
 import numpy as np
 
+from ...impl.image_utils import normalize, to_uint8
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
@@ -70,8 +71,8 @@ class InpaintNode(NodeBase):
             img.shape[:2] == mask.shape[:2]
         ), "Input image and mask must have the same resolution"
 
-        img = (img * 255).astype("uint8")
-        mask = (mask * 255).astype("uint8")
-        img = cv2.inpaint(img, mask, radius, inpaint_method.value)
+        img = to_uint8(img, normalized=True)
+        mask = to_uint8(mask, normalized=True)
+        result = cv2.inpaint(img, mask, radius, inpaint_method.value)
 
-        return img.astype("float32") / 255
+        return normalize(result)

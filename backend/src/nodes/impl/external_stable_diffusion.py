@@ -13,7 +13,7 @@ from PIL import Image
 from sanic.log import logger
 
 from ..utils.utils import get_h_w_c
-from .image_utils import normalize
+from .image_utils import normalize, to_uint8
 
 STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
@@ -155,7 +155,7 @@ def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
 
 
 def encode_base64_image(image_nparray: np.ndarray) -> str:
-    image_nparray = (np.clip(image_nparray, 0, 1) * 255).round().astype("uint8")
+    image_nparray = to_uint8(image_nparray)
     _, _, c = get_h_w_c(image_nparray)
     if c == 1:
         # PIL supports grayscale images just fine, so we don't need to do any conversion

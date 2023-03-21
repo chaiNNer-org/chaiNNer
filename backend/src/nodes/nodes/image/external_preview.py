@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
+from ...impl.image_utils import to_uint8
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
@@ -33,16 +34,13 @@ class ImOpenNode(NodeBase):
     def run(self, img: np.ndarray) -> None:
         """Show image"""
 
-        # Put image back in int range
-        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
-
         tempdir = mkdtemp(prefix="chaiNNer-")
         logger.debug(f"Writing image to temp path: {tempdir}")
         im_name = f"{time.time()}.png"
         temp_save_dir = os.path.join(tempdir, im_name)
         status = cv2.imwrite(
             temp_save_dir,
-            img,
+            to_uint8(img, normalized=True),
         )
 
         if status:

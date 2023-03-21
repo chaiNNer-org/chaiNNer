@@ -3,6 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+from ...impl.image_utils import normalize, to_uint8
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -53,7 +54,7 @@ class AdaptiveThresholdNode(NodeBase):
         """Takes an image and applies an adaptive threshold to it"""
 
         # Adaptive threshold requires uint8 input
-        img = (img * 255).astype("uint8")
+        img = to_uint8(img, normalized=True)
 
         real_maxval = maxval / 100 * 255
 
@@ -66,4 +67,4 @@ class AdaptiveThresholdNode(NodeBase):
             c,
         )
 
-        return result.astype("float32") / 255
+        return normalize(result)
