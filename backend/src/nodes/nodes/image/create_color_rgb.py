@@ -59,5 +59,8 @@ class CreateColorNode(NodeBase):
     def run(
         self, width: int, height: int, red: int, green: int, blue: int
     ) -> np.ndarray:
-        img = np.full((height, width, 3), (blue, green, red), dtype=np.uint8)
-        return (img / 255.0).astype(np.float32)
+        return np.full(
+            (height, width, 3),
+            (blue / 255, green / 255, red / 255),
+            dtype=np.float32,
+        )

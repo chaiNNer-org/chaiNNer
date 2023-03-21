@@ -41,5 +41,4 @@ class CreateColorNode(NodeBase):
         self.sub = "Make Images"
 
     def run(self, width: int, height: int, gray: int) -> np.ndarray:
-        img = np.full((height, width), (gray), dtype=np.uint8)
-        return (img / 255.0).astype(np.float32)
+        return np.full((height, width), (gray / 255), dtype=np.float32)
