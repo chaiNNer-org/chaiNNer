@@ -81,7 +81,7 @@ class CreateNoiseNode(NodeBase):
                     maximum=100,
                     default=1.5,
                     precision=3,
-                    scale="log",
+                    scale="log-offset",
                 ).with_id(14)
             ),
         ]
