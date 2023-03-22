@@ -137,6 +137,18 @@ def sequential(*args):
 
 ConvMode = Literal["CNA", "NAC", "CNAC"]
 
+# 2x2x2 Conv Block
+def conv_block_2c2(
+    in_nc,
+    out_nc,
+    act_type="relu",
+):
+    return sequential(
+        nn.Conv2d(in_nc, out_nc, kernel_size=2, padding=1),
+        nn.Conv2d(out_nc, out_nc, kernel_size=2, padding=0),
+        act(act_type) if act_type else None,
+    )
+
 
 def conv_block(
     in_nc: int,
@@ -150,12 +162,17 @@ def conv_block(
     norm_type: str | None = None,
     act_type: str | None = "relu",
     mode: ConvMode = "CNA",
+    c2x2=False,
 ):
     """
     Conv layer with padding, normalization, activation
     mode: CNA --> Conv -> Norm -> Act
         NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
     """
+
+    if c2x2:
+        return conv_block_2c2(in_nc, out_nc, act_type=act_type)
+
     assert mode in ("CNA", "NAC", "CNAC"), "Wrong conv mode [{:s}]".format(mode)
     padding = get_valid_padding(kernel_size, dilation)
     p = pad(pad_type, padding) if pad_type and pad_type != "zero" else None
@@ -282,6 +299,7 @@ class RRDB(nn.Module):
         _convtype="Conv2D",
         _spectral_norm=False,
         plus=False,
+        c2x2=False,
     ):
         super(RRDB, self).__init__()
         self.RDB1 = ResidualDenseBlock_5C(
@@ -295,6 +313,7 @@ class RRDB(nn.Module):
             act_type,
             mode,
             plus=plus,
+            c2x2=c2x2,
         )
         self.RDB2 = ResidualDenseBlock_5C(
             nf,
@@ -307,6 +326,7 @@ class RRDB(nn.Module):
             act_type,
             mode,
             plus=plus,
+            c2x2=c2x2,
         )
         self.RDB3 = ResidualDenseBlock_5C(
             nf,
@@ -319,6 +339,7 @@ class RRDB(nn.Module):
             act_type,
             mode,
             plus=plus,
+            c2x2=c2x2,
         )
 
     def forward(self, x):
@@ -362,6 +383,7 @@ class ResidualDenseBlock_5C(nn.Module):
         act_type="leakyrelu",
         mode: ConvMode = "CNA",
         plus=False,
+        c2x2=False,
     ):
         super(ResidualDenseBlock_5C, self).__init__()
 
@@ -379,6 +401,7 @@ class ResidualDenseBlock_5C(nn.Module):
             norm_type=norm_type,
             act_type=act_type,
             mode=mode,
+            c2x2=c2x2,
         )
         self.conv2 = conv_block(
             nf + gc,
@@ -390,6 +413,7 @@ class ResidualDenseBlock_5C(nn.Module):
             norm_type=norm_type,
             act_type=act_type,
             mode=mode,
+            c2x2=c2x2,
         )
         self.conv3 = conv_block(
             nf + 2 * gc,
@@ -401,6 +425,7 @@ class ResidualDenseBlock_5C(nn.Module):
             norm_type=norm_type,
             act_type=act_type,
             mode=mode,
+            c2x2=c2x2,
         )
         self.conv4 = conv_block(
             nf + 3 * gc,
@@ -412,6 +437,7 @@ class ResidualDenseBlock_5C(nn.Module):
             norm_type=norm_type,
             act_type=act_type,
             mode=mode,
+            c2x2=c2x2,
         )
         if mode == "CNA":
             last_act = None
@@ -427,6 +453,7 @@ class ResidualDenseBlock_5C(nn.Module):
             norm_type=norm_type,
             act_type=last_act,
             mode=mode,
+            c2x2=c2x2,
         )
 
     def forward(self, x):
@@ -496,6 +523,7 @@ def upconv_block(
     norm_type: str | None = None,
     act_type="relu",
     mode="nearest",
+    c2x2=False,
 ):
     # Up conv
     # described in https://distill.pub/2016/deconv-checkerboard/
@@ -509,5 +537,6 @@ def upconv_block(
         pad_type=pad_type,
         norm_type=norm_type,
         act_type=act_type,
+        c2x2=c2x2,
     )
     return sequential(upsample, conv)
