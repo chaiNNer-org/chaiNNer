@@ -137,6 +137,7 @@ def sequential(*args):
 
 ConvMode = Literal["CNA", "NAC", "CNAC"]
 
+
 # 2x2x2 Conv Block
 def conv_block_2c2(
     in_nc,
