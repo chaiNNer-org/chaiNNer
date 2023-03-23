@@ -40,7 +40,6 @@ class ImageOutput(NumPyOutput):
         image_type: expression.ExpressionJson = "Image",
         kind: OutputKind = "image",
         has_handle: bool = True,
-        broadcast_type: bool = False,
         channels: Optional[int] = None,
     ):
         super().__init__(
@@ -49,22 +48,12 @@ class ImageOutput(NumPyOutput):
             kind=kind,
             has_handle=has_handle,
         )
-        self.broadcast_type = broadcast_type
 
         self.channels: Optional[int] = channels
 
-    def get_broadcast_data(self, value: np.ndarray):
-        if not self.broadcast_type:
-            return None
-
-        img = value
-        h, w, c = get_h_w_c(img)
-
-        return {
-            "height": h,
-            "width": w,
-            "channels": c,
-        }
+    def get_broadcast_type(self, value: np.ndarray):
+        h, w, c = get_h_w_c(value)
+        return expression.Image(width=w, height=h, channels=c)
 
     def validate(self, value) -> None:
         assert isinstance(value, np.ndarray)
@@ -120,12 +109,7 @@ class LargeImageOutput(ImageOutput):
         kind: OutputKind = "large-image",
         has_handle: bool = True,
     ):
-        super().__init__(
-            label,
-            expression.intersect(image_type, "Image"),
-            kind=kind,
-            has_handle=has_handle,
-        )
+        super().__init__(label, image_type, kind=kind, has_handle=has_handle)
 
     def get_broadcast_data(self, value: np.ndarray):
         img = value
