@@ -1,5 +1,5 @@
 import { Version } from './common-types';
-import { isM1, isMac, isWindows } from './env';
+import { isArmMac, isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
 const MB = 1024 ** 2;
@@ -22,7 +22,7 @@ export interface Dependency {
 }
 
 const getOnnxRuntime = (canCuda: boolean): PyPiPackage => {
-    if (isM1) {
+    if (isArmMac) {
         return {
             packageName: 'onnxruntime-silicon',
             sizeEstimate: 6 * MB,
@@ -96,7 +96,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '1.13.0',
                     sizeEstimate: 12 * MB,
                 },
-                ...(!isM1
+                ...(!isArmMac
                     ? ([
                           {
                               packageName: 'onnxoptimizer',
@@ -167,7 +167,7 @@ export const requiredDependencies: Dependency[] = [
     },
 ];
 
-if (isMac && !isM1) {
+if (isMac && !isArmMac) {
     requiredDependencies.push({
         name: 'Pasteboard',
         packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }],
