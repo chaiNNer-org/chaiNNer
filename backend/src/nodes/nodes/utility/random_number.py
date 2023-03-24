@@ -40,4 +40,7 @@ class RandomNumberNode(NodeBase):
         self.sub = "Random"
 
     def run(self, min_val: int, max_val: int, seed: Seed) -> int:
-        return Random(seed.value).randint(min_val, max_val)
+        if seed.value == -1:
+            return Random().randint(min_val, max_val)
+        else:
+            return Random(seed.value).randint(min_val, max_val)
