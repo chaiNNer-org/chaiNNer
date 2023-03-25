@@ -30,7 +30,7 @@ jobs:
         with:
             node-version: 16
             cache: 'npm'
-      - run: npm ci
+      - run: npm ci --force
       - name: Install necessary FlatPak tools
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |

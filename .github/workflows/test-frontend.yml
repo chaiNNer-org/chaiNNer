@@ -29,5 +29,5 @@ jobs:
               with:
                   node-version: 16
                   cache: 'npm'
-            - run: npm ci
+            - run: npm ci --force
             - run: npm run test-js
