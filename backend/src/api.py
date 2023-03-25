@@ -45,11 +45,11 @@ class Category:
     icon: str = "BsQuestionCircleFill"
     color: str = "#777777"
     install_hint: str | None = None
-    sub_categories: List["SubCategory"] = field(default_factory=list)
+    node_groups: List["NodeGroup"] = field(default_factory=list)
 
-    def add_sub_category(self, name: str) -> "SubCategory":
-        result = SubCategory(category=self, name=name)
-        self.sub_categories.append(result)
+    def add_node_group(self, name: str) -> "NodeGroup":
+        result = NodeGroup(category=self, name=name)
+        self.node_groups.append(result)
         return result
 
     def toDict(self):
@@ -66,7 +66,7 @@ T = TypeVar("T", bound=NodeBase)
 
 
 @dataclass
-class SubCategory:
+class NodeGroup:
     category: Category
     name: str
     nodes: List[NodeBase] = field(default_factory=list)
@@ -94,7 +94,7 @@ class PackageRegistry:
     def __init__(self) -> None:
         self.packages: Dict[str, Package] = {}
         self.categories: List[Category] = []
-        self.nodes: Dict[str, Tuple[NodeBase, SubCategory]] = {}
+        self.nodes: Dict[str, Tuple[NodeBase, NodeGroup]] = {}
 
     def get_node(self, schema_id: str) -> NodeBase:
         return self.nodes[schema_id][0]
@@ -107,19 +107,19 @@ class PackageRegistry:
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
 
-        # for package in self.packages.values():
-        #     for file_path in _iter_py_files(os.path.dirname(package.where)):
-        #         _, name = os.path.split(file_path)
+        for package in self.packages.values():
+            for file_path in _iter_py_files(os.path.dirname(package.where)):
+                _, name = os.path.split(file_path)
 
-        #         if not name.startswith("_"):
-        #             module = os.path.relpath(file_path, os.path.dirname(current_file))
-        #             logger.info(module)
-        #             module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
-        #             logger.info(module)
-        #             try:
-        #                 importlib.import_module(module, package=None)
-        #             except ImportError as e:
-        #                 import_errors.append(e)
+                if not name.startswith("_"):
+                    module = os.path.relpath(file_path, os.path.dirname(current_file))
+                    logger.info(module)
+                    module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
+                    logger.info(module)
+                    try:
+                        importlib.import_module(module, package=None)
+                    except ImportError as e:
+                        import_errors.append(e)
 
         logger.info(import_errors)
         self._refresh_nodes()
@@ -133,7 +133,7 @@ class PackageRegistry:
         for package in self.packages.values():
             self.categories.extend(package.categories)
             for category in package.categories:
-                for sub in category.sub_categories:
+                for sub in category.node_groups:
                     for node in sub.nodes:
                         if node.schema_id in self.nodes:
                             # print warning

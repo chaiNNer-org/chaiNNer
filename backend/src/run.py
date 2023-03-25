@@ -60,17 +60,9 @@ app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
-
-# pylint: disable-next=unused-import
-for root, _dirs, files in os.walk("packages"):
-    for file in files:
-        if file.endswith(".py") and not file.startswith("_"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            logger.info(module)
-            importlib.import_module(f"{module}")
+for package in os.listdir("packages"):
+    logger.info(package)
+    importlib.import_module(f"packages.{package}")
 
 api.registry.load_nodes(__file__)
 

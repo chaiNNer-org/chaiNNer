@@ -9,6 +9,6 @@ image = package.add_category(
     color="#C53030",
 )
 
-io = image.add_sub_category("Input & Output")
+io = image.add_node_group("Input & Output")
 
 logger.info(f"Loaded category {image.name}")
