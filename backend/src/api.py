@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Callable, List, Dict, Tuple, TypeVar
-from dataclasses import dataclass, field
+
 import importlib
 import os
+from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Tuple, TypeVar
 
 from sanic.log import logger
 
@@ -16,8 +17,22 @@ class Package:
     dependencies: List[str] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
 
-    def add_category(self, name: str, description: str) -> "Category":
-        result = Category(package=self, name=name, description=description)
+    def add_category(
+        self,
+        name: str,
+        description: str,
+        icon: str,
+        color: str,
+        install_hint: str | None = None,
+    ) -> "Category":
+        result = Category(
+            package=self,
+            name=name,
+            description=description,
+            icon=icon,
+            color=color,
+            install_hint=install_hint,
+        )
         self.categories.append(result)
         return result
 
@@ -27,8 +42,8 @@ class Category:
     package: Package
     name: str
     description: str
-    icon: str = "BsGearFill"
-    color: str = "#777"
+    icon: str = "BsQuestionCircleFill"
+    color: str = "#777777"
     install_hint: str | None = None
     sub_categories: List["SubCategory"] = field(default_factory=list)
 
@@ -85,26 +100,26 @@ class PackageRegistry:
         return self.nodes[schema_id][0]
 
     def add(self, package: Package) -> Package:
-        assert package.where not in self.packages
+        # assert package.where not in self.packages
         self.packages[package.where] = package
         return package
 
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
 
-        for package in self.packages.values():
-            for file_path in _iter_py_files(os.path.dirname(package.where)):
-                _, name = os.path.split(file_path)
+        # for package in self.packages.values():
+        #     for file_path in _iter_py_files(os.path.dirname(package.where)):
+        #         _, name = os.path.split(file_path)
 
-                if not name.startswith("_"):
-                    module = os.path.relpath(file_path, os.path.dirname(current_file))
-                    logger.info(module)
-                    module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
-                    logger.info(module)
-                    try:
-                        importlib.import_module(module, package=None)
-                    except ImportError as e:
-                        import_errors.append(e)
+        #         if not name.startswith("_"):
+        #             module = os.path.relpath(file_path, os.path.dirname(current_file))
+        #             logger.info(module)
+        #             module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
+        #             logger.info(module)
+        #             try:
+        #                 importlib.import_module(module, package=None)
+        #             except ImportError as e:
+        #                 import_errors.append(e)
 
         logger.info(import_errors)
         self._refresh_nodes()

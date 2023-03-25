@@ -18,27 +18,18 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
+import api
 from base_types import NodeId, OutputId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
-from nodes.node_factory import NodeFactory
-from nodes.nodes.builtin_categories import category_order
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
     parse_execution_options,
     set_execution_options,
 )
-from nodes.group import Group
-
-import api
-from base_types import NodeId, OutputId
-from chain.cache import OutputCache
-from chain.json import parse_json, JsonNode
-from chain.optimize import optimize
-from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
 from progress import Aborted
 from response import (
@@ -71,9 +62,19 @@ CORS(app)
 
 
 # pylint: disable-next=unused-import
-import packages.image  # type: ignore
+for root, _dirs, files in os.walk("packages"):
+    for file in files:
+        if file.endswith(".py") and not file.startswith("_"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            logger.info(module)
+            importlib.import_module(f"{module}")
 
 api.registry.load_nodes(__file__)
+
+logger.info(api.registry.categories)
 
 
 class SSEFilter(logging.Filter):
