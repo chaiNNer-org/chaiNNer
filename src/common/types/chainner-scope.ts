@@ -1,21 +1,20 @@
 import {
-    BuiltinFunctionDefinition,
+    IntrinsicFunctionDefinition,
+    NeverType,
     Scope,
     ScopeBuilder,
     SourceDocument,
-    StringType,
-    StructType,
     Type,
     globalScope,
-    intInterval,
     parseDefinitions,
-    union,
 } from '@chainner/navi';
 import { lazy } from '../util';
 import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from './chainner-builtin';
 
 const code = `
 struct null;
+
+struct Seed;
 
 struct Directory { path: string }
 
@@ -48,8 +47,12 @@ let PyTorchFaceModel = PyTorchModel {
     subType: "Face SR"
 };
 let PyTorchSRModel = PyTorchModel {
-    arch: invStrSet(PyTorchFaceModel.arch),
+    arch: invStrSet(PyTorchFaceModel.arch | PyTorchInpaintModel.arch),
     subType: "SR"
+};
+let PyTorchInpaintModel = PyTorchModel {
+    arch: "LaMa" | "MAT",
+    subType: "Inpaint"
 };
 
 struct NcnnBinFile { path: string }
@@ -64,10 +67,17 @@ struct NcnnNetwork {
 
 struct OnnxFile { path: string }
 struct OnnxModel {
-    scale: int(1..),
-    inputChannels: int(1..),
-    outputChannels: int(1..),
+    arch: string,
+    subType: string,
+    scaleHeight: int(1..),
+    scaleWidth: int(1..),
 }
+let OnnxRemBgModel = OnnxModel {
+    subType: "RemBg",
+};
+let OnnxGenericModel = OnnxModel {
+    subType: "Generic",
+};
 
 struct IteratorAuto;
 
@@ -78,7 +88,6 @@ struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
 struct ImageExtension;
-struct MathOperation { operation: string }
 struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct ThresholdType;
@@ -95,7 +104,7 @@ def FpMode::toString(mode: FpMode) {
     }
 }
 
-def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Image) {
+def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,
@@ -107,54 +116,50 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork | OnnxModel, image: Imag
     }
 }
 
+def removeBackground(model: OnnxRemBgModel, image: Image) {
+    Image {
+        width: image.width,
+        height: image.height * model.scaleHeight,
+        channels: 4,
+    }
+}
+
 struct SplitFilePath {
     dir: Directory,
     basename: string,
     ext: string,
 }
+
+intrinsic def formatPattern(pattern: string, ...args: string | null): string;
+intrinsic def padStart(text: string, width: uint, padding: string): string;
+intrinsic def padEnd(text: string, width: uint, padding: string): string;
+intrinsic def padCenter(text: string, width: uint, padding: string): string;
+intrinsic def splitFilePath(path: string): SplitFilePath;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
     const builder = new ScopeBuilder('Chainner scope', globalScope);
 
+    const intrinsic: Record<string, (...args: NeverType[]) => Type> = {
+        formatPattern: formatTextPattern,
+        padStart,
+        padEnd,
+        padCenter,
+        splitFilePath,
+    };
+
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));
     for (const d of definitions) {
-        builder.add(d);
+        if (d.underlying === 'declaration') {
+            if (!(d.name in intrinsic)) {
+                throw new Error(`Unable to find definition for intrinsic ${d.name}`);
+            }
+            const fn = intrinsic[d.name] as (...args: Type[]) => Type;
+            builder.add(IntrinsicFunctionDefinition.from(d, fn));
+        } else {
+            builder.add(d);
+        }
     }
-
-    builder.add(
-        new BuiltinFunctionDefinition(
-            'formatPattern',
-            formatTextPattern as (..._: Type[]) => Type,
-            [StringType.instance],
-            union(StringType.instance, new StructType('null'))
-        )
-    );
-
-    builder.add(
-        new BuiltinFunctionDefinition('padStart', padStart as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        new BuiltinFunctionDefinition('padEnd', padEnd as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        new BuiltinFunctionDefinition('padCenter', padCenter as (..._: Type[]) => Type, [
-            StringType.instance,
-            intInterval(0, Infinity),
-            StringType.instance,
-        ])
-    );
-    builder.add(
-        BuiltinFunctionDefinition.unary('splitFilePath', splitFilePath, StringType.instance)
-    );
 
     return builder.createScope();
 });

@@ -6,13 +6,13 @@ from typing import Tuple
 import onnx
 from sanic.log import logger
 
-from . import category as ONNXCategory
+from ...impl.onnx.model import OnnxModel, load_onnx_model
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxFileInput
-from ...properties.outputs import OnnxModelOutput, DirectoryOutput, FileNameOutput
-from ...impl.onnx.model import OnnxModel
+from ...properties.outputs import DirectoryOutput, FileNameOutput, OnnxModelOutput
 from ...utils.utils import split_file_path
+from . import category as ONNXCategory
 
 
 @NodeFactory.register("chainner:onnx:load_model")
@@ -24,7 +24,7 @@ class OnnxLoadModelNode(NodeBase):
         )
         self.inputs = [OnnxFileInput(primary_input=True)]
         self.outputs = [
-            OnnxModelOutput(),
+            OnnxModelOutput(kind="onnx", should_broadcast=True),
             DirectoryOutput("Model Directory", of_input=0).with_id(2),
             FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
@@ -47,7 +47,7 @@ class OnnxLoadModelNode(NodeBase):
         logger.debug(f"Reading onnx model from path: {path}")
         model = onnx.load_model(path)
 
-        model_as_string = model.SerializeToString()  # type: ignore
+        model_as_string = model.SerializeToString()
 
         dirname, basename, _ = split_file_path(path)
-        return OnnxModel(model_as_string), dirname, basename
+        return load_onnx_model(model_as_string), dirname, basename

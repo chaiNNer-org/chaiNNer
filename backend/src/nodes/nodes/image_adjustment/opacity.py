@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageAdjustmentCategory
+from ...impl.pil_utils import convert_to_BGRA
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
+from ...properties import expression
 from ...properties.inputs import ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...utils.utils import get_h_w_c
-from ...impl.pil_utils import convert_to_BGRA
+from . import category as ImageAdjustmentCategory
 
 
 @NodeFactory.register("chainner:image:opacity")

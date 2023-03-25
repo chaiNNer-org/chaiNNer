@@ -1,5 +1,5 @@
-from enum import Enum
 import math
+from enum import Enum
 
 import numpy as np
 
@@ -82,7 +82,6 @@ def add_normals(
     f1: float = 1,
     f2: float = 1,
 ) -> XYZ:
-
     # Convert BGR to XY
     x1 = n1[:, :, 2] * 2 - 1
     y1 = n1[:, :, 1] * 2 - 1

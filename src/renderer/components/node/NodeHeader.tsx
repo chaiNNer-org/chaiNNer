@@ -1,7 +1,7 @@
 import { Center, HStack, Heading, LayoutProps } from '@chakra-ui/react';
 import { memo } from 'react';
+import { DisabledStatus } from '../../../common/nodes/disabled';
 import { interpolateColor } from '../../helpers/colorTools';
-import { DisabledStatus } from '../../helpers/disabled';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
 

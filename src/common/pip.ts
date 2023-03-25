@@ -72,6 +72,18 @@ export const runPipList = async (info: PythonInfo, onStdio?: OnStdio): Promise<P
     return Object.fromEntries(list.map((e) => [e.name, e.version]));
 };
 
+const getFindLinks = (dependencies: readonly Dependency[]): string[] => {
+    const links = new Set<string>();
+    for (const d of dependencies) {
+        for (const p of d.packages) {
+            if (p.findLink) {
+                links.add(p.findLink);
+            }
+        }
+    }
+    return [...links];
+};
+
 export const runPipInstall = async (
     info: PythonInfo,
     dependencies: readonly Dependency[],
@@ -84,7 +96,9 @@ export const runPipInstall = async (
         const deps = dependencies
             .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
             .flat();
-        await runPip(info, ['install', '--upgrade', ...deps], onStdio);
+        const findLinks = getFindLinks(dependencies).flatMap((l) => ['--extra-index-url', l]);
+
+        await runPip(info, ['install', '--upgrade', ...deps, ...findLinks], onStdio);
     } else {
         const { python } = info;
         for (const dep of dependencies) {

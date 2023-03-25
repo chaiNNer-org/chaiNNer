@@ -70,6 +70,8 @@ You can right-click in the editor viewport to show an inline nodes list to selec
   - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
 - [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
   - A very nice collection of mostly ESRGAN models that have been trained for various tasks.
+- [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
+  - An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
 
 ## Compatibility Notes
 
@@ -118,6 +120,11 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 - [RestoreFormer](https://github.com/wzhouxiff/RestoreFormer) | [Model](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/RestoreFormer.pth)
 - [CodeFormer](https://github.com/sczhou/CodeFormer) | [Model](https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth)
 
+#### Inpainting
+
+- [LaMa](https://github.com/advimman/lama) | [Model](https://github.com/Sanster/models/releases/download/add_big_lama/big-lama.pt)
+- [MAT](https://github.com/fenglinglwb/MAT) | [Model](https://github.com/Sanster/models/releases/download/add_mat/Places_512_FullData_G.pth)
+
 ### NCNN
 
 - Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
@@ -125,6 +132,10 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 ### ONNX
 
 - Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
+
+#### Background Removal
+
+- [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
 
 ## Troubleshooting
 

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import gc
 
-import torch
 import numpy as np
+import torch
 
+from ..upscale.auto_split import Split, Tiler, auto_split
 from .types import PyTorchModel
-
-from ..upscale.auto_split import auto_split, Split, Tiler
-from .utils import tensor2np, np2tensor
+from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
 
 
 @torch.inference_mode()
@@ -22,7 +21,7 @@ def pytorch_auto_split(
     model = model.to(device)
     model = model.half() if use_fp16 else model.float()
 
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         img_tensor = np2tensor(img, change_range=True)
 
         d_img = None
@@ -44,10 +43,13 @@ def pytorch_auto_split(
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
                 if d_img is not None:
-                    d_img.detach().cpu()
+                    try:
+                        d_img.detach().cpu()
+                    except:
+                        pass
                     del d_img
                 gc.collect()
-                torch.cuda.empty_cache()
+                safe_cuda_cache_empty()
                 return Split()
             else:
                 # Re-raise the exception if not an OOM error
@@ -59,4 +61,4 @@ def pytorch_auto_split(
         del model
         del device
         gc.collect()
-        torch.cuda.empty_cache()
+        safe_cuda_cache_empty()

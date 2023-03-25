@@ -1,14 +1,22 @@
-import { Textarea } from '@chakra-ui/react';
+import { Center, MenuItem, MenuList, Textarea } from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
-import { ChangeEvent, memo, useEffect, useState } from 'react';
+import { ChangeEvent, memo, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { useContextMenu } from '../../hooks/useContextMenu';
+import { DragHandleSVG } from '../CustomIcons';
+import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
+const DEFAULT_SIZE = { width: 240, height: 80 };
+
 export const TextAreaInput = memo(
-    ({ value, setValue, input, isLocked, useInputSize }: InputProps<'text', string>) => {
+    ({ value, setValue, input, isLocked, useInputSize, nodeId }: InputProps<'text', string>) => {
         const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
@@ -23,7 +31,7 @@ export const TextAreaInput = memo(
 
         useEffect(() => {
             if (!size) {
-                setSize({ width: 320, height: 240 });
+                setSize(DEFAULT_SIZE);
             }
         }, [size, setSize]);
 
@@ -38,10 +46,43 @@ export const TextAreaInput = memo(
             setValue(text);
         }, 500);
 
+        const { t } = useTranslation();
+
+        const menu = useContextMenu(() => (
+            <MenuList className="nodrag">
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!tempText}
+                    onClick={() => {
+                        clipboard.writeText(tempText);
+                    }}
+                >
+                    {t('inputs.text.copyText', 'Copy Text')}
+                </MenuItem>
+                <MenuItem
+                    icon={<MdContentPaste />}
+                    onClick={() => {
+                        const text = clipboard.readText();
+                        if (text) {
+                            setValue(text);
+                        }
+                    }}
+                >
+                    {t('inputs.text.paste', 'Paste')}
+                </MenuItem>
+                <CopyOverrideIdSection
+                    inputId={input.id}
+                    nodeId={nodeId}
+                />
+            </MenuList>
+        ));
+
+        const startSize = useRef(size ?? DEFAULT_SIZE);
+
         return (
             <Resizable
                 className="nodrag"
-                defaultSize={size}
+                defaultSize={size ?? DEFAULT_SIZE}
                 enable={{
                     top: false,
                     right: !isLocked && resizable,
@@ -52,16 +93,36 @@ export const TextAreaInput = memo(
                     bottomLeft: false,
                     topLeft: false,
                 }}
+                handleComponent={{
+                    bottomRight: (
+                        <Center
+                            cursor="nwse-resize"
+                            h="full"
+                            ml={-1}
+                            mt={-1}
+                            w="full"
+                        >
+                            <DragHandleSVG
+                                color="var(--fg-300)"
+                                opacity={0.75}
+                            />
+                        </Center>
+                    ),
+                }}
                 minHeight={80}
                 minWidth={240}
                 scale={zoom}
-                onResizeStop={(e, direction, ref, d) => {
+                size={size}
+                onResize={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: (size?.width ?? 0) + d.width,
-                            height: (size?.height ?? 0) + d.height,
+                            width: startSize.current.width + d.width,
+                            height: startSize.current.height + d.height,
                         });
                     }
+                }}
+                onResizeStart={() => {
+                    startSize.current = size ?? DEFAULT_SIZE;
                 }}
             >
                 <Textarea
@@ -77,6 +138,7 @@ export const TextAreaInput = memo(
                         setTempText(event.target.value);
                         handleChange(event);
                     }}
+                    onContextMenu={menu.onContextMenu}
                     onKeyDown={stopPropagation}
                 />
             </Resizable>

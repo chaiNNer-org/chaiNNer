@@ -4,12 +4,12 @@ from typing import Tuple
 
 import numpy as np
 
-from . import category as ImageDimensionCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import NumberOutput
 from ...utils.utils import get_h_w_c
+from . import category as ImageDimensionCategory
 
 
 @NodeFactory.register("chainner:image:get_dims")

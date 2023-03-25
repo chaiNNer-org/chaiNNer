@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from . import category as NcnnCategory
+from ...impl.ncnn.model import NcnnModelWrapper
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput
 from ...properties.outputs import NumberOutput
-from ...impl.ncnn.model import NcnnModelWrapper
+from . import category as NcnnCategory
 
 
 @NodeFactory.register("chainner:ncnn:model_dim")

@@ -1,13 +1,18 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
+import os
+import re
 from dataclasses import dataclass
 from typing import List, Tuple, Union
-import re
-import os
 
 import numpy as np
 from sanic.log import logger
+
+Size = Tuple[int, int]
+"""
+The width and height (in that order) of an image.
+"""
 
 NUMBERS = re.compile(r"(\d+)")
 
@@ -173,7 +178,7 @@ class Region:
     height: int
 
     @property
-    def size(self) -> Tuple[int, int]:
+    def size(self) -> Size:
         return self.width, self.height
 
     def scale(self, factor: int) -> Region:
@@ -224,8 +229,15 @@ class Region:
         ]
 
     def write_into(self, lhs: np.ndarray, rhs: np.ndarray):
-        h, w, _ = get_h_w_c(rhs)
+        h, w, c = get_h_w_c(rhs)
         assert (w, h) == self.size
+        assert c == get_h_w_c(lhs)[2]
+
+        if c == 1:
+            if lhs.ndim == 2 and rhs.ndim == 3:
+                rhs = rhs[:, :, 0]
+            if lhs.ndim == 3 and rhs.ndim == 2:
+                rhs = np.expand_dims(rhs, axis=2)
 
         lhs[
             self.y : (self.y + self.height),

@@ -1,5 +1,6 @@
 import os
 from typing import TypedDict
+
 from sanic.log import logger
 
 
@@ -38,7 +39,7 @@ class ExecutionOptions:
 
     @property
     def full_device(self) -> str:
-        if self.__device == "cuda" and self.__pytorch_gpu_index is not None:
+        if self.__device == "cuda":
             return f"{self.__device}:{self.__pytorch_gpu_index}"
         return self.__device
 

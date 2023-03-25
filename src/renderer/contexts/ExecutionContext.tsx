@@ -1,32 +1,18 @@
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'reactflow';
+import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
-import { checkNodeValidity } from '../../common/checkNodeValidity';
-import {
-    EdgeData,
-    InputId,
-    JsonEdgeInput,
-    JsonInput,
-    JsonNode,
-    NodeData,
-    OutputId,
-} from '../../common/common-types';
+import { EdgeData, NodeData } from '../../common/common-types';
+import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
+import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
+import { getConnectedInputs } from '../../common/nodes/connectedInputs';
+import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
+import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { SchemaMap } from '../../common/SchemaMap';
+import { assertNever, delay } from '../../common/util';
 import {
-    ParsedSourceHandle,
-    assertNever,
-    getInputValues,
-    parseSourceHandle,
-    parseTargetHandle,
-} from '../../common/util';
-import { getConnectedInputs } from '../helpers/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../helpers/disabled';
-import { getNodesWithSideEffects } from '../helpers/sideEffect';
-import {
-    BackendEventMap,
     BackendEventSourceListener,
     useBackendEventSource,
     useBackendEventSourceListener,
@@ -43,6 +29,7 @@ export enum ExecutionStatus {
     READY,
     RUNNING,
     PAUSED,
+    KILLING,
 }
 
 interface ExecutionStatusContextValue {
@@ -66,123 +53,6 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
 
-const convertToUsableFormat = (
-    nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
-) => {
-    const result: JsonNode[] = [];
-
-    const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertHandle = (handle: ParsedSourceHandle): JsonEdgeInput => {
-        const schema = nodeSchemaMap.get(handle.nodeId);
-        if (!schema) {
-            throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
-        }
-
-        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.outputId);
-        if (index === -1) {
-            throw new Error(
-                `Invalid handle: There is no output with id ${handle.outputId} in ${schema.name}`
-            );
-        }
-
-        return { type: 'edge', id: handle.nodeId, index };
-    };
-
-    type Handles<I extends InputId | OutputId> = Record<
-        string,
-        Record<I, JsonEdgeInput | undefined> | undefined
-    >;
-    const inputHandles: Handles<InputId> = {};
-    edges.forEach((element) => {
-        const { sourceHandle, targetHandle } = element;
-        if (!sourceHandle || !targetHandle) return;
-
-        const sourceH = parseSourceHandle(sourceHandle);
-        const targetH = parseTargetHandle(targetHandle);
-
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertHandle(sourceH);
-    });
-
-    // Set up each node in the result
-    nodes.forEach((element) => {
-        const { id, data, type: nodeType } = element;
-        const { schemaId, inputData } = data;
-        const schema = schemata.get(schemaId);
-
-        if (!nodeType) {
-            throw new Error(
-                `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`
-            );
-        }
-
-        // Node
-        result.push({
-            id,
-            schemaId,
-            inputs: getInputValues<JsonInput>(
-                schema,
-                (inputId) =>
-                    inputHandles[id]?.[inputId] ?? {
-                        type: 'value',
-                        value: inputData[inputId] ?? null,
-                    }
-            ),
-            nodeType,
-            parent: element.parentNode ?? null,
-        });
-    });
-
-    return result;
-};
-
-const getExecutionErrorMessage = (
-    { exception, source }: BackendEventMap['execution-error'],
-    schemata: SchemaMap
-): string => {
-    if (!source) return exception;
-
-    const schema = schemata.get(source.schemaId);
-    let { name } = schema;
-    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
-        // make the name unique using the category of the schema
-        name = `${schema.category} ${schema.name}`;
-    }
-
-    const inputs = schema.inputs.flatMap((i) => {
-        const value = source.inputs[i.id];
-        if (value === undefined) return [];
-
-        let valueStr: string;
-        const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
-        if (option) {
-            valueStr = option.option;
-        } else if (value === null) {
-            valueStr = 'None';
-        } else if (typeof value === 'number') {
-            valueStr = String(value);
-        } else if (typeof value === 'string') {
-            valueStr = JSON.stringify(value);
-        } else {
-            let type = 'Image';
-            if (value.channels === 1) type = 'Grayscale image';
-            if (value.channels === 3) type = 'RGB image';
-            if (value.channels === 4) type = 'RGBA image';
-            valueStr = `${type} ${value.width}x${value.height}`;
-        }
-
-        return [`• ${i.label}: ${valueStr}`];
-    });
-    const partial = inputs.length === schema.inputs.length;
-    const inputsInfo =
-        inputs.length === 0
-            ? ''
-            : `Input values${partial ? '' : ' (partial)'}:\n${inputs.join('\n')}`;
-
-    return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
-};
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
@@ -193,7 +63,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef } = useContext(BackendContext);
+    const { schemata, port, backend, ownsBackend, restartingRef, restart } =
+        useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
@@ -226,7 +97,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
         if (data) {
-            sendAlert({ type: AlertType.ERROR, message: getExecutionErrorMessage(data, schemata) });
+            sendAlert({
+                type: AlertType.ERROR,
+                message: formatExecutionErrorMessage(
+                    data,
+                    schemata,
+                    (label, value) => `• ${label}: ${value}`
+                ),
+            });
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
@@ -374,10 +252,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setStatus(ExecutionStatus.RUNNING);
             animate(nodes.map((n) => n.id));
 
-            const data = convertToUsableFormat(nodes, edges, schemata);
+            const data = toBackendJson(nodes, edges, schemata);
             const response = await backend.run({
                 data,
                 options,
+                sendBroadcastData: true,
             });
             if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue
@@ -389,10 +268,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            sendAlert({
-                type: AlertType.ERROR,
-                message: `An unexpected error occurred: ${String(err)}`,
-            });
+            if (!(err instanceof DOMException && err.name === 'AbortError')) {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `An unexpected error occurred: ${String(err)}`,
+                });
+            }
         } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
@@ -451,14 +332,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const kill = useCallback(async () => {
         try {
-            const response = await backend.kill();
+            setStatus(ExecutionStatus.KILLING);
+            const backendKillPromise = backend.kill();
+            const timeoutPromise = delay(2500).then(() => ({
+                type: 'timeout',
+                exception: '',
+            }));
+            const response = await Promise.race([backendKillPromise, timeoutPromise]);
+            if (response.type === 'timeout') {
+                await restart();
+                log.info('Finished restarting backend');
+            }
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
             }
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-    }, [backend, sendAlert]);
+    }, [backend, restart, sendAlert]);
 
     useHotkeys(
         'F5',
@@ -470,6 +361,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     run();
                     break;
                 case ExecutionStatus.RUNNING:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -487,6 +379,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     break;
                 case ExecutionStatus.READY:
                 case ExecutionStatus.PAUSED:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);
@@ -504,6 +397,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     kill();
                     break;
                 case ExecutionStatus.READY:
+                case ExecutionStatus.KILLING:
                     break;
                 default:
                     assertNever(status);

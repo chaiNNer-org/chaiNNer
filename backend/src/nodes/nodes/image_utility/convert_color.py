@@ -2,23 +2,25 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import category as ImageUtilityCategory
-from ...node_base import NodeBase, group
-from ...node_factory import NodeFactory
-from ...properties.inputs import (
-    ImageInput,
-    ColorSpaceDetectorInput,
-    ColorSpaceInput,
-    BoolInput,
-)
-from ...properties.outputs import ImageOutput
-from ...properties import expression
-from ...impl.color.convert_data import color_spaces, get_alpha_partner
+from ...group import group
+from ...groups import if_enum_group
 from ...impl.color.convert import (
-    convert,
     color_space_from_id,
     color_space_or_detector_from_id,
+    convert,
 )
+from ...impl.color.convert_data import color_spaces, get_alpha_partner
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties import expression
+from ...properties.inputs import (
+    BoolInput,
+    ColorSpaceDetectorInput,
+    ColorSpaceInput,
+    ImageInput,
+)
+from ...properties.outputs import ImageOutput
+from . import category as ImageUtilityCategory
 
 COLOR_SPACES_WITH_ALPHA_PARTNER = [
     c.id for c in color_spaces if get_alpha_partner(c) is not None
@@ -39,10 +41,7 @@ class ColorConvertNode(NodeBase):
                 ColorSpaceDetectorInput(label="From").with_id(1),
                 ColorSpaceInput(label="To").with_id(2),
             ),
-            group(
-                "conditional-enum",
-                {"enum": 2, "conditions": [COLOR_SPACES_WITH_ALPHA_PARTNER]},
-            )(
+            if_enum_group(2, COLOR_SPACES_WITH_ALPHA_PARTNER)(
                 BoolInput("Output Alpha", default=False),
             ),
         ]

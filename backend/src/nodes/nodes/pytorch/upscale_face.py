@@ -1,27 +1,31 @@
 from __future__ import annotations
+
 import os
 from typing import Union
 
+import cv2
 import numpy as np
 import torch
-from sanic.log import logger
-import cv2
-
-from torchvision.transforms.functional import normalize as tv_normalize
-from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-
 from appdirs import user_data_dir
+from facexlib.utils.face_restoration_helper import FaceRestoreHelper
+from sanic.log import logger
+from torchvision.transforms.functional import normalize as tv_normalize
 
-from . import category as PyTorchCategory
+from ...impl.image_utils import to_uint8
+from ...impl.pytorch.types import PyTorchFaceModel
+from ...impl.pytorch.utils import (
+    np2tensor,
+    safe_cuda_cache_empty,
+    tensor2np,
+    to_pytorch_execution_options,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import FaceModelInput, ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
-from ...utils.utils import get_h_w_c
-from ...impl.pytorch.utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.types import PyTorchFaceModel
-from ...impl.pytorch.utils import to_pytorch_execution_options
+from ...utils.utils import get_h_w_c
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
@@ -31,12 +35,12 @@ class FaceUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN, RestoreFormer, and CodeFormer."
         self.inputs = [
-            FaceModelInput("Model"),
-            ImageInput(),
-            ImageInput("Upscaled Background").make_optional(),
+            ImageInput().with_id(1),
+            FaceModelInput("Model").with_id(0),
+            ImageInput("Upscaled Background").with_id(2).make_optional(),
             NumberInput(
                 label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
-            ),
+            ).with_id(3),
         ]
         self.outputs = [
             ImageOutput(
@@ -57,7 +61,7 @@ class FaceUpscaleNode(NodeBase):
         self.sub = "Restoration"
 
     def denormalize(self, img: np.ndarray):
-        img = (img * 255).astype(np.uint8)
+        img = to_uint8(img, normalized=True)
         _, _, c = get_h_w_c(img)
         if c == 4:
             img = img[:, :, :3]
@@ -130,7 +134,7 @@ class FaceUpscaleNode(NodeBase):
             face_helper.get_inverse_affine(None)
             restored_img = face_helper.paste_faces_to_input_image()
         del face_helper
-        torch.cuda.empty_cache()
+        safe_cuda_cache_empty()
 
         restored_img = np.clip(restored_img.astype("float32") / 255.0, 0, 1)
 
@@ -138,8 +142,8 @@ class FaceUpscaleNode(NodeBase):
 
     def run(
         self,
-        face_model: PyTorchFaceModel,
         img: np.ndarray,
+        face_model: PyTorchFaceModel,
         background_img: Union[np.ndarray, None],
         upscale: int,
     ) -> np.ndarray:
@@ -185,6 +189,6 @@ class FaceUpscaleNode(NodeBase):
             logger.error(f"Face Upscale failed: {e}")
             face_helper = None
             del face_helper
-            torch.cuda.empty_cache()
+            safe_cuda_cache_empty()
             # pylint: disable=raise-missing-from
             raise RuntimeError("Failed to run Face Upscale.")

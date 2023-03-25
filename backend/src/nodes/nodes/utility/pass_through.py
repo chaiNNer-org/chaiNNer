@@ -6,12 +6,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import category as UtilityCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import AnyInput
 from ...properties.outputs import BaseOutput
+from . import category as UtilityCategory
 
 
 @NodeFactory.register("chainner:utility:pass_through")

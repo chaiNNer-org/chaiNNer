@@ -7,7 +7,7 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import { MouseEventHandler, memo } from 'react';
 import { areApproximatelyEqual, stopPropagation } from '../../../../common/util';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
@@ -41,6 +41,9 @@ interface AdvancedNumberInputProps {
     inputString: string;
     setInputString: (input: string) => void;
     setInput: (value: number) => void;
+
+    onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
+    inputWidth?: string;
 }
 
 export const AdvancedNumberInput = memo(
@@ -59,6 +62,9 @@ export const AdvancedNumberInput = memo(
         inputString,
         setInputString,
         setInput,
+
+        onContextMenu,
+        inputWidth,
     }: AdvancedNumberInputProps) => {
         const onBlur = () => {
             const valAsNumber =
@@ -83,6 +89,7 @@ export const AdvancedNumberInput = memo(
                     mx={0}
                     size="xs"
                     w="fit-content"
+                    onContextMenu={onContextMenu}
                 >
                     {unit && (
                         <InputLeftAddon
@@ -113,8 +120,8 @@ export const AdvancedNumberInput = memo(
                             borderRightRadius="md"
                             m={0}
                             p={1}
-                            // dynamic width based on precision
-                            w={`${3 + 0.5 * precision}rem`}
+                            size={1}
+                            w={inputWidth}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />
@@ -129,6 +136,7 @@ export const AdvancedNumberInput = memo(
             <InputGroup
                 size="sm"
                 w="full"
+                onContextMenu={onContextMenu}
             >
                 {unit && (
                     <InputLeftAddon
@@ -159,6 +167,8 @@ export const AdvancedNumberInput = memo(
                         borderLeftRadius={unit ? 0 : 'lg'}
                         borderRightRadius="lg"
                         px={unit ? 2 : 4}
+                        size={1}
+                        w={inputWidth}
                     />
                     <NumberInputStepper>
                         <NumberIncrementStepper />

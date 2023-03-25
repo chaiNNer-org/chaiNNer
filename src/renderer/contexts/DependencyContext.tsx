@@ -8,9 +8,10 @@ import {
     Button,
     Center,
     Collapse,
+    Divider,
     Flex,
     HStack,
-    IconButton,
+    Icon,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -21,6 +22,7 @@ import {
     Progress,
     Spacer,
     Spinner,
+    Switch,
     Tag,
     Text,
     Textarea,
@@ -30,10 +32,11 @@ import {
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BsTerminalFill } from 'react-icons/bs';
+import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
+import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
@@ -48,6 +51,11 @@ import { SettingsContext } from './SettingsContext';
 export interface DependencyContextValue {
     openDependencyManager: () => void;
     availableUpdates: number;
+}
+
+export interface ExternalIntegrationConnectionStatus {
+    integration: Integration;
+    connected: boolean;
 }
 
 export const DependencyContext = createContext<Readonly<DependencyContextValue>>({
@@ -276,6 +284,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+    const [usePipDirectly, setUsePipDirectly] = useState(false);
 
     useAsyncEffect(() => {
         if (pipList) return;
@@ -345,12 +354,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const installPackage = (dep: Dependency) => {
         setInstallingPackage(dep);
-        changePackages(() => runPipInstall(pythonInfo, [dep], setProgress, onStdio));
+        changePackages(() =>
+            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     const uninstallPackage = (dep: Dependency) => {
         setUninstallingPackage(dep);
-        changePackages(() => runPipUninstall(pythonInfo, [dep], setProgress, onStdio));
+        changePackages(() =>
+            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     useEffect(() => {
@@ -382,6 +395,34 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         openDependencyManager: onOpen,
         availableUpdates,
     });
+
+    const [loadingExtInts, setLoadingExtInts] = useState(true);
+    const [externalIntegrationConnections, setExternalIntegrationConnections] = useState<
+        ExternalIntegrationConnectionStatus[]
+    >([]);
+
+    useAsyncEffect(
+        () => ({
+            supplier: async () => {
+                const connections = await Promise.all(
+                    externalIntegrations.map(async (integration) => {
+                        try {
+                            const connected = await fetch(
+                                `http://${integration.url}:${integration.port}`
+                            );
+                            return { integration, connected: connected.ok };
+                        } catch (e) {
+                            return { integration, connected: false };
+                        }
+                    })
+                );
+                return connections;
+            },
+            successEffect: setExternalIntegrationConnections,
+            finallyEffect: () => setLoadingExtInts(false),
+        }),
+        []
+    );
 
     return (
         <DependencyContext.Provider value={value}>
@@ -423,12 +464,39 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     Python ({pythonInfo.version}) [
                                     {isSystemPython ? 'System' : 'Integrated'}]
                                 </Text>
-                                <IconButton
-                                    aria-label="Open Console View"
-                                    icon={<BsTerminalFill />}
-                                    size="sm"
-                                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-                                />
+                                <HStack>
+                                    <HStack>
+                                        <Switch
+                                            isChecked={usePipDirectly}
+                                            isDisabled={isRunningShell}
+                                            onChange={() => {
+                                                setUsePipDirectly(!usePipDirectly);
+                                            }}
+                                        />
+                                        <Text>Use Pip Directly</Text>
+                                        <Tooltip
+                                            hasArrow
+                                            borderRadius={8}
+                                            label="Disable progress bars and use pip to directly download and install the packages. Use this setting if you are having issues installing normally."
+                                            maxW="auto"
+                                            openDelay={500}
+                                            px={2}
+                                            py={0}
+                                        >
+                                            <Center>
+                                                <Icon as={BsQuestionCircle} />
+                                            </Center>
+                                        </Tooltip>
+                                    </HStack>
+                                    <Button
+                                        aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
+                                        leftIcon={<BsTerminalFill />}
+                                        size="sm"
+                                        onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                                    >
+                                        {isConsoleOpen ? 'Hide Console' : 'View Console'}
+                                    </Button>
+                                </HStack>
                             </Flex>
                             {!pipList ? (
                                 <Spinner />
@@ -476,6 +544,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 key={dep.name}
                                                 pipList={pipList}
                                                 progress={
+                                                    !usePipDirectly &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
                                                         ?.name === dep.name
@@ -533,6 +602,35 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 </Center>
                                 {/* </Collapse> */}
                             </Center>
+                            <Divider w="full" />
+                            {loadingExtInts ? (
+                                <Spinner />
+                            ) : (
+                                <VStack
+                                    textAlign="left"
+                                    w="full"
+                                >
+                                    <Text
+                                        fontWeight="bold"
+                                        w="full"
+                                    >
+                                        External Connections
+                                    </Text>
+                                    {externalIntegrationConnections.map(
+                                        ({ integration, connected }) => (
+                                            <HStack
+                                                key={integration.name}
+                                                w="full"
+                                            >
+                                                <Text>{integration.name}</Text>
+                                                <Text color={connected ? 'green.500' : 'gray.500'}>
+                                                    {connected ? 'Connected' : 'Not Connected'}
+                                                </Text>
+                                            </HStack>
+                                        )
+                                    )}
+                                </VStack>
+                            )}
                         </VStack>
                     </ModalBody>
 

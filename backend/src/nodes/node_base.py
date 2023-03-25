@@ -1,28 +1,17 @@
 from __future__ import annotations
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, List, Literal, Union
 
 from base_types import InputId, OutputId
 
+from .category import Category
+from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .group import Group, GroupInfo, GroupId
 
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
 
-
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
-
-NestedGroup = Group[Union[BaseInput, "NestedGroup"]]
-NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
-
-# pylint: disable-next=redefined-builtin
-def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
-    info = GroupInfo(GroupId(id), kind, options)
-
-    def ret(*items) -> NestedGroup:
-        return Group(info, list(items))
-
-    return ret
 
 
 class NodeBase(metaclass=ABCMeta):
@@ -63,7 +52,7 @@ class NodeBase(metaclass=ABCMeta):
                     g: NestedIdGroup = Group(x.info, [])
                     groups.append(g)
                     layout.append(g)
-                    g.items.extend(add_inputs(x.items))
+                    g.items.extend(add_inputs(x.items))  # type: ignore
                 else:
                     if x.id == -1:
                         x.id = InputId(len(inputs))

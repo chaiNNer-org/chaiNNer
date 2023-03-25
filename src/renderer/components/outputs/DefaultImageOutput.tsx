@@ -1,10 +1,11 @@
-import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
+import { literal } from '@chainner/navi';
 import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { BsEyeFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
+import { struct } from '../../../common/types/util';
 import {
     createUniqueId,
     parseSourceHandle,
@@ -43,11 +44,11 @@ export const DefaultImageOutput = memo(
                 setManualOutputType(
                     id,
                     outputId,
-                    new NamedExpression('Image', [
-                        new NamedExpressionField('width', literal(current.width)),
-                        new NamedExpressionField('height', literal(current.height)),
-                        new NamedExpressionField('channels', literal(current.channels)),
-                    ])
+                    struct('Image', {
+                        width: literal(current.width),
+                        height: literal(current.height),
+                        channels: literal(current.channels),
+                    })
                 );
             } else {
                 setManualOutputType(id, outputId, undefined);
@@ -64,9 +65,21 @@ export const DefaultImageOutput = memo(
                 w="full"
             >
                 <Center
+                    _hover={{
+                        backgroundColor: 'var(--node-image-preview-button-bg-hover)',
+                    }}
+                    bgColor="var(--node-image-preview-button-bg)"
+                    borderRadius="md"
                     cursor="pointer"
-                    h="2rem"
-                    w="2rem"
+                    h="1.75rem"
+                    maxH="1.75rem"
+                    maxW="1.75rem"
+                    minH="1.75rem"
+                    minW="1.75rem"
+                    my="0.125rem"
+                    overflow="hidden"
+                    transition="0.15s ease-in-out"
+                    w="1.75rem"
                     onClick={() => {
                         const byId = new Map(getNodes().map((n) => [n.id, n]));
 
@@ -121,27 +134,10 @@ export const DefaultImageOutput = memo(
                         }
                     }}
                 >
-                    <Center
-                        _hover={{
-                            backgroundColor: 'var(--node-image-preview-button-bg-hover)',
-                        }}
-                        bgColor="var(--node-image-preview-button-bg)"
-                        borderRadius="md"
-                        cursor="pointer"
-                        h="1.75rem"
-                        maxH="1.75rem"
-                        maxW="1.75rem"
-                        minH="1.75rem"
-                        minW="1.75rem"
-                        overflow="hidden"
-                        transition="0.15s ease-in-out"
-                        w="1.75rem"
-                    >
-                        <Icon
-                            as={BsEyeFill}
-                            color="var(--node-image-preview-button-fg)"
-                        />
-                    </Center>
+                    <Icon
+                        as={BsEyeFill}
+                        color="var(--node-image-preview-button-fg)"
+                    />
                 </Center>
                 <Spacer />
                 {type && (

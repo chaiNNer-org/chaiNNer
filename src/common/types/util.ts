@@ -1,11 +1,15 @@
 import {
+    Expression,
     IntIntervalType,
     NonNeverType,
     NumericLiteralType,
     StringPrimitive,
+    StructExpression,
+    StructExpressionField,
     StructType,
     Type,
     UnionType,
+    without,
 } from '@chainner/navi';
 
 export type IntNumberType =
@@ -37,4 +41,15 @@ export const isDirectory = (
 
 export const getField = (struct: StructType, field: string): NonNeverType | undefined => {
     return struct.fields.find((f) => f.name === field)?.type;
+};
+
+const nullType = new StructType('null');
+
+export const withoutNull = (type: Type): Type => without(type, nullType);
+
+export const struct = (name: string, fields: Record<string, Expression>): StructExpression => {
+    return new StructExpression(
+        name,
+        Object.entries(fields).map(([n, e]) => new StructExpressionField(n, e))
+    );
 };

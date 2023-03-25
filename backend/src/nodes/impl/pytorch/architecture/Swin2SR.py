@@ -6,12 +6,13 @@
 # -----------------------------------------------------------------------------------
 
 import math
+import re
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-import re
 
 # Originally from the timm package
 from .timm.drop import DropPath
@@ -102,7 +103,6 @@ class WindowAttention(nn.Module):
         proj_drop=0.0,
         pretrained_window_size=[0, 0],
     ):
-
         super().__init__()
         self.dim = dim
         self.window_size = window_size  # Wh, Ww
@@ -518,7 +518,6 @@ class BasicLayer(nn.Module):
         use_checkpoint=False,
         pretrained_window_size=0,
     ):
-
         super().__init__()
         self.dim = dim
         self.input_resolution = input_resolution

@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+
 import numpy as np
 
 from .clipboard_base import ClipboardBase
@@ -9,7 +10,7 @@ class LinuxClipboard(ClipboardBase):
     def __init__(self) -> None:
         self.xclip = shutil.which("xclip")
         if not self.xclip:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "xclip must be installed. "
                 "Please install xclip using your system package manager"
             )
@@ -22,7 +23,7 @@ class LinuxClipboard(ClipboardBase):
 
         stdout, stderr = proc.communicate(image_bytes)
         if proc.returncode != 0:
-            raise Exception(
+            raise RuntimeError(
                 f"Copy failed. xclip returned code: {proc.returncode!r} "
                 f"Stderr: {stderr!r} "
                 f"Stdout: {stdout!r}"
@@ -36,7 +37,7 @@ class LinuxClipboard(ClipboardBase):
 
         stdout, stderr = proc.communicate(text.encode("utf-8"))
         if proc.returncode != 0:
-            raise Exception(
+            raise RuntimeError(
                 f"Copy failed. xclip returned code: {proc.returncode!r} "
                 f"Stderr: {stderr!r} "
                 f"Stdout: {stdout!r}"

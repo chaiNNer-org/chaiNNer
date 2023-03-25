@@ -131,7 +131,10 @@ class Onnx2NcnnConverter:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Transpose":
-                if node.input[0] in self.weights and len(node.input[0].dims) == 2:
+                if (
+                    node.input[0] in self.weights
+                    and len(self.weights[node.input[0]].dims) == 2
+                ):
                     perm = get_node_attr_ai(node, "perm")
                     if perm.size != 2 or perm[0] != 1 or perm[1] != 0:
                         continue
@@ -366,8 +369,7 @@ class Onnx2NcnnConverter:
                 if (
                     node2.op_type != "Clip"
                     or node3.op_type != "Mul"
-                    or node4.op_type != "Div"
-                    or node4.op_type != "Mul"
+                    or (node4.op_type != "Div" and node4.op_type != "Mul")
                 ):
                     continue
                 if self.node_reference[node2.output[0]] != 1:
@@ -516,7 +518,7 @@ class Onnx2NcnnConverter:
                     node3 = self.mutable_graph_nodes[i + 3]
 
                 if node2.op_type != "Clip" or (
-                    node3.op_type != "Div" and node.op_type != "Mul"
+                    node3.op_type != "Div" and node3.op_type != "Mul"
                 ):
                     continue
 
@@ -1386,7 +1388,7 @@ class Onnx2NcnnConverter:
                     self.node_reference[node.input[1]] -= 1
                 self.node_reference[node.output[0]] -= 1
                 self.node_reference[node2.output[0]] -= 1
-                if len(node3) == 2:
+                if len(node3.input) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
                 self.blob_names.pop(node.output[0], None)

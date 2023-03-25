@@ -2,7 +2,12 @@
 # type: ignore
 import math
 import random
+
 import torch
+from torch import nn
+from torch.nn import functional as F
+
+from .fused_act import FusedLeakyReLU
 from .stylegan2_arch import (
     ConvLayer,
     EqualConv2d,
@@ -11,9 +16,6 @@ from .stylegan2_arch import (
     ScaledLeakyReLU,
     StyleGAN2Generator,
 )
-from .fused_act import FusedLeakyReLU
-from torch import nn
-from torch.nn import functional as F
 
 
 class StyleGAN2GeneratorSFT(StyleGAN2Generator):
@@ -279,7 +281,6 @@ class GFPGANv1(nn.Module):
         narrow=1,
         sft_half=False,
     ):
-
         super(GFPGANv1, self).__init__()
         self.input_is_latent = input_is_latent
         self.different_w = different_w

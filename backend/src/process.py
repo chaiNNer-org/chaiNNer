@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
-import uuid
 import time
+import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import (
     Any,
     Callable,
@@ -18,20 +18,18 @@ from typing import (
     TypeVar,
     Union,
 )
+
 import numpy as np
-
 from sanic.log import logger
-from progress import ProgressToken, Aborted, ProgressController
-from events import EventQueue, Event, InputsDict
+
 from base_types import NodeId, OutputId
-
-from chain.chain import Chain, Node, FunctionNode, IteratorNode, SubChain
-from chain.cache import OutputCache, CacheStrategy, get_cache_strategies
-from chain.input import InputMap, EdgeInput
-
-from nodes.node_base import NodeBase
+from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
+from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
+from chain.input import EdgeInput, InputMap
+from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-
+from nodes.node_base import NodeBase
+from progress import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
 
@@ -103,6 +101,7 @@ class IteratorContext:
         return Executor(
             self.executor.chain,
             self.inputs,
+            self.executor.send_broadcast_data,
             self.executor.loop,
             self.executor.queue,
             self.executor.pool,
@@ -158,12 +157,12 @@ class IteratorContext:
                 await self.run_iteration(index, length)
             except Aborted:
                 raise
-            except Exception as e:
+            except RuntimeError as e:
                 logger.error(e)
                 errors.append(str(e))
 
         if len(errors) > 0:
-            raise Exception(
+            raise RuntimeError(
                 # pylint: disable=consider-using-f-string
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
@@ -210,7 +209,7 @@ class IteratorContext:
             )
 
         if len(errors) > 0:
-            raise Exception(
+            raise RuntimeError(
                 # pylint: disable=consider-using-f-string
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
@@ -242,6 +241,7 @@ class Executor:
         self,
         chain: Chain,
         inputs: InputMap,
+        send_broadcast_data: bool,
         loop: asyncio.AbstractEventLoop,
         queue: EventQueue,
         pool: ThreadPoolExecutor,
@@ -255,6 +255,7 @@ class Executor:
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain
         self.inputs = inputs
+        self.send_broadcast_data: bool = send_broadcast_data
         self.cache: OutputCache[Output] = OutputCache(
             parent=parent_executor.cache if parent_executor else parent_cache
         )
@@ -424,7 +425,11 @@ class Executor:
             )
 
         # Only broadcast the output if the node has outputs and the output is not cached
-        if len(node_outputs) > 0 and not self.cache.has(node_id):
+        if (
+            self.send_broadcast_data
+            and len(node_outputs) > 0
+            and not self.cache.has(node_id)
+        ):
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
         else:

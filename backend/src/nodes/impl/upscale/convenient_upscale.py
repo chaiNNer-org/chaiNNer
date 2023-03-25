@@ -1,13 +1,10 @@
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 
-from ..image_utils import as_target_channels
 from ...utils.utils import get_h_w_c
-
-
-def clipped(upscale: Callable[[np.ndarray], np.ndarray]) -> Callable:
-    return lambda i: np.clip(upscale(i), 0, 1)
+from ..image_op import ImageOp, clipped
+from ..image_utils import as_target_channels
 
 
 def with_black_and_white_backgrounds(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -27,7 +24,7 @@ def convenient_upscale(
     img: np.ndarray,
     model_in_nc: int,
     model_out_nc: int,
-    upscale: Callable[[np.ndarray], np.ndarray],
+    upscale: ImageOp,
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
@@ -68,7 +65,7 @@ def convenient_upscale(
             upscale(as_target_channels(white, model_in_nc, True)), 3, True
         )
 
-        alpha = 1 - np.mean(white_up - black_up, axis=2)
+        alpha = 1 - np.mean(white_up - black_up, axis=2)  # type: ignore
         return np.dstack((black_up, alpha))
 
     return as_target_channels(

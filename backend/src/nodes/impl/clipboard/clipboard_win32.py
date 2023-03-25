@@ -1,6 +1,7 @@
-from ctypes import wintypes
 import ctypes
 import sys
+from ctypes import wintypes
+
 import cv2
 import numpy as np
 
@@ -101,8 +102,8 @@ class BITMAPINFOHEADER(ctypes.Structure):
 
 class WindowsClipboard(ClipboardBase):
     def __init__(self) -> None:
-        if win32clipboard is None:
-            raise Exception(
+        if win32clipboard is None:  # type: ignore
+            raise ModuleNotFoundError(
                 "pywin32 must be installed to use this library on Windows platform."
             )
 
@@ -181,8 +182,8 @@ class WindowsClipboard(ClipboardBase):
         return dip
 
     def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
-        if win32clipboard is None:
-            raise Exception("win32clipboard is not avaiable!")
+        if win32clipboard is None:  # type: ignore
+            raise ModuleNotFoundError("win32clipboard is not avaiable!")
 
         try:
             win32clipboard.OpenClipboard()
@@ -198,8 +199,8 @@ class WindowsClipboard(ClipboardBase):
             raise err
 
     def copy_text(self, text: str) -> None:
-        if win32clipboard is None:
-            raise Exception("win32clipboard is not avaiable!")
+        if win32clipboard is None:  # type: ignore
+            raise ModuleNotFoundError("win32clipboard is not avaiable!")
 
         if text.isdigit():
             text = f"{text}\0"  # Add null terminator. Without this, the clipboard will throw an error when the input is a number.

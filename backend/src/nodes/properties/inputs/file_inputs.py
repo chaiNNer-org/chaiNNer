@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Literal, Union
 
 import os
+from typing import Literal, Union
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
@@ -70,7 +70,7 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def VideoFileInput() -> FileInput:
+def VideoFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
         input_type_name="VideoFile",
@@ -90,6 +90,7 @@ def VideoFileInput() -> FileInput:
             ".avs",
         ],
         has_handle=False,
+        primary_input=primary_input,
     )
 
 
@@ -99,7 +100,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         input_type_name="PthFile",
         label="Pretrained Model",
         file_kind="pth",
-        filetypes=[".pth"],
+        filetypes=[".pt", ".pth"],
         primary_input=primary_input,
     )
 

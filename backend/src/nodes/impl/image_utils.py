@@ -1,14 +1,27 @@
-from enum import Enum
-from typing import List
+import itertools
 import os
 import random
 import string
+from enum import Enum
+from typing import List
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
-from ..utils.utils import get_h_w_c, Padding, split_file_path
+from ..utils.utils import Padding, get_h_w_c, split_file_path
+
+MAX_VALUES_BY_DTYPE = {
+    np.dtype("int8"): 127,
+    np.dtype("uint8"): 255,
+    np.dtype("int16"): 32767,
+    np.dtype("uint16"): 65535,
+    np.dtype("int32"): 2147483647,
+    np.dtype("uint32"): 4294967295,
+    np.dtype("int64"): 9223372036854775807,
+    np.dtype("uint64"): 18446744073709551615,
+    np.dtype("float32"): 1.0,
+    np.dtype("float64"): 1.0,
+}
 
 
 class FillColor(Enum):
@@ -49,6 +62,12 @@ class BorderType(Enum):
     TRANSPARENT = 5
 
 
+class NormalMapType(Enum):
+    DIRECTX = "DirectX"
+    OPENGL = "OpenGL"
+    OCTAHEDRAL = "Octahedral"
+
+
 def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
     assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
     if in_c == 1:
@@ -60,12 +79,49 @@ def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
 
 
 def normalize(img: np.ndarray) -> np.ndarray:
-    dtype_max = 1
-    try:
-        dtype_max = np.iinfo(img.dtype).max
-    except:
-        logger.debug("img dtype is not int")
-    return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
+    if img.dtype != np.float32:
+        try:
+            info = np.iinfo(img.dtype)
+            img = img.astype(np.float32)
+            img /= info.max
+            if info.min == 0:
+                # we don't need to clip
+                return img
+        except:
+            img = img.astype(np.float32)
+    return np.clip(img, 0, 1)
+
+
+def to_uint8(
+    img: np.ndarray,
+    normalized=False,
+    dither=False,
+) -> np.ndarray:
+    """
+    Returns a new uint8 image with the given image data.
+
+    If `normalized` is `False`, then the image will be normalized before being converted to uint8.
+
+    If `dither` is `True`, then dithering will be used to minimize the quantization error.
+    """
+    if img.dtype == np.uint8:
+        return img.copy()
+
+    if not normalized or img.dtype != np.float32:
+        img = normalize(img)
+
+    if not dither:
+        return (img * 255).round().astype(np.uint8)
+
+    # random dithering
+    truth = img * 255
+    quant = truth.round()
+
+    err = truth - quant
+    r = np.random.default_rng(0).uniform(0, 1, img.shape).astype(np.float32)
+    quant += np.sign(err) * (np.abs(err) > r)
+
+    return quant.astype(np.uint8)
 
 
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
@@ -227,3 +283,20 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
             _, buf_img = cv2.imencode(f".{extension}", img, params)
             with open(path, "wb") as outf:
                 outf.write(buf_img)
+
+
+def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:
+    """
+    Returns the cartesian product of the given arrays. Good for initializing coordinates, for example.
+
+    This is cartesian_product_transpose_pp from this following SO post by Paul Panzer:
+    https://stackoverflow.com/questions/11144513/cartesian-product-of-x-and-y-array-points-into-single-array-of-2d-points/49445693#49445693
+    """
+    #
+    la = len(arrays)
+    dtype = np.result_type(*arrays)
+    arr = np.empty((la, *map(len, arrays)), dtype=dtype)
+    idx = slice(None), *itertools.repeat(None, la)
+    for i, a in enumerate(arrays):
+        arr[i, ...] = a[idx[: la - i]]
+    return arr.reshape(la, -1).T

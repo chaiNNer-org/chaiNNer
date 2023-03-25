@@ -13,9 +13,7 @@ test(`Chainner scope is correct`, () => {
             case 'struct':
                 evaluate(new NamedExpression(name), scope);
                 break;
-            case 'builtin-function':
-                evaluate(new FunctionCallExpression(name, def.definition.parameters), scope);
-                break;
+            case 'intrinsic-function':
             case 'function':
                 evaluate(
                     new FunctionCallExpression(

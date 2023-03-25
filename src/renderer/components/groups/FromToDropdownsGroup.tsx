@@ -3,6 +3,7 @@ import { memo, useCallback } from 'react';
 import { IoMdArrowForward } from 'react-icons/io';
 import { useContext } from 'use-context-selector';
 import { Input, InputData, OfKind } from '../../../common/common-types';
+import { getInputValue } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DropDown } from '../inputs/elements/Dropdown';
 import { InputContainer } from '../inputs/InputContainer';
@@ -15,16 +16,16 @@ interface SmallDropDownProps {
     isLocked: boolean;
 }
 const SmallDropDown = memo(({ nodeId, input, inputData, isLocked }: SmallDropDownProps) => {
-    const { getNodeInputValue, setNodeInputValue } = useContext(GlobalContext);
+    const { setNodeInputValue } = useContext(GlobalContext);
 
-    const value = getNodeInputValue<string | number>(input.id, inputData);
+    const value = getInputValue<string | number>(input.id, inputData);
     const setValue = useCallback(
         (data?: string | number) => setNodeInputValue(nodeId, input.id, data ?? input.def),
         [setNodeInputValue, nodeId, input]
     );
 
     return (
-        <Box w="6em">
+        <Box w="full">
             <DropDown
                 isDisabled={isLocked}
                 options={input.options}

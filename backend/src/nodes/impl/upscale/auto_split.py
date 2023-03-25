@@ -1,67 +1,99 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Callable, Optional, Union, Tuple
+
 import math
+from typing import Callable, Optional, Union
 
 import numpy as np
 from sanic.log import logger
 
-from ...utils.utils import get_h_w_c, Region
+from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split
+from .tiler import Tiler
 
 
 class Split:
     pass
 
 
-class Tiler(ABC):
-    def exact_tile_size(self) -> Tuple[int, int] | None:
-        return None
-
-    @abstractmethod
-    def starting_tile_size(self, width: int, height: int, channels: int) -> int:
-        pass
-
-    def split(self, tile_size: int) -> int:
-        assert tile_size >= 16
-        return max(16, tile_size // 2)
-
-
-class NoTiling(Tiler):
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
-        return max(width, height)
-
-    def split(self, _tile_size: int) -> int:
-        raise ValueError(f"Image cannot be upscale with No Tiling mode.")
-
-
-class MaxTileSize(Tiler):
-    def __init__(self, tile_size: int = 2**31) -> None:
-        self.tile_size: int = tile_size
-
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
-        # Tile size a lot larger than the image don't make sense.
-        # So we use the minimum of the image dimensions and the given tile size.
-        max_tile_size = max(width + 10, height + 10)
-        return min(self.tile_size, max_tile_size)
-
-
-class ExactTileSize(Tiler):
-    def __init__(self, exact_size: Tuple[int, int]) -> None:
-        self.exact_size = exact_size
-
-    def exact_tile_size(self) -> Tuple[int, int] | None:
-        return self.exact_size
-
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
-        return max(*self.exact_size)
+SplitImageOp = Callable[[np.ndarray, Region], Union[np.ndarray, Split]]
 
 
 def auto_split(
     img: np.ndarray,
-    upscale: Callable[[np.ndarray], Union[np.ndarray, Split]],
+    upscale: SplitImageOp,
     tiler: Tiler,
     overlap: int = 16,
+) -> np.ndarray:
+    """
+    Splits the image into tiles according to the given tiler.
+
+    This method only changes the size of the given image, the tiles passed into the upscale function will have same number of channels.
+
+    The region passed into the upscale function is the region of the current tile.
+    The size of the region is guaranteed to be the same as the size of the given tile.
+
+    ## Padding
+
+    If the given tiler allows smaller tile sizes, then it is guaranteed that no padding will be added.
+    Otherwise, no padding is only guaranteed if the starting tile size is not larger than the size of the given image.
+    """
+
+    h, w, c = get_h_w_c(img)
+    split = _max_split if tiler.allow_smaller_tile_size() else _exact_split
+
+    return split(
+        img,
+        upscale=upscale,
+        starting_tile_size=tiler.starting_tile_size(w, h, c),
+        split_tile_size=tiler.split,
+        overlap=overlap,
+    )
+
+
+class _SplitEx(Exception):
+    pass
+
+
+def _exact_split(
+    img: np.ndarray,
+    upscale: SplitImageOp,
+    starting_tile_size: Size,
+    split_tile_size: Callable[[Size], Size],
+    overlap: int,
+) -> np.ndarray:
+    h, w, c = get_h_w_c(img)
+    logger.info(
+        f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {starting_tile_size[0]}x{starting_tile_size[1]}px."
+    )
+
+    def no_split_upscale(i: np.ndarray, r: Region) -> np.ndarray:
+        result = upscale(i, r)
+        if isinstance(result, Split):
+            raise _SplitEx
+        return result
+
+    MAX_ITER = 20
+    for _ in range(MAX_ITER):
+        try:
+            max_overlap = min(*starting_tile_size) // 4
+            return exact_split(
+                img=img,
+                exact_size=starting_tile_size,
+                upscale=no_split_upscale,
+                overlap=min(max_overlap, overlap),
+            )
+        except _SplitEx:
+            starting_tile_size = split_tile_size(starting_tile_size)
+
+    raise ValueError(f"Aborting after {MAX_ITER} splits. Unable to upscale image.")
+
+
+def _max_split(
+    img: np.ndarray,
+    upscale: SplitImageOp,
+    starting_tile_size: Size,
+    split_tile_size: Callable[[Size], Size],
+    overlap: int,
 ) -> np.ndarray:
     """
     Splits the image into tiles with at most the given tile size.
@@ -71,41 +103,21 @@ def auto_split(
 
     h, w, c = get_h_w_c(img)
 
-    exact_tile_size = tiler.exact_tile_size()
-    if exact_tile_size is not None:
-        logger.info(
-            f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {exact_tile_size[0]}x{exact_tile_size[1]}px."
-        )
+    img_region = Region(0, 0, w, h)
 
-        def no_split_upscale(i: np.ndarray) -> np.ndarray:
-            result = upscale(i)
-            if isinstance(result, Split):
-                raise ValueError(
-                    f"Splits are not supported for exact size ({exact_tile_size[0]}x{exact_tile_size[1]}px) splitting."
-                    f" This typically means that your machine does not have enough VRAM to run the current model."
-                )
-            return result
-
-        return exact_split(
-            img=img,
-            exact_size=exact_tile_size,
-            upscale=no_split_upscale,
-            overlap=overlap,
-        )
-
-    max_tile_size = tiler.starting_tile_size(w, h, c)
+    max_tile_size = starting_tile_size
     logger.info(
         f"Auto split image ({w}x{h}px @ {c}) with initial tile size {max_tile_size}."
     )
 
-    if h <= max_tile_size and w <= max_tile_size:
+    if w <= max_tile_size[0] and h <= max_tile_size[1]:
         # the image might be small enough so that we don't have to split at all
-        upscale_result = upscale(img)
+        upscale_result = upscale(img, img_region)
         if not isinstance(upscale_result, Split):
             return upscale_result
 
         # the image was too large
-        max_tile_size = tiler.split(max_tile_size)
+        max_tile_size = split_tile_size(max_tile_size)
 
         logger.info(
             f"Unable to upscale the whole image at once. Reduced tile size to {max_tile_size}."
@@ -122,8 +134,6 @@ def auto_split(
     result: Optional[np.ndarray] = None
     scale: int = 0
 
-    img_region = Region(0, 0, w, h)
-
     restart = True
     while restart:
         restart = False
@@ -134,8 +144,8 @@ def auto_split(
         # Instead, we use tile_size to calculate how many tiles we get in the x and y direction
         # and then calculate the optimal tile size for the x and y direction using the counts.
         # This yields optimal tile sizes which should prevent unnecessary splitting.
-        tile_count_x = math.ceil(w / max_tile_size)
-        tile_count_y = math.ceil(h / max_tile_size)
+        tile_count_x = math.ceil(w / max_tile_size[0])
+        tile_count_y = math.ceil(h / max_tile_size[1])
         tile_size_x = math.ceil(w / tile_count_x)
         tile_size_y = math.ceil(h / tile_count_y)
 
@@ -159,13 +169,13 @@ def auto_split(
                 pad = img_region.child_padding(tile).min(overlap)
                 padded_tile = tile.add_padding(pad)
 
-                upscale_result = upscale(padded_tile.read_from(img))
+                upscale_result = upscale(padded_tile.read_from(img), padded_tile)
 
                 if isinstance(upscale_result, Split):
-                    max_tile_size = tiler.split(max_tile_size)
+                    max_tile_size = split_tile_size(max_tile_size)
 
-                    new_tile_count_x = math.ceil(w / max_tile_size)
-                    new_tile_count_y = math.ceil(h / max_tile_size)
+                    new_tile_count_x = math.ceil(w / max_tile_size[0])
+                    new_tile_count_y = math.ceil(h / max_tile_size[1])
                     new_tile_size_x = math.ceil(w / new_tile_count_x)
                     new_tile_size_y = math.ceil(h / new_tile_count_y)
                     start_x = (x * tile_size_x) // new_tile_size_x

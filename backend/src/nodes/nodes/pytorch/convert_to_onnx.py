@@ -5,15 +5,15 @@ from typing import Tuple
 
 import torch
 
-from . import category as PyTorchCategory
+from ...impl.onnx.model import OnnxGeneric
+from ...impl.pytorch.types import PyTorchSRModel
+from ...impl.pytorch.utils import to_pytorch_execution_options
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import SrModelInput, OnnxFpDropdown
+from ...properties.inputs import OnnxFpDropdown, SrModelInput
 from ...properties.outputs import OnnxModelOutput, TextOutput
 from ...utils.exec_options import get_execution_options
-from ...impl.pytorch.utils import to_pytorch_execution_options
-from ...impl.onnx.model import OnnxModel
-from ...impl.pytorch.types import PyTorchSRModel
+from . import category as PyTorchCategory
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
@@ -27,7 +27,11 @@ class ConvertTorchToONNXNode(NodeBase):
             OnnxFpDropdown(),
         ]
         self.outputs = [
-            OnnxModelOutput(label="ONNX Model"),
+            OnnxModelOutput(
+                model_type="OnnxGenericModel",
+                label="ONNX Model",
+                kind="onnx",
+            ),
             TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 
@@ -36,7 +40,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchSRModel, is_fp16: int) -> Tuple[OnnxModel, str]:
+    def run(self, model: PyTorchSRModel, is_fp16: int) -> Tuple[OnnxGeneric, str]:
         fp16 = bool(is_fp16)
         exec_options = to_pytorch_execution_options(get_execution_options())
         if fp16:
@@ -79,4 +83,4 @@ class ConvertTorchToONNXNode(NodeBase):
 
         fp_mode = "fp16" if should_use_fp16 else "fp32"
 
-        return OnnxModel(onnx_model_bytes), fp_mode
+        return OnnxGeneric(onnx_model_bytes), fp_mode

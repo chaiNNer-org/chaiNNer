@@ -21,6 +21,7 @@ import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
 
 export const FileInput = memo(
@@ -31,6 +32,7 @@ export const FileInput = memo(
         inputKey,
         useInputConnected,
         isLocked,
+        nodeId,
     }: InputProps<'file', string>) => {
         const { t } = useTranslation();
 
@@ -103,8 +105,8 @@ export const FileInput = memo(
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
-                    disabled={isLocked || isInputConnected}
                     icon={<BsFileEarmarkPlus />}
+                    isDisabled={isLocked || isInputConnected}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
                 >
@@ -122,7 +124,6 @@ export const FileInput = memo(
                 >
                     {t('inputs.file.openInFileExplorer', 'Open in File Explorer')}
                 </MenuItem>
-                <MenuDivider />
                 <MenuItem
                     icon={<MdContentCopy />}
                     isDisabled={!filePath}
@@ -145,6 +146,10 @@ export const FileInput = memo(
                 >
                     {t('inputs.file.copyFullFilePath', 'Copy Full File Path')}
                 </MenuItem>
+                <CopyOverrideIdSection
+                    inputId={input.id}
+                    nodeId={nodeId}
+                />
             </MenuList>
         ));
 

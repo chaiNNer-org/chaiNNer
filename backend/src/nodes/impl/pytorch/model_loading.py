@@ -1,16 +1,22 @@
 from sanic.log import logger
 
+from .architecture.face.codeformer import CodeFormer
+from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
+from .architecture.face.restoreformer_arch import RestoreFormer
+from .architecture.HAT import HAT
+from .architecture.LaMa import LaMa
+from .architecture.MAT import MAT
 from .architecture.RRDB import RRDBNet as ESRGAN
 from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
-from .architecture.SwinIR import SwinIR
 from .architecture.Swin2SR import Swin2SR
-from .architecture.HAT import HAT
-from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
-from .architecture.face.restoreformer_arch import RestoreFormer
-from .architecture.face.codeformer import CodeFormer
+from .architecture.SwinIR import SwinIR
 from .types import PyTorchModel
+
+
+class UnsupportedModel(Exception):
+    pass
 
 
 def load_state_dict(state_dict) -> PyTorchModel:
@@ -64,11 +70,20 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "quantize.embedding.weight" in state_dict_keys
     ):
         model = CodeFormer(state_dict)
+    # LaMa
+    elif (
+        "model.model.1.bn_l.running_mean" in state_dict_keys
+        or "generator.model.1.bn_l.running_mean" in state_dict_keys
+    ):
+        model = LaMa(state_dict)
+    # MAT
+    elif "synthesis.first_stage.conv_first.conv.resample_filter" in state_dict_keys:
+        model = MAT(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
             model = ESRGAN(state_dict)
         except:
             # pylint: disable=raise-missing-from
-            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+            raise UnsupportedModel
     return model

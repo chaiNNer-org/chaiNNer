@@ -1,21 +1,24 @@
 from __future__ import annotations
+
 from enum import Enum
 
 import numpy as np
 
-from . import category as ImageFilterCategory
+from ...group import group
+from ...impl.noise import (
+    NoiseColor,
+    gaussian_noise,
+    poisson_noise,
+    salt_and_pepper_noise,
+    speckle_noise,
+    uniform_noise,
+)
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, EnumInput
+from ...properties.inputs import EnumInput, ImageInput, SeedInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...impl.noise import (
-    gaussian_noise,
-    uniform_noise,
-    salt_and_pepper_noise,
-    poisson_noise,
-    speckle_noise,
-    NoiseColor,
-)
+from ...utils.seed import Seed
+from . import category as ImageFilterCategory
 
 
 class NoiseType(Enum):
@@ -44,6 +47,7 @@ class AddNoiseNode(NodeBase):
                 },
             ),
             SliderInput("Amount", minimum=0, maximum=100, default=50),
+            group("seed")(SeedInput()),
         ]
         self.outputs = [
             ImageOutput(
@@ -69,16 +73,17 @@ class AddNoiseNode(NodeBase):
         noise_type: NoiseType,
         noise_color: NoiseColor,
         amount: int,
+        seed: Seed,
     ) -> np.ndarray:
         if noise_type == NoiseType.GAUSSIAN:
-            return gaussian_noise(img, amount / 100, noise_color)
+            return gaussian_noise(img, amount / 100, noise_color, seed.value)
         elif noise_type == NoiseType.UNIFORM:
-            return uniform_noise(img, amount / 100, noise_color)
+            return uniform_noise(img, amount / 100, noise_color, seed.value)
         elif noise_type == NoiseType.SALT_AND_PEPPER:
-            return salt_and_pepper_noise(img, amount / 100, noise_color)
+            return salt_and_pepper_noise(img, amount / 100, noise_color, seed.value)
         elif noise_type == NoiseType.POISSON:
-            return poisson_noise(img, amount / 100, noise_color)
+            return poisson_noise(img, amount / 100, noise_color, seed.value)
         elif noise_type == NoiseType.SPECKLE:
-            return speckle_noise(img, amount / 100, noise_color)
+            return speckle_noise(img, amount / 100, noise_color, seed.value)
         else:
             raise ValueError(f"Unknown noise type: {noise_type}")

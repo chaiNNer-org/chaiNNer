@@ -4,14 +4,14 @@ VQGAN code, adapted from the original created by the Unleashing Transformers aut
 https://github.com/samb-t/unleashing-transformers/blob/master/models/vqgan.py
 This verison of the arch specifically was gathered from an old version of GFPGAN. If this is a problem, please contact me.
 """
-from typing import Optional
 import math
+from typing import Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
-
 from sanic.log import logger
+from torch import Tensor
 
 
 class VectorQuantizer(nn.Module):
@@ -517,7 +517,6 @@ class TransformerSALayer(nn.Module):
         tgt_key_padding_mask: Optional[Tensor] = None,
         query_pos: Optional[Tensor] = None,
     ):
-
         # self attention
         tgt2 = self.norm1(tgt)
         q = k = self.with_pos_embed(tgt2, query_pos)
@@ -604,7 +603,6 @@ class Fuse_sft_block(nn.Module):
 
 class CodeFormer(VQAutoEncoder):
     def __init__(self, state_dict):
-
         dim_embd = 512
         n_head = 8
         n_layers = 9

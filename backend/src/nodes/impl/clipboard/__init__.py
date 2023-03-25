@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import numpy as np
 from sanic.log import logger
 
@@ -25,7 +26,7 @@ try:
 
         DEFAULT_CLIPBOARD = DarwinClipboard()
     else:
-        raise Exception("No suitable clipboard found.")
+        raise NotImplementedError("No suitable clipboard found.")
 except Exception as e:
     DEFAULT_CLIPBOARD = None
     ERROR = e
@@ -35,7 +36,7 @@ except Exception as e:
 def copy_image(imageArray: np.ndarray):
     if DEFAULT_CLIPBOARD is None:
         logger.error(ERROR)
-        raise Exception(ERROR)
+        raise NotImplementedError(ERROR)
 
     try:
         image_bytes, fixed_image_array = ClipboardBase.prepare_image(imageArray)
@@ -48,7 +49,7 @@ def copy_image(imageArray: np.ndarray):
 def copy_text(text: str):
     if DEFAULT_CLIPBOARD is None:
         logger.error(ERROR)
-        raise Exception(ERROR)
+        raise NotImplementedError(ERROR)
 
     try:
         DEFAULT_CLIPBOARD.copy_text(text)

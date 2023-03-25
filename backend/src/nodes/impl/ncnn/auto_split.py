@@ -6,23 +6,9 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from ..upscale.auto_split import auto_split, Split, Tiler
 from ...utils.utils import get_h_w_c
-
-
-def fix_dtype_range(img):
-    dtype_max = 1
-    try:
-        dtype_max = np.iinfo(img.dtype).max
-    except:
-        logger.debug("img dtype is not an int")
-
-    img = (
-        (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255)
-        .round()
-        .astype(np.uint8)
-    )
-    return img
+from ..image_utils import to_uint8
+from ..upscale.auto_split import Split, Tiler, auto_split
 
 
 def ncnn_auto_split(
@@ -34,7 +20,7 @@ def ncnn_auto_split(
     staging_vkallocator,
     tiler: Tiler,
 ) -> np.ndarray:
-    def upscale(img: np.ndarray):
+    def upscale(img: np.ndarray, _):
         ex = net.create_extractor()
         ex.set_blob_vkallocator(blob_vkallocator)
         ex.set_workspace_vkallocator(blob_vkallocator)
@@ -42,7 +28,7 @@ def ncnn_auto_split(
         # ex.set_light_mode(True)
         try:
             lr_c = get_h_w_c(img)[2]
-            lr_img_fix = fix_dtype_range(img)
+            lr_img_fix = to_uint8(img)
             if lr_c == 1:
                 pixel_type = ncnn.Mat.PixelType.PIXEL_GRAY
             elif lr_c == 3:

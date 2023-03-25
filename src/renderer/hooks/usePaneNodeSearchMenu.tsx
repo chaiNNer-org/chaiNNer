@@ -22,12 +22,15 @@ import {
     OutputId,
     SchemaId,
 } from '../../common/common-types';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
+import { TypeState } from '../../common/nodes/TypeState';
 import { FunctionDefinition } from '../../common/types/function';
 import {
     assertNever,
     createUniqueId,
     parseSourceHandle,
     parseTargetHandle,
+    stopPropagation,
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
@@ -35,11 +38,9 @@ import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
-import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
-import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
@@ -47,10 +48,10 @@ import { useThemeColor } from './useThemeColor';
 interface SchemaItemProps {
     schema: NodeSchema;
     isFavorite?: boolean;
+    accentColor: string;
     onClick: (schema: NodeSchema) => void;
 }
-const SchemaItem = memo(({ schema, onClick, isFavorite }: SchemaItemProps) => {
-    const accentColor = getNodeAccentColor(schema.category);
+const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
     const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
 
@@ -135,6 +136,12 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
         },
         [setSearchQuery, onSelect, targets]
     );
+    const onEnterHandler = useCallback(() => {
+        const nodes = [...byCategories.values()].flat();
+        if (nodes.length === 1) {
+            onClickHandler(nodes[0]);
+        }
+    }, [byCategories, onClickHandler]);
 
     return (
         <MenuList
@@ -142,7 +149,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
             borderWidth={0}
             className="nodrag"
             overflow="hidden"
-            onContextMenu={(e) => e.stopPropagation()}
+            onContextMenu={stopPropagation}
         >
             <InputGroup
                 borderBottomWidth={1}
@@ -163,6 +170,11 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                     value={searchQuery}
                     variant="filled"
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            onEnterHandler();
+                        }
+                    }}
                 />
                 <InputRightElement
                     _hover={{ color: 'var(--fg-000)' }}
@@ -198,6 +210,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                         </HStack>
                         {favoriteNodes.map((favorite) => (
                             <SchemaItem
+                                accentColor={getCategoryAccentColor(categories, favorite.category)}
                                 key={favorite.schemaId}
                                 schema={favorite}
                                 onClick={onClickHandler}
@@ -208,7 +221,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
 
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
-                        const accentColor = getNodeAccentColor(category);
+                        const accentColor = getCategoryAccentColor(categories, category);
                         return (
                             <Box key={category}>
                                 <HStack
@@ -225,6 +238,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                                 </HStack>
                                 {categorySchemata.map((schema) => (
                                     <SchemaItem
+                                        accentColor={accentColor}
                                         isFavorite={favorites.has(schema.schemaId)}
                                         key={schema.schemaId}
                                         schema={schema}
@@ -290,8 +304,7 @@ const getConnectionTarget = (
             }
 
             const { inputId } = parseTargetHandle(connectingFrom.handleId);
-            const sourceType = sourceFn.inputDefaults.get(inputId);
-            if (!sourceType) {
+            if (!sourceFn.hasInput(inputId)) {
                 return undefined;
             }
 
@@ -300,7 +313,7 @@ const getConnectionTarget = (
                 return undefined;
             }
 
-            const output = getFirstPossibleOutput(targetFn, sourceType);
+            const output = getFirstPossibleOutput(targetFn, sourceFn, inputId);
             if (output === undefined) {
                 return undefined;
             }
@@ -313,8 +326,11 @@ const getConnectionTarget = (
 };
 
 interface UsePaneNodeSearchMenuValue {
-    readonly onConnectStart: (event: React.MouseEvent, handle: OnConnectStartParams) => void;
-    readonly onConnectStop: (event: MouseEvent) => void;
+    readonly onConnectStart: (
+        event: React.MouseEvent | React.TouchEvent,
+        handle: OnConnectStartParams
+    ) => void;
+    readonly onConnectStop: (event: MouseEvent | TouchEvent) => void;
     readonly onPaneContextMenu: (event: React.MouseEvent) => void;
 }
 
@@ -447,7 +463,9 @@ export const usePaneNodeSearchMenu = (
     ));
 
     const onConnectStart = useCallback(
-        (event: React.MouseEvent, handle: OnConnectStartParams) => {
+        (event: React.MouseEvent | React.TouchEvent, handle: OnConnectStartParams) => {
+            // eslint-disable-next-line no-param-reassign
+            event = event as React.MouseEvent;
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
@@ -459,7 +477,9 @@ export const usePaneNodeSearchMenu = (
     );
 
     const onConnectStop = useCallback(
-        (event: MouseEvent) => {
+        (event: MouseEvent | TouchEvent) => {
+            // eslint-disable-next-line no-param-reassign
+            event = event as MouseEvent;
             const target = event.target as Element | SVGTextPathElement;
 
             setMousePosition({

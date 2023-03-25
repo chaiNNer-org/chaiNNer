@@ -23,18 +23,22 @@ export type GroupId = number & { readonly __groupId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
+export interface InputConversionSchema {
+    readonly type: ExpressionJson;
+    readonly convert: ExpressionJson;
+}
 
 interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
     /**
-     * Optional type conversion that occurs before the type system checks
-     * whether 2 types are compatible.
+     * A list of input conversions. Before checking for compatibility, the type
+     * system will attempt to convert any assigned type using input conversions.
      *
      * This can be used to implement e.g. number rounding or type wrapping for
      * edges.
      */
-    readonly conversion?: ExpressionJson | null;
+    readonly conversions: InputConversionSchema[];
     /**
      * Optional type conversion for adapting input data.
      *
@@ -82,9 +86,10 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
 }
-export interface NoteTextAreaInput extends InputBase {
+export interface TextAreaInput extends InputBase {
     readonly kind: 'text';
     readonly resizable: boolean;
+    readonly def: string | null;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
@@ -118,7 +123,7 @@ export type Input =
     | FileInput
     | DirectoryInput
     | TextInput
-    | NoteTextAreaInput
+    | TextAreaInput
     | DropDownInput
     | SliderInput
     | NumberInput;
@@ -130,6 +135,7 @@ export type OutputKind =
     | 'directory'
     | 'pytorch'
     | 'ncnn'
+    | 'onnx'
     | 'generic';
 
 export interface Output {
@@ -142,6 +148,30 @@ export interface Output {
     readonly label: string;
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
+}
+
+export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
+export interface AndCondition {
+    readonly kind: 'and';
+    readonly items: readonly Condition[];
+}
+export interface OrCondition {
+    readonly kind: 'or';
+    readonly items: readonly Condition[];
+}
+export interface NotCondition {
+    readonly kind: 'not';
+    readonly condition: Condition;
+}
+export interface EnumCondition {
+    readonly kind: 'enum';
+    readonly enum: InputId;
+    readonly values: readonly InputSchemaValue[] | InputSchemaValue;
+}
+export interface TypeCondition {
+    readonly kind: 'type';
+    readonly input: InputId;
+    readonly condition: ExpressionJson;
 }
 
 interface GroupBase {
@@ -166,19 +196,30 @@ interface OptionalListGroup extends GroupBase {
     readonly kind: 'optional-list';
     readonly options: Readonly<Record<string, never>>;
 }
-interface ConditionalEnumGroup extends GroupBase {
-    readonly kind: 'conditional-enum';
+interface ConditionalGroup extends GroupBase {
+    readonly kind: 'conditional';
     readonly options: {
-        readonly enum: InputId;
-        readonly conditions: readonly (readonly InputSchemaValue[] | InputSchemaValue)[];
+        readonly condition: Condition;
     };
+}
+interface RequiredGroup extends GroupBase {
+    readonly kind: 'required';
+    readonly options: {
+        readonly condition: Condition;
+    };
+}
+interface SeedGroup extends GroupBase {
+    readonly kind: 'seed';
+    readonly options: Readonly<Record<string, never>>;
 }
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
     | FromToDropdownsGroup
     | OptionalListGroup
-    | ConditionalEnumGroup;
+    | ConditionalGroup
+    | RequiredGroup
+    | SeedGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;
@@ -276,20 +317,20 @@ export interface FileOpenError {
     error: string;
 }
 
-export interface JsonEdgeInput {
+export interface BackendJsonEdgeInput {
     type: 'edge';
     id: string;
     index: number;
 }
-export interface JsonValueInput {
+export interface BackendJsonValueInput {
     type: 'value';
     value: InputValue | null;
 }
-export type JsonInput = JsonEdgeInput | JsonValueInput;
-export interface JsonNode {
+export type BackendJsonInput = BackendJsonEdgeInput | BackendJsonValueInput;
+export interface BackendJsonNode {
     id: string;
     schemaId: SchemaId;
-    inputs: JsonInput[];
+    inputs: BackendJsonInput[];
     nodeType: string;
     parent: string | null;
 }

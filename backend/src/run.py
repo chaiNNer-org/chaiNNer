@@ -1,25 +1,35 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
+import importlib
 import logging
+import os
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
 from typing import Any, Dict, List, Optional, TypedDict
 
 # pylint: disable-next=unused-import
 import cv2  # type: ignore
 from sanic import Sanic
-from sanic.log import logger, access_logger
+from sanic.log import access_logger, logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
+from base_types import NodeId, OutputId
+from chain.cache import OutputCache
+from chain.json import JsonNode, parse_json
+from chain.optimize import optimize
+from events import EventQueue, ExecutionErrorData
+from nodes.group import Group
+from nodes.node_factory import NodeFactory
+from nodes.nodes.builtin_categories import category_order
 from nodes.utils.exec_options import (
-    set_execution_options,
-    parse_execution_options,
     JsonExecutionOptions,
+    parse_execution_options,
+    set_execution_options,
 )
 from nodes.group import Group
 
@@ -32,8 +42,8 @@ from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
 from progress import Aborted
 from response import (
-    errorResponse,
     alreadyRunningResponse,
+    errorResponse,
     noExecutorResponse,
     successResponse,
 )
@@ -131,6 +141,7 @@ async def nodes(_):
 class RunRequest(TypedDict):
     data: List[JsonNode]
     options: JsonExecutionOptions
+    sendBroadcastData: bool
 
 
 @app.route("/run", methods=["POST"])
@@ -159,6 +170,7 @@ async def run(request: Request):
         executor = Executor(
             chain,
             inputs,
+            full_data["sendBroadcastData"],
             app.loop,
             ctx.queue,
             ctx.pool,
@@ -351,6 +363,8 @@ async def kill(request: Request):
     try:
         logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
+        while ctx.executor:
+            await asyncio.sleep(0.0001)
         return json(successResponse("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
@@ -371,6 +385,14 @@ async def list_ncnn_gpus(_request: Request):
     except Exception as exception:
         logger.error(exception, exc_info=True)
         return json([])
+
+
+@app.route("/python-info", methods=["GET"])
+async def python_info(_request: Request):
+    version = (
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
+    return json({"python": sys.executable, "version": version})
 
 
 if __name__ == "__main__":

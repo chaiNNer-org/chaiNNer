@@ -1,5 +1,13 @@
-import fetch from 'cross-fetch';
-import { Category, InputId, InputValue, JsonNode, NodeSchema, SchemaId } from './common-types';
+import {
+    BackendJsonNode,
+    Category,
+    InputId,
+    InputValue,
+    NodeSchema,
+    OutputData,
+    PythonInfo,
+    SchemaId,
+} from './common-types';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -49,8 +57,9 @@ export interface BackendExecutionOptions {
     onnxTensorRtCachePath: string;
 }
 export interface BackendRunRequest {
-    data: JsonNode[];
+    data: BackendJsonNode[];
     options: BackendExecutionOptions;
+    sendBroadcastData: boolean;
 }
 export interface BackendRunIndividualRequest {
     id: string;
@@ -83,20 +92,25 @@ export interface BackendError {
 export class Backend {
     readonly port: number;
 
+    private abortController: AbortController;
+
     constructor(port: number) {
         this.port = port;
+        this.abortController = new AbortController();
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
         const options: RequestInit = { method, cache: 'no-cache' };
+        const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
             options.headers = {
                 'Content-Type': 'application/json',
             };
+            options.signal = signal;
         }
 
-        const resp = await fetch(`http://localhost:${this.port}${path}`, options);
+        const resp = await fetch(`http://127.0.0.1:${this.port}${path}`, options);
         return (await resp.json()) as T;
     }
 
@@ -135,6 +149,11 @@ export class Backend {
         return this.fetchJson('/kill', 'POST');
     }
 
+    abort(): void {
+        this.abortController.abort('Aborting current execution');
+        this.abortController = new AbortController();
+    }
+
     /**
      * Clears the cache of the passed in node id
      */
@@ -147,6 +166,10 @@ export class Backend {
      */
     listNcnnGpus(): Promise<string[]> {
         return this.fetchJson('/listgpus/ncnn', 'GET');
+    }
+
+    pythonInfo(): Promise<PythonInfo> {
+        return this.fetchJson('/python-info', 'GET');
     }
 }
 
@@ -171,3 +194,29 @@ export const getBackend = (port: number): Backend => {
     }
     return instance;
 };
+
+/**
+ * All possible events emitted by backend SSE along with the data layout of the event data.
+ */
+export interface BackendEventMap {
+    finish: {
+        message: string;
+    };
+    'execution-error': {
+        message: string;
+        source?: BackendExceptionSource | null;
+        exception: string;
+    };
+    'node-finish': {
+        finished: string[];
+        nodeId: string;
+        executionTime?: number | null;
+        data?: OutputData | null;
+        progressPercent?: number | null;
+    };
+    'iterator-progress-update': {
+        percent: number;
+        iteratorId: string;
+        running?: string[] | null;
+    };
+}

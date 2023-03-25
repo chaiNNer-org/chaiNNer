@@ -1,13 +1,15 @@
 import base64
 from typing import Optional, Tuple
-import numpy as np
-import cv2
 
-from ...utils.utils import get_h_w_c
+import cv2
+import numpy as np
+
+from ...impl.image_utils import to_uint8
+from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
-from ...impl.pil_utils import resize, InterpolationMethod
-from .base_output import BaseOutput, OutputKind
+from ...utils.utils import get_h_w_c
 from .. import expression
+from .base_output import BaseOutput, OutputKind
 
 
 class NumPyOutput(BaseOutput):
@@ -66,6 +68,7 @@ class ImageOutput(NumPyOutput):
 
     def validate(self, value) -> None:
         assert isinstance(value, np.ndarray)
+        assert value.dtype == np.float32
 
         _, _, c = get_h_w_c(value)
 
@@ -103,7 +106,7 @@ def preview_encode(
 
     image_format = "png" if c > 3 or lossless else "jpg"
 
-    _, encoded_img = cv2.imencode(f".{image_format}", (img * 255).astype("uint8"))  # type: ignore
+    _, encoded_img = cv2.imencode(f".{image_format}", to_uint8(img, normalized=True))  # type: ignore
     base64_img = base64.b64encode(encoded_img).decode("utf8")
 
     return f"data:image/{image_format};base64,{base64_img}", img

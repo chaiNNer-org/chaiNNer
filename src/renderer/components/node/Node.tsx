@@ -4,19 +4,24 @@ import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'rea
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
-import { isStartingNode, parseSourceHandle } from '../../../common/util';
+import { DisabledStatus } from '../../../common/nodes/disabled';
+import {
+    EMPTY_ARRAY,
+    getInputValue,
+    isStartingNode,
+    parseSourceHandle,
+} from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
-import { DisabledStatus } from '../../helpers/disabled';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
 import { useValidity } from '../../hooks/useValidity';
+import { useWatchFiles } from '../../hooks/useWatchFiles';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -53,7 +58,7 @@ export interface NodeProps {
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
-    const { schemata } = useContext(BackendContext);
+    const { schemata, categories } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
@@ -68,7 +73,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { validity } = useValidity(id, schema, inputData);
 
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getNodeAccentColor(category);
+    const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -147,6 +152,23 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const startingNode = isStartingNode(schema);
     const reload = useRunNode(data, validity.isValid && startingNode);
+    const filesToWatch = useMemo(() => {
+        if (!startingNode) return EMPTY_ARRAY;
+
+        const files: string[] = [];
+        for (const input of schema.inputs) {
+            if (input.kind === 'file') {
+                const value = getInputValue<string>(input.id, data.inputData);
+                if (value) {
+                    files.push(value);
+                }
+            }
+        }
+
+        if (files.length === 0) return EMPTY_ARRAY;
+        return files;
+    }, [startingNode, data.inputData, schema]);
+    useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });
@@ -158,6 +180,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            minWidth="240px"
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}
@@ -172,9 +195,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             onDrop={onDrop}
         >
             <VStack
-                minWidth="240px"
                 opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
                 spacing={0}
+                w="full"
             >
                 <VStack
                     spacing={0}

@@ -1,12 +1,12 @@
 from __future__ import annotations
-from enum import Enum
 
-from . import category as UtilityCategory
+from enum import Enum
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import TextInput, NumberInput, EnumInput
+from ...properties.inputs import EnumInput, NumberInput, TextInput
 from ...properties.outputs import TextOutput
+from . import category as UtilityCategory
 
 
 class PaddingAlignment(Enum):
@@ -37,11 +37,10 @@ class TextPaddingNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let text = toString(Input0);
                 match Input3 {
-                    PaddingAlignment::Start => padStart(text, Input1, Input2),
-                    PaddingAlignment::End => padEnd(text, Input1, Input2),
-                    PaddingAlignment::Center => padCenter(text, Input1, Input2),
+                    PaddingAlignment::Start => padStart(Input0, Input1, Input2),
+                    PaddingAlignment::End => padEnd(Input0, Input1, Input2),
+                    PaddingAlignment::Center => padCenter(Input0, Input1, Input2),
                 }
                 """,
             )

@@ -7,21 +7,21 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
+from ...impl.ncnn.auto_split import ncnn_auto_split
+from ...impl.ncnn.model import NcnnModelWrapper
+from ...impl.ncnn.session import get_ncnn_net
+from ...impl.upscale.auto_split_tiles import (
+    TileSize,
+    estimate_tile_size,
+    parse_tile_size_input,
+)
+from ...impl.upscale.convenient_upscale import convenient_upscale
+from ...impl.upscale.tiler import MaxTileSize
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
-from ...impl.upscale.auto_split import MaxTileSize
-from ...impl.upscale.auto_split_tiles import (
-    estimate_tile_size,
-    parse_tile_size_input,
-    TileSize,
-)
-from ...impl.upscale.convenient_upscale import convenient_upscale
 from ...utils.exec_options import get_execution_options
-from ...impl.ncnn.auto_split import ncnn_auto_split
-from ...impl.ncnn.model import NcnnModelWrapper
-from ...impl.ncnn.session import get_ncnn_net
 from ...utils.utils import get_h_w_c
 from . import category as NCNNCategory
 
@@ -58,9 +58,9 @@ class NcnnUpscaleImageNode(NodeBase):
         self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
             Select a manual number of tiles if you are having issues with the automatic mode."
         self.inputs = [
-            NcnnModelInput(),
-            ImageInput(),
-            TileSizeDropdown(),
+            ImageInput().with_id(1),
+            NcnnModelInput().with_id(0),
+            TileSizeDropdown().with_id(2),
         ]
         self.outputs = [
             ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
@@ -111,7 +111,7 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(
-        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: TileSize
+        self, img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize
     ) -> np.ndarray:
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]

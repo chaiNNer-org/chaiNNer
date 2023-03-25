@@ -1,20 +1,24 @@
 from __future__ import annotations
+
 from enum import Enum
-from typing import Dict, Generic, List, Literal, Type, TypeVar, Union, TypedDict
+from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
+
 import numpy as np
 from sanic.log import logger
 
-from .. import expression
-
-from .base_input import BaseInput
 from ...impl.blend import BlendMode
+from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...utils.seed import Seed
 from ...utils.utils import (
-    split_snake_case,
-    split_pascal_case,
     join_pascal_case,
     join_space_case,
+    split_pascal_case,
+    split_snake_case,
 )
+from .. import expression
+from .base_input import BaseInput, InputConversion
+from .numeric_inputs import NumberInput
 
 
 class UntypedOption(TypedDict):
@@ -117,11 +121,11 @@ class EnumInput(Generic[T], DropDownInput):
     ### Features
 
     All variants of the enum will be converted into typed dropdown options.
-    The dropdown will be fully typed and brings its own type definitions.
+    The dropdown will be fully typed and bring its own type definitions.
     Option labels can be (partially) overridden using `option_labels`.
 
     By default, the input label, type names, and option labels will all be generated from the enum name and variant names.
-    All of those defaults and be overridden.
+    All of those defaults can be overridden.
 
     Options will be ordered by declaration order in the python enum definition.
 
@@ -196,7 +200,7 @@ class TextInput(BaseInput):
         default: Union[str, None] = None,
     ):
         super().__init__(
-            ["string", "number"] if allow_numbers else "string",
+            "string",
             label,
             has_handle=has_handle,
             kind="text-line",
@@ -205,6 +209,9 @@ class TextInput(BaseInput):
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+
+        if allow_numbers:
+            self.input_conversions = [InputConversion("number", "toString(Input)")]
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -222,17 +229,25 @@ class TextInput(BaseInput):
         }
 
 
-class NoteTextAreaInput(BaseInput):
-    """Input for note text"""
+class TextAreaInput(BaseInput):
+    """Input for large text"""
 
-    def __init__(self, label: str = "Note Text"):
+    def __init__(self, label: str = "Text", default: Union[str, None] = None):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
+        self.default = default
+
+    def enforce(self, value) -> str:
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
+        return str(value)
 
     def toDict(self):
         return {
             **super().toDict(),
             "resizable": self.resizable,
+            "def": self.default,
         }
 
 
@@ -241,12 +256,7 @@ class ClipboardInput(BaseInput):
 
     def __init__(self, label: str = "Clipboard input"):
         super().__init__(["Image", "string", "number"], label, kind="text-line")
-        self.input_conversion = """
-            match Input {
-                Image => "<Image>",
-                _ as i => i,
-            }
-        """
+        self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
     def enforce(self, value):
         if isinstance(value, np.ndarray):
@@ -268,54 +278,33 @@ class AnyInput(BaseInput):
         return value
 
 
-def MathOpsDropdown() -> DropDownInput:
-    """Input for selecting math operation type from dropdown"""
-    return DropDownInput(
-        input_type="MathOperation",
-        label="Math Operation",
-        options=[
-            {
-                "option": "Add (+)",
-                "value": "add",
-                "type": """MathOperation { operation: "add" }""",
-            },
-            {
-                "option": "Subtract (-)",
-                "value": "sub",
-                "type": """MathOperation { operation: "sub" }""",
-            },
-            {
-                "option": "Multiply (×)",
-                "value": "mul",
-                "type": """MathOperation { operation: "mul" }""",
-            },
-            {
-                "option": "Divide (÷)",
-                "value": "div",
-                "type": """MathOperation { operation: "div" }""",
-            },
-            {
-                "option": "Exponent/Power (^)",
-                "value": "pow",
-                "type": """MathOperation { operation: "pow" }""",
-            },
-            {
-                "option": "Maximum",
-                "value": "max",
-                "type": """MathOperation { operation: "max" }""",
-            },
-            {
-                "option": "Minimum",
-                "value": "min",
-                "type": """MathOperation { operation: "min" }""",
-            },
-            {
-                "option": "Modulo",
-                "value": "mod",
-                "type": """MathOperation { operation: "mod" }""",
-            },
-        ],
-    )
+class SeedInput(NumberInput):
+    def __init__(self, label: str = "Seed", has_handle: bool = True):
+        super().__init__(
+            label=label,
+            minimum=None,
+            maximum=None,
+            precision=0,
+            default=0,
+        )
+        self.has_handle = has_handle
+
+        self.input_type = "Seed | int"
+        self.input_conversions = [InputConversion("int", "Seed")]
+        self.input_adapt = """
+            match Input {
+                int => Seed,
+                _ => never
+            }
+        """
+
+    def enforce(self, value) -> Seed:
+        if isinstance(value, Seed):
+            return value
+        return Seed(int(value))
+
+    def make_optional(self):
+        raise ValueError("SeedInput cannot be made optional")
 
 
 def IteratorInput():
@@ -401,40 +390,26 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     )
 
 
+SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
+    ("BC1_UNORM_SRGB", "BC1 (sRGB, DX 10+)"),
+    ("BC1_UNORM", "BC1 (Linear, DX 10+)"),
+    ("BC3_UNORM_SRGB", "BC3 (sRGB, DX 10+)"),
+    ("BC3_UNORM", "BC3 (Linear, DX 10+)"),
+    ("BC4_UNORM", "BC4 (DX 10+)"),
+    ("BC5_UNORM", "BC5 (DX 10+)"),
+    ("BC7_UNORM_SRGB", "BC7 (sRGB, DX 11+)"),
+    ("BC7_UNORM", "BC7 (Linear, DX 11+)"),
+    ("DXT1", "DXT1 (Legacy)"),
+    ("DXT3", "DXT3 (Legacy)"),
+    ("DXT5", "DXT5 (Legacy)"),
+]
+
+
 def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsFormat",
         label="DDS Format",
-        options=[
-            {
-                "option": "BC1 (sRGB)",
-                "value": "BC1_UNORM_SRGB",
-            },
-            {
-                "option": "BC1 (Linear)",
-                "value": "BC1_UNORM",
-            },
-            {
-                "option": "BC3 (sRGB)",
-                "value": "BC3_UNORM_SRGB",
-            },
-            {
-                "option": "BC3 (Linear)",
-                "value": "BC3_UNORM",
-            },
-            {
-                "option": "BC4 (Linear, Unsigned)",
-                "value": "BC4_UNORM",
-            },
-            {
-                "option": "BC7 (sRGB)",
-                "value": "BC7_UNORM_SRGB",
-            },
-            {
-                "option": "BC7 (Linear)",
-                "value": "BC7_UNORM",
-            },
-        ],
+        options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
     )
 
 

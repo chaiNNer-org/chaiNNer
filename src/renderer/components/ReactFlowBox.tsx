@@ -26,6 +26,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import {
     EMPTY_ARRAY,
     parseSourceHandle,
@@ -38,7 +39,6 @@ import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
-import { getFirstPossibleInput, getFirstPossibleOutput } from '../helpers/connectedInputs';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
@@ -186,6 +186,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         setEdgesRef,
         removeEdgeById,
         exportViewportScreenshot,
+        exportViewportScreenshotToClipboard,
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
@@ -289,14 +290,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
                     const { inputId } = parseTargetHandle(e.targetHandle);
-                    const targetEdgeType = typeState.functions
-                        .get(e.target)
-                        ?.definition.inputDefaults.get(inputId);
-                    if (!targetEdgeType) {
+                    const targetEdgeDefinition = typeState.functions.get(e.target)?.definition;
+                    if (!targetEdgeDefinition || targetEdgeDefinition.hasInput(inputId)) {
                         return EMPTY_ARRAY;
                     }
                     const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, targetEdgeType);
+                    const firstPossibleOutput = getFirstPossibleOutput(
+                        fn,
+                        targetEdgeDefinition,
+                        inputId
+                    );
                     if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
                         return EMPTY_ARRAY;
                     }
@@ -618,10 +621,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         >
             <ReactFlow
                 connectionLineContainerStyle={{ zIndex: 1000 }}
+                connectionRadius={15}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
                 elevateEdgesOnSelect={false}
+                elevateNodesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
@@ -638,7 +643,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
-                // onEdgeUpdate={onEdgeUpdate}
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
@@ -650,7 +654,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
-                onPaneClick={closeContextMenu}
                 onPaneContextMenu={onPaneContextMenu}
                 onSelectionContextMenu={onSelectionContextMenu}
                 onSelectionDragStop={onSelectionDragStop}
@@ -663,8 +666,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 <Controls>
                     <ControlButton
                         disabled={nodes.length === 0}
-                        title="Export viewport as PNG"
-                        onClick={exportViewportScreenshot}
+                        title={'Export viewport as PNG\nCtrl+Click to export to clipboard instead'}
+                        onClick={(e) => {
+                            if (e.ctrlKey) {
+                                exportViewportScreenshotToClipboard();
+                            } else {
+                                exportViewportScreenshot();
+                            }
+                        }}
                     >
                         <FaFileExport />
                     </ControlButton>
