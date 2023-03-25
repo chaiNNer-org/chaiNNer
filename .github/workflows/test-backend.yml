@@ -27,14 +27,12 @@ jobs:
             matrix:
                 python-version: ['3.8', '3.9']
         steps:
-            - uses: actions/checkout@v2
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
-            - run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
+                  cache: 'pip'
+            - run: pip install -r requirements.txt
             - run: pytest ./backend/tests
     backend-min-dependencies-tests:
         runs-on: ubuntu-latest
@@ -42,18 +40,14 @@ jobs:
             matrix:
                 python-version: ['3.8', '3.9', '3.10']
         steps:
-            - uses: actions/checkout@v2
-            - name: Use Node.js 16.x
-              uses: actions/setup-node@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                  node-version: 16.x
-              # Node v14 comes with npm@6.x by default.
-              # This version of npm does NOT install peer deps by default which is required by some of our deps
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v1
+                  node-version: 16
+                  cache: 'npm'
+            - run: npm ci --force
+            - uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
-            - run: npm i -g npm@7
-            - run: npm ci --force
             - run: npx ts-node ./scripts/install-required-deps.ts
             - run: python ./backend/src/run.py --no-run
