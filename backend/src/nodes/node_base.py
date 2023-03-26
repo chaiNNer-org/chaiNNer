@@ -1,13 +1,11 @@
 from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Literal, Union
 
 from base_types import InputId, OutputId
 
-from .category import Category
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
-from .group import Group, GroupInfo, GroupId
-
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
 
