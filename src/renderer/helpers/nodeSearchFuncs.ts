@@ -34,7 +34,7 @@ export const sortSchemata = (schemata: readonly NodeSchema[]): NodeSchema[] => {
             (categories.get(a.category) ?? 0) - (categories.get(b.category) ?? 0);
         return (
             categoryCompare ||
-            compareIgnoreCase(a.subcategory, b.subcategory) ||
+            // compareIgnoreCase(a.subcategory, b.subcategory) ||
             compareIgnoreCase(a.name, b.name)
         );
     });

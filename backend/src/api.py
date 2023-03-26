@@ -7,7 +7,7 @@ from typing import Callable, Dict, List, Tuple, TypeVar
 
 from sanic.log import logger
 
-from nodes.node_base import NodeBase
+from nodes.node_base import NodeBase, NodeType
 
 
 @dataclass
@@ -71,13 +71,40 @@ class NodeGroup:
     name: str
     nodes: List[NodeBase] = field(default_factory=list)
 
-    def add_node(self, node: NodeBase):
+    def add_node(
+        self,
+        node: NodeBase,
+        schema_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        icon: str | None = None,
+        node_type: NodeType | None = None,
+    ):
+        if schema_id is not None:
+            node.schema_id = schema_id
+        if name is not None:
+            node.name = name
+        if description is not None:
+            node.description = description
+        if icon is not None:
+            node.icon = icon
+        if node_type is not None:
+            node.type = node_type
         logger.info(f"Added {node.schema_id}")
         self.nodes.append(node)
 
-    def register(self):
+    def register(
+        self,
+        schema_id: str,
+        name: str,
+        description: str,
+        icon: str = "BsQuestionCircleFill",
+        node_type: NodeType | None = None,
+    ):
         def inner_wrapper(wrapped_class: Callable[[], T]) -> Callable[[], T]:
-            self.add_node(wrapped_class())
+            self.add_node(
+                wrapped_class(), schema_id, name, description, icon, node_type
+            )
             return wrapped_class
 
         return inner_wrapper

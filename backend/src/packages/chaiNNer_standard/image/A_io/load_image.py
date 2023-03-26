@@ -17,7 +17,7 @@ from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
 
-from . import io
+from . import node_group
 
 _Decoder = Callable[[str], Union[np.ndarray, None]]
 """
@@ -109,21 +109,21 @@ _decoders: List[Tuple[str, _Decoder]] = [
 ]
 
 
-@io.register()
+@node_group.register(
+    schema_id="chainner:image:load",
+    name="Load Image",
+    description="Load image from specified file.",
+    icon="BsFillImageFill",
+)
 class ImReadNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Load image from specified file."
         self.inputs = [ImageFileInput(primary_input=True)]
         self.outputs = [
             LargeImageOutput(),
             DirectoryOutput("Image Directory", of_input=0),
             FileNameOutput("Image Name", of_input=0),
         ]
-
-        self.name = "Load Image"
-        self.icon = "BsFillImageFill"
-        self.schema_id = "chainner:image:load"
 
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
