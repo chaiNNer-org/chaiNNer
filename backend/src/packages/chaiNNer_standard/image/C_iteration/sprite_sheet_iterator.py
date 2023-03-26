@@ -57,6 +57,7 @@ class ImageSpriteSheetIteratorAppendImageNode(NodeBase):
     name="Spritesheet Iterator",
     description="Iterate over sub-images in a single image spritesheet.",
     icon="MdLoop",
+    node_type="iterator",
 )
 class ImageSpriteSheetIteratorNode(IteratorNodeBase):
     def __init__(self):

@@ -60,6 +60,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
     name="Image File Iterator",
     description="Iterate over all files in a directory and run the provided nodes on just the image files.",
     icon="MdLoop",
+    node_type="iterator",
 )
 class ImageFileIteratorNode(IteratorNodeBase):
     def __init__(self):

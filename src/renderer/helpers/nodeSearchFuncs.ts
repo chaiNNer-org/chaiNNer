@@ -23,6 +23,7 @@ export const createSearchPredicate = (query: string): ((name: string) => boolean
     return (name) => pattern.isMatch(name);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const compareIgnoreCase = (a: string, b: string): number => {
     return a.toUpperCase().localeCompare(b.toUpperCase());
 };
@@ -32,11 +33,7 @@ export const sortSchemata = (schemata: readonly NodeSchema[]): NodeSchema[] => {
     return [...schemata].sort((a, b) => {
         const categoryCompare =
             (categories.get(a.category) ?? 0) - (categories.get(b.category) ?? 0);
-        return (
-            categoryCompare ||
-            // compareIgnoreCase(a.subcategory, b.subcategory) ||
-            compareIgnoreCase(a.name, b.name)
-        );
+        return categoryCompare;
     });
 };
 

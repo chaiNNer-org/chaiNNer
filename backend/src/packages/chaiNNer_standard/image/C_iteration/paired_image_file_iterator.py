@@ -76,6 +76,7 @@ class ImageFileIteratorLoadImageNodeA(NodeBase):
     name="Image Pairs Iterator",
     description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already upscaled content.",
     icon="MdLoop",
+    node_type="iterator",
 )
 class PairedImageFileIteratorNode(IteratorNodeBase):
     def __init__(self):

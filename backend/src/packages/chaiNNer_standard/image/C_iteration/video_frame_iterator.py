@@ -178,6 +178,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
     name="Video Frame Iterator",
     description="Iterate over all frames in a video, and write to a video buffer.",
     icon="MdVideoCameraBack",
+    node_type="iterator",
 )
 class SimpleVideoFrameIteratorNode(IteratorNodeBase):
     def __init__(self):
