@@ -60,7 +60,7 @@ app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
-for package in os.listdir("packages"):
+for package in os.listdir("./packages"):
     logger.info(package)
     importlib.import_module(f"packages.{package}")
 
