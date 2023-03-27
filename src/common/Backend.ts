@@ -5,11 +5,10 @@ import {
     InputValue,
     NodeSchema,
     OutputData,
-    OutputId,
+    OutputTypes,
     PythonInfo,
     SchemaId,
 } from './common-types';
-import { ExpressionJson } from './types/json';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -214,7 +213,7 @@ export interface BackendEventMap {
         nodeId: string;
         executionTime?: number | null;
         data?: OutputData | null;
-        types?: Readonly<Partial<Record<OutputId, ExpressionJson | null>>> | null;
+        types?: OutputTypes | null;
         progressPercent?: number | null;
     };
     'iterator-progress-update': {
