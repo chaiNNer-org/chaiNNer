@@ -1,6 +1,7 @@
 from typing import List
 
 from ...impl.pytorch.types import PyTorchModel
+from ...utils.format import format_channel_numbers
 from .. import expression
 from .base_output import BaseOutput, OutputKind
 
@@ -51,12 +52,11 @@ class ModelOutput(BaseOutput):
 
     def get_broadcast_data(self, value: PyTorchModel):
         return {
-            "arch": value.model_arch,
-            "inNc": value.in_nc,
-            "outNc": value.out_nc,
-            "size": _get_sizes(value),
-            "scale": value.scale,
-            "subType": value.sub_type,
+            "tags": [
+                value.model_arch,
+                format_channel_numbers(value.in_nc, value.out_nc),
+                *_get_sizes(value),
+            ]
         }
 
     def get_broadcast_type(self, value: PyTorchModel):

@@ -1,4 +1,5 @@
 from ...impl.ncnn.model import NcnnModelWrapper
+from ...utils.format import format_channel_numbers
 from .. import expression
 from .base_output import BaseOutput, OutputKind
 
@@ -14,11 +15,11 @@ class NcnnModelOutput(BaseOutput):
 
     def get_broadcast_data(self, value: NcnnModelWrapper):
         return {
-            "inNc": value.in_nc,
-            "outNc": value.out_nc,
-            "scale": value.scale,
-            "nf": value.nf,
-            "fp": value.fp,
+            "tags": [
+                format_channel_numbers(value.in_nc, value.out_nc),
+                f"{value.nf}nf",
+                value.fp,
+            ]
         }
 
     def get_broadcast_type(self, value: NcnnModelWrapper):

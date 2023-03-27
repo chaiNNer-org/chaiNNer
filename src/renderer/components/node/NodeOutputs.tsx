@@ -13,10 +13,9 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
-import { NcnnModelOutput } from '../outputs/NcnnModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps, UseOutputData } from '../outputs/props';
-import { PyTorchOutput } from '../outputs/PyTorchOutput';
+import { TaggedOutput } from '../outputs/TaggedOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
@@ -28,8 +27,8 @@ const OutputComponents: Readonly<
 > = {
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
-    pytorch: PyTorchOutput,
-    ncnn: NcnnModelOutput,
+    pytorch: TaggedOutput,
+    ncnn: TaggedOutput,
     onnx: GenericOutput,
     directory: GenericOutput,
     text: GenericOutput,
