@@ -13,6 +13,9 @@ class NumberOutput(BaseOutput):
     ):
         super().__init__(expression.intersect("number", output_type), label)
 
+    def get_broadcast_type(self, value: int | float):
+        return expression.literal(value)
+
     def validate(self, value) -> None:
         assert isinstance(value, (int, float))
 
@@ -26,8 +29,8 @@ class TextOutput(BaseOutput):
     ):
         super().__init__(expression.intersect("string", output_type), label, kind=kind)
 
-    def get_broadcast_data(self, value: str):
-        return value
+    def get_broadcast_type(self, value: str):
+        return expression.literal(value)
 
     def validate(self, value) -> None:
         assert isinstance(value, str)

@@ -70,7 +70,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         super().__init__()
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
-            ImageOutput("Frame Image", channels=3, broadcast_type=True),
+            ImageOutput("Frame Image", channels=3),
             NumberOutput("Frame Index"),
             DirectoryOutput("Video Directory"),
             TextOutput("Video Name"),

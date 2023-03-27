@@ -35,7 +35,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NcnnModelOutput(should_broadcast=False),
+            NcnnModelOutput(),
             NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]

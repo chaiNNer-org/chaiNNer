@@ -27,7 +27,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput(broadcast_type=True), NumberOutput("Overall Index")]
+        self.outputs = [ImageOutput(), NumberOutput("Overall Index")]
         self.side_effects = True
 
     def run(self, img: np.ndarray, index: int) -> Tuple[np.ndarray, int]:

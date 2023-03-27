@@ -27,8 +27,8 @@ class ImageFileIteratorLoadImageNodeA(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
-            ImageOutput("Image A", broadcast_type=True),
-            ImageOutput("Image B", broadcast_type=True),
+            ImageOutput("Image A"),
+            ImageOutput("Image B"),
             DirectoryOutput("Image Directory A"),
             DirectoryOutput("Image Directory B"),
             TextOutput("Subdirectory Path A"),

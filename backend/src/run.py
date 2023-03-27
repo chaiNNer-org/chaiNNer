@@ -19,7 +19,7 @@ from sanic.response import json
 from sanic_cors import CORS
 
 import api
-from base_types import NodeId, OutputId
+from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
@@ -30,8 +30,15 @@ from nodes.utils.exec_options import (
     parse_execution_options,
     set_execution_options,
 )
-from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
-from progress import Aborted
+from process import (
+    Executor,
+    NodeExecutionError,
+    Output,
+    compute_broadcast,
+    timed_supplier,
+    to_output,
+)
+from progress_controller import Aborted
 from response import (
     alreadyRunningResponse,
     errorResponse,
@@ -245,16 +252,9 @@ async def run_individual(request: Request):
             ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
-        broadcast_data: Dict[OutputId, Any] = dict()
         node_outputs = node_instance.outputs
         if len(node_outputs) > 0:
-            for idx, node_output in enumerate(node_outputs):
-                try:
-                    broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output[idx]
-                    )
-                except Exception as error:
-                    logger.error(f"Error broadcasting output: {error}")
+            data, types = compute_broadcast(output, node_outputs)
             await ctx.queue.put(
                 {
                     "event": "node-finish",
@@ -262,7 +262,8 @@ async def run_individual(request: Request):
                         "finished": [],
                         "nodeId": full_data["id"],
                         "executionTime": execution_time,
-                        "data": broadcast_data,
+                        "data": data,
+                        "types": types,
                         "progressPercent": None,
                     },
                 }
