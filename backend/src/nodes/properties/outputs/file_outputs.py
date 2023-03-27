@@ -22,26 +22,20 @@ class FileOutput(BaseOutput):
         assert isinstance(value, str)
 
 
-def ImageFileOutput() -> FileOutput:
-    """Output for saving a local image file"""
-    return FileOutput("ImageFile", "Image File")
-
-
-def OnnxFileOutput() -> FileOutput:
-    """Output for saving a .onnx file"""
-    return FileOutput("OnnxFile", "ONNX Model File")
-
-
-def DirectoryOutput(
-    label: str = "Directory", of_input: int | None = None
-) -> FileOutput:
+class DirectoryOutput(BaseOutput):
     """Output for saving to a directory"""
-    directory_type = (
-        "Directory" if of_input is None else f"splitFilePath(Input{of_input}.path).dir"
-    )
 
-    return FileOutput(
-        file_type=directory_type,
-        label=label,
-        kind="directory",
-    )
+    def __init__(self, label: str = "Directory", of_input: int | None = None):
+        directory_type = (
+            "Directory"
+            if of_input is None
+            else f"splitFilePath(Input{of_input}.path).dir"
+        )
+
+        super().__init__(directory_type, label, kind="directory")
+
+    def get_broadcast_type(self, value: str):
+        return expression.named("Directory", {"path": expression.literal(value)})
+
+    def validate(self, value) -> None:
+        assert isinstance(value, str)

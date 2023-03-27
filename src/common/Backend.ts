@@ -5,6 +5,7 @@ import {
     InputValue,
     NodeSchema,
     OutputData,
+    OutputTypes,
     PythonInfo,
     SchemaId,
 } from './common-types';
@@ -212,6 +213,7 @@ export interface BackendEventMap {
         nodeId: string;
         executionTime?: number | null;
         data?: OutputData | null;
+        types?: OutputTypes | null;
         progressPercent?: number | null;
     };
     'iterator-progress-update': {

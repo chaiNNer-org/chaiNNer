@@ -232,6 +232,7 @@ export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
+export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {

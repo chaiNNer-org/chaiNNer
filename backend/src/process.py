@@ -28,7 +28,7 @@ from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-from nodes.node_base import NodeBase
+from nodes.node_base import BaseOutput, NodeBase
 from progress import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
@@ -396,19 +396,10 @@ class Executor:
         if not node_id in finished:
             finished.append(node_id)
 
-        def compute_broadcast_data():
-            broadcast_data: Dict[OutputId, Any] = dict()
-            for index, node_output in enumerate(node_outputs):
-                try:
-                    broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output[index]
-                    )
-                except Exception as e:
-                    logger.error(f"Error broadcasting output: {e}")
-            return broadcast_data
-
         async def send_broadcast():
-            data = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
+            data, types = await self.loop.run_in_executor(
+                self.pool, lambda: compute_broadcast(output, node_outputs)
+            )
             self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
@@ -418,6 +409,7 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,
+                        "types": types,
                         "progressPercent": len(self.completed_node_ids)
                         / len(self.chain.nodes),
                     },
@@ -442,6 +434,7 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": None,
+                        "types": None,
                         "progressPercent": len(self.completed_node_ids)
                         / len(self.chain.nodes),
                     },
@@ -462,6 +455,7 @@ class Executor:
                 "nodeId": node_id,
                 "executionTime": None,
                 "data": None,
+                "types": None,
                 "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
             },
         }
@@ -517,3 +511,15 @@ class Executor:
     def kill(self):
         logger.debug(f"Killing executor {self.execution_id}")
         self.progress.abort()
+
+
+def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
+    data: Dict[OutputId, Any] = dict()
+    types: Dict[OutputId, Any] = dict()
+    for index, node_output in enumerate(node_outputs):
+        try:
+            data[node_output.id] = node_output.get_broadcast_data(output[index])
+            types[node_output.id] = node_output.get_broadcast_type(output[index])
+        except Exception as e:
+            logger.error(f"Error broadcasting output: {e}")
+    return data, types

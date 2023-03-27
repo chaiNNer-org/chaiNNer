@@ -25,7 +25,7 @@ class NcnnLoadModelNode(NodeBase):
             )
         ]
         self.outputs = [
-            NcnnModelOutput(kind="ncnn", should_broadcast=True),
+            NcnnModelOutput(kind="ncnn"),
             DirectoryOutput("Model Directory", of_input=0).with_id(2),
             FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
