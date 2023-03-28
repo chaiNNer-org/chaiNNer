@@ -6,10 +6,10 @@ from nodes.properties import expression
 from nodes.properties.inputs import NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import create_images_group
 
 
-@node_group.register(
+@create_images_group.register(
     schema_id="chainner:image:create_color_gray",
     name="Create Color (Gray)",
     description="Create an image of specified dimensions filled with a specified grayscale color.",

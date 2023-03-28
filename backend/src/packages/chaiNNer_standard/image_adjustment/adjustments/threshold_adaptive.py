@@ -13,10 +13,10 @@ from nodes.properties.inputs import (
 )
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:threshold_adaptive",
     name="Threshold (Adaptive)",
     description="Similar to regular threshold, but determines the threshold for a pixel based on a small region around it.",

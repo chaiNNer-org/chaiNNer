@@ -9,13 +9,13 @@ from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
 from process import IteratorContext
 
-from . import node_group
+from .. import batch_processing_group
 
 SPRITESHEET_ITERATOR_INPUT_NODE_ID = "chainner:image:spritesheet_iterator_load"
 SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id=SPRITESHEET_ITERATOR_INPUT_NODE_ID,
     name="Load Image (Iterator)",
     description="",
@@ -31,7 +31,7 @@ def ImageSpriteSheetIteratorLoadImageNode(
     return img, index
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id=SPRITESHEET_ITERATOR_OUTPUT_NODE_ID,
     name="Append Image",
     description="",
@@ -47,7 +47,7 @@ def ImageSpriteSheetIteratorAppendImageNode(
     results.append(img)
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id="chainner:image:spritesheet_iterator",
     name="Spritesheet Iterator",
     description="Iterate over sub-images in a single image spritesheet.",

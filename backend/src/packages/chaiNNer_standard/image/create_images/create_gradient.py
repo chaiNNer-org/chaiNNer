@@ -16,7 +16,7 @@ from nodes.properties import expression
 from nodes.properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import create_images_group
 
 
 class GradientStyle(Enum):
@@ -27,7 +27,7 @@ class GradientStyle(Enum):
     CONIC = "Conic"
 
 
-@node_group.register(
+@create_images_group.register(
     schema_id="chainner:image:create_gradient",
     name="Create Gradient",
     description="Create an image with a gradient.",

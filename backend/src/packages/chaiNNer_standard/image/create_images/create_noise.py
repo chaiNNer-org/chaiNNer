@@ -21,7 +21,7 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
 
-from . import node_group
+from .. import create_images_group
 
 
 class NoiseMethod(Enum):
@@ -78,7 +78,7 @@ def _add_noise(
     image += output.reshape(image.shape) * brightness
 
 
-@node_group.register(
+@create_images_group.register(
     schema_id="chainner:image:create_noise",
     name="Create Noise",
     description="Create an image of specified dimensions filled with one of a variety of noises.",

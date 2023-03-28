@@ -7,7 +7,7 @@ from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import adjustments_group
 
 
 def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
@@ -19,7 +19,7 @@ def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
         return img
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:hue_and_saturation",
     name="Hue & Saturation",
     description="Adjust the hue and saturation of an image. This is performed in the HSV color-space.",

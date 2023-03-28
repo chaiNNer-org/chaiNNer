@@ -17,13 +17,13 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import list_all_files_sorted
 from process import IteratorContext
 
+from .. import batch_processing_group
 from ..io.load_image import load_image_node
-from . import node_group
 
 PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id=PAIRED_IMAGE_ITERATOR_NODE_ID,
     name="Load Image (Iterator)",
     description="",
@@ -66,7 +66,7 @@ def ImageFileIteratorLoadImageNodeA(
     )
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id="chainner:image:paired_image_file_iterator",
     name="Image Pairs Iterator",
     description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already upscaled content.",

@@ -7,10 +7,10 @@ from sanic.log import logger
 from nodes.properties.inputs import ImageInput, SliderInput, ThresholdInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:threshold",
     name="Threshold",
     description="Replaces pixels based on the threshold value. If the pixel value is smaller than the threshold, it is set to 0, otherwise it is set to the maximum value.",

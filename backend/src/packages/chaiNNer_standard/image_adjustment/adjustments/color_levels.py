@@ -7,10 +7,10 @@ from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:color_levels",
     name="Color Levels",
     description="Adjust color levels",

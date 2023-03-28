@@ -5,10 +5,10 @@ import numpy as np
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import LargeImageOutput
 
-from . import node_group
+from .. import io_group
 
 
-@node_group.register(
+@io_group.register(
     schema_id="chainner:image:view",
     name="View Image",
     description="See an inline preview of the image in the editor.",

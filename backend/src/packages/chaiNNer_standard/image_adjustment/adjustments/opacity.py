@@ -8,10 +8,10 @@ from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:opacity",
     name="Opacity",
     description="Adjusts the opacity of an image. The higher the opacity value, the more opaque the image is.",

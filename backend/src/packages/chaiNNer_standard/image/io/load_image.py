@@ -16,7 +16,7 @@ from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
 
-from . import node_group
+from .. import io_group
 
 _Decoder = Callable[[str], Union[np.ndarray, None]]
 """
@@ -108,7 +108,7 @@ _decoders: List[Tuple[str, _Decoder]] = [
 ]
 
 
-@node_group.register(
+@io_group.register(
     schema_id="chainner:image:load",
     name="Load Image",
     description="Load image from specified file.",

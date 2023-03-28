@@ -6,10 +6,10 @@ from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:brightness_and_contrast",
     description="Adjust the brightness and contrast of an image.",
     name="Brightness & Contrast",

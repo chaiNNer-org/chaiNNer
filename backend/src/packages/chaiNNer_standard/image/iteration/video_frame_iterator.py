@@ -31,7 +31,7 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import get_h_w_c, split_file_path
 from process import IteratorContext
 
-from . import node_group
+from .. import batch_processing_group
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
@@ -55,7 +55,7 @@ class Writer:
     video_save_path: str | None = None
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id=VIDEO_ITERATOR_INPUT_NODE_ID,
     name="Load Frame As Image",
     description="",
@@ -76,7 +76,7 @@ def VideoFrameIteratorFrameLoaderNode(
     return normalize(img), idx, video_dir, video_name
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id=VIDEO_ITERATOR_OUTPUT_NODE_ID,
     name="Write Output Frame",
     description="",
@@ -160,7 +160,7 @@ def VideoFrameIteratorFrameWriterNode(
         raise RuntimeError("Failed to open video writer")
 
 
-@node_group.register(
+@batch_processing_group.register(
     schema_id="chainner:image:video_frame_iterator",
     name="Video Frame Iterator",
     description="Iterate over all frames in a video, and write to a video buffer.",

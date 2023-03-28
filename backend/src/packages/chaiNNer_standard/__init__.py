@@ -25,5 +25,4 @@ image_channel_category = package.add_category(
     color="#D69E2E",
 )
 
-
 logger.info(f"Loaded package {package.name}")

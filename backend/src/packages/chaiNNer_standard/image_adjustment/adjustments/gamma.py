@@ -6,10 +6,10 @@ from nodes.properties.inputs import BoolInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import adjustments_group
 
 
-@node_group.register(
+@adjustments_group.register(
     schema_id="chainner:image:gamma",
     name="Gamma",
     description="Adjusts the gamma of an image.",

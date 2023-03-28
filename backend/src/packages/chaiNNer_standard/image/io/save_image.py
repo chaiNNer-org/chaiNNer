@@ -33,7 +33,7 @@ from nodes.properties.inputs import (
 )
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import io_group
 
 SUPPORTED_FORMATS = {f for f, _ in SUPPORTED_DDS_FORMATS}
 SUPPORTED_BC7_FORMATS = list(SUPPORTED_FORMATS.intersection(BC7_FORMATS))
@@ -59,7 +59,7 @@ class JpegSubsampling(Enum):
     FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
 
 
-@node_group.register(
+@io_group.register(
     schema_id="chainner:image:save",
     name="Save Image",
     description="Save image to file at a specified directory.",
