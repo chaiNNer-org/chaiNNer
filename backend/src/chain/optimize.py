@@ -1,9 +1,9 @@
 from sanic.log import logger
 
-from .chain import Chain, EdgeSource, IteratorNode, Node
+from .chain import Chain, EdgeSource, FunctionalNodes, IteratorNode
 
 
-def __has_side_effects(node: Node) -> bool:
+def __has_side_effects(node: FunctionalNodes) -> bool:
     if isinstance(node, IteratorNode) or node.is_helper:
         # we assume that both iterators and their helper nodes always have side effects
         return True

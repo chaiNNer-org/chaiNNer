@@ -3,11 +3,146 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 from sanic.log import logger
 
-from nodes.node_base import NodeBase, NodeType
+from base_types import InputId, OutputId
+from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
+from nodes.node_base import NodeType
+from nodes.properties.inputs.base_input import BaseInput
+from nodes.properties.outputs.base_output import BaseOutput
+
+
+@dataclass
+class Node:
+    schema_id: str = ""
+    description: str = ""
+    name: str = ""
+    icon: str = ""
+    type: NodeType | None = "regularNode"
+
+    inputs: List[BaseInput] = field(default_factory=list)
+    outputs: List[BaseOutput] = field(default_factory=list)
+    group_layout: List[Union[InputId, NestedIdGroup]] = field(default_factory=list)
+
+    side_effects: bool = False
+    deprecated: bool = False
+    default_nodes: List["Node"] | None = None  # For iterators only
+
+    run: Callable[[], Any] = lambda: None
+
+    def set_inputs(self, value: List[Union[BaseInput, NestedGroup]]):
+        _inputs: List[BaseInput] = []
+        _groups = []
+
+        def add_inputs(
+            current: List[Union[BaseInput, NestedGroup]]
+        ) -> List[Union[InputId, NestedIdGroup]]:
+            layout: List[Union[InputId, NestedIdGroup]] = []
+
+            for x in current:
+                if isinstance(x, Group):
+                    if x.info.id == -1:
+                        x.info.id = GroupId(len(_groups))
+                    g: NestedIdGroup = Group(x.info, [])
+                    _groups.append(g)
+                    layout.append(g)
+                    g.items.extend(add_inputs(x.items))  # type: ignore
+                else:
+                    if x.id == -1:
+                        x.id = InputId(len(_inputs))
+                    layout.append(x.id)
+                    _inputs.append(x)
+
+            return layout
+
+        self.inputs = _inputs
+        self.group_layout = add_inputs(value)
+
+    def set_outputs(self, value: List[BaseOutput]):
+        for i, output_value in enumerate(value):
+            if output_value.id == -1:
+                output_value.id = OutputId(i)
+        self.outputs = value
+
+    def set_run(self, value: Callable[[], Any]):
+        self.run = value
+
+
+T = TypeVar("T", bound=Node)
+
+
+@dataclass
+class NodeGroup:
+    category: Category
+    name: str
+    nodes: List[Node] = field(default_factory=list)
+
+    def add_node(
+        self,
+        node: Node,
+    ):
+
+        logger.info(f"Added {node.schema_id}")
+        self.nodes.append(node)
+
+    def register(
+        self,
+        schema_id: str,
+        name: str,
+        description: str,
+        icon: str = "BsQuestionCircleFill",
+        node_type: NodeType | None = "regularNode",
+        inputs: List[Union[BaseInput, NestedGroup]] | None = None,
+        outputs: List[BaseOutput] | None = None,
+        side_effects: bool = False,
+        deprecated: bool = False,
+        default_nodes: Any | None = None,
+    ):
+        def inner_wrapper(wrapped_func: Any) -> Any:
+            node = Node(
+                schema_id=schema_id,
+                name=name,
+                description=description,
+                icon=icon,
+                type=node_type,
+                side_effects=side_effects,
+                deprecated=deprecated,
+                default_nodes=default_nodes,
+            )
+            node.set_inputs(inputs or [])
+            node.set_outputs(outputs or [])
+            node.set_run(wrapped_func)
+            self.add_node(node)
+            return wrapped_func
+
+        return inner_wrapper
+
+
+@dataclass
+class Category:
+    package: Package
+    name: str
+    description: str
+    icon: str = "BsQuestionCircleFill"
+    color: str = "#777777"
+    install_hint: str | None = None
+    node_groups: List["NodeGroup"] = field(default_factory=list)
+
+    def add_node_group(self, name: str) -> "NodeGroup":
+        result = NodeGroup(category=self, name=name)
+        self.node_groups.append(result)
+        return result
+
+    def toDict(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "icon": self.icon,
+            "color": self.color,
+            "installHint": self.install_hint,
+        }
 
 
 @dataclass
@@ -37,79 +172,6 @@ class Package:
         return result
 
 
-@dataclass
-class Category:
-    package: Package
-    name: str
-    description: str
-    icon: str = "BsQuestionCircleFill"
-    color: str = "#777777"
-    install_hint: str | None = None
-    node_groups: List["NodeGroup"] = field(default_factory=list)
-
-    def add_node_group(self, name: str) -> "NodeGroup":
-        result = NodeGroup(category=self, name=name)
-        self.node_groups.append(result)
-        return result
-
-    def toDict(self):
-        return {
-            "name": self.name,
-            "description": self.description,
-            "icon": self.icon,
-            "color": self.color,
-            "installHint": self.install_hint,
-        }
-
-
-T = TypeVar("T", bound=NodeBase)
-
-
-@dataclass
-class NodeGroup:
-    category: Category
-    name: str
-    nodes: List[NodeBase] = field(default_factory=list)
-
-    def add_node(
-        self,
-        node: NodeBase,
-        schema_id: str | None = None,
-        name: str | None = None,
-        description: str | None = None,
-        icon: str | None = None,
-        node_type: NodeType | None = None,
-    ):
-        if schema_id is not None:
-            node.schema_id = schema_id
-        if name is not None:
-            node.name = name
-        if description is not None:
-            node.description = description
-        if icon is not None:
-            node.icon = icon
-        if node_type is not None:
-            node.type = node_type
-        logger.info(f"Added {node.schema_id}")
-        self.nodes.append(node)
-
-    def register(
-        self,
-        schema_id: str,
-        name: str,
-        description: str,
-        icon: str = "BsQuestionCircleFill",
-        node_type: NodeType | None = None,
-    ):
-        def inner_wrapper(wrapped_class: Callable[[], T]) -> Callable[[], T]:
-            self.add_node(
-                wrapped_class(), schema_id, name, description, icon, node_type
-            )
-            return wrapped_class
-
-        return inner_wrapper
-
-
 def _iter_py_files(directory: str):
     for root, _, files in os.walk(directory):
         for file in files:
@@ -121,9 +183,9 @@ class PackageRegistry:
     def __init__(self) -> None:
         self.packages: Dict[str, Package] = {}
         self.categories: List[Category] = []
-        self.nodes: Dict[str, Tuple[NodeBase, NodeGroup]] = {}
+        self.nodes: Dict[str, Tuple[Node, NodeGroup]] = {}
 
-    def get_node(self, schema_id: str) -> NodeBase:
+    def get_node(self, schema_id: str) -> Node:
         return self.nodes[schema_id][0]
 
     def add(self, package: Package) -> Package:

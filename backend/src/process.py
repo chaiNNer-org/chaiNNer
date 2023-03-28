@@ -22,19 +22,20 @@ from typing import (
 import numpy as np
 from sanic.log import logger
 
+from api import Node
 from base_types import NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
-from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
+from chain.chain import Chain, FunctionalNodes, FunctionNode, IteratorNode, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-from nodes.node_base import BaseOutput, NodeBase
+from nodes.node_base import BaseOutput
 from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
 
 
-def to_output(raw_output: Any, node: NodeBase) -> Output:
+def to_output(raw_output: Any, node: Node) -> Output:
     l = len(node.outputs)
 
     output: Output
@@ -67,12 +68,12 @@ T = TypeVar("T")
 class NodeExecutionError(Exception):
     def __init__(
         self,
-        node: Node,
+        node: FunctionalNodes,
         cause: str,
         inputs: InputsDict,
     ):
         super().__init__(cause)
-        self.node: Node = node
+        self.node: FunctionalNodes = node
         self.inputs: InputsDict = inputs
 
 
@@ -290,7 +291,7 @@ class Executor:
         except Exception as e:
             raise NodeExecutionError(node, str(e), {}) from e
 
-    async def __process(self, node: Node) -> Output:
+    async def __process(self, node: FunctionalNodes) -> Output:
         """Process a single node"""
 
         logger.debug(f"node: {node}")
@@ -386,7 +387,7 @@ class Executor:
 
     async def __broadcast_data(
         self,
-        node_instance: NodeBase,
+        node_instance: Node,
         node_id: NodeId,
         execution_time: float,
         output: Output,

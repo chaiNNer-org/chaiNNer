@@ -7,7 +7,6 @@ import numpy as np
 from sanic.log import logger
 
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.node_base import IteratorNodeBase, NodeBase
 from nodes.properties.inputs import DirectoryInput, IteratorInput
 from nodes.properties.outputs import (
     DirectoryOutput,
@@ -18,7 +17,7 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import list_all_files_sorted
 from process import IteratorContext
 
-from ..io.load_image import ImReadNode
+from ..io.load_image import load_image_node
 from . import node_group
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
@@ -30,29 +29,25 @@ IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
     description="",
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
+    inputs=[IteratorInput().make_optional()],
+    outputs=[
+        ImageOutput(),
+        DirectoryOutput("Image Directory"),
+        TextOutput("Subdirectory Path"),
+        TextOutput("Image Name"),
+        NumberOutput("Overall Index"),
+    ],
+    side_effects=True,
 )
-class ImageFileIteratorLoadImageNode(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [
-            ImageOutput(),
-            DirectoryOutput("Image Directory"),
-            TextOutput("Subdirectory Path"),
-            TextOutput("Image Name"),
-            NumberOutput("Overall Index"),
-        ]
-        self.side_effects = True
+def ImageFileIteratorLoadImageNode(
+    path: str, root_dir: str, index: int
+) -> Tuple[np.ndarray, str, str, str, int]:
+    img, img_dir, basename = load_image_node(path)
 
-    def run(
-        self, path: str, root_dir: str, index: int
-    ) -> Tuple[np.ndarray, str, str, str, int]:
-        img, img_dir, basename = ImReadNode().run(path)
+    # Get relative path from root directory passed by Iterator directory input
+    rel_path = os.path.relpath(img_dir, root_dir)
 
-        # Get relative path from root directory passed by Iterator directory input
-        rel_path = os.path.relpath(img_dir, root_dir)
-
-        return img, root_dir, rel_path, basename, index
+    return img, root_dir, rel_path, basename, index
 
 
 @node_group.register(
@@ -61,34 +56,27 @@ class ImageFileIteratorLoadImageNode(NodeBase):
     description="Iterate over all files in a directory and run the provided nodes on just the image files.",
     icon="MdLoop",
     node_type="iterator",
+    inputs=[
+        DirectoryInput(),
+    ],
+    outputs=[],
+    default_nodes=[
+        # TODO: Figure out a better way to do this
+        {
+            "schemaId": IMAGE_ITERATOR_NODE_ID,
+        },
+    ],
 )
-class ImageFileIteratorNode(IteratorNodeBase):
-    def __init__(self):
-        super().__init__()
-        self.inputs = [
-            DirectoryInput(),
-        ]
-        self.outputs = []
-        self.default_nodes = [
-            # TODO: Figure out a better way to do this
-            {
-                "schemaId": IMAGE_ITERATOR_NODE_ID,
-            },
-        ]
+async def ImageFileIteratorNode(directory: str, context: IteratorContext) -> None:
+    logger.debug(f"Iterating over images in directory: {directory}")
 
-    # pylint: disable=invalid-overridden-method
-    async def run(self, directory: str, context: IteratorContext) -> None:
-        logger.debug(f"Iterating over images in directory: {directory}")
+    img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 
-        img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
+    supported_filetypes = get_available_image_formats()
 
-        supported_filetypes = get_available_image_formats()
+    just_image_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
 
-        just_image_files: List[str] = list_all_files_sorted(
-            directory, supported_filetypes
-        )
+    def before(filepath: str, index: int):
+        context.inputs.set_values(img_path_node_id, [filepath, directory, index])
 
-        def before(filepath: str, index: int):
-            context.inputs.set_values(img_path_node_id, [filepath, directory, index])
-
-        await context.run(just_image_files, before)
+    await context.run(just_image_files, before)

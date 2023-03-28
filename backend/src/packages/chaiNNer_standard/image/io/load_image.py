@@ -12,7 +12,6 @@ from sanic.log import logger
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import get_opencv_formats, get_pil_formats
 from nodes.impl.image_utils import normalize
-from nodes.node_base import NodeBase
 from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
@@ -114,43 +113,39 @@ _decoders: List[Tuple[str, _Decoder]] = [
     name="Load Image",
     description="Load image from specified file.",
     icon="BsFillImageFill",
+    inputs=[ImageFileInput(primary_input=True)],
+    outputs=[
+        LargeImageOutput(),
+        DirectoryOutput("Image Directory", of_input=0),
+        FileNameOutput("Image Name", of_input=0),
+    ],
 )
-class ImReadNode(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.inputs = [ImageFileInput(primary_input=True)]
-        self.outputs = [
-            LargeImageOutput(),
-            DirectoryOutput("Image Directory", of_input=0),
-            FileNameOutput("Image Name", of_input=0),
-        ]
+def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
+    """Reads an image from the specified path and return it as a numpy array"""
 
-    def run(self, path: str) -> Tuple[np.ndarray, str, str]:
-        """Reads an image from the specified path and return it as a numpy array"""
+    logger.debug(f"Reading image from path: {path}")
 
-        logger.debug(f"Reading image from path: {path}")
+    dirname, basename, _ = split_file_path(path)
 
-        dirname, basename, _ = split_file_path(path)
+    img = None
+    error = None
+    for name, decoder in _decoders:
+        try:
+            img = decoder(path)
+        except Exception as e:
+            error = e
+            logger.warning(f"Decoder {name} failed")
 
-        img = None
-        error = None
-        for name, decoder in _decoders:
-            try:
-                img = decoder(path)
-            except Exception as e:
-                error = e
-                logger.warning(f"Decoder {name} failed")
+        if img is not None:
+            break
 
-            if img is not None:
-                break
+    if img is None:
+        if error is not None:
+            raise error
+        raise RuntimeError(
+            f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
+        )
 
-        if img is None:
-            if error is not None:
-                raise error
-            raise RuntimeError(
-                f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
-            )
+    img = normalize(img)
 
-        img = normalize(img)
-
-        return img, dirname, basename
+    return img, dirname, basename

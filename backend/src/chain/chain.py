@@ -1,8 +1,8 @@
 from typing import Callable, Dict, List, TypeVar, Union
 
-from api import registry
+from api import Node, registry
 from base_types import InputId, NodeId, OutputId
-from nodes.node_base import IteratorNodeBase, NodeBase
+from nodes.node_base import IteratorNodeBase
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -23,7 +23,7 @@ class FunctionNode:
         self.parent: Union[NodeId, None] = None
         self.is_helper: bool = False
 
-    def get_node(self) -> NodeBase:
+    def get_node(self) -> Node:
         return registry.get_node(self.schema_id)
 
     def has_side_effects(self) -> bool:
@@ -37,15 +37,15 @@ class IteratorNode:
         self.parent: None = None
         self.__node = None
 
-    def get_node(self) -> IteratorNodeBase:
+    def get_node(self) -> Node:
         if self.__node is None:
             node = registry.get_node(self.schema_id)
-            assert isinstance(node, IteratorNodeBase), "Invalid iterator node"
+            assert Node.type == "iterator", "Invalid iterator node"
             self.__node = node
         return self.__node
 
 
-Node = Union[FunctionNode, IteratorNode]
+FunctionalNodes = Union[FunctionNode, IteratorNode]
 
 
 class EdgeSource:
@@ -68,11 +68,11 @@ class Edge:
 
 class Chain:
     def __init__(self):
-        self.nodes: Dict[NodeId, Node] = {}
+        self.nodes: Dict[NodeId, FunctionalNodes] = {}
         self.__edges_by_source: Dict[NodeId, List[Edge]] = {}
         self.__edges_by_target: Dict[NodeId, List[Edge]] = {}
 
-    def add_node(self, node: Node):
+    def add_node(self, node: FunctionalNodes):
         assert node.id not in self.nodes, f"Duplicate node id {node.id}"
         self.nodes[node.id] = node
 
