@@ -83,7 +83,6 @@ class NodeGroup:
         self,
         node: Node,
     ):
-
         logger.info(f"Added {node.schema_id}")
         self.nodes.append(node)
 
