@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
 
 from sanic.log import logger
 
@@ -14,63 +14,70 @@ from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
 
 
-@dataclass
+def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
+    inputs: List[BaseInput] = []
+    groups: List[NestedIdGroup] = []
+
+    def add_inputs(
+        current: Iterable[Union[BaseInput, NestedGroup]]
+    ) -> List[Union[InputId, NestedIdGroup]]:
+        layout: List[Union[InputId, NestedIdGroup]] = []
+
+        for x in current:
+            if isinstance(x, Group):
+                if x.info.id == -1:
+                    x.info.id = GroupId(len(groups))
+                g: NestedIdGroup = Group(x.info, [])
+                groups.append(g)
+                layout.append(g)
+                g.items.extend(add_inputs(x.items))  # type: ignore
+            else:
+                if x.id == -1:
+                    x.id = InputId(len(inputs))
+                layout.append(x.id)
+                inputs.append(x)
+
+        return layout
+
+    return inputs, add_inputs(base_inputs)
+
+
+def _process_outputs(base_outputs: Iterable[BaseOutput]):
+    outputs: List[BaseOutput] = []
+    for i, output_value in enumerate(base_outputs):
+        if output_value.id == -1:
+            output_value.id = OutputId(i)
+        outputs.append(output_value)
+    return outputs
+
+
+RunFn = Callable[..., Any]
+
+
+class DefaultNode(TypedDict):
+    schemaId: str
+
+
+@dataclass(frozen=True)
 class Node:
-    schema_id: str = ""
-    description: str = ""
-    name: str = ""
-    icon: str = ""
-    type: NodeType | None = "regularNode"
+    schema_id: str
+    description: str
+    name: str
+    icon: str
+    type: NodeType
 
-    inputs: List[BaseInput] = field(default_factory=list)
-    outputs: List[BaseOutput] = field(default_factory=list)
-    group_layout: List[Union[InputId, NestedIdGroup]] = field(default_factory=list)
+    inputs: List[BaseInput]
+    outputs: List[BaseOutput]
+    group_layout: List[Union[InputId, NestedIdGroup]]
 
-    side_effects: bool = False
-    deprecated: bool = False
-    default_nodes: List["Node"] | None = None  # For iterators only
+    side_effects: bool
+    deprecated: bool
+    default_nodes: List[DefaultNode] | None  # For iterators only
 
-    run: Callable[[], Any] = lambda: None
-
-    def set_inputs(self, value: List[Union[BaseInput, NestedGroup]]):
-        _inputs: List[BaseInput] = []
-        _groups = []
-
-        def add_inputs(
-            current: List[Union[BaseInput, NestedGroup]]
-        ) -> List[Union[InputId, NestedIdGroup]]:
-            layout: List[Union[InputId, NestedIdGroup]] = []
-
-            for x in current:
-                if isinstance(x, Group):
-                    if x.info.id == -1:
-                        x.info.id = GroupId(len(_groups))
-                    g: NestedIdGroup = Group(x.info, [])
-                    _groups.append(g)
-                    layout.append(g)
-                    g.items.extend(add_inputs(x.items))  # type: ignore
-                else:
-                    if x.id == -1:
-                        x.id = InputId(len(_inputs))
-                    layout.append(x.id)
-                    _inputs.append(x)
-
-            return layout
-
-        self.inputs = _inputs
-        self.group_layout = add_inputs(value)
-
-    def set_outputs(self, value: List[BaseOutput]):
-        for i, output_value in enumerate(value):
-            if output_value.id == -1:
-                output_value.id = OutputId(i)
-        self.outputs = value
-
-    def set_run(self, value: Callable[[], Any]):
-        self.run = value
+    run: RunFn
 
 
-T = TypeVar("T", bound=Node)
+T = TypeVar("T", bound=RunFn)
 
 
 @dataclass
@@ -79,10 +86,7 @@ class NodeGroup:
     name: str
     nodes: List[Node] = field(default_factory=list)
 
-    def add_node(
-        self,
-        node: Node,
-    ):
+    def add_node(self, node: Node):
         logger.info(f"Added {node.schema_id}")
         self.nodes.append(node)
 
@@ -91,28 +95,33 @@ class NodeGroup:
         schema_id: str,
         name: str,
         description: str,
+        inputs: List[Union[BaseInput, NestedGroup]],
+        outputs: List[BaseOutput],
         icon: str = "BsQuestionCircleFill",
-        node_type: NodeType | None = "regularNode",
-        inputs: List[Union[BaseInput, NestedGroup]] | None = None,
-        outputs: List[BaseOutput] | None = None,
+        node_type: NodeType = "regularNode",
         side_effects: bool = False,
         deprecated: bool = False,
-        default_nodes: Any | None = None,
+        default_nodes: List[DefaultNode] | None = None,
     ):
-        def inner_wrapper(wrapped_func: Any) -> Any:
+        def inner_wrapper(wrapped_func: T) -> T:
+            p_inputs, group_layout = _process_inputs(inputs)
+            p_output = _process_outputs(outputs)
+
             node = Node(
                 schema_id=schema_id,
                 name=name,
                 description=description,
                 icon=icon,
                 type=node_type,
+                inputs=p_inputs,
+                group_layout=group_layout,
+                outputs=p_output,
                 side_effects=side_effects,
                 deprecated=deprecated,
                 default_nodes=default_nodes,
+                run=wrapped_func,
             )
-            node.set_inputs(inputs or [])
-            node.set_outputs(outputs or [])
-            node.set_run(wrapped_func)
+
             self.add_node(node)
             return wrapped_func
 
