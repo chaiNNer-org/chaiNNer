@@ -67,9 +67,13 @@ app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
-for package in os.listdir("./packages"):
+# Join current file path with the path to the packages folder
+packages_dir = os.path.join(os.path.dirname(__file__), "packages")
+sys.path.append(packages_dir)
+
+for package in os.listdir(packages_dir):
     logger.info(package)
-    importlib.import_module(f"packages.{package}")
+    importlib.import_module(package)
 
 api.registry.load_nodes(__file__)
 
