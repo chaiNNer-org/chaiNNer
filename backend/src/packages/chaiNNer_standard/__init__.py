@@ -25,4 +25,12 @@ image_channel_category = package.add_category(
     color="#D69E2E",
 )
 
+material_textures_category = package.add_category(
+    name="Material Textures",
+    description="Modify and create material textures for games & 3D models.",
+    icon="GiRolledCloth",
+    color="#827DFB",
+)
+
+
 logger.info(f"Loaded package {package.name}")
