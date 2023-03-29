@@ -72,12 +72,12 @@ packages_dir = os.path.join(os.path.dirname(__file__), "packages")
 sys.path.append(packages_dir)
 
 for package in os.listdir(packages_dir):
-    logger.info(package)
+    # logger.info(package)
     importlib.import_module(package)
 
 api.registry.load_nodes(__file__)
 
-logger.info(api.registry.categories)
+# logger.info(api.registry.categories)
 
 
 class SSEFilter(logging.Filter):
