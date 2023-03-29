@@ -251,15 +251,13 @@ class PackageRegistry:
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
 
-        for package in self.packages.values():
+        for package in list(self.packages.values()):
             for file_path in _iter_py_files(os.path.dirname(package.where)):
                 _, name = os.path.split(file_path)
 
                 if not name.startswith("_"):
                     module = os.path.relpath(file_path, os.path.dirname(current_file))
-                    logger.info(module)
                     module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
-                    logger.info(module)
                     try:
                         importlib.import_module(module, package=None)
                     except ImportError as e:
