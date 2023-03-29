@@ -6,13 +6,17 @@ from typing import Tuple
 import numpy as np
 from sanic.log import logger
 
-from ...impl.pil_utils import InterpolationMethod, resize
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import EnumInput, ImageInput, InterpolationInput, NumberInput
-from ...properties.outputs import ImageOutput
-from ...utils.utils import get_h_w_c, round_half_up
-from . import category as ImageDimensionCategory
+from nodes.impl.pil_utils import InterpolationMethod, resize
+from nodes.properties.inputs import (
+    EnumInput,
+    ImageInput,
+    InterpolationInput,
+    NumberInput,
+)
+from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c, round_half_up
+
+from .. import resize_group
 
 
 class SideSelection(Enum):
@@ -79,38 +83,36 @@ def resize_to_side_conditional(
     return w_new, h_new
 
 
-@NodeFactory.register("chainner:image:resize_to_side")
-class ImResizeToSide(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.description = (
-            "Resize an image to a given side length while keeping aspect ratio. "
-            "Auto uses box for downsampling and lanczos for upsampling."
-        )
-        self.inputs = [
-            ImageInput(),
-            NumberInput(
-                "Size Target",
-                default=2160,
-                minimum=1,
-                unit="px",
-            ),
-            EnumInput(SideSelection, label="Resize To"),
-            InterpolationInput(),
-            EnumInput(
-                ResizeCondition,
-                option_labels={
-                    ResizeCondition.BOTH: "Upscale And Downscale",
-                    ResizeCondition.UPSCALE: "Upscale Only",
-                    ResizeCondition.DOWNSCALE: "Downscale Only",
-                },
-            ),
-        ]
-        self.category = ImageDimensionCategory
-        self.name = "Resize To Side"
-        self.outputs = [
-            ImageOutput(
-                image_type="""
+@resize_group.register(
+    schema_id="chainner:image:resize_to_side",
+    name="Resize To Side",
+    description=(
+        "Resize an image to a given side length while keeping aspect ratio. "
+        "Auto uses box for downsampling and lanczos for upsampling."
+    ),
+    icon="MdOutlinePhotoSizeSelectLarge",
+    inputs=[
+        ImageInput(),
+        NumberInput(
+            "Size Target",
+            default=2160,
+            minimum=1,
+            unit="px",
+        ),
+        EnumInput(SideSelection, label="Resize To"),
+        InterpolationInput(),
+        EnumInput(
+            ResizeCondition,
+            option_labels={
+                ResizeCondition.BOTH: "Upscale And Downscale",
+                ResizeCondition.UPSCALE: "Upscale Only",
+                ResizeCondition.DOWNSCALE: "Downscale Only",
+            },
+        ),
+    ],
+    outputs=[
+        ImageOutput(
+            image_type="""
                 struct Size { width: uint, height: uint }
 
                 let w = Input0.width;
@@ -162,24 +164,21 @@ class ImResizeToSide(NodeBase):
                     channels: Input0.channels
                 }
                 """
-            )
-        ]
-        self.icon = "MdOutlinePhotoSizeSelectLarge"
-        self.sub = "Resize"
+        )
+    ],
+)
+def resize_to_side_node(
+    img: np.ndarray,
+    target: int,
+    side: SideSelection,
+    interpolation: InterpolationMethod,
+    condition: ResizeCondition,
+) -> np.ndarray:
+    """Takes an image and resizes it"""
 
-    def run(
-        self,
-        img: np.ndarray,
-        target: int,
-        side: SideSelection,
-        interpolation: InterpolationMethod,
-        condition: ResizeCondition,
-    ) -> np.ndarray:
-        """Takes an image and resizes it"""
+    logger.debug(f"Resizing image to {side} via {interpolation}")
 
-        logger.debug(f"Resizing image to {side} via {interpolation}")
+    h, w, _ = get_h_w_c(img)
+    out_dims = resize_to_side_conditional(w, h, target, side, condition)
 
-        h, w, _ = get_h_w_c(img)
-        out_dims = resize_to_side_conditional(w, h, target, side, condition)
-
-        return resize(img, out_dims, interpolation)
+    return resize(img, out_dims, interpolation)

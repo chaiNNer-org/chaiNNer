@@ -25,6 +25,13 @@ image_channel_category = package.add_category(
     color="#D69E2E",
 )
 
+image_dimensions_category = package.add_category(
+    name="Image (Dimensions)",
+    description="Nodes that deal with changing the dimensions/resolution of images.",
+    icon="MdOutlinePhotoSizeSelectLarge",
+    color="#3182CE",
+)
+
 material_textures_category = package.add_category(
     name="Material Textures",
     description="Modify and create material textures for games & 3D models.",
