@@ -32,6 +32,13 @@ image_dimensions_category = package.add_category(
     color="#3182CE",
 )
 
+image_filter_category = package.add_category(
+    name="Image (Filters)",
+    description="Nodes that deal with filtering images.",
+    icon="MdFilterAlt",
+    color="#38A169",
+)
+
 material_textures_category = package.add_category(
     name="Material Textures",
     description="Modify and create material textures for games & 3D models.",
