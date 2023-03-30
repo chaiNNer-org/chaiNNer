@@ -7,7 +7,9 @@ class OnnxModelOutput(BaseOutput):
     """Output for onnx model"""
 
     def __init__(
-        self, model_type: expression.ExpressionJson = "OnnxModel", label: str = "Model"
+        self,
+        model_type: expression.ExpressionJson = "OnnxModel",
+        label: str = "Model",
     ):
         super().__init__(model_type, label)
 
