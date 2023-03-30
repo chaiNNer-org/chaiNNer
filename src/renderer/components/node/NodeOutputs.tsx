@@ -27,21 +27,13 @@ const OutputComponents: Readonly<
 > = {
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
-    pytorch: TaggedOutput,
-    ncnn: TaggedOutput,
-    onnx: GenericOutput,
-    directory: GenericOutput,
-    text: GenericOutput,
+    tagged: TaggedOutput,
     generic: GenericOutput,
 };
 const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     image: true,
     'large-image': false,
-    pytorch: false,
-    ncnn: false,
-    onnx: true,
-    directory: true,
-    text: true,
+    tagged: false,
     generic: true,
 };
 

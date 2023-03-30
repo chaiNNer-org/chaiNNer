@@ -128,15 +128,7 @@ export type Input =
     | SliderInput
     | NumberInput;
 
-export type OutputKind =
-    | 'image'
-    | 'large-image'
-    | 'text'
-    | 'directory'
-    | 'pytorch'
-    | 'ncnn'
-    | 'onnx'
-    | 'generic';
+export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
 export interface Output {
     readonly id: OutputId;
