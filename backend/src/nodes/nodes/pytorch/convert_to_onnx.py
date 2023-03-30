@@ -27,11 +27,7 @@ class ConvertTorchToONNXNode(NodeBase):
             OnnxFpDropdown(),
         ]
         self.outputs = [
-            OnnxModelOutput(
-                model_type="OnnxGenericModel",
-                label="ONNX Model",
-                kind="onnx",
-            ),
+            OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
             TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 

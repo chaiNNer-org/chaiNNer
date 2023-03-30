@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ...utils.seed import Seed
 from .. import expression
-from .base_output import BaseOutput, OutputKind
+from .base_output import BaseOutput
 
 
 class NumberOutput(BaseOutput):
@@ -25,9 +25,8 @@ class TextOutput(BaseOutput):
         self,
         label: str,
         output_type: expression.ExpressionJson = "string",
-        kind: OutputKind = "text",
     ):
-        super().__init__(expression.intersect("string", output_type), label, kind=kind)
+        super().__init__(expression.intersect("string", output_type), label)
 
     def get_broadcast_type(self, value: str):
         return expression.literal(value)
