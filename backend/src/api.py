@@ -266,6 +266,10 @@ class PackageRegistry:
                         importlib.import_module(module, package=None)
                     except ImportError as e:
                         import_errors.append(e)
+                    except RuntimeError as e:
+                        logger.warning(f"Failed to load {module}: {e}")
+                    except ValueError as e:
+                        logger.warning(f"Failed to load {module}: {e}")
 
         logger.info(import_errors)
         self._refresh_nodes()
