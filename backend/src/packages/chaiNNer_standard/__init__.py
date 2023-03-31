@@ -53,5 +53,12 @@ material_textures_category = package.add_category(
     color="#827DFB",
 )
 
+utility_category = package.add_category(
+    name="Utility",
+    description="Various utility nodes.",
+    icon="BsGearFill",
+    color="#718096",
+)
+
 
 logger.info(f"Loaded package {package.name}")
