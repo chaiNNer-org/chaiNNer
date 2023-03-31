@@ -1,6 +1,6 @@
 from ...impl.onnx.model import OnnxModel
 from ...properties import expression
-from .base_output import BaseOutput, OutputKind
+from .base_output import BaseOutput
 
 
 class OnnxModelOutput(BaseOutput):
@@ -10,9 +10,8 @@ class OnnxModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "OnnxModel",
         label: str = "Model",
-        kind: OutputKind = "generic",
     ):
-        super().__init__(model_type, label, kind=kind)
+        super().__init__(model_type, label)
 
     def get_broadcast_type(self, value: OnnxModel):
         fields = {
