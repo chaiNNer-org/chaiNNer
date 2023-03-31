@@ -39,6 +39,13 @@ image_filter_category = package.add_category(
     color="#38A169",
 )
 
+image_utility_category = package.add_category(
+    name="Image (Utilities)",
+    description="Various utility nodes for images.",
+    icon="BsGear",
+    color="#00A3C4",
+)
+
 material_textures_category = package.add_category(
     name="Material Textures",
     description="Modify and create material textures for games & 3D models.",
