@@ -128,6 +128,7 @@ class NodeGroup:
                 # Pop the return type key off the dict
                 return_type = ann.get("return", None)
                 if return_type is not None:
+                    return_type = str(return_type)
                     if return_type.startswith("Tuple"):
                         # Evaluate the return type
                         # pylint: disable=eval-used
@@ -149,7 +150,10 @@ class NodeGroup:
                 # Iterators pass in their context, so we need to account for that
                 if node_type == "iterator":
                     input_len -= 1
-                if input_len != len(p_inputs):
+                # Variable args don't have good typing, so right now we just hardcode what to ignore.
+                if list(ann.keys())[-1] not in ["args", "sources"] and input_len != len(
+                    p_inputs
+                ):
                     raise ValueError(
                         f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
                     )
