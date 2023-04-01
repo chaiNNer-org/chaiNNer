@@ -11,25 +11,18 @@ image_category = package.add_category(
     color="#C53030",
 )
 
-image_adjustments_category = package.add_category(
-    name="Image (Adjustments)",
-    description="Nodes that deal with adjusting properties of images.",
-    icon="BsSliders",
-    color="#319795",
-)
-
-image_channel_category = package.add_category(
-    name="Image (Channels)",
-    description="Nodes that deal with manipulating channels of images.",
-    icon="MdAllOut",
-    color="#D69E2E",
-)
-
 image_dimensions_category = package.add_category(
     name="Image (Dimensions)",
     description="Nodes that deal with changing the dimensions/resolution of images.",
     icon="MdOutlinePhotoSizeSelectLarge",
     color="#3182CE",
+)
+
+image_adjustments_category = package.add_category(
+    name="Image (Adjustments)",
+    description="Nodes that deal with adjusting properties of images.",
+    icon="BsSliders",
+    color="#319795",
 )
 
 image_filter_category = package.add_category(
@@ -44,6 +37,13 @@ image_utility_category = package.add_category(
     description="Various utility nodes for images.",
     icon="BsGear",
     color="#00A3C4",
+)
+
+image_channel_category = package.add_category(
+    name="Image (Channels)",
+    description="Nodes that deal with manipulating channels of images.",
+    icon="MdAllOut",
+    color="#D69E2E",
 )
 
 material_textures_category = package.add_category(

@@ -71,13 +71,21 @@ CORS(app)
 packages_dir = os.path.join(os.path.dirname(__file__), "packages")
 sys.path.append(packages_dir)
 
-for package in os.listdir(packages_dir):
-    # logger.info(package)
-    importlib.import_module(package)
+
+# Manually import built-in packages to get ordering correct
+# Using importlib here so we don't have to ignore that it isn't used
+importlib.import_module("chaiNNer_standard")
+importlib.import_module("chaiNNer_pytorch")
+importlib.import_module("chaiNNer_ncnn")
+importlib.import_module("chaiNNer_onnx")
+importlib.import_module("chaiNNer_external")
+
+# in the future, for external packages dir, scan & import
+# for package in os.listdir(packages_dir):
+#     # logger.info(package)
+#     importlib.import_module(package)
 
 api.registry.load_nodes(__file__)
-
-# logger.info(api.registry.categories)
 
 
 class SSEFilter(logging.Filter):
