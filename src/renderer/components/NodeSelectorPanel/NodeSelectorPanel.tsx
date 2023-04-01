@@ -29,7 +29,6 @@ import {
     getMatchingNodes,
     getNodesByCategory,
     getSubcategories,
-    sortSchemata,
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
@@ -88,7 +87,7 @@ export const NodeSelector = memo(() => {
 
     const matchingNodes = getMatchingNodes(
         searchQuery,
-        sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
+        schemata.schemata.filter((s) => !s.deprecated)
     );
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 

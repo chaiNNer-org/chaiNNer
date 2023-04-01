@@ -23,20 +23,6 @@ export const createSearchPredicate = (query: string): ((name: string) => boolean
     return (name) => pattern.isMatch(name);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const compareIgnoreCase = (a: string, b: string): number => {
-    return a.toUpperCase().localeCompare(b.toUpperCase());
-};
-
-export const sortSchemata = (schemata: readonly NodeSchema[]): NodeSchema[] => {
-    const categories = new Map([...new Set(schemata.map((s) => s.category))].map((c, i) => [c, i]));
-    return [...schemata].sort((a, b) => {
-        const categoryCompare =
-            (categories.get(a.category) ?? 0) - (categories.get(b.category) ?? 0);
-        return categoryCompare;
-    });
-};
-
 export const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => {
     const map = new Map<string, NodeSchema[]>();
     nodes.forEach((node) => {

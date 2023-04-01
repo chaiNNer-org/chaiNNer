@@ -40,7 +40,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
+import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
@@ -118,7 +118,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories: ReadonlyMap<string, readonly NodeSchema[]> = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
+        () => getNodesByCategory(getMatchingNodes(searchQuery, schemata)),
         [searchQuery, schemata]
     );
 
