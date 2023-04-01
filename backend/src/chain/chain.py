@@ -2,7 +2,6 @@ from typing import Callable, Dict, List, TypeVar, Union
 
 from api import Node, registry
 from base_types import InputId, NodeId, OutputId
-from nodes.node_base import IteratorNodeBase
 
 K = TypeVar("K")
 V = TypeVar("V")

@@ -16,7 +16,7 @@ from nodes.properties.inputs import OnnxModelInput, SliderInput
 from nodes.properties.outputs import NumberOutput, OnnxModelOutput
 
 from .. import utility_group
-from ..processing_group.upscale_image import upscale_image_node
+from ..processing.upscale_image import upscale_image_node
 
 
 def perform_interp(
