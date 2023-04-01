@@ -2,7 +2,7 @@ from sanic.log import logger
 
 from api import add_package
 
-package = add_package(__file__, name="chaiNNer_standard", dependencies=[])
+package = add_package(__file__, name="chaiNNer_pytorch", dependencies=[])
 
 pytorch_category = package.add_category(
     name="PyTorch",

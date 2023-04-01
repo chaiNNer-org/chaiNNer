@@ -9,12 +9,15 @@ from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
 from .. import utility_group
-from .convert_to_onnx import ConvertTorchToONNXNode
+from .convert_to_onnx import convert_to_onnx_node
 
 try:
-    from ...chaiNNer_onnx.onnx.convert_to_ncnn import FP_MODE_32, ConvertOnnxToNcnnNode
+    from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import FP_MODE_32
+    from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
+        convert_to_ncnn_node as onnx_convert_to_ncnn_node,
+    )
 except:
-    ConvertOnnxToNcnnNode = None
+    onnx_convert_to_ncnn_node = None
 
 
 @utility_group.register(
@@ -32,7 +35,7 @@ except:
     ],
 )
 def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Any:
-    if ConvertOnnxToNcnnNode is None:
+    if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
@@ -48,7 +51,7 @@ def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Any:
     ), "Swin2SR is not supported for NCNN conversion at this time."
 
     # Intermediate conversion to ONNX is always fp32
-    onnx_model = ConvertTorchToONNXNode().run(model, FP_MODE_32)[0]
-    ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
+    onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]
+    ncnn_model, fp_mode = onnx_convert_to_ncnn_node(onnx_model, is_fp16)
 
     return ncnn_model, fp_mode
