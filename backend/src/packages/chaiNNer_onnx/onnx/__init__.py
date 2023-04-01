@@ -1,9 +1,6 @@
-from ...category import Category
+from .. import onnx_category
 
-category = Category(
-    name="ONNX",
-    description="Nodes for using the ONNX Neural Network Framework with images.",
-    icon="ONNX",
-    color="#63B3ED",
-    install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
-)
+io_group = onnx_category.add_node_group("Input & Output")
+processing_group = onnx_category.add_node_group("Processing")
+utility_group = onnx_category.add_node_group("Utility")
+batch_processing_group = onnx_category.add_node_group("Batch Processing")
