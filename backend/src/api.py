@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Literal,
     Tuple,
     TypedDict,
     TypeVar,
@@ -20,7 +21,6 @@ from sanic.log import logger
 
 from base_types import InputId, OutputId
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.node_base import NodeType
 from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
 
@@ -63,6 +63,8 @@ def _process_outputs(base_outputs: Iterable[BaseOutput]):
 
 
 RunFn = Callable[..., Any]
+
+NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 
 
 class DefaultNode(TypedDict):

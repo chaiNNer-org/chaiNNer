@@ -29,7 +29,7 @@ from chain.chain import Chain, FunctionalNodes, FunctionNode, IteratorNode, SubC
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-from nodes.node_base import BaseOutput
+from nodes.properties.outputs.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
