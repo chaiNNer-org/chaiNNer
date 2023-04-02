@@ -4,6 +4,9 @@
       "systemInformation": "System information"
     }
   },
+  "dependencyManager": {
+    "manageDependencies": "Manage Dependencies"
+  },
   "error": {
     "error": "Error",
     "message": {
@@ -13,7 +16,46 @@
       "unableToProcessNodes": "Unable to process backend nodes."
     }
   },
+  "header": {
+    "pause": "Pause",
+    "pauseButton": "Pause button",
+    "resume": "Resume",
+    "run": "Run",
+    "runButton": "Run button",
+    "stop": "Stop",
+    "stopButton": "Stop button"
+  },
+  "inputs": {
+    "copyOverrideInputId": "Copy Override Input Id",
+    "directory": {
+      "copyFullDirectoryPath": "Copy Full Directory Path",
+      "openInFileExplorer": "Open in File Explorer",
+      "selectDirectory": "Select a directory..."
+    },
+    "file": {
+      "copyFileName": "Copy File Name",
+      "copyFullFilePath": "Copy Full File Path",
+      "openInFileExplorer": "Open in File Explorer",
+      "selectFile": "Select a file..."
+    },
+    "number": {
+      "copyText": "Copy Number",
+      "paste": "Paste"
+    },
+    "text": {
+      "copyText": "Copy Text",
+      "paste": "Paste"
+    }
+  },
   "loading": "Loading...",
+  "outputs": {
+    "largeImage": {
+      "imageNotAvailable": "Image not available."
+    },
+    "model": {
+      "modelNotAvailable": "Model data not available."
+    }
+  },
   "splash": {
     "checkingDeps": "Checking dependencies...",
     "checkingFfmpeg": "Checking system environment for Ffmpeg...",
@@ -28,5 +70,8 @@
     "loadingApp": "Loading main application...",
     "startingBackend": "Starting up backend process...",
     "updatingDeps": "Updating dependencies..."
+  },
+  "typeTags": {
+    "optional": "optional"
   }
 }
