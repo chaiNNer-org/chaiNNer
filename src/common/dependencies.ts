@@ -165,6 +165,10 @@ export const requiredDependencies: Dependency[] = [
         name: 're2',
         packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
     },
+    {
+        name: 'scipy',
+        packages: [{ packageName: 'scipy', version: '1.9.3', sizeEstimate: 42 * MB }],
+    },
 ];
 
 if (isMac && !isArmMac) {
