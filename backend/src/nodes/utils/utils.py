@@ -229,8 +229,15 @@ class Region:
         ]
 
     def write_into(self, lhs: np.ndarray, rhs: np.ndarray):
-        h, w, _ = get_h_w_c(rhs)
+        h, w, c = get_h_w_c(rhs)
         assert (w, h) == self.size
+        assert c == get_h_w_c(lhs)[2]
+
+        if c == 1:
+            if lhs.ndim == 2 and rhs.ndim == 3:
+                rhs = rhs[:, :, 0]
+            if lhs.ndim == 3 and rhs.ndim == 2:
+                rhs = np.expand_dims(rhs, axis=2)
 
         lhs[
             self.y : (self.y + self.height),

@@ -14,6 +14,8 @@ import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from '.
 const code = `
 struct null;
 
+struct Seed;
+
 struct Directory { path: string }
 
 struct AudioFile;

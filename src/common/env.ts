@@ -3,7 +3,9 @@ import path from 'path';
 
 export const isWindows = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';
-export const isM1 = isMac && (os.cpus()[0]?.model.includes('Apple M1') ?? false);
+
+const cpuModel = os.cpus()[0]?.model || null;
+export const isArmMac: boolean = isMac && !!cpuModel && /Apple M\d/i.test(cpuModel);
 
 export const isRenderer = typeof process !== 'undefined' && process.type === 'renderer';
 

@@ -5,6 +5,26 @@
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle) */
 
+@font-face {
+    font-family: Roboto-Mono;
+    font-display: swap;
+    src: url('../public/fonts/Roboto Mono/RobotoMono-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    font-display: swap;
+    font-style: normal;
+    src: url('../public/fonts/Open Sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Open Sans';
+    font-display: swap;
+    font-style: italic;
+    src: url('../public/fonts/Open Sans/OpenSans-Italic-VariableFont_wdth,wght.ttf')
+        format('truetype');
+}
+
 :not(input, textarea, button, svg, path, g, span, circle) {
     &,
     &::after,

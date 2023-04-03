@@ -2,7 +2,7 @@ from typing import List, Literal, Tuple, Union
 
 from ...utils.utils import round_half_up
 from .. import expression
-from .base_input import BaseInput, InputKind
+from .base_input import BaseInput, InputConversion, InputKind
 
 
 def clampNumber(
@@ -73,12 +73,7 @@ class NumberInput(BaseInput):
             self.precision,
         )
         if self.precision == 0:
-            self.input_conversion = """
-                match Input {
-                    number as i => round(i),
-                    _ as i => i,
-                }
-            """
+            self.input_conversions = [InputConversion("number", "round(Input)")]
 
     def toDict(self):
         return {

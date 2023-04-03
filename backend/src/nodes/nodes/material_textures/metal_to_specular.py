@@ -22,7 +22,7 @@ def get_size(img: np.ndarray) -> Tuple[int, int]:
 def metal_to_spec(
     albedo: np.ndarray,
     metal: np.ndarray,
-    roughness: np.ndarray,
+    roughness: np.ndarray | None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     assert get_h_w_c(albedo)[2] == 3, "Expected the albedo map to be an RGB image"
 
@@ -46,7 +46,10 @@ def metal_to_spec(
         scaled_albedo = resize(albedo, metal_size, InterpolationMethod.LANCZOS)
     spec = metal3 * scaled_albedo + metal3_inv * 0.22
 
-    gloss = 1 - roughness
+    if roughness is None:
+        gloss = np.zeros((1, 1), np.float32) + 0.5
+    else:
+        gloss = 1 - roughness
 
     return diff, spec, gloss
 
@@ -61,7 +64,7 @@ class MetalToSpecular(NodeBase):
         self.inputs = [
             ImageInput("Albedo", channels=[3, 4]),
             ImageInput("Metal", channels=1),
-            ImageInput("Roughness", channels=1),
+            ImageInput("Roughness", channels=1).make_optional(),
         ]
         self.outputs = [
             ImageOutput("Diffuse", image_type="Input0"),
@@ -70,7 +73,16 @@ class MetalToSpecular(NodeBase):
                 image_type=expression.Image(size_as="Input1"),
                 channels=3,
             ),
-            ImageOutput("Gloss", image_type="Input2", channels=1),
+            ImageOutput(
+                "Gloss",
+                image_type="""
+                    match Input2 {
+                        Image as i => i,
+                        null => Image { width: 1, height: 1, channels: 1 }
+                    }
+                """,
+                channels=1,
+            ),
         ]
         self.category = category
         self.name = "Metal to Specular"
@@ -81,7 +93,7 @@ class MetalToSpecular(NodeBase):
         self,
         albedo: np.ndarray,
         metal: np.ndarray,
-        roughness: np.ndarray,
+        roughness: np.ndarray | None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         albedo_channels = get_h_w_c(albedo)[2]
         if albedo_channels == 4:

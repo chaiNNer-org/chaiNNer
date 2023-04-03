@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Tuple
 
+from ...group import group
 from ...impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from ...impl.ncnn.optimizer import NcnnOptimizer
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
-from ...properties.outputs import FileNameOutput, NcnnModelOutput
+from ...properties.outputs import DirectoryOutput, FileNameOutput, NcnnModelOutput
 from ...utils.utils import split_file_path
 from . import category as NCNNCategory
 
@@ -24,8 +25,9 @@ class NcnnLoadModelNode(NodeBase):
             )
         ]
         self.outputs = [
-            NcnnModelOutput(kind="ncnn", should_broadcast=True),
-            FileNameOutput("Model Name", of_input=0),
+            NcnnModelOutput(kind="tagged"),
+            DirectoryOutput("Model Directory", of_input=0).with_id(2),
+            FileNameOutput("Model Name", of_input=0).with_id(1),
         ]
 
         self.category = NCNNCategory
@@ -33,10 +35,10 @@ class NcnnLoadModelNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Input & Output"
 
-    def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModelWrapper, str]:
+    def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModelWrapper, str, str]:
         model = NcnnModel.load_from_file(param_path, bin_path)
         NcnnOptimizer(model).optimize()
 
-        _, model_name, _ = split_file_path(param_path)
+        model_dir, model_name, _ = split_file_path(param_path)
 
-        return NcnnModelWrapper(model), model_name
+        return NcnnModelWrapper(model), model_dir, model_name

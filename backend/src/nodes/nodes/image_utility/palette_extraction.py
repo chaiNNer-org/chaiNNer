@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...groups import if_enum_group
 from ...impl.dithering.palette import (
     distinct_colors_palette,
     kmeans_palette,
@@ -45,12 +45,9 @@ class PaletteFromImage(NodeBase):
                 option_labels=PALETTE_EXTRACTION_METHOD_LABELS,
                 default_value=PaletteExtractionMethod.KMEANS,
             ).with_id(1),
-            conditional_group(
-                enum=1,
-                condition=[
-                    PaletteExtractionMethod.KMEANS.value,
-                    PaletteExtractionMethod.MEDIAN_CUT.value,
-                ],
+            if_enum_group(
+                1,
+                (PaletteExtractionMethod.KMEANS, PaletteExtractionMethod.MEDIAN_CUT),
             )(
                 NumberInput("Palette Size", minimum=2, default=8).with_id(2),
             ),

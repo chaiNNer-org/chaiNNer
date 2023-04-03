@@ -7,7 +7,6 @@ from typing import List
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
 from ..utils.utils import Padding, get_h_w_c, split_file_path
 
@@ -80,12 +79,49 @@ def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
 
 
 def normalize(img: np.ndarray) -> np.ndarray:
-    dtype_max = 1
-    try:
-        dtype_max = np.iinfo(img.dtype).max
-    except:
-        logger.debug("img dtype is not int")
-    return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
+    if img.dtype != np.float32:
+        try:
+            info = np.iinfo(img.dtype)
+            img = img.astype(np.float32)
+            img /= info.max
+            if info.min == 0:
+                # we don't need to clip
+                return img
+        except:
+            img = img.astype(np.float32)
+    return np.clip(img, 0, 1)
+
+
+def to_uint8(
+    img: np.ndarray,
+    normalized=False,
+    dither=False,
+) -> np.ndarray:
+    """
+    Returns a new uint8 image with the given image data.
+
+    If `normalized` is `False`, then the image will be normalized before being converted to uint8.
+
+    If `dither` is `True`, then dithering will be used to minimize the quantization error.
+    """
+    if img.dtype == np.uint8:
+        return img.copy()
+
+    if not normalized or img.dtype != np.float32:
+        img = normalize(img)
+
+    if not dither:
+        return (img * 255).round().astype(np.uint8)
+
+    # random dithering
+    truth = img * 255
+    quant = truth.round()
+
+    err = truth - quant
+    r = np.random.default_rng(0).uniform(0, 1, img.shape).astype(np.float32)
+    quant += np.sign(err) * (np.abs(err) > r)
+
+    return quant.astype(np.uint8)
 
 
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:

@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 from ..utils.utils import get_h_w_c
-from .image_utils import FillColor, convert_to_BGRA
+from .image_utils import FillColor, convert_to_BGRA, normalize, to_uint8
 
 
 class InterpolationMethod(Enum):
@@ -57,9 +57,9 @@ def resize(
 
     resample = INTERPOLATION_METHODS_MAP[interpolation]
 
-    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = Image.fromarray(to_uint8(img, normalized=True))
     pimg = pimg.resize(out_dims, resample=resample)  # type: ignore
-    return np.array(pimg).astype("float32") / 255
+    return normalize(np.array(pimg))
 
 
 def rotate(
@@ -78,11 +78,11 @@ def rotate(
 
     resample = INTERPOLATION_METHODS_MAP[interpolation.interpolation_method]
 
-    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = Image.fromarray(to_uint8(img, normalized=True))
     pimg = pimg.rotate(
         angle,
         resample=resample,  # type: ignore
         expand=bool(expand.value),
         fillcolor=fill_color,
     )
-    return np.array(pimg).astype("float32") / 255
+    return normalize(np.array(pimg))

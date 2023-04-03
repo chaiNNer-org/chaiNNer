@@ -2,23 +2,38 @@ import { EvaluationError, NonNeverType, StructType, Type } from '@chainner/navi'
 import log from 'electron-log';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { FunctionDefinition, FunctionInstance } from '../types/function';
-import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../util';
+import {
+    EMPTY_ARRAY,
+    EMPTY_MAP,
+    parseSourceHandle,
+    parseTargetHandle,
+    stringifyTargetHandle,
+} from '../util';
 import type { Edge, Node } from 'reactflow';
+
+export interface TypeStateEdge {
+    readonly from: readonly [node: string, outputId: OutputId];
+    readonly to: readonly [node: string, inputId: InputId];
+}
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
 
     readonly evaluationErrors: ReadonlyMap<string, EvaluationError>;
 
+    readonly edges: readonly TypeStateEdge[];
+
     private constructor(
         functions: TypeState['functions'],
-        evaluationErrors: TypeState['evaluationErrors']
+        evaluationErrors: TypeState['evaluationErrors'],
+        edges: TypeState['edges']
     ) {
         this.functions = functions;
         this.evaluationErrors = evaluationErrors;
+        this.edges = edges;
     }
 
-    static readonly empty = new TypeState(EMPTY_MAP, EMPTY_MAP);
+    static readonly empty = new TypeState(EMPTY_MAP, EMPTY_MAP, EMPTY_ARRAY);
 
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
@@ -101,6 +116,16 @@ export class TypeState {
             addNode(n);
         }
 
-        return new TypeState(functions, evaluationErrors);
+        const tsEdges: TypeStateEdge[] = edges.map((e) => {
+            const from = parseSourceHandle(e.sourceHandle!);
+            const to = parseTargetHandle(e.targetHandle!);
+            return { from: [from.nodeId, from.outputId], to: [to.nodeId, to.inputId] };
+        });
+
+        return new TypeState(functions, evaluationErrors, tsEdges);
+    }
+
+    isInputConnected(nodeId: string, inputId: InputId): boolean {
+        return this.edges.some((e) => e.to[0] === nodeId && e.to[1] === inputId);
     }
 }

@@ -8,7 +8,7 @@ import {
     OutputId,
 } from '../common-types';
 import { SchemaMap } from '../SchemaMap';
-import { ParsedSourceHandle, getInputValues, parseSourceHandle, parseTargetHandle } from '../util';
+import { ParsedSourceHandle, mapInputValues, parseSourceHandle, parseTargetHandle } from '../util';
 import type { Edge, Node } from 'reactflow';
 
 export const toBackendJson = (
@@ -66,7 +66,7 @@ export const toBackendJson = (
         result.push({
             id,
             schemaId,
-            inputs: getInputValues<BackendJsonInput>(
+            inputs: mapInputValues<BackendJsonInput>(
                 schema,
                 (inputId) =>
                     inputHandles[id]?.[inputId] ?? {

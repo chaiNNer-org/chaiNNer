@@ -37,11 +37,10 @@ class TextPaddingNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let text = toString(Input0);
                 match Input3 {
-                    PaddingAlignment::Start => padStart(text, Input1, Input2),
-                    PaddingAlignment::End => padEnd(text, Input1, Input2),
-                    PaddingAlignment::Center => padCenter(text, Input1, Input2),
+                    PaddingAlignment::Start => padStart(Input0, Input1, Input2),
+                    PaddingAlignment::End => padEnd(Input0, Input1, Input2),
+                    PaddingAlignment::Center => padCenter(Input0, Input1, Input2),
                 }
                 """,
             )

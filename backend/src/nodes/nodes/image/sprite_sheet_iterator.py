@@ -23,7 +23,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput(broadcast_type=True), NumberOutput("Overall Index")]
+        self.outputs = [ImageOutput(), NumberOutput("Overall Index")]
 
         self.category = ImageCategory
         self.name = "Load Image (Iterator)"

@@ -116,7 +116,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         useCallback(
             (eventData) => {
                 if (eventData) {
-                    const { finished, nodeId, executionTime, data, progressPercent } = eventData;
+                    const { finished, nodeId, executionTime, data, types, progressPercent } =
+                        eventData;
 
                     // TODO: This is incorrect. The inputs of the node might have changed since
                     // the chain started running. However, sending the then current input hashes
@@ -128,7 +129,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         nodeId,
                         executionTime ?? undefined,
                         inputHash,
-                        data ?? undefined
+                        data ?? undefined,
+                        types ?? undefined
                     );
                     if (progressPercent != null) {
                         if (progressPercent === 1) {

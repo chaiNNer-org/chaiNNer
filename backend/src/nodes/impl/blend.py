@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ..utils.utils import get_h_w_c
-from .image_utils import as_target_channels
+from .image_utils import as_target_channels, normalize, to_uint8
 
 
 class BlendMode(Enum):
@@ -144,11 +144,8 @@ class ImageBlender:
         return a + b - (a * b)  # type: ignore
 
     def __xor(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return (
-            np.bitwise_xor(
-                (a * 255).astype(np.uint8), (b * 255).astype(np.uint8)
-            ).astype(np.float32)
-            / 255
+        return normalize(
+            np.bitwise_xor(to_uint8(a, normalized=True), to_uint8(b, normalized=True))
         )
 
     def __subtract(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:

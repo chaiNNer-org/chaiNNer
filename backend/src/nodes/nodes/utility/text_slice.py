@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from ...groups import conditional_group
+from ...groups import if_enum_group
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import EnumInput, NumberInput, TextInput
@@ -38,19 +38,13 @@ class TextSliceNode(NodeBase):
                     SliceOperation.MAX_LENGTH: "Maximum Length",
                 },
             ).with_id(1),
-            conditional_group(
-                enum=1,
-                condition=(
-                    SliceOperation.START.value,
-                    SliceOperation.START_AND_LENGTH.value,
-                ),
-            )(
+            if_enum_group(1, (SliceOperation.START, SliceOperation.START_AND_LENGTH))(
                 NumberInput("Start", minimum=None, maximum=None, unit="chars"),
             ),
-            conditional_group(enum=1, condition=SliceOperation.START_AND_LENGTH.value)(
+            if_enum_group(1, SliceOperation.START_AND_LENGTH)(
                 NumberInput("Length", minimum=0, maximum=None, unit="chars"),
             ),
-            conditional_group(enum=1, condition=SliceOperation.MAX_LENGTH.value)(
+            if_enum_group(1, SliceOperation.MAX_LENGTH)(
                 NumberInput("Maximum Length", minimum=0, maximum=None, unit="chars"),
                 EnumInput(SliceAlignment, label="Alignment"),
             ),
@@ -59,7 +53,7 @@ class TextSliceNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
-                let text = toString(Input0);
+                let text = Input0;
                 let operation = Input1;
                 let start = Input2;
                 let length = Input3;

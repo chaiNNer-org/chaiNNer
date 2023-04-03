@@ -12,7 +12,7 @@ from sanic.log import logger
 
 from process import IteratorContext
 
-from ...impl.image_utils import normalize
+from ...impl.image_utils import normalize, to_uint8
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
@@ -59,7 +59,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
-            ImageOutput("Frame Image", channels=3, broadcast_type=True),
+            ImageOutput("Frame Image", channels=3),
             NumberOutput("Frame Index"),
             DirectoryOutput("Video Directory"),
             TextOutput("Video Name"),
@@ -165,7 +165,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
             except Exception as e:
                 logger.warning(f"Failed to open video writer: {e}")
 
-        out_frame = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_BGR2RGB)
+        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
         if writer.out is not None and writer.out.stdin is not None:
             writer.out.stdin.write(out_frame.tobytes())
         else:

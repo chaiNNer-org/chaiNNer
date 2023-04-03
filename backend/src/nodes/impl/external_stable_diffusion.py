@@ -13,7 +13,7 @@ from PIL import Image
 from sanic.log import logger
 
 from ..utils.utils import get_h_w_c
-from .image_utils import normalize
+from .image_utils import normalize, to_uint8
 
 STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
@@ -33,7 +33,7 @@ def _stable_diffusion_url(path):
     return f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}{path}"
 
 
-ERROR_MSG = f"""
+INFO_MSG = f"""
 If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
 
 ./webui.sh --api
@@ -43,10 +43,11 @@ STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_HOST, and STABLE_DIFFUSION_PORT
 environment variables.
 """
 
-TIMEOUT_MSG = f"""
-Stable diffusion request timeout reached.  Currently configured as {STABLE_DIFFUSION_REQUEST_TIMEOUT} seconds.  If you
-want to change this, set the STABLE_DIFFUSION_REQUEST_TIMEOUT environment variable.
-"""
+TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+
+
+class ExternalServiceHTTPError(Exception):
+    pass
 
 
 class ExternalServiceConnectionError(Exception):
@@ -78,7 +79,7 @@ def _auto_detect_endpoint(timeout=0.5):
                 last_error = error
 
     if last_error:
-        raise last_error
+        raise RuntimeError(INFO_MSG) from last_error
     else:
         raise RuntimeError
 
@@ -86,8 +87,14 @@ def _auto_detect_endpoint(timeout=0.5):
 def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
     try:
         response = requests.get(_stable_diffusion_url(path), timeout=timeout)
+        if response.status_code != 200:
+            raise ExternalServiceHTTPError(
+                f"webui GET request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+        raise ExternalServiceConnectionError(
+            f"webui GET request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
@@ -100,8 +107,14 @@ def post(path, json_data: Dict) -> Dict:
             json=json_data,
             timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
         )
+        if response.status_code != 200:
+            raise ExternalServiceHTTPError(
+                f"webui POST request to {path} returned status code: {response.status_code}: {response.text}"
+            )
     except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(ERROR_MSG) from exc
+        raise ExternalServiceConnectionError(
+            f"webui POST request to {path} connection failed"
+        ) from exc
     except requests.exceptions.ReadTimeout as exc:
         raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
     return response.json()
@@ -142,7 +155,7 @@ def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
 
 
 def encode_base64_image(image_nparray: np.ndarray) -> str:
-    image_nparray = (np.clip(image_nparray, 0, 1) * 255).round().astype("uint8")
+    image_nparray = to_uint8(image_nparray)
     _, _, c = get_h_w_c(image_nparray)
     if c == 1:
         # PIL supports grayscale images just fine, so we don't need to do any conversion

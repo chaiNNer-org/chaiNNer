@@ -186,6 +186,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         setEdgesRef,
         removeEdgeById,
         exportViewportScreenshot,
+        exportViewportScreenshotToClipboard,
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
@@ -289,14 +290,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
                     const { inputId } = parseTargetHandle(e.targetHandle);
-                    const targetEdgeType = typeState.functions
-                        .get(e.target)
-                        ?.definition.inputDefaults.get(inputId);
-                    if (!targetEdgeType) {
+                    const targetEdgeDefinition = typeState.functions.get(e.target)?.definition;
+                    if (!targetEdgeDefinition || !targetEdgeDefinition.hasInput(inputId)) {
                         return EMPTY_ARRAY;
                     }
                     const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
-                    const firstPossibleOutput = getFirstPossibleOutput(fn, targetEdgeType);
+                    const firstPossibleOutput = getFirstPossibleOutput(
+                        fn,
+                        targetEdgeDefinition,
+                        inputId
+                    );
                     if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
                         return EMPTY_ARRAY;
                     }
@@ -618,7 +621,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         >
             <ReactFlow
                 connectionLineContainerStyle={{ zIndex: 1000 }}
-                connectionRadius={23}
+                connectionRadius={15}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
@@ -663,8 +666,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 <Controls>
                     <ControlButton
                         disabled={nodes.length === 0}
-                        title="Export viewport as PNG"
-                        onClick={exportViewportScreenshot}
+                        title={'Export viewport as PNG\nCtrl+Click to export to clipboard instead'}
+                        onClick={(e) => {
+                            if (e.ctrlKey) {
+                                exportViewportScreenshotToClipboard();
+                            } else {
+                                exportViewportScreenshot();
+                            }
+                        }}
                     >
                         <FaFileExport />
                     </ControlButton>

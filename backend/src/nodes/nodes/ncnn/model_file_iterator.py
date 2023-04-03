@@ -49,7 +49,7 @@ class ModelFileIteratorLoadModelNode(NodeBase):
     def run(
         self, param_path: str, bin_path: str, root_dir: str, index: int
     ) -> Tuple[NcnnModelWrapper, str, str, str, int]:
-        model, model_name = NcnnLoadModelNode().run(param_path, bin_path)
+        model, _, model_name = NcnnLoadModelNode().run(param_path, bin_path)
 
         dirname, _ = os.path.split(param_path)
 

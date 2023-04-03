@@ -89,14 +89,6 @@ import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { SettingsContext } from './SettingsContext';
 
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
-function getNodeInputValue<T extends NonNullable<InputValue>>(
-    inputId: InputId,
-    inputData: InputData
-): T | undefined {
-    return (inputData[inputId] ?? undefined) as T | undefined;
-}
-
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
@@ -127,10 +119,6 @@ interface Global {
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
     createNode: (proto: NodeProto, parentId?: string) => void;
     createConnection: (connection: Connection) => void;
-    getNodeInputValue: <T extends NonNullable<InputValue>>(
-        inputId: InputId,
-        inputData: InputData
-    ) => T | undefined;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
     useInputSize: (
         id: string,
@@ -155,6 +143,7 @@ interface Global {
     setCollidingNode: (value: string | undefined) => void;
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
+    exportViewportScreenshotToClipboard: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
@@ -1369,7 +1358,6 @@ export const GlobalProvider = memo(
             unAnimate,
             createNode,
             createConnection,
-            getNodeInputValue,
             setNodeInputValue,
             useInputSize,
             toggleNodeLock,
@@ -1386,6 +1374,7 @@ export const GlobalProvider = memo(
             setNodeDisabled,
             setZoom,
             exportViewportScreenshot,
+            exportViewportScreenshotToClipboard,
             setManualOutputType,
             typeStateRef,
             releaseNodeFromParent,

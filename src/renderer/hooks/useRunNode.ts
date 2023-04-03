@@ -2,7 +2,7 @@ import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
-import { delay, getInputValues } from '../../common/util';
+import { delay, mapInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
@@ -32,7 +32,7 @@ export const useRunNode = (
     const didEverRun = useRef(false);
 
     const inputs = useMemo(
-        () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
+        () => mapInputValues(schema, (inputId) => inputData[inputId] ?? null),
         [inputData, schema]
     );
     const inputHash = useMemo(

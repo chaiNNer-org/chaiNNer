@@ -1,27 +1,14 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, List, Literal, Union
 
 from base_types import InputId, OutputId
 
 from .category import Category
-from .group import Group, GroupId, GroupInfo
+from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
 
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
-
-NestedGroup = Group[Union[BaseInput, "NestedGroup"]]
-NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
-
-
-# pylint: disable-next=redefined-builtin
-def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
-    info = GroupInfo(GroupId(id), kind, options)
-
-    def ret(*items: Union[BaseInput, NestedGroup]) -> NestedGroup:
-        return Group(info, list(items))
-
-    return ret
 
 
 class NodeBase(metaclass=ABCMeta):

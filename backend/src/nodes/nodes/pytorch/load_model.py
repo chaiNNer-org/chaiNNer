@@ -30,7 +30,7 @@ class LoadModelNode(NodeBase):
             Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT."""
         self.inputs = [PthFileInput(primary_input=True)]
         self.outputs = [
-            ModelOutput(kind="pytorch", should_broadcast=True),
+            ModelOutput(kind="tagged"),
             DirectoryOutput("Model Directory", of_input=0).with_id(2),
             FileNameOutput("Model Name", of_input=0).with_id(1),
         ]

@@ -1,7 +1,7 @@
 import log from 'electron-log';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
-import { checkFileExists } from '../../../common/util';
+import { checkFileExists, getInputValue } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
@@ -34,11 +34,11 @@ export const NcnnFileInputsGroup = memo(
     }: GroupProps<'ncnn-file-inputs'>) => {
         const [paramInput, binInput] = inputs;
 
-        const { getNodeInputValue, setNodeInputValue } = useContext(GlobalContext);
+        const { setNodeInputValue } = useContext(GlobalContext);
 
         useEffect(() => {
-            const paramPath = getNodeInputValue(paramInput.id, inputData);
-            const binPath = getNodeInputValue(binInput.id, inputData);
+            const paramPath = getInputValue(paramInput.id, inputData);
+            const binPath = getInputValue(binInput.id, inputData);
 
             if (typeof paramPath === 'string' && binPath === undefined) {
                 ifOtherExists(paramPath, '.bin', (bin) =>
@@ -50,7 +50,7 @@ export const NcnnFileInputsGroup = memo(
                     setNodeInputValue(nodeId, paramInput.id, param)
                 );
             }
-        }, [paramInput, binInput, inputData, nodeId, getNodeInputValue, setNodeInputValue]);
+        }, [paramInput, binInput, inputData, nodeId, setNodeInputValue]);
 
         return (
             <>

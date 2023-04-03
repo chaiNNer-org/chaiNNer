@@ -26,15 +26,12 @@ jobs:
     backend-formatting:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
-            - name: Set up Python 3.9
-              uses: actions/setup-python@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
               with:
-                  python-version: 3.9
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
+                  python-version: '3.9'
+                  cache: 'pip'
+            - run: pip install -r requirements.txt
             - name: Black
               run: black --check backend/
             - name: isort
@@ -42,15 +39,12 @@ jobs:
     backend-lint:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
-            - name: Set up Python 3.9
-              uses: actions/setup-python@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
               with:
-                  python-version: 3.9
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
+                  python-version: '3.9'
+                  cache: 'pip'
+            - run: pip install -r requirements.txt
             - name: pylint
               run: pylint backend/ --output-format=colorized --disable="C,R" --fail-under=10
             - name: pyright

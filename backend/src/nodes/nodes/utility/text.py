@@ -16,7 +16,7 @@ class TextValueNode(NodeBase):
             TextInput("Text", min_length=0),
         ]
         self.outputs = [
-            TextOutput("Text", output_type="toString(Input0)"),
+            TextOutput("Text", output_type="Input0"),
         ]
 
         self.category = UtilityCategory

@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 
+from ...group import group
 from ...impl.external_stable_diffusion import (
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_TEXT2IMG_PATH,
@@ -13,17 +14,18 @@ from ...impl.external_stable_diffusion import (
     post,
     verify_api_connection,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_cache import cached
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     BoolInput,
     EnumInput,
-    NumberInput,
+    SeedInput,
     SliderInput,
     TextAreaInput,
 )
 from ...properties.outputs import ImageOutput
+from ...utils.seed import Seed
 from ...utils.utils import get_h_w_c
 from . import category as ExternalStableDiffusionCategory
 
@@ -38,9 +40,7 @@ class Txt2Img(NodeBase):
         self.inputs = [
             TextAreaInput("Prompt").make_optional(),
             TextAreaInput("Negative Prompt").make_optional(),
-            group("seed")(
-                NumberInput("Seed", minimum=0, default=42, maximum=4294967296)
-            ),
+            group("seed")(SeedInput()),
             SliderInput("Steps", minimum=1, default=20, maximum=150),
             EnumInput(
                 SamplerName,
@@ -94,7 +94,7 @@ class Txt2Img(NodeBase):
         self,
         prompt: Optional[str],
         negative_prompt: Optional[str],
-        seed: int,
+        seed: Seed,
         steps: int,
         sampler_name: SamplerName,
         cfg_scale: float,
@@ -108,7 +108,7 @@ class Txt2Img(NodeBase):
         request_data = {
             "prompt": prompt or "",
             "negative_prompt": negative_prompt or "",
-            "seed": seed,
+            "seed": seed.to_u32(),
             "steps": steps,
             "sampler_name": sampler_name.value,
             "cfg_scale": cfg_scale,

@@ -1,6 +1,6 @@
 from ...impl.onnx.model import OnnxModel
 from ...properties import expression
-from .base_output import BaseOutput, OutputKind
+from .base_output import BaseOutput
 
 
 class OnnxModelOutput(BaseOutput):
@@ -10,18 +10,17 @@ class OnnxModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "OnnxModel",
         label: str = "Model",
-        kind: OutputKind = "generic",
-        should_broadcast: bool = False,
     ):
-        super().__init__(model_type, label, kind=kind)
-        self.should_broadcast = should_broadcast
+        super().__init__(model_type, label)
 
-    def get_broadcast_data(self, value: OnnxModel):
-        if not self.should_broadcast:
-            return None
-
-        return {
-            "subType": value.sub_type,
-            "scaleHeight": value.scale_height,
-            "scaleWidth": value.scale_width,
+    def get_broadcast_type(self, value: OnnxModel):
+        fields = {
+            "subType": expression.literal(value.sub_type),
         }
+
+        if value.scale_width:
+            fields["scaleWidth"] = value.scale_width
+        if value.scale_height:
+            fields["scaleHeight"] = value.scale_height
+
+        return expression.named("OnnxModel", fields)

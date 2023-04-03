@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+from ...groups import if_enum_group
 from ...impl.gradients import (
     conic_gradient,
     diagonal_gradient,
@@ -11,7 +12,7 @@ from ...impl.gradients import (
     radial_gradient,
     vertical_gradient,
 )
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import BoolInput, EnumInput, NumberInput, SliderInput
@@ -37,19 +38,7 @@ class CreateGradientNode(NodeBase):
             NumberInput("Height", minimum=1, unit="px", default=64),
             BoolInput("Reverse", default=False),
             EnumInput(GradientStyle, default_value=GradientStyle.HORIZONTAL).with_id(3),
-            group(
-                "conditional-enum",
-                {
-                    "enum": 3,
-                    "conditions": [
-                        [GradientStyle.DIAGONAL.value],
-                        [GradientStyle.DIAGONAL.value],
-                        [GradientStyle.RADIAL.value],
-                        [GradientStyle.RADIAL.value],
-                        [GradientStyle.CONIC.value],
-                    ],
-                },
-            )(
+            if_enum_group(3, GradientStyle.DIAGONAL)(
                 SliderInput(
                     "Angle",
                     minimum=0,
@@ -63,6 +52,8 @@ class CreateGradientNode(NodeBase):
                     default=100,
                     unit="px",
                 ),
+            ),
+            if_enum_group(3, GradientStyle.RADIAL)(
                 SliderInput(
                     "Inner Radius",
                     minimum=0,
@@ -77,6 +68,8 @@ class CreateGradientNode(NodeBase):
                     default=100,
                     unit="%",
                 ),
+            ),
+            if_enum_group(3, GradientStyle.CONIC)(
                 SliderInput(
                     "Rotation",
                     minimum=0,

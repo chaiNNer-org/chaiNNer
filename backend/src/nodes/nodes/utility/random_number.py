@@ -1,12 +1,11 @@
-from __future__ import annotations
-
 from random import Random
-from typing import Union
 
-from ...node_base import NodeBase, group
+from ...group import group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import BaseInput, NumberInput
+from ...properties.inputs import NumberInput, SeedInput
 from ...properties.outputs import NumberOutput
+from ...utils.seed import Seed
 from . import category as UtilityCategory
 
 
@@ -27,16 +26,7 @@ class RandomNumberNode(NodeBase):
                 maximum=None,
                 default=100,
             ),
-            group("seed")(
-                NumberInput(
-                    "Seed",
-                    minimum=0,
-                    maximum=None,
-                ),
-            ),
-            BaseInput(
-                input_type="uint", label="Index from Iterator", kind="generic"
-            ).make_optional(),
+            group("seed")(SeedInput()),
         ]
         self.outputs = [
             NumberOutput(
@@ -47,11 +37,7 @@ class RandomNumberNode(NodeBase):
         self.category = UtilityCategory
         self.name = "Random Number"
         self.icon = "MdCalculate"
-        self.sub = "Math"
+        self.sub = "Random"
 
-    def run(
-        self, minval: int, maxval: int, seedval: int, frameval: Union[int, None]
-    ) -> int:
-        if frameval == None:
-            frameval = 0
-        return Random((frameval + 1) * (seedval + 1)).randint(minval, maxval)
+    def run(self, min_val: int, max_val: int, seed: Seed) -> int:
+        return Random(seed.value).randint(min_val, max_val)

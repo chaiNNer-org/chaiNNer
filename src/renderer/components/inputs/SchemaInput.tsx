@@ -10,6 +10,7 @@ import {
     InputValue,
     SchemaId,
 } from '../../../common/common-types';
+import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from './DirectoryInput';
@@ -65,19 +66,16 @@ export const SchemaInput = memo(
     }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle } = input;
 
-        const {
-            getNodeInputValue,
-            setNodeInputValue,
-            useInputSize: useInputSizeContext,
-        } = useContext(GlobalContext);
-        const definitionType = useContextSelector(
-            BackendContext,
-            (c) =>
-                c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId) ??
-                NeverType.instance
-        );
+        const { setNodeInputValue, useInputSize: useInputSizeContext } = useContext(GlobalContext);
 
-        const value = getNodeInputValue(inputId, inputData);
+        const functionDefinition = useContextSelector(BackendContext, (c) =>
+            c.functionDefinitions.get(schemaId)
+        );
+        const definitionType = functionDefinition?.inputDefaults.get(inputId) ?? NeverType.instance;
+        const connectableType =
+            functionDefinition?.inputConvertibleDefaults.get(inputId) ?? NeverType.instance;
+
+        const value = getInputValue(inputId, inputData);
         const setValue = useCallback(
             (data: NonNullable<InputValue>) => {
                 setNodeInputValue(nodeId, inputId, data);
@@ -146,7 +144,7 @@ export const SchemaInput = memo(
             <InputContainer>
                 {hasHandle ? (
                     <HandleWrapper
-                        definitionType={definitionType}
+                        connectableType={connectableType}
                         id={nodeId}
                         inputId={inputId}
                     >

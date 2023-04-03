@@ -75,11 +75,12 @@ def _exact_split(
     MAX_ITER = 20
     for _ in range(MAX_ITER):
         try:
+            max_overlap = min(*starting_tile_size) // 4
             return exact_split(
                 img=img,
                 exact_size=starting_tile_size,
                 upscale=no_split_upscale,
-                overlap=overlap,
+                overlap=min(max_overlap, overlap),
             )
         except _SplitEx:
             starting_tile_size = split_tile_size(starting_tile_size)

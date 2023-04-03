@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 from typing import Literal, Union
 
 from base_types import OutputId
 
 from .. import expression
 
-OutputKind = Literal[
-    "image", "large-image", "text", "directory", "pytorch", "generic", "ncnn", "onnx"
-]
+OutputKind = Literal["image", "large-image", "tagged", "generic"]
 
 
 class BaseOutput:
@@ -49,6 +49,9 @@ class BaseOutput:
         yield from self.toDict().items()
 
     def get_broadcast_data(self, _value):
+        return None
+
+    def get_broadcast_type(self, _value) -> expression.ExpressionJson | None:
         return None
 
     def validate(self, value) -> None:

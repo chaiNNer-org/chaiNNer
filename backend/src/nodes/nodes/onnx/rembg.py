@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...groups import Condition, if_group
 from ...impl.onnx.model import OnnxRemBg
 from ...impl.onnx.session import get_onnx_session
 from ...impl.rembg.bg import remove_bg
@@ -30,7 +30,7 @@ class RemBgNode(NodeBase):
             OnnxRemBgModelInput(),
             BoolInput("Post-process Mask", default=False),
             BoolInput("Alpha Matting", default=False),
-            conditional_group(enum=3, condition=1)(
+            if_group(Condition.bool(3, True))(
                 SliderInput(
                     "Foreground Threshold", minimum=1, maximum=255, default=240
                 ),

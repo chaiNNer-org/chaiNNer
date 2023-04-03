@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import numpy as np
 
-from ...groups import conditional_group
+from ...group import group
+from ...groups import if_enum_group
 from ...impl.color.convert import (
     color_space_from_id,
     color_space_or_detector_from_id,
     convert,
 )
 from ...impl.color.convert_data import color_spaces, get_alpha_partner
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties import expression
 from ...properties.inputs import (
@@ -40,7 +41,7 @@ class ColorConvertNode(NodeBase):
                 ColorSpaceDetectorInput(label="From").with_id(1),
                 ColorSpaceInput(label="To").with_id(2),
             ),
-            conditional_group(enum=2, condition=COLOR_SPACES_WITH_ALPHA_PARTNER)(
+            if_enum_group(2, COLOR_SPACES_WITH_ALPHA_PARTNER)(
                 BoolInput("Output Alpha", default=False),
             ),
         ]

@@ -1,12 +1,12 @@
 import { memo, useMemo } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { InputItem, getUniqueKey } from '../../../common/group-inputs';
-import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { testInputConditionTypeState } from '../../../common/nodes/condition';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
-export const ConditionalEnumGroup = memo(
+export const ConditionalGroup = memo(
     ({
         inputs,
         inputData,
@@ -16,30 +16,22 @@ export const ConditionalEnumGroup = memo(
         schemaId,
         group,
         ItemRenderer,
-    }: GroupProps<'conditional-enum'>) => {
-        const { schemata } = useContext(BackendContext);
-        const { getNodeInputValue } = useContext(GlobalContext);
-
-        const enumInput = useMemo(() => {
-            const schema = schemata.get(schemaId);
-            const input = schema.inputs.find((i) => i.id === group.options.enum);
-            if (!input || input.kind !== 'dropdown') throw new Error('Invalid enum id');
-            return input;
-        }, [schemata, schemaId, group.options.enum]);
-
-        const enumValue = getNodeInputValue(enumInput.id, inputData) ?? enumInput.def;
+    }: GroupProps<'conditional'>) => {
+        const { condition } = group.options;
 
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
             (c) => c.isNodeInputLocked
         );
+        const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
-        const showInput = (input: InputItem, index: number): boolean => {
-            const cond = group.options.conditions[index];
+        const isEnabled = useMemo(
+            () => testInputConditionTypeState(condition, inputData, nodeId, typeState),
+            [condition, nodeId, inputData, typeState]
+        );
 
-            // enum has the right value
-            if (typeof cond === 'object' ? cond.includes(enumValue) : cond === enumValue)
-                return true;
+        const showInput = (input: InputItem): boolean => {
+            if (isEnabled) return true;
 
             // input or some input of the group is connected to another node
             return someInput(input, ({ id }) => isNodeInputLocked(nodeId, id));
