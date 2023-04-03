@@ -39,7 +39,7 @@ class IteratorNode:
     def get_node(self) -> Node:
         if self.__node is None:
             node = registry.get_node(self.schema_id)
-            assert Node.type == "iterator", "Invalid iterator node"
+            assert node.type == "iterator", "Invalid iterator node"
             self.__node = node
         return self.__node
 
