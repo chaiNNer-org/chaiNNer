@@ -53,7 +53,7 @@ export const createNode = (
 
         const { defaultNodes = [] } = schemata.get(data.schemaId);
 
-        defaultNodes.forEach(({ schemaId }) => {
+        defaultNodes?.forEach(({ schemaId }) => {
             const schema = schemata.get(schemaId);
             const subNode = createNode(
                 {
