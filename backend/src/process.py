@@ -25,7 +25,7 @@ from sanic.log import logger
 from api import NodeData
 from base_types import NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
-from chain.chain import Chain, IteratorNode, NodeData, SubChain
+from chain.chain import Chain, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
@@ -90,7 +90,7 @@ class IteratorContext:
         self.chain = SubChain(executor.chain, iterator_id)
         self.inputs = InputMap(parent=executor.inputs)
 
-    def get_helper(self, schema_id: str) -> NodeData:
+    def get_helper(self, schema_id: str) -> Node:
         for node in self.chain.nodes.values():
             if node.schema_id == schema_id:
                 return node
