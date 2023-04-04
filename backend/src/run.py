@@ -130,8 +130,8 @@ async def nodes(_):
             "nodeType": node.type,
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
+            "defaultNodes": node.default_nodes,
         }
-        node_dict["defaultNodes"] = node.default_nodes
         node_list.append(node_dict)
 
     return json(
