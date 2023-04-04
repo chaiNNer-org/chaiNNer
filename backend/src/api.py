@@ -72,7 +72,7 @@ class DefaultNode(TypedDict):
 
 
 @dataclass(frozen=True)
-class Node:
+class NodeData:
     schema_id: str
     description: str
     name: str
@@ -97,9 +97,9 @@ T = TypeVar("T", bound=RunFn)
 class NodeGroup:
     category: Category
     name: str
-    nodes: List[Node] = field(default_factory=list)
+    nodes: List[NodeData] = field(default_factory=list)
 
-    def add_node(self, node: Node):
+    def add_node(self, node: NodeData):
         logger.info(f"Added {node.schema_id}")
         self.nodes.append(node)
 
@@ -160,7 +160,7 @@ class NodeGroup:
                         f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
                     )
 
-            node = Node(
+            node = NodeData(
                 schema_id=schema_id,
                 name=name,
                 description=description,
@@ -244,9 +244,9 @@ class PackageRegistry:
     def __init__(self) -> None:
         self.packages: Dict[str, Package] = {}
         self.categories: List[Category] = []
-        self.nodes: Dict[str, Tuple[Node, NodeGroup]] = {}
+        self.nodes: Dict[str, Tuple[NodeData, NodeGroup]] = {}
 
-    def get_node(self, schema_id: str) -> Node:
+    def get_node(self, schema_id: str) -> NodeData:
         return self.nodes[schema_id][0]
 
     def add(self, package: Package) -> Package:

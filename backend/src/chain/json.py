@@ -2,7 +2,7 @@ from typing import Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from base_types import NodeId
 
-from .chain import Chain, Edge, EdgeSource, EdgeTarget, FunctionNode, IteratorNode
+from .chain import Chain, Edge, EdgeSource, EdgeTarget, IteratorNode, NodeData
 from .input import EdgeInput, Input, InputMap, ValueInput
 
 
@@ -48,7 +48,7 @@ def parse_json(json: List[JsonNode]) -> Tuple[Chain, InputMap]:
         if json_node["nodeType"] == "iterator":
             node = IteratorNode(json_node["id"], json_node["schemaId"])
         else:
-            node = FunctionNode(json_node["id"], json_node["schemaId"])
+            node = NodeData(json_node["id"], json_node["schemaId"])
             node.parent = json_node["parent"]
             node.is_helper = json_node["nodeType"] == "iteratorHelper"
         chain.add_node(node)

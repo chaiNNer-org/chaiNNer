@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List, TypeVar, Union
 
-from api import Node, registry
+from api import NodeData, registry
 from base_types import InputId, NodeId, OutputId
 
 K = TypeVar("K")
@@ -15,14 +15,14 @@ def get_or_add(d: Dict[K, V], key: K, supplier: Callable[[], V]) -> V:
     return value
 
 
-class FunctionNode:
+class Node:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.parent: Union[NodeId, None] = None
         self.is_helper: bool = False
 
-    def get_node(self) -> Node:
+    def get_node(self) -> NodeData:
         return registry.get_node(self.schema_id)
 
     def has_side_effects(self) -> bool:
@@ -36,7 +36,7 @@ class IteratorNode:
         self.parent: None = None
         self.__node = None
 
-    def get_node(self) -> Node:
+    def get_node(self) -> NodeData:
         if self.__node is None:
             node = registry.get_node(self.schema_id)
             assert node.type == "iterator", "Invalid iterator node"
@@ -44,7 +44,7 @@ class IteratorNode:
         return self.__node
 
 
-FunctionalNodes = Union[FunctionNode, IteratorNode]
+Nodes = Union[Node, IteratorNode]
 
 
 class EdgeSource:
@@ -67,11 +67,11 @@ class Edge:
 
 class Chain:
     def __init__(self):
-        self.nodes: Dict[NodeId, FunctionalNodes] = {}
+        self.nodes: Dict[NodeId, Nodes] = {}
         self.__edges_by_source: Dict[NodeId, List[Edge]] = {}
         self.__edges_by_target: Dict[NodeId, List[Edge]] = {}
 
-    def add_node(self, node: FunctionalNodes):
+    def add_node(self, node: Nodes):
         assert node.id not in self.nodes, f"Duplicate node id {node.id}"
         self.nodes[node.id] = node
 
@@ -109,7 +109,7 @@ class Chain:
 
 class SubChain:
     def __init__(self, chain: Chain, iterator_id: NodeId):
-        self.nodes: Dict[NodeId, FunctionNode] = {}
+        self.nodes: Dict[NodeId, Node] = {}
         self.iterator_id = iterator_id
 
         for node in chain.nodes.values():
