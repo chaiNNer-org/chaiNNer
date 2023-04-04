@@ -137,8 +137,7 @@ async def nodes(_):
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
         }
-        if node.type == "iterator":
-            node_dict["defaultNodes"] = node.default_nodes  # type: ignore
+        node_dict["defaultNodes"] = node.default_nodes
         node_list.append(node_dict)
 
     return json(
