@@ -21,7 +21,7 @@ pyright==1.1.294
 pytest
 pywin32 ; sys_platform=="win32"
 requests
-sanic==21.12.2
+sanic==23.3.0
 sanic_cors==2.2.0
 scipy==1.9.3
 # torch

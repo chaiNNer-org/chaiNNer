@@ -408,4 +408,4 @@ if __name__ == "__main__":
         port = 8000
 
     if sys.argv[1] != "--no-run":
-        app.run(port=port)
+        app.run(port=port, single_process=True)

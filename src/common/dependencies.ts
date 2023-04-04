@@ -131,11 +131,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
 export const requiredDependencies: Dependency[] = [
     {
         name: 'Sanic',
-        packages: [{ packageName: 'sanic', version: '21.9.3', sizeEstimate: 270 * KB }],
+        packages: [{ packageName: 'sanic', version: '23.3.0', sizeEstimate: 200 * KB }],
     },
     {
         name: 'Sanic Cors',
-        packages: [{ packageName: 'Sanic-Cors', version: '1.0.1', sizeEstimate: 17 * KB }],
+        packages: [{ packageName: 'Sanic-Cors', version: '2.2.0', sizeEstimate: 17 * KB }],
     },
     {
         name: 'OpenCV',
@@ -164,6 +164,10 @@ export const requiredDependencies: Dependency[] = [
     {
         name: 're2',
         packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
+    },
+    {
+        name: 'scipy',
+        packages: [{ packageName: 'scipy', version: '1.9.3', sizeEstimate: 42 * MB }],
     },
 ];
 
