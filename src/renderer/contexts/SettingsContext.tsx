@@ -34,6 +34,8 @@ interface Settings {
     // Node Settings
     useNodeFavorites: GetSetState<readonly SchemaId[]>;
     useNodeSelectorCollapsed: GetSetState<boolean>;
+    useNodeVisMode: GetSetState<boolean>;
+    useNodeHidden: GetSetState<readonly SchemaId[]>;
 }
 
 // TODO: create context requires default values
@@ -90,6 +92,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useNodeSelectorCollapsed = useMemoArray(
         useLocalStorage('node-selector-collapsed', false)
     );
+    const useNodeVisMode = useMemoArray(useLocalStorage('node-visibility-mode-active', false));
+    const useNodeHidden = useMemoArray(useLocalStorage<readonly SchemaId[]>('node-hidden', []));
 
     const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
 
@@ -118,6 +122,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         // Node
         useNodeFavorites,
         useNodeSelectorCollapsed,
+        useNodeVisMode,
+        useNodeHidden,
     });
 
     return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;

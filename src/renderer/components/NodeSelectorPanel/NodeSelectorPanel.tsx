@@ -8,6 +8,7 @@ import {
     ExpandedIndex,
     HStack,
     Icon,
+    IconButton,
     Input,
     InputGroup,
     InputLeftElement,
@@ -17,10 +18,18 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
+    Tooltip,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { ChangeEventHandler, memo, useMemo, useState } from 'react';
-import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
+import {
+    BsCaretDownFill,
+    BsCaretLeftFill,
+    BsCaretRightFill,
+    BsCaretUpFill,
+    BsEye,
+    BsEyeFill,
+} from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
@@ -32,10 +41,11 @@ import {
     sortSchemata,
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PresetComponent } from './Preset';
 import { presets } from './presets';
-import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
+import { Checked, PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 interface SearchBarProps {
@@ -90,7 +100,15 @@ export const NodeSelector = memo(() => {
         searchQuery,
         sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
     );
-    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+
+    const [visMode, setVisMode] = useContextSelector(SettingsContext, (c) => c.useNodeVisMode);
+    const { hidden } = useNodeHidden();
+
+    const visibleNodes = visMode
+        ? matchingNodes
+        : matchingNodes.filter((n) => !hidden.has(n.schemaId));
+
+    const byCategories = useMemo(() => getNodesByCategory(visibleNodes), [visibleNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
         SettingsContext,
@@ -155,61 +173,88 @@ export const NodeSelector = memo(() => {
                                 overflowX="hidden"
                                 p={0}
                             >
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        setSearchQuery(e.target.value);
-                                        setCollapsed(false);
-                                    }}
-                                    onClick={() => setCollapsed(false)}
-                                    onClose={() => setSearchQuery('')}
-                                />
+                                <HStack spacing={1}>
+                                    <SearchBar
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCollapsed(false);
+                                        }}
+                                        onClick={() => setCollapsed(false)}
+                                        onClose={() => setSearchQuery('')}
+                                    />
+                                    <Tooltip
+                                        hasArrow
+                                        borderRadius={8}
+                                        label={
+                                            visMode
+                                                ? 'Turn off node visibility mode.'
+                                                : 'Turn on node visibility mode.'
+                                        }
+                                        openDelay={500}
+                                        placement="bottom"
+                                    >
+                                        <IconButton
+                                            aria-label="Node Visibility Settings"
+                                            icon={visMode ? <BsEyeFill /> : <BsEye />}
+                                            isActive={visMode}
+                                            onChange={() => {
+                                                setVisMode(!visMode);
+                                            }}
+                                            onClick={() => setVisMode(!visMode)}
+                                        />
+                                    </Tooltip>
+                                </HStack>
                                 <Box
                                     h="calc(100vh - 165px)"
                                     overflowX="hidden"
                                     overflowY="scroll"
                                 >
-                                    <Center>
-                                        <Button
-                                            _hover={{
-                                                bg: 'var(--bg-600)',
-                                                opacity: 1,
-                                            }}
-                                            aria-label="Collapse/Expand Categories"
-                                            bg="var(--bg-700)"
-                                            borderRadius="0px 0px 8px 8px"
-                                            h="0.5rem"
-                                            opacity={showCollapseButtons ? 0.75 : 0}
-                                            position="absolute"
-                                            top="154px"
-                                            w={collapsed ? 'auto' : '100px'}
-                                            zIndex={999}
-                                            onClick={toggleAccordion}
-                                        >
-                                            <Icon
-                                                h="14px"
-                                                pt="2px"
-                                                w="20px"
+                                    {!visMode && (
+                                        <Center>
+                                            <Button
+                                                _hover={{
+                                                    bg: 'var(--bg-600)',
+                                                    opacity: 1,
+                                                }}
+                                                aria-label="Collapse/Expand Categories"
+                                                bg="var(--bg-700)"
+                                                borderRadius="0px 0px 8px 8px"
+                                                h="0.5rem"
+                                                opacity={showCollapseButtons ? 0.75 : 0}
+                                                position="absolute"
+                                                top="154px"
+                                                w={collapsed ? 'auto' : '100px'}
+                                                zIndex={999}
+                                                onClick={toggleAccordion}
                                             >
-                                                {accordionIsCollapsed ? (
-                                                    <BsCaretDownFill />
-                                                ) : (
-                                                    <BsCaretUpFill />
-                                                )}
-                                            </Icon>
-                                        </Button>
-                                    </Center>
+                                                <Icon
+                                                    h="14px"
+                                                    pt="2px"
+                                                    w="20px"
+                                                >
+                                                    {accordionIsCollapsed ? (
+                                                        <BsCaretDownFill />
+                                                    ) : (
+                                                        <BsCaretUpFill />
+                                                    )}
+                                                </Icon>
+                                            </Button>
+                                        </Center>
+                                    )}
                                     <Accordion
                                         allowMultiple
                                         defaultIndex={defaultIndex}
                                         index={accordionIndex}
                                         onChange={(event) => setAccordionIndex(event)}
                                     >
-                                        <FavoritesAccordionItem
-                                            collapsed={collapsed}
-                                            favoriteNodes={favoriteNodes}
-                                            noFavorites={favorites.size === 0}
-                                        />
+                                        {!visMode && (
+                                            <FavoritesAccordionItem
+                                                collapsed={collapsed}
+                                                favoriteNodes={favoriteNodes}
+                                                noFavorites={favorites.size === 0}
+                                            />
+                                        )}
                                         {categories.map((category) => {
                                             const categoryNodes = byCategories.get(category.name);
                                             const categoryIsMissingNodes =
@@ -219,31 +264,54 @@ export const NodeSelector = memo(() => {
                                                 return null;
                                             }
 
+                                            let visState;
+                                            if (categoryNodes === undefined) {
+                                                visState = Checked.All;
+                                            } else {
+                                                const hiddenNodeCount = categoryNodes.filter((n) =>
+                                                    hidden.has(n.schemaId)
+                                                ).length;
+                                                const partialState =
+                                                    hiddenNodeCount === categoryNodes.length
+                                                        ? Checked.None
+                                                        : Checked.Some;
+                                                visState =
+                                                    hiddenNodeCount === 0
+                                                        ? Checked.All
+                                                        : partialState;
+                                            }
+
                                             const subcategoryMap = categoryNodes
                                                 ? getSubcategories(categoryNodes)
                                                 : null;
 
                                             return (
-                                                <RegularAccordionItem
-                                                    category={category}
-                                                    collapsed={collapsed}
-                                                    key={category.name}
-                                                >
-                                                    {categoryIsMissingNodes && (
-                                                        <PackageHint
-                                                            collapsed={collapsed}
-                                                            hint={category.installHint ?? ''}
-                                                            packageName={category.name}
-                                                            onClick={openDependencyManager}
-                                                        />
-                                                    )}
-                                                    {subcategoryMap && (
-                                                        <Subcategories
-                                                            collapsed={collapsed}
-                                                            subcategoryMap={subcategoryMap}
-                                                        />
-                                                    )}
-                                                </RegularAccordionItem>
+                                                (visMode || visState !== Checked.None) && (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                        nodes={categoryNodes}
+                                                        visMode={visMode}
+                                                        visState={visState}
+                                                    >
+                                                        {categoryIsMissingNodes && (
+                                                            <PackageHint
+                                                                collapsed={collapsed}
+                                                                hint={category.installHint ?? ''}
+                                                                packageName={category.name}
+                                                                onClick={openDependencyManager}
+                                                            />
+                                                        )}
+                                                        {subcategoryMap && (
+                                                            <Subcategories
+                                                                collapsed={collapsed}
+                                                                subcategoryMap={subcategoryMap}
+                                                                visModeActive={visMode}
+                                                            />
+                                                        )}
+                                                    </RegularAccordionItem>
+                                                )
                                             );
                                         })}
                                         <AccordionItem>
@@ -311,7 +379,7 @@ export const NodeSelector = memo(() => {
                 size="none"
                 w="0.75rem"
                 zIndex={999}
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={() => (!visMode ? setCollapsed(!collapsed) : setCollapsed(false))}
             >
                 <Icon
                     pl={1}

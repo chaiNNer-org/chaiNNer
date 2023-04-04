@@ -5,6 +5,7 @@ import {
     AccordionPanel,
     Box,
     Center,
+    Checkbox,
     HStack,
     Heading,
     Text,
@@ -12,18 +13,36 @@ import {
 } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Category, NodeSchema } from '../../../common/common-types';
+import { useNodeHidden } from '../../hooks/useNodeHidden';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
 import { TextBox } from './TextBox';
 
+export enum Checked {
+    All,
+    None,
+    Some,
+}
+
 interface RegularAccordionItemProps {
     category: Category;
     collapsed: boolean;
+    nodes?: NodeSchema[];
+    visMode: boolean;
+    visState: Checked;
 }
 
 export const RegularAccordionItem = memo(
-    ({ children, category, collapsed }: React.PropsWithChildren<RegularAccordionItemProps>) => {
+    ({
+        children,
+        category,
+        collapsed,
+        nodes,
+        visMode,
+        visState,
+    }: React.PropsWithChildren<RegularAccordionItemProps>) => {
+        const { addHidden, removeHidden } = useNodeHidden();
         return (
             <AccordionItem key={category.name}>
                 <Tooltip
@@ -61,6 +80,19 @@ export const RegularAccordionItem = memo(
                             )}
                         </HStack>
                         <AccordionIcon />
+                        {visMode && (
+                            <Checkbox
+                                isChecked={visState === Checked.All}
+                                isIndeterminate={visState === Checked.Some}
+                                onChange={() => {
+                                    if (visState === Checked.All) {
+                                        nodes?.map((n) => addHidden(n.schemaId));
+                                    } else {
+                                        nodes?.map((n) => removeHidden(n.schemaId));
+                                    }
+                                }}
+                            />
+                        )}
                     </AccordionButton>
                 </Tooltip>
                 <AccordionPanel
@@ -76,34 +108,66 @@ export const RegularAccordionItem = memo(
 
 interface SubcategoriesProps {
     collapsed: boolean;
+    visModeActive: boolean;
     subcategoryMap: Map<string, NodeSchema[]>;
 }
 
-export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
-    return (
-        <>
-            {[...subcategoryMap].map(([subcategory, nodes]) => (
-                <Box key={subcategory}>
-                    <Center>
-                        <SubcategoryHeading
-                            collapsed={collapsed}
-                            subcategory={subcategory}
-                        />
-                    </Center>
-                    <Box>
-                        {nodes.map((node) => (
-                            <RepresentativeNodeWrapper
-                                collapsed={collapsed}
-                                key={node.schemaId}
-                                node={node}
-                            />
-                        ))}
+export const Subcategories = memo(
+    ({ collapsed, visModeActive, subcategoryMap }: SubcategoriesProps) => {
+        const { hidden, addHidden, removeHidden } = useNodeHidden();
+
+        const visStateMap = new Map(
+            [...subcategoryMap].map(([subcategory, nodes]) => {
+                const count = nodes.filter((n) => hidden.has(n.schemaId)).length;
+                const partialState = count === nodes.length ? Checked.None : Checked.Some;
+                const state = count === 0 ? Checked.All : partialState;
+                return [subcategory, state];
+            })
+        );
+
+        return (
+            <>
+                {[...subcategoryMap].map(([subcategory, nodes]) => (
+                    <Box key={subcategory}>
+                        <Center>
+                            <HStack w="full">
+                                <SubcategoryHeading
+                                    collapsed={collapsed}
+                                    subcategory={subcategory}
+                                />
+                                {visModeActive && (
+                                    <Checkbox
+                                        isChecked={visStateMap.get(subcategory) === Checked.All}
+                                        isIndeterminate={
+                                            visStateMap.get(subcategory) === Checked.Some
+                                        }
+                                        onChange={() => {
+                                            if (visStateMap.get(subcategory) === Checked.All) {
+                                                nodes.map((n) => addHidden(n.schemaId));
+                                            } else {
+                                                nodes.map((n) => removeHidden(n.schemaId));
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </HStack>
+                        </Center>
+                        <Box>
+                            {nodes.map((node) => (
+                                <RepresentativeNodeWrapper
+                                    collapsed={collapsed}
+                                    key={node.schemaId}
+                                    node={node}
+                                    visModeActive={visModeActive}
+                                />
+                            ))}
+                        </Box>
                     </Box>
-                </Box>
-            ))}
-        </>
-    );
-});
+                ))}
+            </>
+        );
+    }
+);
 
 interface PackageHintProps {
     collapsed: boolean;

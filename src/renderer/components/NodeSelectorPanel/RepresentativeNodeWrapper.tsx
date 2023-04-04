@@ -26,10 +26,11 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
 interface RepresentativeNodeWrapperProps {
     node: NodeSchema;
     collapsed?: boolean;
+    visModeActive?: boolean;
 }
 
 export const RepresentativeNodeWrapper = memo(
-    ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
+    ({ node, collapsed = false, visModeActive }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
         const reactFlowInstance = useReactFlow();
 
@@ -94,7 +95,10 @@ export const RepresentativeNodeWrapper = memo(
                     hasArrow
                     borderRadius={8}
                     isOpen={isOpen}
-                    label="Either double-click or drag and drop to add nodes to the canvas."
+                    label={
+                        !visModeActive &&
+                        'Either double-click or drag and drop to add nodes to the canvas.'
+                    }
                     placement="top"
                     px={2}
                     py={1}
@@ -143,6 +147,7 @@ export const RepresentativeNodeWrapper = memo(
                                     name={node.name}
                                     schemaId={node.schemaId}
                                     subcategory={node.subcategory}
+                                    visModeActive={visModeActive}
                                 />
                             </Center>
                         </Tooltip>
