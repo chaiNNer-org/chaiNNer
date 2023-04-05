@@ -9,6 +9,7 @@ from sanic.log import logger
 from ...impl.blend import BlendMode
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...impl.upscale.auto_split_tiles import TileSize
 from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
@@ -54,6 +55,7 @@ class DropDownInput(BaseInput):
         options: List[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        associated_type: Type = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -68,6 +70,10 @@ class DropDownInput(BaseInput):
                 f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
             )
             self.default = options[0]["value"]
+
+        self.associated_type = (
+            associated_type if associated_type is not None else type(self.default)
+        )
 
     def toDict(self):
         return {
@@ -105,6 +111,7 @@ class BoolInput(DropDownInput):
             ],
             preferred_style="checkbox",
         )
+        self.associated_type = bool
 
     def enforce(self, value) -> bool:
         value = super().enforce(value)
@@ -180,6 +187,8 @@ class EnumInput(Generic[T], DropDownInput):
         )
         self.type_name: str = type_name
         self.enum = enum
+
+        self.associated_type = enum
 
     def enforce(self, value) -> T:
         value = super().enforce(value)
@@ -300,6 +309,8 @@ class SeedInput(NumberInput):
             }
         """
 
+        self.associated_type = Seed
+
     def enforce(self, value) -> Seed:
         if isinstance(value, Seed):
             return value
@@ -389,6 +400,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         input_type="TileSize",
         label=label,
         options=options,
+        associated_type=TileSize,
     )
 
 
@@ -412,6 +424,7 @@ def DdsFormatDropdown() -> DropDownInput:
         input_type="DdsFormat",
         label="DDS Format",
         options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
+        associated_type=DDSFormat,
     )
 
 

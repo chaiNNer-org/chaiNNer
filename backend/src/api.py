@@ -16,6 +16,7 @@ from typing import (
     Union,
 )
 
+import numpy as np
 from sanic.log import logger
 
 from base_types import InputId, OutputId
@@ -165,10 +166,15 @@ class NodeGroup:
                         evaluated_py_type = py_type
                         if isinstance(py_type, str):
                             try:
+                                # Allows us to use pipe unions still
+                                if "|" in py_type:
+                                    py_type = f'Union[{py_type.replace(" |", ",")}]'
+                                global_vals = wrapped_func.__globals__
+                                # Gotta add these to the scope
+                                global_vals.update({"Union": Union})
+                                global_vals.update({"np": np})
                                 # pylint: disable=eval-used
-                                evaluated_py_type = eval(
-                                    py_type, wrapped_func.__globals__
-                                )
+                                evaluated_py_type = eval(py_type, global_vals)
                             except Exception as e:
                                 logger.warning(
                                     f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"
@@ -182,8 +188,8 @@ class NodeGroup:
                                         f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} not in {evaluated_py_type_args=}"
                                     )
                             # terrible way to check if it's a local class, but it'll do for now
-                            elif "." in str(evaluated_py_type):
-                                pass
+                            # elif "." in str(evaluated_py_type):
+                            #     pass
                             else:
                                 logger.warning(
                                     f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} != {associated_type=}"

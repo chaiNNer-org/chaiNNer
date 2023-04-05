@@ -2,6 +2,8 @@
 
 from typing import List, Optional, Union
 
+import numpy as np
+
 from ...impl.image_utils import get_h_w_c, normalize
 from ...utils.format import format_image_with_channels
 from .. import expression
@@ -33,6 +35,8 @@ class ImageInput(BaseInput):
         self.channels: Optional[List[int]] = (
             [channels] if isinstance(channels, int) else channels
         )
+
+        self.associated_type = np.ndarray
 
     def enforce(self, value):
         _, _, c = get_h_w_c(value)

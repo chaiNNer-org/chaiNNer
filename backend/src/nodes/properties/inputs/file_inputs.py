@@ -43,6 +43,8 @@ class FileInput(BaseInput):
             }}
         """
 
+        self.associated_type = str
+
     def toDict(self):
         return {
             **super().toDict(),
@@ -117,6 +119,8 @@ class DirectoryInput(BaseInput):
                 _ => never
             }
         """
+
+        self.associated_type = str
 
     def enforce(self, value):
         assert os.path.exists(value), f"Directory {value} does not exist"
