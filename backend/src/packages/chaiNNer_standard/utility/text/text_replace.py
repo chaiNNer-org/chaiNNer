@@ -23,7 +23,9 @@ class ReplacementMode(Enum):
         TextInput("Old Text", min_length=0),
         TextInput("Replacement", min_length=0),
         EnumInput(
-            ReplacementMode, "Replace mode", default_value=ReplacementMode.REPLACE_ALL
+            ReplacementMode,
+            label="Replace mode",
+            default_value=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[
