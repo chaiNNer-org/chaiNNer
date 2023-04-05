@@ -51,6 +51,14 @@ class ImageOutput(NumPyOutput):
 
         self.channels: Optional[int] = channels
 
+    def get_broadcast_data(self, value: np.ndarray):
+        h, w, c = get_h_w_c(value)
+        return {
+            "height": h,
+            "width": w,
+            "channels": c,
+        }
+
     def get_broadcast_type(self, value: np.ndarray):
         h, w, c = get_h_w_c(value)
         return expression.Image(width=w, height=h, channels=c)
