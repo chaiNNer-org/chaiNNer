@@ -15,7 +15,7 @@ def get_or_add(d: Dict[K, V], key: K, supplier: Callable[[], V]) -> V:
     return value
 
 
-class Node:
+class FunctionNode:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
@@ -44,7 +44,7 @@ class IteratorNode:
         return self.__node
 
 
-Nodes = Union[Node, IteratorNode]
+Node = Union[FunctionNode, IteratorNode]
 
 
 class EdgeSource:
@@ -67,11 +67,11 @@ class Edge:
 
 class Chain:
     def __init__(self):
-        self.nodes: Dict[NodeId, Nodes] = {}
+        self.nodes: Dict[NodeId, Node] = {}
         self.__edges_by_source: Dict[NodeId, List[Edge]] = {}
         self.__edges_by_target: Dict[NodeId, List[Edge]] = {}
 
-    def add_node(self, node: Nodes):
+    def add_node(self, node: Node):
         assert node.id not in self.nodes, f"Duplicate node id {node.id}"
         self.nodes[node.id] = node
 
@@ -109,7 +109,7 @@ class Chain:
 
 class SubChain:
     def __init__(self, chain: Chain, iterator_id: NodeId):
-        self.nodes: Dict[NodeId, Node] = {}
+        self.nodes: Dict[NodeId, FunctionNode] = {}
         self.iterator_id = iterator_id
 
         for node in chain.nodes.values():

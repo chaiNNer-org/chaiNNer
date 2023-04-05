@@ -25,7 +25,7 @@ from sanic.log import logger
 from api import NodeData
 from base_types import NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
-from chain.chain import Chain, IteratorNode, Node, Nodes, SubChain
+from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
@@ -68,12 +68,12 @@ T = TypeVar("T")
 class NodeExecutionError(Exception):
     def __init__(
         self,
-        node: Nodes,
+        node: Node,
         cause: str,
         inputs: InputsDict,
     ):
         super().__init__(cause)
-        self.node: Nodes = node
+        self.node: Node = node
         self.inputs: InputsDict = inputs
 
 
@@ -90,7 +90,7 @@ class IteratorContext:
         self.chain = SubChain(executor.chain, iterator_id)
         self.inputs = InputMap(parent=executor.inputs)
 
-    def get_helper(self, schema_id: str) -> Node:
+    def get_helper(self, schema_id: str) -> FunctionNode:
         for node in self.chain.nodes.values():
             if node.schema_id == schema_id:
                 return node
@@ -291,7 +291,7 @@ class Executor:
         except Exception as e:
             raise NodeExecutionError(node, str(e), {}) from e
 
-    async def __process(self, node: Nodes) -> Output:
+    async def __process(self, node: Node) -> Output:
         """Process a single node"""
 
         logger.debug(f"node: {node}")
