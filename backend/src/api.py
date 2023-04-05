@@ -14,6 +14,7 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    get_args,
 )
 
 import numpy as np
