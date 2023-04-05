@@ -14,7 +14,6 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
-    get_args,
 )
 
 from sanic.log import logger
