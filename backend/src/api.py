@@ -100,7 +100,7 @@ class NodeGroup:
     nodes: List[NodeData] = field(default_factory=list)
 
     def add_node(self, node: NodeData):
-        logger.info(f"Added {node.schema_id}")
+        logger.debug(f"Added {node.schema_id}")
         self.nodes.append(node)
 
     def register(
@@ -143,11 +143,11 @@ class NodeGroup:
                     else:
                         output_len = 1
                     if output_len != len(p_output):
-                        raise ValueError(
+                        logger.warning(
                             f"Number of outputs and return types don't match for {schema_id}"
                         )
-                    # Remove the return type from the annotations
-                    del ann["return"]
+                # Remove the return type from the annotations
+                ann.pop("return", None)
                 input_len = len(ann.keys())
                 # Iterators pass in their context, so we need to account for that
                 if node_type == "iterator":
@@ -156,7 +156,7 @@ class NodeGroup:
                 if list(ann.keys())[-1] not in ["args", "sources"] and input_len != len(
                     p_inputs
                 ):
-                    raise ValueError(
+                    logger.warning(
                         f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
                     )
 

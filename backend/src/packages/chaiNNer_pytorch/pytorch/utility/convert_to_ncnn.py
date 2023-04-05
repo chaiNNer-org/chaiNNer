@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Tuple
 
 from nodes.impl.pytorch.architecture.Swin2SR import Swin2SR
 from nodes.impl.pytorch.architecture.SwinIR import SwinIR
@@ -34,7 +34,7 @@ except:
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
     ],
 )
-def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Any:
+def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Tuple[Any, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \

@@ -13,4 +13,4 @@ ncnn_category = package.add_category(
 )
 
 
-logger.info(f"Loaded package {package.name}")
+logger.debug(f"Loaded package {package.name}")

@@ -12,4 +12,4 @@ pytorch_category = package.add_category(
     install_hint="PyTorch uses .pth models to upscale images. It is the most widely-used upscaling architecture. However, it does not support AMD GPUs.",
 )
 
-logger.info(f"Loaded package {package.name}")
+logger.debug(f"Loaded package {package.name}")

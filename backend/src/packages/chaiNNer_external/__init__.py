@@ -11,4 +11,4 @@ external_stable_diffusion_category = package.add_category(
     color="#9331CC",
 )
 
-logger.info(f"Loaded package {package.name}")
+logger.debug(f"Loaded package {package.name}")
