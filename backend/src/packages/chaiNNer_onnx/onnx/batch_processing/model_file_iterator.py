@@ -64,6 +64,7 @@ def ModelFileIteratorLoadModelNode(
             "schemaId": ONNX_ITERATOR_NODE_ID,
         },
     ],
+    node_type="iterator",
 )
 async def ModelFileIteratorNode(directory: str, context: IteratorContext) -> None:
     logger.debug(f"Iterating over models in directory: {directory}")
