@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 from nodes.properties.inputs import NumberInput
 from nodes.properties.outputs import NumberOutput
 
@@ -24,5 +26,5 @@ from .. import value_group
         NumberOutput("Number", output_type="Input0"),
     ],
 )
-def number_value_node(number: int | float) -> int | float:
+def number_value_node(number: Union[int, float]) -> Union[int, float]:
     return number

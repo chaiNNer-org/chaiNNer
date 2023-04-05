@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import Enum
+from typing import Union
 
 import cv2
 import numpy as np
@@ -118,7 +119,7 @@ class JpegSubsampling(Enum):
 def save_image_node(
     img: np.ndarray,
     base_directory: str,
-    relative_path: str | None,
+    relative_path: Union[str, None],
     filename: str,
     extension: str,
     quality: int,

@@ -66,6 +66,7 @@ class NumberInput(BaseInput):
         self.unit = unit
         self.note_expression = note_expression
         self.hide_trailing_zeros = hide_trailing_zeros
+        self.associated_type = float if precision > 0 else int
 
         self.input_type = get_number_type(
             self.minimum,

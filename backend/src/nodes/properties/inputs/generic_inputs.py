@@ -209,6 +209,7 @@ class TextInput(BaseInput):
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+        self.associated_type = str
 
         if allow_numbers:
             self.input_conversions = [InputConversion("number", "toString(Input)")]
@@ -236,6 +237,7 @@ class TextAreaInput(BaseInput):
         super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
         self.default = default
+        self.associated_type = str
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:

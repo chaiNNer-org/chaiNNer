@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal
+from typing import List, Literal, Type
 
 from base_types import InputId
 
@@ -55,6 +55,7 @@ class BaseInput:
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
+        associated_type: Type = None,
     ):
         self.input_type: expression.ExpressionJson = input_type
         self.input_conversions: List[InputConversion] = []
@@ -65,6 +66,7 @@ class BaseInput:
         self.optional: bool = False
         self.has_handle: bool = has_handle
         self.id: InputId = InputId(-1)
+        self.associated_type: Type = associated_type
 
     # This is the method that should be created by each input
     def enforce(self, value):

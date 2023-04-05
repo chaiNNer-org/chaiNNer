@@ -106,7 +106,7 @@ def _add_noise(
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
             if_enum_group(6, FractalMethod.PINK)(
-                NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
+                NumberInput("Layers", minimum=2, default=3, precision=0).with_id(7),
                 NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
                     8
                 ),
