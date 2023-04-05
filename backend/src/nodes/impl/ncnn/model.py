@@ -731,7 +731,7 @@ class NcnnModelWrapper:
                     ):
                         scale *= checked_cast(float, layer.params[1].value)
                 except IndexError:
-                    pass
+                    scale *= checked_cast(float, layer.params[1].value)
             elif layer.op_type == "PixelShuffle":
                 scale *= checked_cast(int, layer.params[0].value)
                 pixel_shuffle *= checked_cast(int, layer.params[0].value)
