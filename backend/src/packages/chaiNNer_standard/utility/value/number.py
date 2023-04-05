@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 from nodes.properties.inputs import NumberInput
 from nodes.properties.outputs import NumberOutput
 
