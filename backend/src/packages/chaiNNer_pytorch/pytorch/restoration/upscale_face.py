@@ -37,6 +37,7 @@ def denormalize(img: np.ndarray):
     return img
 
 
+@torch.inference_mode()
 def upscale(
     img: np.ndarray,
     background_img: Union[np.ndarray, None],
@@ -134,7 +135,6 @@ def upscale(
         )
     ],
 )
-@torch.inference_mode()
 def face_upscale_node(
     img: np.ndarray,
     face_model: PyTorchFaceModel,
