@@ -1,7 +1,18 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    List,
+    Literal,
+    Tuple,
+    Type,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 from sanic.log import logger
@@ -283,6 +294,7 @@ class ClipboardInput(BaseInput):
 class AnyInput(BaseInput):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
+        self.associated_type = Any
 
     def enforce_(self, value):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
