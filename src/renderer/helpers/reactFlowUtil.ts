@@ -87,6 +87,19 @@ export const isSnappedToGrid = (
 ): boolean => position.x % snapToGridAmount === 0 && position.y % snapToGridAmount === 0;
 
 export const copyNode = (node: Readonly<Node<NodeData>>): Node<Mutable<NodeData>> => deepCopy(node);
+export const withNewData = <K extends keyof NodeData>(
+    node: Node<NodeData>,
+    key: K,
+    value: NodeData[K]
+): Node<NodeData> => {
+    if (node.data[key] === value) {
+        return node;
+    }
+    return { ...node, data: { ...node.data, [key]: value } };
+};
+export const withNewDataMap = (node: Node<NodeData>, update: Partial<NodeData>): Node<NodeData> => {
+    return { ...node, data: { ...node.data, ...update } };
+};
 
 export const setSelected = <T extends { selected?: boolean }>(
     selectable: readonly T[],
