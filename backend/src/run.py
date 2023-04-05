@@ -3,7 +3,6 @@ import functools
 import gc
 import importlib
 import logging
-import os
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -18,14 +17,13 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
+import api
 from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
-from nodes.node_factory import NodeFactory
-from nodes.nodes.builtin_categories import category_order
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
     parse_execution_options,
@@ -39,7 +37,7 @@ from process import (
     timed_supplier,
     to_output,
 )
-from progress import Aborted
+from progress_controller import Aborted
 from response import (
     alreadyRunningResponse,
     errorResponse,
@@ -68,71 +66,20 @@ app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
+# Manually import built-in packages to get ordering correct
+# Using importlib here so we don't have to ignore that it isn't used
+importlib.import_module("packages.chaiNNer_standard")
+importlib.import_module("packages.chaiNNer_pytorch")
+importlib.import_module("packages.chaiNNer_ncnn")
+importlib.import_module("packages.chaiNNer_onnx")
+importlib.import_module("packages.chaiNNer_external")
 
-missing_node_count = 0
-categories = set()
-missing_categories = set()
-missing_module_errors = set()
+# in the future, for external packages dir, scan & import
+# for package in os.listdir(packages_dir):
+#     # logger.info(package)
+#     importlib.import_module(package)
 
-# Dynamically import all nodes
-for root, dirs, files in os.walk(
-    os.path.join(os.path.dirname(__file__), "nodes", "nodes")
-):
-    for file in files:
-        if file.endswith(".py") and not file.startswith("_"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                importlib.import_module(f"{module}", package=None)
-            except ImportError as e:
-                missing_node_count += 1
-                logger.debug(f"Failed to import {module}: {e}")
-                missing_module_errors.add(str(e))
-
-                # Turn path into __init__.py path
-                init_module = module.split(".")
-                init_module[-1] = "__init__"
-                init_module = ".".join(init_module)
-                try:
-                    category = getattr(importlib.import_module(init_module), "category")
-                    missing_categories.add(category.name)
-                except ImportError as ie:
-                    logger.info(ie)
-                except Exception as oe:
-                    logger.error(
-                        f"A critical error occurred when importing module {init_module}: {oe}"
-                    )
-            except Exception as e:
-                logger.error(
-                    f"A critical error occurred when importing module {module}: {e}"
-                )
-        # Load categories from __init__.py files
-        elif file.endswith(".py") and file == ("__init__.py"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                # TODO: replace the category system with a dynamic factory
-                category = getattr(importlib.import_module(module), "category")
-                categories.add(category)
-            except:
-                pass
-
-
-if len(missing_module_errors) > 0:
-    logger.warning(
-        f"Failed to import {missing_node_count} nodes. "
-        f"Missing categories: {missing_categories}. "
-        f"Missing modules: {missing_module_errors}"
-    )
-
-
-categories = sorted(
-    list(categories), key=lambda category: category_order.index(category.name)
-)
+api.registry.load_nodes(__file__)
 
 
 class SSEFilter(logging.Filter):
@@ -164,42 +111,34 @@ access_logger.addFilter(SSEFilter())
 @app.route("/nodes")
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
-    registry = NodeFactory.get_registry()
-    logger.debug(categories)
+    logger.debug(api.registry.categories)
 
-    # sort nodes in category order
-    sorted_registry = sorted(
-        registry.items(),
-        key=lambda x: category_order.index(NodeFactory.get_node(x[0]).category.name),
-    )
     node_list = []
-    for schema_id, _node_class in sorted_registry:
-        node_object = NodeFactory.get_node(schema_id)
+    for node, sub in api.registry.nodes.values():
         node_dict = {
-            "schemaId": schema_id,
-            "name": node_object.name,
-            "category": node_object.category.name,
-            "inputs": [x.toDict() for x in node_object.inputs],
-            "outputs": [x.toDict() for x in node_object.outputs],
+            "schemaId": node.schema_id,
+            "name": node.name,
+            "category": sub.category.name,
+            "inputs": [x.toDict() for x in node.inputs],
+            "outputs": [x.toDict() for x in node.outputs],
             "groupLayout": [
-                g.toDict() if isinstance(g, Group) else g
-                for g in node_object.group_layout
+                g.toDict() if isinstance(g, Group) else g for g in node.group_layout
             ],
-            "description": node_object.description,
-            "icon": node_object.icon,
-            "subcategory": node_object.sub,
-            "nodeType": node_object.type,
-            "hasSideEffects": node_object.side_effects,
-            "deprecated": node_object.deprecated,
+            "description": node.description,
+            "icon": node.icon,
+            "subcategory": sub.name,
+            "nodeType": node.type,
+            "hasSideEffects": node.side_effects,
+            "deprecated": node.deprecated,
+            "defaultNodes": node.default_nodes,
         }
-        if node_object.type == "iterator":
-            node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
+
     return json(
         {
             "nodes": node_list,
-            "categories": [x.toDict() for x in categories],
-            "categoriesMissingNodes": list(missing_categories),
+            "categories": [x.toDict() for x in api.registry.categories],
+            "categoriesMissingNodes": [],
         }
     )
 
@@ -295,7 +234,7 @@ async def run_individual(request: Request):
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
-        node_instance = NodeFactory.get_node(full_data["schemaId"])
+        node_instance = api.registry.get_node(full_data["schemaId"])
 
         # Enforce that all inputs match the expected input schema
         enforced_inputs = []
