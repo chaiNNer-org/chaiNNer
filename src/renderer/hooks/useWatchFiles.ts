@@ -17,6 +17,7 @@ const callListeners = (file: string) => {
 const watcher = new FSWatcher({
     disableGlobbing: true,
     awaitWriteFinish: true,
+    ignoreInitial: true,
     persistent: false,
 });
 watcher.on('error', (e) => log.error(e));
