@@ -26,5 +26,5 @@ from .. import value_group
         NumberOutput("Number", output_type="Input0"),
     ],
 )
-def number_value_node(number: Union[int, float]) -> Union[int, float]:
+def number_value_node(number: int | float) -> int | float:
     return number

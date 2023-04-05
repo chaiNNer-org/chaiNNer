@@ -119,7 +119,7 @@ class JpegSubsampling(Enum):
 def save_image_node(
     img: np.ndarray,
     base_directory: str,
-    relative_path: Union[str, None],
+    relative_path: str | None,
     filename: str,
     extension: str,
     quality: int,
