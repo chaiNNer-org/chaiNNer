@@ -9,12 +9,7 @@ from .session_base import BaseSession
 
 class SimpleSession(BaseSession):
     def predict(self, img: PILImage) -> List[PILImage]:
-        ort_outs = self.inner_session.run(
-            None,
-            self.normalize(
-                img, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225), (320, 320)
-            ),
-        )
+        ort_outs = self.inner_session.run(None, self.normalize(img))
 
         pred = ort_outs[0][:, 0, :, :]
 
