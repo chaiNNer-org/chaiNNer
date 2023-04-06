@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import os
 import random
@@ -78,17 +80,27 @@ def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
     return img.copy()
 
 
+def _get_iinfo(img: np.ndarray) -> np.iinfo | None:
+    try:
+        return np.iinfo(img.dtype)
+    except:
+        return None
+
+
 def normalize(img: np.ndarray) -> np.ndarray:
     if img.dtype != np.float32:
-        try:
-            info = np.iinfo(img.dtype)
-            img = img.astype(np.float32)
+        info = _get_iinfo(img)
+        img = img.astype(np.float32)
+
+        if info is not None:
             img /= info.max
             if info.min == 0:
                 # we don't need to clip
                 return img
-        except:
-            img = img.astype(np.float32)
+
+        # we own `img`, so it's okay to write to it
+        return np.clip(img, 0, 1, out=img)
+
     return np.clip(img, 0, 1)
 
 
