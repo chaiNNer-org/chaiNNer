@@ -18,6 +18,7 @@ from PIL import Image
 from PIL.Image import Image as PILImage
 from scipy.ndimage import binary_erosion
 
+from ...impl.image_utils import normalize
 from ...utils.utils import get_h_w_c
 from .pymatting.estimate_alpha_cf import estimate_alpha_cf
 from .pymatting.estimate_foreground_ml import estimate_foreground_ml
@@ -151,4 +152,4 @@ def remove_bg(
     if len(cutouts) > 0:
         cutout = get_concat_v_multi(cutouts)
 
-    return cvtColor(np.asarray(cutout), COLOR_RGBA2BGRA), np.asarray(mask)  # type: ignore  pylint: disable=undefined-loop-variable
+    return cvtColor(normalize(np.asarray(cutout)), COLOR_RGBA2BGRA), normalize(np.asarray(mask))  # type: ignore  pylint: disable=undefined-loop-variable
