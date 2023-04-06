@@ -119,6 +119,7 @@ class DirectoryInput(BaseInput):
         """
 
     def enforce(self, value):
+        assert isinstance(value, str)
         assert os.path.exists(value), f"Directory {value} does not exist"
         return value
 
