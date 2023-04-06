@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal, Type
+from typing import List, Literal, Type, Union
 
 from base_types import InputId
 
@@ -55,7 +55,7 @@ class BaseInput:
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
-        associated_type: Type = None,
+        associated_type: Union[Type, None] = None,
     ):
         self.input_type: expression.ExpressionJson = input_type
         self.input_conversions: List[InputConversion] = []

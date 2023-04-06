@@ -170,12 +170,15 @@ class NodeGroup:
                                 # Allows us to use pipe unions still
                                 if "|" in py_type:
                                     py_type = f'Union[{py_type.replace(" |", ",")}]'
-                                global_vals = wrapped_func.__globals__
                                 # Gotta add these to the scope
-                                global_vals.update({"Union": Union})
-                                global_vals.update({"np": np})
+                                local_scope = {
+                                    "Union": Union,
+                                    "np": np,
+                                }
                                 # pylint: disable=eval-used
-                                evaluated_py_type = eval(py_type, global_vals)
+                                evaluated_py_type = eval(
+                                    py_type, wrapped_func.__globals__, local_scope
+                                )
                             except Exception as e:
                                 logger.warning(
                                     f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"

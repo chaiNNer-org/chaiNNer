@@ -66,7 +66,7 @@ class DropDownInput(BaseInput):
         options: List[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
-        associated_type: Type = None,
+        associated_type: Union[Type, None] = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
