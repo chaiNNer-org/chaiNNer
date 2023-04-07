@@ -48,7 +48,9 @@ class ImageInput(BaseInput):
             )
 
         assert value.dtype == np.float32, "Expected the input image to be normalized."
-        assert c != 1 or value.ndim == 2, "Expected single-channel images to be 2D."
+
+        if c == 1 and value.ndim == 3:
+            value = value[:, :, 0]
 
         return value
 
