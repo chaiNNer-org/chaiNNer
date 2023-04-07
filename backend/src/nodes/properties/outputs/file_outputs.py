@@ -10,6 +10,9 @@ class FileOutput(BaseOutput):
     def __init__(self, file_type: expression.ExpressionJson, label: str):
         super().__init__(file_type, label)
 
+    def get_broadcast_data(self, value: str):
+        return value
+
     def enforce(self, value) -> str:
         assert isinstance(value, str)
         return value
