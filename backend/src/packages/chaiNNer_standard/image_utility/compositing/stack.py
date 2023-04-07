@@ -123,7 +123,7 @@ def stack_node(
 
         # Expand channel dims if necessary
         if c < max_c:
-            temp_img = np.ones((max_h, max_w, max_c))
+            temp_img = np.ones((max_h, max_w, max_c), dtype=np.float32)
             temp_img[:, :, :c] = fixed_img
             fixed_img = temp_img
 

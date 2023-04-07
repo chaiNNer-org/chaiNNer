@@ -161,7 +161,7 @@ def create_noise_node(
             seed=seed.to_u32(),
         ).astype(np.float32) / (width * height - 1)
 
-    img = np.zeros((height, width), dtype="float32")
+    img = np.zeros((height, width), dtype=np.float32)
     brightness /= 100
 
     kwargs = {

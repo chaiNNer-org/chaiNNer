@@ -55,7 +55,7 @@ def combine_rgba_node(
         img_b,
         img_g,
         img_r,
-        img_a if img_a is not None else np.ones(start_shape),
+        img_a if img_a is not None else np.ones(start_shape, dtype=np.float32),
     ]
 
     return np.stack(channels, axis=2)
