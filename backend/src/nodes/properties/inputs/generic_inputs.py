@@ -158,7 +158,7 @@ class EnumInput(Generic[T], DropDownInput):
             value = variant.value
             assert isinstance(value, (int, str))
             assert (
-                re.match(r"^[a-zA-Z0-9_]+$", variant.name) is not None
+                re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None
             ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
 
             name = split_snake_case(variant.name)
