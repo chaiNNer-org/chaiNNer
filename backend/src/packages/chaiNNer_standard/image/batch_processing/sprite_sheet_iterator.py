@@ -78,6 +78,7 @@ def ImageSpriteSheetIteratorAppendImageNode(
             "schemaId": SPRITESHEET_ITERATOR_OUTPUT_NODE_ID,
         },
     ],
+    side_effects=True,
 )
 async def ImageSpriteSheetIteratorNode(
     sprite_sheet: np.ndarray,

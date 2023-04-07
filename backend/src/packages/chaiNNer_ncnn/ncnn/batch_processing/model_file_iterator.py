@@ -67,6 +67,7 @@ def ModelFileIteratorLoadModelNode(
         },
     ],
     node_type="iterator",
+    side_effects=True,
 )
 async def ModelFileIteratorNode(directory: str, context: IteratorContext) -> None:
     logger.debug(f"Iterating over models in directory: {directory}")
