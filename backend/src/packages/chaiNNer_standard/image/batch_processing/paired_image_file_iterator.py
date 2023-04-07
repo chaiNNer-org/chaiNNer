@@ -83,6 +83,7 @@ def ImageFileIteratorLoadImageNodeA(
             "schemaId": PAIRED_IMAGE_ITERATOR_NODE_ID,
         },
     ],
+    side_effects=True,
 )
 async def PairedImageFileIteratorNode(
     directory_a: str, directory_b: str, context: IteratorContext

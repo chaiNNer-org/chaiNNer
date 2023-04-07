@@ -179,6 +179,7 @@ def VideoFrameIteratorFrameWriterNode(
             "schemaId": VIDEO_ITERATOR_OUTPUT_NODE_ID,
         },
     ],
+    side_effects=True,
 )
 async def SimpleVideoFrameIteratorNode(path: str, context: IteratorContext) -> None:
     logger.debug(f"{ffmpeg_path=}, {ffprobe_path=}")
