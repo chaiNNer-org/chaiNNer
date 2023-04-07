@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from enum import Enum
 from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
 
@@ -156,6 +157,9 @@ class EnumInput(Generic[T], DropDownInput):
         for variant in enum:
             value = variant.value
             assert isinstance(value, (int, str))
+            assert (
+                re.match(r"^[a-zA-Z0-9_]+$", variant.name) is not None
+            ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
 
             name = split_snake_case(variant.name)
             variant_type = f"{type_name}::{join_pascal_case(name)}"
