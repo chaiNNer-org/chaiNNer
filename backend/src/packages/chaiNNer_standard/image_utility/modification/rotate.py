@@ -100,7 +100,8 @@ from .. import modification_group
                     },
                     channels: FillColor::getOutputChannels(Input4, Input0.channels)
                 }
-                """
+                """,
+            assume_normalized=True,
         )
     ],
 )

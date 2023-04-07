@@ -45,7 +45,8 @@ from .. import create_images_group
                 width="Input0",
                 height="Input1",
                 channels="3",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

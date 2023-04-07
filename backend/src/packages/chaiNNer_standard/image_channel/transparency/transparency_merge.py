@@ -27,6 +27,7 @@ from . import node_group
                 height="Input0.height & Input1.height",
             ),
             channels=4,
+            assume_normalized=True,
         ).with_never_reason(
             "The RGB and alpha channels have different sizes but must have the same size."
         )

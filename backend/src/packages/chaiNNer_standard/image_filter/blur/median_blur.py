@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.impl.image_utils import normalize, to_uint8
+from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -29,8 +29,6 @@ def median_blur_node(
         return img
     else:
         if radius < 3:
-            blurred = cv2.medianBlur(img, 2 * radius + 1)
+            return cv2.medianBlur(img, 2 * radius + 1)
         else:  # cv2 requires uint8 for kernel size (2r+1) > 5
-            blurred = cv2.medianBlur(to_uint8(img, normalized=True), 2 * radius + 1)
-
-        return normalize(blurred)
+            return cv2.medianBlur(to_uint8(img, normalized=True), 2 * radius + 1)

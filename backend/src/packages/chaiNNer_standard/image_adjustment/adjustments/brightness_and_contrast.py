@@ -64,4 +64,4 @@ def brightness_and_contrast_node(
             axis=2,
         )
 
-    return np.clip(img, 0, 1)
+    return img

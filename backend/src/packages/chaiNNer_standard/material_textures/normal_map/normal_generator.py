@@ -170,4 +170,4 @@ def normal_map_generator_node(
 
     channels = (b, g, r) if a is None else (b, g, r, a)
 
-    return np.clip(cv2.merge(channels), 0, 1)
+    return cv2.merge(channels)

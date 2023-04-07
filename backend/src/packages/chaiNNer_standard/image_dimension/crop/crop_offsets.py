@@ -28,7 +28,8 @@ from .. import crop_group
                 width="min(Input4, Input0.width - Input2) & int(1..)",
                 height="min(Input3, Input0.height - Input1) & int(1..)",
                 channels_as="Input0",
-            )
+            ),
+            assume_normalized=True,
         ).with_never_reason(
             "The cropped area would result in an image with no width or no height."
         )

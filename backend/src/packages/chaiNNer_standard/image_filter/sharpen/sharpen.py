@@ -57,4 +57,4 @@ def sharpen_node(
         diff = np.sign(diff) * np.maximum(0, np.abs(diff) - threshold)
         img += diff * amount
 
-    return np.clip(img, 0, 1)
+    return img

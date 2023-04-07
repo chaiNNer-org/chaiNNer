@@ -53,6 +53,4 @@ def sharpen_hbf_node(
         kernel = identity - np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) / 5
 
     kernel = kernel * amount + identity
-    filtered_img = cv2.filter2D(img, -1, kernel)
-
-    return np.clip(filtered_img, 0, 1)
+    return cv2.filter2D(img, -1, kernel)

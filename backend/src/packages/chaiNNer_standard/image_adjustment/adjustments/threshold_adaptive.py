@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.impl.image_utils import normalize, to_uint8
+from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
     AdaptiveMethodInput,
     AdaptiveThresholdInput,
@@ -61,4 +61,4 @@ def adaptive_threshold_node(
         c,
     )
 
-    return normalize(result)
+    return result

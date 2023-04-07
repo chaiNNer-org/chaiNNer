@@ -31,7 +31,8 @@ from .. import compositing_group
                 width="max(Input0.width, Input1.width)",
                 height="max(Input0.height, Input1.height)",
                 channels="max(Input0.channels, Input1.channels)",
-            )
+            ),
+            assume_normalized=True,
         ),
     ],
 )

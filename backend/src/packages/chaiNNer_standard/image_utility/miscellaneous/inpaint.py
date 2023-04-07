@@ -5,7 +5,7 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from nodes.impl.image_utils import normalize, to_uint8
+from nodes.impl.image_utils import to_uint8
 from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -65,6 +65,4 @@ def inpaint_node(
 
     img = to_uint8(img, normalized=True)
     mask = to_uint8(mask, normalized=True)
-    result = cv2.inpaint(img, mask, radius, inpaint_method.value)
-
-    return normalize(result)
+    return cv2.inpaint(img, mask, radius, inpaint_method.value)

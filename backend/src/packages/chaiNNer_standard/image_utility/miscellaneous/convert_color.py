@@ -55,7 +55,8 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
                         Input2.channels
                     }
                     """,
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

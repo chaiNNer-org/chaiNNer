@@ -27,7 +27,13 @@ from .. import adjustments_group
             unit="%",
         ),
     ],
-    outputs=[ImageOutput(image_type=expression.Image(size_as="Input0"), channels=4)],
+    outputs=[
+        ImageOutput(
+            image_type=expression.Image(size_as="Input0"),
+            channels=4,
+            assume_normalized=True,
+        )
+    ],
 )
 def opacity_node(img: np.ndarray, opacity: float) -> np.ndarray:
     """Apply opacity adjustment to alpha channel"""

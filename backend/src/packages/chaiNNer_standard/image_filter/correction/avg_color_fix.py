@@ -93,4 +93,4 @@ def average_color_fix_node(
     if alpha is not None:
         result = np.concatenate([result, alpha], axis=2)
 
-    return np.clip(result, 0, 1)
+    return result
