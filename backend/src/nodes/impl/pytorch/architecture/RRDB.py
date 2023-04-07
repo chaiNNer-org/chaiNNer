@@ -82,7 +82,7 @@ class RRDBNet(nn.Module):
         c2x2 = False
         if self.state["model.0.weight"].shape[-2] == 2:
             c2x2 = True
-            self.scale = int((self.scale / 4) ** 1 / 2)
+            self.scale = int((self.scale / 4) ** 0.5)
             self.model_arch = "ESRGAN-2c2"
 
         self.supports_fp16 = True
