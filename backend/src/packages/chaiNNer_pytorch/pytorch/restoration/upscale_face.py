@@ -121,14 +121,7 @@ def upscale(
         NumberInput(
             label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
         ).with_id(3),
-        if_group(
-            Condition.type(0, 'PyTorchModel { arch: "CodeFormer" }')
-            & (
-                Condition.type(
-                    0, 'PyTorchModel { arch: "GFPGAN" | "RestoreFormer" }'
-                ).__invert__()
-            )
-        )(
+        if_group(Condition.type(0, 'PyTorchModel { arch: "CodeFormer" }'))(
             SliderInput(
                 label="Weight",
                 default=0.7,
