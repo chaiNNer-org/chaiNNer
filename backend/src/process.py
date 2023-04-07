@@ -57,7 +57,7 @@ def to_output(raw_output: Any, node: NodeData) -> Output:
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
-        o.validate(output[i])
+        output[i] = o.enforce(output[i])
 
     return output
 

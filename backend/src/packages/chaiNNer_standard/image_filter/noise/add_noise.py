@@ -58,7 +58,8 @@ class NoiseType(Enum):
                         Input0.channels,
                         match Input2 { NoiseColor::Rgb => 3, NoiseColor::Gray => 1 }
                     )
-                }"""
+                }""",
+            assume_normalized=True,
         )
     ],
 )

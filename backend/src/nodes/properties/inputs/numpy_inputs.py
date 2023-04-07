@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from ...impl.image_utils import get_h_w_c, normalize
+from ...impl.image_utils import get_h_w_c
 from ...utils.format import format_image_with_channels
 from .. import expression
 from .base_input import BaseInput
@@ -47,10 +47,12 @@ class ImageInput(BaseInput):
                 f"The input {self.label} only supports {expected} but was given {actual}."
             )
 
+        assert value.dtype == np.float32, "Expected the input image to be normalized."
+
         if c == 1 and value.ndim == 3:
             value = value[:, :, 0]
 
-        return normalize(value)
+        return value
 
 
 class VideoInput(BaseInput):

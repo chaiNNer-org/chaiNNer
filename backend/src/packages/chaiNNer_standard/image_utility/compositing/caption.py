@@ -30,7 +30,8 @@ from .. import compositing_group
                     height: Input0.height + captionHeight,
                     channels: Input0.channels,
                 }
-                """
+                """,
+            assume_normalized=True,
         )
     ],
 )

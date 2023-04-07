@@ -10,7 +10,7 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from nodes.impl.image_utils import normalize, to_uint8
+from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -73,7 +73,7 @@ class Writer:
 def VideoFrameIteratorFrameLoaderNode(
     img: np.ndarray, idx: int, video_dir: str, video_name: str
 ) -> Tuple[np.ndarray, int, str, str]:
-    return normalize(img), idx, video_dir, video_name
+    return img, idx, video_dir, video_name
 
 
 @batch_processing_group.register(

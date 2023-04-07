@@ -200,4 +200,4 @@ def create_noise_node(
                 kwargs["seed"] = (kwargs["seed"] + 1) % (2**32)
         img /= total_brightness
 
-    return np.clip(img, 0, 1)
+    return img

@@ -47,6 +47,4 @@ def box_blur_node(
         kernel[:, -1] *= x_d
 
     # Linear filter with reflected padding
-    return np.clip(
-        cv2.filter2D(img, -1, kernel, borderType=cv2.BORDER_REFLECT_101), 0, 1
-    )
+    return cv2.filter2D(img, -1, kernel, borderType=cv2.BORDER_REFLECT_101)

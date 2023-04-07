@@ -32,6 +32,7 @@ from . import node_group
                 height="Input0.height & Input1.height & Input2.height & match Input3 { Image as i => i.height, _ => any }",
             ),
             channels=4,
+            assume_normalized=True,
         ).with_never_reason(
             "The input channels have different sizes but must all be the same size."
         )

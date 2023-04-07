@@ -27,7 +27,8 @@ from .. import modification_group
                 width="Input0.width",
                 height="Input0.height",
                 channels="FillColor::getOutputChannels(Input3, Input0.channels)",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

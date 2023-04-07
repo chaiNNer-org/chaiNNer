@@ -38,7 +38,8 @@ from .. import crop_group
                         channels: Input0.channels
                     }
                 }
-                """
+                """,
+            assume_normalized=True,
         )
     ],
 )

@@ -29,6 +29,4 @@ def gaussian_blur_node(
     if sigma_x == 0 and sigma_y == 0:
         return img
     else:
-        return np.clip(
-            cv2.GaussianBlur(img, (0, 0), sigmaX=sigma_x, sigmaY=sigma_y), 0, 1
-        )
+        return cv2.GaussianBlur(img, (0, 0), sigmaX=sigma_x, sigmaY=sigma_y)

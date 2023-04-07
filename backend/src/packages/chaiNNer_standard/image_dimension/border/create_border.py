@@ -27,7 +27,8 @@ from .. import border_group
                 width="Input0.width + Input2 * 2",
                 height="Input0.height + Input2 * 2",
                 channels="BorderType::getOutputChannels(Input1, Input0.channels)",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

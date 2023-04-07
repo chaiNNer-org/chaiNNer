@@ -11,7 +11,6 @@ from sanic.log import logger
 
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import get_opencv_formats, get_pil_formats
-from nodes.impl.image_utils import normalize
 from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
@@ -145,7 +144,5 @@ def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
         raise RuntimeError(
             f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
         )
-
-    img = normalize(img)
 
     return img, dirname, basename

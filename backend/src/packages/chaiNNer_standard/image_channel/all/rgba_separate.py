@@ -23,16 +23,28 @@ from . import node_group
     inputs=[ImageInput()],
     outputs=[
         ImageOutput(
-            "R Channel", image_type=expression.Image(size_as="Input0"), channels=1
+            "R Channel",
+            image_type=expression.Image(size_as="Input0"),
+            channels=1,
+            assume_normalized=True,
         ).with_id(2),
         ImageOutput(
-            "G Channel", image_type=expression.Image(size_as="Input0"), channels=1
+            "G Channel",
+            image_type=expression.Image(size_as="Input0"),
+            channels=1,
+            assume_normalized=True,
         ).with_id(1),
         ImageOutput(
-            "B Channel", image_type=expression.Image(size_as="Input0"), channels=1
+            "B Channel",
+            image_type=expression.Image(size_as="Input0"),
+            channels=1,
+            assume_normalized=True,
         ).with_id(0),
         ImageOutput(
-            "A Channel", image_type=expression.Image(size_as="Input0"), channels=1
+            "A Channel",
+            image_type=expression.Image(size_as="Input0"),
+            channels=1,
+            assume_normalized=True,
         ),
     ],
 )

@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 import cv2
 import numpy as np
 
-from ...impl.image_utils import to_uint8
+from ...impl.image_utils import normalize, to_uint8
 from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c
@@ -24,8 +24,9 @@ class NumPyOutput(BaseOutput):
     ):
         super().__init__(output_type, label, kind=kind, has_handle=has_handle)
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
+        return value
 
 
 def AudioOutput():
@@ -41,6 +42,7 @@ class ImageOutput(NumPyOutput):
         kind: OutputKind = "image",
         has_handle: bool = True,
         channels: Optional[int] = None,
+        assume_normalized: bool = False,
     ):
         super().__init__(
             expression.intersect(image_type, expression.Image(channels=channels)),
@@ -50,6 +52,7 @@ class ImageOutput(NumPyOutput):
         )
 
         self.channels: Optional[int] = channels
+        self.assume_normalized: bool = assume_normalized
 
     def get_broadcast_data(self, value: np.ndarray):
         h, w, c = get_h_w_c(value)
@@ -63,9 +66,8 @@ class ImageOutput(NumPyOutput):
         h, w, c = get_h_w_c(value)
         return expression.Image(width=w, height=h, channels=c)
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
-        assert value.dtype == np.float32
 
         _, _, c = get_h_w_c(value)
 
@@ -77,6 +79,21 @@ class ImageOutput(NumPyOutput):
                 f" This is a bug in the implementation of the node."
                 f" Please report this bug."
             )
+
+        # flatting 3D single-channel images to 2D
+        if c == 1 and value.ndim == 3:
+            value = value[:, :, 0]
+
+        if self.assume_normalized:
+            assert value.dtype == np.float32, (
+                f"The output {self.label} did not return a normalized image."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+                f"\n\nTo the author of this node: Either use `normalize` or remove `assume_normalized=True` from this output."
+            )
+            return value
+
+        return normalize(value)
 
 
 def preview_encode(
