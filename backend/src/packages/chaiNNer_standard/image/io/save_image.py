@@ -107,7 +107,11 @@ class JpegSubsampling(Enum):
                 BoolInput("Dithering", default=False).with_id(8),
             ),
             DdsMipMapsDropdown().with_id(10),
-            if_group(Condition.enum(6, SUPPORTED_WITH_ALPHA) & Condition.enum(10, 0))(
+            if_group(
+                Condition.enum(6, SUPPORTED_WITH_ALPHA)
+                & Condition.enum(10, 0)
+                & Condition.type(0, "Image { channels: 4 }")
+            )(
                 BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
             ),
         ),
