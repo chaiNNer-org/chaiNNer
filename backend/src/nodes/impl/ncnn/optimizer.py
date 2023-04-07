@@ -105,7 +105,7 @@ class NcnnOptimizer:
                 if layer.params[bias_term].value == 0:
                     # init bias as zero
                     layer.params[bias_term] = 1
-                    layer.add_weight("bias", np.zeros(channels, np.float32))
+                    layer.add_weight("bias", np.zeros(channels, dtype=np.float32))
 
                 weight = layer.weight_data["weight"].weight
                 layer.weight_data["weight"].weight = weight * (

@@ -40,7 +40,7 @@ def separate_rgba(
     img: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     h, w, c = get_h_w_c(img)
-    safe_out = np.ones((h, w))
+    safe_out = np.ones((h, w), dtype=np.float32)
 
     if img.ndim == 2:
         return img, safe_out, safe_out, safe_out
