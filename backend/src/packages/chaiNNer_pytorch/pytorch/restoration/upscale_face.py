@@ -11,6 +11,7 @@ from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from sanic.log import logger
 from torchvision.transforms.functional import normalize as tv_normalize
 
+from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.types import PyTorchFaceModel
 from nodes.impl.pytorch.utils import (
@@ -19,7 +20,7 @@ from nodes.impl.pytorch.utils import (
     tensor2np,
     to_pytorch_execution_options,
 )
-from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput
+from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
@@ -120,6 +121,17 @@ def upscale(
         NumberInput(
             label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
         ).with_id(3),
+        if_group(Condition.type(0, 'PyTorchModel { arch: "CodeFormer" }'))(
+            SliderInput(
+                label="Weight",
+                default=0.7,
+                minimum=0.0,
+                maximum=1.0,
+                controls_step=0.1,
+                slider_step=0.1,
+                precision=1,
+            )
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -140,6 +152,7 @@ def face_upscale_node(
     face_model: PyTorchFaceModel,
     background_img: Union[np.ndarray, None],
     scale: int,
+    weight: float,
 ) -> np.ndarray:
     """Upscales an image with a face model"""
 
@@ -149,8 +162,6 @@ def face_upscale_node(
 
         exec_options = to_pytorch_execution_options(get_execution_options())
         device = torch.device(exec_options.full_device)
-
-        weight = 0.7
 
         with torch.no_grad():
             appdata_path = user_data_dir(roaming=True)
