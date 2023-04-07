@@ -62,7 +62,9 @@ export const addSplashScreen = (monitor: ProgressMonitor) => {
     }, 100);
 
     splash.once('ready-to-show', () => {
-        splash.show();
+        if (!splash.isDestroyed()) {
+            splash.show();
+        }
     });
 
     monitor.addProgressListener((progress) => {
