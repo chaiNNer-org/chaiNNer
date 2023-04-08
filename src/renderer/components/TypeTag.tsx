@@ -67,6 +67,26 @@ const getTypeText = (type: Type): TagValue[] => {
                 tags.push({ kind: 'literal', value: subType.value });
             }
         }
+        if (type.name === 'LatentImage') {
+            const [width, height] = type.fields;
+            if (isNumericLiteral(width.type) && isNumericLiteral(height.type)) {
+                tags.push({
+                    kind: 'literal',
+                    value: `${width.type.toString()}x${height.type.toString()}`,
+                });
+            }
+        }
+
+        if (
+            type.name === 'StableDiffusionModel' ||
+            type.name === 'CLIPModel' ||
+            type.name === 'Conditioning'
+        ) {
+            const arch = getField(type, 'arch') ?? NeverType.instance;
+            if (isStringLiteral(arch)) {
+                tags.push({ kind: 'literal', value: arch.value });
+            }
+        }
     }
     return tags;
 };

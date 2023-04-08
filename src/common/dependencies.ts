@@ -125,6 +125,34 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             description:
                 'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
         },
+        {
+            name: 'Stable Diffusion',
+            packages: [
+                {
+                    packageName: 'comfylib',
+                    version: '0.0.5',
+                    sizeEstimate: 3 * GB,
+                },
+                {
+                    packageName: 'torch',
+                    version: `1.10.2${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * GB : 140 * MB,
+                },
+                {
+                    packageName: 'torchvision',
+                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * MB : 800 * KB,
+                },
+                {
+                    packageName: 'einops',
+                    version: '0.5.0',
+                    sizeEstimate: 36.5 * KB,
+                },
+            ],
+            description: 'Stable Diffusion is a deep learning text-to-image model.',
+        },
     ];
 };
 
