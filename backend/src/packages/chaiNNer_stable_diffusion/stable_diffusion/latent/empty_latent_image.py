@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 
 from nodes.impl.external_stable_diffusion import nearest_valid_size
-from nodes.impl.stable_diffusion.types import LatentImage
+from nodes.impl.stable_diffusion import LatentImage
 from nodes.properties.inputs import SliderInput
 from nodes.properties.outputs.stable_diffusion_outputs import LatentImageOutput
 from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group

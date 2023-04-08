@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from nodes.impl.stable_diffusion.types import (
+from nodes.impl.stable_diffusion import (
     CLIPModel,
     StableDiffusionModel,
     VAEModel,

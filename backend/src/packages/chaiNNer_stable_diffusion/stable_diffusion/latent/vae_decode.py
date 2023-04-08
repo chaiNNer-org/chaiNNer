@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import torch
 
-from nodes.impl.stable_diffusion.types import LatentImage, VAEModel
+from nodes.impl.stable_diffusion import LatentImage, VAEModel
 from nodes.properties.inputs.stable_diffusion_inputs import (
     LatentImageInput,
     VAEModelInput,

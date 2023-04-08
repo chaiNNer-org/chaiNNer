@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 
 from nodes.group import group
-from nodes.impl.stable_diffusion.types import (
+from nodes.impl.stable_diffusion import (
     Conditioning,
     LatentImage,
     Sampler,

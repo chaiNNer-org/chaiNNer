@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from nodes.impl.stable_diffusion.types import VAEModel
+from nodes.impl.stable_diffusion import VAEModel
 from nodes.properties.inputs import StableDiffusionPtFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput
 from nodes.properties.outputs.stable_diffusion_outputs import VAEModelOutput

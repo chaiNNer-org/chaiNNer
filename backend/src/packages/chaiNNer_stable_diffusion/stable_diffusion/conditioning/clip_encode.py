@@ -4,7 +4,7 @@ from typing import Optional
 
 import torch
 
-from nodes.impl.stable_diffusion.types import CLIPModel, Conditioning
+from nodes.impl.stable_diffusion import CLIPModel, Conditioning
 from nodes.properties.inputs import TextAreaInput
 from nodes.properties.inputs.stable_diffusion_inputs import CLIPModelInput
 from nodes.properties.outputs.stable_diffusion_outputs import ConditioningOutput

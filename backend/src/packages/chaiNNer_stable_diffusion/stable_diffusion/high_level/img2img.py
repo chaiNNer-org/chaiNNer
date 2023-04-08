@@ -9,7 +9,7 @@ import torch
 from nodes.group import group
 from nodes.impl.external_stable_diffusion import nearest_valid_size
 from nodes.impl.pil_utils import InterpolationMethod, resize
-from nodes.impl.stable_diffusion.types import (
+from nodes.impl.stable_diffusion import (
     CLIPModel,
     RGBImage,
     Sampler,

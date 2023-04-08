@@ -1,4 +1,4 @@
-from ...impl.stable_diffusion.types import (
+from nodes.impl.stable_diffusion import (
     CLIPModel,
     Conditioning,
     LatentImage,
