@@ -606,4 +606,16 @@ export class FunctionInstance {
         // we say that types A is assignable to type B if they are not disjoint
         return !isDisjointWith(iType, this.definition.convertInput(inputId, type));
     }
+
+    /**
+     * Returns a new function instance with the given input assigned to the given type.
+     */
+    withInput(inputId: InputId, type: NonNeverType): FunctionInstance {
+        return FunctionInstance.fromPartialInputs(this.definition, (id) => {
+            if (id === inputId) {
+                return type;
+            }
+            return this.inputs.get(id);
+        });
+    }
 }

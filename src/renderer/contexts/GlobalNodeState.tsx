@@ -862,7 +862,7 @@ export const GlobalProvider = memo(
 
                 const outputType = sourceFn.outputs.get(sourceHandleId);
                 if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
-                    const schema = schemata.get(targetNode.data.schemaId);
+                    const { schema } = targetFn.definition;
                     const input = schema.inputs.find((i) => i.id === targetHandleId)!;
                     const inputType = withoutNull(
                         targetFn.definition.inputDefaults.get(targetHandleId)!
@@ -883,6 +883,28 @@ export const GlobalProvider = memo(
                             input.label
                         } cannot be connected with an incompatible value. ${trace.join(' ')}`
                     );
+                }
+
+                if (
+                    outputType !== undefined &&
+                    targetFn.inputErrors.length === 0 &&
+                    targetFn.outputErrors.length === 0
+                ) {
+                    const assignedFn = targetFn.withInput(targetHandleId, outputType);
+                    if (assignedFn.outputErrors.length > 0) {
+                        // the assigned caused output error
+                        const errorId = assignedFn.outputErrors[0].outputId;
+
+                        const { schema } = targetFn.definition;
+                        const output = schema.outputs.find((o) => o.id === errorId)!;
+
+                        if (output.neverReason) {
+                            return invalid(
+                                `Connection would cause the following error: ${output.neverReason}`
+                            );
+                        }
+                        return invalid(`Connection would cause an output error.`);
+                    }
                 }
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
@@ -909,7 +931,7 @@ export const GlobalProvider = memo(
 
                 return VALID;
             },
-            [typeState.functions, getNode, getNodes, getEdges, schemata]
+            [typeState.functions, getNode, getNodes, getEdges]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();
