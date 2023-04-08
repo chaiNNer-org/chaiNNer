@@ -8,13 +8,13 @@ import { parseArgs } from './arguments';
 import { createCli } from './cli/create';
 import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
-import { getRootDirSync } from './platform';
+import { getLogsFolder, getRootDirSync } from './platform';
 
 const startApp = () => {
     const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
     log.transports.file.resolvePath = (variables) =>
-        path.join(getRootDirSync(), 'logs', variables.fileName!);
+        path.join(getLogsFolder(), variables.fileName!);
     log.transports.file.level = 'info';
 
     process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
