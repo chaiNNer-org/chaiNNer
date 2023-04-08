@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from nodes.group import group
-from nodes.impl.external_stable_diffusion import nearest_valid_size
 from nodes.impl.pil_utils import InterpolationMethod, resize
 from nodes.impl.stable_diffusion import (
     CLIPModel,
@@ -31,7 +30,7 @@ from nodes.properties.inputs.stable_diffusion_inputs import (
     VAEModelInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import get_h_w_c, nearest_valid_size
 
 from .. import abstract_group
 

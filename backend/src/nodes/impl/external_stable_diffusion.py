@@ -120,10 +120,6 @@ def post(path, json_data: Dict) -> Dict:
     return response.json()
 
 
-def nearest_valid_size(width, height, step=8):
-    return (width // step) * step, (height // step) * step
-
-
 has_api_connection: Union[bool, None] = None
 
 

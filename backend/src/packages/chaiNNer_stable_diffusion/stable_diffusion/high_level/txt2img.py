@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from nodes.group import group
-from nodes.impl.external_stable_diffusion import nearest_valid_size
+from nodes.utils.utils import nearest_valid_size
 from nodes.impl.stable_diffusion import (
     CLIPModel,
     LatentImage,

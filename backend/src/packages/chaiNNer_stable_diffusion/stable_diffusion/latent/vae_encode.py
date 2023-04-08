@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.impl.external_stable_diffusion import nearest_valid_size
 from nodes.impl.pil_utils import InterpolationMethod, resize
 from nodes.impl.stable_diffusion import LatentImage, RGBImage, VAEModel
 from nodes.properties.inputs import ImageInput
 from nodes.properties.inputs.stable_diffusion_inputs import VAEModelInput
 from nodes.properties.outputs.stable_diffusion_outputs import LatentImageOutput
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import get_h_w_c, nearest_valid_size
 from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 
 
