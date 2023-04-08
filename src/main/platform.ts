@@ -32,3 +32,7 @@ export const getRootDirSync = lazy((): string => {
     const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
     return rootDir;
 });
+
+export const getLogsFolder = lazy((): string => {
+    return path.join(getRootDirSync(), 'logs');
+});
