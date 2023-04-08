@@ -2,7 +2,6 @@ import { BrowserWindow, app, dialog } from 'electron';
 import log from 'electron-log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
-import { settingStorage } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
 const setupErrorHandling = () => {
@@ -48,10 +47,7 @@ const setupErrorHandling = () => {
 export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
 
-    const disableHardwareAcceleration = settingStorage.getItem('disable-hw-accel') === 'true';
-    if (disableHardwareAcceleration) {
-        app.disableHardwareAcceleration();
-    }
+    app.disableHardwareAcceleration();
 
     const hasInstanceLock = app.requestSingleInstanceLock();
     if (!hasInstanceLock) {
