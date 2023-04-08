@@ -16,7 +16,7 @@ from .. import conditioning_group
     "chainner:stable_diffusion:clip_encode",
     name="CLIP Encode",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         CLIPModelInput(),
         TextAreaInput("Prompt").make_optional(),

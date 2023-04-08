@@ -8,7 +8,7 @@ stable_diffusion_category = package.add_category(
     name="Stable Diffusion",
     description="Nodes for using Stable Diffusion",
     icon="PyTorch",
-    color="#DD6B20",
+    color="#9331CC",
 )
 
 logger.debug(f"Loaded package {package.name}")

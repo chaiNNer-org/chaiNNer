@@ -25,7 +25,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
     "chainner:stable_diffusion:k_sampler",
     name="Sample",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         LatentImageInput(),
         StableDiffusionModelInput(),

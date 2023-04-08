@@ -14,7 +14,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
     "chainner:stable_diffusion:latent_upscale",
     name="Latent Upscale",
     description="",
-    icon="BsFillImageFill",
+    icon="MdOutlinePhotoSizeSelectLarge",
     inputs=[
         LatentImageInput(),
         EnumInput(

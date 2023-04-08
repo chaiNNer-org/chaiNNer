@@ -32,7 +32,7 @@ from .. import abstract_group
     "chainner:stable_diffusion:txt2img",
     name="Text to Image",
     description="Generate an image",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         StableDiffusionModelInput(),
         CLIPModelInput(input_type=expression.CLIPModel(arch_as="Input0")),

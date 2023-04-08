@@ -39,7 +39,7 @@ from .. import abstract_group
     "chainner:stable_diffusion:img2img",
     name="Image to Image",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         ImageInput(channels=3),
         StableDiffusionModelInput(),

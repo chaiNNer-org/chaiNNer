@@ -16,7 +16,7 @@ from .. import io_group
     "chainner:stable_diffusion:load_vae",
     name="Load VAE",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[StableDiffusionPtFileInput(primary_input=True)],
     outputs=[
         VAEModelOutput(),

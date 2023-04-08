@@ -13,7 +13,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
     "chainner:stable_diffusion:empty_latent_image",
     name="Empty Latent Image",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         SliderInput(
             "Width",

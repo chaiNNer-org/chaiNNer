@@ -17,7 +17,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
     "chainner:stable_diffusion:vae_decode",
     name="VAE Decode",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[
         LatentImageInput(),
         VAEModelInput(),

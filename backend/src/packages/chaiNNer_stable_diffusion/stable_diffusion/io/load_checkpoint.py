@@ -25,7 +25,7 @@ from .. import io_group
     "chainner:stable_diffusion:load_checkpoint",
     name="Load Checkpoint",
     description="",
-    icon="BsFillImageFill",
+    icon="MdAutoAwesome",
     inputs=[CkptFileInput(primary_input=True)],
     outputs=[
         StableDiffusionModelOutput(),
