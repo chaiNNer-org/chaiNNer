@@ -13,7 +13,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 @latent_group.register(
     "chainner:stable_diffusion:latent_upscale",
     name="Latent Upscale",
-    description="",
+    description="Upscale a latent image",
     icon="MdOutlinePhotoSizeSelectLarge",
     inputs=[
         LatentImageInput(),

@@ -15,7 +15,7 @@ from .. import conditioning_group
 @conditioning_group.register(
     "chainner:stable_diffusion:clip_encode",
     name="CLIP Encode",
-    description="",
+    description="Use a CLIP model to create a conditioning object from a text prompt",
     icon="MdAutoAwesome",
     inputs=[
         CLIPModelInput(),

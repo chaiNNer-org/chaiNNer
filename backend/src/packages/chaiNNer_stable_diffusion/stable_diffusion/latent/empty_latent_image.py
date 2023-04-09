@@ -12,7 +12,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 @latent_group.register(
     "chainner:stable_diffusion:empty_latent_image",
     name="Empty Latent Image",
-    description="",
+    description="Produce an empty latent image, probably to give to a sampler",
     icon="MdAutoAwesome",
     inputs=[
         SliderInput(

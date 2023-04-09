@@ -31,7 +31,7 @@ from .. import abstract_group
 @abstract_group.register(
     "chainner:stable_diffusion:txt2img",
     name="Text to Image",
-    description="Generate an image",
+    description="Use a diffusion model to generate an image based on a text prompt",
     icon="MdAutoAwesome",
     inputs=[
         StableDiffusionModelInput(),

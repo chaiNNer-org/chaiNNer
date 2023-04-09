@@ -16,7 +16,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 @latent_group.register(
     "chainner:stable_diffusion:vae_decode",
     name="VAE Decode",
-    description="",
+    description="Apply a VAE model to turn a latent image into an RGB image",
     icon="MdAutoAwesome",
     inputs=[
         LatentImageInput(),

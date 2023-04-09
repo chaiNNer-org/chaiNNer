@@ -24,7 +24,7 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 @latent_group.register(
     "chainner:stable_diffusion:k_sampler",
     name="Sample",
-    description="",
+    description="Apply the diffusion model to a latent image, guided by positive and negative conditioning",
     icon="MdAutoAwesome",
     inputs=[
         LatentImageInput(),

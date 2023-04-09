@@ -24,7 +24,7 @@ from .. import io_group
 @io_group.register(
     "chainner:stable_diffusion:load_checkpoint",
     name="Load Checkpoint",
-    description="",
+    description="Load an SD checkpoint (or safetensor) file",
     icon="MdAutoAwesome",
     inputs=[CkptFileInput(primary_input=True)],
     outputs=[

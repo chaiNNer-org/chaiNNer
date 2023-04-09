@@ -38,7 +38,7 @@ from .. import abstract_group
 @abstract_group.register(
     "chainner:stable_diffusion:img2img",
     name="Image to Image",
-    description="",
+    description="Use a diffusion model to filter an image based on a prompt",
     icon="MdAutoAwesome",
     inputs=[
         ImageInput(channels=3),

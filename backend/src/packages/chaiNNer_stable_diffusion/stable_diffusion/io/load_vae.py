@@ -15,7 +15,7 @@ from .. import io_group
 @io_group.register(
     "chainner:stable_diffusion:load_vae",
     name="Load VAE",
-    description="",
+    description="Load a VAE model",
     icon="MdAutoAwesome",
     inputs=[StableDiffusionPtFileInput(primary_input=True)],
     outputs=[
