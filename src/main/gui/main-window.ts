@@ -355,6 +355,16 @@ export const createMainWindow = async (args: OpenArguments) => {
         ipcMain.once('backend-ready', () => {
             progressController.submitProgress({ totalProgress: 1 });
 
+            if (mainWindow.isDestroyed()) {
+                dialog.showMessageBoxSync({
+                    type: 'error',
+                    title: 'Unable to start application',
+                    message: 'The main window was closed before the backend was ready.',
+                });
+                app.quit();
+                return;
+            }
+
             mainWindow.show();
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
