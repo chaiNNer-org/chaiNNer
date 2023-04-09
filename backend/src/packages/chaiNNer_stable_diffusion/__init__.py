@@ -7,7 +7,7 @@ package = add_package(__file__, name="chaiNNer_stable_diffusion", dependencies=[
 stable_diffusion_category = package.add_category(
     name="Stable Diffusion",
     description="Nodes for using Stable Diffusion",
-    icon="PyTorch",
+    icon="MdAutoAwesome",
     color="#9331CC",
 )
 

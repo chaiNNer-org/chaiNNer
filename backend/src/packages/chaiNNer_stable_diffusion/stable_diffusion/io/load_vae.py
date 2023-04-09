@@ -16,7 +16,7 @@ from .. import io_group
     "chainner:stable_diffusion:load_vae",
     name="Load VAE",
     description="Load a VAE model",
-    icon="MdAutoAwesome",
+    icon="SiPytorchlightning",
     inputs=[StableDiffusionPtFileInput(primary_input=True)],
     outputs=[
         VAEModelOutput(),

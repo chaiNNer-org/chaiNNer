@@ -8,11 +8,12 @@ import { FaPaintBrush } from 'react-icons/fa';
 import { GiRolledCloth } from 'react-icons/gi';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
+import * as si from 'react-icons/si';
 
 const fa = { FaPaintBrush };
 const gi = { GiRolledCloth };
 
-const libraries = { bs, cg, md, im, fa, gi };
+const libraries = { bs, cg, md, im, fa, gi, si };
 
 export const PyTorchIcon = createIcon({
     displayName: 'PyTorchIcon',

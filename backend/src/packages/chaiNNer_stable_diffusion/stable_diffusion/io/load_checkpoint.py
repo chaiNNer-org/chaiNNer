@@ -3,12 +3,8 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from nodes.impl.stable_diffusion import (
-    CLIPModel,
-    StableDiffusionModel,
-    VAEModel,
-    load_checkpoint as _load_checkpoint,
-)
+from nodes.impl.stable_diffusion import CLIPModel, StableDiffusionModel, VAEModel
+from nodes.impl.stable_diffusion import load_checkpoint as _load_checkpoint
 from nodes.properties.inputs import CkptFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput
 from nodes.properties.outputs.stable_diffusion_outputs import (
@@ -25,7 +21,7 @@ from .. import io_group
     "chainner:stable_diffusion:load_checkpoint",
     name="Load Checkpoint",
     description="Load an SD checkpoint (or safetensor) file",
-    icon="MdAutoAwesome",
+    icon="SiPytorchlightning",
     inputs=[CkptFileInput(primary_input=True)],
     outputs=[
         StableDiffusionModelOutput(),
