@@ -123,6 +123,7 @@ class DirectoryInput(BaseInput):
         self.associated_type = str
 
     def enforce(self, value):
+        assert isinstance(value, str)
         assert os.path.exists(value), f"Directory {value} does not exist"
         return value
 

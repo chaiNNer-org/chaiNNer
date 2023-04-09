@@ -19,6 +19,7 @@ class OnnxGenericModelInput(OnnxModelInput):
         super().__init__(label, intersect(input_type, "OnnxGenericModel"))
 
     def enforce(self, value):
+        assert isinstance(value, OnnxModels)
         assert not is_rembg_model(value.bytes), "Expected a non-rembg model"
         return value
 
@@ -31,6 +32,7 @@ class OnnxRemBgModelInput(OnnxModelInput):
         self.associated_type = OnnxRemBg
 
     def enforce(self, value):
+        assert isinstance(value, OnnxModels)
         assert is_rembg_model(value.bytes), "Expected a rembg model"
         return value
 

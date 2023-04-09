@@ -32,6 +32,7 @@ from . import node_group
                 height="Input0.height & Input1.height & Input2.height & match Input3 { Image as i => i.height, _ => any }",
             ),
             channels=4,
+            assume_normalized=True,
         ).with_never_reason(
             "The input channels have different sizes but must all be the same size."
         )
@@ -55,7 +56,7 @@ def combine_rgba_node(
         img_b,
         img_g,
         img_r,
-        img_a if img_a is not None else np.ones(start_shape),
+        img_a if img_a is not None else np.ones(start_shape, dtype=np.float32),
     ]
 
     return np.stack(channels, axis=2)

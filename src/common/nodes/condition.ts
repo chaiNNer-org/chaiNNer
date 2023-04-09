@@ -61,7 +61,7 @@ export const testInputCondition = (
             // If the input has not been assigned a value, then it will default to its declaration type.
             // This means that the the condition is trivially met, but this isn't what we want.
             // So we will only show the conditional inputs if the input has been assigned a value.
-            if (getInputValue(input, inputData) !== undefined && !isConnected(input)) {
+            if (getInputValue(input, inputData) === undefined && !isConnected(input)) {
                 // the input type is the declaration type
                 return false;
             }

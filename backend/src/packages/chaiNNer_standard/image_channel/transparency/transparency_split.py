@@ -23,11 +23,13 @@ from . import node_group
             "RGB Channels",
             image_type=expression.Image(size_as="Input0"),
             channels=3,
+            assume_normalized=True,
         ),
         ImageOutput(
             "Alpha Channel",
             image_type=expression.Image(size_as="Input0"),
             channels=1,
+            assume_normalized=True,
         ),
     ],
 )

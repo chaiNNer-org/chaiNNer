@@ -37,7 +37,8 @@ from .. import resize_group
                 width="max(1, int & round(Input0.width * Input1 / 100))",
                 height="max(1, int & round(Input0.height * Input1 / 100))",
                 channels_as="Input0",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

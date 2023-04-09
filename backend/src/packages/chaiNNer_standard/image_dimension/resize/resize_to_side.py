@@ -163,7 +163,8 @@ def resize_to_side_conditional(
                     height: outSize.height,
                     channels: Input0.channels
                 }
-                """
+                """,
+            assume_normalized=True,
         )
     ],
 )

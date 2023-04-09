@@ -47,4 +47,4 @@ def high_pass_filter_node(
     if alpha is not None:
         img = np.dstack((img, alpha))
 
-    return np.clip(img, 0, 1)
+    return img

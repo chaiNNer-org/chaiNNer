@@ -111,4 +111,4 @@ def color_levels_node(
         out_white_all - out_black_all  # type: ignore
     ) + out_black_all
 
-    return np.clip(img, 0, 1)
+    return img

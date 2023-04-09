@@ -66,6 +66,7 @@ def ImageFileIteratorLoadImageNode(
             "schemaId": IMAGE_ITERATOR_NODE_ID,
         },
     ],
+    side_effects=True,
 )
 async def ImageFileIteratorNode(directory: str, context: IteratorContext) -> None:
     logger.debug(f"Iterating over images in directory: {directory}")

@@ -31,7 +31,8 @@ from .. import resize_group
                 width="Input1",
                 height="Input2",
                 channels="Input0.channels",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

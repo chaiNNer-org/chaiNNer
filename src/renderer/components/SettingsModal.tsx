@@ -634,9 +634,7 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useDisHwAccel, useCheckUpdOnStrtUp, useExperimentalFeatures } =
-        useContext(SettingsContext);
-    const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
+    const { useCheckUpdOnStrtUp, useExperimentalFeatures } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
     const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
 
@@ -645,14 +643,6 @@ const AdvancedSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Toggle
-                description="Disable GPU hardware acceleration for rendering chaiNNer's UI. Only disable this is you know hardware acceleration is causing you issues."
-                title="Disable Hardware Acceleration (requires restart)"
-                value={isDisHwAccel}
-                onToggle={() => {
-                    setIsDisHwAccel((prev) => !prev);
-                }}
-            />
             <Toggle
                 description="Toggles checking for updates on start-up."
                 title="Check for Update on Start-up"

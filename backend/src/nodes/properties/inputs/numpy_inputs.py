@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from ...impl.image_utils import get_h_w_c, normalize
+from ...impl.image_utils import get_h_w_c
 from ...utils.format import format_image_with_channels
 from .. import expression
 from .base_input import BaseInput
@@ -48,6 +48,7 @@ class ImageInput(BaseInput):
         self.associated_type = np.ndarray
 
     def enforce(self, value):
+        assert isinstance(value, np.ndarray)
         _, _, c = get_h_w_c(value)
 
         if self.channels is not None and c not in self.channels:
@@ -57,10 +58,12 @@ class ImageInput(BaseInput):
                 f"The input {self.label} only supports {expected} but was given {actual}."
             )
 
+        assert value.dtype == np.float32, "Expected the input image to be normalized."
+
         if c == 1 and value.ndim == 3:
             value = value[:, :, 0]
 
-        return normalize(value)
+        return value
 
 
 class VideoInput(BaseInput):

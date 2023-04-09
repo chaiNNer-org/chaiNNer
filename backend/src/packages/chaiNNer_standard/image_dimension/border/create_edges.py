@@ -30,7 +30,8 @@ from .. import border_group
                 width="Input0.width + Input3 + Input4",
                 height="Input0.height + Input2 + Input5",
                 channels="BorderType::getOutputChannels(Input1, Input0.channels)",
-            )
+            ),
+            assume_normalized=True,
         )
     ],
 )

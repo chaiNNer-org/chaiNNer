@@ -13,8 +13,9 @@ class FileOutput(BaseOutput):
     def get_broadcast_data(self, value: str):
         return value
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> str:
         assert isinstance(value, str)
+        return value
 
 
 class DirectoryOutput(BaseOutput):
@@ -32,5 +33,6 @@ class DirectoryOutput(BaseOutput):
     def get_broadcast_type(self, value: str):
         return expression.named("Directory", {"path": expression.literal(value)})
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> str:
         assert isinstance(value, str)
+        return value

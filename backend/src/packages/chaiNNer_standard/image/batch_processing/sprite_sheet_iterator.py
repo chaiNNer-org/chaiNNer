@@ -56,13 +56,13 @@ def ImageSpriteSheetIteratorAppendImageNode(
     inputs=[
         ImageInput("Spritesheet"),
         NumberInput(
-            "Number of rows (vertical)",
+            "Number of rows (height)",
             controls_step=1,
             minimum=1,
             default=1,
         ),
         NumberInput(
-            "Number of columns (horizontal)",
+            "Number of columns (width)",
             controls_step=1,
             minimum=1,
             default=1,
@@ -78,6 +78,7 @@ def ImageSpriteSheetIteratorAppendImageNode(
             "schemaId": SPRITESHEET_ITERATOR_OUTPUT_NODE_ID,
         },
     ],
+    side_effects=True,
 )
 async def ImageSpriteSheetIteratorNode(
     sprite_sheet: np.ndarray,
