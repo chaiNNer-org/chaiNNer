@@ -16,6 +16,7 @@ FileInputKind = Union[
     Literal["pt"],
     Literal["pth"],
     Literal["video"],
+    Literal["ckpt"],
 ]
 
 
