@@ -69,9 +69,6 @@ export const addSplashScreen = (monitor: ProgressMonitor) => {
 
     monitor.addProgressListener((progress) => {
         lastProgress = { ...progress };
-        if (!splash.isDestroyed()) {
-            splash.webContents.send('splash-setup-progress', progress);
-        }
 
         if (progress.totalProgress === 1) {
             progressFinished = true;
