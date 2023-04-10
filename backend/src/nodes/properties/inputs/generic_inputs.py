@@ -242,7 +242,6 @@ class TextAreaInput(BaseInput):
         super().__init__("string", label, has_handle=has_handle, kind="text")
         self.resizable = True
         self.default = default
-        self.has_handle = has_handle
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
