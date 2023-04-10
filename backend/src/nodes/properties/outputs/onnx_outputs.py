@@ -11,7 +11,7 @@ class OnnxModelOutput(BaseOutput):
         model_type: expression.ExpressionJson = "OnnxModel",
         label: str = "Model",
     ):
-        super().__init__(model_type, label)
+        super().__init__(model_type, label, associated_type=OnnxModel)
 
     def get_broadcast_type(self, value: OnnxModel):
         fields = {
