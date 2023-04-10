@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import torch
 
-from nodes.utils.utils import nearest_valid_size
 from nodes.impl.stable_diffusion import CropMethod, LatentImage, UpscaleMethod
 from nodes.properties.inputs import EnumInput, SliderInput
 from nodes.properties.inputs.stable_diffusion_inputs import LatentImageInput
 from nodes.properties.outputs.stable_diffusion_outputs import LatentImageOutput
+from nodes.utils.utils import nearest_valid_size
 from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 
 

@@ -9,6 +9,7 @@ from nodes.impl.stable_diffusion import (
     Sampler,
     Scheduler,
     StableDiffusionModel,
+    exec_options,
 )
 from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, NumberInput, SliderInput
@@ -88,10 +89,10 @@ def k_sampler(
     cfg_scale: float,
 ) -> LatentImage:
     try:
-        model.cuda()
-        positive.cuda()
-        negative.cuda()
-        latent_image.cuda()
+        model.to(exec_options.full_device)
+        positive.to(exec_options.full_device)
+        negative.to(exec_options.full_device)
+        latent_image.to(exec_options.full_device)
 
         img = model.sample(
             positive=positive,

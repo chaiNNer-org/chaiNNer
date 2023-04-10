@@ -4,7 +4,7 @@ from typing import Optional
 
 import torch
 
-from nodes.impl.stable_diffusion import CLIPModel, Conditioning
+from nodes.impl.stable_diffusion import CLIPModel, Conditioning, exec_options
 from nodes.properties.inputs import TextAreaInput
 from nodes.properties.inputs.stable_diffusion_inputs import CLIPModelInput
 from nodes.properties.outputs.stable_diffusion_outputs import ConditioningOutput
@@ -33,7 +33,7 @@ from .. import conditioning_group
 def clip_encode(clip: CLIPModel, prompt: Optional[str]) -> Conditioning:
     prompt = prompt or ""
     try:
-        clip.cuda()
+        clip.to(exec_options.full_device)
         out = clip.encode(prompt)
     finally:
         clip.cpu()

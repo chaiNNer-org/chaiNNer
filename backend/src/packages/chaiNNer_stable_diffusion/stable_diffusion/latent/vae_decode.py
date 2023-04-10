@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import torch
 
-from nodes.impl.stable_diffusion import LatentImage, VAEModel
+from nodes.impl.stable_diffusion import LatentImage, VAEModel, exec_options
 from nodes.properties.inputs.stable_diffusion_inputs import (
     LatentImageInput,
     VAEModelInput,
@@ -32,8 +32,8 @@ from packages.chaiNNer_stable_diffusion.stable_diffusion import latent_group
 @torch.no_grad()
 def vae_decode(latent_image: LatentImage, vae: VAEModel) -> np.ndarray:
     try:
-        vae.cuda()
-        latent_image.cuda()
+        vae.to(exec_options.full_device)
+        latent_image.to(exec_options.full_device)
         img = vae.decode(latent_image)
     finally:
         vae.cpu()

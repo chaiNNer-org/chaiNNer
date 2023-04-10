@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from nodes.impl.pil_utils import InterpolationMethod, resize
-from nodes.impl.stable_diffusion import LatentImage, RGBImage, VAEModel
+from nodes.impl.stable_diffusion import LatentImage, RGBImage, VAEModel, exec_options
 from nodes.properties.inputs import ImageInput
 from nodes.properties.inputs.stable_diffusion_inputs import VAEModelInput
 from nodes.properties.outputs.stable_diffusion_outputs import LatentImageOutput
@@ -41,8 +41,8 @@ def vae_encode(image: np.ndarray, vae: VAEModel) -> LatentImage:
         image = resize(image, (width1, height1), InterpolationMethod.AUTO)
 
     try:
-        vae.cuda()
-        img = RGBImage.from_array(image, device="cuda")
+        vae.to(exec_options.full_device)
+        img = RGBImage.from_array(image, device=exec_options.full_device)
         latent = vae.encode(img)
     finally:
         vae.cpu()

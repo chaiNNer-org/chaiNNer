@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from nodes.group import group
-from nodes.utils.utils import nearest_valid_size
 from nodes.impl.stable_diffusion import (
     CLIPModel,
     LatentImage,
@@ -15,6 +14,7 @@ from nodes.impl.stable_diffusion import (
     Scheduler,
     StableDiffusionModel,
     VAEModel,
+    exec_options,
 )
 from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, NumberInput, SliderInput, TextAreaInput
@@ -24,6 +24,7 @@ from nodes.properties.inputs.stable_diffusion_inputs import (
     VAEModelInput,
 )
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import nearest_valid_size
 
 from .. import abstract_group
 
@@ -108,15 +109,15 @@ def text_to_image(
     negative = negative or ""
 
     try:
-        clip.cuda()
+        clip.to(exec_options.full_device)
         pos = clip.encode(positive)
         neg = clip.encode(negative)
     finally:
         clip.cpu()
 
     try:
-        model.cuda()
-        latent = LatentImage.empty(width, height, device="cuda")
+        model.to(exec_options.full_device)
+        latent = LatentImage.empty(width, height, device=exec_options.full_device)
         img = model.sample(
             positive=pos,
             negative=neg,
@@ -133,7 +134,7 @@ def text_to_image(
         model.cpu()
 
     try:
-        vae.cuda()
+        vae.to(exec_options.full_device)
         out = vae.decode(img)
         del img
     finally:

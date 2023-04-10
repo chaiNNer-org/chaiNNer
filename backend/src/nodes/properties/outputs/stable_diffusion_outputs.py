@@ -4,6 +4,7 @@ from nodes.impl.stable_diffusion import (
     LatentImage,
     StableDiffusionModel,
 )
+
 from .. import expression
 from .base_output import BaseOutput
 

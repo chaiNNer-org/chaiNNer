@@ -19,6 +19,11 @@ from comfy.stable_diffusion import (
 )
 from comfy.vae import VAEModel
 
+from nodes.impl.pytorch.utils import to_pytorch_execution_options
+from nodes.utils.exec_options import get_execution_options
+
+exec_options = to_pytorch_execution_options(get_execution_options())
+
 __all__ = [
     "CLIPModel",
     "Conditioning",
@@ -34,4 +39,5 @@ __all__ = [
     "VAEModel",
     "RGBImage",
     "GreyscaleImage",
+    "exec_options",
 ]

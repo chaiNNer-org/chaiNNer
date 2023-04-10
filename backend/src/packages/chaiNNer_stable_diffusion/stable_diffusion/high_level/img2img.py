@@ -15,6 +15,7 @@ from nodes.impl.stable_diffusion import (
     Scheduler,
     StableDiffusionModel,
     VAEModel,
+    exec_options,
 )
 from nodes.properties import expression
 from nodes.properties.inputs import (
@@ -114,20 +115,22 @@ def text_to_image(
     negative = negative or ""
 
     try:
-        vae.cuda()
-        latent = vae.encode(RGBImage.from_array(input_image, device="cuda"))
+        vae.to(exec_options.full_device)
+        latent = vae.encode(
+            RGBImage.from_array(input_image, device=exec_options.full_device)
+        )
     finally:
         vae.cpu()
 
     try:
-        clip.cuda()
+        clip.to(exec_options.full_device)
         pos = clip.encode(positive)
         neg = clip.encode(negative)
     finally:
         clip.cpu()
 
     try:
-        model.cuda()
+        model.to(exec_options.full_device)
         img = model.sample(
             positive=pos,
             negative=neg,
@@ -144,7 +147,7 @@ def text_to_image(
         model.cpu()
 
     try:
-        vae.cuda()
+        vae.to(exec_options.full_device)
         out = vae.decode(img)
         del img
     finally:
