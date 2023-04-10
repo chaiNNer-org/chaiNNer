@@ -159,6 +159,8 @@ def typeValidateSchema(
     if ann is None:
         return
 
+    ann = ann.copy()
+
     # We don't want to run this check on iterator helpers as they can have different input/output metadata than what they actually run
     if node_type == "iteratorHelper":
         return
