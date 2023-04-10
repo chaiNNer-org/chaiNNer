@@ -121,83 +121,104 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_output = _process_outputs(outputs)
 
-            # Runtime validation for the number of inputs/outputs compared to the type args
-            # While this isn't a comprehensive check, it's a good start for ensuring parity between the schema and the types
+            TYPE_CHECK_LEVEL = os.environ.get("TYPE_CHECK_LEVEL", "none")
 
-            # We can't use inspect.get_annotations() since we need to support 3.8+
-            ann = getattr(wrapped_func, "__annotations__", None)
-            # We don't want to run this check on iterator helpers as they can have different input/output metadata than what they actually run
-            if ann is not None and node_type != "iteratorHelper":
-                # Pop the return type key off the dict
-                return_type = ann.get("return", None)
-                if return_type is not None:
-                    return_type = str(return_type)
-                    if return_type.startswith("Tuple"):
-                        # Evaluate the return type
-                        # pylint: disable=eval-used
-                        evaluated_return_type = eval(
-                            return_type, wrapped_func.__globals__
-                        )
-                        output_len = len(get_args(evaluated_return_type))
-                    elif return_type == "None":
-                        output_len = 0
-                    else:
-                        output_len = 1
-                    if output_len != len(p_output):
-                        logger.warning(
-                            f"Number of outputs and return types don't match for {schema_id}"
-                        )
-                # Remove the return type from the annotations
-                ann.pop("return", None)
-                input_len = len(ann.keys())
-                # Iterators pass in their context, so we need to account for that
-                if node_type == "iterator":
-                    input_len -= 1
-                # Variable args don't have good typing, so right now we just hardcode what to ignore.
-                if list(ann.keys())[-1] not in ["args", "sources"] and input_len != len(
-                    p_inputs
-                ):
-                    logger.warning(
-                        f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
-                    )
-                for (py_var, py_type), input_class in zip(ann.items(), p_inputs):
-                    associated_type = input_class.associated_type
-                    if associated_type is not None:
-                        # logger.info(f"{py_type=} {associated_type=}")
-                        evaluated_py_type = py_type
-                        if isinstance(py_type, str):
-                            try:
-                                # Allows us to use pipe unions still
-                                if "|" in py_type:
-                                    py_type = f'Union[{py_type.replace(" |", ",")}]'
-                                # Gotta add these to the scope
-                                local_scope = {
-                                    "Union": Union,
-                                    "np": np,
-                                }
+            if TYPE_CHECK_LEVEL != "none":
+                try:
+                    # Runtime validation for the number of inputs/outputs compared to the type args
+                    # While this isn't a comprehensive check, it's a good start for ensuring parity between the schema and the types
+
+                    # We can't use inspect.get_annotations() since we need to support 3.8+
+                    ann = getattr(wrapped_func, "__annotations__", None)
+                    # We don't want to run this check on iterator helpers as they can have different input/output metadata than what they actually run
+                    if ann is not None and node_type != "iteratorHelper":
+                        # Pop the return type key off the dict
+                        return_type = ann.get("return", None)
+                        if return_type is not None:
+                            return_type = str(return_type)
+                            if return_type.startswith("Tuple"):
+                                # Evaluate the return type
                                 # pylint: disable=eval-used
-                                evaluated_py_type = eval(
-                                    py_type, wrapped_func.__globals__, local_scope
+                                evaluated_return_type = eval(
+                                    return_type, wrapped_func.__globals__
                                 )
-                            except Exception as e:
-                                logger.warning(
-                                    f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"
-                                )
-                        # logger.info(f"{evaluated_py_type=}")
-                        if evaluated_py_type is not associated_type:
-                            if str(py_type).startswith("Union"):
-                                evaluated_py_type_args = get_args(evaluated_py_type)
-                                if associated_type not in evaluated_py_type_args:
-                                    logger.warning(
-                                        f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} not in {evaluated_py_type_args=}"
-                                    )
-                            # terrible way to check if it's a local class, but it'll do for now
-                            # elif "." in str(evaluated_py_type):
-                            #     pass
+                                output_len = len(get_args(evaluated_return_type))
+                            elif return_type == "None":
+                                output_len = 0
                             else:
-                                logger.warning(
-                                    f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} != {associated_type=}"
+                                output_len = 1
+                            if output_len != len(p_output):
+                                raise ValueError(
+                                    f"Number of outputs and return types don't match for {schema_id}"
                                 )
+                        # Remove the return type from the annotations
+                        ann.pop("return", None)
+                        input_len = len(ann.keys())
+                        # Iterators pass in their context, so we need to account for that
+                        if node_type == "iterator":
+                            input_len -= 1
+                        # Variable args don't have good typing, so right now we just hardcode what to ignore.
+                        if list(ann.keys())[-1] not in [
+                            "args",
+                            "sources",
+                        ] and input_len != len(p_inputs):
+                            raise ValueError(
+                                f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
+                            )
+                        for (py_var, py_type), input_class in zip(
+                            ann.items(), p_inputs
+                        ):
+                            associated_type = input_class.associated_type
+                            if associated_type is not None:
+                                # logger.info(f"{py_type=} {associated_type=}")
+                                evaluated_py_type = py_type
+                                if isinstance(py_type, str):
+                                    try:
+                                        # Allows us to use pipe unions still
+                                        if "|" in py_type:
+                                            py_type = (
+                                                f'Union[{py_type.replace(" |", ",")}]'
+                                            )
+                                        # Gotta add these to the scope
+                                        local_scope = {
+                                            "Union": Union,
+                                            "np": np,
+                                        }
+                                        # pylint: disable=eval-used
+                                        evaluated_py_type = eval(
+                                            py_type,
+                                            wrapped_func.__globals__,
+                                            local_scope,
+                                        )
+                                    except Exception as e:
+                                        raise ValueError(
+                                            f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"
+                                        ) from e
+                                # logger.info(f"{evaluated_py_type=}")
+                                if evaluated_py_type is not associated_type:
+                                    if str(py_type).startswith("Union"):
+                                        evaluated_py_type_args = get_args(
+                                            evaluated_py_type
+                                        )
+                                        if (
+                                            associated_type
+                                            not in evaluated_py_type_args
+                                        ):
+                                            raise ValueError(
+                                                f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} not in {evaluated_py_type_args=}"
+                                            )
+                                    # terrible way to check if it's a local class, but it'll do for now
+                                    # elif "." in str(evaluated_py_type):
+                                    #     pass
+                                    else:
+                                        raise ValueError(
+                                            f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} != {associated_type=}"
+                                        )
+                except Exception as e:
+                    if TYPE_CHECK_LEVEL == "warn":
+                        logger.warning(e)
+                    else:
+                        raise e
 
             node = NodeData(
                 schema_id=schema_id,
