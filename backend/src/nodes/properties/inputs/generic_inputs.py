@@ -236,8 +236,10 @@ class TextInput(BaseInput):
 class TextAreaInput(BaseInput):
     """Input for large text"""
 
-    def __init__(self, label: str = "Text", default: Union[str, None] = None):
-        super().__init__("string", label, has_handle=False, kind="text")
+    def __init__(
+        self, label: str = "Text", default: Union[str, None] = None, has_handle=False
+    ):
+        super().__init__("string", label, has_handle=has_handle, kind="text")
         self.resizable = True
         self.default = default
 

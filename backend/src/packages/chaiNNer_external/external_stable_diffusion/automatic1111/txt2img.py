@@ -37,8 +37,8 @@ verify_api_connection()
     description="Generate an image using Automatic1111",
     icon="BsFillImageFill",
     inputs=[
-        TextAreaInput("Prompt").make_optional(),
-        TextAreaInput("Negative Prompt").make_optional(),
+        TextAreaInput("Prompt", has_handle=True).make_optional(),
+        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
         group("seed")(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
