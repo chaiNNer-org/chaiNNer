@@ -37,11 +37,23 @@ interface ExecutionStatusContextValue {
     paused: boolean;
 }
 
+interface IteratorProgress {
+    percent?: number;
+    eta?: number;
+    index?: number;
+    total?: number;
+}
+
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
+    useIteratorProgress: (iteratorId: string) => {
+        setIteratorProgress: (progress: IteratorProgress) => void;
+        removeIteratorProgress: () => void;
+        getIteratorProgress: () => IteratorProgress;
+    };
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -55,14 +67,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const {
-        animate,
-        unAnimate,
-        setIteratorPercent,
-        typeStateRef,
-        outputDataActions,
-        getInputHash,
-    } = useContext(GlobalContext);
+    const { animate, unAnimate, typeStateRef, outputDataActions, getInputHash } =
+        useContext(GlobalContext);
     const { schemata, port, backend, ownsBackend, restartingRef, restart } =
         useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
@@ -76,6 +82,50 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [status, setStatus] = useState(ExecutionStatus.READY);
 
     const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
+
+    const [iteratorProgress, setIteratorProgress] = useState<
+        Record<string, IteratorProgress | undefined>
+    >({});
+
+    const setIteratorProgressImpl = useCallback(
+        (iteratorId: string, progress: IteratorProgress) => {
+            setIteratorProgress((prev) => ({
+                ...prev,
+                [iteratorId]: progress,
+            }));
+        },
+        [setIteratorProgress]
+    );
+
+    const removeIteratorProgress = useCallback(
+        (iteratorId: string) => {
+            setIteratorProgress((prev) => {
+                const newProg = { ...prev };
+                delete newProg[iteratorId];
+                return newProg;
+            });
+        },
+        [setIteratorProgress]
+    );
+
+    const getIteratorProgress = useCallback(
+        (iteratorId: string) => {
+            return iteratorProgress[iteratorId] ?? {};
+        },
+        [iteratorProgress]
+    );
+
+    const useIteratorProgress = useCallback(
+        (iteratorId: string) => {
+            return {
+                setIteratorProgress: (progress: IteratorProgress) =>
+                    setIteratorProgressImpl(iteratorId, progress),
+                removeIteratorProgress: () => removeIteratorProgress(iteratorId),
+                getIteratorProgress: () => getIteratorProgress(iteratorId),
+            };
+        },
+        [setIteratorProgressImpl, removeIteratorProgress, getIteratorProgress]
+    );
 
     useEffect(() => {
         const displayProgress = status === ExecutionStatus.RUNNING ? percentComplete : undefined;
@@ -153,13 +203,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         BackendEventSourceListener<'iterator-progress-update'>
     >((data) => {
         if (data) {
-            const { percent, iteratorId, running: runningNodes } = data;
+            const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
+
             if (runningNodes && status === ExecutionStatus.RUNNING) {
                 animate(runningNodes);
+                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
             } else if (status !== ExecutionStatus.RUNNING) {
                 unAnimate();
             }
-            setIteratorPercent(iteratorId, percent);
         }
     }, 350);
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
@@ -351,6 +402,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
+        setIteratorProgress({});
     }, [backend, restart, sendAlert]);
 
     useHotkeys(
@@ -417,6 +469,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
+        useIteratorProgress,
     });
 
     return (

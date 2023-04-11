@@ -1,5 +1,6 @@
-import { Box, Center, HStack, Heading, LayoutProps, Tooltip, VStack } from '@chakra-ui/react';
+import { Box, Center, HStack, Heading, LayoutProps, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
+import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { IconFactory } from '../CustomIcons';
 
@@ -9,6 +10,7 @@ interface IteratorNodeHeaderProps {
     accentColor: string;
     selected: boolean;
     percentComplete?: number;
+    eta?: number;
     width?: LayoutProps['width'];
     disabledStatus: DisabledStatus;
 }
@@ -21,8 +23,12 @@ export const IteratorNodeHeader = memo(
         accentColor,
         selected,
         percentComplete,
+        eta,
         disabledStatus,
     }: IteratorNodeHeaderProps) => {
+        const etaDate = new Date();
+        etaDate.setSeconds(etaDate.getSeconds() + (eta ?? 0));
+
         return (
             <VStack
                 spacing={0}
@@ -76,25 +82,48 @@ export const IteratorNodeHeader = memo(
                     </HStack>
                 </Center>
                 {percentComplete !== undefined && (
-                    <Tooltip
-                        borderRadius={8}
-                        label={`${Number(percentComplete * 100).toFixed(1)}%`}
-                        px={2}
-                        py={1}
+                    <Box
+                        h={6}
+                        w="full"
                     >
+                        <Center w="full">
+                            <HStack
+                                mb="-6"
+                                position="relative"
+                            >
+                                <Text
+                                    fontWeight="medium"
+                                    size="sm"
+                                >{`${Number(percentComplete * 100).toFixed(1)}%`}</Text>
+                                <Text
+                                    fontWeight="medium"
+                                    size="sm"
+                                >
+                                    ETA:{' '}
+                                    <ReactTimeAgo
+                                        future
+                                        date={etaDate}
+                                        locale="en-US"
+                                        timeStyle="round"
+                                        tooltip={false}
+                                    />
+                                </Text>
+                            </HStack>
+                        </Center>
                         <Box
                             bgColor="gray.500"
-                            h={1}
+                            h={6}
                             w="full"
                         >
                             <Box
                                 bgColor={accentColor}
-                                h="full"
+                                // h="full"
+                                h={6}
                                 transition="all 0.15s ease-in-out"
                                 w={`${percentComplete * 100}%`}
                             />
                         </Box>
-                    </Tooltip>
+                    </Box>
                 )}
             </VStack>
         );

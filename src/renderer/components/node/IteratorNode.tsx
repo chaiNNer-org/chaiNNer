@@ -4,6 +4,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
+import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
@@ -31,17 +32,14 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const { schemata, categories } = useContext(BackendContext);
+    const { useIteratorProgress } = useContext(ExecutionContext);
 
-    const {
-        id,
-        inputData,
-        isLocked,
-        schemaId,
-        iteratorSize,
-        minWidth,
-        minHeight,
-        percentComplete,
-    } = data;
+    const { id, inputData, isLocked, schemaId, iteratorSize, minWidth, minHeight } = data;
+
+    const { getIteratorProgress } = useIteratorProgress(id);
+
+    const { percent, eta } = getIteratorProgress();
+
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -86,9 +84,10 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                     <IteratorNodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
+                        eta={eta}
                         icon={icon}
                         name={name}
-                        percentComplete={percentComplete}
+                        percentComplete={percent}
                         selected={selected}
                     />
                     {inputs.length > 0 && <Box py={1} />}

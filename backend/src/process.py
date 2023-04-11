@@ -85,6 +85,7 @@ class IteratorContext:
     ):
         self.executor: Executor = executor
         self.progress: ProgressToken = executor.progress
+        self.avg_time: float = 0
 
         self.iterator_id: NodeId = iterator_id
         self.chain = SubChain(executor.chain, iterator_id)
@@ -118,6 +119,9 @@ class IteratorContext:
                 "event": "iterator-progress-update",
                 "data": {
                     "percent": index / total,
+                    "index": index,
+                    "total": total,
+                    "eta": self.avg_time * (total - index),
                     "iteratorId": self.iterator_id,
                     "running": list(self.chain.nodes.keys()),
                 },
@@ -125,13 +129,19 @@ class IteratorContext:
         )
 
         try:
+            start = time.time()
             await executor.run_iteration(self.chain)
+            end = time.time()
+            self.avg_time = (self.avg_time * index + (end - start)) / (index + 1)
         finally:
             await self.executor.queue.put(
                 {
                     "event": "iterator-progress-update",
                     "data": {
                         "percent": (index + 1) / total,
+                        "index": index,
+                        "total": total,
+                        "eta": self.avg_time * (total - index),
                         "iteratorId": self.iterator_id,
                         "running": None,
                     },
