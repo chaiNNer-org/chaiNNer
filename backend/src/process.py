@@ -150,12 +150,12 @@ class IteratorContext:
 
         await self.progress.suspend()
 
-        await self.__update_progress(index, total)
-
         start = time.time()
         await executor.run_iteration(self.chain)
         end = time.time()
         self.times.append(end - start)
+
+        await self.__update_progress(index + 1, total)
 
     async def run(
         self,
@@ -221,7 +221,7 @@ class IteratorContext:
                     raise
                 errors.append(str(e))
 
-        await self.__finish_progress(index)
+        await self.__finish_progress(max(length_estimate, index + 1))
 
         if len(errors) > 0:
             raise RuntimeError(
