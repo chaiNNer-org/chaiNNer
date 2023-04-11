@@ -119,27 +119,39 @@ class IteratorContext:
         executor = self.__create_iterator_executor()
 
         await self.progress.suspend()
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": index / total,
+                    "index": index,
+                    "total": total,
+                    "eta": self.get_eta(index, total),
+                    "iteratorId": self.iterator_id,
+                    "running": list(self.chain.nodes.keys()),
+                },
+            }
+        )
 
         try:
             start = time.time()
             await executor.run_iteration(self.chain)
             end = time.time()
             self.times.append(end - start)
+        finally:
             await self.executor.queue.put(
                 {
                     "event": "iterator-progress-update",
                     "data": {
-                        "percent": index / total,
+                        "percent": (index + 1) / total,
                         "index": index,
                         "total": total,
-                        "eta": self.get_eta(index, total),
+                        "eta": self.get_eta(index + 1, total),
                         "iteratorId": self.iterator_id,
-                        "running": list(self.chain.nodes.keys()),
+                        "running": None,
                     },
                 }
             )
-        finally:
-            pass
 
     async def run(
         self,
@@ -164,20 +176,6 @@ class IteratorContext:
             except RuntimeError as e:
                 logger.error(e)
                 errors.append(str(e))
-
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": 1,
-                    "index": length + 1,
-                    "total": length,
-                    "eta": 0,
-                    "iteratorId": self.iterator_id,
-                    "running": None,
-                },
-            }
-        )
 
         if len(errors) > 0:
             raise RuntimeError(

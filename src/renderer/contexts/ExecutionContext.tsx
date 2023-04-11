@@ -111,7 +111,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } else {
             ipcRenderer.send('stop-sleep-blocker');
             setPercentComplete(undefined);
-            setIteratorProgress({});
         }
     }, [status]);
 

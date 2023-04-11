@@ -264,20 +264,14 @@ async def SimpleVideoFrameIteratorNode(path: str, context: IteratorContext) -> N
         if "gif" not in ext.lower():
             full_out_path = f"{base}_audio{ext}"
             audio_stream = ffmpeg.input(path).audio
-            try:
-                if audio_stream is not None:
-                    video_stream = ffmpeg.input(out_path)
-                    output_video = ffmpeg.output(
-                        audio_stream,
-                        video_stream,
-                        full_out_path,
-                        vcodec="copy",
-                    ).overwrite_output()
-                    ffmpeg.run(output_video)
-                    # delete original, rename new
-                    os.remove(out_path)
-                    os.rename(full_out_path, out_path)
-            except:
-                logger.warning(
-                    f"Failed to copy audio to video, input file probably contains no audio. Ignoring audio copy."
-                )
+            video_stream = ffmpeg.input(out_path)
+            output_video = ffmpeg.output(
+                audio_stream,
+                video_stream,
+                full_out_path,
+                vcodec="copy",
+            ).overwrite_output()
+            ffmpeg.run(output_video)
+            # delete original, rename new
+            os.remove(out_path)
+            os.rename(full_out_path, out_path)
