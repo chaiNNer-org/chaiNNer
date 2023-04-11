@@ -144,7 +144,7 @@ class IteratorContext:
                     "event": "iterator-progress-update",
                     "data": {
                         "percent": (index + 1) / total,
-                        "index": index,
+                        "index": index + 1,
                         "total": total,
                         "eta": self.get_eta(index + 1, total),
                         "iteratorId": self.iterator_id,
