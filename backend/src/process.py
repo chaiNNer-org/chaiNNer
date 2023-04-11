@@ -213,6 +213,9 @@ class IteratorContext:
                     "event": "iterator-progress-update",
                     "data": {
                         "percent": 1,
+                        "index": index,
+                        "total": length_estimate,
+                        "eta": 0,
                         "iteratorId": self.iterator_id,
                         "running": None,
                     },
