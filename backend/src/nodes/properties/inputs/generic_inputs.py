@@ -8,8 +8,10 @@ import numpy as np
 from sanic.log import logger
 
 from ...impl.blend import BlendMode
+from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
@@ -309,6 +311,36 @@ class SeedInput(NumberInput):
 
     def make_optional(self):
         raise ValueError("SeedInput cannot be made optional")
+
+
+class ColorInput(BaseInput):
+    def __init__(
+        self,
+        label: str = "Color",
+        channels: int | List[int] | None = None,
+    ):
+        super().__init__(
+            input_type=expression.Color(channels=channels),
+            label=label,
+            has_handle=True,
+            kind="generic",
+        )
+
+        self.channels: List[int] | None = (
+            [channels] if isinstance(channels, int) else channels
+        )
+
+    def enforce(self, value) -> Color:
+        assert isinstance(value, Color)
+
+        if self.channels is not None and value.channels not in self.channels:
+            expected = format_color_with_channels(self.channels, plural=True)
+            actual = format_color_with_channels([value.channels])
+            raise ValueError(
+                f"The input {self.label} only supports {expected} but was given {actual}."
+            )
+
+        return value
 
 
 def IteratorInput():

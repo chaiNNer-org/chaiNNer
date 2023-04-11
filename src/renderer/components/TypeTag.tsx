@@ -2,7 +2,7 @@ import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/na
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getField, isDirectory, isImage, withoutNull } from '../../common/types/util';
+import { getField, isColor, isDirectory, isImage, withoutNull } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -37,6 +37,16 @@ const getTypeText = (type: Type): TagValue[] => {
                     value: `${width.type.toString()}x${height.type.toString()}`,
                 });
             }
+            if (isNumericLiteral(channels.type)) {
+                const mode = getColorMode(channels.type.value);
+                if (mode) {
+                    tags.push({ kind: 'literal', value: mode });
+                }
+            }
+        }
+
+        if (isColor(type)) {
+            const [channels] = type.fields;
             if (isNumericLiteral(channels.type)) {
                 const mode = getColorMode(channels.type.value);
                 if (mode) {

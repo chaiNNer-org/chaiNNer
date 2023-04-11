@@ -27,6 +27,7 @@ struct Image {
     height: uint,
     channels: int(1..),
 }
+struct Color { channels: int(1..) }
 
 struct VideoFile { path: string }
 struct Video;
