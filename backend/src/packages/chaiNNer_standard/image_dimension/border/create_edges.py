@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from nodes.groups import if_enum_group, required
+from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.properties import expression
-from nodes.properties.inputs import BorderInput, ImageInput, NumberInput
+from nodes.properties.inputs import BorderInput, ColorInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import Padding
 
@@ -18,18 +20,23 @@ from .. import border_group
     icon="BsBorderOuter",
     inputs=[
         ImageInput(),
-        BorderInput(),
-        NumberInput("Top", unit="px"),
-        NumberInput("Left", unit="px"),
-        NumberInput("Right", unit="px"),
-        NumberInput("Bottom", unit="px"),
+        BorderInput().with_id(1),
+        if_enum_group(1, BorderType.CUSTOM_COLOR)(
+            required()(
+                ColorInput().make_optional().with_id(6),
+            )
+        ),
+        NumberInput("Top", unit="px").with_id(2),
+        NumberInput("Left", unit="px").with_id(3),
+        NumberInput("Right", unit="px").with_id(4),
+        NumberInput("Bottom", unit="px").with_id(5),
     ],
     outputs=[
         ImageOutput(
             image_type=expression.Image(
                 width="Input0.width + Input3 + Input4",
                 height="Input0.height + Input2 + Input5",
-                channels="BorderType::getOutputChannels(Input1, Input0.channels)",
+                channels="BorderType::getOutputChannels(Input1, Input0.channels, Input6)",
             ),
             assume_normalized=True,
         )
@@ -38,9 +45,12 @@ from .. import border_group
 def create_edges_node(
     img: np.ndarray,
     border_type: BorderType,
+    color: Color | None,
     top: int,
     left: int,
     right: int,
     bottom: int,
 ) -> np.ndarray:
-    return create_border(img, border_type, Padding(top, right, bottom, left))
+    return create_border(
+        img, border_type, Padding(top, right, bottom, left), color=color
+    )
