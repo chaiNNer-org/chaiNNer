@@ -85,7 +85,7 @@ class IteratorContext:
     ):
         self.executor: Executor = executor
         self.progress: ProgressToken = executor.progress
-        self.avg_time: float = 0
+        self.times: List[float] = []
 
         self.iterator_id: NodeId = iterator_id
         self.chain = SubChain(executor.chain, iterator_id)
@@ -110,6 +110,11 @@ class IteratorContext:
             parent_executor=self.executor,
         )
 
+    def get_eta(self, index: int, total: int) -> float:
+        if len(self.times) == 0:
+            return 0
+        return (sum(self.times) / len(self.times)) * (total - index)
+
     async def run_iteration(self, index: int, total: int):
         executor = self.__create_iterator_executor()
 
@@ -121,7 +126,7 @@ class IteratorContext:
                     "percent": index / total,
                     "index": index,
                     "total": total,
-                    "eta": self.avg_time * (total - index),
+                    "eta": self.get_eta(index, total),
                     "iteratorId": self.iterator_id,
                     "running": list(self.chain.nodes.keys()),
                 },
@@ -132,7 +137,7 @@ class IteratorContext:
             start = time.time()
             await executor.run_iteration(self.chain)
             end = time.time()
-            self.avg_time = (self.avg_time * index + (end - start)) / (index + 1)
+            self.times.append(end - start)
         finally:
             await self.executor.queue.put(
                 {
@@ -141,7 +146,7 @@ class IteratorContext:
                         "percent": (index + 1) / total,
                         "index": index,
                         "total": total,
-                        "eta": self.avg_time * (total - index),
+                        "eta": self.get_eta(index + 1, total),
                         "iteratorId": self.iterator_id,
                         "running": None,
                     },
