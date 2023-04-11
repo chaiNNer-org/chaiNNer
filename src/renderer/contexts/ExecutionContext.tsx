@@ -2,7 +2,6 @@ import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
-import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
@@ -173,20 +172,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
-    const updateIteratorProgress = useThrottledCallback<
+    const updateIteratorProgress = useCallback<
         BackendEventSourceListener<'iterator-progress-update'>
-    >((data) => {
-        if (data) {
-            const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
+    >(
+        (data) => {
+            if (data) {
+                const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
 
-            if (runningNodes && status === ExecutionStatus.RUNNING) {
-                animate(runningNodes);
-                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
-            } else if (status !== ExecutionStatus.RUNNING) {
-                unAnimate();
+                if (runningNodes && status === ExecutionStatus.RUNNING) {
+                    animate(runningNodes);
+                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
+                } else if (status !== ExecutionStatus.RUNNING) {
+                    unAnimate();
+                }
             }
-        }
-    }, 350);
+        },
+        [animate, setIteratorProgressImpl, status, unAnimate]
+    );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
     useEffect(() => {
