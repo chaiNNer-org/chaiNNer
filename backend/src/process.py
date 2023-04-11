@@ -219,7 +219,7 @@ class IteratorContext:
                     "data": {
                         "percent": 1,
                         "index": index,
-                        "total": length_estimate,
+                        "total": index,
                         "eta": 0,
                         "iteratorId": self.iterator_id,
                         "running": None,
