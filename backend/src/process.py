@@ -110,35 +110,52 @@ class IteratorContext:
             parent_executor=self.executor,
         )
 
-    def get_eta(self, index: int, total: int) -> float:
+    def __get_eta(self, index: int, total: int) -> float:
         if len(self.times) == 0:
             return 0
         return (sum(self.times) / len(self.times)) * (total - index)
+
+    async def __update_progress(self, index: int, length: int):
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": index / length,
+                    "index": index,
+                    "total": length,
+                    "eta": self.__get_eta(index, length),
+                    "iteratorId": self.iterator_id,
+                    "running": list(self.chain.nodes.keys()),
+                },
+            }
+        )
+
+    async def __finish_progress(self, length: int):
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": 1,
+                    "index": length + 1,
+                    "total": length + 1,
+                    "eta": 0,
+                    "iteratorId": self.iterator_id,
+                    "running": None,
+                },
+            }
+        )
 
     async def run_iteration(self, index: int, total: int):
         executor = self.__create_iterator_executor()
 
         await self.progress.suspend()
 
-        try:
-            start = time.time()
-            await executor.run_iteration(self.chain)
-            end = time.time()
-            self.times.append(end - start)
-        finally:
-            await self.executor.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": (index + 1) / total,
-                        "index": index + 1,
-                        "total": total,
-                        "eta": self.get_eta(index + 1, total),
-                        "iteratorId": self.iterator_id,
-                        "running": list(self.chain.nodes.keys()),
-                    },
-                }
-            )
+        await self.__update_progress(index, total)
+
+        start = time.time()
+        await executor.run_iteration(self.chain)
+        end = time.time()
+        self.times.append(end - start)
 
     async def run(
         self,
@@ -148,19 +165,7 @@ class IteratorContext:
         items = list(collection)
         length = len(items)
 
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": 0,
-                    "index": 0,
-                    "total": length,
-                    "eta": 0,
-                    "iteratorId": self.iterator_id,
-                    "running": list(self.chain.nodes.keys()),
-                },
-            }
-        )
+        await self.__update_progress(0, length)
 
         errors: List[str] = []
         for index, item in enumerate(items):
@@ -178,19 +183,7 @@ class IteratorContext:
                 logger.error(e)
                 errors.append(str(e))
 
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": 1,
-                    "index": length,
-                    "total": length,
-                    "eta": 0,
-                    "iteratorId": self.iterator_id,
-                    "running": None,
-                },
-            }
-        )
+        await self.__finish_progress(length)
 
         if len(errors) > 0:
             raise RuntimeError(
@@ -206,6 +199,9 @@ class IteratorContext:
     ):
         errors: List[str] = []
         index = -1
+
+        await self.__update_progress(0, length_estimate)
+
         while True:
             try:
                 await self.progress.suspend()
@@ -216,9 +212,7 @@ class IteratorContext:
                 if result is False:
                     break
 
-                await self.run_iteration(
-                    min(index, length_estimate - 1), length_estimate
-                )
+                await self.run_iteration(index, max(length_estimate, index + 1))
             except Aborted:
                 raise
             except Exception as e:
@@ -227,20 +221,7 @@ class IteratorContext:
                     raise
                 errors.append(str(e))
 
-        if index < length_estimate:
-            await self.executor.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": 1,
-                        "index": index,
-                        "total": index,
-                        "eta": 0,
-                        "iteratorId": self.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
+        await self.__finish_progress(index)
 
         if len(errors) > 0:
             raise RuntimeError(
