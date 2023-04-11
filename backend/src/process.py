@@ -119,19 +119,6 @@ class IteratorContext:
         executor = self.__create_iterator_executor()
 
         await self.progress.suspend()
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": index / total,
-                    "index": index,
-                    "total": total,
-                    "eta": self.get_eta(index, total),
-                    "iteratorId": self.iterator_id,
-                    "running": list(self.chain.nodes.keys()),
-                },
-            }
-        )
 
         try:
             start = time.time()
@@ -148,7 +135,7 @@ class IteratorContext:
                         "total": total,
                         "eta": self.get_eta(index + 1, total),
                         "iteratorId": self.iterator_id,
-                        "running": None,
+                        "running": list(self.chain.nodes.keys()),
                     },
                 }
             )
@@ -160,6 +147,20 @@ class IteratorContext:
     ):
         items = list(collection)
         length = len(items)
+
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": 0,
+                    "index": 0,
+                    "total": length,
+                    "eta": 0,
+                    "iteratorId": self.iterator_id,
+                    "running": list(self.chain.nodes.keys()),
+                },
+            }
+        )
 
         errors: List[str] = []
         for index, item in enumerate(items):
@@ -176,6 +177,20 @@ class IteratorContext:
             except RuntimeError as e:
                 logger.error(e)
                 errors.append(str(e))
+
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": 1,
+                    "index": length,
+                    "total": length,
+                    "eta": 0,
+                    "iteratorId": self.iterator_id,
+                    "running": None,
+                },
+            }
+        )
 
         if len(errors) > 0:
             raise RuntimeError(

@@ -102,13 +102,17 @@ export const IteratorNodeHeader = memo(
                                     size="sm"
                                 >
                                     ETA:{' '}
-                                    <ReactTimeAgo
-                                        future
-                                        date={etaDate}
-                                        locale="en-US"
-                                        timeStyle="round"
-                                        tooltip={false}
-                                    />
+                                    {percent === 1 ? (
+                                        'Finished'
+                                    ) : (
+                                        <ReactTimeAgo
+                                            future
+                                            date={etaDate}
+                                            locale="en-US"
+                                            timeStyle="round"
+                                            tooltip={false}
+                                        />
+                                    )}
                                 </Text>
                             </HStack>
                         </Center>
