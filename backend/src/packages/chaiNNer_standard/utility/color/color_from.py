@@ -17,7 +17,7 @@ class ColorType(Enum):
 
 
 @color_group.register(
-    schema_id="chainner:image:color_from",
+    schema_id="chainner:utility:color_from_channels",
     name="Color From",
     description="Create a new color value from individual channels.",
     icon="MdColorLens",
