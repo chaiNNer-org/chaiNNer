@@ -83,8 +83,8 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
                         icon={icon}
-                        name={name}
                         iteratorProgress={iteratorProgress}
+                        name={name}
                         selected={selected}
                     />
                     {inputs.length > 0 && <Box py={1} />}
