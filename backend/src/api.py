@@ -170,11 +170,11 @@ def typeValidateSchema(
     # Pop the return type key off the dict
     return_type = ann.pop("return", None)
     if return_type is not None:
-        return_type = str(return_type)
+        return_type_str = str(return_type)
         # Evaluate the return type
         # pylint: disable=eval-used
-        if return_type.startswith("Tuple"):
-            evaluated_return_type = eval(return_type, wrapped_func.__globals__)
+        if return_type_str.startswith("Tuple"):
+            evaluated_return_type = eval(return_type_str, wrapped_func.__globals__)
             output_len = len(get_args(evaluated_return_type))
             for py_type, output_class in zip(
                 get_args(evaluated_return_type), p_outputs
@@ -185,7 +185,7 @@ def typeValidateSchema(
                     validateTypes(
                         wrapped_func, schema_id, py_var, py_type, associated_type
                     )
-        elif return_type == "None":
+        elif return_type_str == "None":
             output_len = 0
         else:
             output_len = 1
