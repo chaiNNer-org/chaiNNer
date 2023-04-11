@@ -78,6 +78,25 @@ const getTypeText = (type: Type): TagValue[] => {
             }
         }
     }
+    if (type.type === 'union') {
+        if (type.items.length === 2) {
+            const [color, image] = type.items;
+            if (isColor(color) && isImage(image)) {
+                const colorChannels = color.fields[0];
+                const imageChannels = image.fields[2];
+                if (
+                    isNumericLiteral(colorChannels.type) &&
+                    isNumericLiteral(imageChannels.type) &&
+                    colorChannels.type.value === imageChannels.type.value
+                ) {
+                    const mode = getColorMode(colorChannels.type.value);
+                    if (mode) {
+                        tags.push({ kind: 'literal', value: mode });
+                    }
+                }
+            }
+        }
+    }
     return tags;
 };
 
