@@ -1,4 +1,4 @@
-from ...impl.onnx.model import OnnxModel, OnnxRemBg, is_rembg_model
+from ...impl.onnx.model import OnnxModel, OnnxModels, OnnxRemBg, is_rembg_model
 from ...properties.expression import ExpressionJson, intersect
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
