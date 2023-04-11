@@ -2,6 +2,7 @@ import { Box, Center, HStack, Heading, LayoutProps, Text, VStack } from '@chakra
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { IteratorProgress } from '../../contexts/ExecutionContext';
 import { IconFactory } from '../CustomIcons';
 
 interface IteratorNodeHeaderProps {
@@ -9,8 +10,7 @@ interface IteratorNodeHeaderProps {
     icon: string;
     accentColor: string;
     selected: boolean;
-    percentComplete?: number;
-    eta?: number;
+    iteratorProgress?: IteratorProgress;
     width?: LayoutProps['width'];
     disabledStatus: DisabledStatus;
 }
@@ -22,10 +22,10 @@ export const IteratorNodeHeader = memo(
         icon,
         accentColor,
         selected,
-        percentComplete,
-        eta,
+        iteratorProgress,
         disabledStatus,
     }: IteratorNodeHeaderProps) => {
+        const { percent, eta, index, total } = iteratorProgress ?? {};
         const etaDate = new Date();
         etaDate.setSeconds(etaDate.getSeconds() + (eta ?? 0));
 
@@ -36,7 +36,7 @@ export const IteratorNodeHeader = memo(
             >
                 <Center
                     borderBottomColor={accentColor}
-                    borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
+                    borderBottomWidth={percent !== undefined ? '0px' : '4px'}
                     borderStyle="default"
                     h="auto"
                     pt={2}
@@ -81,7 +81,7 @@ export const IteratorNodeHeader = memo(
                         </Center>
                     </HStack>
                 </Center>
-                {percentComplete !== undefined && (
+                {percent !== undefined && (
                     <Box
                         h={6}
                         w="full"
@@ -94,7 +94,9 @@ export const IteratorNodeHeader = memo(
                                 <Text
                                     fontWeight="medium"
                                     size="sm"
-                                >{`${Number(percentComplete * 100).toFixed(1)}%`}</Text>
+                                >{`${Number(index)}/${Number(total)} (${Number(
+                                    percent * 100
+                                ).toFixed(1)}%)`}</Text>
                                 <Text
                                     fontWeight="medium"
                                     size="sm"
@@ -120,7 +122,7 @@ export const IteratorNodeHeader = memo(
                                 // h="full"
                                 h={6}
                                 transition="all 0.15s ease-in-out"
-                                w={`${percentComplete * 100}%`}
+                                w={`${percent * 100}%`}
                             />
                         </Box>
                     </Box>

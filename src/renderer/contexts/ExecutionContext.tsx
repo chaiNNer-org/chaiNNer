@@ -37,7 +37,7 @@ interface ExecutionStatusContextValue {
     paused: boolean;
 }
 
-interface IteratorProgress {
+export interface IteratorProgress {
     percent?: number;
     eta?: number;
     index?: number;
@@ -49,11 +49,7 @@ interface ExecutionContextValue {
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
-    useIteratorProgress: (iteratorId: string) => {
-        setIteratorProgress: (progress: IteratorProgress) => void;
-        removeIteratorProgress: () => void;
-        getIteratorProgress: () => IteratorProgress;
-    };
+    getIteratorProgress: (iteratorId: string) => IteratorProgress;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -97,34 +93,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setIteratorProgress]
     );
 
-    const removeIteratorProgress = useCallback(
-        (iteratorId: string) => {
-            setIteratorProgress((prev) => {
-                const newProg = { ...prev };
-                delete newProg[iteratorId];
-                return newProg;
-            });
-        },
-        [setIteratorProgress]
-    );
-
     const getIteratorProgress = useCallback(
         (iteratorId: string) => {
             return iteratorProgress[iteratorId] ?? {};
         },
         [iteratorProgress]
-    );
-
-    const useIteratorProgress = useCallback(
-        (iteratorId: string) => {
-            return {
-                setIteratorProgress: (progress: IteratorProgress) =>
-                    setIteratorProgressImpl(iteratorId, progress),
-                removeIteratorProgress: () => removeIteratorProgress(iteratorId),
-                getIteratorProgress: () => getIteratorProgress(iteratorId),
-            };
-        },
-        [setIteratorProgressImpl, removeIteratorProgress, getIteratorProgress]
     );
 
     useEffect(() => {
@@ -469,7 +442,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
-        useIteratorProgress,
+        getIteratorProgress,
     });
 
     return (

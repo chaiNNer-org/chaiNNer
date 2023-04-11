@@ -32,13 +32,11 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const { schemata, categories } = useContext(BackendContext);
-    const { useIteratorProgress } = useContext(ExecutionContext);
+    const { getIteratorProgress } = useContext(ExecutionContext);
 
     const { id, inputData, isLocked, schemaId, iteratorSize, minWidth, minHeight } = data;
 
-    const { getIteratorProgress } = useIteratorProgress(id);
-
-    const { percent, eta } = getIteratorProgress();
+    const iteratorProgress = getIteratorProgress(id);
 
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
@@ -84,10 +82,9 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                     <IteratorNodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
-                        eta={eta}
                         icon={icon}
                         name={name}
-                        percentComplete={percent}
+                        iteratorProgress={iteratorProgress}
                         selected={selected}
                     />
                     {inputs.length > 0 && <Box py={1} />}
