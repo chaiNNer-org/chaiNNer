@@ -218,6 +218,9 @@ export interface BackendEventMap {
     };
     'iterator-progress-update': {
         percent: number;
+        index: number;
+        total: number;
+        eta: number;
         iteratorId: string;
         running?: string[] | null;
     };

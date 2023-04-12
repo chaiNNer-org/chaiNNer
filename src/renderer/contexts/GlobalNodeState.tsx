@@ -137,7 +137,6 @@ interface Global {
         iteratorSize: IteratorSize | null,
         dimensions?: Size
     ) => void;
-    setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: (value: string | undefined) => void;
     setCollidingEdge: (value: string | undefined) => void;
@@ -1113,20 +1112,6 @@ export const GlobalProvider = memo(
             [changeNodes]
         );
 
-        const setIteratorPercent = useCallback(
-            (id: string, percent: number) => {
-                rfSetNodes((nodes) => {
-                    const foundNode = nodes.find((n) => n.id === id);
-                    if (foundNode) {
-                        const newNode = withNewData(foundNode, 'percentComplete', percent);
-                        return [...nodes.filter((n) => n.id !== id), newNode];
-                    }
-                    return nodes;
-                });
-            },
-            [rfSetNodes]
-        );
-
         const duplicateNodes = useCallback(
             (ids: readonly string[], withInputEdges = false) => {
                 const nodesToCopy = expandSelection(getNodes(), ids);
@@ -1359,7 +1344,6 @@ export const GlobalProvider = memo(
             removeEdgeById,
             duplicateNodes,
             updateIteratorBounds,
-            setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
             setCollidingEdge,
