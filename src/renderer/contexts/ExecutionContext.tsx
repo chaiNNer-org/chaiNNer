@@ -181,10 +181,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
                 if (runningNodes && status === ExecutionStatus.RUNNING) {
                     animate(runningNodes);
-                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
                 } else if (status !== ExecutionStatus.RUNNING) {
                     unAnimate();
                 }
+                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
             }
         },
         [animate, setIteratorProgressImpl, status, unAnimate]

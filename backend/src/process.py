@@ -136,8 +136,8 @@ class IteratorContext:
                 "event": "iterator-progress-update",
                 "data": {
                     "percent": 1,
-                    "index": length + 1,
-                    "total": length + 1,
+                    "index": length,
+                    "total": length,
                     "eta": 0,
                     "iteratorId": self.iterator_id,
                     "running": None,
@@ -146,16 +146,16 @@ class IteratorContext:
         )
 
     async def run_iteration(self, index: int, total: int):
-        executor = self.__create_iterator_executor()
-
+        await self.__update_progress(index, total)
         await self.progress.suspend()
 
         start = time.time()
-        await executor.run_iteration(self.chain)
-        end = time.time()
-        self.times.append(end - start)
-
-        await self.__update_progress(index + 1, total)
+        try:
+            executor = self.__create_iterator_executor()
+            await executor.run_iteration(self.chain)
+        finally:
+            end = time.time()
+            self.times.append(end - start)
 
     async def run(
         self,
@@ -221,7 +221,7 @@ class IteratorContext:
                     raise
                 errors.append(str(e))
 
-        await self.__finish_progress(max(length_estimate, index + 1))
+        await self.__finish_progress(index)
 
         if len(errors) > 0:
             raise RuntimeError(
