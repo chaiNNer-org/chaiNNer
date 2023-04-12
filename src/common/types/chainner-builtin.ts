@@ -1,6 +1,7 @@
 import {
     Arg,
     Int,
+    IntIntervalType,
     Intrinsic,
     NeverType,
     StringLiteralType,
@@ -15,6 +16,7 @@ import {
     wrapUnary,
 } from '@chainner/navi';
 import path from 'path';
+import { ColorJson } from '../common-types';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -243,5 +245,25 @@ export const splitFilePath = wrapUnary<StringPrimitive, StructType>((filePath: S
         ),
         new StructTypeField('basename', StringType.instance),
         new StructTypeField('ext', StringType.instance),
+    ]);
+});
+
+export const parseColorJson = wrapUnary<StringPrimitive, StructType>((json) => {
+    if (json.type === 'literal') {
+        try {
+            const value = JSON.parse(json.value) as unknown;
+            if (value && typeof value === 'object' && 'kind' in value && 'values' in value) {
+                const color = value as ColorJson;
+                return new StructType('Color', [
+                    new StructTypeField('channels', literal(color.values.length)),
+                ]);
+            }
+        } catch {
+            // noop
+        }
+        return NeverType.instance;
+    }
+    return new StructType('Color', [
+        new StructTypeField('channels', new IntIntervalType(1, Infinity)),
     ]);
 });

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.groups import if_enum_group, required
+from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.properties import expression
@@ -22,9 +22,7 @@ from .. import border_group
         ImageInput(),
         BorderInput().with_id(1),
         if_enum_group(1, BorderType.CUSTOM_COLOR)(
-            required()(
-                ColorInput().make_optional().with_id(3),
-            )
+            ColorInput().with_id(3),
         ),
         NumberInput("Amount", unit="px").with_id(2),
     ],
