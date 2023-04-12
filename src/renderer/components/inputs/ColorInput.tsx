@@ -1,7 +1,7 @@
 import { Box, Center, Spacer, Text } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo } from 'react';
-import { ColorJson } from '../../../common/common-types';
+import { ColorJson, RgbColorJson, RgbaColorJson } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
@@ -33,18 +33,81 @@ const toCssColor = (color: ColorJson): string => {
             return assertNever(color);
     }
 };
+const to8Bit = (n: number): string => String(Math.round(n * 255));
+const toPercent = (n: number): string => `${String(Math.round(n * 100))}%`;
+const to8BitHex = (r: number, g: number, b: number): string => {
+    // eslint-disable-next-line no-param-reassign
+    r = Math.round(r * 255);
+    // eslint-disable-next-line no-param-reassign
+    g = Math.round(g * 255);
+    // eslint-disable-next-line no-param-reassign
+    b = Math.round(b * 255);
+
+    return (r * 256 * 256 + g * 256 + b).toString(16).padStart(6, '0').toUpperCase();
+};
+const toDisplayText = (color: ColorJson): string => {
+    switch (color.kind) {
+        case 'grayscale': {
+            const [luma] = color.values;
+            return to8Bit(luma);
+        }
+        case 'rgb': {
+            const [r, g, b] = color.values;
+            return `${to8BitHex(r, g, b)}`;
+        }
+        case 'rgba': {
+            const [r, g, b, a] = color.values;
+            return `${to8BitHex(r, g, b)} ${toPercent(a)}`;
+        }
+        default:
+            return assertNever(color);
+    }
+};
+const withBg = (fg: RgbaColorJson, bg: RgbColorJson): RgbColorJson => {
+    const a = fg.values[3];
+    return {
+        kind: 'rgb',
+        values: [
+            fg.values[0] * a + bg.values[0] * (1 - a),
+            fg.values[1] * a + bg.values[1] * (1 - a),
+            fg.values[2] * a + bg.values[2] * (1 - a),
+        ],
+    };
+};
+const isLightColor = (color: ColorJson): boolean => {
+    const LIGHTNESS_THRESHOLD = 0.2;
+    if (color.kind === 'grayscale') {
+        return color.values[0] ** 2.2 >= LIGHTNESS_THRESHOLD;
+    }
+
+    let [r, g, b] = color.values;
+    if (color.kind === 'rgba') {
+        [r, g, b] = withBg(color, { kind: 'rgb', values: [0.9, 0.9, 0.9] }).values;
+    }
+
+    r **= 2.2;
+    g **= 2.2;
+    b **= 2.2;
+
+    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return l >= LIGHTNESS_THRESHOLD;
+};
+const BG1: RgbColorJson = { kind: 'rgb', values: [0.8, 0.8, 0.8] };
+const BG2: RgbColorJson = { kind: 'rgb', values: [1, 1, 1] };
+const getCssBackground = (color: ColorJson): string => {
+    if (color.kind === 'rgba' && color.values[3] < 1) {
+        return `repeating-conic-gradient(${toCssColor(withBg(color, BG1))} 0% 25%, ${toCssColor(
+            withBg(color, BG2)
+        )} 0% 50%) 0 0 / 20px 20px`;
+    }
+    return toCssColor(color);
+};
+
 const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
-    const cssColor = toCssColor(color);
     return (
         <Box
-            background={
-                color.kind === 'rgba' && color.values[3] < 1
-                    ? `linear-gradient(${cssColor},${cssColor}), repeating-conic-gradient(#CDCDCD 0% 25%, #FFFFFF 0% 50%)`
-                    : cssColor
-            }
-            // bgColor={toCssColor(color)}
+            background={getCssBackground(color)}
             backgroundClip="content-box"
-            backgroundSize="20px 20px"
             border="1px solid"
             borderColor="inherit"
             borderRadius="lg"
@@ -52,14 +115,24 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
             className="nodrag"
             cursor="pointer"
             h={6}
-            w={9}
+            w="6.5rem"
             onClick={() =>
                 onChange({
                     kind: 'rgba',
                     values: [Math.random(), Math.random(), Math.random(), Math.random() / 2 + 0.5],
                 })
             }
-        />
+        >
+            <Text
+                color={isLightColor(color) ? 'black' : 'white'}
+                fontFamily="monospace"
+                fontSize="sm"
+                fontWeight="bold"
+                textAlign="center"
+            >
+                {toDisplayText(color)}
+            </Text>
+        </Box>
     );
 });
 
