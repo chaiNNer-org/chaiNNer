@@ -75,7 +75,7 @@ class Color:
             assert len(values) == 3
             return Color.bgr([values[2], values[1], values[0]])
         elif kind == "rgba":
-            assert len(values) == 3
+            assert len(values) == 4
             return Color.bgra([values[2], values[1], values[0], values[3]])
         else:
             assert False, f"Unknown color kind {kind}"
