@@ -52,8 +52,8 @@ class InpaintArea(Enum):
     inputs=[
         ImageInput(),
         ImageInput("Mask", channels=1, image_type=expression.Image(size_as="Input0")),
-        TextAreaInput("Prompt").make_optional(),
-        TextAreaInput("Negative Prompt").make_optional(),
+        TextAreaInput("Prompt", has_handle=True).make_optional(),
+        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,

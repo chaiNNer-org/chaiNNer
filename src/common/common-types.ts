@@ -266,7 +266,6 @@ export interface NodeData {
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: Readonly<IteratorSize>;
-    readonly percentComplete?: number;
     readonly minWidth?: number;
     readonly minHeight?: number;
 }
