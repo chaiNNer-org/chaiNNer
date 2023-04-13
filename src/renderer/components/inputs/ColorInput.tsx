@@ -1,4 +1,4 @@
-import { Box, Center, Spacer, Text } from '@chakra-ui/react';
+import { Box, Center, Spacer, Text, Tooltip } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { ColorJson, RgbColorJson, RgbaColorJson } from '../../../common/common-types';
@@ -53,7 +53,7 @@ const toDisplayText = (color: ColorJson): string => {
         }
         case 'rgb': {
             const [r, g, b] = color.values;
-            return `${to8BitHex(r, g, b)}`;
+            return `${to8Bit(r)} ${to8Bit(g)} ${to8Bit(b)}`;
         }
         case 'rgba': {
             const [r, g, b, a] = color.values;
@@ -62,6 +62,13 @@ const toDisplayText = (color: ColorJson): string => {
         default:
             return assertNever(color);
     }
+};
+const toLabelText = (color: ColorJson): string => {
+    if (color.kind === 'rgba') {
+        const [r, g, b, a] = color.values;
+        return `${to8Bit(r)} ${to8Bit(g)} ${to8Bit(b)} ${toPercent(a)}`;
+    }
+    return toDisplayText(color);
 };
 const withBg = (fg: RgbaColorJson, bg: RgbColorJson): RgbColorJson => {
     const a = fg.values[3];
@@ -103,36 +110,64 @@ const getCssBackground = (color: ColorJson): string => {
     return toCssColor(color);
 };
 
+const typeLabels: Record<ColorKind, string> = {
+    grayscale: 'grayscale',
+    rgb: 'RGB',
+    rgba: 'RGBA',
+};
+const getColorTooltip = (color: ColorJson): JSX.Element => {
+    return (
+        <>
+            Click to edit {typeLabels[color.kind]} color <strong>{toLabelText(color)}</strong>.
+        </>
+    );
+};
+
 const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
     return (
-        <Box
-            background={getCssBackground(color)}
-            backgroundClip="content-box"
-            border="1px solid"
-            borderColor="inherit"
-            borderRadius="lg"
-            boxSizing="border-box"
-            className="nodrag"
-            cursor="pointer"
-            h={6}
-            w="6.5rem"
-            onClick={() =>
-                onChange({
-                    kind: 'rgba',
-                    values: [Math.random(), Math.random(), Math.random(), Math.random() / 2 + 0.5],
-                })
-            }
+        <Tooltip
+            closeOnClick
+            closeOnPointerDown
+            hasArrow
+            borderRadius={8}
+            label={getColorTooltip(color)}
+            openDelay={500}
         >
-            <Text
-                color={isLightColor(color) ? 'black' : 'white'}
-                fontFamily="monospace"
-                fontSize="sm"
-                fontWeight="bold"
-                textAlign="center"
+            <Box
+                background={getCssBackground(color)}
+                backgroundClip="content-box"
+                border="1px solid"
+                borderColor="inherit"
+                borderRadius="lg"
+                boxSizing="border-box"
+                className="nodrag"
+                cursor="pointer"
+                h={6}
+                w="6.5rem"
+                onClick={() =>
+                    onChange({
+                        kind: 'rgba',
+                        values: [
+                            Math.random(),
+                            Math.random(),
+                            Math.random(),
+                            Math.min(1, Math.random() + 0.25),
+                        ],
+                    })
+                }
             >
-                {toDisplayText(color)}
-            </Text>
-        </Box>
+                <Text
+                    color={isLightColor(color) ? 'black' : 'white'}
+                    // fontFamily="monospace"
+                    cursor="pointer"
+                    fontSize="sm"
+                    fontWeight="medium"
+                    textAlign="center"
+                >
+                    {toDisplayText(color)}
+                </Text>
+            </Box>
+        </Tooltip>
     );
 });
 
