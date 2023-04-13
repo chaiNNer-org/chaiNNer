@@ -1,7 +1,29 @@
-import { Box, Center, Spacer, Text, Tooltip } from '@chakra-ui/react';
+import {
+    Box,
+    Button,
+    ButtonGroup,
+    Center,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverContent,
+    PopoverTrigger,
+    Portal,
+    Spacer,
+    Text,
+    Tooltip,
+} from '@chakra-ui/react';
 import log from 'electron-log';
-import { memo, useCallback, useEffect, useMemo } from 'react';
-import { ColorJson, RgbColorJson, RgbaColorJson } from '../../../common/common-types';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { RgbColorPicker, RgbaColor, RgbaColorPicker } from 'react-colorful';
+import { rgb as rgbContrast } from 'wcag-contrast';
+import {
+    ColorJson,
+    GrayscaleColorJson,
+    OfKind,
+    RgbColorJson,
+    RgbaColorJson,
+} from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
@@ -81,23 +103,23 @@ const withBg = (fg: RgbaColorJson, bg: RgbColorJson): RgbColorJson => {
         ],
     };
 };
-const isLightColor = (color: ColorJson): boolean => {
-    const LIGHTNESS_THRESHOLD = 0.2;
+const getTextColorFor = (color: ColorJson): 'white' | 'black' => {
+    let rgb: [number, number, number];
     if (color.kind === 'grayscale') {
-        return color.values[0] ** 2.2 >= LIGHTNESS_THRESHOLD;
+        const luma = color.values[0] * 255;
+        rgb = [luma, luma, luma];
+    } else {
+        if (color.kind === 'rgba') {
+            // eslint-disable-next-line no-param-reassign
+            color = withBg(color, { kind: 'rgb', values: [0.9, 0.9, 0.9] });
+        }
+        const [r, g, b] = color.values;
+        rgb = [r * 255, g * 255, b * 255];
     }
 
-    let [r, g, b] = color.values;
-    if (color.kind === 'rgba') {
-        [r, g, b] = withBg(color, { kind: 'rgb', values: [0.9, 0.9, 0.9] }).values;
-    }
-
-    r **= 2.2;
-    g **= 2.2;
-    b **= 2.2;
-
-    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    return l >= LIGHTNESS_THRESHOLD;
+    const cBlack = rgbContrast(rgb, [0, 0, 0]);
+    const cWhite = rgbContrast(rgb, [255, 255, 255]);
+    return cBlack > cWhite ? 'black' : 'white';
 };
 const BG1: RgbColorJson = { kind: 'rgb', values: [0.8, 0.8, 0.8] };
 const BG2: RgbColorJson = { kind: 'rgb', values: [1, 1, 1] };
@@ -107,7 +129,7 @@ const getCssBackground = (color: ColorJson): string => {
             withBg(color, BG2)
         )} 0% 50%) 0 0 / 20px 20px`;
     }
-    return toCssColor(color);
+    return `${toCssColor(color)}`;
 };
 
 const typeLabels: Record<ColorKind, string> = {
@@ -123,51 +145,212 @@ const getColorTooltip = (color: ColorJson): JSX.Element => {
     );
 };
 
-const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
+const toRgbaColor = (color: ColorJson): RgbaColor => {
+    if (color.kind === 'grayscale') {
+        const l = color.values[0] * 255;
+        return { r: l, g: l, b: l, a: 1 };
+    }
+    const [r, g, b] = color.values;
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255),
+        a: color.kind === 'rgba' ? color.values[3] : 1,
+    };
+};
+
+export interface PickerProps<T> {
+    color: T;
+    onChange: (value: T) => void;
+}
+const RgbaPicker = memo(({ color, onChange }: PickerProps<RgbaColorJson>) => {
     return (
-        <Tooltip
-            closeOnClick
-            closeOnPointerDown
-            hasArrow
-            borderRadius={8}
-            label={getColorTooltip(color)}
-            openDelay={500}
+        <RgbaColorPicker
+            color={toRgbaColor(color)}
+            onChange={({ r, g, b, a }) => {
+                onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, a] });
+            }}
+        />
+    );
+});
+
+const toGrayscale = (color: ColorJson): GrayscaleColorJson => {
+    if (color.kind === 'grayscale') return color;
+    const [r, g, b] = color.values;
+    return { kind: 'grayscale', values: [0.3 * r + 0.5 * g + 0.2 * b] };
+};
+const toRgb = (color: ColorJson): RgbColorJson => {
+    if (color.kind === 'rgb') return color;
+    if (color.kind === 'grayscale') {
+        const [luma] = color.values;
+        return { kind: 'rgb', values: [luma, luma, luma] };
+    }
+    const [r, g, b] = color.values;
+    return { kind: 'rgb', values: [r, g, b] };
+};
+const toRgba = (color: ColorJson): RgbaColorJson => {
+    if (color.kind === 'rgba') return color;
+    if (color.kind === 'grayscale') {
+        const [luma] = color.values;
+        return { kind: 'rgba', values: [luma, luma, luma, 1] };
+    }
+    const [r, g, b] = color.values;
+    return { kind: 'rgba', values: [r, g, b, 1] };
+};
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+function toKind<K extends ColorKind>(color: ColorJson, kind: K): OfKind<ColorJson, K> {
+    if (kind === 'grayscale') return toGrayscale(color) as never;
+    if (kind === 'rgb') return toRgb(color) as never;
+    return toRgba(color) as never;
+}
+
+const KIND_ORDER: readonly ColorKind[] = ['grayscale', 'rgb', 'rgba'];
+const KIND_LABEL: Readonly<Record<ColorKind, string>> = {
+    grayscale: 'Gray',
+    rgb: 'RGB',
+    rgba: 'RGBA',
+};
+
+const ColorBox = memo(({ color: outsideColor, onChange, kinds: kindSet }: ColorBoxProps) => {
+    const [color, setColor] = useState(outsideColor);
+    useEffect(() => setColor(outsideColor), [outsideColor]);
+
+    const kinds = useMemo(() => {
+        return [...kindSet].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
+    }, [kindSet]);
+
+    return (
+        <Popover
+            isLazy
+            onClose={() => onChange(color)}
         >
-            <Box
-                background={getCssBackground(color)}
-                backgroundClip="content-box"
-                border="1px solid"
-                borderColor="inherit"
-                borderRadius="lg"
-                boxSizing="border-box"
-                className="nodrag"
-                cursor="pointer"
-                h={6}
-                w="6.5rem"
-                onClick={() =>
-                    onChange({
-                        kind: 'rgba',
-                        values: [
-                            Math.random(),
-                            Math.random(),
-                            Math.random(),
-                            Math.min(1, Math.random() + 0.25),
-                        ],
-                    })
-                }
-            >
-                <Text
-                    color={isLightColor(color) ? 'black' : 'white'}
-                    // fontFamily="monospace"
-                    cursor="pointer"
-                    fontSize="sm"
-                    fontWeight="medium"
-                    textAlign="center"
-                >
-                    {toDisplayText(color)}
-                </Text>
-            </Box>
-        </Tooltip>
+            {({ onClose }) => (
+                <>
+                    <PopoverTrigger>
+                        <Button
+                            background={getCssBackground(color)}
+                            backgroundClip="content-box"
+                            border="1px solid"
+                            borderColor="inherit"
+                            borderRadius="lg"
+                            boxSizing="border-box"
+                            className="nodrag"
+                            cursor="pointer"
+                            h={6}
+                            m={0}
+                            p={0}
+                            transitionProperty="none"
+                            variant="unstyled"
+                            w="6.5rem"
+                        >
+                            <Text
+                                color={getTextColorFor(color)}
+                                cursor="pointer"
+                                fontSize="sm"
+                                fontWeight="medium"
+                                textAlign="center"
+                            >
+                                {toDisplayText(color)}
+                            </Text>
+                        </Button>
+                    </PopoverTrigger>
+                    <Portal>
+                        <PopoverContent className="chainner-color-selector">
+                            <PopoverArrow />
+                            {/* <PopoverCloseButton /> */}
+                            <PopoverBody p={2}>
+                                <ButtonGroup
+                                    isAttached
+                                    size="sm"
+                                >
+                                    {kinds.map((k) => {
+                                        return (
+                                            <Button
+                                                borderRadius="lg"
+                                                key={k}
+                                                variant={color.kind === k ? 'solid' : 'ghost'}
+                                                onClick={() => setColor((c) => toKind(c, k))}
+                                            >
+                                                {KIND_LABEL[k]}
+                                            </Button>
+                                        );
+                                    })}
+                                </ButtonGroup>
+                                <ButtonGroup
+                                    isAttached
+                                    display="flex"
+                                    my={2}
+                                    variant="unstyled"
+                                >
+                                    <Tooltip
+                                        closeOnClick
+                                        closeOnPointerDown
+                                        hasArrow
+                                        borderRadius={8}
+                                        label="Reset to old color"
+                                        openDelay={500}
+                                    >
+                                        <Button
+                                            background={getCssBackground(outsideColor)}
+                                            borderRadius="lg"
+                                            color={getTextColorFor(outsideColor)}
+                                            h={12}
+                                            transitionProperty="none"
+                                            w="full"
+                                            onClick={() => setColor(outsideColor)}
+                                        >
+                                            old
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip
+                                        closeOnClick
+                                        closeOnPointerDown
+                                        hasArrow
+                                        borderRadius={8}
+                                        label="Accept new color"
+                                        openDelay={500}
+                                    >
+                                        <Button
+                                            background={getCssBackground(color)}
+                                            borderRadius="lg"
+                                            color={getTextColorFor(color)}
+                                            h={12}
+                                            transitionProperty="none"
+                                            w="full"
+                                            onClick={onClose}
+                                        >
+                                            new
+                                        </Button>
+                                    </Tooltip>
+                                </ButtonGroup>
+                                {color.kind === 'rgba' && (
+                                    <RgbaColorPicker
+                                        color={toRgbaColor(color)}
+                                        onChange={({ r, g, b, a }) => {
+                                            setColor({
+                                                kind: 'rgba',
+                                                values: [r / 255, g / 255, b / 255, a],
+                                            });
+                                        }}
+                                    />
+                                )}
+                                {color.kind === 'rgb' && (
+                                    <RgbColorPicker
+                                        color={toRgbaColor(color)}
+                                        onChange={({ r, g, b }) => {
+                                            setColor({
+                                                kind: 'rgb',
+                                                values: [r / 255, g / 255, b / 255],
+                                            });
+                                        }}
+                                    />
+                                )}
+                            </PopoverBody>
+                        </PopoverContent>
+                    </Portal>
+                </>
+            )}
+        </Popover>
     );
 });
 
@@ -181,11 +364,12 @@ export const ColorInput = memo(
     }: InputProps<'color', string>) => {
         const { label, optional, def, channels } = input;
 
+        const noValue = value === undefined;
         useEffect(() => {
-            if (value === undefined) {
+            if (noValue) {
                 setValue(def);
             }
-        }, [value, setValue, def]);
+        }, [noValue, setValue, def]);
 
         const current = value ?? def;
         const color = useMemo(() => {
@@ -197,12 +381,13 @@ export const ColorInput = memo(
             }
         }, [current]);
 
+        const invalidColor = !color;
         useEffect(() => {
-            if (!color) {
+            if (invalidColor) {
                 // reset invalid colors
                 setValue(def);
             }
-        }, [color, setValue, def]);
+        }, [invalidColor, setValue, def]);
 
         const connected = useInputConnected();
         const kinds = useMemo(() => {
