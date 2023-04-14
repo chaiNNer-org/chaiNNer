@@ -73,6 +73,7 @@ importlib.import_module("packages.chaiNNer_pytorch")
 importlib.import_module("packages.chaiNNer_ncnn")
 importlib.import_module("packages.chaiNNer_onnx")
 importlib.import_module("packages.chaiNNer_external")
+importlib.import_module("packages.chaiNNer_stable_diffusion")
 
 # in the future, for external packages dir, scan & import
 # for package in os.listdir(packages_dir):

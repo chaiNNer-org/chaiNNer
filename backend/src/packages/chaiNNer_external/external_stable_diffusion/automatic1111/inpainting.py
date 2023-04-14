@@ -16,7 +16,6 @@ from nodes.impl.external_stable_diffusion import (
     SamplerName,
     decode_base64_image,
     encode_base64_image,
-    nearest_valid_size,
     post,
     verify_api_connection,
 )
@@ -32,7 +31,7 @@ from nodes.properties.inputs import (
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import get_h_w_c, nearest_valid_size
 
 from .. import auto1111_group
 

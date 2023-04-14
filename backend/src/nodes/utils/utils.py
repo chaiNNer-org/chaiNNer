@@ -244,3 +244,7 @@ class Region:
             self.x : (self.x + self.width),
             ...,
         ] = rhs
+
+
+def nearest_valid_size(width, height, step=8):
+    return (width // step) * step, (height // step) * step

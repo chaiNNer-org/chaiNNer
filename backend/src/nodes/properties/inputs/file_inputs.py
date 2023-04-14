@@ -16,6 +16,7 @@ FileInputKind = Union[
     Literal["pt"],
     Literal["pth"],
     Literal["video"],
+    Literal["ckpt"],
 ]
 
 
@@ -101,6 +102,28 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         label="Pretrained Model",
         file_kind="pth",
         filetypes=[".pt", ".pth"],
+        primary_input=primary_input,
+    )
+
+
+def CkptFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local stable diffusion checkpoint file"""
+    return FileInput(
+        input_type_name="CkptFile",
+        label="Stable Diffusion Checkpoint",
+        file_kind="ckpt",
+        filetypes=[".ckpt", ".safetensors", ".pth"],
+        primary_input=primary_input,
+    )
+
+
+def StableDiffusionPtFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local stable diffusion CLIP or VAE model file"""
+    return FileInput(
+        input_type_name="StableDiffusionPtFile",
+        label="Model",
+        file_kind="pt",
+        filetypes=[".ckpt", ".pt", ".bin", ".pth", ".safetensors"],
         primary_input=primary_input,
     )
 

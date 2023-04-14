@@ -201,3 +201,39 @@ def Image(
         fields["width"] = field(size_as, "width")
         fields["height"] = field(size_as, "height")
     return named("Image", fields)
+
+
+def StableDiffusionModel(
+    arch: Optional[ExpressionJson] = None,
+    arch_as: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: Dict[str, ExpressionJson] = {}
+    if arch is not None:
+        fields["arch"] = arch
+    if arch_as is not None:
+        fields["arch"] = field(arch_as, "arch")
+    return named("StableDiffusionModel", fields)
+
+
+def CLIPModel(
+    arch: Optional[ExpressionJson] = None,
+    arch_as: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: Dict[str, ExpressionJson] = {}
+    if arch is not None:
+        fields["arch"] = arch
+    if arch_as is not None:
+        fields["arch"] = field(arch_as, "arch")
+    return named("CLIPModel", fields)
+
+
+def Conditioning(
+    arch: Optional[ExpressionJson] = None,
+    arch_as: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: Dict[str, ExpressionJson] = {}
+    if arch is not None:
+        fields["arch"] = arch
+    if arch_as is not None:
+        fields["arch"] = field(arch_as, "arch")
+    return named("Conditioning", fields)

@@ -81,6 +81,18 @@ let OnnxGenericModel = OnnxModel {
 
 struct IteratorAuto;
 
+// Stable Diffusion related
+struct CkptFile { path: string }
+struct StableDiffusionPtFile { path: string }
+struct StableDiffusionModel { arch: string }
+struct CLIPModel { arch: string }
+struct VAEModel;
+struct Conditioning { arch: string }
+struct LatentImage {
+    width: uint,
+    height: uint,
+}
+
 // various inputs
 struct AdaptiveMethod;
 struct AdaptiveThresholdType;
