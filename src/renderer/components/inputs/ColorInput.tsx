@@ -85,7 +85,7 @@ const toDisplayText = (color: ColorJson): string => {
         }
         case 'rgba': {
             const [r, g, b, a] = color.values;
-            return `${to8BitHex(r, g, b)} ${toPercent(a)}`;
+            return `#${to8BitHex(r, g, b)} ${toPercent(a)}`;
         }
         default:
             return assertNever(color);
@@ -149,6 +149,10 @@ const toRgbColor = (color: ColorJson): RgbColor => {
     return { r, g, b };
 };
 const parseHex = (hex: string): RgbColor | undefined => {
+    if (hex.startsWith('#')) {
+        // eslint-disable-next-line no-param-reassign
+        hex = hex.slice(1);
+    }
     if (!/^[0-9a-fA-F]+$/.test(hex)) return undefined;
     if (hex.length === 3) {
         const r = Number.parseInt(hex[0], 16) * 17;
@@ -165,10 +169,7 @@ const parseHex = (hex: string): RgbColor | undefined => {
     return undefined;
 };
 const rgbToHex = ({ r, g, b }: RgbColor): string => {
-    return to8BitHex(r / 255, g / 255, b / 255);
-};
-const rgbToCssHex = (color: RgbColor): string => {
-    return `#${rgbToHex(color)}`;
+    return `#${to8BitHex(r / 255, g / 255, b / 255)}`;
 };
 
 interface Slider8BitProps {
@@ -220,7 +221,7 @@ const Slider8Bit = memo(({ label, value, onChange, color0, color255 }: Slider8Bi
                 defaultValue={def}
                 hideTrailingZeros={false}
                 inputString={inputString}
-                inputWidth="4rem"
+                inputWidth="4.5rem"
                 max={max}
                 min={min}
                 precision={0}
@@ -278,7 +279,7 @@ const SliderAlpha = memo(({ value, onChange, color }: SliderAlphaProps) => {
                 defaultValue={def}
                 hideTrailingZeros={false}
                 inputString={inputString}
-                inputWidth="4rem"
+                inputWidth="4.5rem"
                 max={max}
                 min={min}
                 precision={1}
@@ -329,7 +330,7 @@ const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
                 size="xs"
                 textTransform="uppercase"
                 value={inputString}
-                w="4rem"
+                w="4.5rem"
                 onChange={(event) => changeInputString(event.target.value)}
                 onKeyDown={stopPropagation}
             />
@@ -345,22 +346,22 @@ const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
     return (
         <>
             <Slider8Bit
-                color0={rgbToCssHex({ ...rgb, r: 0 })}
-                color255={rgbToCssHex({ ...rgb, r: 255 })}
+                color0={rgbToHex({ ...rgb, r: 0 })}
+                color255={rgbToHex({ ...rgb, r: 255 })}
                 label="R"
                 value={rgb.r}
                 onChange={(r) => onChange({ ...rgb, r })}
             />
             <Slider8Bit
-                color0={rgbToCssHex({ ...rgb, g: 0 })}
-                color255={rgbToCssHex({ ...rgb, g: 255 })}
+                color0={rgbToHex({ ...rgb, g: 0 })}
+                color255={rgbToHex({ ...rgb, g: 255 })}
                 label="G"
                 value={rgb.g}
                 onChange={(g) => onChange({ ...rgb, g })}
             />
             <Slider8Bit
-                color0={rgbToCssHex({ ...rgb, b: 0 })}
-                color255={rgbToCssHex({ ...rgb, b: 255 })}
+                color0={rgbToHex({ ...rgb, b: 0 })}
+                color255={rgbToHex({ ...rgb, b: 255 })}
                 label="B"
                 value={rgb.b}
                 onChange={(b) => onChange({ ...rgb, b })}
@@ -454,7 +455,7 @@ const RgbaPicker = memo(({ color, onChange }: PickerProps<RgbaColorJson>) => {
                     onChange={changeHandler}
                 />
                 <SliderAlpha
-                    color={rgbToCssHex(rgb)}
+                    color={rgbToHex(rgb)}
                     value={alpha}
                     onChange={changeAlphaHandler}
                 />
@@ -639,7 +640,7 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
                     p={0}
                     transitionProperty="none"
                     variant="unstyled"
-                    w="6.5rem"
+                    w="7rem"
                 >
                     <Text
                         color={getTextColorFor(color)}
