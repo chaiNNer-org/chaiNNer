@@ -234,8 +234,9 @@ const Slider8Bit = memo(({ label, value, onChange, color0, color255 }: Slider8Bi
 interface SliderAlphaProps {
     value: number;
     onChange: (value: number) => void;
+    color?: string;
 }
-const SliderAlpha = memo(({ value, onChange }: SliderAlphaProps) => {
+const SliderAlpha = memo(({ value, onChange, color }: SliderAlphaProps) => {
     const def = 100;
     const min = 0;
     const max = 100;
@@ -266,7 +267,7 @@ const SliderAlpha = memo(({ value, onChange }: SliderAlphaProps) => {
                 min={min}
                 scale={LINEAR_SCALE}
                 step={step}
-                style={{ type: 'old-label' }}
+                style={{ type: 'alpha', color }}
                 value={value}
                 onChange={changeHandler}
                 onChangeEnd={changeHandler}
@@ -453,6 +454,7 @@ const RgbaPicker = memo(({ color, onChange }: PickerProps<RgbaColorJson>) => {
                     onChange={changeHandler}
                 />
                 <SliderAlpha
+                    color={rgbToCssHex(rgb)}
                     value={alpha}
                     onChange={changeAlphaHandler}
                 />
