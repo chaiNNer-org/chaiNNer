@@ -38,7 +38,6 @@ export class LogScale implements Scale {
 
 interface OldLabelStyle {
     readonly type: 'old-label';
-    readonly label: string;
 }
 interface LabelStyle {
     readonly type: 'label';
@@ -62,7 +61,7 @@ interface StyledSliderProps {
     def: number;
     value: number;
     step: number;
-    tooltip: string;
+    tooltip?: string;
     onChange: (value: number) => void;
     onChangeEnd: (value: number) => void;
 
@@ -157,7 +156,7 @@ export const StyledSlider = memo(
                     bg={typeAccentColor}
                     borderRadius={8}
                     color="white"
-                    isOpen={showTooltip}
+                    isOpen={showTooltip && !!tooltip}
                     label={tooltip}
                     placement="top"
                     px={2}
