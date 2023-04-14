@@ -51,14 +51,14 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             packages: [
                 {
                     packageName: 'torch',
-                    version: `2.0.0${canCuda ? '+cu118' : ''}`,
-                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu118' : undefined,
-                    sizeEstimate: canCuda ? 2.6 * GB : 140 * MB,
+                    version: `1.10.2${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * GB : 140 * MB,
                 },
                 {
                     packageName: 'torchvision',
-                    version: `0.15.1${canCuda ? '+cu118' : ''}`,
-                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu118' : undefined,
+                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
                     sizeEstimate: canCuda ? 2 * MB : 800 * KB,
                 },
                 {
