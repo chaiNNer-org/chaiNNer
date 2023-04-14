@@ -182,7 +182,9 @@ const ensurePythonDeps = async (
         const installedPackages = new Set(Object.keys(pipList));
 
         const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
-        const optionalPackages = getOptionalDependencies(hasNvidia).flatMap((dep) => dep.packages);
+        const optionalPackages = getOptionalDependencies(hasNvidia, pythonInfo.version).flatMap(
+            (dep) => dep.packages
+        );
 
         // CASE 1: A package isn't installed
         const missingRequiredPackages = requiredPackages.filter(

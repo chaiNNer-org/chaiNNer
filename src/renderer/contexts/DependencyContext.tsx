@@ -309,7 +309,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             supplier: async () => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
                 const isNvidiaAvailable = nvidiaGpu !== null;
-                return getOptionalDependencies(isNvidiaAvailable);
+                return getOptionalDependencies(isNvidiaAvailable, pythonInfo.version);
             },
             successEffect: setAvailableDeps,
         }),
