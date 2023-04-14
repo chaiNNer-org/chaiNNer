@@ -505,11 +505,16 @@ const MultiColorPicker = memo(
         kinds: kindSet,
         internalColor,
     }: ColorBoxProps & { internalColor: React.MutableRefObject<ColorJson> }) => {
+        // eslint-disable-next-line react/hook-use-state
         const [color, setColorInternal] = useState(outsideColor);
-        const setColor = useCallback((value: ColorJson): void => {
-            setColorInternal(value);
-            internalColor.current = value;
-        }, []);
+        const setColor = useCallback(
+            (value: ColorJson): void => {
+                setColorInternal(value);
+                // eslint-disable-next-line no-param-reassign
+                internalColor.current = value;
+            },
+            [internalColor]
+        );
         useEffect(() => setColor(outsideColor), [outsideColor, setColor]);
 
         const kinds = useMemo(() => {
@@ -530,7 +535,7 @@ const MultiColorPicker = memo(
                                     borderRadius="lg"
                                     key={k}
                                     variant={color.kind === k ? 'solid' : 'ghost'}
-                                    onClick={() => setColor((c) => toKind(c, k))}
+                                    onClick={() => setColor(toKind(color, k))}
                                 >
                                     {KIND_LABEL[k]}
                                 </Button>
