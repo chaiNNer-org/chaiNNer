@@ -6,7 +6,7 @@ import Downloader from 'nodejs-file-downloader';
 import path from 'path';
 import util from 'util';
 import { FfmpegInfo } from '../../common/common-types';
-import { isM1 } from '../../common/env';
+import { isArmMac } from '../../common/env';
 import { assertNever, checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
 
@@ -14,7 +14,7 @@ const exec = util.promisify(_exec);
 
 const downloads: Record<SupportedPlatform, string> = {
     linux: 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-linux-x64.zip',
-    darwin: isM1
+    darwin: isArmMac
         ? 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-darwin-arm64.zip'
         : 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-darwin-x64.zip',
     win32: 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-win32-x64.zip',
@@ -105,7 +105,7 @@ export const getIntegratedFfmpeg = async (
                 log.warn(error);
             }
             // M1 can only run signed files, we must ad-hoc sign it
-            if (isM1) {
+            if (isArmMac) {
                 try {
                     // xattr -cr <pathtotheffmpegfile>
                     // codesign -s - <pathtotheffmpegfile>

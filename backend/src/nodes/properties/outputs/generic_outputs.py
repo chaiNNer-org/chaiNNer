@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ...utils.seed import Seed
 from .. import expression
-from .base_output import BaseOutput, OutputKind
+from .base_output import BaseOutput
 
 
 class NumberOutput(BaseOutput):
@@ -13,8 +13,12 @@ class NumberOutput(BaseOutput):
     ):
         super().__init__(expression.intersect("number", output_type), label)
 
-    def validate(self, value) -> None:
+    def get_broadcast_type(self, value: int | float):
+        return expression.literal(value)
+
+    def enforce(self, value) -> int | float:
         assert isinstance(value, (int, float))
+        return value
 
 
 class TextOutput(BaseOutput):
@@ -22,15 +26,15 @@ class TextOutput(BaseOutput):
         self,
         label: str,
         output_type: expression.ExpressionJson = "string",
-        kind: OutputKind = "text",
     ):
-        super().__init__(expression.intersect("string", output_type), label, kind=kind)
+        super().__init__(expression.intersect("string", output_type), label)
 
-    def get_broadcast_data(self, value: str):
-        return value
+    def get_broadcast_type(self, value: str):
+        return expression.literal(value)
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> str:
         assert isinstance(value, str)
+        return value
 
 
 def FileNameOutput(label: str = "Name", of_input: int | None = None):
@@ -47,5 +51,6 @@ class SeedOutput(BaseOutput):
     def __init__(self, label: str = "Seed"):
         super().__init__(output_type="Seed", label=label, kind="generic")
 
-    def validate(self, value) -> None:
+    def enforce(self, value) -> Seed:
         assert isinstance(value, Seed)
+        return value

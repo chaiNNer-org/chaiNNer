@@ -2,7 +2,7 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { SchemaId } from '../../../common/common-types';
+import { NodeType, SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
@@ -10,18 +10,20 @@ import { IconFactory } from '../CustomIcons';
 
 interface RepresentativeNodeProps {
     category: string;
+    // eslint-disable-next-line react/no-unused-prop-types
     subcategory: string;
     icon: string;
     name: string;
     collapsed?: boolean;
     schemaId: SchemaId;
+    nodeType: NodeType;
     createNodeFromSelector: () => void;
 }
 
 export const RepresentativeNode = memo(
     ({
         category,
-        subcategory,
+        nodeType,
         name,
         icon,
         schemaId,
@@ -38,7 +40,7 @@ export const RepresentativeNode = memo(
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(schemaId);
 
-        const isIterator = subcategory === 'Iteration';
+        const isIterator = nodeType === 'iterator';
         let bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 100%)`;
         if (isIterator) {
             bgGradient = `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`;

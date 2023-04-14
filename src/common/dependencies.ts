@@ -1,5 +1,5 @@
 import { Version } from './common-types';
-import { isM1, isMac, isWindows } from './env';
+import { isArmMac, isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
 const MB = 1024 ** 2;
@@ -22,7 +22,7 @@ export interface Dependency {
 }
 
 const getOnnxRuntime = (canCuda: boolean): PyPiPackage => {
-    if (isM1) {
+    if (isArmMac) {
         return {
             packageName: 'onnxruntime-silicon',
             sizeEstimate: 6 * MB,
@@ -96,7 +96,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '1.13.0',
                     sizeEstimate: 12 * MB,
                 },
-                ...(!isM1
+                ...(!isArmMac
                     ? ([
                           {
                               packageName: 'onnxoptimizer',
@@ -131,11 +131,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
 export const requiredDependencies: Dependency[] = [
     {
         name: 'Sanic',
-        packages: [{ packageName: 'sanic', version: '21.9.3', sizeEstimate: 270 * KB }],
+        packages: [{ packageName: 'sanic', version: '23.3.0', sizeEstimate: 200 * KB }],
     },
     {
         name: 'Sanic Cors',
-        packages: [{ packageName: 'Sanic-Cors', version: '1.0.1', sizeEstimate: 17 * KB }],
+        packages: [{ packageName: 'Sanic-Cors', version: '2.2.0', sizeEstimate: 17 * KB }],
     },
     {
         name: 'OpenCV',
@@ -165,9 +165,13 @@ export const requiredDependencies: Dependency[] = [
         name: 're2',
         packages: [{ packageName: 'google-re2', version: '1.0.0', sizeEstimate: 275 * KB }],
     },
+    {
+        name: 'scipy',
+        packages: [{ packageName: 'scipy', version: '1.9.3', sizeEstimate: 42 * MB }],
+    },
 ];
 
-if (isMac && !isM1) {
+if (isMac && !isArmMac) {
     requiredDependencies.push({
         name: 'Pasteboard',
         packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }],

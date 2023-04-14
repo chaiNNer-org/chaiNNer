@@ -291,7 +291,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     }
                     const { inputId } = parseTargetHandle(e.targetHandle);
                     const targetEdgeDefinition = typeState.functions.get(e.target)?.definition;
-                    if (!targetEdgeDefinition || targetEdgeDefinition.hasInput(inputId)) {
+                    if (!targetEdgeDefinition || !targetEdgeDefinition.hasInput(inputId)) {
                         return EMPTY_ARRAY;
                     }
                     const firstPossibleInput = getFirstPossibleInput(fn, edgeType);

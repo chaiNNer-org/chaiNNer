@@ -75,9 +75,9 @@ def batch_nearest_palette_color(
         )
 
     output = np.zeros(
-        (image.shape[0], image.shape[1], palette.shape[2]), dtype="float32"
+        (image.shape[0], image.shape[1], palette.shape[2]), dtype=np.float32
     )
-    low_water_mark = np.zeros((image.shape[0], image.shape[1]), dtype="float32")
+    low_water_mark = np.zeros((image.shape[0], image.shape[1]), dtype=np.float32)
 
     for idx in range(palette.shape[1]):
         color = palette[0, idx, :]

@@ -634,9 +634,7 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useDisHwAccel, useCheckUpdOnStrtUp, useExperimentalFeatures } =
-        useContext(SettingsContext);
-    const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
+    const { useCheckUpdOnStrtUp, useExperimentalFeatures } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
     const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
 
@@ -645,14 +643,6 @@ const AdvancedSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Toggle
-                description="Disable GPU hardware acceleration for rendering chaiNNer's UI. Only disable this is you know hardware acceleration is causing you issues."
-                title="Disable Hardware Acceleration (requires restart)"
-                value={isDisHwAccel}
-                onToggle={() => {
-                    setIsDisHwAccel((prev) => !prev);
-                }}
-            />
             <Toggle
                 description="Toggles checking for updates on start-up."
                 title="Check for Update on Start-up"
@@ -691,15 +681,27 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
             <ModalOverlay />
             <ModalContent
                 bgColor="var(--chain-editor-bg)"
-                maxH="500px"
-                maxW="750px"
-                minH="500px"
-                minW="750px"
+                h="min(100% - 7.5rem, 600px)"
+                maxW="unset"
+                my={0}
+                w="750px"
             >
                 <ModalHeader>Settings</ModalHeader>
                 <ModalCloseButton />
-                <ModalBody px={0}>
-                    <Tabs isFitted>
+                <ModalBody
+                    position="relative"
+                    px={0}
+                >
+                    <Tabs
+                        isFitted
+                        bottom={0}
+                        display="flex"
+                        flexDirection="column"
+                        left={0}
+                        position="absolute"
+                        right={0}
+                        top={0}
+                    >
                         <TabList>
                             <Tab>
                                 <HStack cursor="pointer">
@@ -727,8 +729,6 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                             </Tab>
                         </TabList>
                         <TabPanels
-                            maxH="300px"
-                            minH="300px"
                             overflowY="scroll"
                             px={4}
                         >

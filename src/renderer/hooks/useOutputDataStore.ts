@@ -1,6 +1,6 @@
 import isDeepEqual from 'fast-deep-equal/react';
 import { useCallback, useState } from 'react';
-import { OutputData } from '../../common/common-types';
+import { OutputData, OutputTypes } from '../../common/common-types';
 import { EMPTY_MAP } from '../../common/util';
 import { useMemoObject } from './useMemo';
 
@@ -8,6 +8,7 @@ export interface OutputDataEntry {
     inputHash: string;
     lastExecutionTime: number | undefined;
     data: OutputData | undefined;
+    types: OutputTypes | undefined;
 }
 
 export interface OutputDataActions {
@@ -15,7 +16,8 @@ export interface OutputDataActions {
         nodeId: string,
         executionTime: number | undefined,
         nodeInputHash: string,
-        data: OutputData | undefined
+        data: OutputData | undefined,
+        types: OutputTypes | undefined
     ): void;
     delete(nodeId: string): void;
     clear(): void;
@@ -26,14 +28,15 @@ export const useOutputDataStore = () => {
 
     const actions: OutputDataActions = {
         set: useCallback(
-            (nodeId, executionTime, inputHash, data) => {
+            (nodeId, executionTime, inputHash, data, types) => {
                 setMap((prev) => {
                     const existingEntry = prev.get(nodeId);
 
-                    const useExistingData = existingEntry?.data && !data;
+                    const useExisting = existingEntry?.data && !data && !types;
                     const entry: OutputDataEntry = {
-                        data: useExistingData ? existingEntry.data : data,
-                        inputHash: useExistingData ? existingEntry.inputHash : inputHash,
+                        data: useExisting ? existingEntry.data : data,
+                        types: useExisting ? existingEntry.types : types,
+                        inputHash: useExisting ? existingEntry.inputHash : inputHash,
                         lastExecutionTime: executionTime ?? existingEntry?.lastExecutionTime,
                     };
 

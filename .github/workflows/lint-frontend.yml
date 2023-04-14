@@ -26,14 +26,11 @@ jobs:
     frontend-lint:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
-            - name: Use Node.js 16.x
-              uses: actions/setup-node@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                  node-version: 16.x
-              # Node v14 comes with npm@6.x by default.
-              # This version of npm does NOT install peer deps by default which is required by some of our deps
-            - run: npm i -g npm@7
+                  node-version: 16
+                  cache: 'npm'
             - run: npm ci --force
             - name: eslint
               run: npm run lint-js-ci

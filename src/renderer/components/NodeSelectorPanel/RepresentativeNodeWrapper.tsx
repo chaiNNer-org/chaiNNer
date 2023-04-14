@@ -141,6 +141,7 @@ export const RepresentativeNodeWrapper = memo(
                                     createNodeFromSelector={createNodeFromSelector}
                                     icon={node.icon}
                                     name={node.name}
+                                    nodeType={node.nodeType}
                                     schemaId={node.schemaId}
                                     subcategory={node.subcategory}
                                 />

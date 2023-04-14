@@ -17,7 +17,6 @@ interface Settings {
     useOnnxShouldTensorRtCache: GetSetState<boolean>;
     useIsSystemPython: GetSetState<boolean>;
     useSystemPythonLocation: GetSetState<string | null>;
-    useDisHwAccel: GetSetState<boolean>;
     useCheckUpdOnStrtUp: GetSetState<boolean>;
     useSnapToGrid: readonly [
         snapToGrid: boolean,
@@ -57,7 +56,6 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useSystemPythonLocation = useMemoArray(
         useLocalStorage<string | null>('system-python-location', null)
     );
-    const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
     const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
@@ -107,7 +105,6 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useIsSystemPython,
         useSystemPythonLocation,
         useSnapToGrid,
-        useDisHwAccel,
         useCheckUpdOnStrtUp,
         useStartupTemplate,
         useIsDarkMode,

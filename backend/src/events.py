@@ -34,11 +34,15 @@ class NodeFinishData(TypedDict):
     nodeId: NodeId
     executionTime: Optional[float]
     data: Optional[Dict[OutputId, Any]]
+    types: Optional[Dict[OutputId, Any]]
     progressPercent: Optional[float]
 
 
 class IteratorProgressUpdateData(TypedDict):
     percent: float
+    index: int
+    total: int
+    eta: float
     iteratorId: NodeId
     running: Optional[List[NodeId]]
 

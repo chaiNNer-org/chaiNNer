@@ -128,15 +128,7 @@ export type Input =
     | SliderInput
     | NumberInput;
 
-export type OutputKind =
-    | 'image'
-    | 'large-image'
-    | 'text'
-    | 'directory'
-    | 'pytorch'
-    | 'ncnn'
-    | 'onnx'
-    | 'generic';
+export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
 export interface Output {
     readonly id: OutputId;
@@ -232,6 +224,7 @@ export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
+export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {
@@ -244,7 +237,7 @@ export interface NodeSchema {
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
     readonly groupLayout: readonly (InputId | Group)[];
-    readonly defaultNodes?: readonly DefaultNode[];
+    readonly defaultNodes?: readonly DefaultNode[] | null;
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
@@ -266,8 +259,7 @@ export interface NodeData {
     readonly groupState?: GroupState;
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
-    readonly iteratorSize?: IteratorSize;
-    readonly percentComplete?: number;
+    readonly iteratorSize?: Readonly<IteratorSize>;
     readonly minWidth?: number;
     readonly minHeight?: number;
 }

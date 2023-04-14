@@ -67,12 +67,12 @@ class BaseInput:
         self.id: InputId = InputId(-1)
 
     # This is the method that should be created by each input
-    def enforce(self, value):
+    def enforce(self, value: object):
         """Enforce the input type"""
         return value
 
     # This is the method that should be called by the processing code
-    def enforce_(self, value):
+    def enforce_(self, value: object | None):
         if self.optional and value is None:
             return None
         assert value is not None, (

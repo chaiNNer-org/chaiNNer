@@ -92,6 +92,7 @@ class NumberInput(BaseInput):
         raise ValueError("NumberInput and SliderInput cannot be made optional")
 
     def enforce(self, value):
+        assert isinstance(value, (int, float))
         return clampNumber(value, self.precision, self.minimum, self.maximum)
 
 

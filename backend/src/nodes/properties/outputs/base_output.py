@@ -1,12 +1,12 @@
-from typing import Literal, Union
+from __future__ import annotations
+
+from typing import Literal
 
 from base_types import OutputId
 
 from .. import expression
 
-OutputKind = Literal[
-    "image", "large-image", "text", "directory", "pytorch", "generic", "ncnn", "onnx"
-]
+OutputKind = Literal["image", "large-image", "tagged", "generic"]
 
 
 class BaseOutput:
@@ -20,7 +20,7 @@ class BaseOutput:
         self.output_type: expression.ExpressionJson = output_type
         self.label: str = label
         self.id: OutputId = OutputId(-1)
-        self.never_reason: Union[str, None] = None
+        self.never_reason: str | None = None
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
 
@@ -34,7 +34,7 @@ class BaseOutput:
             "hasHandle": self.has_handle,
         }
 
-    def with_id(self, output_id: Union[OutputId, int]):
+    def with_id(self, output_id: OutputId | int):
         self.id = OutputId(output_id)
         return self
 
@@ -51,5 +51,9 @@ class BaseOutput:
     def get_broadcast_data(self, _value):
         return None
 
-    def validate(self, value) -> None:
+    def get_broadcast_type(self, _value) -> expression.ExpressionJson | None:
+        return None
+
+    def enforce(self, value: object) -> object:
         assert value is not None
+        return value

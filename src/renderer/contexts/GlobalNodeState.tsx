@@ -59,12 +59,13 @@ import {
 import {
     NodeProto,
     copyEdges,
-    copyNode,
     copyNodes,
     createNode as createNodeImpl,
     defaultIteratorSize,
     expandSelection,
     setSelected,
+    withNewData,
+    withNewDataMap,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -136,7 +137,6 @@ interface Global {
         iteratorSize: IteratorSize | null,
         dimensions?: Size
     ) => void;
-    setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: (value: string | undefined) => void;
     setCollidingEdge: (value: string | undefined) => void;
@@ -931,12 +931,10 @@ export const GlobalProvider = memo(
                         return old;
                     }
 
-                    const nodeCopy = copyNode(old);
-                    nodeCopy.data.inputData = {
-                        ...nodeCopy.data.inputData,
+                    return withNewData(old, 'inputData', {
+                        ...old.data.inputData,
                         [inputId]: value,
-                    };
-                    return nodeCopy;
+                    });
                 });
                 addInputDataChanges();
             },
@@ -952,9 +950,8 @@ export const GlobalProvider = memo(
                 const currentSize = inputSize?.[inputId];
                 const setInputSize = (size: Readonly<Size>) => {
                     modifyNode(id, (old) => {
-                        const nodeCopy = copyNode(old);
-                        const newInputSize: Record<string, Size> = {
-                            ...nodeCopy.data.inputSize,
+                        const newInputSize: Record<string, Readonly<Size>> = {
+                            ...old.data.inputSize,
                             [inputId]: size,
                         };
                         Object.entries(newInputSize).forEach(([key, value]) => {
@@ -963,8 +960,7 @@ export const GlobalProvider = memo(
                                 width: size.width,
                             };
                         });
-                        nodeCopy.data.inputSize = newInputSize;
-                        return nodeCopy;
+                        return withNewData(old, 'inputSize', newInputSize);
                     });
                 };
                 return [currentSize, setInputSize] as const;
@@ -1023,13 +1019,14 @@ export const GlobalProvider = memo(
 
         const toggleNodeLock = useCallback(
             (id: string) => {
-                modifyNode(id, (old) => {
+                modifyNode(id, (old): Node<NodeData> => {
                     const isLocked = old.data.isLocked ?? false;
-                    const newNode = copyNode(old);
-                    newNode.draggable = isLocked;
-                    newNode.connectable = isLocked;
-                    newNode.data.isLocked = !isLocked;
-                    return newNode;
+                    return {
+                        ...old,
+                        draggable: isLocked,
+                        connectable: isLocked,
+                        data: { ...old.data, isLocked: !isLocked },
+                    };
                 });
             },
             [modifyNode]
@@ -1051,9 +1048,7 @@ export const GlobalProvider = memo(
         const setIteratorSize = useCallback(
             (id: string, size: IteratorSize) => {
                 modifyNode(id, (old) => {
-                    const newNode = copyNode(old);
-                    newNode.data.iteratorSize = size;
-                    return newNode;
+                    return withNewData(old, 'iteratorSize', size);
                 });
             },
             [modifyNode]
@@ -1078,36 +1073,34 @@ export const GlobalProvider = memo(
                             );
                         });
                         const newNodes = nodesToUpdate.map((n) => {
-                            const newNode = copyNode(n);
                             const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
                             const hBound =
                                 height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
-                            newNode.extent = [
-                                [offsetLeft, offsetTop],
-                                [wBound, hBound],
-                            ];
-                            newNode.position.x = Math.min(
-                                Math.max(newNode.position.x, offsetLeft),
-                                wBound
-                            );
-                            newNode.position.y = Math.min(
-                                Math.max(newNode.position.y, offsetTop),
-                                hBound
-                            );
+                            const newNode: Node<NodeData> = {
+                                ...n,
+                                extent: [
+                                    [offsetLeft, offsetTop],
+                                    [wBound, hBound],
+                                ],
+                                position: {
+                                    x: Math.min(Math.max(n.position.x, offsetLeft), wBound),
+                                    y: Math.min(Math.max(n.position.y, offsetTop), hBound),
+                                },
+                            };
                             return newNode;
                         });
 
-                        const newIteratorNode = copyNode(iteratorNode);
-
-                        newIteratorNode.data.minWidth = minWidth;
-                        newIteratorNode.data.minHeight = minHeight;
-                        // TODO: prove that those non-null assertions are valid or make them unnecessary
-                        newIteratorNode.data.iteratorSize!.width =
-                            width < minWidth ? minWidth : width;
-                        newIteratorNode.data.iteratorSize!.height =
-                            height < minHeight ? minHeight : height;
                         return [
-                            newIteratorNode,
+                            withNewDataMap(iteratorNode, {
+                                minWidth,
+                                minHeight,
+                                iteratorSize: {
+                                    offsetTop,
+                                    offsetLeft,
+                                    width: Math.max(width, minWidth),
+                                    height: Math.max(height, minHeight),
+                                },
+                            }),
                             ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
                             ...newNodes,
                         ];
@@ -1117,21 +1110,6 @@ export const GlobalProvider = memo(
                 });
             },
             [changeNodes]
-        );
-
-        const setIteratorPercent = useCallback(
-            (id: string, percent: number) => {
-                rfSetNodes((nodes) => {
-                    const foundNode = nodes.find((n) => n.id === id);
-                    if (foundNode) {
-                        const newNode = copyNode(foundNode);
-                        newNode.data.percentComplete = percent;
-                        return [...nodes.filter((n) => n.id !== id), newNode];
-                    }
-                    return nodes;
-                });
-            },
-            [rfSetNodes]
         );
 
         const duplicateNodes = useCallback(
@@ -1195,9 +1173,11 @@ export const GlobalProvider = memo(
             (ids: readonly string[]) => {
                 ids.forEach((id) => {
                     modifyNode(id, (old) => {
-                        const newNode = copyNode(old);
-                        newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
-                        return newNode;
+                        return withNewData(
+                            old,
+                            'inputData',
+                            schemata.getDefaultInput(old.data.schemaId)
+                        );
                     });
                     outputDataActions.delete(id);
                     addInputDataChanges();
@@ -1210,9 +1190,7 @@ export const GlobalProvider = memo(
         const setNodeDisabled = useCallback(
             (id: string, isDisabled: boolean): void => {
                 modifyNode(id, (n) => {
-                    const newNode = copyNode(n);
-                    newNode.data.isDisabled = isDisabled;
-                    return newNode;
+                    return withNewData(n, 'isDisabled', isDisabled);
                 });
             },
             [modifyNode]
@@ -1366,7 +1344,6 @@ export const GlobalProvider = memo(
             removeEdgeById,
             duplicateNodes,
             updateIteratorBounds,
-            setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
             setCollidingEdge,

@@ -88,6 +88,6 @@ def xyz_to_octahedral_bgr(xyz: XYZ) -> np.ndarray:
 
     r = (r + 1) * 0.5
     g = (g + 1) * 0.5
-    b = np.zeros(x.shape)
+    b = np.zeros(x.shape, dtype=np.float32)
 
     return np.dstack((b, g, r))

@@ -41,3 +41,12 @@ def format_image_with_channels(
         return f"images with {join_english(channels, conj=conj)} channel(s)"
     else:
         return f"an image with {join_english(channels, conj=conj)} channel(s)"
+
+
+_CHANNEL_NUMBER_NAME = {1: "GRAY", 3: "RGB", 4: "RGBA"}
+
+
+def format_channel_numbers(input_channels: int, output_channels: int) -> str:
+    i = _CHANNEL_NUMBER_NAME.get(input_channels, str(input_channels))
+    o = _CHANNEL_NUMBER_NAME.get(output_channels, str(output_channels))
+    return f"{i}🠚{o}"

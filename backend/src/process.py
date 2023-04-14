@@ -22,19 +22,20 @@ from typing import (
 import numpy as np
 from sanic.log import logger
 
+from api import NodeData
 from base_types import NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
 from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.impl.image_utils import get_h_w_c
-from nodes.node_base import NodeBase
-from progress import Aborted, ProgressController, ProgressToken
+from nodes.properties.outputs.base_output import BaseOutput
+from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = List[Any]
 
 
-def to_output(raw_output: Any, node: NodeBase) -> Output:
+def to_output(raw_output: Any, node: NodeData) -> Output:
     l = len(node.outputs)
 
     output: Output
@@ -56,7 +57,7 @@ def to_output(raw_output: Any, node: NodeBase) -> Output:
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
-        o.validate(output[i])
+        output[i] = o.enforce(output[i])
 
     return output
 
@@ -84,6 +85,7 @@ class IteratorContext:
     ):
         self.executor: Executor = executor
         self.progress: ProgressToken = executor.progress
+        self.times: List[float] = []
 
         self.iterator_id: NodeId = iterator_id
         self.chain = SubChain(executor.chain, iterator_id)
@@ -108,34 +110,52 @@ class IteratorContext:
             parent_executor=self.executor,
         )
 
-    async def run_iteration(self, index: int, total: int):
-        executor = self.__create_iterator_executor()
+    def __get_eta(self, index: int, total: int) -> float:
+        if len(self.times) == 0:
+            return 0
+        return (sum(self.times) / len(self.times)) * (total - index)
 
-        await self.progress.suspend()
+    async def __update_progress(self, index: int, length: int):
         await self.executor.queue.put(
             {
                 "event": "iterator-progress-update",
                 "data": {
-                    "percent": index / total,
+                    "percent": index / length,
+                    "index": index,
+                    "total": length,
+                    "eta": self.__get_eta(index, length),
                     "iteratorId": self.iterator_id,
                     "running": list(self.chain.nodes.keys()),
                 },
             }
         )
 
+    async def __finish_progress(self, length: int):
+        await self.executor.queue.put(
+            {
+                "event": "iterator-progress-update",
+                "data": {
+                    "percent": 1,
+                    "index": length,
+                    "total": length,
+                    "eta": 0,
+                    "iteratorId": self.iterator_id,
+                    "running": None,
+                },
+            }
+        )
+
+    async def run_iteration(self, index: int, total: int):
+        await self.__update_progress(index, total)
+        await self.progress.suspend()
+
+        start = time.time()
         try:
+            executor = self.__create_iterator_executor()
             await executor.run_iteration(self.chain)
         finally:
-            await self.executor.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": (index + 1) / total,
-                        "iteratorId": self.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
+            end = time.time()
+            self.times.append(end - start)
 
     async def run(
         self,
@@ -144,6 +164,8 @@ class IteratorContext:
     ):
         items = list(collection)
         length = len(items)
+
+        await self.__update_progress(0, length)
 
         errors: List[str] = []
         for index, item in enumerate(items):
@@ -161,6 +183,8 @@ class IteratorContext:
                 logger.error(e)
                 errors.append(str(e))
 
+        await self.__finish_progress(length)
+
         if len(errors) > 0:
             raise RuntimeError(
                 # pylint: disable=consider-using-f-string
@@ -175,6 +199,9 @@ class IteratorContext:
     ):
         errors: List[str] = []
         index = -1
+
+        await self.__update_progress(0, length_estimate)
+
         while True:
             try:
                 await self.progress.suspend()
@@ -185,9 +212,7 @@ class IteratorContext:
                 if result is False:
                     break
 
-                await self.run_iteration(
-                    min(index, length_estimate - 1), length_estimate
-                )
+                await self.run_iteration(index, max(length_estimate, index + 1))
             except Aborted:
                 raise
             except Exception as e:
@@ -196,17 +221,7 @@ class IteratorContext:
                     raise
                 errors.append(str(e))
 
-        if index < length_estimate:
-            await self.executor.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": 1,
-                        "iteratorId": self.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
+        await self.__finish_progress(index)
 
         if len(errors) > 0:
             raise RuntimeError(
@@ -386,7 +401,7 @@ class Executor:
 
     async def __broadcast_data(
         self,
-        node_instance: NodeBase,
+        node_instance: NodeData,
         node_id: NodeId,
         execution_time: float,
         output: Output,
@@ -396,19 +411,10 @@ class Executor:
         if not node_id in finished:
             finished.append(node_id)
 
-        def compute_broadcast_data():
-            broadcast_data: Dict[OutputId, Any] = dict()
-            for index, node_output in enumerate(node_outputs):
-                try:
-                    broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output[index]
-                    )
-                except Exception as e:
-                    logger.error(f"Error broadcasting output: {e}")
-            return broadcast_data
-
         async def send_broadcast():
-            data = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
+            data, types = await self.loop.run_in_executor(
+                self.pool, lambda: compute_broadcast(output, node_outputs)
+            )
             self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
@@ -418,6 +424,7 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,
+                        "types": types,
                         "progressPercent": len(self.completed_node_ids)
                         / len(self.chain.nodes),
                     },
@@ -442,6 +449,7 @@ class Executor:
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": None,
+                        "types": None,
                         "progressPercent": len(self.completed_node_ids)
                         / len(self.chain.nodes),
                     },
@@ -462,6 +470,7 @@ class Executor:
                 "nodeId": node_id,
                 "executionTime": None,
                 "data": None,
+                "types": None,
                 "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
             },
         }
@@ -517,3 +526,15 @@ class Executor:
     def kill(self):
         logger.debug(f"Killing executor {self.execution_id}")
         self.progress.abort()
+
+
+def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
+    data: Dict[OutputId, Any] = dict()
+    types: Dict[OutputId, Any] = dict()
+    for index, node_output in enumerate(node_outputs):
+        try:
+            data[node_output.id] = node_output.get_broadcast_data(output[index])
+            types[node_output.id] = node_output.get_broadcast_type(output[index])
+        except Exception as e:
+            logger.error(f"Error broadcasting output: {e}")
+    return data, types

@@ -1,6 +1,8 @@
-import { Box, Center, HStack, Heading, LayoutProps, Tooltip, VStack } from '@chakra-ui/react';
+import { Box, Center, HStack, Heading, LayoutProps, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
+import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { IteratorProgress } from '../../contexts/ExecutionContext';
 import { IconFactory } from '../CustomIcons';
 
 interface IteratorNodeHeaderProps {
@@ -8,7 +10,7 @@ interface IteratorNodeHeaderProps {
     icon: string;
     accentColor: string;
     selected: boolean;
-    percentComplete?: number;
+    iteratorProgress?: IteratorProgress;
     width?: LayoutProps['width'];
     disabledStatus: DisabledStatus;
 }
@@ -20,9 +22,13 @@ export const IteratorNodeHeader = memo(
         icon,
         accentColor,
         selected,
-        percentComplete,
+        iteratorProgress,
         disabledStatus,
     }: IteratorNodeHeaderProps) => {
+        const { percent, eta, index, total } = iteratorProgress ?? {};
+        const etaDate = new Date();
+        etaDate.setSeconds(etaDate.getSeconds() + (eta ?? 0));
+
         return (
             <VStack
                 spacing={0}
@@ -30,7 +36,7 @@ export const IteratorNodeHeader = memo(
             >
                 <Center
                     borderBottomColor={accentColor}
-                    borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
+                    borderBottomWidth={percent !== undefined ? '0px' : '4px'}
                     borderStyle="default"
                     h="auto"
                     pt={2}
@@ -75,26 +81,55 @@ export const IteratorNodeHeader = memo(
                         </Center>
                     </HStack>
                 </Center>
-                {percentComplete !== undefined && (
-                    <Tooltip
-                        borderRadius={8}
-                        label={`${Number(percentComplete * 100).toFixed(1)}%`}
-                        px={2}
-                        py={1}
+                {percent !== undefined && (
+                    <Box
+                        h={6}
+                        w="full"
                     >
+                        <Center w="full">
+                            <HStack
+                                mb="-6"
+                                position="relative"
+                            >
+                                <Text
+                                    fontWeight="medium"
+                                    size="sm"
+                                >{`${Number(index)}/${Number(total)} (${Number(
+                                    percent * 100
+                                ).toFixed(1)}%)`}</Text>
+                                <Text
+                                    fontWeight="medium"
+                                    size="sm"
+                                >
+                                    ETA:{' '}
+                                    {percent === 1 ? (
+                                        'Finished'
+                                    ) : (
+                                        <ReactTimeAgo
+                                            future
+                                            date={etaDate}
+                                            locale="en-US"
+                                            timeStyle="round"
+                                            tooltip={false}
+                                        />
+                                    )}
+                                </Text>
+                            </HStack>
+                        </Center>
                         <Box
                             bgColor="gray.500"
-                            h={1}
+                            h={6}
                             w="full"
                         >
                             <Box
                                 bgColor={accentColor}
-                                h="full"
+                                // h="full"
+                                h={6}
                                 transition="all 0.15s ease-in-out"
-                                w={`${percentComplete * 100}%`}
+                                w={`${percent * 100}%`}
                             />
                         </Box>
-                    </Tooltip>
+                    </Box>
                 )}
             </VStack>
         );

@@ -1,8 +1,7 @@
 from typing import Callable, Dict, List, TypeVar, Union
 
+from api import NodeData, registry
 from base_types import InputId, NodeId, OutputId
-from nodes.node_base import IteratorNodeBase, NodeBase
-from nodes.node_factory import NodeFactory
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -23,8 +22,8 @@ class FunctionNode:
         self.parent: Union[NodeId, None] = None
         self.is_helper: bool = False
 
-    def get_node(self) -> NodeBase:
-        return NodeFactory.get_node(self.schema_id)
+    def get_node(self) -> NodeData:
+        return registry.get_node(self.schema_id)
 
     def has_side_effects(self) -> bool:
         return self.get_node().side_effects
@@ -37,10 +36,10 @@ class IteratorNode:
         self.parent: None = None
         self.__node = None
 
-    def get_node(self) -> IteratorNodeBase:
+    def get_node(self) -> NodeData:
         if self.__node is None:
-            node = NodeFactory.get_node(self.schema_id)
-            assert isinstance(node, IteratorNodeBase), "Invalid iterator node"
+            node = registry.get_node(self.schema_id)
+            assert node.type == "iterator", "Invalid iterator node"
             self.__node = node
         return self.__node
 
