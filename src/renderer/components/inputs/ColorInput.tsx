@@ -653,7 +653,10 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
                 </Button>
             </PopoverTrigger>
             <Portal>
-                <PopoverContent className="chainner-color-selector">
+                <PopoverContent
+                    className="chainner-color-selector"
+                    w="17rem"
+                >
                     <PopoverArrow />
                     <PopoverBody p={2}>
                         <MultiColorPicker
