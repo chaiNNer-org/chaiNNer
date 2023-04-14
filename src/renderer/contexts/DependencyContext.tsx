@@ -313,7 +313,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             },
             successEffect: setAvailableDeps,
         }),
-        []
+        [pythonInfo.version]
     );
 
     const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
