@@ -20,7 +20,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import log from 'electron-log';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HsvColor, RgbColor, RgbaColor } from 'react-colorful';
 import { rgb as rgbContrast } from 'wcag-contrast';
 import {
@@ -34,7 +34,7 @@ import { assertNever, stopPropagation } from '../../../common/util';
 import { TypeTags } from '../TypeTag';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { hsvEqual, hsvToRgb, rgbEqual, rgbToHsv } from './elements/color-util';
-import { HsvColorPicker, RgbColorPicker } from './elements/ColorPicker';
+import { HsvColorPicker } from './elements/ColorPicker';
 import { LINEAR_SCALE, SliderStyle, StyledSlider } from './elements/StyledSlider';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -489,6 +489,70 @@ const useColorModes = (color: ColorJson, onChange: (value: RgbColor) => void): U
 const KIND_SELECTOR_HEIGHT = '2rem';
 const COMPARE_BUTTON_HEIGHT = '3rem';
 
+interface RgbOrRgbaPickerProps extends Omit<PickerFor<ColorJson>, 'onChange'> {
+    onChange: (color: RgbColor) => void;
+    alpha?: ReactNode;
+}
+const RgbOrRgbaPicker = memo(
+    ({ color, onChange, alpha, compare, kindSelector }: RgbOrRgbaPickerProps) => {
+        const { rgb, hsv, changeRgb, changeHsv } = useColorModes(color, onChange);
+
+        return (
+            <HStack
+                alignItems="start"
+                spacing={4}
+            >
+                <VStack
+                    spacing={2}
+                    w="12rem"
+                >
+                    {kindSelector}
+                    {compare}
+                    <HsvColorPicker
+                        color={hsv}
+                        onChange={changeHsv}
+                    />
+                </VStack>
+                <VStack
+                    spacing={2}
+                    w="15rem"
+                >
+                    <Box
+                        alignItems="end"
+                        display="flex"
+                        h={KIND_SELECTOR_HEIGHT}
+                        w="full"
+                    >
+                        <RgbHexInput
+                            rgb={rgb}
+                            onChange={changeRgb}
+                        />
+                    </Box>
+                    <VStack
+                        spacing={0.5}
+                        w="full"
+                    >
+                        <RgbSliders
+                            rgb={rgb}
+                            onChange={changeRgb}
+                        />
+                        {alpha || <Box h="1.5rem" />}
+                    </VStack>
+                    <VStack
+                        spacing={0.5}
+                        w="full"
+                    >
+                        <HsvSliders
+                            hsv={hsv}
+                            onChange={changeHsv}
+                        />
+                    </VStack>
+                </VStack>
+            </HStack>
+        );
+    }
+);
+
 interface PickerFor<C extends ColorJson> {
     color: C;
     onChange: (color: C) => void;
@@ -532,35 +596,20 @@ const GrayPicker = memo(
     }
 );
 const RgbPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson>) => {
-    const rgb = toRgbColor(color);
-
-    const changeHandler = ({ r, g, b }: RgbColor): void => {
-        onChange({ kind: 'rgb', values: [r / 255, g / 255, b / 255] });
-    };
+    const onChangeRgb = useCallback(
+        ({ r, g, b }: RgbColor): void => {
+            onChange({ kind: 'rgb', values: [r / 255, g / 255, b / 255] });
+        },
+        [onChange]
+    );
 
     return (
-        <>
-            <Box>
-                {kindSelector}
-                <RgbColorPicker
-                    color={rgb}
-                    onChange={changeHandler}
-                />
-            </Box>
-            <VStack
-                mt={2}
-                spacing={0.5}
-            >
-                <RgbSliders
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
-                <RgbHexInput
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
-            </VStack>
-        </>
+        <RgbOrRgbaPicker
+            color={color}
+            compare={compare}
+            kindSelector={kindSelector}
+            onChange={onChangeRgb}
+        />
     );
 });
 const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbaColorJson>) => {
@@ -571,73 +620,28 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
         onChange({ kind: 'rgba', values: [r, g, b, a / 100] });
     };
 
-    const { rgb, hsv, changeRgb, changeHsv } = useColorModes(
-        color,
-        useCallback(
-            ({ r, g, b }: RgbColor): void => {
-                onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
-            },
-            [onChange, originalAlpha]
-        )
+    const onChangeRgb = useCallback(
+        ({ r, g, b }: RgbColor): void => {
+            onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
+        },
+        [onChange, originalAlpha]
     );
 
     return (
-        <HStack
-            alignItems="start"
-            spacing={4}
-        >
-            <VStack
-                spacing={2}
-                w="12rem"
-            >
-                {kindSelector}
-                {compare}
-                <HsvColorPicker
-                    color={hsv}
-                    onChange={changeHsv}
+        <RgbOrRgbaPicker
+            alpha={
+                <ColorSlider
+                    {...getAlphaProps(rgbToHex(toRgbColor(color)))}
+                    label="A"
+                    value={alpha}
+                    onChange={changeAlphaHandler}
                 />
-            </VStack>
-            <VStack
-                spacing={2}
-                w="15rem"
-            >
-                <Box
-                    alignItems="end"
-                    display="flex"
-                    h={KIND_SELECTOR_HEIGHT}
-                    w="full"
-                >
-                    <RgbHexInput
-                        rgb={rgb}
-                        onChange={changeRgb}
-                    />
-                </Box>
-                <VStack
-                    spacing={0.5}
-                    w="full"
-                >
-                    <RgbSliders
-                        rgb={rgb}
-                        onChange={changeRgb}
-                    />
-                    <ColorSlider
-                        {...getAlphaProps(rgbToHex(rgb))}
-                        label="A"
-                        value={alpha}
-                        onChange={changeAlphaHandler}
-                    />
-                </VStack>
-                <VStack
-                    spacing={0.5}
-                    w="full"
-                >
-                    <HsvSliders
-                        hsv={hsv}
-                        onChange={changeHsv}
-                    />
-                </VStack>
-            </VStack>
-        </HStack>
+            }
+            color={color}
+            compare={compare}
+            kindSelector={kindSelector}
+            onChange={onChangeRgb}
+        />
     );
 });
 
