@@ -6,7 +6,7 @@ import {
     HsvColor,
     RgbColor,
 } from 'react-colorful';
-import { hsvColorId, rgbColorId } from './color-util';
+import { hsvColorId, rgbColorId } from '../../../helpers/colorUtil';
 
 interface PickerProps<T> {
     color: T;

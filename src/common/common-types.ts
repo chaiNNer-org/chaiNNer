@@ -349,6 +349,7 @@ export interface Category {
 }
 
 export type ColorJson = GrayscaleColorJson | RgbColorJson | RgbaColorJson;
+export type ColorKind = ColorJson['kind'];
 export interface GrayscaleColorJson {
     readonly kind: 'grayscale';
     readonly values: readonly [luma: number];
