@@ -454,6 +454,9 @@ const HsvSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
     );
 });
 
+const KIND_SELECTOR_HEIGHT = '2rem';
+const COMPARE_BUTTON_HEIGHT = '3rem';
+
 interface PickerFor<C extends ColorJson> {
     color: C;
     onChange: (color: C) => void;
@@ -461,26 +464,41 @@ interface PickerFor<C extends ColorJson> {
     kindSelector: JSX.Element | undefined;
 }
 
-const GrayPicker = memo(({ color, onChange }: PickerFor<GrayscaleColorJson>) => {
-    const changeHandler = useCallback(
-        (value: number) => {
-            onChange({ kind: 'grayscale', values: [value / 255] });
-        },
-        [onChange]
-    );
-    const value = Math.round(color.values[0] * 255);
+const GrayPicker = memo(
+    ({ color, onChange, compare, kindSelector }: PickerFor<GrayscaleColorJson>) => {
+        const changeHandler = useCallback(
+            (value: number) => {
+                onChange({ kind: 'grayscale', values: [value / 255] });
+            },
+            [onChange]
+        );
+        const value = Math.round(color.values[0] * 255);
 
-    return (
-        <Box>
-            <ColorSlider
-                {...get8BitProps('black', 'white')}
-                label="L"
-                value={value}
-                onChange={changeHandler}
-            />
-        </Box>
-    );
-});
+        return (
+            <HStack spacing={4}>
+                <VStack
+                    spacing={2}
+                    w="12rem"
+                >
+                    {kindSelector}
+                    {compare}
+                </VStack>
+                <HStack
+                    alignSelf="end"
+                    h={COMPARE_BUTTON_HEIGHT}
+                    w="15rem"
+                >
+                    <ColorSlider
+                        {...get8BitProps('black', 'white')}
+                        label="L"
+                        value={value}
+                        onChange={changeHandler}
+                    />
+                </HStack>
+            </HStack>
+        );
+    }
+);
 const RgbPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson>) => {
     const rgb = toRgbColor(color);
 
@@ -526,7 +544,10 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
     };
 
     return (
-        <HStack spacing={4}>
+        <HStack
+            alignItems="start"
+            spacing={4}
+        >
             <VStack
                 spacing={2}
                 w="12rem"
@@ -539,27 +560,44 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
                 />
             </VStack>
             <VStack
-                spacing={0.5}
+                spacing={2}
                 w="15rem"
             >
-                <RgbHexInput
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
-                <RgbSliders
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
-                <ColorSlider
-                    {...getAlphaProps(rgbToHex(rgb))}
-                    label="A"
-                    value={alpha}
-                    onChange={changeAlphaHandler}
-                />
-                <HsvSliders
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
+                <Box
+                    alignItems="end"
+                    display="flex"
+                    h={KIND_SELECTOR_HEIGHT}
+                    w="full"
+                >
+                    <RgbHexInput
+                        rgb={rgb}
+                        onChange={changeHandler}
+                    />
+                </Box>
+                <VStack
+                    spacing={0.5}
+                    w="full"
+                >
+                    <RgbSliders
+                        rgb={rgb}
+                        onChange={changeHandler}
+                    />
+                    <ColorSlider
+                        {...getAlphaProps(rgbToHex(rgb))}
+                        label="A"
+                        value={alpha}
+                        onChange={changeAlphaHandler}
+                    />
+                </VStack>
+                <VStack
+                    spacing={0.5}
+                    w="full"
+                >
+                    <HsvSliders
+                        rgb={rgb}
+                        onChange={changeHandler}
+                    />
+                </VStack>
             </VStack>
         </HStack>
     );
@@ -595,64 +633,66 @@ function toKind<K extends ColorKind>(color: ColorJson, kind: K): OfKind<ColorJso
     return toRgba(color) as never;
 }
 
-interface CompareProps {
+interface CompareButtonsProps {
     oldColor: ColorJson;
     newColor: ColorJson;
     onOldClick: () => void;
     onNewClick: () => void;
 }
-const CompareOldNew = memo(({ oldColor, newColor, onOldClick, onNewClick }: CompareProps) => {
-    return (
-        <ButtonGroup
-            isAttached
-            display="flex"
-            variant="unstyled"
-            w="full"
-        >
-            <Tooltip
-                closeOnClick
-                closeOnPointerDown
-                hasArrow
-                borderRadius={8}
-                label="Reset to old color"
-                openDelay={1000}
+const CompareButtons = memo(
+    ({ oldColor, newColor, onOldClick, onNewClick }: CompareButtonsProps) => {
+        return (
+            <ButtonGroup
+                isAttached
+                display="flex"
+                variant="unstyled"
+                w="full"
             >
-                <Button
-                    background={getCssBackground(oldColor)}
-                    borderRadius="lg"
-                    color={getTextColorFor(oldColor)}
-                    h={12}
-                    style={{ backgroundPositionX: '100%' }}
-                    transitionProperty="none"
-                    w="full"
-                    onClick={onOldClick}
+                <Tooltip
+                    closeOnClick
+                    closeOnPointerDown
+                    hasArrow
+                    borderRadius={8}
+                    label="Reset to old color"
+                    openDelay={1000}
                 >
-                    old
-                </Button>
-            </Tooltip>
-            <Tooltip
-                closeOnClick
-                closeOnPointerDown
-                hasArrow
-                borderRadius={8}
-                label="Accept new color"
-                openDelay={1000}
-            >
-                <Button
-                    background={getCssBackground(newColor)}
-                    borderRadius="lg"
-                    color={getTextColorFor(newColor)}
-                    h={12}
-                    transitionProperty="none"
-                    w="full"
-                    onClick={onNewClick}
+                    <Button
+                        background={getCssBackground(oldColor)}
+                        borderRadius="lg"
+                        color={getTextColorFor(oldColor)}
+                        h={COMPARE_BUTTON_HEIGHT}
+                        style={{ backgroundPositionX: '100%' }}
+                        transitionProperty="none"
+                        w="full"
+                        onClick={onOldClick}
+                    >
+                        old
+                    </Button>
+                </Tooltip>
+                <Tooltip
+                    closeOnClick
+                    closeOnPointerDown
+                    hasArrow
+                    borderRadius={8}
+                    label="Accept new color"
+                    openDelay={1000}
                 >
-                    new
-                </Button>
-            </Tooltip>
-        </ButtonGroup>
-    );
-});
+                    <Button
+                        background={getCssBackground(newColor)}
+                        borderRadius="lg"
+                        color={getTextColorFor(newColor)}
+                        h={COMPARE_BUTTON_HEIGHT}
+                        transitionProperty="none"
+                        w="full"
+                        onClick={onNewClick}
+                    >
+                        new
+                    </Button>
+                </Tooltip>
+            </ButtonGroup>
+        );
+    }
+);
 
 const KIND_ORDER: readonly ColorKind[] = ['grayscale', 'rgb', 'rgba'];
 const KIND_LABEL: Readonly<Record<ColorKind, string>> = {
@@ -675,6 +715,7 @@ const ColorKindSelector = memo(({ kinds, current, onSelect }: ColorKindSelectorP
         <ButtonGroup
             isAttached
             size="sm"
+            w="full"
         >
             {kindArray.map((k) => {
                 return (
@@ -682,6 +723,7 @@ const ColorKindSelector = memo(({ kinds, current, onSelect }: ColorKindSelectorP
                         borderRadius="lg"
                         key={k}
                         variant={current === k ? 'solid' : 'ghost'}
+                        w="full"
                         onClick={() => onSelect(k)}
                     >
                         {KIND_LABEL[k]}
@@ -721,7 +763,7 @@ const MultiColorPicker = memo(
             ) : undefined;
 
         const compare = (
-            <CompareOldNew
+            <CompareButtons
                 newColor={color}
                 oldColor={outsideColor}
                 onNewClick={() => onChange(color)}
