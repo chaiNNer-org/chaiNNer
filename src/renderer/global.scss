@@ -174,14 +174,15 @@ body {
 
     .react-colorful {
         width: 100%;
-        height: 10rem;
+        height: 9rem;
     }
 
     .react-colorful__saturation {
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-radius: var(--border-radius);
+        border-bottom: none;
     }
 
-    .react-colorful__last-control {
-        border-radius: 0 0 var(--border-radius) var(--border-radius);
+    .react-colorful__hue {
+        display: none;
     }
 }
