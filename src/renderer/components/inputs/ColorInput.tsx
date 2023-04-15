@@ -1,3 +1,4 @@
+/* eslint-disable prefer-arrow-functions/prefer-arrow-functions */
 /* eslint-disable no-param-reassign */
 /* eslint-disable react/jsx-props-no-spreading */
 import {
@@ -32,7 +33,8 @@ import {
 import { assertNever, stopPropagation } from '../../../common/util';
 import { TypeTags } from '../TypeTag';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { RgbColorPicker } from './elements/RgbColorPicker';
+import { hsvEqual, hsvToRgb, rgbEqual, rgbToHsv } from './elements/color-util';
+import { HsvColorPicker, RgbColorPicker } from './elements/ColorPicker';
 import { LINEAR_SCALE, SliderStyle, StyledSlider } from './elements/StyledSlider';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -171,46 +173,6 @@ const rgbToHex = ({ r, g, b }: RgbColor): string => {
     return `#${to8BitHex(r / 255, g / 255, b / 255)}`;
 };
 
-const rgbToHsv = ({ r, g, b }: RgbColor): HsvColor => {
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const c = max - min;
-
-    let h;
-    if (c === 0) {
-        h = 0;
-    } else if (max === r) {
-        h = (g - b) / c + 6;
-    } else if (max === g) {
-        h = (b - r) / c + 2;
-    } else {
-        h = (r - g) / c + 4;
-    }
-
-    const v = max;
-    const s = v === 0 ? 0 : c / v;
-    return {
-        h: Math.round(h * 60) % 360,
-        s: Math.round(s * 100),
-        v: Math.round((v / 255) * 100),
-    };
-};
-const hsvToRgb = ({ h, s, v }: HsvColor): RgbColor => {
-    v /= 100;
-    s /= 100;
-
-    const f = (n: number) => {
-        const k = (n + h / 60) % 6;
-        return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
-    };
-
-    return {
-        r: Math.round(f(5) * 255),
-        g: Math.round(f(3) * 255),
-        b: Math.round(f(1) * 255),
-    };
-};
-
 interface ColorSliderProps {
     label: string;
     value: number;
@@ -223,6 +185,7 @@ interface ColorSliderProps {
 }
 const ColorSlider = memo(
     ({ label, value, onChange, def, min, max, precision, style }: ColorSliderProps) => {
+        // const formatNumber = useCallback((n:number) => n.toFixed(precision),[precision])
         value = Number(value.toFixed(precision));
 
         const [inputString, setInputString] = useState(String(value));
@@ -231,14 +194,19 @@ const ColorSlider = memo(
         }, [value]);
 
         const changeHandler = (n: number) => {
-            if (n !== value && min <= n && n <= max) {
-                onChange(Number(n.toFixed(precision)));
+            if (min <= n && n <= max) {
+                n = Number(n.toFixed(precision));
+                if (n !== value) {
+                    onChange(n);
+                }
             }
         };
 
         const changeInputString = (s: string) => {
-            setInputString(s);
-            changeHandler(Number.parseFloat(s));
+            if (s !== inputString) {
+                setInputString(s);
+                changeHandler(Number.parseFloat(s));
+            }
         };
 
         const step = 1;
@@ -258,10 +226,11 @@ const ColorSlider = memo(
                     onChangeEnd={changeHandler}
                 />
                 <AdvancedNumberInput
+                    noRepeatOnBlur
                     small
                     controlsStep={step}
                     defaultValue={def}
-                    hideTrailingZeros={false}
+                    hideTrailingZeros={precision === 0}
                     inputString={inputString}
                     inputWidth="4.5rem"
                     max={max}
@@ -397,62 +366,125 @@ const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
         </>
     );
 });
-const HsvSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
-    const [hsv, setHsv] = useState(() => rgbToHsv(rgb));
-    useEffect(() => {
-        setHsv((old) => {
-            const oldHex = rgbToHex(hsvToRgb(old));
-            const newHex = rgbToHex(rgb);
-            if (oldHex !== newHex) {
-                const newHsv = rgbToHsv(rgb);
-
-                if (rgbToHex(hsvToRgb({ ...newHsv, h: old.h })) === newHex) {
-                    newHsv.h = old.h;
-                }
-                if (rgbToHex(hsvToRgb({ ...newHsv, s: old.s })) === newHex) {
-                    newHsv.s = old.s;
-                }
-                // if (rgbToHex(hsvToRgb({ ...newHsv, s: old.s })) === newHex) {
-                //     newHsv.s = old.s;
-                // }
-
-                return newHsv;
-            }
-            return old;
-        });
-    }, [rgb]);
-
-    const changeHsv = (value: HsvColor): void => {
-        setHsv(value);
-        const newRgb = hsvToRgb(value);
-        if (rgbToHex(newRgb) !== rgbToHex(rgb)) {
-            onChange(newRgb);
-        }
-    };
-
+interface HsvSlidersProps {
+    hsv: HsvColor;
+    onChange: (value: HsvColor) => void;
+}
+const HsvSliders = memo(({ hsv, onChange }: HsvSlidersProps) => {
     return (
         <>
             <ColorSlider
                 {...getHueProps()}
                 label="H"
                 value={hsv.h}
-                onChange={(h) => changeHsv({ ...hsv, h })}
+                onChange={(h) => onChange({ ...hsv, h })}
             />
             <ColorSlider
                 {...getSaturationProps(hsv.h, hsv.v)}
                 label="S"
                 value={hsv.s}
-                onChange={(s) => changeHsv({ ...hsv, s })}
+                onChange={(s) => onChange({ ...hsv, s })}
             />
             <ColorSlider
                 {...getValueProps(hsv.h, hsv.s)}
                 label="V"
                 value={hsv.v}
-                onChange={(v) => changeHsv({ ...hsv, v })}
+                onChange={(v) => onChange({ ...hsv, v })}
             />
         </>
     );
 });
+
+const updateRgbX = (o: RgbColor, n: RgbColor): RgbColor => {
+    return rgbEqual(o, n) ? o : n;
+};
+const updateHsvX = (o: HsvColor, n: HsvColor): HsvColor => {
+    return hsvEqual(o, n) ? o : n;
+};
+const updateHsvFromRgbX = (oldHsv: HsvColor, newRgb: RgbColor): HsvColor => {
+    const oldRgb = hsvToRgb(oldHsv);
+    if (!rgbEqual(newRgb, oldRgb)) {
+        const newHsv = rgbToHsv(newRgb);
+
+        // check to see whether we actually need to change H and S
+        if (rgbEqual(newRgb, hsvToRgb({ ...newHsv, h: oldHsv.h }))) {
+            newHsv.h = oldHsv.h;
+        }
+        if (rgbEqual(newRgb, hsvToRgb({ ...newHsv, s: oldHsv.s }))) {
+            newHsv.s = oldHsv.s;
+        }
+
+        if (!hsvEqual(newHsv, oldHsv)) {
+            return newHsv;
+        }
+    }
+    return oldHsv;
+};
+
+interface UseColorMode {
+    rgb: RgbColor;
+    hsv: HsvColor;
+    changeRgb: (value: RgbColor) => void;
+    changeHsv: (value: HsvColor) => void;
+}
+const useColorModes = (color: ColorJson, onChange: (value: RgbColor) => void): UseColorMode => {
+    const [state, setState] = useState<readonly [RgbColor, HsvColor]>(() => {
+        const rgb = toRgbColor(color);
+        return [rgb, rgbToHsv(rgb)];
+    });
+    const lastChangeRef = useRef(0);
+
+    const updateFromRgb = useCallback((newRgb: RgbColor): void => {
+        setState((old) => {
+            const [oldRgb, oldHsv] = old;
+
+            if (!rgbEqual(oldRgb, newRgb)) {
+                return [newRgb, updateHsvFromRgbX(oldHsv, newRgb)];
+            }
+            return old;
+        });
+    }, []);
+    const updateFromHsv = useCallback((newHsv: HsvColor, newRgb: RgbColor): void => {
+        setState((old) => {
+            const [oldRgb, oldHsv] = old;
+
+            newRgb = updateRgbX(oldRgb, newRgb);
+            newHsv = updateHsvX(oldHsv, newHsv);
+            if (newHsv !== oldHsv || newRgb !== oldRgb) {
+                return [newRgb, newHsv];
+            }
+            return old;
+        });
+    }, []);
+
+    useEffect(() => {
+        const sinceLastChange = Date.now() - lastChangeRef.current;
+        if (sinceLastChange > 200) {
+            updateFromRgb(toRgbColor(color));
+        }
+    }, [color, updateFromRgb]);
+
+    const changeRgb = useCallback(
+        (newRgb: RgbColor): void => {
+            lastChangeRef.current = Date.now();
+            updateFromRgb(newRgb);
+            onChange(newRgb);
+        },
+        [onChange, updateFromRgb]
+    );
+    const changeHsv = useCallback(
+        (newHsv: HsvColor): void => {
+            lastChangeRef.current = Date.now();
+            const newRgb = hsvToRgb(newHsv);
+            updateFromHsv(newHsv, newRgb);
+            onChange(newRgb);
+        },
+        [onChange, updateFromHsv]
+    );
+
+    const [rgb, hsv] = state;
+    return { rgb, hsv, changeRgb, changeHsv };
+};
 
 const KIND_SELECTOR_HEIGHT = '2rem';
 const COMPARE_BUTTON_HEIGHT = '3rem';
@@ -532,16 +564,22 @@ const RgbPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<Rg
     );
 });
 const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbaColorJson>) => {
-    const rgb = toRgbColor(color);
-    const alpha = Number((color.values[3] * 100).toFixed(1));
-
-    const changeHandler = ({ r, g, b }: RgbColor): void => {
-        onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, color.values[3]] });
-    };
+    const originalAlpha = color.values[3];
+    const alpha = Number((originalAlpha * 100).toFixed(1));
     const changeAlphaHandler = (a: number): void => {
         const [r, g, b] = color.values;
         onChange({ kind: 'rgba', values: [r, g, b, a / 100] });
     };
+
+    const { rgb, hsv, changeRgb, changeHsv } = useColorModes(
+        color,
+        useCallback(
+            ({ r, g, b }: RgbColor): void => {
+                onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
+            },
+            [onChange, originalAlpha]
+        )
+    );
 
     return (
         <HStack
@@ -554,9 +592,9 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
             >
                 {kindSelector}
                 {compare}
-                <RgbColorPicker
-                    color={rgb}
-                    onChange={changeHandler}
+                <HsvColorPicker
+                    color={hsv}
+                    onChange={changeHsv}
                 />
             </VStack>
             <VStack
@@ -571,7 +609,7 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
                 >
                     <RgbHexInput
                         rgb={rgb}
-                        onChange={changeHandler}
+                        onChange={changeRgb}
                     />
                 </Box>
                 <VStack
@@ -580,7 +618,7 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
                 >
                     <RgbSliders
                         rgb={rgb}
-                        onChange={changeHandler}
+                        onChange={changeRgb}
                     />
                     <ColorSlider
                         {...getAlphaProps(rgbToHex(rgb))}
@@ -594,8 +632,8 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
                     w="full"
                 >
                     <HsvSliders
-                        rgb={rgb}
-                        onChange={changeHandler}
+                        hsv={hsv}
+                        onChange={changeHsv}
                     />
                 </VStack>
             </VStack>
@@ -626,7 +664,7 @@ const toRgba = (color: ColorJson): RgbaColorJson => {
     const [r, g, b] = color.values;
     return { kind: 'rgba', values: [r, g, b, 1] };
 };
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+// eslint-disable-next-line react-memo/require-memo
 function toKind<K extends ColorKind>(color: ColorJson, kind: K): OfKind<ColorJson, K> {
     if (kind === 'grayscale') return toGrayscale(color) as never;
     if (kind === 'rgb') return toRgb(color) as never;
@@ -771,27 +809,10 @@ const MultiColorPicker = memo(
             />
         );
 
-        if (color.kind === 'grayscale')
-            return (
-                <GrayPicker
-                    color={color}
-                    compare={compare}
-                    kindSelector={kindSelector}
-                    onChange={setColor}
-                />
-            );
-        if (color.kind === 'rgb')
-            return (
-                <RgbPicker
-                    color={color}
-                    compare={compare}
-                    kindSelector={kindSelector}
-                    onChange={setColor}
-                />
-            );
+        const Component = { grayscale: GrayPicker, rgb: RgbPicker, rgba: RgbaPicker }[color.kind];
         return (
-            <RgbaPicker
-                color={color}
+            <Component
+                color={color as never}
                 compare={compare}
                 kindSelector={kindSelector}
                 onChange={setColor}
