@@ -26,7 +26,10 @@ export const RgbColorPicker = memo(({ color, onChange }: PickerProps<RgbColor>) 
     const lastColorChange = useMemo(Date.now, [rgbColorId(color)]);
 
     return (
-        <Box ref={pickerRef}>
+        <Box
+            ref={pickerRef}
+            w="full"
+        >
             <BuggedRgbColorPicker
                 color={color}
                 onChange={(value) => {

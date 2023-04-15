@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable react/jsx-props-no-spreading */
 import {
     Box,
     Button,
@@ -18,7 +20,7 @@ import {
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RgbColor, RgbaColor } from 'react-colorful';
+import { HsvColor, RgbColor, RgbaColor } from 'react-colorful';
 import { rgb as rgbContrast } from 'wcag-contrast';
 import {
     ColorJson,
@@ -30,8 +32,8 @@ import {
 import { assertNever, stopPropagation } from '../../../common/util';
 import { TypeTags } from '../TypeTag';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { PickerProps, RgbColorPicker } from './elements/RgbColorPicker';
-import { LINEAR_SCALE, StyledSlider } from './elements/StyledSlider';
+import { RgbColorPicker } from './elements/RgbColorPicker';
+import { LINEAR_SCALE, SliderStyle, StyledSlider } from './elements/StyledSlider';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -64,11 +66,10 @@ const toCssColor = (color: ColorJson): string => {
 const to8Bit = (n: number): string => String(Math.round(n * 255));
 const toPercent = (n: number): string => `${String(Math.round(n * 100))}%`;
 const to8BitHex = (r: number, g: number, b: number): string => {
-    // eslint-disable-next-line no-param-reassign
     r = Math.round(r * 255);
-    // eslint-disable-next-line no-param-reassign
+
     g = Math.round(g * 255);
-    // eslint-disable-next-line no-param-reassign
+
     b = Math.round(b * 255);
 
     return (r * 256 * 256 + g * 256 + b).toString(16).padStart(6, '0').toUpperCase();
@@ -85,7 +86,7 @@ const toDisplayText = (color: ColorJson): string => {
         }
         case 'rgba': {
             const [r, g, b, a] = color.values;
-            return `#${to8BitHex(r, g, b)} ${toPercent(a)}`;
+            return `${to8Bit(r)} ${to8Bit(g)} ${to8Bit(b)} ${toPercent(a)}`;
         }
         default:
             return assertNever(color);
@@ -109,7 +110,6 @@ const getTextColorFor = (color: ColorJson): 'white' | 'black' => {
         rgb = [luma, luma, luma];
     } else {
         if (color.kind === 'rgba') {
-            // eslint-disable-next-line no-param-reassign
             color = withBg(color, { kind: 'rgb', values: [0.9, 0.9, 0.9] });
         }
         const [r, g, b] = color.values;
@@ -150,7 +150,6 @@ const toRgbColor = (color: ColorJson): RgbColor => {
 };
 const parseHex = (hex: string): RgbColor | undefined => {
     if (hex.startsWith('#')) {
-        // eslint-disable-next-line no-param-reassign
         hex = hex.slice(1);
     }
     if (!/^[0-9a-fA-F]+$/.test(hex)) return undefined;
@@ -172,122 +171,154 @@ const rgbToHex = ({ r, g, b }: RgbColor): string => {
     return `#${to8BitHex(r / 255, g / 255, b / 255)}`;
 };
 
-interface Slider8BitProps {
+const rgbToHsv = ({ r, g, b }: RgbColor): HsvColor => {
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const c = max - min;
+
+    let h;
+    if (c === 0) {
+        h = 0;
+    } else if (max === r) {
+        h = (g - b) / c + 6;
+    } else if (max === g) {
+        h = (b - r) / c + 2;
+    } else {
+        h = (r - g) / c + 4;
+    }
+
+    const v = max;
+    const s = v === 0 ? 0 : c / v;
+    return {
+        h: Math.round(h * 60) % 360,
+        s: Math.round(s * 100),
+        v: Math.round((v / 255) * 100),
+    };
+};
+const hsvToRgb = ({ h, s, v }: HsvColor): RgbColor => {
+    v /= 100;
+    s /= 100;
+
+    const f = (n: number) => {
+        const k = (n + h / 60) % 6;
+        return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
+    };
+
+    return {
+        r: Math.round(f(5) * 255),
+        g: Math.round(f(3) * 255),
+        b: Math.round(f(1) * 255),
+    };
+};
+
+interface ColorSliderProps {
     label: string;
     value: number;
     onChange: (value: number) => void;
-    color0: string;
-    color255: string;
+    def: number;
+    min: number;
+    max: number;
+    precision: number;
+    style: SliderStyle;
 }
-const Slider8Bit = memo(({ label, value, onChange, color0, color255 }: Slider8BitProps) => {
-    const def = 128;
-    const min = 0;
-    const max = 255;
-    const step = 1;
+const ColorSlider = memo(
+    ({ label, value, onChange, def, min, max, precision, style }: ColorSliderProps) => {
+        value = Number(value.toFixed(precision));
 
-    const [inputString, setInputString] = useState(String(value));
-    useEffect(() => {
-        setInputString(String(value));
-    }, [value]);
+        const [inputString, setInputString] = useState(String(value));
+        useEffect(() => {
+            setInputString(String(value));
+        }, [value]);
 
-    const changeHandler = (n: number) => {
-        if (n !== value && min <= n && n <= max) {
-            onChange(n);
-        }
-    };
+        const changeHandler = (n: number) => {
+            if (n !== value && min <= n && n <= max) {
+                onChange(Number(n.toFixed(precision)));
+            }
+        };
 
-    const changeInputString = (s: string) => {
-        setInputString(s);
-        changeHandler(Number.parseInt(s, 10));
-    };
+        const changeInputString = (s: string) => {
+            setInputString(s);
+            changeHandler(Number.parseFloat(s));
+        };
 
-    return (
-        <HStack w="full">
-            <Text w={12}>{label}</Text>
-            <StyledSlider
-                def={def}
-                max={max}
-                min={min}
-                scale={LINEAR_SCALE}
-                step={step}
-                style={{ type: 'gradient', gradient: [color0, color255] }}
-                value={value}
-                onChange={changeHandler}
-                onChangeEnd={changeHandler}
-            />
-            <AdvancedNumberInput
-                small
-                controlsStep={step}
-                defaultValue={def}
-                hideTrailingZeros={false}
-                inputString={inputString}
-                inputWidth="4.5rem"
-                max={max}
-                min={min}
-                precision={0}
-                setInput={changeHandler}
-                setInputString={changeInputString}
-            />
-        </HStack>
-    );
+        const step = 1;
+
+        return (
+            <HStack w="full">
+                <Text w={12}>{label}</Text>
+                <StyledSlider
+                    def={def}
+                    max={max}
+                    min={min}
+                    scale={LINEAR_SCALE}
+                    step={step}
+                    style={style}
+                    value={value}
+                    onChange={changeHandler}
+                    onChangeEnd={changeHandler}
+                />
+                <AdvancedNumberInput
+                    small
+                    controlsStep={step}
+                    defaultValue={def}
+                    hideTrailingZeros={false}
+                    inputString={inputString}
+                    inputWidth="4.5rem"
+                    max={max}
+                    min={min}
+                    precision={precision}
+                    setInput={changeHandler}
+                    setInputString={changeInputString}
+                />
+            </HStack>
+        );
+    }
+);
+
+type BaseProps = Omit<ColorSliderProps, 'label' | 'value' | 'onChange'>;
+const get8BitProps = (color0: string, color255: string): BaseProps => ({
+    def: 128,
+    min: 0,
+    max: 255,
+    precision: 0,
+    style: { type: 'gradient', gradient: [color0, color255] },
 });
-
-interface SliderAlphaProps {
-    value: number;
-    onChange: (value: number) => void;
-    color?: string;
-}
-const SliderAlpha = memo(({ value, onChange, color }: SliderAlphaProps) => {
-    const def = 100;
-    const min = 0;
-    const max = 100;
-    const step = 1;
-
-    const [inputString, setInputString] = useState(String(value));
-    useEffect(() => {
-        setInputString(String(value));
-    }, [value]);
-
-    const changeHandler = (n: number) => {
-        if (n !== value && min <= n && n <= max) {
-            onChange(n);
-        }
-    };
-
-    const changeInputString = (s: string) => {
-        setInputString(s);
-        changeHandler(Number.parseFloat(s));
-    };
-
-    return (
-        <HStack w="full">
-            <Text w={12}>A</Text>
-            <StyledSlider
-                def={def}
-                max={max}
-                min={min}
-                scale={LINEAR_SCALE}
-                step={step}
-                style={{ type: 'alpha', color }}
-                value={value}
-                onChange={changeHandler}
-                onChangeEnd={changeHandler}
-            />
-            <AdvancedNumberInput
-                small
-                controlsStep={step}
-                defaultValue={def}
-                hideTrailingZeros={false}
-                inputString={inputString}
-                inputWidth="4.5rem"
-                max={max}
-                min={min}
-                precision={1}
-                setInput={changeHandler}
-                setInputString={changeInputString}
-            />
-        </HStack>
-    );
+const getAlphaProps = (color?: string): BaseProps => ({
+    def: 100,
+    min: 0,
+    max: 100,
+    precision: 1,
+    style: { type: 'alpha', color },
+});
+const getHueProps = (): BaseProps => ({
+    def: 0,
+    min: 0,
+    max: 360,
+    precision: 0,
+    style: {
+        type: 'gradient',
+        gradient: ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff0000'],
+    },
+});
+const getSaturationProps = (h: number, v: number): BaseProps => ({
+    def: 0,
+    min: 0,
+    max: 100,
+    precision: 0,
+    style: {
+        type: 'gradient',
+        gradient: [rgbToHex(hsvToRgb({ h, s: 0, v })), rgbToHex(hsvToRgb({ h, s: 100, v }))],
+    },
+});
+const getValueProps = (h: number, s: number): BaseProps => ({
+    def: 50,
+    min: 0,
+    max: 100,
+    precision: 0,
+    style: {
+        type: 'gradient',
+        gradient: [rgbToHex(hsvToRgb({ h, s, v: 0 })), rgbToHex(hsvToRgb({ h, s, v: 100 }))],
+    },
 });
 
 interface RgbHexInputProps {
@@ -345,23 +376,20 @@ interface RgbSlidersProps {
 const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
     return (
         <>
-            <Slider8Bit
-                color0={rgbToHex({ ...rgb, r: 0 })}
-                color255={rgbToHex({ ...rgb, r: 255 })}
+            <ColorSlider
+                {...get8BitProps(rgbToHex({ ...rgb, r: 0 }), rgbToHex({ ...rgb, r: 255 }))}
                 label="R"
                 value={rgb.r}
                 onChange={(r) => onChange({ ...rgb, r })}
             />
-            <Slider8Bit
-                color0={rgbToHex({ ...rgb, g: 0 })}
-                color255={rgbToHex({ ...rgb, g: 255 })}
+            <ColorSlider
+                {...get8BitProps(rgbToHex({ ...rgb, g: 0 }), rgbToHex({ ...rgb, g: 255 }))}
                 label="G"
                 value={rgb.g}
                 onChange={(g) => onChange({ ...rgb, g })}
             />
-            <Slider8Bit
-                color0={rgbToHex({ ...rgb, b: 0 })}
-                color255={rgbToHex({ ...rgb, b: 255 })}
+            <ColorSlider
+                {...get8BitProps(rgbToHex({ ...rgb, b: 0 }), rgbToHex({ ...rgb, b: 255 }))}
                 label="B"
                 value={rgb.b}
                 onChange={(b) => onChange({ ...rgb, b })}
@@ -369,8 +397,71 @@ const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
         </>
     );
 });
+const HsvSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
+    const [hsv, setHsv] = useState(() => rgbToHsv(rgb));
+    useEffect(() => {
+        setHsv((old) => {
+            const oldHex = rgbToHex(hsvToRgb(old));
+            const newHex = rgbToHex(rgb);
+            if (oldHex !== newHex) {
+                const newHsv = rgbToHsv(rgb);
 
-const GrayPicker = memo(({ color, onChange }: PickerProps<GrayscaleColorJson>) => {
+                if (rgbToHex(hsvToRgb({ ...newHsv, h: old.h })) === newHex) {
+                    newHsv.h = old.h;
+                }
+                if (rgbToHex(hsvToRgb({ ...newHsv, s: old.s })) === newHex) {
+                    newHsv.s = old.s;
+                }
+                // if (rgbToHex(hsvToRgb({ ...newHsv, s: old.s })) === newHex) {
+                //     newHsv.s = old.s;
+                // }
+
+                return newHsv;
+            }
+            return old;
+        });
+    }, [rgb]);
+
+    const changeHsv = (value: HsvColor): void => {
+        setHsv(value);
+        const newRgb = hsvToRgb(value);
+        if (rgbToHex(newRgb) !== rgbToHex(rgb)) {
+            onChange(newRgb);
+        }
+    };
+
+    return (
+        <>
+            <ColorSlider
+                {...getHueProps()}
+                label="H"
+                value={hsv.h}
+                onChange={(h) => changeHsv({ ...hsv, h })}
+            />
+            <ColorSlider
+                {...getSaturationProps(hsv.h, hsv.v)}
+                label="S"
+                value={hsv.s}
+                onChange={(s) => changeHsv({ ...hsv, s })}
+            />
+            <ColorSlider
+                {...getValueProps(hsv.h, hsv.s)}
+                label="V"
+                value={hsv.v}
+                onChange={(v) => changeHsv({ ...hsv, v })}
+            />
+        </>
+    );
+});
+
+interface PickerFor<C extends ColorJson> {
+    color: C;
+    onChange: (color: C) => void;
+    compare: JSX.Element;
+    kindSelector: JSX.Element | undefined;
+}
+
+const GrayPicker = memo(({ color, onChange }: PickerFor<GrayscaleColorJson>) => {
     const changeHandler = useCallback(
         (value: number) => {
             onChange({ kind: 'grayscale', values: [value / 255] });
@@ -380,10 +471,9 @@ const GrayPicker = memo(({ color, onChange }: PickerProps<GrayscaleColorJson>) =
     const value = Math.round(color.values[0] * 255);
 
     return (
-        <Box mt={2}>
-            <Slider8Bit
-                color0="black"
-                color255="white"
+        <Box>
+            <ColorSlider
+                {...get8BitProps('black', 'white')}
                 label="L"
                 value={value}
                 onChange={changeHandler}
@@ -391,7 +481,7 @@ const GrayPicker = memo(({ color, onChange }: PickerProps<GrayscaleColorJson>) =
         </Box>
     );
 });
-const RgbPicker = memo(({ color, onChange }: PickerProps<RgbColorJson>) => {
+const RgbPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson>) => {
     const rgb = toRgbColor(color);
 
     const changeHandler = ({ r, g, b }: RgbColor): void => {
@@ -400,7 +490,8 @@ const RgbPicker = memo(({ color, onChange }: PickerProps<RgbColorJson>) => {
 
     return (
         <>
-            <Box mt={2}>
+            <Box>
+                {kindSelector}
                 <RgbColorPicker
                     color={rgb}
                     onChange={changeHandler}
@@ -422,7 +513,7 @@ const RgbPicker = memo(({ color, onChange }: PickerProps<RgbColorJson>) => {
         </>
     );
 });
-const RgbaPicker = memo(({ color, onChange }: PickerProps<RgbaColorJson>) => {
+const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbaColorJson>) => {
     const rgb = toRgbColor(color);
     const alpha = Number((color.values[3] * 100).toFixed(1));
 
@@ -435,32 +526,42 @@ const RgbaPicker = memo(({ color, onChange }: PickerProps<RgbaColorJson>) => {
     };
 
     return (
-        <>
-            <Box mt={2}>
+        <HStack spacing={4}>
+            <VStack
+                spacing={2}
+                w="12rem"
+            >
+                {kindSelector}
+                {compare}
                 <RgbColorPicker
                     color={rgb}
                     onChange={changeHandler}
                 />
-            </Box>
+            </VStack>
             <VStack
-                mt={2}
                 spacing={0.5}
+                w="15rem"
             >
-                <RgbSliders
-                    rgb={rgb}
-                    onChange={changeHandler}
-                />
                 <RgbHexInput
                     rgb={rgb}
                     onChange={changeHandler}
                 />
-                <SliderAlpha
-                    color={rgbToHex(rgb)}
+                <RgbSliders
+                    rgb={rgb}
+                    onChange={changeHandler}
+                />
+                <ColorSlider
+                    {...getAlphaProps(rgbToHex(rgb))}
+                    label="A"
                     value={alpha}
                     onChange={changeAlphaHandler}
                 />
+                <HsvSliders
+                    rgb={rgb}
+                    onChange={changeHandler}
+                />
             </VStack>
-        </>
+        </HStack>
     );
 });
 
@@ -494,6 +595,65 @@ function toKind<K extends ColorKind>(color: ColorJson, kind: K): OfKind<ColorJso
     return toRgba(color) as never;
 }
 
+interface CompareProps {
+    oldColor: ColorJson;
+    newColor: ColorJson;
+    onOldClick: () => void;
+    onNewClick: () => void;
+}
+const CompareOldNew = memo(({ oldColor, newColor, onOldClick, onNewClick }: CompareProps) => {
+    return (
+        <ButtonGroup
+            isAttached
+            display="flex"
+            variant="unstyled"
+            w="full"
+        >
+            <Tooltip
+                closeOnClick
+                closeOnPointerDown
+                hasArrow
+                borderRadius={8}
+                label="Reset to old color"
+                openDelay={1000}
+            >
+                <Button
+                    background={getCssBackground(oldColor)}
+                    borderRadius="lg"
+                    color={getTextColorFor(oldColor)}
+                    h={12}
+                    style={{ backgroundPositionX: '100%' }}
+                    transitionProperty="none"
+                    w="full"
+                    onClick={onOldClick}
+                >
+                    old
+                </Button>
+            </Tooltip>
+            <Tooltip
+                closeOnClick
+                closeOnPointerDown
+                hasArrow
+                borderRadius={8}
+                label="Accept new color"
+                openDelay={1000}
+            >
+                <Button
+                    background={getCssBackground(newColor)}
+                    borderRadius="lg"
+                    color={getTextColorFor(newColor)}
+                    h={12}
+                    transitionProperty="none"
+                    w="full"
+                    onClick={onNewClick}
+                >
+                    new
+                </Button>
+            </Tooltip>
+        </ButtonGroup>
+    );
+});
+
 const KIND_ORDER: readonly ColorKind[] = ['grayscale', 'rgb', 'rgba'];
 const KIND_LABEL: Readonly<Record<ColorKind, string>> = {
     grayscale: 'Gray',
@@ -501,11 +661,42 @@ const KIND_LABEL: Readonly<Record<ColorKind, string>> = {
     rgba: 'RGBA',
 };
 
+interface ColorKindSelectorProps {
+    kinds: ReadonlySet<ColorKind>;
+    current: ColorKind;
+    onSelect: (kind: ColorKind) => void;
+}
+const ColorKindSelector = memo(({ kinds, current, onSelect }: ColorKindSelectorProps) => {
+    const kindArray = useMemo(() => {
+        return [...kinds].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
+    }, [kinds]);
+
+    return (
+        <ButtonGroup
+            isAttached
+            size="sm"
+        >
+            {kindArray.map((k) => {
+                return (
+                    <Button
+                        borderRadius="lg"
+                        key={k}
+                        variant={current === k ? 'solid' : 'ghost'}
+                        onClick={() => onSelect(k)}
+                    >
+                        {KIND_LABEL[k]}
+                    </Button>
+                );
+            })}
+        </ButtonGroup>
+    );
+});
+
 const MultiColorPicker = memo(
     ({
         color: outsideColor,
         onChange,
-        kinds: kindSet,
+        kinds,
         internalColor,
     }: ColorBoxProps & { internalColor: React.MutableRefObject<ColorJson> }) => {
         // eslint-disable-next-line react/hook-use-state
@@ -513,105 +704,56 @@ const MultiColorPicker = memo(
         const setColor = useCallback(
             (value: ColorJson): void => {
                 setColorInternal(value);
-                // eslint-disable-next-line no-param-reassign
+
                 internalColor.current = value;
             },
             [internalColor]
         );
         useEffect(() => setColor(outsideColor), [outsideColor, setColor]);
 
-        const kinds = useMemo(() => {
-            return [...kindSet].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
-        }, [kindSet]);
+        const kindSelector =
+            kinds.size >= 2 ? (
+                <ColorKindSelector
+                    current={color.kind}
+                    kinds={kinds}
+                    onSelect={(k) => setColor(toKind(color, k))}
+                />
+            ) : undefined;
 
+        const compare = (
+            <CompareOldNew
+                newColor={color}
+                oldColor={outsideColor}
+                onNewClick={() => onChange(color)}
+                onOldClick={() => setColor(outsideColor)}
+            />
+        );
+
+        if (color.kind === 'grayscale')
+            return (
+                <GrayPicker
+                    color={color}
+                    compare={compare}
+                    kindSelector={kindSelector}
+                    onChange={setColor}
+                />
+            );
+        if (color.kind === 'rgb')
+            return (
+                <RgbPicker
+                    color={color}
+                    compare={compare}
+                    kindSelector={kindSelector}
+                    onChange={setColor}
+                />
+            );
         return (
-            <>
-                {kinds.length >= 2 && (
-                    <ButtonGroup
-                        isAttached
-                        mb={2}
-                        size="sm"
-                    >
-                        {kinds.map((k) => {
-                            return (
-                                <Button
-                                    borderRadius="lg"
-                                    key={k}
-                                    variant={color.kind === k ? 'solid' : 'ghost'}
-                                    onClick={() => setColor(toKind(color, k))}
-                                >
-                                    {KIND_LABEL[k]}
-                                </Button>
-                            );
-                        })}
-                    </ButtonGroup>
-                )}
-                <ButtonGroup
-                    isAttached
-                    display="flex"
-                    variant="unstyled"
-                >
-                    <Tooltip
-                        closeOnClick
-                        closeOnPointerDown
-                        hasArrow
-                        borderRadius={8}
-                        label="Reset to old color"
-                        openDelay={1000}
-                    >
-                        <Button
-                            background={getCssBackground(outsideColor)}
-                            borderRadius="lg"
-                            color={getTextColorFor(outsideColor)}
-                            h={12}
-                            style={{ backgroundPositionX: '100%' }}
-                            transitionProperty="none"
-                            w="full"
-                            onClick={() => setColor(outsideColor)}
-                        >
-                            old
-                        </Button>
-                    </Tooltip>
-                    <Tooltip
-                        closeOnClick
-                        closeOnPointerDown
-                        hasArrow
-                        borderRadius={8}
-                        label="Accept new color"
-                        openDelay={1000}
-                    >
-                        <Button
-                            background={getCssBackground(color)}
-                            borderRadius="lg"
-                            color={getTextColorFor(color)}
-                            h={12}
-                            transitionProperty="none"
-                            w="full"
-                            onClick={() => onChange(color)}
-                        >
-                            new
-                        </Button>
-                    </Tooltip>
-                </ButtonGroup>
-                {color.kind === 'grayscale' && (
-                    <GrayPicker
-                        color={color}
-                        onChange={setColor}
-                    />
-                )}
-                {color.kind === 'rgb' && (
-                    <RgbPicker
-                        color={color}
-                        onChange={setColor}
-                    />
-                )}
-                {color.kind === 'rgba' && (
-                    <RgbaPicker
-                        color={color}
-                        onChange={setColor}
-                    />
-                )}
-            </>
+            <RgbaPicker
+                color={color}
+                compare={compare}
+                kindSelector={kindSelector}
+                onChange={setColor}
+            />
         );
     }
 );
@@ -622,7 +764,7 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
     return (
         <Popover
             isLazy
-            placement="right-start"
+            placement="bottom-start"
             onClose={() => onChange(internalColor.current)}
         >
             <PopoverTrigger>
@@ -640,7 +782,7 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
                     p={0}
                     transitionProperty="none"
                     variant="unstyled"
-                    w="7rem"
+                    w="8rem"
                 >
                     <Text
                         color={getTextColorFor(color)}
@@ -656,7 +798,7 @@ const ColorBox = memo(({ color, onChange, kinds }: ColorBoxProps) => {
             <Portal>
                 <PopoverContent
                     className="chainner-color-selector"
-                    w="17rem"
+                    w="auto"
                 >
                     <PopoverArrow />
                     <PopoverBody p={2}>
