@@ -41,7 +41,7 @@ from . import node_group
             channels=4,
             assume_normalized=True,
         ).with_never_reason(
-            "The input channels must have the same size, and at least one input channel must be an image."
+            "All input channels must have the same size, and at least one input channel must be an image."
         )
     ],
 )
