@@ -31,19 +31,17 @@ from . import node_group
                 def getWidth(i: any) = match i { Image => i.width, _ => uint };
                 def getHeight(i: any) = match i { Image => i.height, _ => uint };
 
-                if anyImages {
-                    Image {
-                        width: getWidth(Input0) & getWidth(Input1) & getWidth(Input2) & getWidth(Input3),
-                        height: getHeight(Input0) & getHeight(Input1) & getHeight(Input2) & getHeight(Input3),
-                    }
-                } else {
-                    Image { width: 1, height: 1 }
+                let valid = if anyImages { any } else { never };
+
+                valid & Image {
+                    width: getWidth(Input0) & getWidth(Input1) & getWidth(Input2) & getWidth(Input3),
+                    height: getHeight(Input0) & getHeight(Input1) & getHeight(Input2) & getHeight(Input3),
                 }
             """,
             channels=4,
             assume_normalized=True,
         ).with_never_reason(
-            "The input channels have different sizes but must all be the same size."
+            "The input channels must have the same size, and at least one input channel must be an image."
         )
     ],
 )
@@ -56,14 +54,19 @@ def combine_rgba_node(
     if img_a is None:
         img_a = Color.gray(1)
 
-    start_shape = (1, 1)
+    start_shape = None
 
     # determine shape
-    inputs = (img_r, img_g, img_b, img_a)
+    inputs = (img_b, img_g, img_r, img_a)
     for i in inputs:
         if isinstance(i, np.ndarray):
             start_shape = (i.shape[0], i.shape[1])
             break
+
+    if start_shape is None:
+        raise ValueError(
+            "At least one channels must be an image, but all given channels are colors."
+        )
 
     # check same size
     for i in inputs:
