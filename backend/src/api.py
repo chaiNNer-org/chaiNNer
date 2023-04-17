@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib
 import os
+import platform
+import sys
 from dataclasses import dataclass, field
 from typing import (
     Any,
@@ -22,6 +24,10 @@ from base_types import InputId, OutputId
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
 from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
+
+KB = 1024**1
+MB = 1024**2
+GB = 1024**3
 
 
 def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
@@ -166,10 +172,29 @@ class Category:
 
 
 @dataclass
+class Dependency:
+    display_name: str
+    package_name: str
+    version: str
+    size_estimate: int | float
+    autoUpdate: bool = False
+
+    def toDict(self):
+        return {
+            "displayName": self.display_name,
+            "packageName": self.package_name,
+            "version": self.version,
+            "sizeEstimate": int(self.size_estimate),
+            "autoUpdate": self.autoUpdate,
+        }
+
+
+@dataclass
 class Package:
     where: str
     name: str
-    dependencies: List[str] = field(default_factory=list)
+    description: str
+    dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
 
     def add_category(
@@ -190,6 +215,12 @@ class Package:
         )
         self.categories.append(result)
         return result
+
+    def add_dependency(
+        self,
+        dependency: Dependency,
+    ):
+        self.dependencies.append(dependency)
 
 
 def _iter_py_files(directory: str):
@@ -255,5 +286,23 @@ class PackageRegistry:
 registry = PackageRegistry()
 
 
-def add_package(where: str, name: str, dependencies: List[str]) -> Package:
-    return registry.add(Package(where, name, dependencies))
+def add_package(
+    where: str, name: str, description: str, dependencies: List[Dependency]
+) -> Package:
+    return registry.add(Package(where, name, description, dependencies))
+
+
+def is_mac():
+    return sys.platform == "darwin"
+
+
+def is_m1_mac():
+    return is_mac() and platform.machine() == "arm64"
+
+
+def is_windows():
+    return sys.platform == "win32"
+
+
+def is_linux():
+    return sys.platform == "linux"

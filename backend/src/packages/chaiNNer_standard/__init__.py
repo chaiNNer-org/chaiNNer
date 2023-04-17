@@ -1,8 +1,27 @@
 from sanic.log import logger
 
-from api import add_package
+from api import KB, MB, Dependency, add_package, is_m1_mac, is_windows
 
-package = add_package(__file__, name="chaiNNer_standard", dependencies=[])
+package = add_package(
+    __file__,
+    name="chaiNNer_standard",
+    description="The standard set of nodes for chaiNNer.",
+    dependencies=[
+        Dependency("OpenCV", "opencv-python", "4.7.0.68", 30 * MB),
+        Dependency("NumPy", "numpy", "1.23.2", 15 * MB),
+        Dependency("Pillow (PIL)", "Pillow", "9.2.0", 3 * MB),
+        Dependency("appdirs", "appdirs", "1.4.4", 13.5 * KB),
+        Dependency("FFMPEG", "ffmpeg-python", "0.2.0", 25 * KB),
+        Dependency("Requests", "requests", "2.28.2", 452 * KB),
+        Dependency("re2", "google-re2", "1.0.0", 275 * KB),
+        Dependency("scipy", "scipy", "1.9.3", 42 * MB),
+    ],
+)
+
+if is_m1_mac():
+    package.add_dependency(Dependency("Pasteboard", "pasteboard", "0.3.3", 19 * KB))
+elif is_windows():
+    package.add_dependency(Dependency("Pywin32", "pywin32", "304", 12 * MB))
 
 image_category = package.add_category(
     name="Image",
