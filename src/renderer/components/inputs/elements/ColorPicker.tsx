@@ -23,7 +23,6 @@ export const RgbColorPicker = memo(({ color, onChange }: PickerProps<RgbColor>) 
     const pickerRef = useRef<HTMLDivElement>(null);
     const pickerLastSet = useRef(0);
 
-    // TODO: fix misuse of useMemo
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const lastColorChange = useMemo(Date.now, [rgbColorId(color)]);
 
@@ -61,7 +60,6 @@ export const HsvColorPicker = memo(({ color, onChange }: PickerProps<HsvColor>) 
     const pickerRef = useRef<HTMLDivElement>(null);
     const pickerLastSet = useRef(0);
 
-    // TODO: fix misuse of useMemo
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const lastColorChange = useMemo(Date.now, [hsvColorId(color)]);
 
