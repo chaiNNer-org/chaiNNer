@@ -161,41 +161,24 @@ const GrayPicker = memo(
         );
     }
 );
-const RgbPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson>) => {
-    const onChangeRgb = useCallback(
-        ({ r, g, b }: RgbColor): void => {
-            onChange({ kind: 'rgb', values: [r / 255, g / 255, b / 255] });
-        },
-        [onChange]
-    );
+const RgbaPicker = memo(
+    ({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson | RgbaColorJson>) => {
+        const originalAlpha = color.values[3];
 
-    return (
-        <RgbOrRgbaPicker
-            color={color}
-            compare={compare}
-            kindSelector={kindSelector}
-            onChange={onChangeRgb}
-        />
-    );
-});
-const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<RgbaColorJson>) => {
-    const originalAlpha = color.values[3];
-    const alpha = Number((originalAlpha * 100).toFixed(1));
-    const changeAlphaHandler = (a: number): void => {
-        const [r, g, b] = color.values;
-        onChange({ kind: 'rgba', values: [r, g, b, a / 100] });
-    };
+        const onChangeRgb = useCallback(
+            ({ r, g, b }: RgbColor): void => {
+                if (originalAlpha !== undefined) {
+                    onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
+                } else {
+                    onChange({ kind: 'rgb', values: [r / 255, g / 255, b / 255] });
+                }
+            },
+            [onChange, originalAlpha]
+        );
 
-    const onChangeRgb = useCallback(
-        ({ r, g, b }: RgbColor): void => {
-            onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
-        },
-        [onChange, originalAlpha]
-    );
-
-    return (
-        <RgbOrRgbaPicker
-            alpha={
+        let alpha;
+        if (originalAlpha !== undefined) {
+            alpha = (
                 <ColorSlider
                     def={100}
                     label="A"
@@ -203,17 +186,26 @@ const RgbaPicker = memo(({ color, onChange, compare, kindSelector }: PickerFor<R
                     min={0}
                     precision={1}
                     style={{ type: 'alpha', color: toCssColor(toRgb(color)) }}
-                    value={alpha}
-                    onChange={changeAlphaHandler}
+                    value={Number((originalAlpha * 100).toFixed(1))}
+                    onChange={(a: number): void => {
+                        const [r, g, b] = color.values;
+                        onChange({ kind: 'rgba', values: [r, g, b, a / 100] });
+                    }}
                 />
-            }
-            color={color}
-            compare={compare}
-            kindSelector={kindSelector}
-            onChange={onChangeRgb}
-        />
-    );
-});
+            );
+        }
+
+        return (
+            <RgbOrRgbaPicker
+                alpha={alpha}
+                color={color}
+                compare={compare}
+                kindSelector={kindSelector}
+                onChange={onChangeRgb}
+            />
+        );
+    }
+);
 
 const ColorPickerContent = memo(
     ({
@@ -253,7 +245,7 @@ const ColorPickerContent = memo(
             />
         );
 
-        const Component = { grayscale: GrayPicker, rgb: RgbPicker, rgba: RgbaPicker }[color.kind];
+        const Component = { grayscale: GrayPicker, rgb: RgbaPicker, rgba: RgbaPicker }[color.kind];
         return (
             <Component
                 color={color as never}
