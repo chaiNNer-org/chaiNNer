@@ -133,8 +133,15 @@ class LargeImageOutput(ImageOutput):
         image_type: expression.ExpressionJson = "Image",
         kind: OutputKind = "large-image",
         has_handle: bool = True,
+        assume_normalized: bool = False,
     ):
-        super().__init__(label, image_type, kind=kind, has_handle=has_handle)
+        super().__init__(
+            label,
+            image_type,
+            kind=kind,
+            has_handle=has_handle,
+            assume_normalized=assume_normalized,
+        )
 
     def get_broadcast_data(self, value: np.ndarray):
         img = value
