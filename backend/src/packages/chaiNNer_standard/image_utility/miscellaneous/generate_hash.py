@@ -30,8 +30,8 @@ from .. import miscellaneous_group
         ),
     ],
     outputs=[
-        TextOutput("Hex", output_type="string"),
-        TextOutput("Base64", output_type="string"),
+        TextOutput("Hex"),
+        TextOutput("Base64"),
     ],
 )
 def run(img: np.ndarray, size: int) -> Tuple[str, str]:
