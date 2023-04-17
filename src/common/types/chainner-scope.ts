@@ -9,7 +9,14 @@ import {
     parseDefinitions,
 } from '@chainner/navi';
 import { lazy } from '../util';
-import { formatTextPattern, padCenter, padEnd, padStart, splitFilePath } from './chainner-builtin';
+import {
+    formatTextPattern,
+    padCenter,
+    padEnd,
+    padStart,
+    parseColorJson,
+    splitFilePath,
+} from './chainner-builtin';
 
 const code = `
 struct null;
@@ -27,6 +34,7 @@ struct Image {
     height: uint,
     channels: int(1..),
 }
+struct Color { channels: int(1..) }
 
 struct VideoFile { path: string }
 struct Video;
@@ -135,6 +143,7 @@ intrinsic def padStart(text: string, width: uint, padding: string): string;
 intrinsic def padEnd(text: string, width: uint, padding: string): string;
 intrinsic def padCenter(text: string, width: uint, padding: string): string;
 intrinsic def splitFilePath(path: string): SplitFilePath;
+intrinsic def parseColorJson(json: string): Color;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -146,6 +155,7 @@ export const getChainnerScope = lazy((): Scope => {
         padEnd,
         padCenter,
         splitFilePath,
+        parseColorJson,
     };
 
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));

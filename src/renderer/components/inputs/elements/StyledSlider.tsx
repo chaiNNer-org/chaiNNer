@@ -38,7 +38,6 @@ export class LogScale implements Scale {
 
 interface OldLabelStyle {
     readonly type: 'old-label';
-    readonly label: string;
 }
 interface LabelStyle {
     readonly type: 'label';
@@ -51,7 +50,11 @@ interface GradientStyle {
 interface NoFillStyle {
     readonly type: 'no-fill';
 }
-export type SliderStyle = OldLabelStyle | LabelStyle | GradientStyle | NoFillStyle;
+interface AlphaStyle {
+    readonly type: 'alpha';
+    readonly color?: string;
+}
+export type SliderStyle = OldLabelStyle | LabelStyle | GradientStyle | NoFillStyle | AlphaStyle;
 
 interface StyledSliderProps {
     style: SliderStyle;
@@ -62,7 +65,7 @@ interface StyledSliderProps {
     def: number;
     value: number;
     step: number;
-    tooltip: string;
+    tooltip?: string;
     onChange: (value: number) => void;
     onChangeEnd: (value: number) => void;
 
@@ -87,6 +90,16 @@ export const StyledSlider = memo(
 
         const [typeAccentColor] = useMemo(() => getTypeAccentColors(NumberType.instance), []);
 
+        let customBackground;
+        if (style.type === 'gradient') {
+            customBackground = `linear-gradient(to right, ${style.gradient.join(', ')})`;
+        } else if (style.type === 'alpha') {
+            customBackground = [
+                `linear-gradient(to right, transparent, ${style.color || 'black'})`,
+                `repeating-conic-gradient(#AAA 0% 25%, #FFF 0% 50%) 50% / 20px 20px`,
+            ].join(', ');
+        }
+
         return (
             <Slider
                 defaultValue={scale.toScale(def)}
@@ -105,11 +118,7 @@ export const StyledSlider = memo(
                 onMouseLeave={() => setShowTooltip(false)}
             >
                 <SliderTrack
-                    bgGradient={
-                        style.type === 'gradient'
-                            ? `linear(to-r, ${style.gradient.join(', ')})`
-                            : 'none'
-                    }
+                    background={customBackground}
                     borderRadius="md"
                     cursor="pointer"
                     h="100%"
@@ -157,7 +166,7 @@ export const StyledSlider = memo(
                     bg={typeAccentColor}
                     borderRadius={8}
                     color="white"
-                    isOpen={showTooltip}
+                    isOpen={showTooltip && !!tooltip}
                     label={tooltip}
                     placement="top"
                     px={2}

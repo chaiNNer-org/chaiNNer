@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 
 from nodes.impl.blend import BlendMode, blend_images
+from nodes.impl.color.color import Color
 from nodes.impl.image_utils import as_2d_grayscale
 from nodes.impl.pil_utils import convert_to_BGRA
-from nodes.properties import expression
 from nodes.properties.inputs import BlendModeDropdown, ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -17,31 +17,43 @@ from .. import compositing_group
 @compositing_group.register(
     schema_id="chainner:image:blend",
     name="Blend Images",
-    description="""Blends overlay image onto base image using
-            specified mode.""",
+    description="""Blends overlay image onto base image using specified mode.""",
     icon="BsLayersHalf",
     inputs=[
-        ImageInput("Base Layer", channels=[1, 3, 4]),
-        ImageInput("Overlay Layer", channels=[1, 3, 4]),
+        ImageInput("Base Layer", channels=[1, 3, 4], allow_colors=True),
+        ImageInput("Overlay Layer", channels=[1, 3, 4], allow_colors=True),
         BlendModeDropdown(),
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
-                width="max(Input0.width, Input1.width)",
-                height="max(Input0.height, Input1.height)",
-                channels="max(Input0.channels, Input1.channels)",
-            ),
+            image_type="""
+                def getWidth(i: any) = match i { Image => i.width, _ => -inf };
+                def getHeight(i: any) = match i { Image => i.height, _ => -inf };
+
+                Image {
+                    width: max(getWidth(Input0), getWidth(Input1)) & uint,
+                    height: max(getHeight(Input0), getHeight(Input1)) & uint,
+                    channels: max(Input0.channels, Input1.channels),
+                }
+            """,
             assume_normalized=True,
-        ),
+        ).with_never_reason("At least one layer must be an image"),
     ],
 )
 def blend_node(
-    base: np.ndarray,
-    ov: np.ndarray,
+    base: np.ndarray | Color,
+    ov: np.ndarray | Color,
     blend_mode: BlendMode,
 ) -> np.ndarray:
     """Blend images together"""
+
+    # convert colors to images
+    if isinstance(base, Color):
+        if isinstance(ov, Color):
+            raise ValueError("At least one layer must be an image")
+        base = base.to_image(width=ov.shape[1], height=ov.shape[0])
+    if isinstance(ov, Color):
+        ov = ov.to_image(width=base.shape[1], height=base.shape[0])
 
     b_h, b_w, b_c = get_h_w_c(base)
     o_h, o_w, _ = get_h_w_c(ov)
@@ -66,6 +78,7 @@ def blend_node(
         base = cv2.copyMakeBorder(
             base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
         )
+        assert isinstance(base, np.ndarray)
     else:  # Make sure cached image not being worked on regardless
         base = base.copy()
 

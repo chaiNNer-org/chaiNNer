@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ...impl.color.color import Color
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from .. import expression
 from .base_output import BaseOutput
@@ -53,4 +55,36 @@ class SeedOutput(BaseOutput):
 
     def enforce(self, value) -> Seed:
         assert isinstance(value, Seed)
+        return value
+
+
+class ColorOutput(BaseOutput):
+    def __init__(
+        self,
+        label: str = "Color",
+        color_type: expression.ExpressionJson = "Color",
+        channels: int | None = None,
+    ):
+        super().__init__(
+            output_type=expression.intersect(
+                color_type, expression.Color(channels=channels)
+            ),
+            label=label,
+            kind="generic",
+        )
+
+        self.channels = channels
+
+    def enforce(self, value) -> Color:
+        assert isinstance(value, Color)
+
+        if self.channels is not None and value.channels != self.channels:
+            expected = format_color_with_channels([self.channels])
+            actual = format_color_with_channels([value.channels])
+            raise ValueError(
+                f"The output {self.label} was supposed to return {expected} but actually returned {actual}."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+            )
+
         return value
