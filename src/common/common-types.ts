@@ -117,6 +117,11 @@ export interface SliderInput extends InputBase {
     readonly gradient?: readonly string[] | null;
     readonly scale: 'linear' | 'log' | 'log-offset';
 }
+export interface ColorInput extends InputBase {
+    readonly kind: 'color';
+    readonly def: string;
+    readonly channels?: readonly number[] | null;
+}
 export type InputKind = Input['kind'];
 export type Input =
     | GenericInput
@@ -126,7 +131,8 @@ export type Input =
     | TextAreaInput
     | DropDownInput
     | SliderInput
-    | NumberInput;
+    | NumberInput
+    | ColorInput;
 
 export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
@@ -260,7 +266,6 @@ export interface NodeData {
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: Readonly<IteratorSize>;
-    readonly percentComplete?: number;
     readonly minWidth?: number;
     readonly minHeight?: number;
 }
@@ -341,4 +346,19 @@ export interface Category {
     color: string;
     installHint?: string;
     excludedFromCheck: string[];
+}
+
+export type ColorJson = GrayscaleColorJson | RgbColorJson | RgbaColorJson;
+export type ColorKind = ColorJson['kind'];
+export interface GrayscaleColorJson {
+    readonly kind: 'grayscale';
+    readonly values: readonly [luma: number];
+}
+export interface RgbColorJson {
+    readonly kind: 'rgb';
+    readonly values: readonly [r: number, g: number, b: number];
+}
+export interface RgbaColorJson {
+    readonly kind: 'rgba';
+    readonly values: readonly [r: number, g: number, b: number, a: number];
 }

@@ -14,7 +14,14 @@ from .. import io_group
     description="See an inline preview of the image in the editor.",
     icon="BsEyeFill",
     inputs=[ImageInput()],
-    outputs=[LargeImageOutput("Preview", image_type="Input0", has_handle=False)],
+    outputs=[
+        LargeImageOutput(
+            "Preview",
+            image_type="Input0",
+            has_handle=False,
+            assume_normalized=True,
+        ),
+    ],
     side_effects=True,
 )
 def view_image_node(img: np.ndarray):

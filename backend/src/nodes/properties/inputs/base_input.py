@@ -15,6 +15,7 @@ InputKind = Literal[
     "text-line",
     "directory",
     "file",
+    "color",
     "generic",
 ]
 

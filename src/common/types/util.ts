@@ -30,6 +30,15 @@ export const isImage = (
     return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
 };
 
+export const isColor = (
+    type: Type
+): type is StructType & {
+    readonly name: 'Color';
+    readonly fields: readonly [{ readonly name: 'channels'; readonly type: IntNumberType }];
+} => {
+    return type.type === 'struct' && type.name === 'Color' && type.fields.length === 1;
+};
+
 export const isDirectory = (
     type: Type
 ): type is StructType & {

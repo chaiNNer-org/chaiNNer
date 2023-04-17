@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { Version } from './common-types';
 import { isArmMac, isMac, isWindows } from './env';
 
@@ -43,24 +44,52 @@ const getOnnxRuntime = (canCuda: boolean): PyPiPackage => {
     };
 };
 
-export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => {
+const getPytorch = (canCuda: boolean, pythonVersion: Version): PyPiPackage[] => {
+    if (semver.gte(pythonVersion, '3.8.0') && semver.lt(pythonVersion, '3.10.0')) {
+        return [
+            {
+                packageName: 'torch',
+                version: `1.10.2${canCuda ? '+cu113' : ''}`,
+                findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                sizeEstimate: canCuda ? 2 * GB : 140 * MB,
+            },
+            {
+                packageName: 'torchvision',
+                version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                sizeEstimate: canCuda ? 2 * MB : 800 * KB,
+            },
+        ];
+    }
+    if (semver.gte(pythonVersion, '3.10.0')) {
+        return [
+            {
+                packageName: 'torch',
+                version: `1.12.1${canCuda ? '+cu116' : ''}`,
+                findLink: canCuda ? 'https://download.pytorch.org/whl/cu116' : undefined,
+                sizeEstimate: canCuda ? 2 * GB : 140 * MB,
+            },
+            {
+                packageName: 'torchvision',
+                version: `0.13.1${canCuda ? '+cu116' : ''}`,
+                findLink: canCuda ? 'https://download.pytorch.org/whl/cu116' : undefined,
+                sizeEstimate: canCuda ? 2 * MB : 800 * KB,
+            },
+        ];
+    }
+    throw new Error('Unsupported Python version');
+};
+
+export const getOptionalDependencies = (
+    isNvidiaAvailable: boolean,
+    pythonVersion: Version
+): Dependency[] => {
     const canCuda = isNvidiaAvailable && !isMac;
     return [
         {
             name: 'PyTorch',
             packages: [
-                {
-                    packageName: 'torch',
-                    version: `1.10.2${canCuda ? '+cu113' : ''}`,
-                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
-                    sizeEstimate: canCuda ? 2 * GB : 140 * MB,
-                },
-                {
-                    packageName: 'torchvision',
-                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
-                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
-                    sizeEstimate: canCuda ? 2 * MB : 800 * KB,
-                },
+                ...getPytorch(canCuda, pythonVersion),
                 {
                     packageName: 'facexlib',
                     version: '0.2.5',

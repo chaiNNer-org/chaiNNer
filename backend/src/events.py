@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
+from typing import Dict, List, Literal, Optional, TypedDict, Union
 
 from base_types import InputId, NodeId, OutputId
 
@@ -33,13 +33,16 @@ class NodeFinishData(TypedDict):
     finished: List[NodeId]
     nodeId: NodeId
     executionTime: Optional[float]
-    data: Optional[Dict[OutputId, Any]]
-    types: Optional[Dict[OutputId, Any]]
+    data: Optional[Dict[OutputId, object]]
+    types: Optional[Dict[OutputId, object]]
     progressPercent: Optional[float]
 
 
 class IteratorProgressUpdateData(TypedDict):
     percent: float
+    index: int
+    total: int
+    eta: float
     iteratorId: NodeId
     running: Optional[List[NodeId]]
 

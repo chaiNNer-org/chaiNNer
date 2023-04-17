@@ -1,4 +1,6 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
+import TimeAgo from 'javascript-time-ago';
+import en from 'javascript-time-ago/locale/en.json';
 import { LocalStorage } from 'node-localstorage';
 import { memo, useState } from 'react';
 import { ipcRenderer } from '../common/safeIpc';
@@ -9,6 +11,9 @@ import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
 import { theme } from './theme';
 import './i18n';
+
+TimeAgo.addLocale(en);
+TimeAgo.setDefaultLocale(en.locale);
 
 const LoadingComponent = memo(() => (
     <Box

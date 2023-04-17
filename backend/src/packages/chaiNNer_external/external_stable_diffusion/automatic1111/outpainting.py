@@ -51,8 +51,8 @@ class OutpaintingMethod(Enum):
     icon="MdChangeCircle",
     inputs=[
         ImageInput().with_id(0),
-        TextAreaInput("Prompt").make_optional(),
-        TextAreaInput("Negative Prompt").make_optional(),
+        TextAreaInput("Prompt", has_handle=True).make_optional(),
+        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,
