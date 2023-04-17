@@ -44,6 +44,7 @@ class OutpaintingMethod(Enum):
     OUTPAINTING_MK2 = 1
 
 
+@cached
 @auto1111_group.register(
     schema_id="chainner:external_stable_diffusion:img2img_outpainting",
     name="Outpaint",
@@ -162,7 +163,6 @@ class OutpaintingMethod(Enum):
         ),
     ],
 )
-@cached
 def img_to_img_outpainting_node(
     image: np.ndarray,
     prompt: Optional[str],

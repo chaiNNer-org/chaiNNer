@@ -31,6 +31,7 @@ from .. import auto1111_group
 verify_api_connection()
 
 
+@cached
 @auto1111_group.register(
     "chainner:external_stable_diffusion:txt2img",
     name="Text to Image",
@@ -83,7 +84,6 @@ verify_api_connection()
         ),
     ],
 )
-@cached
 def text_to_image(
     prompt: Optional[str],
     negative_prompt: Optional[str],

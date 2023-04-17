@@ -35,6 +35,7 @@ from .. import auto1111_group
 verify_api_connection()
 
 
+@cached
 @auto1111_group.register(
     schema_id="chainner:external_stable_diffusion:img2img",
     name="Image to Image",
@@ -102,7 +103,6 @@ verify_api_connection()
         ),
     ],
 )
-@cached
 def img_to_image_node(
     image: np.ndarray,
     prompt: Optional[str],

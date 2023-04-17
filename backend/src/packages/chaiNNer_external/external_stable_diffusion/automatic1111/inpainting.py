@@ -44,6 +44,7 @@ class InpaintArea(Enum):
     ONLY_MASKED = "OnlyMasked"
 
 
+@cached
 @auto1111_group.register(
     schema_id="chainner:external_stable_diffusion:img2img_inpainting",
     name="Inpaint",
@@ -132,7 +133,6 @@ class InpaintArea(Enum):
         ),
     ],
 )
-@cached
 def img2img_inpainting_node(
     image: np.ndarray,
     mask: np.ndarray,
@@ -147,7 +147,7 @@ def img2img_inpainting_node(
     width: int,
     height: int,
     tiling: bool,
-    mask_blur: float,
+    mask_blur: int,
     inpainting_fill: InpaintingFill,
     inpaint_area: InpaintArea,
     inpaint_full_res_padding: int,
