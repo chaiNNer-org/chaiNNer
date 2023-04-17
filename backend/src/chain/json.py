@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Optional, Tuple, TypedDict, Union
+from typing import List, Literal, Optional, Tuple, TypedDict, Union
 
 from base_types import NodeId
 
@@ -14,7 +14,7 @@ class JsonEdgeInput(TypedDict):
 
 class JsonValueInput(TypedDict):
     type: Literal["value"]
-    value: Any
+    value: object
 
 
 JsonInput = Union[JsonEdgeInput, JsonValueInput]

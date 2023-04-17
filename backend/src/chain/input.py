@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from base_types import NodeId
 
@@ -10,8 +10,8 @@ class EdgeInput:
 
 
 class ValueInput:
-    def __init__(self, value: Any) -> None:
-        self.value = value
+    def __init__(self, value: object) -> None:
+        self.value: object = value
 
 
 Input = Union[EdgeInput, ValueInput]
@@ -35,13 +35,13 @@ class InputMap:
     def set(self, node_id: NodeId, values: List[Input]):
         self.__data[node_id] = values
 
-    def set_values(self, node_id: NodeId, values: List[Any]):
+    def set_values(self, node_id: NodeId, values: List[object]):
         self.__data[node_id] = [ValueInput(x) for x in values]
 
     def set_append(self, node_id: NodeId, values: List[Input]):
         inputs = [*self.get(node_id), *values]
         self.set(node_id, inputs)
 
-    def set_append_values(self, node_id: NodeId, values: List[Any]):
+    def set_append_values(self, node_id: NodeId, values: List[object]):
         inputs = [*self.get(node_id), *[ValueInput(x) for x in values]]
         self.set(node_id, inputs)
