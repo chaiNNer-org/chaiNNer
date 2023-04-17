@@ -25,7 +25,7 @@ from .. import miscellaneous_group
             minimum=1,
             maximum=64,
             default=8,
-            precision=1,
+            precision=0,
             controls_step=1,
         ),
     ],

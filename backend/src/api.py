@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import importlib
 import os
 from dataclasses import dataclass, field
@@ -95,6 +96,29 @@ class NodeData:
 T = TypeVar("T", bound=RunFn)
 
 
+class TypeTransformer(ast.NodeTransformer):
+    def visit_BinOp(self, node: ast.BinOp):
+        if isinstance(node.op, ast.BitOr):
+            return ast.Subscript(
+                value=ast.Name(id="Union", ctx=ast.Load()),
+                slice=ast.Tuple(
+                    elts=[
+                        self.visit(node.left),
+                        self.visit(node.right),
+                    ],
+                    ctx=ast.Load(),
+                ),
+                ctx=ast.Load(),
+            )
+        return super().visit_BinOp(node)
+
+
+def compile_type_string(s: str, filename: str = "<string>"):
+    tree = ast.parse(s, filename, "eval")
+    new_tree = ast.fix_missing_locations(TypeTransformer().visit(tree))
+    return compile(new_tree, filename, "eval")
+
+
 def validateTypes(
     wrapped_func: RunFn,
     schema_id: str,
@@ -107,7 +131,7 @@ def validateTypes(
         try:
             # Allows us to use pipe unions still
             if "|" in py_type:
-                py_type = f'Union[{py_type.replace(" |", ",")}]'
+                py_type = compile_type_string(py_type)
             # Gotta add these to the scope
             local_scope = {
                 "Union": Union,
@@ -124,18 +148,31 @@ def validateTypes(
                 f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"
             ) from e
     if evaluated_py_type is not associated_type:
-        if str(py_type).startswith("Union"):
-            evaluated_py_type_args = get_args(evaluated_py_type)
-            if associated_type not in evaluated_py_type_args:
-                raise ValueError(
-                    f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} not in {evaluated_py_type_args=}"
-                )
-        elif str(associated_type).startswith("typing.Union"):
-            associated_type_args = get_args(associated_type)
-            if evaluated_py_type not in associated_type_args:
-                raise ValueError(
-                    f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} not in {associated_type_args=}"
-                )
+        types_with_args = [
+            "typing.Optional",
+            "typing.Union",
+            "typing.Tuple",
+            "typing.List",
+        ]
+
+        def get_type_args(tp):
+            if any(str(tp).startswith(t) for t in types_with_args):
+                return get_args(tp)
+            else:
+                return None
+
+        evaluated_py_type_args = get_type_args(evaluated_py_type) or [evaluated_py_type]
+        associated_type_args = get_type_args(associated_type) or [associated_type]
+
+        if (
+            evaluated_py_type in associated_type_args
+            or associated_type in evaluated_py_type_args
+        ):
+            # The types are compatible
+            pass
+        elif any(t in associated_type_args for t in evaluated_py_type_args):
+            # The types are compatible
+            pass
         else:
             raise ValueError(
                 f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} != {associated_type=}"
@@ -368,9 +405,9 @@ class PackageRegistry:
                     except ImportError as e:
                         import_errors.append(e)
                     except RuntimeError as e:
-                        logger.warning(f"Failed to load {module}: {e}")
+                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except ValueError as e:
-                        logger.warning(f"Failed to load {module}: {e}")
+                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
 
         logger.info(import_errors)
         self._refresh_nodes()

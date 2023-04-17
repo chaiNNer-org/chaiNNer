@@ -50,6 +50,9 @@ class ImageInput(BaseInput):
         # self.associated_type = np.ndarray[Shape, np.dtype[np.float32]]
         self.associated_type = np.ndarray
 
+        if self.allow_colors:
+            self.associated_type = Union[np.ndarray, Color]
+
     def enforce(self, value):
         if isinstance(value, Color):
             if not self.allow_colors:

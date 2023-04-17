@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal, Type, Union
+from typing import List, Literal, Optional, Type, Union
 
 from base_types import InputId
 
@@ -104,6 +104,9 @@ class BaseInput:
 
     def make_optional(self):
         self.optional = True
+        if self.associated_type is not None:
+            associated_type = self.associated_type
+            self.associated_type = Optional[associated_type]
         return self
 
     def __repr__(self):

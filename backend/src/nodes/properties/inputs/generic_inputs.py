@@ -23,8 +23,8 @@ from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
-from ...utils.format import format_color_with_channels
 from ...impl.upscale.auto_split_tiles import TileSize
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
@@ -303,7 +303,7 @@ class ClipboardInput(BaseInput):
 class AnyInput(BaseInput):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
-        self.associated_type = Any
+        self.associated_type = object
 
     def enforce_(self, value):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
@@ -386,6 +386,8 @@ class ColorInput(BaseInput):
                 ), "The default color is not accepted."
 
         self.default: Color = default
+
+        self.associated_type = Color
 
     def enforce(self, value) -> Color:
         if isinstance(value, str):
