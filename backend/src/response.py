@@ -37,8 +37,8 @@ def errorResponse(
 ) -> ErrorResponse:
     if source is None and isinstance(exception, NodeExecutionError):
         source = {
-            "nodeId": exception.node.id,
-            "schemaId": exception.node.schema_id,
+            "nodeId": exception.node_id,
+            "schemaId": exception.node_data.schema_id,
             "inputs": exception.inputs,
         }
     return {

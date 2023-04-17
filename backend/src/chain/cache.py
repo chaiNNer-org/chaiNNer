@@ -1,5 +1,5 @@
 import gc
-from typing import Dict, Generic, Iterable, Optional, Set, TypeVar
+from typing import Dict, Generic, Optional, Set, TypeVar
 
 from sanic.log import logger
 
@@ -70,11 +70,11 @@ class OutputCache(Generic[T]):
         self.__counted: Dict[NodeId, _CacheEntry[T]] = {}
         self.parent: Optional[OutputCache[T]] = parent
 
-    def keys(self) -> Iterable[NodeId]:
+    def keys(self) -> Set[NodeId]:
         keys: Set[NodeId] = set()
-        keys.union(self.__static.keys(), self.__counted.keys())
+        keys.update(self.__static.keys(), self.__counted.keys())
         if self.parent:
-            keys.union(self.parent.keys())
+            keys.update(self.parent.keys())
         return keys
 
     def has(self, node_id: NodeId) -> bool:

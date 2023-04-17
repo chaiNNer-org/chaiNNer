@@ -6,18 +6,7 @@ import gc
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, TypeVar
 
 import numpy as np
 from sanic.log import logger
@@ -32,10 +21,20 @@ from nodes.impl.image_utils import get_h_w_c
 from nodes.properties.outputs.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController, ProgressToken
 
-Output = List[Any]
+Output = List[object]
 
 
-def to_output(raw_output: Any, node: NodeData) -> Output:
+def enforce_inputs(inputs: Iterable[object], node: NodeData) -> List[object]:
+    if node.type == "iteratorHelper":
+        return list(inputs)
+
+    enforced_inputs: List[object] = []
+    for index, value in enumerate(inputs):
+        enforced_inputs.append(node.inputs[index].enforce_(value))
+    return enforced_inputs
+
+
+def enforce_output(raw_output: object, node: NodeData) -> Output:
     l = len(node.outputs)
 
     output: Output
@@ -45,6 +44,7 @@ def to_output(raw_output: Any, node: NodeData) -> Output:
     elif l == 1:
         output = [raw_output]
     else:
+        assert isinstance(raw_output, (tuple, list))
         output = list(raw_output)
         assert (
             len(output) == l
@@ -62,18 +62,71 @@ def to_output(raw_output: Any, node: NodeData) -> Output:
     return output
 
 
+def run_node(node: NodeData, inputs: Iterable[object], node_id: NodeId) -> Output:
+    assert node.type == "regularNode" or node.type == "iteratorHelper"
+
+    enforced_inputs = enforce_inputs(inputs, node)
+    try:
+        raw_output = node.run(*enforced_inputs)
+        return enforce_output(raw_output, node)
+    except Aborted:
+        raise
+    except NodeExecutionError:
+        raise
+    except Exception as e:
+        # collect information to provide good error messages
+        input_dict: InputsDict = {}
+        for index, node_input in enumerate(node.inputs):
+            input_id = node_input.id
+            input_value = enforced_inputs[index]
+            if input_value is None:
+                input_dict[input_id] = None
+            elif isinstance(input_value, (str, int, float)):
+                input_dict[input_id] = input_value
+            elif isinstance(input_value, np.ndarray):
+                h, w, c = get_h_w_c(input_value)
+                input_dict[input_id] = {"width": w, "height": h, "channels": c}
+
+        raise NodeExecutionError(node_id, node, str(e), input_dict) from e
+
+
+async def run_iterator_node(
+    node: NodeData,
+    inputs: Iterable[object],
+    context: IteratorContext,
+) -> Output:
+    assert node.type == "iterator"
+
+    raw_output = await node.run(*enforce_inputs(inputs, node), context=context)
+    return enforce_output(raw_output, node)
+
+
+def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
+    data: Dict[OutputId, object] = dict()
+    types: Dict[OutputId, object] = dict()
+    for index, node_output in enumerate(node_outputs):
+        try:
+            data[node_output.id] = node_output.get_broadcast_data(output[index])
+            types[node_output.id] = node_output.get_broadcast_type(output[index])
+        except Exception as e:
+            logger.error(f"Error broadcasting output: {e}")
+    return data, types
+
+
 T = TypeVar("T")
 
 
 class NodeExecutionError(Exception):
     def __init__(
         self,
-        node: Node,
+        node_id: NodeId,
+        node_data: NodeData,
         cause: str,
         inputs: InputsDict,
     ):
         super().__init__(cause)
-        self.node: Node = node
+        self.node_id: NodeId = node_id
+        self.node_data: NodeData = node_data
         self.inputs: InputsDict = inputs
 
 
@@ -160,7 +213,7 @@ class IteratorContext:
     async def run(
         self,
         collection: Iterable[T],
-        before: Callable[[T, int], Union[None, Literal[False]]],
+        before: Callable[[T, int], None | Literal[False]],
     ):
         items = list(collection)
         length = len(items)
@@ -194,7 +247,7 @@ class IteratorContext:
     async def run_while(
         self,
         length_estimate: int,
-        before: Callable[[int], Union[None, Literal[False]]],
+        before: Callable[[int], None | Literal[False]],
         fail_fast=False,
     ):
         errors: List[str] = []
@@ -303,31 +356,32 @@ class Executor:
         except NodeExecutionError:
             raise
         except Exception as e:
-            raise NodeExecutionError(node, str(e), {}) from e
+            raise NodeExecutionError(node.id, node.get_node(), str(e), {}) from e
 
     async def __process(self, node: Node) -> Output:
         """Process a single node"""
 
-        logger.debug(f"node: {node}")
-        logger.debug(f"Running node {node.id}")
-
         # Return cached output value from an already-run node if that cached output exists
         cached = self.cache.get(node.id)
         if cached is not None:
-            await self.queue.put(self.__create_node_finish(node.id))
+            if not node.id in self.completed_node_ids:
+                self.completed_node_ids.add(node.id)
+                await self.queue.put(self.__create_node_finish(node.id))
             return cached
+
+        logger.debug(f"node: {node}")
+        logger.debug(f"Running node {node.id}")
+
+        await self.progress.suspend()
 
         inputs = []
         for node_input in self.inputs.get(node.id):
-            await self.progress.suspend()
-
             # If input is a dict indicating another node, use that node's output value
             if isinstance(node_input, EdgeInput):
                 # Recursively get the value of the input
                 processed_input = await self.process(node_input.id)
                 # Grab the right index from the output
                 inputs.append(processed_input[node_input.index])
-                await self.progress.suspend()
             # Otherwise, just use the given input (number, string, etc)
             else:
                 inputs.append(node_input.value)
@@ -337,54 +391,28 @@ class Executor:
         # Create node based on given category/name information
         node_instance = node.get_node()
 
-        # Enforce that all inputs match the expected input schema
-        enforced_inputs = []
-        if node_instance.type == "iteratorHelper":
-            enforced_inputs = inputs
-        else:
-            node_inputs = node_instance.inputs
-            for idx, node_input in enumerate(inputs):
-                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
-
         if node_instance.type == "iterator":
-            context = IteratorContext(self, node.id)
-            run_func = functools.partial(
-                node_instance.run, *enforced_inputs, context=context
+            output, execution_time = await timed_supplier_async(
+                functools.partial(
+                    run_iterator_node,
+                    node_instance,
+                    inputs,
+                    IteratorContext(self, node.id),
+                )
             )
-            raw_output, execution_time = await timed_supplier_async(run_func)
-            output = to_output(raw_output, node_instance)
-            del run_func
+
+            await self.progress.suspend()
             await self.__broadcast_data(node_instance, node.id, execution_time, output)
         else:
-            try:
-                # Run the node and pass in inputs as args
-                run_func = functools.partial(node_instance.run, *enforced_inputs)
-                raw_output, execution_time = await self.loop.run_in_executor(
-                    self.pool, timed_supplier(run_func)
-                )
-                output = to_output(raw_output, node_instance)
-                del run_func
-            except Aborted:
-                raise
-            except NodeExecutionError:
-                raise
-            except Exception as e:
-                input_dict: InputsDict = {}
-                for index, node_input in enumerate(node_instance.inputs):
-                    input_id = node_input.id
-                    input_value = enforced_inputs[index]
-                    if input_value is None:
-                        input_dict[input_id] = None
-                    elif isinstance(input_value, (str, int, float)):
-                        input_dict[input_id] = input_value
-                    elif isinstance(input_value, np.ndarray):
-                        h, w, c = get_h_w_c(input_value)
-                        input_dict[input_id] = {"width": w, "height": h, "channels": c}
-                raise NodeExecutionError(node, str(e), input_dict) from e
+            output, execution_time = await self.loop.run_in_executor(
+                self.pool,
+                timed_supplier(
+                    functools.partial(run_node, node_instance, inputs, node.id)
+                ),
+            )
 
+            await self.progress.suspend()
             await self.__broadcast_data(node_instance, node.id, execution_time, output)
-
-        del node_instance
 
         # Cache the output of the node
         # If we are executing a free node from within an iterator,
@@ -396,7 +424,6 @@ class Executor:
         )
         write_cache.set(node.id, output, self.cache_strategy[node.id])
 
-        gc.collect()
         return output
 
     async def __broadcast_data(
@@ -406,16 +433,16 @@ class Executor:
         execution_time: float,
         output: Output,
     ):
-        node_outputs = node_instance.outputs
-        finished = list(self.cache.keys())
-        if not node_id in finished:
-            finished.append(node_id)
+        finished = self.cache.keys()
+        finished.add(node_id)
+        finished = list(finished)
+
+        self.completed_node_ids.add(node_id)
 
         async def send_broadcast():
             data, types = await self.loop.run_in_executor(
-                self.pool, lambda: compute_broadcast(output, node_outputs)
+                self.pool, lambda: compute_broadcast(output, node_instance.outputs)
             )
-            self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
                     "event": "node-finish",
@@ -434,13 +461,12 @@ class Executor:
         # Only broadcast the output if the node has outputs and the output is not cached
         if (
             self.send_broadcast_data
-            and len(node_outputs) > 0
+            and len(node_instance.outputs) > 0
             and not self.cache.has(node_id)
         ):
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
         else:
-            self.completed_node_ids.add(node_id)
             await self.queue.put(
                 {
                     "event": "node-finish",
@@ -457,9 +483,9 @@ class Executor:
             )
 
     def __create_node_finish(self, node_id: NodeId) -> Event:
-        finished = list(self.cache.keys())
-        if not node_id in finished:
-            finished.append(node_id)
+        finished = self.cache.keys()
+        finished.add(node_id)
+        finished = list(finished)
 
         self.completed_node_ids.add(node_id)
 
@@ -509,7 +535,10 @@ class Executor:
 
     async def run(self):
         logger.debug(f"Running executor {self.execution_id}")
-        await self.__process_nodes(self.__get_output_nodes())
+        try:
+            await self.__process_nodes(self.__get_output_nodes())
+        finally:
+            gc.collect()
 
     async def run_iteration(self, sub: SubChain):
         logger.debug(f"Running executor {self.execution_id}")
@@ -522,19 +551,8 @@ class Executor:
     def pause(self):
         logger.debug(f"Pausing executor {self.execution_id}")
         self.progress.pause()
+        gc.collect()
 
     def kill(self):
         logger.debug(f"Killing executor {self.execution_id}")
         self.progress.abort()
-
-
-def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
-    data: Dict[OutputId, Any] = dict()
-    types: Dict[OutputId, Any] = dict()
-    for index, node_output in enumerate(node_outputs):
-        try:
-            data[node_output.id] = node_output.get_broadcast_data(output[index])
-            types[node_output.id] = node_output.get_broadcast_type(output[index])
-        except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
-    return data, types
