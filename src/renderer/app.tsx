@@ -12,7 +12,8 @@ import { Main } from './main';
 import { theme } from './theme';
 import './i18n';
 
-TimeAgo.addDefaultLocale(en);
+TimeAgo.addLocale(en);
+TimeAgo.setDefaultLocale(en.locale);
 
 const LoadingComponent = memo(() => (
     <Box
