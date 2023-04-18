@@ -55,12 +55,16 @@ from .. import modification_group
                 // https://pillow.readthedocs.io/en/stable/_modules/PIL/Image.html#Image.rotate
                 struct Point { x: number, y: number }
 
+                let img = Input0;
+                let w = img.width;
+                let h = img.height;
                 let rot_center = Point {
-                    x: Input0.width / 2,
-                    y: Input0.height / 2,
+                    x: w / 2,
+                    y: h / 2,
                 };
 
-                let angle = -number::degToRad(Input1);
+                let angleDeg = number::mod(Input1, 360);
+                let angle = -number::degToRad(angleDeg);
                 let m0 = number::cos(angle);
                 let m1 = number::sin(angle);
                 let m2 = rot_center.x + m0 * -rot_center.x + m1 * -rot_center.y;
@@ -76,9 +80,9 @@ from .. import modification_group
                 }
 
                 let p0 = transform(0, 0);
-                let p1 = transform(Input0.width, 0);
-                let p2 = transform(Input0.width, Input0.height);
-                let p3 = transform(0, Input0.height);
+                let p1 = transform(w, 0);
+                let p2 = transform(w, h);
+                let p3 = transform(0, h);
 
                 let expandWidth = uint & (
                     ceil(max(p0.x, p1.x, p2.x, p3.x))
@@ -89,16 +93,28 @@ from .. import modification_group
                     - floor(min(p0.y, p1.y, p2.y, p3.y))
                 );
 
+                struct Size { w: number, h: number }
+                let imgSize = Size { w: w, h: h };
+                let transformedSize = match Input3 {
+                    RotateSizeChange::Crop => imgSize,
+                    RotateSizeChange::Expand => Size { w: expandWidth, h: expandHeight },
+                };
+
+                // account for fast paths
+                let size = match angleDeg {
+                    0 | 180 | 360 => imgSize,
+                    90 | 270 => if bool::or(Input3 == RotateSizeChange::Expand, w == h) {
+                        Size { w: h, h: w }
+                    } else {
+                        transformedSize
+                    },
+                    _ => transformedSize,
+                };
+
                 Image {
-                    width: match Input3 {
-                        RotateSizeChange::Crop => Input0.width,
-                        _ => expandWidth
-                    },
-                    height: match Input3 {
-                        RotateSizeChange::Crop => Input0.height,
-                        _ => expandHeight
-                    },
-                    channels: FillColor::getOutputChannels(Input4, Input0.channels)
+                    width: size.w,
+                    height: size.h,
+                    channels: FillColor::getOutputChannels(Input4, img.channels)
                 }
                 """,
             assume_normalized=True,
