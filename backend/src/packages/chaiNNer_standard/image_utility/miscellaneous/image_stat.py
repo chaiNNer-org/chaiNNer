@@ -21,7 +21,7 @@ class Stat(Enum):
 @miscellaneous_group.register(
     schema_id="chainner:image:image_statistic",
     name="Image Statistic",
-    description=("""Returns some statistic of the given image."""),
+    description="Returns some statistic of the given image.",
     icon="MdOutlineAssessment",
     inputs=[
         ImageInput(channels=1),
