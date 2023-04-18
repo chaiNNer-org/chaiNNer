@@ -20,19 +20,6 @@ class Expression(Enum):
     MAX = "maximum"
 
 
-def align_images(images: List[np.ndarray]) -> np.ndarray:
-    center = np.mean(images, axis=0)
-    center_h, center_w, center_c = get_h_w_c(center)
-    aligned_images = []
-    for image in images:
-        h, w, c = get_h_w_c(image)
-        diff_y, diff_x = (center_h - h) // 2, (center_w - w) // 2
-        aligned_image = np.zeros_like(center)
-        aligned_image[diff_y : (diff_y + h), diff_x : (diff_x + w)] = image
-        aligned_images.append(aligned_image)
-    return np.array(aligned_images)
-
-
 @compositing_group.register(
     schema_id="chainner:image:z_stack",
     name="Z-Stack Images",
@@ -63,16 +50,18 @@ def z_stack(
         2 <= len(images) <= 15
     ), f"Number of images must be between 2 and 15 ({len(images)})"
 
-    aligned_images = align_images(images)
+    assert all(
+        get_h_w_c(image) == get_h_w_c(images[0]) for image in images
+    ), "All images must have the same dimensions and channels"
 
     if expression == Expression.MEAN:
-        result = np.mean(aligned_images, axis=0)
+        result = np.mean(images, axis=0)
     elif expression == Expression.MEDIAN:
-        result = np.median(aligned_images, axis=0)
+        result = np.median(images, axis=0)
     elif expression == Expression.MIN:
-        result = np.min(aligned_images, axis=0)
+        result = np.min(images, axis=0)
     elif expression == Expression.MAX:
-        result = np.max(aligned_images, axis=0)
+        result = np.max(images, axis=0)
     else:
         assert False, f"Invalid expression '{expression}'"
 
