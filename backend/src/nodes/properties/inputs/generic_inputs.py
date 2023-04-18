@@ -3,18 +3,7 @@ from __future__ import annotations
 import json
 import re
 from enum import Enum
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    List,
-    Literal,
-    Tuple,
-    Type,
-    TypedDict,
-    TypeVar,
-    Union,
-)
+from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
 
 import numpy as np
 from sanic.log import logger
