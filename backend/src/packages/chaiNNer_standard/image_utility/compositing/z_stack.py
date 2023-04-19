@@ -36,15 +36,36 @@ class Expression(Enum):
             ],
         ),
     ],
-    outputs=[ImageOutput()],
+    outputs=[
+        ImageOutput(
+            image_type="""
+                def conv(i: Image | null) = match i { Image => i, _ => any };
+
+                Input1 & Input2
+                    & conv(Input3)
+                    & conv(Input4)
+                    & conv(Input5)
+                    & conv(Input6)
+                    & conv(Input7)
+                    & conv(Input8)
+                    & conv(Input9)
+                    & conv(Input10)
+                    & conv(Input11)
+                    & conv(Input12)
+                    & conv(Input13)
+                    & conv(Input14)
+            """
+        ).with_never_reason(
+            "All input images much have the same size and number of channels."
+        ),
+    ],
 )
 def z_stack(
     expression: Expression,
-    *args: Union[np.ndarray, None],
+    *inputs: np.ndarray | None,
 ) -> np.ndarray:
     """Align and evaluate images"""
 
-    inputs: List[Union[np.ndarray, None]] = [*args]
     images = [x for x in inputs if x is not None]
     assert (
         2 <= len(images) <= 15
