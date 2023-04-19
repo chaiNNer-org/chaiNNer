@@ -82,9 +82,13 @@ def BorderInput() -> DropDownInput:
             BorderType.REPLICATE: "Replicate Edges",
         },
         extra_definitions="""
-            def BorderType::getOutputChannels(type: BorderType, channels: uint) {
+            def BorderType::getOutputChannels(type: BorderType, channels: uint, color: Color | null): uint {
                 match type {
                     BorderType::Transparent => 4,
+                    BorderType::CustomColor => match color {
+                        Color => max(color.channels, channels),
+                        null => never,
+                    },
                     _ => channels
                 }
             }

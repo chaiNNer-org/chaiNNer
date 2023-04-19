@@ -168,3 +168,21 @@ body {
 .chainner-handle:has(+ .with-label) {
     margin-top: 1rem;
 }
+
+.chainner-color-selector {
+    --border-radius: var(--chakra-radii-lg);
+
+    .react-colorful {
+        width: 100%;
+        height: 9rem;
+    }
+
+    .react-colorful__saturation {
+        border-radius: var(--border-radius);
+        border-bottom: none;
+    }
+
+    .react-colorful__hue {
+        display: none;
+    }
+}

@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 
 # pylint: disable-next=unused-import
 import cv2  # type: ignore
@@ -34,8 +34,8 @@ from process import (
     NodeExecutionError,
     Output,
     compute_broadcast,
+    run_node,
     timed_supplier,
-    to_output,
 )
 from progress_controller import Aborted
 from response import (
@@ -205,8 +205,8 @@ async def run(request: Request):
         }
         if isinstance(exception, NodeExecutionError):
             error["source"] = {
-                "nodeId": exception.node.id,
-                "schemaId": exception.node.schema_id,
+                "nodeId": exception.node_id,
+                "schemaId": exception.node_data.schema_id,
                 "inputs": exception.inputs,
             }
 
@@ -216,7 +216,7 @@ async def run(request: Request):
 
 class RunIndividualRequest(TypedDict):
     id: NodeId
-    inputs: List[Any]
+    inputs: List[object]
     schemaId: str
     options: JsonExecutionOptions
 
@@ -227,8 +227,9 @@ async def run_individual(request: Request):
     ctx = AppContext.get(request.app)
     try:
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
-        if ctx.cache.get(full_data["id"], None) is not None:
-            del ctx.cache[full_data["id"]]
+        node_id = full_data["id"]
+        if ctx.cache.get(node_id, None) is not None:
+            del ctx.cache[node_id]
         logger.debug(full_data)
         exec_opts = parse_execution_options(full_data["options"])
         set_execution_options(exec_opts)
@@ -236,25 +237,18 @@ async def run_individual(request: Request):
         # Create node based on given category/name information
         node_instance = api.registry.get_node(full_data["schemaId"])
 
-        # Enforce that all inputs match the expected input schema
-        enforced_inputs = []
-        if node_instance.type == "iteratorHelper":
-            enforced_inputs = full_data["inputs"]
-        else:
-            node_inputs = node_instance.inputs
-            for idx, node_input in enumerate(full_data["inputs"]):
-                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
-
         with runIndividualCounter:
             # Run the node and pass in inputs as args
-            run_func = functools.partial(node_instance.run, *full_data["inputs"])
-            raw_output, execution_time = await app.loop.run_in_executor(
-                None, timed_supplier(run_func)
+            output, execution_time = await app.loop.run_in_executor(
+                None,
+                timed_supplier(
+                    functools.partial(
+                        run_node, node_instance, full_data["inputs"], node_id
+                    )
+                ),
             )
-            output = to_output(raw_output, node_instance)
-
             # Cache the output of the node
-            ctx.cache[full_data["id"]] = output
+            ctx.cache[node_id] = output
 
         # Broadcast the output from the individual run
         node_outputs = node_instance.outputs
@@ -265,7 +259,7 @@ async def run_individual(request: Request):
                     "event": "node-finish",
                     "data": {
                         "finished": [],
-                        "nodeId": full_data["id"],
+                        "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,
                         "types": types,
@@ -273,7 +267,6 @@ async def run_individual(request: Request):
                     },
                 }
             )
-        del node_instance, run_func
         gc.collect()
         return json({"success": True, "data": None})
     except Exception as exception:

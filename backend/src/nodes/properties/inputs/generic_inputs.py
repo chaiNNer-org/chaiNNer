@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from enum import Enum
 from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
@@ -8,8 +9,10 @@ import numpy as np
 from sanic.log import logger
 
 from ...impl.blend import BlendMode
+from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
@@ -311,6 +314,79 @@ class SeedInput(NumberInput):
 
     def make_optional(self):
         raise ValueError("SeedInput cannot be made optional")
+
+
+class ColorInput(BaseInput):
+    def __init__(
+        self,
+        label: str = "Color",
+        default: Color | None = None,
+        channels: int | List[int] | None = None,
+    ):
+        super().__init__(
+            input_type=expression.Color(channels=channels),
+            label=label,
+            has_handle=True,
+            kind="color",
+        )
+
+        self.input_adapt = """
+            match Input {
+                string => parseColorJson(Input),
+                _ => never
+            }
+        """
+
+        self.channels: List[int] | None = (
+            [channels] if isinstance(channels, int) else channels
+        )
+
+        if self.channels is None:
+            if default is None:
+                default = Color.bgr((0.5, 0.5, 0.5))
+        else:
+            assert len(self.channels) >= 0
+            if default is None:
+                if 3 in self.channels:
+                    default = Color.bgr((0.5, 0.5, 0.5))
+                elif 4 in self.channels:
+                    default = Color.bgra((0.5, 0.5, 0.5, 1))
+                elif 1 in self.channels:
+                    default = Color.gray(0.5)
+                else:
+                    raise ValueError("Cannot find default color value")
+            else:
+                assert (
+                    default.channels in self.channels
+                ), "The default color is not accepted."
+
+        self.default: Color = default
+
+    def enforce(self, value) -> Color:
+        if isinstance(value, str):
+            # decode color JSON strings from the frontend
+            value = Color.from_json(json.loads(value))
+
+        assert isinstance(value, Color)
+
+        if self.channels is not None and value.channels not in self.channels:
+            expected = format_color_with_channels(self.channels, plural=True)
+            actual = format_color_with_channels([value.channels])
+            raise ValueError(
+                f"The input {self.label} only supports {expected} but was given {actual}."
+            )
+
+        return value
+
+    def toDict(self):
+        return {
+            **super().toDict(),
+            "def": json.dumps(self.default.to_json()),
+            "channels": self.channels,
+        }
+
+    def make_optional(self):
+        raise ValueError("ColorInput cannot be made optional")
 
 
 def IteratorInput():
