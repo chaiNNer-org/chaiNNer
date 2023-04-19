@@ -39,15 +39,6 @@ class ImageInput(BaseInput):
         )
         self.allow_colors: bool = allow_colors
 
-        # TODO: Maybe some day...
-        # Create a valid union type from the channels list
-        # channel_str = int
-        # if self.channels is not None:
-        #     channel_str = eval(f"Literal[{', '.join([str(c) for c in self.channels])}]")
-
-        # Shape = Tuple[int, int, channel_str]
-
-        # self.associated_type = np.ndarray[Shape, np.dtype[np.float32]]
         self.associated_type = np.ndarray
 
         if self.allow_colors:
