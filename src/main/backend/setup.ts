@@ -3,11 +3,7 @@ import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
 import { FfmpegInfo, PythonInfo } from '../../common/common-types';
-import {
-    Dependency,
-    getOptionalDependencies,
-    requiredDependencies,
-} from '../../common/dependencies';
+import { Dependency, requiredDependencies } from '../../common/dependencies';
 import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
@@ -182,9 +178,9 @@ const ensurePythonDeps = async (
         const installedPackages = new Set(Object.keys(pipList));
 
         const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
-        const optionalPackages = getOptionalDependencies(hasNvidia, pythonInfo.version).flatMap(
-            (dep) => dep.packages
-        );
+        // const optionalPackages = getOptionalDependencies(hasNvidia, pythonInfo.version).flatMap(
+        //     (dep) => dep.packages
+        // );
 
         // CASE 1: A package isn't installed
         const missingRequiredPackages = requiredPackages.filter(
@@ -201,24 +197,23 @@ const ensurePythonDeps = async (
         });
 
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
-        const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
-            const installedVersion = pipList[packageInfo.packageName];
-            if (!installedVersion) {
-                return false;
-            }
-            return packageInfo.autoUpdate && versionGt(packageInfo.version, installedVersion);
-        });
+        // const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
+        //     const installedVersion = pipList[packageInfo.packageName];
+        //     if (!installedVersion) {
+        //         return false;
+        //     }
+        //     return packageInfo.autoUpdate && versionGt(packageInfo.version, installedVersion);
+        // });
 
         const allPackagesThatNeedToBeInstalled = [
             ...missingRequiredPackages,
             ...outOfDateRequiredPackages,
-            ...outOfDateOptionalPackages,
+            // ...outOfDateOptionalPackages,
         ];
 
         if (allPackagesThatNeedToBeInstalled.length > 0) {
             const isInstallingRequired = missingRequiredPackages.length > 0;
-            const isUpdating =
-                outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
+            const isUpdating = outOfDateRequiredPackages.length > 0; // || outOfDateOptionalPackages.length > 0;
 
             const onlyUpdating = isUpdating && !isInstallingRequired;
             token.submitProgress({

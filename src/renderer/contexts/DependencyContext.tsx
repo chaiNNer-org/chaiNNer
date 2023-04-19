@@ -35,7 +35,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
-import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
+import { Dependency, PyPiPackage } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -309,7 +309,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             supplier: async () => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
                 const isNvidiaAvailable = nvidiaGpu !== null;
-                return getOptionalDependencies(isNvidiaAvailable, pythonInfo.version);
+                return []; // getOptionalDependencies(isNvidiaAvailable, pythonInfo.version);
             },
             successEffect: setAvailableDeps,
         }),

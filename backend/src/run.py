@@ -387,6 +387,29 @@ async def python_info(_request: Request):
     return json({"python": sys.executable, "version": version})
 
 
+@app.route("/dependencies", methods=["GET"])
+async def get_dependencies(_request: Request):
+    all_dependencies = []
+    for package in api.registry.packages.values():
+        pkg_dependencies = [x.toDict() for x in package.dependencies]
+        if package.name == "chaiNNer_standard":
+            all_dependencies.append(
+                {
+                    "name": package.name,
+                    "dependencies": pkg_dependencies,
+                    "automatic": True,
+                }
+            )
+        else:
+            all_dependencies.append(
+                {
+                    "name": package.name,
+                    "dependencies": pkg_dependencies,
+                }
+            )
+    return json(all_dependencies)
+
+
 if __name__ == "__main__":
     try:
         port = int(sys.argv[1]) or 8000
