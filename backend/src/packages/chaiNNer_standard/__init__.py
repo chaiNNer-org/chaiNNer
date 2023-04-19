@@ -1,6 +1,6 @@
 from sanic.log import logger
 
-from api import KB, MB, Dependency, add_package, is_m1_mac, is_windows
+from api import KB, MB, Dependency, add_package, is_arm_mac, is_windows
 
 package = add_package(
     __file__,
@@ -18,9 +18,9 @@ package = add_package(
     ],
 )
 
-if is_m1_mac():
+if is_arm_mac:
     package.add_dependency(Dependency("Pasteboard", "pasteboard", "0.3.3", 19 * KB))
-elif is_windows():
+elif is_windows:
     package.add_dependency(Dependency("Pywin32", "pywin32", "304", 12 * MB))
 
 image_category = package.add_category(

@@ -1,8 +1,83 @@
+import sys
+
 from sanic.log import logger
 
-from api import add_package
+from api import GB, KB, MB, Dependency, add_package
+from gpu import nvidia_is_available
 
-package = add_package(__file__, name="chaiNNer_pytorch", dependencies=[])
+python_version = sys.version_info
+
+dependencies = []
+if python_version.minor < 10:
+    dependencies.extend(
+        [
+            Dependency(
+                display_name="PyTorch",
+                package_name="torch",
+                version="1.10.2+cu113" if nvidia_is_available else "1.10.2",
+                size_estimate=2 * GB if nvidia_is_available else 140 * MB,
+                extra_index_url="https://download.pytorch.org/whl/cu113"
+                if nvidia_is_available
+                else None,
+            ),
+            Dependency(
+                display_name="TorchVision",
+                package_name="torchvision",
+                version="0.11.3+cu113" if nvidia_is_available else "0.11.3",
+                size_estimate=2 * MB if nvidia_is_available else 800 * KB,
+                extra_index_url="https://download.pytorch.org/whl/cu113"
+                if nvidia_is_available
+                else None,
+            ),
+        ]
+    )
+elif python_version.minor >= 10:
+    dependencies.extend(
+        [
+            Dependency(
+                display_name="PyTorch",
+                package_name="torch",
+                version="1.12.1+cu116" if nvidia_is_available else "1.12.1",
+                size_estimate=2 * GB if nvidia_is_available else 140 * MB,
+                extra_index_url="https://download.pytorch.org/whl/cu116"
+                if nvidia_is_available
+                else None,
+            ),
+            Dependency(
+                display_name="TorchVision",
+                package_name="torchvision",
+                version="0.13.1+cu116" if nvidia_is_available else "0.13.1",
+                size_estimate=2 * MB if nvidia_is_available else 800 * KB,
+                extra_index_url="https://download.pytorch.org/whl/cu116"
+                if nvidia_is_available
+                else None,
+            ),
+        ]
+    )
+
+dependencies.extend(
+    [
+        Dependency(
+            display_name="FaceXLib",
+            package_name="facexlib",
+            version="0.2.5",
+            size_estimate=1.1 * MB,
+        ),
+        Dependency(
+            display_name="Einops",
+            package_name="einops",
+            version="0.5.0",
+            size_estimate=36.5 * KB,
+        ),
+    ]
+)
+
+package = add_package(
+    __file__,
+    name="chaiNNer_pytorch",
+    description="PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).",
+    dependencies=dependencies,
+)
 
 pytorch_category = package.add_category(
     name="PyTorch",

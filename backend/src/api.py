@@ -177,7 +177,8 @@ class Dependency:
     package_name: str
     version: str
     size_estimate: int | float
-    autoUpdate: bool = False
+    auto_update: bool = False
+    extra_index_url: str | None = None
 
     def toDict(self):
         return {
@@ -185,7 +186,8 @@ class Dependency:
             "packageName": self.package_name,
             "version": self.version,
             "sizeEstimate": int(self.size_estimate),
-            "autoUpdate": self.autoUpdate,
+            "autoUpdate": self.auto_update,
+            "findLink": self.extra_index_url,
         }
 
 
@@ -292,17 +294,7 @@ def add_package(
     return registry.add(Package(where, name, description, dependencies))
 
 
-def is_mac():
-    return sys.platform == "darwin"
-
-
-def is_m1_mac():
-    return is_mac() and platform.machine() == "arm64"
-
-
-def is_windows():
-    return sys.platform == "win32"
-
-
-def is_linux():
-    return sys.platform == "linux"
+is_mac = sys.platform == "darwin"
+is_arm_mac = is_mac and platform.machine() == "arm64"
+is_windows = sys.platform == "win32"
+is_linux = sys.platform == "linux"
