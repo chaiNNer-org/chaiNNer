@@ -17,7 +17,9 @@ from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
 from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
+from lazy import Lazy
 from nodes.impl.image_utils import get_h_w_c
+from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController, ProgressToken
 
@@ -28,9 +30,14 @@ def enforce_inputs(inputs: Iterable[object], node: NodeData) -> List[object]:
     if node.type == "iteratorHelper":
         return list(inputs)
 
+    def enforce(i: BaseInput, value: object) -> object:
+        if isinstance(value, Lazy):
+            value = value.value
+        return i.enforce_(value)
+
     enforced_inputs: List[object] = []
     for index, value in enumerate(inputs):
-        enforced_inputs.append(node.inputs[index].enforce_(value))
+        enforced_inputs.append(enforce(node.inputs[index], value))
     return enforced_inputs
 
 
@@ -51,13 +58,19 @@ def enforce_output(raw_output: object, node: NodeData) -> Output:
         ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
 
     # make outputs readonly
-    for o in output:
-        if isinstance(o, np.ndarray):
-            o.setflags(write=False)
+    for value in output:
+        if isinstance(value, np.ndarray):
+            value.setflags(write=False)
 
     # output-specific validations
+    def enforce(o: BaseOutput, value: object) -> object:
+        if isinstance(value, Lazy):
+            return Lazy(lambda: o.enforce(value.value))
+        else:
+            return o.enforce(value)
+
     for i, o in enumerate(node.outputs):
-        output[i] = o.enforce(output[i])
+        output[i] = enforce(o, output[i])
 
     return output
 
@@ -104,12 +117,16 @@ async def run_iterator_node(
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
     data: Dict[OutputId, object] = dict()
     types: Dict[OutputId, object] = dict()
+
     for index, node_output in enumerate(node_outputs):
-        try:
-            data[node_output.id] = node_output.get_broadcast_data(output[index])
-            types[node_output.id] = node_output.get_broadcast_type(output[index])
-        except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
+        value = output[index]
+        if not isinstance(value, Lazy):
+            try:
+                data[node_output.id] = node_output.get_broadcast_data(value)
+                types[node_output.id] = node_output.get_broadcast_type(value)
+            except Exception as e:
+                logger.error(f"Error broadcasting output: {e}")
+
     return data, types
 
 
