@@ -9,6 +9,7 @@ import {
     PythonInfo,
     SchemaId,
 } from './common-types';
+import { PyPiPackage } from './dependencies';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -171,6 +172,10 @@ export class Backend {
 
     pythonInfo(): Promise<PythonInfo> {
         return this.fetchJson('/python-info', 'GET');
+    }
+
+    dependencies(): Promise<{ name: string; dependencies: PyPiPackage[]; automatic?: boolean }[]> {
+        return this.fetchJson('/dependencies', 'GET');
     }
 }
 

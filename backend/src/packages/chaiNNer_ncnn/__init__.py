@@ -13,6 +13,7 @@ package = add_package(
             "2022.9.12",
             7 * MB if is_mac else 4 * MB,
             auto_update=True,
+            import_name="ncnn_vulkan",
         ),
     ],
 )

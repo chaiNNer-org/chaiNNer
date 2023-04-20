@@ -3,19 +3,21 @@ import functools
 import gc
 import importlib
 import logging
+import re
+import subprocess
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
+from json import loads as json_parse
 from typing import Dict, List, Optional, TypedDict
 
-# pylint: disable-next=unused-import
-import cv2  # type: ignore
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
+from semver.version import Version
 
 import api
 from base_types import NodeId
@@ -66,13 +68,85 @@ app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
+python_path = sys.executable
+
+# Get the list of installed packages
+# We can't rely on using the package's __version__ attribute because not all packages actually have it
+try:
+    pip_list = subprocess.check_output(
+        [python_path, "-m", "pip", "list", "--format=json"]
+    )
+    installed_packages = {p["name"]: p["version"] for p in json_parse(pip_list)}
+except Exception as e:
+    logger.error(f"Failed to get installed packages: {e}")
+    installed_packages = {}
+
+
+def coerce_semver(version: str) -> Version:
+    try:
+        return Version.parse(version, True)
+    except Exception:
+        regex = r"(\d+)\.(\d+)\.(\d+)"
+        match = re.search(regex, version)
+        if match:
+            return Version(
+                int(match.group(1)),
+                int(match.group(2)),
+                int(match.group(3)),
+            )
+        return Version(0, 0, 0)
+
+
+def install_deps(deps_to_install: List[api.Dependency], update_only: bool = False):
+    # get standard package deps, try to import. if ImportError, install. If not, check version. If out of date, install.
+    for dep in deps_to_install:
+        try:
+            importlib.import_module(dep.import_name or dep.package_name)
+        except ImportError:
+            if not update_only:
+                # use pip to install
+                logger.info(f"Installing {dep.package_name}...")
+                subprocess.check_call(
+                    [python_path, "-m", "pip", "install", dep.package_name]
+                )
+        except Exception as ex:
+            logger.error(f"Failed to import {dep.package_name}: {ex}")
+        else:
+            version = installed_packages[dep.package_name]
+            if dep.version and version:
+                installed_version = coerce_semver(version)
+                dep_version = coerce_semver(dep.version)
+                logger.info(f"{installed_version=}, {dep_version=}")
+                if installed_version < dep_version:
+                    logger.info(
+                        f"Updating {dep.package_name} from {version} to {dep.version}..."
+                    )
+                    # use pip to install
+                    subprocess.check_call(
+                        [
+                            python_path,
+                            "-m",
+                            "pip",
+                            "install",
+                            "--upgrade",
+                            dep.package_name,
+                        ]
+                    )
+
+
 # Manually import built-in packages to get ordering correct
 # Using importlib here so we don't have to ignore that it isn't used
 importlib.import_module("packages.chaiNNer_standard")
+
+install_deps(next(iter(api.registry.packages.values())).dependencies)
+
 importlib.import_module("packages.chaiNNer_pytorch")
 importlib.import_module("packages.chaiNNer_ncnn")
 importlib.import_module("packages.chaiNNer_onnx")
 importlib.import_module("packages.chaiNNer_external")
+
+# For these, do the same as the above, but only if auto_update is true
+
 
 # in the future, for external packages dir, scan & import
 # for package in os.listdir(packages_dir):

@@ -11,6 +11,7 @@ def get_onnx_runtime():
             package_name="onnxruntime-silicon",
             version="1.13.1",
             size_estimate=6 * MB,
+            import_name="onnxruntime",
         )
     elif nvidia_is_available:
         return Dependency(
@@ -18,6 +19,7 @@ def get_onnx_runtime():
             package_name="onnxruntime-gpu",
             version="1.13.1",
             size_estimate=110 * MB,
+            import_name="onnxruntime",
         )
     else:
         return Dependency(

@@ -180,6 +180,8 @@ class Dependency:
     auto_update: bool = False
     extra_index_url: str | None = None
 
+    import_name: str | None = None
+
     def toDict(self):
         return {
             "displayName": self.display_name,

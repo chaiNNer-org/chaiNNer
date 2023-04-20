@@ -7,6 +7,7 @@ const MB = 1024 ** 2;
 const GB = 1024 ** 3;
 
 export interface PyPiPackage {
+    displayName?: string;
     packageName: string;
     version: Version;
     findLink?: string;
@@ -34,5 +35,9 @@ export const requiredDependencies: Dependency[] = [
     {
         name: 'PyNvML',
         packages: [{ packageName: 'pynvml', version: '11.5.0', sizeEstimate: 53 * KB }],
+    },
+    {
+        name: 'semver',
+        packages: [{ packageName: 'semver', version: '3.0.0', sizeEstimate: 17 * KB }],
     },
 ];
