@@ -97,48 +97,57 @@ def coerce_semver(version: str) -> Version:
         return Version(0, 0, 0)
 
 
-def install_deps(deps_to_install: List[api.Dependency], update_only: bool = False):
-    # get standard package deps, try to import. if ImportError, install. If not, check version. If out of date, install.
-    for dep in deps_to_install:
-        try:
-            importlib.import_module(dep.import_name or dep.package_name)
-        except ImportError:
-            if not update_only:
+def install_dep(dependency: api.Dependency, update_only: bool = False):
+    try:
+        # importlib.import_module(dependency.import_name or dependency.package_name)
+        installed_package = installed_packages[dependency.package_name]
+        if not installed_package:
+            raise ImportError()
+    except ImportError:
+        if not update_only:
+            # use pip to install
+            # logger.info(f"Installing {dependency.package_name}...")
+            subprocess.check_call(
+                [
+                    python_path,
+                    "-m",
+                    "pip",
+                    "install",
+                    f"{dependency.package_name}=={dependency.version}",
+                ]
+            )
+    except Exception as ex:
+        logger.error(f"Failed to import {dependency.package_name}: {ex}")
+    else:
+        version = installed_packages[dependency.package_name]
+        if dependency.version and version:
+            installed_version = coerce_semver(version)
+            dep_version = coerce_semver(dependency.version)
+            if installed_version < dep_version:
+                # logger.info(
+                #     f"Updating {dependency.package_name} from {version} to {dependency.version}..."
+                # )
                 # use pip to install
-                logger.info(f"Installing {dep.package_name}...")
                 subprocess.check_call(
-                    [python_path, "-m", "pip", "install", dep.package_name]
+                    [
+                        python_path,
+                        "-m",
+                        "pip",
+                        "install",
+                        "--upgrade",
+                        f"{dependency.package_name}=={dependency.version}",
+                    ]
                 )
-        except Exception as ex:
-            logger.error(f"Failed to import {dep.package_name}: {ex}")
-        else:
-            version = installed_packages[dep.package_name]
-            if dep.version and version:
-                installed_version = coerce_semver(version)
-                dep_version = coerce_semver(dep.version)
-                logger.info(f"{installed_version=}, {dep_version=}")
-                if installed_version < dep_version:
-                    logger.info(
-                        f"Updating {dep.package_name} from {version} to {dep.version}..."
-                    )
-                    # use pip to install
-                    subprocess.check_call(
-                        [
-                            python_path,
-                            "-m",
-                            "pip",
-                            "install",
-                            "--upgrade",
-                            dep.package_name,
-                        ]
-                    )
 
+
+deps_have_changed = False
 
 # Manually import built-in packages to get ordering correct
 # Using importlib here so we don't have to ignore that it isn't used
 importlib.import_module("packages.chaiNNer_standard")
 
-install_deps(next(iter(api.registry.packages.values())).dependencies)
+for dep in next(iter(api.registry.packages.values())).dependencies:
+    install_dep(dep)
 
 importlib.import_module("packages.chaiNNer_pytorch")
 importlib.import_module("packages.chaiNNer_ncnn")
@@ -146,7 +155,13 @@ importlib.import_module("packages.chaiNNer_onnx")
 importlib.import_module("packages.chaiNNer_external")
 
 # For these, do the same as the above, but only if auto_update is true
-
+for package in api.registry.packages.values():
+    if package.name == "chaiNNer_standard":
+        continue
+    # logger.info(f"Checking dependencies for {package.name}...")
+    for dep in package.dependencies:
+        if dep.auto_update:
+            install_dep(dep, update_only=True)
 
 # in the future, for external packages dir, scan & import
 # for package in os.listdir(packages_dir):
