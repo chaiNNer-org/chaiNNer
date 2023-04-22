@@ -100,7 +100,7 @@ class NodeGroup:
         side_effects: bool = False,
         deprecated: bool = False,
         default_nodes: List[DefaultNode] | None = None,
-        decorators: List[Any] = field(default_factory=list),
+        decorators: List[Any] | None = None,
     ):
         def inner_wrapper(wrapped_func: T) -> T:
             p_inputs, group_layout = _process_inputs(inputs)
@@ -113,8 +113,9 @@ class NodeGroup:
                     wrapped_func, node_type, schema_id, p_inputs, p_outputs
                 )
 
-            for decorator in decorators:
-                wrapped_func = decorator(wrapped_func)
+            if decorators is not None:
+                for decorator in decorators:
+                    wrapped_func = decorator(wrapped_func)
 
             node = NodeData(
                 schema_id=schema_id,
