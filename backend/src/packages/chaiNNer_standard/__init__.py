@@ -8,7 +8,7 @@ package = add_package(
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
         Dependency("OpenCV", "opencv-python", "4.7.0.68", 30 * MB, import_name="cv2"),
-        Dependency("NumPy", "numpy", "1.23.2", 15 * MB),
+        # Dependency("NumPy", "numpy", "1.23.2", 15 * MB),
         Dependency("Pillow (PIL)", "Pillow", "9.2.0", 3 * MB, import_name="PIL"),
         Dependency("appdirs", "appdirs", "1.4.4", 13.5 * KB),
         Dependency("FFMPEG", "ffmpeg-python", "0.2.0", 25 * KB, import_name="ffmpeg"),
