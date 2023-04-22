@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
+from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
 
 from sanic.log import logger
 
@@ -100,7 +100,7 @@ class NodeGroup:
         side_effects: bool = False,
         deprecated: bool = False,
         default_nodes: List[DefaultNode] | None = None,
-        decorators: List[Any] | None = None,
+        decorators: List[Callable] | None = None,
     ):
         def inner_wrapper(wrapped_func: T) -> T:
             p_inputs, group_layout = _process_inputs(inputs)
