@@ -3,11 +3,8 @@ import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
 import { FfmpegInfo, PythonInfo } from '../../common/common-types';
-import { Dependency, requiredDependencies } from '../../common/dependencies';
-import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
-import { versionGt } from '../../common/version';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
 import { checkPythonPaths } from '../python/checkPythonPaths';
 import { getIntegratedPython } from '../python/integratedPython';
@@ -174,28 +171,24 @@ const ensurePythonDeps = async (
     log.info('Attempting to check Python deps...');
 
     try {
-        const pipList = await runPipList(pythonInfo);
-        const installedPackages = new Set(Object.keys(pipList));
-
-        const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
+        // const pipList = await runPipList(pythonInfo);
+        // const installedPackages = new Set(Object.keys(pipList));
+        // const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
         // const optionalPackages = getOptionalDependencies(hasNvidia, pythonInfo.version).flatMap(
         //     (dep) => dep.packages
         // );
-
         // CASE 1: A package isn't installed
-        const missingRequiredPackages = requiredPackages.filter(
-            (packageInfo) => !installedPackages.has(packageInfo.packageName)
-        );
-
+        // const missingRequiredPackages = requiredPackages.filter(
+        //     (packageInfo) => !installedPackages.has(packageInfo.packageName)
+        // );
         // CASE 2: A required package is installed but not the latest version
-        const outOfDateRequiredPackages = requiredPackages.filter((packageInfo) => {
-            const installedVersion = pipList[packageInfo.packageName];
-            if (!installedVersion) {
-                return false;
-            }
-            return versionGt(packageInfo.version, installedVersion);
-        });
-
+        // const outOfDateRequiredPackages = requiredPackages.filter((packageInfo) => {
+        //     const installedVersion = pipList[packageInfo.packageName];
+        //     if (!installedVersion) {
+        //         return false;
+        //     }
+        //     return versionGt(packageInfo.version, installedVersion);
+        // });
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
         // const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
         //     const installedVersion = pipList[packageInfo.packageName];
@@ -204,34 +197,30 @@ const ensurePythonDeps = async (
         //     }
         //     return packageInfo.autoUpdate && versionGt(packageInfo.version, installedVersion);
         // });
-
-        const allPackagesThatNeedToBeInstalled = [
-            ...missingRequiredPackages,
-            ...outOfDateRequiredPackages,
-            // ...outOfDateOptionalPackages,
-        ];
-
-        if (allPackagesThatNeedToBeInstalled.length > 0) {
-            const isInstallingRequired = missingRequiredPackages.length > 0;
-            const isUpdating = outOfDateRequiredPackages.length > 0; // || outOfDateOptionalPackages.length > 0;
-
-            const onlyUpdating = isUpdating && !isInstallingRequired;
-            token.submitProgress({
-                status: onlyUpdating
-                    ? t('splash.updatingDeps', 'Updating dependencies...')
-                    : t('splash.installingDeps', 'Installing required dependencies...'),
-                totalProgress: 0.7,
-            });
-
-            // Try to update/install deps
-            log.info('Installing/Updating dependencies...');
-            await runPipInstall(pythonInfo, [
-                {
-                    name: 'All Packages That Need To Be Installed',
-                    packages: allPackagesThatNeedToBeInstalled,
-                },
-            ] as Dependency[]);
-        }
+        // const allPackagesThatNeedToBeInstalled = [
+        //     ...missingRequiredPackages,
+        //     ...outOfDateRequiredPackages,
+        //     // ...outOfDateOptionalPackages,
+        // ];
+        // if (allPackagesThatNeedToBeInstalled.length > 0) {
+        //     const isInstallingRequired = missingRequiredPackages.length > 0;
+        //     const isUpdating = outOfDateRequiredPackages.length > 0; // || outOfDateOptionalPackages.length > 0;
+        //     const onlyUpdating = isUpdating && !isInstallingRequired;
+        //     token.submitProgress({
+        //         status: onlyUpdating
+        //             ? t('splash.updatingDeps', 'Updating dependencies...')
+        //             : t('splash.installingDeps', 'Installing required dependencies...'),
+        //         totalProgress: 0.7,
+        //     });
+        //     // Try to update/install deps
+        //     log.info('Installing/Updating dependencies...');
+        //     await runPipInstall(pythonInfo, [
+        //         {
+        //             name: 'All Packages That Need To Be Installed',
+        //             packages: allPackagesThatNeedToBeInstalled,
+        //         },
+        //     ] as Dependency[]);
+        // }
     } catch (error) {
         log.error(error);
     }

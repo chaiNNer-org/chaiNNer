@@ -1,15 +1,75 @@
+import subprocess
+import sys
+from json import dumps as stringify
+from json import loads as json_parse
+
+## ONLY IMPORT PYTHON STANDARD LIBRARY MODULES ABOVE HERE
+
+python_path = sys.executable
+
+# Get the list of installed packages
+# We can't rely on using the package's __version__ attribute because not all packages actually have it
+try:
+    pip_list = subprocess.check_output(
+        [python_path, "-m", "pip", "list", "--format=json"]
+    )
+    installed_packages = {p["name"]: p["version"] for p in json_parse(pip_list)}
+except Exception as e:
+    # logger.error(f"Failed to get installed packages: {e}")
+    installed_packages = {}
+
+required_dependencies = [
+    {
+        "package_name": "sanic",
+        "version": "23.3.0",
+    },
+    {
+        "package_name": "Sanic-Cors",
+        "version": "2.2.0",
+    },
+    {"package_name": "pynvml", "version": "11.5.0"},
+    {
+        "package_name": "semver",
+        "version": "3.0.0",
+    },
+    {
+        "package_name": "numpy",
+        "version": "1.23.2",
+    },
+]
+
+
+# Note: We can't be sure we have semver yet so we can't use it to compare versions
+def install_required_dependencies():
+    for dependency in required_dependencies:
+        if dependency["package_name"] not in installed_packages:
+            subprocess.check_call(
+                [
+                    python_path,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--upgrade",
+                    f"{dependency['package_name']}=={dependency['version']}",
+                ]
+            )
+            installed_packages[dependency["package_name"]] = dependency["version"]
+
+
+install_required_dependencies()
+
+# pylint: disable=wrong-import-position
+
 import asyncio
 import functools
 import gc
 import importlib
 import logging
+
+# pylint: disable=wrong-import-position
 import re
-import subprocess
-import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from json import dumps as stringify
-from json import loads as json_parse
 from typing import Dict, List, Optional, TypedDict
 
 from sanic import Sanic
@@ -48,40 +108,6 @@ from response import (
 )
 
 
-class AppContext:
-    def __init__(self):
-        self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, Output] = dict()
-        # This will be initialized by setup_queue.
-        # This is necessary because we don't know Sanic's event loop yet.
-        self.queue: EventQueue = None  # type: ignore
-        self.pool = ThreadPoolExecutor(max_workers=4)
-
-    @staticmethod
-    def get(app_instance: Sanic) -> "AppContext":
-        assert isinstance(app_instance.ctx, AppContext)
-        return app_instance.ctx
-
-
-app = Sanic("chaiNNer", ctx=AppContext())
-app.config.REQUEST_TIMEOUT = sys.maxsize
-app.config.RESPONSE_TIMEOUT = sys.maxsize
-CORS(app)
-
-python_path = sys.executable
-
-# Get the list of installed packages
-# We can't rely on using the package's __version__ attribute because not all packages actually have it
-try:
-    pip_list = subprocess.check_output(
-        [python_path, "-m", "pip", "list", "--format=json"]
-    )
-    installed_packages = {p["name"]: p["version"] for p in json_parse(pip_list)}
-except Exception as e:
-    logger.error(f"Failed to get installed packages: {e}")
-    installed_packages = {}
-
-
 def coerce_semver(version: str) -> Version:
     try:
         return Version.parse(version, True)
@@ -116,6 +142,7 @@ def install_dep(dependency: api.Dependency, update_only: bool = False):
                     f"{dependency.package_name}=={dependency.version}",
                 ]
             )
+            installed_packages[dependency.package_name] = dependency.version
     except Exception as ex:
         logger.error(f"Failed to import {dependency.package_name}: {ex}")
     else:
@@ -138,9 +165,29 @@ def install_dep(dependency: api.Dependency, update_only: bool = False):
                         f"{dependency.package_name}=={dependency.version}",
                     ]
                 )
+                installed_packages[dependency.package_name] = dependency.version
 
 
-deps_have_changed = False
+class AppContext:
+    def __init__(self):
+        self.executor: Optional[Executor] = None
+        self.cache: Dict[NodeId, Output] = dict()
+        # This will be initialized by setup_queue.
+        # This is necessary because we don't know Sanic's event loop yet.
+        self.queue: EventQueue = None  # type: ignore
+        self.pool = ThreadPoolExecutor(max_workers=4)
+
+    @staticmethod
+    def get(app_instance: Sanic) -> "AppContext":
+        assert isinstance(app_instance.ctx, AppContext)
+        return app_instance.ctx
+
+
+app = Sanic("chaiNNer", ctx=AppContext())
+app.config.REQUEST_TIMEOUT = sys.maxsize
+app.config.RESPONSE_TIMEOUT = sys.maxsize
+CORS(app)
+
 
 # Manually import built-in packages to get ordering correct
 # Using importlib here so we don't have to ignore that it isn't used
