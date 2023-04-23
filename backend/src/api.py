@@ -109,9 +109,7 @@ class NodeGroup:
             TYPE_CHECK_LEVEL = os.environ.get("TYPE_CHECK_LEVEL", "none")
 
             if TYPE_CHECK_LEVEL != "none":
-                typeValidateSchema(
-                    wrapped_func, node_type, schema_id, p_inputs, p_outputs
-                )
+                typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
 
             if decorators is not None:
                 for decorator in decorators:

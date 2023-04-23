@@ -22,9 +22,9 @@ def clampNumber(
 
     # guarantee integers
     if precision <= 0:
-        value = int(value)
-
-    return value
+        return int(value)
+    else:
+        return float(value)
 
 
 def get_number_type(

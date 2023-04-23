@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import ast
-from typing import Any, Callable, Type, Union, get_args
+import inspect
+from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
-import numpy as np
-
-from custom_types import NodeType, RunFn
+from custom_types import NodeType
 from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
 
-RunFn = Callable[..., Any]
+_Ty = NewType("_Ty", object)
 
 
 class TypeTransformer(ast.NodeTransformer):
@@ -17,11 +16,14 @@ class TypeTransformer(ast.NodeTransformer):
         if isinstance(node.op, ast.BitOr):
             return ast.Subscript(
                 value=ast.Name(id="Union", ctx=ast.Load()),
-                slice=ast.Tuple(
-                    elts=[
-                        self.visit(node.left),
-                        self.visit(node.right),
-                    ],
+                slice=ast.Index(
+                    value=ast.Tuple(
+                        elts=[
+                            self.visit(node.left),
+                            self.visit(node.right),
+                        ],
+                        ctx=ast.Load(),
+                    ),
                     ctx=ast.Load(),
                 ),
                 ctx=ast.Load(),
@@ -35,138 +37,168 @@ def compile_type_string(s: str, filename: str = "<string>"):
     return compile(new_tree, filename, "eval")
 
 
-def validateTypes(
-    wrapped_func: RunFn,
-    schema_id: str,
-    py_var: str,
-    py_type: Union[str, Any],
-    associated_type: Type,
-):
-    evaluated_py_type = py_type
-    if isinstance(py_type, str):
-        try:
-            # Allows us to use pipe unions still
-            if "|" in py_type:
-                py_type = compile_type_string(py_type)
-            # Gotta add these to the scope
-            local_scope = {
-                "Union": Union,
-                "np": np,
-            }
-            # pylint: disable=eval-used
-            evaluated_py_type = eval(
-                py_type,
-                wrapped_func.__globals__,
-                local_scope,
-            )
-        except Exception as e:
+def eval_type(t: str | _Ty, __globals: dict[str, Any]):
+    if not isinstance(t, str):
+        return t
+
+    # `compile_type_string` adds `Union`, so we need it in scope
+    local_scope = {
+        "Union": Union,
+    }
+
+    try:
+        # pylint: disable=eval-used
+        return _Ty(eval(compile_type_string(t), __globals, local_scope))
+    except Exception as e:
+        raise ValueError(f"Unable to evaluate type '{t}': {e}") from e
+
+
+def union_types(types: List[_Ty]) -> _Ty:
+    assert len(types) > 0
+    t: Any = types[0]
+    for t2 in types[1:]:
+        t = Union[t, cast(Any, t2)]
+    return t
+
+
+def union_to_set(t: _Ty) -> Set[_Ty]:
+    if str(t).startswith("typing.Union["):
+        return set(get_args(t))
+    else:
+        return {t}
+
+
+def is_subset_of(a: _Ty, b: _Ty) -> bool:
+    if a == b:
+        return True
+
+    return union_to_set(a).issubset(union_to_set(b))
+
+
+def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
+    """Get the annotations for a function, with support for Python 3.8+"""
+    ann = getattr(fn, "__annotations__", None)
+
+    if ann is None:
+        return {}
+
+    type_annotations: Dict[str, _Ty] = {}
+    for k, v in ann.items():
+        type_annotations[k] = eval_type(v, fn.__globals__)
+    return type_annotations
+
+
+def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
+    if len(outputs) == 0:
+        if return_type is not None:  # type: ignore
             raise ValueError(
-                f"Unable to evaluate type for {schema_id}: {py_type=} | {e}"
-            ) from e
-    if evaluated_py_type is not associated_type:
-        types_with_args = [
-            "typing.Optional",
-            "typing.Union",
-            "typing.Tuple",
-            "typing.List",
-        ]
-
-        def get_type_args(tp):
-            if any(str(tp).startswith(t) for t in types_with_args):
-                return get_args(tp)
-            else:
-                return None
-
-        evaluated_py_type_args = get_type_args(evaluated_py_type) or [evaluated_py_type]
-        associated_type_args = get_type_args(associated_type) or [associated_type]
-
-        if (
-            evaluated_py_type in associated_type_args
-            or associated_type in evaluated_py_type_args
+                f"Return type should be 'None' because there are no outputs"
+            )
+    elif len(outputs) == 1:
+        o = outputs[0]
+        if o.associated_type is not None and not is_subset_of(
+            return_type, o.associated_type
         ):
-            # The types are compatible
-            pass
-        elif any(t in associated_type_args for t in evaluated_py_type_args):
-            # The types are compatible
-            pass
-        else:
             raise ValueError(
-                f"Type mismatch for {schema_id} (i='{py_var}'): {evaluated_py_type=} != {associated_type=}"
+                f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
+    else:
+        if not str(return_type).startswith("typing.Tuple["):
+            raise ValueError(
+                f"Return type '{return_type}' must be a tuple because there are multiple outputs"
+            )
+
+        return_args = get_args(return_type)
+        if len(return_args) != len(outputs):
+            raise ValueError(
+                f"Return type '{return_type}' must have the same number of arguments as there are outputs"
+            )
+
+        for o, return_arg in zip(outputs, return_args):
+            if o.associated_type is not None and not is_subset_of(
+                return_arg, o.associated_type
+            ):
+                raise ValueError(
+                    f"Return type of {o.label} '{return_arg}' must be a subset of '{o.associated_type}'"
+                )
 
 
 def typeValidateSchema(
-    wrapped_func: RunFn,
+    wrapped_func: Callable,
     node_type: NodeType,
-    schema_id: str,
-    p_inputs: list[BaseInput],
-    p_outputs: list[BaseOutput],
+    inputs: list[BaseInput],
+    outputs: list[BaseOutput],
 ):
-    """Runtime validation for the number of inputs/outputs compared to the type args
-    While this isn't a comprehensive check, it's a good start for ensuring parity between the schema and the types
+    """
+    Runtime validation for the number of inputs/outputs compared to the type args
     """
 
-    # We can't use inspect.get_annotations() since we need to support 3.8+
-    ann = getattr(wrapped_func, "__annotations__", None)
+    ann = get_type_annotations(wrapped_func)
 
-    if ann is None:
-        return
+    # check return type
+    if "return" in ann:
+        validate_return_type(ann.pop("return"), outputs)
 
-    ann = ann.copy()
+    # check inputs
 
-    # We don't want to run this check on iterator helpers as they can have different input/output metadata than what they actually run
+    arg_spec = inspect.getfullargspec(wrapped_func)
+    for arg in arg_spec.args:
+        if not arg in ann:
+            raise ValueError(f"Missing type annotation for '{arg}'")
+
     if node_type == "iteratorHelper":
+        # iterator helpers have inputs that do not describe the arguments of the function, so we can't check them
         return
 
-    ### Return type validation
-
-    # Pop the return type key off the dict
-    return_type = ann.pop("return", None)
-    if return_type is not None:
-        return_type_str = str(return_type)
-        # Evaluate the return type
-        # pylint: disable=eval-used
-        if return_type_str.startswith("Tuple"):
-            evaluated_return_type = eval(return_type_str, wrapped_func.__globals__)
-            output_len = len(get_args(evaluated_return_type))
-            for py_type, output_class in zip(
-                get_args(evaluated_return_type), p_outputs
-            ):
-                py_var = output_class.label
-                associated_type = output_class.associated_type
-                if associated_type is not None:
-                    validateTypes(
-                        wrapped_func, schema_id, py_var, py_type, associated_type
-                    )
-        elif return_type_str == "None":
-            output_len = 0
-        else:
-            output_len = 1
-            associated_type = p_outputs[0].associated_type
-            py_type = return_type
-            py_var = "return"
-            if associated_type is not None:
-                validateTypes(wrapped_func, schema_id, py_var, py_type, associated_type)
-        if output_len != len(p_outputs):
+    if node_type == "iterator":
+        # the last argument of an iterator is the iterator context, so we have to account for that
+        context = [*ann.keys()][-1]
+        context_type = ann.pop(context)
+        if str(context_type) != "<class 'process.IteratorContext'>":
             raise ValueError(
-                f"Number of outputs and return types don't match for {schema_id}"
+                f"Last argument of an iterator must be an IteratorContext, not '{context_type}'"
             )
 
-    ### Input type validation
+    if arg_spec.varargs is not None:
+        if not arg_spec.varargs in ann:
+            raise ValueError(f"Missing type annotation for '{arg_spec.varargs}'")
+        va_type = ann.pop(arg_spec.varargs)
 
-    input_len = len(ann.keys())
-    # Iterators pass in their context, so we need to account for that
-    if node_type == "iterator":
-        input_len -= 1
-    # Variable args don't have good typing, so right now we just hardcode what to ignore.
-    if list(ann.keys())[-1] not in [
-        "args",
-        "sources",
-    ] and input_len != len(p_inputs):
+        # split inputs by varargs and non-varargs
+        varargs_inputs = inputs[len(ann) :]
+        inputs = inputs[: len(ann)]
+
+        total: list[_Ty] | None = []
+        for i in varargs_inputs:
+            associated_type = i.associated_type
+
+            if associated_type is not None:
+                if not is_subset_of(associated_type, va_type):
+                    raise ValueError(
+                        f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
+                    )
+
+            # append to total
+            if associated_type is not None:
+                if total is not None:
+                    total.append(associated_type)
+            else:
+                total = None
+
+        if total is not None:
+            total_type = union_types(total)
+            if total_type != va_type:
+                raise ValueError(
+                    f"Varargs type '{va_type}' should be equal to the union of all arguments '{total_type}'"
+                )
+
+    if len(ann) != len(inputs):
         raise ValueError(
-            f"Number of inputs and annotations don't match for {schema_id}: {input_len=} != {len(p_inputs)=}"
+            f"Number of inputs and arguments don't match: {len(ann)=} != {len(inputs)=}"
         )
-    for (py_var, py_type), input_class in zip(ann.items(), p_inputs):
-        associated_type = input_class.associated_type
-        if associated_type is not None:
-            validateTypes(wrapped_func, schema_id, py_var, py_type, associated_type)
+    for (a_name, a_type), i in zip(ann.items(), inputs):
+        associated_type = i.associated_type
+        if associated_type is not None and a_type != associated_type:
+            raise ValueError(
+                f"Expected type of {i.label} ({a_name}) to be '{associated_type}' but found '{a_type}'"
+            )
