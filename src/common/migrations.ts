@@ -1,7 +1,6 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-param-reassign */
 
-import log from 'electron-log';
 import { Edge, Node, Viewport, getConnectedEdges, getOutgoers } from 'reactflow';
 import semver from 'semver';
 import {
@@ -14,6 +13,7 @@ import {
     OutputId,
     SchemaId,
 } from './common-types';
+import { log } from './log';
 import { legacyMigrations } from './migrations-legacy';
 import {
     ParsedSourceHandle,

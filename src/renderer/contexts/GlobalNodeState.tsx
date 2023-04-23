@@ -1,5 +1,4 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
-import log from 'electron-log';
 import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -26,6 +25,7 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -513,7 +513,7 @@ export const GlobalProvider = memo(
                             ipcRenderer.send('exit-after-save');
                         }
                     })
-                    .catch((reason) => log.error(reason));
+                    .catch(log.error);
             }, [performSave])
         );
 
@@ -633,7 +633,7 @@ export const GlobalProvider = memo(
         useIpcRendererListener(
             'file-new',
             useCallback(() => {
-                clearState().catch((reason) => log.error(reason));
+                clearState().catch(log.error);
             }, [clearState])
         );
 
@@ -663,7 +663,7 @@ export const GlobalProvider = memo(
                     if (result.kind === 'Success') {
                         setStateFromJSONRef
                             .current(result.saveData, result.path, true)
-                            .catch((reason) => log.error(reason));
+                            .catch(log.error);
                     } else {
                         removeRecentPath(result.path);
                         sendAlert({
@@ -1181,7 +1181,7 @@ export const GlobalProvider = memo(
                     });
                     outputDataActions.delete(id);
                     addInputDataChanges();
-                    backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
+                    backend.clearNodeCacheIndividual(id).catch(log.error);
                 });
             },
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
@@ -1211,9 +1211,7 @@ export const GlobalProvider = memo(
 
                 takeScreenshot(currentFlowWrapper, currentReactFlowInstance, viewportExportPadding)
                     .then(saveAs)
-                    .catch((error) => {
-                        log.error(error);
-                    });
+                    .catch(log.error);
             },
             [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
         );

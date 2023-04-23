@@ -1,5 +1,5 @@
-import log from 'electron-log';
 import { InputData, InputId, InputValue, NodeSchema, SchemaId } from './common-types';
+import { log } from './log';
 
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],

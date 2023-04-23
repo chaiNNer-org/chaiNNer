@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
 import { Bezier } from 'bezier-js';
-import log from 'electron-log';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -26,6 +25,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { log } from '../../common/log';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import {
     EMPTY_ARRAY,

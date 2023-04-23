@@ -33,7 +33,6 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import log from 'electron-log';
 import { readdir, unlink } from 'fs/promises';
 import path from 'path';
 import {
@@ -49,6 +48,7 @@ import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { getOnnxTensorRtCacheLocation, hasTensorRt } from '../../common/env';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -612,14 +612,10 @@ const PythonSettings = memo(() => {
                                                 for (const file of files) {
                                                     unlink(
                                                         path.join(onnxTensorRtCacheLocation, file)
-                                                    ).catch((error) => {
-                                                        log.error(error);
-                                                    });
+                                                    ).catch(log.error);
                                                 }
                                             })
-                                            .catch((err) => {
-                                                log.error(err);
-                                            });
+                                            .catch(log.error);
                                     }}
                                 >
                                     Clear Cache

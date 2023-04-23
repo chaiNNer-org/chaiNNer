@@ -1,5 +1,4 @@
 import { execSync, spawn } from 'child_process';
-import log from 'electron-log';
 import fs from 'fs';
 import https from 'https';
 import Downloader from 'nodejs-file-downloader';
@@ -8,6 +7,7 @@ import path from 'path';
 import { URL } from 'url';
 import { PyPiPackage } from './dependencies';
 import { sanitizedEnv } from './env';
+import { log } from './log';
 import { noop } from './util';
 
 export interface OnStdio {

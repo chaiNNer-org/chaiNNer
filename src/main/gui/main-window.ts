@@ -1,8 +1,8 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
-import log from 'electron-log';
 import { t } from 'i18next';
 import { Version, WindowSize } from '../../common/common-types';
+import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { CriticalError } from '../../common/ui/error';
@@ -45,7 +45,7 @@ const checkForUpdate = () => {
                 await shell.openExternal(latest.releaseUrl);
             }
         })
-        .catch((reason) => log.error(reason));
+        .catch(log.error);
 };
 
 const registerEventHandlerPreSetup = (
@@ -173,7 +173,7 @@ const registerEventHandlerPreSetup = (
             // Focus main window if a second instance was attempted
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
-        })().catch((error) => log.error(error));
+        })().catch(log.error);
     });
 };
 
@@ -376,7 +376,7 @@ export const createMainWindow = async (args: OpenArguments) => {
         });
 
         // and load the index.html of the app.
-        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch((error) => log.error(error));
+        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
     } catch (error) {
         if (error instanceof CriticalError) {
             await progressController.submitInterrupt(error.interrupt);
