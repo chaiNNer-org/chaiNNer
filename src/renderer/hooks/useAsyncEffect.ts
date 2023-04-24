@@ -1,5 +1,5 @@
-import log from 'electron-log';
 import { useEffect } from 'react';
+import { log } from '../../common/log';
 import { noop } from '../../common/util';
 
 /**

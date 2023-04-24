@@ -1,11 +1,11 @@
-import log from 'electron-log';
 import init, { RRegex } from 'rregex';
 import { NodeSchema } from '../../common/common-types';
+import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 
 // This is not good, but I can't think of a better way.
 // We are racing loading the wasm module and using it.
-init().catch((reason) => log.error(reason));
+init().catch(log.error);
 
 const isLetter = lazy(() => new RRegex('(?is)^[a-z]$'));
 export const createSearchPredicate = (query: string): ((name: string) => boolean) => {

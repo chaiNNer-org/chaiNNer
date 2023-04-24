@@ -1,10 +1,10 @@
 import decompress from 'decompress';
-import log from 'electron-log';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import path from 'path';
 import { PythonInfo } from '../../common/common-types';
 import { isArmMac } from '../../common/env';
+import { log } from '../../common/log';
 import { assertNever, checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
 import { checkPythonPaths } from './checkPythonPaths';

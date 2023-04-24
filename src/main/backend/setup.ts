@@ -1,4 +1,3 @@
-import log from 'electron-log';
 import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
@@ -8,6 +7,7 @@ import {
     getOptionalDependencies,
     requiredDependencies,
 } from '../../common/dependencies';
+import { log } from '../../common/log';
 import { runPipInstall, runPipList } from '../../common/pip';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';

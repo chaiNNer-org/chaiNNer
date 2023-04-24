@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
-import log from 'electron-log';
 import { readFile, writeFile } from 'fs/promises';
 import { EdgeData, FileOpenResult, NodeData, Version } from './common-types';
+import { log } from './log';
 import { currentMigration, migrate } from './migrations';
 import { versionGt } from './version';
 import type { Edge, Node, Viewport } from 'reactflow';
