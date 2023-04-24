@@ -149,11 +149,11 @@ def cached(run):
     cache = NodeOutputCache()
 
     @functools.wraps(run)
-    def _run(obj, *args):
+    def _run(*args):
         out = cache.get(args)
         if out is not None:
             return out
-        output = run(obj, *args)
+        output = run(*args)
         cache.put(args, output)
         return output
 
