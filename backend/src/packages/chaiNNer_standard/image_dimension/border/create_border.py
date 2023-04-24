@@ -40,7 +40,7 @@ from .. import border_group
 def create_border_node(
     img: np.ndarray,
     border_type: BorderType,
-    color: Color | None,
+    color: Color,
     amount: int,
 ) -> np.ndarray:
     return create_border(img, border_type, Padding.all(amount), color=color)
