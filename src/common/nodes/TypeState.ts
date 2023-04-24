@@ -1,6 +1,6 @@
 import { EvaluationError, NonNeverType, StructType, Type } from '@chainner/navi';
-import log from 'electron-log';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
+import { log } from '../log';
 import { FunctionDefinition, FunctionInstance } from '../types/function';
 import {
     EMPTY_ARRAY,

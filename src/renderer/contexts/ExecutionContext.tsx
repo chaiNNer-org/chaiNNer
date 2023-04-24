@@ -1,9 +1,9 @@
-import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
+import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';

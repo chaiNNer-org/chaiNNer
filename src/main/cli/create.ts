@@ -1,5 +1,6 @@
 import { app } from 'electron';
-import log from 'electron-log';
+import electronLog from 'electron-log';
+import { log } from '../../common/log';
 import { Exit } from './exit';
 
 const fatalErrorInMain = (error: unknown) => {
@@ -9,7 +10,7 @@ const fatalErrorInMain = (error: unknown) => {
 };
 
 const setupErrorHandling = () => {
-    log.catchErrors({
+    electronLog.catchErrors({
         showDialog: false,
         onError: fatalErrorInMain,
     });

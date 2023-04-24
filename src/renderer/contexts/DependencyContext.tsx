@@ -30,13 +30,13 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
+import { log } from '../../common/log';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
@@ -348,7 +348,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 setInstallingPackage(null);
                 setUninstallingPackage(null);
                 setProgress(0);
-                restart().catch((reason) => log.error(reason));
+                restart().catch(log.error);
             });
     };
 
@@ -534,7 +534,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
                                                     uninstallPackage(dep);
                                                 })
-                                                .catch((error) => log.error(error));
+                                                .catch(log.error);
                                         };
 
                                         return (

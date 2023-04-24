@@ -1,5 +1,4 @@
 import { app } from 'electron';
-import log from 'electron-log';
 import EventSource from 'eventsource';
 import {
     Backend,
@@ -11,6 +10,7 @@ import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-ty
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { applyOverrides, readOverrideFile } from '../../common/input-override';
+import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';

@@ -1,8 +1,8 @@
 import { exec as _exec } from 'child_process';
-import log from 'electron-log';
 import os from 'os-utils';
 import { useCallback, useState } from 'react';
 import util from 'util';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { useInterval } from './useInterval';
 import { useMemoObject } from './useMemo';
@@ -52,9 +52,7 @@ export const useSystemUsage = (delay: number): SystemUsage => {
 
     useInterval(
         useCallback(() => {
-            getSystemUsage()
-                .then(setUsage)
-                .catch((reason) => log.error(reason));
+            getSystemUsage().then(setUsage).catch(log.error);
         }, []),
         delay
     );

@@ -1,11 +1,11 @@
 import { clipboard } from 'electron';
-import log from 'electron-log';
 import { writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { Edge, Node, Project } from 'reactflow';
 import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
+import { log } from '../../common/log';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
 import { SetState } from './types';

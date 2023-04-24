@@ -1,5 +1,6 @@
 import { BrowserWindow, app, dialog } from 'electron';
-import log from 'electron-log';
+import electronLog from 'electron-log';
+import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
 import { createMainWindow } from './main-window';
@@ -9,7 +10,7 @@ const mdCodeBlock = (code: string): string => {
 };
 
 const setupErrorHandling = () => {
-    log.catchErrors({
+    electronLog.catchErrors({
         showDialog: false,
         onError: (error, versions, submitIssue) => {
             dialog
@@ -38,7 +39,7 @@ const setupErrorHandling = () => {
                         app.quit();
                     }
                 })
-                .catch((e) => log.error(e));
+                .catch(log.error);
         },
     });
 };

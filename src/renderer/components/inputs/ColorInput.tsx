@@ -12,7 +12,6 @@ import {
     Text,
     VStack,
 } from '@chakra-ui/react';
-import log from 'electron-log';
 import { ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RgbColor } from 'react-colorful';
 import { toCssColor, toKind, toRgb } from '../../../common/color-json-util';
@@ -23,6 +22,7 @@ import {
     RgbColorJson,
     RgbaColorJson,
 } from '../../../common/common-types';
+import { log } from '../../../common/log';
 import { useColorModels } from '../../hooks/useColorModels';
 import { TypeTags } from '../TypeTag';
 import { ColorBoxButton } from './elements/ColorBoxButton';

@@ -15,10 +15,10 @@ import {
     useToast,
 } from '@chakra-ui/react';
 import { app, clipboard, shell } from 'electron';
-import log from 'electron-log';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { assertNever, noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
@@ -235,7 +235,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
     const sendAlert = useCallback(
         (message: AlertOptions) => {
-            showAlert(message).catch((reason) => log.error(reason));
+            showAlert(message).catch(log.error);
         },
         [showAlert]
     );
