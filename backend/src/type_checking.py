@@ -11,6 +11,10 @@ from nodes.properties.outputs.base_output import BaseOutput
 _Ty = NewType("_Ty", object)
 
 
+class TypeMismatchError(Exception):
+    pass
+
+
 class TypeTransformer(ast.NodeTransformer):
     def visit_BinOp(self, node: ast.BinOp):
         if isinstance(node.op, ast.BitOr):
@@ -91,7 +95,7 @@ def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
 def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
     if len(outputs) == 0:
         if return_type is not None:  # type: ignore
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Return type should be 'None' because there are no outputs"
             )
     elif len(outputs) == 1:
@@ -99,18 +103,18 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
         if o.associated_type is not None and not is_subset_of(
             return_type, o.associated_type
         ):
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
         if not str(return_type).startswith("typing.Tuple["):
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )
 
         return_args = get_args(return_type)
         if len(return_args) != len(outputs):
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Return type '{return_type}' must have the same number of arguments as there are outputs"
             )
 
@@ -118,7 +122,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
             if o.associated_type is not None and not is_subset_of(
                 return_arg, o.associated_type
             ):
-                raise ValueError(
+                raise TypeMismatchError(
                     f"Return type of {o.label} '{return_arg}' must be a subset of '{o.associated_type}'"
                 )
 
@@ -144,7 +148,7 @@ def typeValidateSchema(
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
         if not arg in ann:
-            raise ValueError(f"Missing type annotation for '{arg}'")
+            raise TypeMismatchError(f"Missing type annotation for '{arg}'")
 
     if node_type == "iteratorHelper":
         # iterator helpers have inputs that do not describe the arguments of the function, so we can't check them
@@ -155,13 +159,13 @@ def typeValidateSchema(
         context = [*ann.keys()][-1]
         context_type = ann.pop(context)
         if str(context_type) != "<class 'process.IteratorContext'>":
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Last argument of an iterator must be an IteratorContext, not '{context_type}'"
             )
 
     if arg_spec.varargs is not None:
         if not arg_spec.varargs in ann:
-            raise ValueError(f"Missing type annotation for '{arg_spec.varargs}'")
+            raise TypeMismatchError(f"Missing type annotation for '{arg_spec.varargs}'")
         va_type = ann.pop(arg_spec.varargs)
 
         # split inputs by varargs and non-varargs
@@ -174,7 +178,7 @@ def typeValidateSchema(
 
             if associated_type is not None:
                 if not is_subset_of(associated_type, va_type):
-                    raise ValueError(
+                    raise TypeMismatchError(
                         f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
                     )
 
@@ -188,17 +192,17 @@ def typeValidateSchema(
         if total is not None:
             total_type = union_types(total)
             if total_type != va_type:
-                raise ValueError(
+                raise TypeMismatchError(
                     f"Varargs type '{va_type}' should be equal to the union of all arguments '{total_type}'"
                 )
 
     if len(ann) != len(inputs):
-        raise ValueError(
+        raise TypeMismatchError(
             f"Number of inputs and arguments don't match: {len(ann)=} != {len(inputs)=}"
         )
     for (a_name, a_type), i in zip(ann.items(), inputs):
         associated_type = i.associated_type
         if associated_type is not None and a_type != associated_type:
-            raise ValueError(
+            raise TypeMismatchError(
                 f"Expected type of {i.label} ({a_name}) to be '{associated_type}' but found '{a_type}'"
             )

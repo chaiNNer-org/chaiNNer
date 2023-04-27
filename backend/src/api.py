@@ -12,7 +12,7 @@ from custom_types import NodeType, RunFn
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
 from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
-from type_checking import typeValidateSchema
+from type_checking import TypeMismatchError, typeValidateSchema
 
 
 def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
@@ -109,7 +109,13 @@ class NodeGroup:
             TYPE_CHECK_LEVEL = os.environ.get("TYPE_CHECK_LEVEL", "none")
 
             if TYPE_CHECK_LEVEL != "none":
-                typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
+                try:
+                    typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
+                except Exception as e:
+                    if TYPE_CHECK_LEVEL == "warn":
+                        logger.warning(e)
+                    else:
+                        raise e from e
 
             if decorators is not None:
                 for decorator in decorators:
@@ -211,6 +217,7 @@ class PackageRegistry:
 
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
+        type_errors: List[TypeMismatchError] = []
 
         for package in list(self.packages.values()):
             for file_path in _iter_py_files(os.path.dirname(package.where)):
@@ -227,6 +234,11 @@ class PackageRegistry:
                         logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except ValueError as e:
                         logger.warning(f"Failed to load {module} ({file_path}): {e}")
+                    except TypeMismatchError as e:
+                        type_errors.append(e)
+
+        if len(type_errors) > 0:
+            raise RuntimeError(type_errors)
 
         logger.info(import_errors)
         self._refresh_nodes()
