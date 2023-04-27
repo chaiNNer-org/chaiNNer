@@ -66,8 +66,11 @@ def union_types(types: List[_Ty]) -> _Ty:
 
 
 def union_to_set(t: _Ty) -> Set[_Ty]:
-    if str(t).startswith("typing.Union["):
+    s = str(t)
+    if s.startswith("typing.Union["):
         return set(get_args(t))
+    elif s.startswith("typing.Optional["):
+        return {*union_to_set(get_args(t)[0]), _Ty(type(None))}
     else:
         return {t}
 
