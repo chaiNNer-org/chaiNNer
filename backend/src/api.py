@@ -112,10 +112,11 @@ class NodeGroup:
                 try:
                     typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
                 except Exception as e:
+                    full_error_message = f"Error in {schema_id}: {e}"
                     if TYPE_CHECK_LEVEL == "warn":
-                        logger.warning(e)
+                        logger.warning(full_error_message)
                     else:
-                        raise e from e
+                        raise TypeMismatchError(full_error_message) from e
 
             if decorators is not None:
                 for decorator in decorators:
