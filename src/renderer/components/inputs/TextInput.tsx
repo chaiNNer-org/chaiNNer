@@ -1,19 +1,14 @@
-import { FunctionCallExpression, Type, evaluate } from '@chainner/navi';
 import { Input, MenuItem, MenuList } from '@chakra-ui/react';
 import { clipboard } from 'electron';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useDebouncedCallback } from 'use-debounce';
-import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { stopPropagation } from '../../../common/util';
+import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { InputProps } from './props';
-
-const typeToString = (type: Type): Type => {
-    return evaluate(new FunctionCallExpression('toString', [type]), getChainnerScope());
-};
 
 export const TextInput = memo(
     ({
