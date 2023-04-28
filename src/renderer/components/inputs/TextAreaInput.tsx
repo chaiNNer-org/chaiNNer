@@ -8,6 +8,7 @@ import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { DragHandleSVG } from '../CustomIcons';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
@@ -16,7 +17,16 @@ import { InputProps } from './props';
 const DEFAULT_SIZE = { width: 240, height: 80 };
 
 export const TextAreaInput = memo(
-    ({ value, setValue, input, isLocked, useInputSize, nodeId }: InputProps<'text', string>) => {
+    ({
+        value,
+        setValue,
+        input,
+        isLocked,
+        useInputSize,
+        nodeId,
+        useInputConnected,
+        useInputType,
+    }: InputProps<'text', string>) => {
         const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
@@ -46,15 +56,26 @@ export const TextAreaInput = memo(
             setValue(text);
         }, 500);
 
+        const isInputConnected = useInputConnected();
+        const inputType = useInputType();
+        const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
+        const typeText =
+            strType.underlying === 'string' && strType.type === 'literal'
+                ? strType.value
+                : undefined;
+        const displayText = isInputConnected ? typeText : tempText;
+
         const { t } = useTranslation();
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
                     icon={<MdContentCopy />}
-                    isDisabled={!tempText}
+                    isDisabled={!displayText}
                     onClick={() => {
-                        clipboard.writeText(tempText);
+                        if (displayText !== undefined) {
+                            clipboard.writeText(displayText);
+                        }
                     }}
                 >
                     {t('inputs.text.copyText', 'Copy Text')}
@@ -127,12 +148,12 @@ export const TextAreaInput = memo(
             >
                 <Textarea
                     className="nodrag"
-                    disabled={isLocked}
+                    disabled={isLocked || isInputConnected}
                     draggable={false}
                     h="100%"
                     placeholder={label}
                     resize="none"
-                    value={tempText}
+                    value={displayText ?? ''}
                     w="full"
                     onChange={(event) => {
                         setTempText(event.target.value);
