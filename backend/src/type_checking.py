@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import ast
 import inspect
+import os
+from enum import Enum
 from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
 from custom_types import NodeType
@@ -13,6 +15,21 @@ _Ty = NewType("_Ty", object)
 
 class TypeMismatchError(Exception):
     pass
+
+
+# Enum for type check level
+class TypeCheckLevel(Enum):
+    NONE = "none"
+    WARN = "warn"
+    ERROR = "error"
+
+
+def get_type_check_level() -> TypeCheckLevel:
+    type_check_level = os.environ.get("TYPE_CHECK_LEVEL", TypeCheckLevel.NONE)
+    if type_check_level not in TypeCheckLevel.__dict__.values():
+        return TypeCheckLevel.NONE
+    type_check_level = cast(TypeCheckLevel, type_check_level)
+    return type_check_level
 
 
 class TypeTransformer(ast.NodeTransformer):

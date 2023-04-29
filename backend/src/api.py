@@ -12,7 +12,12 @@ from custom_types import NodeType, RunFn
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
 from nodes.properties.inputs.base_input import BaseInput
 from nodes.properties.outputs.base_output import BaseOutput
-from type_checking import TypeMismatchError, typeValidateSchema
+from type_checking import (
+    TypeCheckLevel,
+    TypeMismatchError,
+    get_type_check_level,
+    typeValidateSchema,
+)
 
 
 def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
@@ -106,17 +111,18 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            TYPE_CHECK_LEVEL = os.environ.get("TYPE_CHECK_LEVEL", "none")
+            TYPE_CHECK_LEVEL = get_type_check_level()
 
-            if TYPE_CHECK_LEVEL != "none":
+            if TYPE_CHECK_LEVEL != TypeCheckLevel.NONE:
                 try:
                     typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
-                except Exception as e:
+                except TypeMismatchError as e:
                     full_error_message = f"Error in {schema_id}: {e}"
-                    if TYPE_CHECK_LEVEL == "warn":
+                    if TYPE_CHECK_LEVEL == TypeCheckLevel.WARN:
                         logger.warning(full_error_message)
-                    else:
-                        raise TypeMismatchError(full_error_message) from e
+                    elif TYPE_CHECK_LEVEL == TypeCheckLevel.ERROR:
+                        # pylint: disable=raise-missing-from
+                        raise TypeMismatchError(full_error_message)
 
             if decorators is not None:
                 for decorator in decorators:
