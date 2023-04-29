@@ -41,6 +41,7 @@ class AlphaFillMethod(Enum):
 def fill_alpha_node(img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
     """Fills transparent holes in the given image"""
 
+    img = img.copy()
     if method == AlphaFillMethod.EXTEND_TEXTURE:
         # Preprocess to convert the image into binary alpha
         convert_to_binary_alpha(img)
