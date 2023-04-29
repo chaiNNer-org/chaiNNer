@@ -242,10 +242,11 @@ class PackageRegistry:
                     except ValueError as e:
                         logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except TypeMismatchError as e:
+                        logger.error(e)
                         type_errors.append(e)
 
         if len(type_errors) > 0:
-            raise RuntimeError(type_errors)
+            raise RuntimeError(f"Type errors occurred in {len(type_errors)} node(s)")
 
         logger.info(import_errors)
         self._refresh_nodes()
