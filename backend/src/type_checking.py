@@ -24,12 +24,17 @@ class TypeCheckLevel(Enum):
     ERROR = "error"
 
 
+# If it's stupid but it works, it's not stupid
 def get_type_check_level() -> TypeCheckLevel:
-    type_check_level = os.environ.get("TYPE_CHECK_LEVEL", TypeCheckLevel.NONE)
-    if type_check_level not in TypeCheckLevel.__dict__.values():
+    type_check_level = os.environ.get("TYPE_CHECK_LEVEL", TypeCheckLevel.NONE.value)
+    if type_check_level.lower() == TypeCheckLevel.NONE.value:
         return TypeCheckLevel.NONE
-    type_check_level = cast(TypeCheckLevel, type_check_level)
-    return type_check_level
+    elif type_check_level.lower() == TypeCheckLevel.WARN.value:
+        return TypeCheckLevel.WARN
+    elif type_check_level.lower() == TypeCheckLevel.ERROR.value:
+        return TypeCheckLevel.ERROR
+    else:
+        return TypeCheckLevel.NONE
 
 
 class TypeTransformer(ast.NodeTransformer):
