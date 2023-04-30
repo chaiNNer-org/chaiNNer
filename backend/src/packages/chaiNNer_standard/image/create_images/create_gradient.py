@@ -105,11 +105,11 @@ def create_gradient_node(
     color_2: Color,
     reverse: bool,
     gradient_style: GradientStyle,
-    diagonal_angle: float,
-    diagonal_width: float,
-    inner_radius_percent: float,
-    outer_radius_percent: float,
-    conic_rotation: float,
+    diagonal_angle: int,
+    diagonal_width: int,
+    inner_radius_percent: int,
+    outer_radius_percent: int,
+    conic_rotation: int,
 ) -> np.ndarray:
     img = np.zeros((height, width), dtype=np.float32)
 

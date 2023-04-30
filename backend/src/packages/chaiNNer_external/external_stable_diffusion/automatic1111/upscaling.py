@@ -128,8 +128,8 @@ UPSCALER_MODE_LABELS = {
             channels=3,
         )
     ],
+    decorators=[cached],
 )
-@cached
 def upscale_node(
     image: np.ndarray,
     mode: UpscalerMode,

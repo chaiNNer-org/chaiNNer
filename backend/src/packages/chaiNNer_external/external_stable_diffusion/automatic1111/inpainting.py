@@ -131,8 +131,8 @@ class InpaintArea(Enum):
             channels=3,
         ),
     ],
+    decorators=[cached],
 )
-@cached
 def img2img_inpainting_node(
     image: np.ndarray,
     mask: np.ndarray,
@@ -147,7 +147,7 @@ def img2img_inpainting_node(
     width: int,
     height: int,
     tiling: bool,
-    mask_blur: float,
+    mask_blur: int,
     inpainting_fill: InpaintingFill,
     inpaint_area: InpaintArea,
     inpaint_full_res_padding: int,

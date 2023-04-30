@@ -51,3 +51,5 @@ jobs:
                   python-version: ${{ matrix.python-version }}
             - run: npx ts-node ./scripts/install-required-deps.ts
             - run: python ./backend/src/run.py --no-run
+              env:
+                  TYPE_CHECK_LEVEL: 'error'

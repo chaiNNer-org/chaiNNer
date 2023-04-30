@@ -101,8 +101,8 @@ verify_api_connection()
             channels=3,
         ),
     ],
+    decorators=[cached],
 )
-@cached
 def img_to_image_node(
     image: np.ndarray,
     prompt: Optional[str],

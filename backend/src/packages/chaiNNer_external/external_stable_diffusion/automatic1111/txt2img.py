@@ -82,8 +82,8 @@ verify_api_connection()
             channels=3,
         ),
     ],
+    decorators=[cached],
 )
-@cached
 def text_to_image(
     prompt: Optional[str],
     negative_prompt: Optional[str],
