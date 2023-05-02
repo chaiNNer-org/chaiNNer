@@ -100,11 +100,11 @@ class RoundScale(Enum):
     ],
 )
 def round_node(
-    a: Union[int, float],
+    a: float,
     operation: RoundOperation,
     scale: RoundScale,
-    m: Union[int, float],
-    p: Union[int, float],
+    m: float,
+    p: float,
 ) -> Union[int, float]:
     if operation == RoundOperation.FLOOR:
         op = math.floor

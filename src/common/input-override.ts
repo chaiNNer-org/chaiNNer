@@ -1,7 +1,7 @@
-import log from 'electron-log';
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
 import { EdgeData, InputData, InputId, InputValue, Mutable, NodeData } from './common-types';
+import { log } from './log';
 import { SchemaMap } from './SchemaMap';
 import { joinEnglish } from './util';
 import type { Edge, Node } from 'reactflow';

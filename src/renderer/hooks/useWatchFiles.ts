@@ -1,6 +1,6 @@
 import { FSWatcher } from 'chokidar';
-import log from 'electron-log';
 import { useEffect } from 'react';
+import { log } from '../../common/log';
 
 const listeners = new Set<(file: string) => void>();
 const callListeners = (file: string) => {

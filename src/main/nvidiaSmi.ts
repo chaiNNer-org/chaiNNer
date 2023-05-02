@@ -2,11 +2,11 @@
 // Changed to be asynchronous to avoid blocking
 
 import { exec as _exec, spawn } from 'child_process';
-import log from 'electron-log';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import util from 'util';
+import { log } from '../common/log';
 import { lazy } from '../common/util';
 
 const exec = util.promisify(_exec);

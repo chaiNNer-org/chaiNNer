@@ -11,7 +11,7 @@ class NcnnModelOutput(BaseOutput):
         label: str = "Model",
         kind: OutputKind = "generic",
     ):
-        super().__init__(model_type, label, kind=kind)
+        super().__init__(model_type, label, kind=kind, associated_type=NcnnModelWrapper)
 
     def get_broadcast_data(self, value: NcnnModelWrapper):
         return {

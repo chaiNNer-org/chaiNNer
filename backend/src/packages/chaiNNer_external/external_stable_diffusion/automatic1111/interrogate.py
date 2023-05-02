@@ -28,8 +28,8 @@ verify_api_connection()
     outputs=[
         TextOutput("Text"),
     ],
+    decorators=[cached],
 )
-@cached
 def interrograte_node(image: np.ndarray) -> str:
     request_data = {
         "image": encode_base64_image(image),

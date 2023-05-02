@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
-import log from 'electron-log';
 import { PythonInfo, Version } from './common-types';
 import { Dependency } from './dependencies';
 import { sanitizedEnv } from './env';
+import { log } from './log';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
 import { noop } from './util';
 
