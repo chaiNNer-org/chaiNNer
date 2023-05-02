@@ -12,6 +12,7 @@ from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...impl.upscale.auto_split_tiles import TileSize
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
@@ -58,6 +59,7 @@ class DropDownInput(BaseInput):
         options: List[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        associated_type: Union[Type, None] = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -72,6 +74,10 @@ class DropDownInput(BaseInput):
                 f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
             )
             self.default = options[0]["value"]
+
+        self.associated_type = (
+            associated_type if associated_type is not None else type(self.default)
+        )
 
     def toDict(self):
         return {
@@ -109,6 +115,7 @@ class BoolInput(DropDownInput):
             ],
             preferred_style="checkbox",
         )
+        self.associated_type = bool
 
     def enforce(self, value) -> bool:
         value = super().enforce(value)
@@ -188,6 +195,8 @@ class EnumInput(Generic[T], DropDownInput):
         self.type_name: str = type_name
         self.enum = enum
 
+        self.associated_type = enum
+
     def enforce(self, value) -> T:
         value = super().enforce(value)
         return self.enum(value)
@@ -216,6 +225,7 @@ class TextInput(BaseInput):
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+        self.associated_type = str
 
         if allow_numbers:
             self.input_conversions = [InputConversion("number", "toString(Input)")]
@@ -245,6 +255,7 @@ class TextAreaInput(BaseInput):
         super().__init__("string", label, has_handle=has_handle, kind="text")
         self.resizable = True
         self.default = default
+        self.associated_type = str
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -281,6 +292,7 @@ class ClipboardInput(BaseInput):
 class AnyInput(BaseInput):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
+        self.associated_type = object
 
     def enforce_(self, value):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
@@ -306,6 +318,8 @@ class SeedInput(NumberInput):
                 _ => never
             }
         """
+
+        self.associated_type = Seed
 
     def enforce(self, value) -> Seed:
         if isinstance(value, Seed):
@@ -361,6 +375,8 @@ class ColorInput(BaseInput):
                 ), "The default color is not accepted."
 
         self.default: Color = default
+
+        self.associated_type = Color
 
     def enforce(self, value) -> Color:
         if isinstance(value, str):
@@ -469,6 +485,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         input_type="TileSize",
         label=label,
         options=options,
+        associated_type=TileSize,
     )
 
 
@@ -492,6 +509,7 @@ def DdsFormatDropdown() -> DropDownInput:
         input_type="DdsFormat",
         label="DDS Format",
         options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
+        associated_type=DDSFormat,
     )
 
 

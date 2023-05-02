@@ -22,9 +22,9 @@ def clampNumber(
 
     # guarantee integers
     if precision <= 0:
-        value = int(value)
-
-    return value
+        return int(value)
+    else:
+        return float(value)
 
 
 def get_number_type(
@@ -66,6 +66,7 @@ class NumberInput(BaseInput):
         self.unit = unit
         self.note_expression = note_expression
         self.hide_trailing_zeros = hide_trailing_zeros
+        self.associated_type = float if precision > 0 else int
 
         self.input_type = get_number_type(
             self.minimum,

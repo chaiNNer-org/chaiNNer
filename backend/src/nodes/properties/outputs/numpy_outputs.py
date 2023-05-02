@@ -22,7 +22,13 @@ class NumPyOutput(BaseOutput):
         kind: OutputKind = "generic",
         has_handle: bool = True,
     ):
-        super().__init__(output_type, label, kind=kind, has_handle=has_handle)
+        super().__init__(
+            output_type,
+            label,
+            kind=kind,
+            has_handle=has_handle,
+            associated_type=np.ndarray,
+        )
 
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)

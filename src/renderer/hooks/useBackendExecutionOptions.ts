@@ -1,8 +1,8 @@
-import log from 'electron-log';
 import { useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { BackendExecutionOptions } from '../../common/Backend';
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
 

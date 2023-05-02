@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Type, Union
 
 from base_types import OutputId
 
@@ -16,6 +16,7 @@ class BaseOutput:
         label: str,
         kind: OutputKind = "generic",
         has_handle: bool = True,
+        associated_type: Union[Type, None] = None,
     ):
         self.output_type: expression.ExpressionJson = output_type
         self.label: str = label
@@ -23,6 +24,8 @@ class BaseOutput:
         self.never_reason: str | None = None
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
+
+        self.associated_type: Union[Type, None] = associated_type
 
     def toDict(self):
         return {

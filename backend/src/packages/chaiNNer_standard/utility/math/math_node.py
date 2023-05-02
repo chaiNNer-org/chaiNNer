@@ -84,9 +84,7 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
         )
     ],
 )
-def math_node(
-    a: Union[int, float], op: MathOperation, b: Union[int, float]
-) -> Union[int, float]:
+def math_node(a: float, op: MathOperation, b: float) -> Union[int, float]:
     if op == MathOperation.ADD:
         return a + b
     elif op == MathOperation.SUBTRACT:

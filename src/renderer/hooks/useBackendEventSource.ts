@@ -4,8 +4,8 @@ import {
     useEventSource,
     useEventSourceListener,
 } from '@react-nano/use-event-source';
-import log from 'electron-log';
 import { BackendEventMap } from '../../common/Backend';
+import { log } from '../../common/log';
 
 export type BackendEventSource = EventSource & { readonly __backend?: never };
 

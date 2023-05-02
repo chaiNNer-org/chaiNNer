@@ -4,6 +4,7 @@ import base64
 import io
 import os
 from enum import Enum
+from hashlib import md5
 from typing import Dict, Optional, Union
 
 import cv2
@@ -27,6 +28,8 @@ STABLE_DIFFUSION_TEXT2IMG_PATH = f"/sdapi/v1/txt2img"
 STABLE_DIFFUSION_IMG2IMG_PATH = f"/sdapi/v1/img2img"
 STABLE_DIFFUSION_INTERROGATE_PATH = f"/sdapi/v1/interrogate"
 STABLE_DIFFUSION_OPTIONS_PATH = f"/sdapi/v1/options"
+STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = f"/sdapi/v1/extra-single-image"
+STABLE_DIFFUSION_UPSCALERS_PATH = f"/sdapi/v1/upscalers"
 
 
 def _stable_diffusion_url(path):
@@ -141,6 +144,34 @@ def verify_api_connection():
 
     if not has_api_connection:
         raise ValueError("Cannot connect to stable diffusion API service.")
+
+
+def get_upscalers():
+    """
+    get_upscalers is intended to load the list of available upscalers during import time
+    """
+    if not has_api_connection:
+        # Quiet failure - missing API makes it impossible to insantiate the node anyway.
+        return Enum("StableDiffusionUpscaler", {})
+
+    response = get(STABLE_DIFFUSION_UPSCALERS_PATH)
+    upscalers = {}
+    for u in response:
+        if u["name"] == "None":
+            # Leave it out, we don't need no-op in chaiNNer.
+            continue
+
+        # Id requirements are strict, but webui can be customised with arbitrarily-named upscalers.
+        ident = "UPSCALER_" + md5(u["name"].encode("utf-8")).hexdigest().upper()
+        upscalers[ident] = u["name"]
+
+    upscalers_enum = Enum("StableDiffusionUpscaler", upscalers)
+
+    labels = {}
+    for e in upscalers_enum:
+        labels[e] = e.value
+
+    return upscalers_enum, labels
 
 
 def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:

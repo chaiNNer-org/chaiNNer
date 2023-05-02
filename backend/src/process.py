@@ -232,7 +232,7 @@ class IteratorContext:
                 await self.run_iteration(index, length)
             except Aborted:
                 raise
-            except RuntimeError as e:
+            except Exception as e:
                 logger.error(e)
                 errors.append(str(e))
 

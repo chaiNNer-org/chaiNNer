@@ -1,5 +1,4 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
-import log from 'electron-log';
 import isDeepEqual from 'fast-deep-equal';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +7,7 @@ import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
 import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
+import { log } from '../common/log';
 import { parseFunctionDefinitions } from '../common/nodes/parseFunctionDefinitions';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';

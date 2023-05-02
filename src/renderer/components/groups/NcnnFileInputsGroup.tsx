@@ -1,6 +1,6 @@
-import log from 'electron-log';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
+import { log } from '../../../common/log';
 import { checkFileExists, getInputValue } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
@@ -13,7 +13,7 @@ const ifExists = (file: string, then: () => void) => {
                 then();
             }
         })
-        .catch((reason) => log.error(reason));
+        .catch(log.error);
 };
 
 const ifOtherExists = (file: string, extension: string, then: (other: string) => void) => {

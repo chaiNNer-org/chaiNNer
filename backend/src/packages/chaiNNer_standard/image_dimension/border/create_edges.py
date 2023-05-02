@@ -43,7 +43,7 @@ from .. import border_group
 def create_edges_node(
     img: np.ndarray,
     border_type: BorderType,
-    color: Color | None,
+    color: Color,
     top: int,
     left: int,
     right: int,

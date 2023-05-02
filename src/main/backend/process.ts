@@ -1,10 +1,10 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { app } from 'electron';
-import log from 'electron-log';
 import path from 'path';
 import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
 import { sanitizedEnv } from '../../common/env';
+import { log } from '../../common/log';
 
 const backendPath = app.isPackaged
     ? path.join(process.resourcesPath, 'src', 'run.py')
