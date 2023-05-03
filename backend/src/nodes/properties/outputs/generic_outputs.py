@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 from ...impl.color.color import Color
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
@@ -13,7 +15,11 @@ class NumberOutput(BaseOutput):
         label: str,
         output_type: expression.ExpressionJson = "number",
     ):
-        super().__init__(expression.intersect("number", output_type), label)
+        super().__init__(
+            expression.intersect("number", output_type),
+            label,
+            associated_type=Union[int, float],
+        )
 
     def get_broadcast_type(self, value: int | float):
         return expression.literal(value)

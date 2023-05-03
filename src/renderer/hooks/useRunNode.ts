@@ -1,7 +1,7 @@
-import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
+import { log } from '../../common/log';
 import { delay, mapInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
@@ -81,7 +81,7 @@ export const useRunNode = (
     useEffect(() => {
         return () => {
             if (didEverRun.current) {
-                backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
+                backend.clearNodeCacheIndividual(id).catch(log.error);
             }
         };
     }, [backend, id]);

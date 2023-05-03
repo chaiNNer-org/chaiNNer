@@ -46,8 +46,8 @@ from .. import processing_group
 def rembg_node(
     img: np.ndarray,
     model: OnnxRemBg,
-    post_process_mask: int,
-    alpha_matting: int,
+    post_process_mask: bool,
+    alpha_matting: bool,
     foreground_threshold: int,
     background_threshold: int,
     kernel_size: int,
@@ -59,7 +59,7 @@ def rembg_node(
     return remove_bg(
         img,
         session,
-        bool(alpha_matting),
+        alpha_matting,
         foreground_threshold,
         background_threshold,
         alpha_matting_erode_size=kernel_size,

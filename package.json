@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron-forge start",
     "frontend": "electron-forge start -- --no-backend",
-    "dev": "concurrently \"cd backend/src && nodemon ./run.py 8000\" \"electron-forge start -- --no-backend\"",
+    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --no-backend\"",
     "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --no-backend\"",
     "debug:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
     "package": "cross-env NODE_ENV=production electron-forge package",

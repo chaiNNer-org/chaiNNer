@@ -161,8 +161,8 @@ class OutpaintingMethod(Enum):
             channels=3,
         ),
     ],
+    decorators=[cached],
 )
-@cached
 def img_to_img_outpainting_node(
     image: np.ndarray,
     prompt: Optional[str],

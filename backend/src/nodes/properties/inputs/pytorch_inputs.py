@@ -2,6 +2,10 @@ try:
     import torch
 
     from ...impl.pytorch.types import (
+        PyTorchFaceModel,
+        PyTorchInpaintModel,
+        PyTorchModel,
+        PyTorchSRModel,
         is_pytorch_face_model,
         is_pytorch_inpaint_model,
         is_pytorch_model,
@@ -23,6 +27,8 @@ class ModelInput(BaseInput):
         input_type: ExpressionJson = "PyTorchModel",
     ):
         super().__init__(input_type, label)
+        if torch is not None:
+            self.associated_type = PyTorchModel
 
     def enforce(self, value):
         if torch is not None:
@@ -41,6 +47,8 @@ class SrModelInput(ModelInput):
             label,
             intersect(input_type, "PyTorchSRModel"),
         )
+        if torch is not None:
+            self.associated_type = PyTorchSRModel
 
     def enforce(self, value):
         if torch is not None:
@@ -59,6 +67,8 @@ class FaceModelInput(ModelInput):
             label,
             intersect(input_type, "PyTorchFaceModel"),
         )
+        if torch is not None:
+            self.associated_type = PyTorchFaceModel
 
     def enforce(self, value):
         if torch is not None:
@@ -77,6 +87,8 @@ class InpaintModelInput(ModelInput):
             label,
             intersect(input_type, "PyTorchInpaintModel"),
         )
+        if torch is not None:
+            self.associated_type = PyTorchInpaintModel
 
     def enforce(self, value):
         if torch is not None:

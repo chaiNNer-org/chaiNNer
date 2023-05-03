@@ -1,8 +1,8 @@
-import log from 'electron-log';
 import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
 import { FfmpegInfo, PythonInfo } from '../../common/common-types';
+import { log } from '../../common/log';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
