@@ -14,8 +14,8 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        NumberInput("Size X", controls_step=1),
-        NumberInput("Size Y", controls_step=1),
+        NumberInput("Size X", default=10, precision=0, minimum=1, controls_step=1),
+        NumberInput("Size Y", default=10, precision=0, minimum=1, controls_step=1),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
@@ -24,9 +24,6 @@ def pixel_blur_node(
     size_x: float,
     size_y: float,
 ) -> np.ndarray:
-    if size_x == 0 and size_y == 0:
-        return img
-
     block_sizes = (size_x, size_y)
     height, width = img.shape[:2]
 
