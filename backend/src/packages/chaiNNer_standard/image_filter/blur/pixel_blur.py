@@ -21,8 +21,8 @@ from .. import blur_group
 )
 def pixel_blur_node(
     img: np.ndarray,
-    size_x: float,
-    size_y: float,
+    size_x: int,
+    size_y: int,
 ) -> np.ndarray:
     block_sizes = (size_x, size_y)
     height, width = img.shape[:2]
