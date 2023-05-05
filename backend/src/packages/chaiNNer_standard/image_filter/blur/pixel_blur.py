@@ -36,7 +36,16 @@ def pixel_blur_node(
     num_blocks_x = width // block_sizes[0]
     num_blocks_y = height // block_sizes[1]
 
-    blocks = img[:num_blocks_y * block_sizes[1], :num_blocks_x * block_sizes[0]].reshape((num_blocks_y, block_sizes[1], num_blocks_x, block_sizes[0], img.shape[-1]))
+    blocks = img[: num_blocks_y * block_sizes[1], : num_blocks_x * block_sizes[0]]
+    blocks = (
+        blocks.reshape(
+            (num_blocks_y, block_sizes[1], num_blocks_x, block_sizes[0], img.shape[-1])
+        )
+        if len(img.shape) > 2
+        else blocks.reshape(
+            (num_blocks_y, block_sizes[1], num_blocks_x, block_sizes[0])
+        )
+    )
 
     average_colors = np.mean(np.mean(blocks, axis=1), axis=2)
 
