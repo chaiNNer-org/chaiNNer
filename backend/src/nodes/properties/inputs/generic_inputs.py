@@ -418,6 +418,7 @@ def VideoTypeDropdown() -> DropDownInput:
         options=[
             {"option": "MP4", "value": "mp4"},
             {"option": "MKV", "value": "mkv"},
+            {"option": "MKV (FFV1)", "value": "mkv-ffv1"},
             {"option": "WEBM", "value": "webm"},
             {"option": "AVI", "value": "avi"},
             {"option": "GIF", "value": "gif"},
