@@ -12,10 +12,10 @@ def dtype_convert(image: np.ndarray, target_dtype: np.dtype):
 
 
 def dtype_to_float(image: np.ndarray) -> np.ndarray:
-    if image.dtype == np.dtype("float32"):
+    if image.dtype == np.float32:
         return image
     max_value = MAX_VALUES_BY_DTYPE[image.dtype]
-    return image.astype(np.dtype("float32")) / max_value
+    return image.astype(np.float32) / max_value
 
 
 def dtype_to_uint8(image: np.ndarray) -> np.ndarray:
