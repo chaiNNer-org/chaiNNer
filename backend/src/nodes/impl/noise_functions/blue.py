@@ -82,7 +82,7 @@ def create_blue_noise(
         1, min(int((n_rank - 1) / 2), int(n_rank * InitialSeedFraction))
     )
     # Start from white noise (this is the only randomized step)
-    initial_binary_pattern = np.zeros(output_shape, dtype=np.bool8)
+    initial_binary_pattern = np.zeros(output_shape, dtype=np.bool_)
     initial_binary_pattern.flat = (
         np.random.default_rng(seed).permutation(np.arange(n_rank)) < n_initial_one
     )  # type:ignore
