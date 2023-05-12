@@ -8,7 +8,7 @@ google-re2
 isort==5.11.5
 ncnn_vulkan
 numba!=0.49.0
-numpy==1.23.2
+numpy
 onnx==1.13.0
 onnxoptimizer
 onnxruntime
