@@ -15,6 +15,7 @@ class ExecutionOptions:
         onnx_execution_provider: str,
         onnx_should_tensorrt_cache: bool,
         onnx_tensorrt_cache_path: str,
+        onnx_should_tensorrt_fp16: bool,
     ) -> None:
         self.__device = device
         self.__fp16 = fp16
@@ -24,8 +25,7 @@ class ExecutionOptions:
         self.__onnx_execution_provider = onnx_execution_provider
         self.__onnx_should_tensorrt_cache = onnx_should_tensorrt_cache
         self.__onnx_tensorrt_cache_path = onnx_tensorrt_cache_path
-
-        print(onnx_tensorrt_cache_path)
+        self.__onnx_should_tensorrt_fp16 = onnx_should_tensorrt_fp16
 
         if (
             not os.path.exists(onnx_tensorrt_cache_path)
@@ -33,8 +33,8 @@ class ExecutionOptions:
         ):
             os.makedirs(onnx_tensorrt_cache_path)
 
-        logger.info(
-            f"PyTorch execution options: fp16: {fp16}, device: {self.full_device} | NCNN execution options: gpu_index: {ncnn_gpu_index} | ONNX execution options: gpu_index: {onnx_gpu_index}, execution_provider: {onnx_execution_provider}, should_tensorrt_cache: {onnx_should_tensorrt_cache}, tensorrt_cache_path: {onnx_tensorrt_cache_path}"
+        logger.debug(
+            f"PyTorch execution options: fp16: {fp16}, device: {self.full_device} | NCNN execution options: gpu_index: {ncnn_gpu_index} | ONNX execution options: gpu_index: {onnx_gpu_index}, execution_provider: {onnx_execution_provider}, should_tensorrt_cache: {onnx_should_tensorrt_cache}, tensorrt_cache_path: {onnx_tensorrt_cache_path}, should_tensorrt_fp16: {onnx_should_tensorrt_fp16}"
         )
 
     @property
@@ -71,9 +71,13 @@ class ExecutionOptions:
     def onnx_tensorrt_cache_path(self):
         return self.__onnx_tensorrt_cache_path
 
+    @property
+    def onnx_should_tensorrt_fp16(self):
+        return self.__onnx_should_tensorrt_fp16
+
 
 __global_exec_options = ExecutionOptions(
-    "cpu", False, 0, 0, 0, "CPUExecutionProvider", False, ""
+    "cpu", False, 0, 0, 0, "CPUExecutionProvider", False, "", False
 )
 
 
@@ -97,6 +101,7 @@ class JsonExecutionOptions(TypedDict):
     onnxExecutionProvider: str
     onnxShouldTensorRtCache: bool
     onnxTensorRtCachePath: str
+    onnxShouldTensorRtFp16: bool
 
 
 def parse_execution_options(json: JsonExecutionOptions) -> ExecutionOptions:
@@ -109,4 +114,5 @@ def parse_execution_options(json: JsonExecutionOptions) -> ExecutionOptions:
         onnx_execution_provider=json["onnxExecutionProvider"],
         onnx_should_tensorrt_cache=json["onnxShouldTensorRtCache"],
         onnx_tensorrt_cache_path=json["onnxTensorRtCachePath"],
+        onnx_should_tensorrt_fp16=json["onnxShouldTensorRtFp16"],
     )

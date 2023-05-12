@@ -153,6 +153,7 @@ const getExecutionOptions = (): BackendExecutionOptions => {
         onnxExecutionProvider: getSetting('onnx-execution-provider', 'CUDAExecutionProvider'),
         onnxShouldTensorRtCache: getSetting('onnx-should-tensorrt-cache', false),
         onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(app.getPath('userData')),
+        onnxShouldTensorRtFp16: getSetting('onnx-should-tensorrt-fp16', false),
     };
 };
 
