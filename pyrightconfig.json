@@ -10,6 +10,7 @@
 	],
 
 	"typeCheckingMode": "basic",
+	"useLibraryCodeForTypes": false,
 
 	"strictListInference": true,
 	"strictDictionaryInference": true,

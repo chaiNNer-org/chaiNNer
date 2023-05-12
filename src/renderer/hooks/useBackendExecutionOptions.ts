@@ -15,6 +15,7 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
+        useOnnxShouldTensorRtFp16,
     } = useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
@@ -35,6 +36,8 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         );
     }, []);
 
+    const [onnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
+
     return {
         isCpu,
         isFp16,
@@ -44,5 +47,6 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         onnxExecutionProvider,
         onnxShouldTensorRtCache,
         onnxTensorRtCachePath,
+        onnxShouldTensorRtFp16,
     };
 };
