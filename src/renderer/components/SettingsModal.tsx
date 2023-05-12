@@ -332,6 +332,7 @@ const PythonSettings = memo(() => {
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
+        useOnnxShouldTensorRtFp16,
     } = useContext(SettingsContext);
     const { backend } = useContext(BackendContext);
 
@@ -346,6 +347,7 @@ const PythonSettings = memo(() => {
     const [onnxGPU, setOnnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
     const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
     const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
 
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
@@ -621,6 +623,16 @@ const PythonSettings = memo(() => {
                                     Clear Cache
                                 </Button>
                             </HStack>
+                        )}
+                        {isUsingTensorRt && (
+                            <Toggle
+                                description="Use FP16 inference with TensorRT."
+                                title="TensorRT FP16 Mode"
+                                value={onnxShouldTensorRtFp16}
+                                onToggle={() => {
+                                    setOnnxShouldTensorRtFp16((prev) => !prev);
+                                }}
+                            />
                         )}
                     </VStack>
                 </TabPanel>
