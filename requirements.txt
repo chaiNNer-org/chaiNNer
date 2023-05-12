@@ -17,7 +17,7 @@ pasteboard ; sys_platform=="darwin"
 Pillow
 protobuf==3.20.2
 pylint==2.16.1
-pyright==1.1.307
+pyright==1.1.308
 pytest
 pywin32 ; sys_platform=="win32"
 requests
