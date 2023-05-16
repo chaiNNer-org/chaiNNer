@@ -6,14 +6,14 @@ import numpy as np
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import blur_group
+from .. import miscellaneous_group
 
 
-@blur_group.register(
-    schema_id="chainner:image:pixel_blur",
-    name="Pixel Blur",
-    description="Apply pixel blur to an image.",
-    icon="MdBlurOn",
+@miscellaneous_group.register(
+    schema_id="chainner:image:pixelate",
+    name="Pixelate",
+    description="Pixelate an image.",
+    icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(),
         NumberInput("Size X", default=10, precision=0, minimum=1, controls_step=1),
@@ -21,7 +21,7 @@ from .. import blur_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def pixel_blur_node(
+def pixelate_node(
     img: np.ndarray,
     size_x: int,
     size_y: int,
