@@ -36,6 +36,6 @@ from .. import miscellaneous_group
 )
 def run(img: np.ndarray, size: int) -> Tuple[str, str]:
     """Generate a hash from the input image. The digest size determines the length of the hash that is output."""
-    img = to_uint8(img)
+    img = np.ascontiguousarray(to_uint8(img))
     h = hashlib.blake2b(img, digest_size=size)  # type: ignore
     return h.hexdigest(), base64.urlsafe_b64encode(h.digest()).decode("utf-8")

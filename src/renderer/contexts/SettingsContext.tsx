@@ -15,6 +15,7 @@ interface Settings {
     useOnnxGPU: GetSetState<number>;
     useOnnxExecutionProvider: GetSetState<string>;
     useOnnxShouldTensorRtCache: GetSetState<boolean>;
+    useOnnxShouldTensorRtFp16: GetSetState<boolean>;
     useIsSystemPython: GetSetState<boolean>;
     useSystemPythonLocation: GetSetState<string | null>;
     useCheckUpdOnStrtUp: GetSetState<boolean>;
@@ -50,6 +51,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
     const useOnnxShouldTensorRtCache = useMemoArray(
         useLocalStorage('onnx-should-tensorrt-cache', false)
+    );
+    const useOnnxShouldTensorRtFp16 = useMemoArray(
+        useLocalStorage('onnx-should-tensorrt-fp16', false)
     );
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
@@ -100,6 +104,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
+        useOnnxShouldTensorRtFp16,
 
         // Globals
         useIsSystemPython,
