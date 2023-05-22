@@ -5,6 +5,7 @@ import functools
 import gc
 import time
 import uuid
+from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, TypeVar
 
@@ -293,7 +294,7 @@ def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
     return wrapper
 
 
-async def timed_supplier_async(supplier):
+async def timed_supplier_async(supplier: Callable[[], Awaitable[T]]) -> Tuple[T, float]:
     start = time.time()
     result = await supplier()
     duration = time.time() - start
