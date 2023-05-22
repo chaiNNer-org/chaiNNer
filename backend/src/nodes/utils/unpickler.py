@@ -11,6 +11,7 @@ safe_list = {
     ("torch", "HalfStorage"),
     ("torch", "IntStorage"),
     ("torch", "LongStorage"),
+    ("torch", "DoubleStorage"),
 }
 
 
