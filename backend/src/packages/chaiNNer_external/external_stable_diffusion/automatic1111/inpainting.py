@@ -5,8 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from nodes.group import group
-from nodes.groups import if_enum_group
+from nodes.groups import if_enum_group, seed_group
 from nodes.impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
@@ -63,7 +62,7 @@ class InpaintArea(Enum):
             controls_step=0.1,
             precision=2,
         ),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
