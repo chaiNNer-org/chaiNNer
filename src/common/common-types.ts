@@ -80,16 +80,12 @@ export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
 }
 export interface TextInput extends InputBase {
-    readonly kind: 'text-line';
+    readonly kind: 'text';
+    readonly multiline?: boolean;
     readonly minLength?: number | null;
     readonly maxLength?: number | null;
     readonly placeholder?: string | null;
     readonly def?: string | null;
-}
-export interface TextAreaInput extends InputBase {
-    readonly kind: 'text';
-    readonly resizable: boolean;
-    readonly def: string | null;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
@@ -128,7 +124,6 @@ export type Input =
     | FileInput
     | DirectoryInput
     | TextInput
-    | TextAreaInput
     | DropDownInput
     | SliderInput
     | NumberInput

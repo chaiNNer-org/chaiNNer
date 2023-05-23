@@ -28,7 +28,7 @@ from nodes.properties.inputs import (
     ImageInput,
     SeedInput,
     SliderInput,
-    TextAreaInput,
+    TextInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
@@ -52,8 +52,8 @@ class InpaintArea(Enum):
     inputs=[
         ImageInput(),
         ImageInput("Mask", channels=1, image_type=expression.Image(size_as="Input0")),
-        TextAreaInput("Prompt", has_handle=True).make_optional(),
-        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
+        TextInput("Prompt", multiline=True).make_optional(),
+        TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,

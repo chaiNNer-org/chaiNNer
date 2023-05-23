@@ -12,7 +12,6 @@ InputKind = Literal[
     "slider",
     "dropdown",
     "text",
-    "text-line",
     "directory",
     "file",
     "color",

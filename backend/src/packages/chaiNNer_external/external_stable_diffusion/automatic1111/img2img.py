@@ -24,7 +24,7 @@ from nodes.properties.inputs import (
     ImageInput,
     SeedInput,
     SliderInput,
-    TextAreaInput,
+    TextInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
@@ -42,8 +42,8 @@ verify_api_connection()
     icon="MdChangeCircle",
     inputs=[
         ImageInput(),
-        TextAreaInput("Prompt", has_handle=True).make_optional(),
-        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
+        TextInput("Prompt", multiline=True).make_optional(),
+        TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,
