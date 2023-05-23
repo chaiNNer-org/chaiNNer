@@ -33,6 +33,7 @@ def load_state_dict(state_dict) -> PyTorchModel:
         state_dict = state_dict["params"]
 
     state_dict_keys = list(state_dict.keys())
+
     # SRVGGNet Real-ESRGAN (v2)
     if "body.0.weight" in state_dict_keys and "body.1.weight" in state_dict_keys:
         model = RealESRGANv2(state_dict)
@@ -81,10 +82,7 @@ def load_state_dict(state_dict) -> PyTorchModel:
     elif "synthesis.first_stage.conv_first.conv.resample_filter" in state_dict_keys:
         model = MAT(state_dict)
     # Omni-SR
-    elif (
-        "total_ops" in state_dict_keys
-        and "residual_layer.0.total_ops" in state_dict_keys
-    ):
+    elif "residual_layer.0.residual_layer.0.layer.0.fn.0.weight" in state_dict_keys:
         model = OmniSR(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
