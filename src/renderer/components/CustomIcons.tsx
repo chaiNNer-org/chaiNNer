@@ -1,5 +1,6 @@
 import { createIcon } from '@chakra-ui/icons';
 import { Icon } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { IconType } from 'react-icons';
 import * as bs from 'react-icons/bs';
@@ -139,7 +140,22 @@ export const IconFactory = memo(
                     />
                 );
             default:
-            // nothing
+                //using segmenter to account for non-latin and emoji characters
+                const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length == 1;
+                if (isSingleCharacter) {
+                    //TODO: make this use a consistent font across systems
+                    return (
+                        <Text
+                            color={accentColor}
+                            fontSize="14pt"
+                            fontWeight="bold"
+                            transition="0.15s ease-in-out"
+                        >
+                            {icon}
+                        </Text>
+                    );
+                }
+                break;
         }
 
         const prefix = icon.slice(0, 2).toLowerCase();
