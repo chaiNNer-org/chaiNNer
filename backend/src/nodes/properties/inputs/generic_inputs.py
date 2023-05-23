@@ -4,6 +4,7 @@ import json
 import re
 from enum import Enum
 from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
+from urllib.parse import urlparse
 
 import numpy as np
 from sanic.log import logger
@@ -267,6 +268,56 @@ class TextAreaInput(BaseInput):
         return {
             **super().toDict(),
             "resizable": self.resizable,
+            "def": self.default,
+        }
+
+
+class URLInput(BaseInput):
+    """Input for URLs"""
+
+    def __init__(
+        self,
+        label: str = "URL",
+        has_handle=True,
+        placeholder: Union[str, None] = "https://example.com/",
+        allowlist: List[Tuple[str, str]] = [],
+        default: Union[str, None] = None,
+    ):
+        super().__init__(
+            "string",
+            label,
+            has_handle=has_handle,
+            kind="text-line",
+        )
+        self.placeholder = placeholder
+        self.allowlist = allowlist
+        self.default = default
+        self.associated_type = str
+
+        # if allow_numbers:
+        #     self.input_conversions = [InputConversion("number", "toString(Input)")]
+
+    def enforce(self, value) -> str:
+        value = str(value)
+        if len(value) > 0:
+            isValid = False
+            try:
+                result = urlparse(value, scheme="https", allow_fragments=True)
+                isValid = all([result.scheme, result.netloc])
+            except:
+                isValid = False
+            assert isValid == True, "URL is invalid"
+            if len(self.allowlist):
+                for [pattern, label] in self.allowlist:
+                    assert re.match(pattern, str(value)), (
+                        "URL did not match pattern: " + label
+                    )
+        return str(value)
+
+    def toDict(self):
+        return {
+            **super().toDict(),
+            "placeholder": self.placeholder,
             "def": self.default,
         }
 
