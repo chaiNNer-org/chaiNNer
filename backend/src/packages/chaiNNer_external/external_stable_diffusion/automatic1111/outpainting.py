@@ -6,8 +6,7 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from nodes.group import group
-from nodes.groups import if_enum_group
+from nodes.groups import if_enum_group, seed_group
 from nodes.impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
@@ -28,7 +27,7 @@ from nodes.properties.inputs import (
     ImageInput,
     SeedInput,
     SliderInput,
-    TextAreaInput,
+    TextInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
@@ -51,8 +50,8 @@ class OutpaintingMethod(Enum):
     icon="MdChangeCircle",
     inputs=[
         ImageInput().with_id(0),
-        TextAreaInput("Prompt", has_handle=True).make_optional(),
-        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
+        TextInput("Prompt", multiline=True).make_optional(),
+        TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,
@@ -62,7 +61,7 @@ class OutpaintingMethod(Enum):
             controls_step=0.1,
             precision=2,
         ),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,

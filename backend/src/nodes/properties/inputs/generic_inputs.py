@@ -213,6 +213,7 @@ class TextInput(BaseInput):
         min_length: int = 1,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
+        multiline: bool = False,
         allow_numbers: bool = True,
         default: Union[str, None] = None,
     ):
@@ -220,12 +221,13 @@ class TextInput(BaseInput):
             "string",
             label,
             has_handle=has_handle,
-            kind="text-line",
+            kind="text",
         )
         self.min_length = min_length
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+        self.multiline = multiline
         self.associated_type = str
 
         if allow_numbers:
@@ -243,31 +245,7 @@ class TextInput(BaseInput):
             "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
-            "def": self.default,
-        }
-
-
-class TextAreaInput(BaseInput):
-    """Input for large text"""
-
-    def __init__(
-        self, label: str = "Text", default: Union[str, None] = None, has_handle=False
-    ):
-        super().__init__("string", label, has_handle=has_handle, kind="text")
-        self.resizable = True
-        self.default = default
-        self.associated_type = str
-
-    def enforce(self, value) -> str:
-        if isinstance(value, float) and int(value) == value:
-            # stringify integers values
-            return str(int(value))
-        return str(value)
-
-    def toDict(self):
-        return {
-            **super().toDict(),
-            "resizable": self.resizable,
+            "multiline": self.multiline,
             "def": self.default,
         }
 
@@ -326,7 +304,7 @@ class ClipboardInput(BaseInput):
     """Input for pasting from clipboard"""
 
     def __init__(self, label: str = "Clipboard input"):
-        super().__init__(["Image", "string", "number"], label, kind="text-line")
+        super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
     def enforce(self, value):

@@ -106,10 +106,6 @@ const assignInput = (
             break;
         }
         case 'text': {
-            inputData[inputId] = String(value);
-            break;
-        }
-        case 'text-line': {
             const text = String(value);
 
             const { minLength, maxLength } = input;
