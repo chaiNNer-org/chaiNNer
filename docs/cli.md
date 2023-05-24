@@ -10,7 +10,7 @@ CLI mode lets you use ChaiNNer without a GUI. This is useful for running ChaiNNe
 
 In some cases, you may want to run ChaiNNer without the GUI. E.g. to programmatically run the same chain with different inputs. As such, CLI mode is a way for advanced users with programming experience to work around the limitations of GUI chaiNNer.
 
-Conceptually, CLI mode simply opens a `.chn` chain files and runs it. It's the same as if you opened the chain in the GUI and pressed the "Run" button. Of course, CLI mode has a way to set the inputs of nodes within the chain before running it.
+Conceptually, CLI mode simply opens a `.chn` chain file and runs it. It's the same as if you opened the chain in the GUI and pressed the "Run" button. Of course, CLI mode has a way to set the inputs of nodes within the chain before running it.
 
 ## Usage
 
