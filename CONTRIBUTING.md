@@ -7,23 +7,23 @@
 3. Install the dependencies of the frontend with `npm ci`
 4. Install the dependencies of the backend with `pip install -r requirements.txt`
 
-Chainner is an Electron application that uses Python for the backend. The frontend and backend communicate through a JSON API. The frontend is located in the `src` folder and the backend is located in the `backend` folder.
+ChaiNNer is an Electron application that uses Python for the backend. The frontend and backend communicate through a JSON API. The frontend is located in the `src` folder and the backend is located in the `backend` folder.
 
-We use VSCode as our IDE of choice, and we strongly recommend you to do the same. We have included the `.vscode` folder in this repository, which contains some settings that make developing chainner easier.
+We use VSCode as our IDE of choice, and we strongly recommend you to do the same. We have included the `.vscode` folder in this repository, which contains some settings that make developing chaiNNer easier.
 
 ## Running the Application
 
-There are 2 way to run chainner:
+There are 2 way to run chaiNNer:
 
 1. Use `npm run dev` to run the application in development mode. This will run the frontend and backend in parallel. The frontend will be reloaded automatically when you make changes to the code. The backend will be reloaded automatically when you make changes to the code and restart the frontend.
 
-    Note: The backend will use your system python in this mode. This means that you might need to (re)install some dependencies using chainner's dependency manager.
+    Note: The backend will use your system python in this mode. This means that you might need to (re)install some dependencies using chaiNNer's dependency manager.
 
 1. Use `npm start` to run the application in production mode. The frontend will automatically start and manage the backend process. The frontend will be reloaded automatically when you make changes to the code. The backend will **NOT** be reloaded automatically, use `npm run dev` if you need this.
 
-    NOTE: Chainner will use its own python installation, the same that a regular installation of chainner also uses.
+    NOTE: ChaiNNer will use its own python installation, the same that a regular installation of chaiNNer also uses.
 
-Generally, use `npm run dev` when you want to develop the backend or the frontend, and use `npm start` you want to start chainner in a more production-like mode.
+Generally, use `npm run dev` when you want to develop the backend or the frontend, and use `npm start` you want to start chaiNNer in a more production-like mode.
 
 ## Project structure
 
@@ -41,7 +41,7 @@ The frontend is an Electron application written in TypeScript. As such, the fron
 
 The backend is a Python application. The backend is roughly split into 3 parts:
 
-1. `backend/src/packages` contains the packages that contain chainner's nodes. Most nodes are in the `chaiNNer_standard` package.
+1. `backend/src/packages` contains the packages that contain chaiNNer's nodes. Most nodes are in the `chaiNNer_standard` package.
 2. `backend/src/nodes` contains logic shared between nodes. This includes common functionality for task such as upscaling, classes to define inputs and outputs, etc.
 3. The rest of `backend/src` contains the code that glues everything together. This includes the code that defines the JSON API, the code that manages the nodes, the node executor, etc.
 
@@ -80,7 +80,7 @@ def gaussian_blur_node(img: np.ndarray, radius: float) -> np.ndarray:
 
 The implementation is rather simple, we take an image and a radius as input, and return the blurred image as output.
 
-Now let's register this function as node, so chainner can use it. We need to import our node group, in this case the `Blur` node group, and use its `register` function as a decorator like this:
+Now let's register this function as node, so chaiNNer can use it. We need to import our node group, in this case the `Blur` node group, and use its `register` function as a decorator like this:
 
 ```python
 # gaussian_blur.py
@@ -135,7 +135,7 @@ Let's go through the metadata:
 
 For more information about metadata, see the [Node Metadata section](#node-metadata).
 
-And that's it. We have successfully implemented a new node. Now we can start chainner and see our new node in action.
+And that's it. We have successfully implemented a new node. Now we can start chaiNNer and see our new node in action.
 
 For more information about nodes, see the below section.
 
@@ -143,14 +143,14 @@ For more information about nodes, see the below section.
 
 ## Core concepts and idea
 
-Chainner is a visual programming language and development environment. Chains (`.chn` files) are programs and chainner's UI is the editor for this programming language. The backend is the compiler and executor. Nodes are the functions of this language, they take inputs and produce outputs. Nodes are implemented as Python functions with extra metadata. This metadata is used to display the node in the UI and determine their behavior. E.g. type information is used to determine which connections are valid. Nodes are structured into categories and packages. Chainner uses packages to manage the dependencies of nodes (e.g. pip packages), and categories to organize nodes in the UI.
+ChaiNNer is a visual programming language and development environment. Chains (`.chn` files) are programs and chaiNNer's UI is the editor for this programming language. The backend is the compiler and executor. Nodes are the functions of this language, they take inputs and produce outputs. Nodes are implemented as Python functions with extra metadata. This metadata is used to display the node in the UI and determine their behavior. E.g. type information is used to determine which connections are valid. Nodes are structured into categories and packages. ChaiNNer uses packages to manage the dependencies of nodes (e.g. pip packages), and categories to organize nodes in the UI.
 
 ### Rules for nodes
 
 While nodes can generally implement whatever functionality you want, there are some rules that nodes must follow:
 
 -   **Immutability** \
-    Nodes are not allowed to modify their inputs. This is because chainner will cache and reuse values for performance reasons. If a node modifies its input, this will break the cache and cause chainner to produce incorrect results.
+    Nodes are not allowed to modify their inputs. This is because chaiNNer will cache and reuse values for performance reasons. If a node modifies its input, this will break the cache and cause chaiNNer to produce incorrect results.
 
     This is especially important for images, which are passed around as numpy arrays. Numpy arrays are mutable, so you need to be careful when working with them. If you need to modify an input, make a copy of it first.
 
@@ -173,9 +173,9 @@ Nodes have rich metadata. This includes a name, description, icon, and more. Thi
 Metadata is used to define a contract between a node, the rest of the backend, and the frontend. This contract is used to verify the correctness of the node implementation, optimize the node graph, and define frontend behavior.
 
 -   **Schema ID** \
-    The schema ID of the node. This is used to identify the node in the JSON API. This must be unique across all packages. We recommend using the format `chainner:<category>:<name>` for chainner nodes.
+    The schema ID of the node. This is used to identify the node in the JSON API. This must be unique across all packages. We recommend using the format `chainner:<category>:<name>` for chaiNNer nodes.
 
-    Note that the chainner team has moved around nodes in the past. As such, you may find nodes that do not follow the above format. We recommend using the format above for new nodes.
+    Note that the chaiNNer team has moved around nodes in the past. As such, you may find nodes that do not follow the above format. We recommend using the format above for new nodes.
 
 -   **Name** \
     The name of the node. This is used to display the node in the UI.
@@ -311,13 +311,13 @@ Types are expressed using a custom type system called Navi. Navi is not relative
 
 ### Packages
 
-A package is a collection of nodes. Chainner comes with a set of standard nodes (`chaiNNer_standard`), but you can also create your own packages.
+A package is a collection of nodes. ChaiNNer comes with a set of standard nodes (`chaiNNer_standard`), but you can also create your own packages.
 
 Unfortunately, packages are still a bit of a work in progress. We plan to improve the package system in the future. Right now, they are just fancy directories that contain nodes.
 
 ### Categories
 
-Nodes are categorized. Categories are defined per package and follow a strict hierarchy. You can see this hierarchy in the node selector sidebar of chainner.
+Nodes are categorized. Categories are defined per package and follow a strict hierarchy. You can see this hierarchy in the node selector sidebar of chaiNNer.
 
 At the top of the hierarchy are categories (e.g. Image Filter). Each category can have any number of subcategories, called node groups. Node groups then contain the actual nodes.
 
@@ -325,7 +325,7 @@ This gives us a clear path: package -> category -> node group -> node. E.g. the 
 
 ## The anatomy of a node
 
-This section will explain how nodes are implemented in chainner. We will use the `Opacity` node as an example. This node takes an image and an opacity value as input, and outputs the image with the opacity applied. It basically makes the image more transparent.
+This section will explain how nodes are implemented in chaiNNer. We will use the `Opacity` node as an example. This node takes an image and an opacity value as input, and outputs the image with the opacity applied. It basically makes the image more transparent.
 
 Here's the full code of the node:
 
