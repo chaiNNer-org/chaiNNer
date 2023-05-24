@@ -265,7 +265,7 @@ class URLInput(BaseInput):
             "string",
             label,
             has_handle=has_handle,
-            kind="text-line",
+            kind="text",
         )
         self.placeholder = placeholder
         self.allowlist = allowlist
@@ -286,7 +286,7 @@ class URLInput(BaseInput):
                 isValid = False
             assert isValid == True, "URL is invalid"
             if len(self.allowlist):
-                for [pattern, label] in self.allowlist:
+                for pattern, label in self.allowlist:
                     assert re.match(pattern, str(value)), (
                         "URL did not match pattern: " + label
                     )

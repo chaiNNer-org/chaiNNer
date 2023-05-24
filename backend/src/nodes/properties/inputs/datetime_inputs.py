@@ -1,11 +1,10 @@
 import datetime
-from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
 
 from .generic_inputs import TextInput
 
 
 class DateTimeFormatInput(TextInput):
-    """Input for formatting datetime"""
+    """Input for formatting datetimes"""
 
     def __init__(
         self,
@@ -15,7 +14,6 @@ class DateTimeFormatInput(TextInput):
         default: Union[str, None] = None,
         min_length: int = 1,
         max_length: Union[int, None] = None,
-        allow_numbers: bool = True,
     ):
         super().__init__(
             label,
@@ -25,6 +23,7 @@ class DateTimeFormatInput(TextInput):
             min_length=min_length,
             max_length=max_length,
             allow_numbers=False,
+            multiline=False,
         )
         self.associated_type = str
 
@@ -36,7 +35,7 @@ class DateTimeFormatInput(TextInput):
             isValid = True
         except:
             isValid = False
-        assert isValid == True, "Format is invalid"
+        assert isValid == True, "Bad format string"
         return str(value)
 
     def toDict(self):
