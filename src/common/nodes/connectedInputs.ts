@@ -22,10 +22,8 @@ export const getFirstPossibleOutput = (
     inputFn: FunctionDefinition,
     inputId: InputId
 ): OutputId | undefined => {
-    for (const [id, type] of outputFn.outputDefaults) {
-        if (inputFn.canAssignInput(inputId, type)) {
-            return id;
-        }
-    }
-    return undefined;
+    return outputFn.schema.outputs.find((o) => {
+        const type = outputFn.outputDefaults.get(o.id);
+        return o.hasHandle && type && inputFn.canAssignInput(inputId, type);
+    })?.id;
 };
