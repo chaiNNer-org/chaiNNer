@@ -143,7 +143,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ## Troubleshooting
 
-For troubleshooting information, view the [troubleshooting document](https://github.com/chaiNNer-org/chaiNNer/blob/main/troubleshooting.md).
+For troubleshooting information, view the [troubleshooting document](docs/troubleshooting.md).
 
 ## Building chaiNNer Yourself
 
@@ -155,4 +155,4 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## FAQ
 
-For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/chaiNNer/blob/main/FAQ.md).
+For FAQ information, view the [FAQ document](docs/FAQ.md).
