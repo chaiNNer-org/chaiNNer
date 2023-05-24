@@ -26,7 +26,7 @@
     "stopButton": "Stop button"
   },
   "inputs": {
-    "copyOverrideInputId": "Copy Override Input Id",
+    "copyInputOverrideId": "Copy Input Override Id",
     "directory": {
       "copyFullDirectoryPath": "Copy Full Directory Path",
       "openInFileExplorer": "Open in File Explorer",
