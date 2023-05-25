@@ -97,14 +97,19 @@ importlib.import_module("packages.chaiNNer_ncnn")
 importlib.import_module("packages.chaiNNer_onnx")
 importlib.import_module("packages.chaiNNer_external")
 
+
 # For these, do the same as the above, but only if auto_update is true
-for package in api.registry.packages.values():
-    if package.name == "chaiNNer_standard":
-        continue
-    # logger.info(f"Checking dependencies for {package.name}...")
-    for dep in package.dependencies:
-        if dep.auto_update:
-            install_dep(dep, update_only=True)
+def upgrade_packages():
+    for package in api.registry.packages.values():
+        if package.name == "chaiNNer_standard":
+            continue
+        # logger.info(f"Checking dependencies for {package.name}...")
+        for dep in package.dependencies:
+            if dep.auto_update:
+                install_dep(dep, update_only=True)
+
+
+upgrade_packages()
 
 # in the future, for external packages dir, scan & import
 # for package in os.listdir(packages_dir):
