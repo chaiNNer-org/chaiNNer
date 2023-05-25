@@ -39,7 +39,7 @@ initial_required_dependencies = [
         "package_name": "Sanic-Cors",
         "version": "2.2.0",
     },
-    # {"package_name": "pynvml", "version": "11.5.0"},
+    {"package_name": "pynvml", "version": "11.5.0"},
     {
         "package_name": "semver",
         "version": "3.0.0",

@@ -442,11 +442,16 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-if __name__ == "__main__":
+def main():
     try:
         port = int(sys.argv[1]) or 8000
     except:
         port = 8000
+    print(sys.argv)
+    if len(sys.argv) > 1 and sys.argv[1] == "--no-run":
+        sys.exit()
+    app.run(port=port, single_process=True)
 
-    if sys.argv[1] != "--no-run":
-        app.run(port=port, single_process=True)
+
+if __name__ == "__main__":
+    main()

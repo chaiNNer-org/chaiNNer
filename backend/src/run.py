@@ -4,4 +4,5 @@ import importlib
 importlib.import_module("setup_deps")
 
 # Run server
-importlib.import_module("server")
+main_server = importlib.import_module("server")
+main_server.main()
