@@ -38,5 +38,5 @@ jobs:
         run: npm run make
       - uses: actions/upload-artifact@v3
         with:
-          name: debug-build
-          path: out/
+          name: debug-build-${{ matrix.os }}
+          path: out/make
