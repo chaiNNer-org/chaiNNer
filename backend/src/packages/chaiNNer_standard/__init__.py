@@ -7,14 +7,14 @@ package = add_package(
     name="chaiNNer_standard",
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
-        Dependency("OpenCV", "opencv-python", "4.7.0.68", 30 * MB, import_name="cv2"),
+        # Dependency("OpenCV", "opencv-python", "4.7.0.68", 30 * MB, import_name="cv2"),
         # Dependency("NumPy", "numpy", "1.23.2", 15 * MB),
-        Dependency("Pillow (PIL)", "Pillow", "9.2.0", 3 * MB, import_name="PIL"),
-        Dependency("appdirs", "appdirs", "1.4.4", 13.5 * KB),
-        Dependency("FFMPEG", "ffmpeg-python", "0.2.0", 25 * KB, import_name="ffmpeg"),
-        Dependency("Requests", "requests", "2.28.2", 452 * KB),
-        Dependency("re2", "google-re2", "1.0", 275 * KB, import_name="re2"),
-        Dependency("scipy", "scipy", "1.9.3", 42 * MB),
+        # Dependency("Pillow (PIL)", "Pillow", "9.2.0", 3 * MB, import_name="PIL"),
+        # Dependency("appdirs", "appdirs", "1.4.4", 13.5 * KB),
+        # Dependency("FFMPEG", "ffmpeg-python", "0.2.0", 25 * KB, import_name="ffmpeg"),
+        # Dependency("Requests", "requests", "2.28.2", 452 * KB),
+        # Dependency("re2", "google-re2", "1.0", 275 * KB, import_name="re2"),
+        # Dependency("scipy", "scipy", "1.9.3", 42 * MB),
     ],
 )
 
