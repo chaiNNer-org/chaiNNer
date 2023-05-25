@@ -68,7 +68,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
                 hidden: true,
             },
         })
-        .strict()
+        .parserConfiguration({ 'unknown-options-as-args': true })
         .parseSync();
 
     const options: ArgumentOptions = {
