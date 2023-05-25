@@ -139,7 +139,29 @@ export const IconFactory = memo(
                     />
                 );
             default:
-            // nothing
+                break;
+        }
+
+        // using segmenter to account for non-latin and emoji characters
+        const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length == 1;
+        if (isSingleCharacter) {
+            return (
+                <h5
+                    aria-hidden="true"
+                    className="chakra-heading"
+                    role="presentation"
+                    style={{
+                        color: accentColor,
+                        'font-weight': 'bold',
+                        'text-align': 'center',
+                        'vertical-align': 'middle',
+                        'text-rendering': 'geometricPrecision',
+                        'font-family': 'Noto Emoji, Open Sans, sans-serif',
+                    }}
+                >
+                    {icon}
+                </h5>
+            );
         }
 
         const prefix = icon.slice(0, 2).toLowerCase();
@@ -150,6 +172,8 @@ export const IconFactory = memo(
             return unknownIcon;
         }
         const libraryIcon = library[icon];
+        if (!libraryIcon) {
+        }
         return (
             <Icon
                 alignContent="center"
