@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/chaiNNer-org/chaiNNer/releases" target="_blank">
-    <img src="src/public/banner.png" width="720" />
+    <img src="docs/assets/banner.png" width="720" />
   </a>
 </p>
 
@@ -41,7 +41,7 @@ If you are using the provided .zip portable version of chaiNNer, please be aware
 While it might seem intimidating at first due to all the possible options, chaiNNer is pretty simple to use. For example, this is all you need to do in order to perform an upscale:
 
 <p align="center">
-    <img src="src/public/simple_screenshot.png" width="480" />
+    <img src="docs/assets/simple_screenshot.png" width="480" />
 </p>
 
 Before you get to this point though, you'll need to install one of the neural network frameworks from the dependency manager. You can access this via the button in the upper-right-hand corner. ChaiNNer offers support for PyTorch (with select model architectures), NCNN, and ONNX. For Nvidia users, PyTorch will be the preferred way to upscale. For AMD users, NCNN will be the preferred way to upscale.
@@ -53,7 +53,7 @@ Then, all you have to do is drag and drop (or double click) node names in the se
 Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively. Note: pressing stop is usually unable to kill an in-progress upscale during the actual upscaling step. This is a known issue without a workaround at the moment, so just be patient and wait for it to finish or restart chaiNNer.
 
 <p align="center">
-    <img src="src/public/screenshot.png" width="540" />
+    <img src="docs/assets/screenshot.png" width="540" />
 </p>
 
 Don't forget, there's plenty of non-upscaling tasks you can do with chaiNNer as well!
@@ -115,6 +115,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 - [SwinIR](https://github.com/JingyunLiang/SwinIR) | [Models](https://github.com/JingyunLiang/SwinIR/releases/tag/v0.0)
 - [Swin2SR](https://github.com/mv-lab/swin2sr) | [Models](https://github.com/mv-lab/swin2sr/releases/tag/v0.0.1)
 - [HAT](https://github.com/XPixelGroup/HAT) | [Models](https://drive.google.com/drive/folders/1HpmReFfoUqUbnAOQ7rvOeNU3uf_m69w0)
+- [Omni-SR](https://github.com/Francis0625/Omni-SR) | [Models](https://github.com/Francis0625/Omni-SR#preparation)
 
 #### Face Restoration
 
@@ -142,7 +143,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ## Troubleshooting
 
-For troubleshooting information, view the [troubleshooting document](https://github.com/chaiNNer-org/chaiNNer/blob/main/troubleshooting.md).
+For troubleshooting information, view the [troubleshooting document](docs/troubleshooting.md).
 
 ## Building chaiNNer Yourself
 
@@ -154,4 +155,4 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## FAQ
 
-For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/chaiNNer/blob/main/FAQ.md).
+For FAQ information, view the [FAQ document](docs/FAQ.md).

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Union
 
-from nodes.group import group
+from nodes.groups import optional_list_group
 from nodes.properties.inputs import TextInput
 from nodes.properties.outputs import TextOutput
 from nodes.utils.replacement import ReplacementString
@@ -19,7 +19,7 @@ from .. import text_group
         TextInput("Pattern", has_handle=False, placeholder='E.g. "{1} and {2}"'),
         TextInput("{1}").make_optional(),
         TextInput("{2}").make_optional(),
-        group("optional-list")(
+        optional_list_group(
             *[TextInput(f"{{{number}}}").make_optional() for number in range(3, 10)],
         ),
     ],

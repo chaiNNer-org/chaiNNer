@@ -57,6 +57,7 @@ export interface BackendExecutionOptions {
     onnxExecutionProvider: string;
     onnxShouldTensorRtCache: boolean;
     onnxTensorRtCachePath: string;
+    onnxShouldTensorRtFp16: boolean;
 }
 export interface BackendRunRequest {
     data: BackendJsonNode[];

@@ -56,6 +56,7 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('get-appdata', () => getRootDirSync());
     ipcMain.handle('get-gpu-info', getGpuInfo);
     ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
+    ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };

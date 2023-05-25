@@ -37,7 +37,7 @@ def _ichol(
     a = np.zeros(n, np.float64)  # Values of column j
     r = np.zeros(n, np.float64)  # r[j] = sum(abs(A[j:, j])) for relative threshold
     b = np.zeros(
-        n, np.bool8
+        n, np.bool_
     )  # b[i] indicates if the i-th element of column j is non-zero
     c = np.empty(n, np.int64)  # Row indices of non-zero elements in column j
     d = np.full(n, shift, np.float64)  # Diagonal elements of A

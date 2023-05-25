@@ -1,6 +1,6 @@
 from random import Random
 
-from nodes.group import group
+from nodes.groups import seed_group
 from nodes.properties.inputs import NumberInput, SeedInput
 from nodes.properties.outputs import NumberOutput
 from nodes.utils.seed import Seed
@@ -25,7 +25,7 @@ from .. import random_group
             maximum=None,
             default=100,
         ),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
     ],
     outputs=[
         NumberOutput("Result", output_type="int & max(.., Input0) & min(.., Input1)")

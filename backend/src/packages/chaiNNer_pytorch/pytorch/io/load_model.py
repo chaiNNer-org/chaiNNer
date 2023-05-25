@@ -25,7 +25,8 @@ from .. import io_group
             into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
-            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT.""",
+            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.
+            Links to the models can be found in chaiNNer's README.""",
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
     outputs=[

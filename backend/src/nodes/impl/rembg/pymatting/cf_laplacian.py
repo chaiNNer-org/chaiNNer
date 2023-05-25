@@ -160,7 +160,7 @@ def cf_laplacian(image, epsilon=1e-7, radius=1, is_known=None):
     n = h * w
 
     if is_known is None:
-        is_known = np.zeros((h, w), dtype=np.bool8)
+        is_known = np.zeros((h, w), dtype=np.bool_)
 
     is_known = is_known.reshape(h, w)
 

@@ -5,8 +5,9 @@ from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
 from base_types import InputId
 
-from .group import group
+from .group import NestedGroup, group
 from .properties.expression import ExpressionJson
+from .properties.inputs.base_input import BaseInput
 
 InputValue = Union[int, str]
 EnumValues = Union[
@@ -172,3 +173,32 @@ def required(condition: Condition | None = None):
     if condition is None:
         condition = Condition.const(True)
     return group("required", {"condition": condition.to_json()})
+
+
+def seed_group(seed_input: BaseInput):
+    """
+    This groups is a wrapper around the `SeedInput`. It changes its visual appearance and adds a
+    little button for users to click on to generate a new seed.
+
+    All `SeedInput`s must be wrapped in this group.
+
+    Example:
+    ```py
+    seed_group(SeedInput())
+    ```
+    """
+    return group("seed")(seed_input)
+
+
+def optional_list_group(*inputs: BaseInput | NestedGroup):
+    """
+    This groups wraps around optional inputs and displays them as a list.
+
+    This can be used to create nodes that have a variable number of inputs. The user will initially
+    see no inputs, but can add as many inputs as the group contains. While not true varargs, this
+    can be used to create a similar effect.
+
+    See the Text Append node for an example.
+    ```
+    """
+    return group("optional-list")(*inputs)

@@ -1,14 +1,14 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
-  "version": "0.18.6",
+  "version": "0.18.8",
   "description": "A flowchart based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
     "frontend": "electron-forge start -- --no-backend",
-    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --no-backend\"",
-    "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --no-backend\"",
+    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --no-backend --refresh\"",
+    "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --no-backend --refresh\"",
     "debug:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",

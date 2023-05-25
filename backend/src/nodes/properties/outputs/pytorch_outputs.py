@@ -26,6 +26,11 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
             f"s{value.img_size}w{value.window_size}",
             f"{value.num_feat}nf",
         ]
+    elif "OmniSR" in value.model_arch:
+        return [
+            f"{value.num_feat}nf",
+            f"{value.res_num}nr",
+        ]
     elif value.model_arch in [
         "GFPGAN",
         "RestoreFormer",

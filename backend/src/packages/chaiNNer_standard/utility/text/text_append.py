@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Union
 
-from nodes.group import group
+from nodes.groups import optional_list_group
 from nodes.properties.inputs import TextInput
 from nodes.properties.outputs import TextOutput
 from nodes.utils.utils import ALPHABET
@@ -25,7 +25,7 @@ from .. import text_group
         ),
         TextInput("Text A"),
         TextInput("Text B"),
-        group("optional-list")(
+        optional_list_group(
             *[TextInput(f"Text {letter}").make_optional() for letter in ALPHABET[2:10]],
         ),
     ],

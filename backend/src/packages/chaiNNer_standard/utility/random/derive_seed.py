@@ -4,7 +4,7 @@ import hashlib
 import struct
 from typing import Union
 
-from nodes.group import group
+from nodes.groups import optional_list_group, seed_group
 from nodes.properties.inputs import BaseInput, SeedInput
 from nodes.properties.outputs import SeedOutput
 from nodes.utils.seed import Seed
@@ -42,9 +42,9 @@ def _to_bytes(s: Source) -> bytes:
     description="Creates a new seed from multiple sources of randomness.",
     icon="MdCalculate",
     inputs=[
-        group("seed")(SeedInput(has_handle=False)),
+        seed_group(SeedInput(has_handle=False)),
         SourceInput(f"Source A"),
-        group("optional-list")(
+        optional_list_group(
             *[SourceInput(f"Source {letter}") for letter in ALPHABET[1:10]],
         ),
     ],
