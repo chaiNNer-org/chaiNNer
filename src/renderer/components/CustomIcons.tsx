@@ -172,8 +172,6 @@ export const IconFactory = memo(
             return unknownIcon;
         }
         const libraryIcon = library[icon];
-        if (!libraryIcon) {
-        }
         return (
             <Icon
                 alignContent="center"
