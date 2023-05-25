@@ -113,7 +113,7 @@ export const BackendProvider = memo(
                 restartPromiseRef.current = undefined;
                 refreshNodes();
 
-                if (error != null) {
+                if (error !== null) {
                     throw error instanceof Error ? error : new Error(error);
                 }
             })();
