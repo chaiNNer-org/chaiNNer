@@ -175,7 +175,7 @@ export class Backend {
         return this.fetchJson('/python-info', 'GET');
     }
 
-    dependencies(): Promise<{ name: string; dependencies: PyPiPackage[]; automatic?: boolean }[]> {
+    dependencies(): Promise<{ name: string; dependencies: PyPiPackage[]; description: string }[]> {
         return this.fetchJson('/dependencies', 'GET');
     }
 }

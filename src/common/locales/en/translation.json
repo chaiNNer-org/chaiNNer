@@ -65,11 +65,9 @@
     "downloadingPython": "Downloading Integrated Python...",
     "extractingFfmpeg": "Extracting downloaded files...",
     "extractingPython": "Extracting downloaded files...",
-    "installingDeps": "Installing required dependencies...",
     "loading": "Loading...",
     "loadingApp": "Loading main application...",
-    "startingBackend": "Starting up backend process...",
-    "updatingDeps": "Updating dependencies..."
+    "startingBackend": "Starting up backend process..."
   },
   "typeTags": {
     "optional": "optional"

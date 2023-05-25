@@ -4,7 +4,7 @@ from api import add_package
 
 package = add_package(
     __file__,
-    name="chaiNNer_external",
+    name="External",
     description="Interact with an external Stable Diffusion API",
     dependencies=[],
 )

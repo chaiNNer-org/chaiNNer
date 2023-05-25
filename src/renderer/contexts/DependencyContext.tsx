@@ -131,8 +131,8 @@ const Feature = memo(
         onUninstall: () => void;
         onUpdate: () => void;
     }) => {
-        const missingPackages = dep.packages.filter((p) => !pipList[p.packageName]);
-        const outdatedPackages = dep.packages.filter((p) => {
+        const missingPackages = dep.dependencies.filter((p) => !pipList[p.packageName]);
+        const outdatedPackages = dep.dependencies.filter((p) => {
             const installedVersion = pipList[p.packageName];
             return installedVersion && versionGt(p.version, installedVersion);
         });
@@ -157,8 +157,8 @@ const Feature = memo(
                                         textAlign="left"
                                         w="full"
                                     >
-                                        {dep.name} ({dep.packages.length} package
-                                        {dep.packages.length === 1 ? '' : 's'})
+                                        {dep.name} ({dep.dependencies.length} package
+                                        {dep.dependencies.length === 1 ? '' : 's'})
                                     </Text>
                                     <Tooltip
                                         closeOnClick
@@ -256,7 +256,7 @@ const Feature = memo(
                         key={dep.name}
                         w="full"
                     >
-                        {dep.packages.map((p) => (
+                        {dep.dependencies.map((p) => (
                             <FeaturePackage
                                 installedVersion={pipList[p.packageName]}
                                 key={p.packageName}
@@ -275,7 +275,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useIsSystemPython } = useContext(SettingsContext);
-    const { pythonInfo, restart } = useContext(BackendContext);
+    const { backend, pythonInfo, restart } = useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isSystemPython] = useIsSystemPython;
@@ -307,13 +307,12 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     useAsyncEffect(
         () => ({
             supplier: async () => {
-                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                const isNvidiaAvailable = nvidiaGpu !== null;
-                return []; // getOptionalDependencies(isNvidiaAvailable, pythonInfo.version);
+                const res = await backend.dependencies();
+                return res.filter((d) => d.dependencies.length > 0);
             },
             successEffect: setAvailableDeps,
         }),
-        [pythonInfo.version]
+        [backend]
     );
 
     const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
@@ -377,8 +376,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         pipList === undefined || installingPackage !== null || uninstallingPackage !== null;
 
     const availableUpdates = useMemo(() => {
-        return availableDeps.filter(({ packages }) =>
-            packages.some(({ packageName, version }) => {
+        return availableDeps.filter(({ dependencies }) =>
+            dependencies.some(({ packageName, version }) => {
                 if (!pipList) {
                     return false;
                 }

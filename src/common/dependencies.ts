@@ -19,25 +19,6 @@ export interface PyPiPackage {
 }
 export interface Dependency {
     name: string;
-    packages: PyPiPackage[];
+    dependencies: PyPiPackage[];
     description?: string;
 }
-
-export const requiredDependencies: Dependency[] = [
-    {
-        name: 'Sanic',
-        packages: [{ packageName: 'sanic', version: '23.3.0', sizeEstimate: 200 * KB }],
-    },
-    {
-        name: 'Sanic Cors',
-        packages: [{ packageName: 'Sanic-Cors', version: '2.2.0', sizeEstimate: 17 * KB }],
-    },
-    {
-        name: 'PyNvML',
-        packages: [{ packageName: 'pynvml', version: '11.5.0', sizeEstimate: 53 * KB }],
-    },
-    {
-        name: 'semver',
-        packages: [{ packageName: 'semver', version: '3.0.0', sizeEstimate: 17 * KB }],
-    },
-];

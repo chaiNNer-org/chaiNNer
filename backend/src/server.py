@@ -430,18 +430,13 @@ async def get_dependencies(_request: Request):
     for package in api.registry.packages.values():
         pkg_dependencies = [x.toDict() for x in package.dependencies]
         if package.name == "chaiNNer_standard":
-            all_dependencies.append(
-                {
-                    "name": package.name,
-                    "dependencies": pkg_dependencies,
-                    "automatic": True,
-                }
-            )
+            continue
         else:
             all_dependencies.append(
                 {
                     "name": package.name,
                     "dependencies": pkg_dependencies,
+                    "description": package.description,
                 }
             )
     return json(all_dependencies)

@@ -74,7 +74,7 @@ dependencies.extend(
 
 package = add_package(
     __file__,
-    name="chaiNNer_pytorch",
+    name="PyTorch",
     description="PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).",
     dependencies=dependencies,
 )
