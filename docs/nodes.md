@@ -4,7 +4,7 @@
 
 ChaiNNer is a visual programming language and development environment. Chains (`.chn` files) are programs and chaiNNer's UI is the editor for this programming language. The backend is the compiler and executor. Nodes are the functions of this language, they take inputs and produce outputs. Nodes are implemented as Python functions with extra metadata. This metadata is used to display the node in the UI and determine their behavior. E.g. type information is used to determine which connections are valid. Nodes are structured into categories and packages. ChaiNNer uses packages to manage the dependencies of nodes (e.g. pip packages), and categories to organize nodes in the UI.
 
-### Rules for nodes
+## Rules for nodes
 
 While nodes can generally implement whatever functionality you want, there are some rules that nodes must follow:
 
@@ -25,7 +25,7 @@ While nodes can generally implement whatever functionality you want, there are s
 
     If your node does have side effects (e.g. saving a file), you must declare this in the node metadata by using `side_effects=True`.
 
-### Node metadata
+## Node metadata
 
 Nodes have rich metadata. This includes a name, description, icon, and more. This metadata is used to display the node in the UI and determine their behavior. E.g. type information is used to determine which connections are valid.
 
@@ -50,7 +50,7 @@ Metadata is used to define a contract between a node, the rest of the backend, a
 -   **Side effects** \
     Whether the node has side effects. See [Rules for nodes](#rules-for-nodes) for more information.
 
-#### Inputs and Outputs
+### Inputs and Outputs
 
 Nodes must explicitly declare all their inputs and outputs as part of their metadata. This is done using the `inputs` and `outputs` properties. Each argument of the python function has a corresponding input, and the return value of the function has a corresponding output. See [The anatomy of a node](#the-anatomy-of-a-node) for an example.
 
@@ -72,7 +72,7 @@ outputs=[
 ],
 ```
 
-##### Reordering
+#### Reordering
 
 Since IDs are used to identify inputs and outputs, reordering them is a breaking change. If you want to reorder inputs or outputs, assign them explicit IDs using the `with_id` function, and then reorder them.
 
@@ -114,7 +114,7 @@ inputs=[
 
 The same principles also apply to outputs.
 
-#### Input groups
+### Input groups
 
 Input groups are a way of grouping inputs together and giving them additional functionality. Groups can change the visual appearance of the inputs, add additional functionality, and more.
 
@@ -162,7 +162,7 @@ The following groups are currently supported:
 
 -   And more. See `backend/src/nodes/groups.py` for more groups.
 
-#### Python type hints
+### Python type hints
 
 We require that all node functions have type hints. This is simply for correctness and to make the code easier to understand. You must add type hints to all arguments and the return value of the function.
 
@@ -175,19 +175,43 @@ If you forget type hints or get them wrong, you will get a warning or an error w
 
 Note: We support Python 3.8 and 3.9, so you need to add `from __future__ import annotations` to the top of your file to use the union operator (`|`) in type hints.
 
-#### Types
+### Types
 
 All inputs and outputs have types. These types are automatically generated from the input/output class and the supplied arguments. E.g. `NumberInput("foo", minimum=0, maximum=100)` will have the type `int(0..100)` (read: an integer between 0 and 100 inclusive).
 
 Types are expressed using a custom type system called Navi. Navi is not relative to Python's type hints or TypeScript types, it's a completely separate system. Since the Navi types of inputs and outputs are automatically generated, you rarely have to interact with Navi directly.
 
-### Packages
+## Broadcasts
+
+Broadcasts are a way of sending data from the backend to the frontend. They are used to updating previews (e.g. image previews), enhancing error messages with useful information, and providing the type system with additional information. Output classes (e.g. `ImageOutput`) are responsible for generating broadcasts.
+
+There are 2 types of broadcasts: data broadcasts and type broadcasts.
+
+**Note:** Broadcasts are completely optional. Outputs can have both types of broadcast, only one, or none at all.
+
+**Note:** Sending a broadcast does not mean that the frontend will acknowledge it. In fact, the frontend ignores most type broadcasts and only uses some data broadcasts (e.g. the ones from `LargeImageOutput` for preview images).
+
+### Data broadcasts
+
+Data broadcasts are used to send data from the backend to the frontend. E.g. `ImageOutput` sends the dimensions of output images for better error messages, and `LargeImageOutput` sends the dimensions and image data.
+
+Data broadcasts are implemented using the `get_broadcast_data` method on output classes that inherit from `BaseOutput`.
+
+### Type broadcasts
+
+Type broadcasts are used to send additional type information from the backend to the frontend. While we try our hardest to encode as much information as possible in the type system, there are some things that are impossible to statically evaluate using the type system.
+
+E.g. we cannot infer the dimensions of an image from a file path alone. So `ImageOutput` sends an `Image` type with the dimensions of the image.
+
+Data broadcasts are implemented using the `get_broadcast_type` method on output classes that inherit from `BaseOutput`.
+
+## Packages
 
 A package is a collection of nodes. ChaiNNer comes with a set of standard nodes (`chaiNNer_standard`), but you can also create your own packages.
 
 Unfortunately, packages are still a bit of a work in progress. We plan to improve the package system in the future. Right now, they are just fancy directories that contain nodes.
 
-### Categories
+## Categories
 
 Nodes are categorized. Categories are defined per package and follow a strict hierarchy. You can see this hierarchy in the node selector sidebar of chaiNNer.
 
