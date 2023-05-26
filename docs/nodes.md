@@ -183,7 +183,7 @@ Types are expressed using a custom type system called Navi. Navi is not relative
 
 ## Broadcasts
 
-Broadcasts are a way of sending data from the backend to the frontend. They are used to updating previews (e.g. image previews), enhancing error messages with useful information, and providing the type system with additional information. Output classes (e.g. `ImageOutput`) are responsible for generating broadcasts.
+Broadcasts are a way of sending data from the backend to the frontend. They are used for updating previews (e.g. image previews), enhancing error messages with useful information, and providing the type system with additional information. Output classes (e.g. `ImageOutput`) are responsible for generating broadcasts.
 
 There are 2 types of broadcasts: data broadcasts and type broadcasts.
 
