@@ -1,9 +1,8 @@
 import re
-import subprocess
 
 from semver.version import Version
 
-from installed_deps import installed_packages, python_path
+from installed_deps import install_dependency, installed_packages
 
 
 def coerce_semver(version: str) -> Version:
@@ -22,23 +21,11 @@ def coerce_semver(version: str) -> Version:
 
 
 def install_version_checked_dependency(package_name: str, package_version: str):
-    version = installed_packages[package_name]
+    version = installed_packages.get(package_name, None)
     if package_version and version:
         installed_version = coerce_semver(version)
         dep_version = coerce_semver(package_version)
         if installed_version < dep_version:
-            # logger.info(
-            #     f"Updating {dependency.package_name} from {version} to {dependency.version}..."
-            # )
-            # use pip to install
-            subprocess.check_call(
-                [
-                    python_path,
-                    "-m",
-                    "pip",
-                    "install",
-                    "--upgrade",
-                    f"{package_name}=={package_version}",
-                ]
-            )
-            installed_packages[package_name] = package_version
+            install_dependency(package_name, package_version)
+    elif not version:
+        install_dependency(package_name, package_version)

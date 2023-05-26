@@ -1,6 +1,7 @@
 from sanic.log import logger
 
-from api import MB, Dependency, add_package, is_mac
+from api import MB, Dependency, add_package
+from system import is_mac
 
 package = add_package(
     __file__,
