@@ -95,7 +95,19 @@ const config = {
             if (zipArtifact) {
                 // Add an empty `portable` file to the zip
                 const zip = new AdmZip(zipArtifact);
-                zip.addFile('portable', Buffer.alloc(0));
+                switch (process.platform) {
+                    case 'win32':
+                        zip.addFile('portable', Buffer.alloc(0));
+                        break;
+                    case 'darwin':
+                        zip.addFile('chaiNNer.app/Contents/MacOS/portable', Buffer.alloc(0));
+                        break;
+                    case 'linux':
+                        zip.addFile('chaiNNer-linux-x64/portable', Buffer.alloc(0));
+                        break;
+                    default:
+                        break;
+                }
                 zip.writeZip(zipArtifact);
             }
         },

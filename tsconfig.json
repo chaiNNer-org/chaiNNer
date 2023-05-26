@@ -2,6 +2,11 @@
   "compilerOptions": {
     "noEmit": true,
     "noImplicitAny": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "es6",
     "target": "es6",
     "jsx": "react-jsx",
