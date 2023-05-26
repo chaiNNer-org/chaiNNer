@@ -143,7 +143,7 @@ export const IconFactory = memo(
         }
 
         // using segmenter to account for non-latin and emoji characters
-        const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length == 1;
+        const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length === 1;
         if (isSingleCharacter) {
             return (
                 <h5
