@@ -181,7 +181,7 @@ class Category:
 @dataclass
 class Dependency:
     display_name: str
-    package_name: str
+    pypi_name: str
     version: str
     size_estimate: int | float
     auto_update: bool = False
@@ -192,7 +192,7 @@ class Dependency:
     def toDict(self):
         return {
             "displayName": self.display_name,
-            "packageName": self.package_name,
+            "pypiName": self.pypi_name,
             "version": self.version,
             "sizeEstimate": int(self.size_estimate),
             "autoUpdate": self.auto_update,

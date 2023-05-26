@@ -91,7 +91,7 @@ export const pipInstallWithProgress = async (
         let args = [
             'install',
             '--upgrade',
-            `${pkg.packageName}==${pkg.version}`,
+            `${pkg.pypiName}==${pkg.version}`,
             '--disable-pip-version-check',
         ];
         if (pkg.findLink) {
@@ -124,7 +124,7 @@ export const pipInstallWithProgress = async (
                     });
                 } else {
                     const req = https.get(
-                        `https://pypi.org/pypi/${pkg.packageName}/json`,
+                        `https://pypi.org/pypi/${pkg.pypiName}/json`,
                         (res) => {
                             let output = '';
 
@@ -146,7 +146,7 @@ export const pipInstallWithProgress = async (
                                     );
                                     if (!find)
                                         throw new Error(
-                                            `Unable for find correct file for ${pkg.packageName}==${pkg.version}`
+                                            `Unable for find correct file for ${pkg.pypiName}==${pkg.version}`
                                         );
                                     const { url } = find;
                                     onStdout(`Downloading package from PyPi at: ${url}\n`);

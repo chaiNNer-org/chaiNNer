@@ -2,7 +2,7 @@ import { Version } from './common-types';
 
 export interface PyPiPackage {
     displayName?: string;
-    packageName: string;
+    pypiName: string;
     version: Version;
     findLink?: string;
     /**
@@ -11,7 +11,7 @@ export interface PyPiPackage {
     sizeEstimate: number;
     autoUpdate?: boolean;
 }
-export interface Dependency {
+export interface Package {
     name: string;
     dependencies: PyPiPackage[];
     description?: string;

@@ -49,7 +49,7 @@ from versioned_dependency_helpers import install_version_checked_dependency
 def install_dep(dependency: api.Dependency, update_only: bool = False):
     try:
         # importlib.import_module(dependency.import_name or dependency.package_name)
-        installed_package = installed_packages[dependency.package_name]
+        installed_package = installed_packages[dependency.pypi_name]
         if not installed_package:
             raise ImportError()
     except ImportError:
@@ -57,11 +57,11 @@ def install_dep(dependency: api.Dependency, update_only: bool = False):
             # use pip to install
             # logger.info(f"Installing {dependency.package_name}...")
 
-            installed_packages[dependency.package_name] = dependency.version
+            installed_packages[dependency.pypi_name] = dependency.version
     except Exception as ex:
-        logger.error(f"Failed to import {dependency.package_name}: {ex}")
+        logger.error(f"Failed to import {dependency.pypi_name}: {ex}")
     else:
-        install_version_checked_dependency(dependency.package_name, dependency.version)
+        install_version_checked_dependency(dependency.pypi_name, dependency.version)
 
 
 class AppContext:

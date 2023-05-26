@@ -13,7 +13,7 @@ if python_version.minor < 10:
         [
             Dependency(
                 display_name="PyTorch",
-                package_name="torch",
+                pypi_name="torch",
                 version="1.10.2+cu113" if nvidia_is_available else "1.10.2",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url="https://download.pytorch.org/whl/cu113"
@@ -22,7 +22,7 @@ if python_version.minor < 10:
             ),
             Dependency(
                 display_name="TorchVision",
-                package_name="torchvision",
+                pypi_name="torchvision",
                 version="0.11.3+cu113" if nvidia_is_available else "0.11.3",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url="https://download.pytorch.org/whl/cu113"
@@ -36,7 +36,7 @@ elif python_version.minor >= 10:
         [
             Dependency(
                 display_name="PyTorch",
-                package_name="torch",
+                pypi_name="torch",
                 version="1.12.1+cu116" if nvidia_is_available else "1.12.1",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url="https://download.pytorch.org/whl/cu116"
@@ -45,7 +45,7 @@ elif python_version.minor >= 10:
             ),
             Dependency(
                 display_name="TorchVision",
-                package_name="torchvision",
+                pypi_name="torchvision",
                 version="0.13.1+cu116" if nvidia_is_available else "0.13.1",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url="https://download.pytorch.org/whl/cu116"
@@ -59,13 +59,13 @@ dependencies.extend(
     [
         Dependency(
             display_name="FaceXLib",
-            package_name="facexlib",
+            pypi_name="facexlib",
             version="0.2.5",
             size_estimate=1.1 * MB,
         ),
         Dependency(
             display_name="Einops",
-            package_name="einops",
+            pypi_name="einops",
             version="0.5.0",
             size_estimate=36.5 * KB,
         ),
