@@ -1,7 +1,8 @@
 from sanic.log import logger
 
-from api import KB, MB, Dependency, add_package, is_arm_mac
+from api import KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
+from system import is_arm_mac
 
 
 def get_onnx_runtime():

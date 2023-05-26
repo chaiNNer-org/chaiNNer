@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import importlib
 import os
-import platform
-import sys
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
 
@@ -310,9 +308,3 @@ def add_package(
     where: str, name: str, description: str, dependencies: List[Dependency]
 ) -> Package:
     return registry.add(Package(where, name, description, dependencies))
-
-
-is_mac = sys.platform == "darwin"
-is_arm_mac = is_mac and platform.machine() == "arm64"
-is_windows = sys.platform == "win32"
-is_linux = sys.platform == "linux"
