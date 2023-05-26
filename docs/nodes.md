@@ -203,7 +203,7 @@ Type broadcasts are used to send additional type information from the backend to
 
 E.g. we cannot infer the dimensions of an image from a file path alone. So `ImageOutput` sends an `Image` type with the dimensions of the image.
 
-Data broadcasts are implemented using the `get_broadcast_type` method on output classes that inherit from `BaseOutput`.
+Type broadcasts are implemented using the `get_broadcast_type` method on output classes that inherit from `BaseOutput`.
 
 ## Packages
 
