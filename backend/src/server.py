@@ -22,7 +22,7 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from dependencies.versioned_dependency_helpers import install_version_checked_dependency
-from events import EventQueue, ExecutionErrorData
+from events import BackendStatusEvent, EventQueue, ExecutionErrorData
 from nodes.group import Group
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
@@ -291,23 +291,6 @@ async def clear_cache_individual(request: Request):
         return json({"success": False, "error": str(exception)})
 
 
-@app.get("/sse")
-async def sse(request: Request):
-    ctx = AppContext.get(request.app)
-    headers = {"Cache-Control": "no-cache"}
-    response = await request.respond(headers=headers, content_type="text/event-stream")
-    while True:
-        message = await ctx.queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
-
-
-@app.after_server_start
-async def setup_queue(sanic_app: Sanic, _):
-    AppContext.get(sanic_app).queue = EventQueue()
-
-
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
     """Pauses the current execution"""
@@ -410,7 +393,6 @@ async def get_dependencies(_request: Request):
 
 
 def import_packages():
-    logger.info("sanity check 1")
     # Manually import built-in packages to get ordering correct
     # Using importlib here so we don't have to ignore that it isn't used
     importlib.import_module("packages.chaiNNer_standard")
@@ -422,8 +404,6 @@ def import_packages():
     importlib.import_module("packages.chaiNNer_ncnn")
     importlib.import_module("packages.chaiNNer_onnx")
     importlib.import_module("packages.chaiNNer_external")
-
-    logger.info("sanity check")
 
     # For these, do the same as the above, but only if auto_update is true
     for package in api.registry.packages.values():
@@ -443,13 +423,48 @@ def import_packages():
     api.registry.load_nodes(__file__)
 
 
+@app.get("/sse")
+async def sse(request: Request):
+    ctx = AppContext.get(request.app)
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await ctx.queue.get()
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
 @app.after_server_start
-def setup_other_stuff(_sanic_app: Sanic, _):
+async def after_server_start(sanic_app: Sanic, _):
+    AppContext.get(sanic_app).queue = EventQueue()
+
+    await AppContext.get(sanic_app).queue.put(
+        {
+            "event": "backend-status",
+            "data": {"message": "Installing dependencies..."},
+        }
+    )
+
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_other_deps")
 
+    await AppContext.get(sanic_app).queue.put(
+        {
+            "event": "backend-status",
+            "data": {"message": "Loading Nodes..."},
+        }
+    )
+
     # Now we can load all the nodes
     import_packages()
+
+    await AppContext.get(sanic_app).queue.put(
+        {
+            "event": "backend-ready",
+            "data": {},
+        }
+    )
 
 
 def main():

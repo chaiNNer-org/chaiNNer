@@ -47,6 +47,11 @@ class IteratorProgressUpdateData(TypedDict):
     running: Optional[List[NodeId]]
 
 
+class BackendStatusData(TypedDict):
+    message: str
+    percent: int
+
+
 class FinishEvent(TypedDict):
     event: Literal["finish"]
     data: FinishData
@@ -67,11 +72,23 @@ class IteratorProgressUpdateEvent(TypedDict):
     data: IteratorProgressUpdateData
 
 
+class BackendStatusEvent(TypedDict):
+    event: Literal["backend-status"]
+    data: BackendStatusData
+
+
+class BackendReadyEvent(TypedDict):
+    event: Literal["backend-ready"]
+    data: Dict
+
+
 Event = Union[
     FinishEvent,
     ExecutionErrorEvent,
     NodeFinishEvent,
     IteratorProgressUpdateEvent,
+    BackendStatusEvent,
+    BackendReadyEvent,
 ]
 
 

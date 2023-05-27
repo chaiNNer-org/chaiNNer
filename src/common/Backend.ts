@@ -230,4 +230,9 @@ export interface BackendEventMap {
         iteratorId: string;
         running?: string[] | null;
     };
+    'backend-status': {
+        message: string;
+        percent: number;
+    };
+    'backend-ready': object;
 }
