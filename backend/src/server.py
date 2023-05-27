@@ -72,7 +72,7 @@ class AppContext:
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
-        self.registry = api.PackageRegistry()
+        self.registry = api.registry
 
     @staticmethod
     def get(app_instance: Sanic) -> "AppContext":
@@ -84,36 +84,6 @@ app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
-
-
-def import_packages():
-    # Manually import built-in packages to get ordering correct
-    # Using importlib here so we don't have to ignore that it isn't used
-    importlib.import_module("packages.chaiNNer_standard")
-
-    # for dep in next(iter(api.registry.packages.values())).dependencies:
-    #     install_dep(dep)
-
-    importlib.import_module("packages.chaiNNer_pytorch")
-    importlib.import_module("packages.chaiNNer_ncnn")
-    importlib.import_module("packages.chaiNNer_onnx")
-    importlib.import_module("packages.chaiNNer_external")
-
-    # For these, do the same as the above, but only if auto_update is true
-    for package in api.registry.packages.values():
-        if package.name == "chaiNNer_standard":
-            continue
-        # logger.info(f"Checking dependencies for {package.name}...")
-        for dep in package.dependencies:
-            if dep.auto_update:
-                install_dep(dep, update_only=True)
-
-    # in the future, for external packages dir, scan & import
-    # for package in os.listdir(packages_dir):
-    #     # logger.info(package)
-    #     importlib.import_module(package)
-
-    api.registry.load_nodes(__file__)
 
 
 class SSEFilter(logging.Filter):
@@ -143,7 +113,7 @@ access_logger.addFilter(SSEFilter())
 
 
 @app.route("/nodes")
-async def nodes(_):
+async def nodes(_request: Request):
     """Gets a list of all nodes as well as the node information"""
     logger.debug(api.registry.categories)
 
@@ -437,6 +407,49 @@ async def get_dependencies(_request: Request):
                 }
             )
     return json(all_dependencies)
+
+
+def import_packages():
+    logger.info("sanity check 1")
+    # Manually import built-in packages to get ordering correct
+    # Using importlib here so we don't have to ignore that it isn't used
+    importlib.import_module("packages.chaiNNer_standard")
+
+    # for dep in next(iter(api.registry.packages.values())).dependencies:
+    #     install_dep(dep)
+
+    importlib.import_module("packages.chaiNNer_pytorch")
+    importlib.import_module("packages.chaiNNer_ncnn")
+    importlib.import_module("packages.chaiNNer_onnx")
+    importlib.import_module("packages.chaiNNer_external")
+
+    logger.info("sanity check")
+
+    # For these, do the same as the above, but only if auto_update is true
+    for package in api.registry.packages.values():
+        logger.info(f"Checking dependencies for {package.name}...")
+        if package.name == "chaiNNer_standard":
+            continue
+        # logger.info(f"Checking dependencies for {package.name}...")
+        for dep in package.dependencies:
+            if dep.auto_update:
+                install_dep(dep, update_only=True)
+
+    # in the future, for external packages dir, scan & import
+    # for package in os.listdir(packages_dir):
+    #     # logger.info(package)
+    #     importlib.import_module(package)
+
+    api.registry.load_nodes(__file__)
+
+
+@app.after_server_start
+def setup_other_stuff(_sanic_app: Sanic, _):
+    # Now we can install the other dependencies
+    importlib.import_module("dependencies.install_other_deps")
+
+    # Now we can load all the nodes
+    import_packages()
 
 
 def main():

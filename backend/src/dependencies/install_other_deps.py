@@ -64,7 +64,6 @@ if is_arm_mac:
 elif is_windows:
     deps.append({"package_name": "pywin32", "version": "304"})
 
-
 for dependency in deps:
     install_version_checked_dependency(
         dependency["package_name"], dependency["version"]

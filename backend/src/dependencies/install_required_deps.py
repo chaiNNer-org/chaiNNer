@@ -27,7 +27,6 @@ deps = [
     },
 ]
 
-
 for dependency in deps:
     install_version_checked_dependency(
         dependency["package_name"], dependency["version"]
