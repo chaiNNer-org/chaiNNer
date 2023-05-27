@@ -2,7 +2,7 @@ import re
 
 from semver.version import Version
 
-from installed_deps import install_dependency, installed_packages
+from .store import install_dependency, installed_packages
 
 
 def coerce_semver(version: str) -> Version:

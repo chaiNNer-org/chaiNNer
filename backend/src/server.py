@@ -20,8 +20,9 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
+from dependencies.store import installed_packages
+from dependencies.versioned_dependency_helpers import install_version_checked_dependency
 from events import EventQueue, ExecutionErrorData
-from installed_deps import installed_packages
 from nodes.group import Group
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
@@ -43,7 +44,6 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
-from versioned_dependency_helpers import install_version_checked_dependency
 
 
 def install_dep(dependency: api.Dependency, update_only: bool = False):
@@ -72,6 +72,7 @@ class AppContext:
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
+        self.registry = api.PackageRegistry()
 
     @staticmethod
     def get(app_instance: Sanic) -> "AppContext":
@@ -85,21 +86,20 @@ app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
 
 
-# Manually import built-in packages to get ordering correct
-# Using importlib here so we don't have to ignore that it isn't used
-importlib.import_module("packages.chaiNNer_standard")
+def import_packages():
+    # Manually import built-in packages to get ordering correct
+    # Using importlib here so we don't have to ignore that it isn't used
+    importlib.import_module("packages.chaiNNer_standard")
 
-# for dep in next(iter(api.registry.packages.values())).dependencies:
-#     install_dep(dep)
+    # for dep in next(iter(api.registry.packages.values())).dependencies:
+    #     install_dep(dep)
 
-importlib.import_module("packages.chaiNNer_pytorch")
-importlib.import_module("packages.chaiNNer_ncnn")
-importlib.import_module("packages.chaiNNer_onnx")
-importlib.import_module("packages.chaiNNer_external")
+    importlib.import_module("packages.chaiNNer_pytorch")
+    importlib.import_module("packages.chaiNNer_ncnn")
+    importlib.import_module("packages.chaiNNer_onnx")
+    importlib.import_module("packages.chaiNNer_external")
 
-
-# For these, do the same as the above, but only if auto_update is true
-def upgrade_packages():
+    # For these, do the same as the above, but only if auto_update is true
     for package in api.registry.packages.values():
         if package.name == "chaiNNer_standard":
             continue
@@ -108,15 +108,12 @@ def upgrade_packages():
             if dep.auto_update:
                 install_dep(dep, update_only=True)
 
+    # in the future, for external packages dir, scan & import
+    # for package in os.listdir(packages_dir):
+    #     # logger.info(package)
+    #     importlib.import_module(package)
 
-upgrade_packages()
-
-# in the future, for external packages dir, scan & import
-# for package in os.listdir(packages_dir):
-#     # logger.info(package)
-#     importlib.import_module(package)
-
-api.registry.load_nodes(__file__)
+    api.registry.load_nodes(__file__)
 
 
 class SSEFilter(logging.Filter):

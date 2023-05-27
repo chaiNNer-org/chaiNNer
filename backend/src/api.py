@@ -301,6 +301,7 @@ class PackageRegistry:
                         self.nodes[node.schema_id] = node, sub
 
 
+global registry
 registry = PackageRegistry()
 
 
