@@ -22,13 +22,9 @@ def coerce_semver(version: str) -> Version:
 
 def install_version_checked_dependency(package_name: str, package_version: str):
     version = installed_packages.get(package_name, None)
-    print(f"Version: {version} | Package version: {package_version}")
     if package_version and version:
         installed_version = coerce_semver(version)
         dep_version = coerce_semver(package_version)
-        print(
-            f"Installed version: {installed_version} | Dependency version: {dep_version}"
-        )
         if installed_version < dep_version:
             install_dependency(package_name, package_version)
     elif not version:

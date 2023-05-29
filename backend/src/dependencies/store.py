@@ -9,7 +9,6 @@ installed_packages = {}
 
 
 def install_dependency(package_name, version):
-    print(f"Installing {package_name}=={version}")
     if package_name not in installed_packages:
         subprocess.check_call(
             [
@@ -22,7 +21,6 @@ def install_dependency(package_name, version):
             ]
         )
         installed_packages[package_name] = version
-        print(f"Installed {package_name}=={version} | {installed_packages}")
 
 
 __all__ = [
