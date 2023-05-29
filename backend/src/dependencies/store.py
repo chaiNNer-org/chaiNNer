@@ -9,6 +9,7 @@ installed_packages = {}
 
 
 def install_dependency(package_name, version):
+    print(f"Installing {package_name}=={version}")
     if package_name not in installed_packages:
         subprocess.check_call(
             [
@@ -21,17 +22,11 @@ def install_dependency(package_name, version):
             ]
         )
         installed_packages[package_name] = version
-
-
-def set_installed_packages(packages):
-    # pylint: disable=global-statement
-    global installed_packages
-    installed_packages = packages
+        print(f"Installed {package_name}=={version} | {installed_packages}")
 
 
 __all__ = [
     "python_path",
     "install_dependency",
-    "set_installed_packages",
     "installed_packages",
 ]

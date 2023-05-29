@@ -56,7 +56,7 @@ deps = [
         "version": "1.9.3",
     },
     {"package_name": "pynvml", "version": "11.5.0"},
-    {"package_name": "typing-extensions", "version": "4.6.2"},
+    {"package_name": "typing_extensions", "version": "4.6.2"},
 ]
 
 if is_arm_mac:

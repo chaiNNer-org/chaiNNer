@@ -1,7 +1,7 @@
 import subprocess
 from json import loads as json_parse
 
-from .store import python_path, set_installed_packages
+from .store import installed_packages, python_path
 from .versioned_dependency_helpers import install_version_checked_dependency
 
 # Get the list of installed packages
@@ -10,10 +10,11 @@ try:
     pip_list = subprocess.check_output(
         [python_path, "-m", "pip", "list", "--format=json"]
     )
-    set_installed_packages({p["name"]: p["version"] for p in json_parse(pip_list)})
+    # set_installed_packages({p["name"]: p["version"] for p in json_parse(pip_list)})
+    for p in json_parse(pip_list):
+        installed_packages[p["name"]] = p["version"]
 except Exception as e:
-    # logger.error(f"Failed to get installed packages: {e}")
-    set_installed_packages({})
+    installed_packages = {}
 
 
 deps = [

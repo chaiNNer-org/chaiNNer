@@ -1,5 +1,4 @@
 import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
-import log from 'electron-log';
 import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './i18n';
@@ -30,7 +29,6 @@ const Splash = memo(() => {
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
     useBackendEventSourceListener(eventSource, 'backend-status', (d) => {
         if (d) {
-            log.info('splash backend status', d);
             if (d.message) {
                 setStatus(d.message);
             }
@@ -40,11 +38,22 @@ const Splash = memo(() => {
         }
     });
 
+    const [backendReady, setBackendReady] = useState(false);
+
+    useBackendEventSourceListener(eventSource, 'backend-ready', (d) => {
+        if (d) {
+            if (!backendReady) {
+                setBackendReady(true);
+                ipcRenderer.send('backend-ready');
+            }
+        }
+    });
+
     // Register event listeners
     useEffect(() => {
         ipcRenderer.on('splash-setup-progress', (event, progress) => {
             setOverallProgress(progress.totalProgress);
-            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress : null);
+            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress / 2 : null);
 
             if (progress.status) {
                 setStatus(progress.status);

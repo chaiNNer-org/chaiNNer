@@ -1,6 +1,5 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
-import { t } from 'i18next';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
@@ -345,9 +344,9 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        progressController.submitProgress({
-            status: t('splash.loadingApp', 'Loading main application...'),
-        });
+        // progressController.submitProgress({
+        //     status: t('splash.loadingApp', 'Loading main application...'),
+        // });
 
         if (mainWindow.isDestroyed()) {
             return;

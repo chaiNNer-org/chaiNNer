@@ -22,7 +22,7 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from dependencies.versioned_dependency_helpers import install_version_checked_dependency
-from events import BackendStatusEvent, EventQueue, ExecutionErrorData
+from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
@@ -49,19 +49,17 @@ from response import (
 def install_dep(dependency: api.Dependency, update_only: bool = False):
     try:
         # importlib.import_module(dependency.import_name or dependency.package_name)
-        installed_package = installed_packages[dependency.pypi_name]
-        if not installed_package:
-            raise ImportError()
-    except ImportError:
-        if not update_only:
-            # use pip to install
-            # logger.info(f"Installing {dependency.package_name}...")
-
-            installed_packages[dependency.pypi_name] = dependency.version
+        installed_package = installed_packages.get(dependency.pypi_name, None)
+        # I think there's a better way to do this, but I'm not sure what it is
+        if installed_package is None and update_only:
+            return
+        if installed_package is not None or (
+            installed_package is None and not update_only
+        ):
+            install_version_checked_dependency(dependency.pypi_name, dependency.version)
+            return
     except Exception as ex:
         logger.error(f"Failed to import {dependency.pypi_name}: {ex}")
-    else:
-        install_version_checked_dependency(dependency.pypi_name, dependency.version)
 
 
 class AppContext:
@@ -405,6 +403,8 @@ def import_packages():
     importlib.import_module("packages.chaiNNer_onnx")
     importlib.import_module("packages.chaiNNer_external")
 
+    logger.info("Checking dependencies...")
+
     # For these, do the same as the above, but only if auto_update is true
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
@@ -414,6 +414,8 @@ def import_packages():
         for dep in package.dependencies:
             if dep.auto_update:
                 install_dep(dep, update_only=True)
+
+    logger.info("Done checking dependencies...")
 
     # in the future, for external packages dir, scan & import
     # for package in os.listdir(packages_dir):
@@ -456,8 +458,20 @@ async def after_server_start(sanic_app: Sanic, _):
         }
     )
 
+    logger.info("Loading nodes...")
+
     # Now we can load all the nodes
+    # TODO: Pass in a callback func for updating progress
     import_packages()
+
+    logger.info("Sending backend ready...")
+
+    await AppContext.get(sanic_app).queue.put(
+        {
+            "event": "backend-status",
+            "data": {"message": "Loading Nodes...", "percent": 90},
+        }
+    )
 
     await AppContext.get(sanic_app).queue.put(
         {
@@ -465,6 +479,8 @@ async def after_server_start(sanic_app: Sanic, _):
             "data": {},
         }
     )
+
+    logger.info("Done.")
 
 
 def main():
