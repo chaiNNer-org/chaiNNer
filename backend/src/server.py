@@ -46,22 +46,6 @@ from response import (
 )
 
 
-def install_dep(dependency: api.Dependency, update_only: bool = False):
-    try:
-        # importlib.import_module(dependency.import_name or dependency.package_name)
-        installed_package = installed_packages.get(dependency.pypi_name, None)
-        # I think there's a better way to do this, but I'm not sure what it is
-        if installed_package is None and update_only:
-            return
-        if installed_package is not None or (
-            installed_package is None and not update_only
-        ):
-            install_version_checked_dependency(dependency.pypi_name, dependency.version)
-            return
-    except Exception as ex:
-        logger.error(f"Failed to import {dependency.pypi_name}: {ex}")
-
-
 class AppContext:
     def __init__(self):
         self.executor: Optional[Executor] = None
@@ -391,6 +375,23 @@ async def get_dependencies(_request: Request):
 
 
 def import_packages():
+    def install_dep(dependency: api.Dependency, update_only: bool = False):
+        try:
+            # importlib.import_module(dependency.import_name or dependency.package_name)
+            installed_package = installed_packages.get(dependency.pypi_name, None)
+            # I think there's a better way to do this, but I'm not sure what it is
+            if installed_package is None and update_only:
+                return
+            if installed_package is not None or (
+                installed_package is None and not update_only
+            ):
+                install_version_checked_dependency(
+                    dependency.pypi_name, dependency.version
+                )
+                return
+        except Exception as ex:
+            logger.error(f"Failed to import {dependency.pypi_name}: {ex}")
+
     # Manually import built-in packages to get ordering correct
     # Using importlib here so we don't have to ignore that it isn't used
     importlib.import_module("packages.chaiNNer_standard")

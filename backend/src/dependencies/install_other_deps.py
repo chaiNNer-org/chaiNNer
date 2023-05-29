@@ -24,18 +24,6 @@ from .versioned_dependency_helpers import install_version_checked_dependency
 
 deps = [
     {
-        "package_name": "numpy",
-        "version": "1.23.2",
-    },
-    {
-        "package_name": "opencv-python",
-        "version": "4.7.0.68",
-    },
-    {
-        "package_name": "Pillow",
-        "version": "9.2.0",
-    },
-    {
         "package_name": "appdirs",
         "version": "1.4.4",
     },
