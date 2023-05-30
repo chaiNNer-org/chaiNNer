@@ -65,7 +65,6 @@
     "extractingFfmpeg": "Extracting downloaded files...",
     "extractingPython": "Extracting downloaded files...",
     "loading": "Loading...",
-    "loadingApp": "Loading main application...",
     "startingBackend": "Starting up backend process..."
   },
   "typeTags": {

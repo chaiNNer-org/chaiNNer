@@ -455,7 +455,7 @@ async def after_server_start(sanic_app: Sanic, _):
     await AppContext.get(sanic_app).queue.put(
         {
             "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 75},
+            "data": {"message": "Loading Nodes...", "percent": 0.75},
         }
     )
 
@@ -470,7 +470,7 @@ async def after_server_start(sanic_app: Sanic, _):
     await AppContext.get(sanic_app).queue.put(
         {
             "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 90},
+            "data": {"message": "Loading Nodes...", "percent": 0.9},
         }
     )
 

@@ -49,7 +49,7 @@ class IteratorProgressUpdateData(TypedDict):
 
 class BackendStatusData(TypedDict):
     message: str
-    percent: int
+    percent: float
 
 
 class FinishEvent(TypedDict):
