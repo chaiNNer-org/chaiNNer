@@ -1,14 +1,29 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { app } from 'electron';
+import { existsSync } from 'fs';
 import path from 'path';
 import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
 import { sanitizedEnv } from '../../common/env';
 import { log } from '../../common/log';
+import { lazy } from '../../common/util';
 
-const backendPath = app.isPackaged
-    ? path.join(process.resourcesPath, 'src', 'run.py')
-    : './backend/src/run.py';
+const getBackendPath = lazy((): string => {
+    const candidates: string[] = [
+        path.join(process.resourcesPath, 'src', 'run.py'),
+        path.join(app.getAppPath(), '..', 'src', 'run.py'),
+        './backend/src/run.py',
+    ];
+
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            return candidate;
+        }
+    }
+
+    log.error('Unable to find backend path from the following candidates:', candidates);
+    throw new Error('Unable to find backend path');
+});
 
 interface BaseBackendProcess {
     readonly owned: boolean;
@@ -61,7 +76,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     ): ChildProcessWithoutNullStreams {
         log.info('Attempting to spawn backend...');
 
-        const backend = spawn(python, [backendPath, String(port)], {
+        const backend = spawn(python, [getBackendPath(), String(port)], {
             env: {
                 ...sanitizedEnv,
                 ...env,
