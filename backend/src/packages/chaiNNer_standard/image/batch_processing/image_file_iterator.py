@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
+import re
+from typing import List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
 
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.properties.inputs import DirectoryInput, IteratorInput
+from nodes.properties.inputs import DirectoryInput, IteratorInput, TextInput
 from nodes.properties.outputs import (
     DirectoryOutput,
     ImageOutput,
@@ -58,6 +59,7 @@ def ImageFileIteratorLoadImageNode(
     node_type="iterator",
     inputs=[
         DirectoryInput(),
+        TextInput("Regex", placeholder="").make_optional(),
     ],
     outputs=[],
     default_nodes=[
@@ -68,7 +70,11 @@ def ImageFileIteratorLoadImageNode(
     ],
     side_effects=True,
 )
-async def ImageFileIteratorNode(directory: str, context: IteratorContext) -> None:
+async def ImageFileIteratorNode(
+    directory: str,
+    regex: Union[str, None],
+    context: IteratorContext,
+) -> None:
     logger.debug(f"Iterating over images in directory: {directory}")
 
     img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
@@ -76,6 +82,21 @@ async def ImageFileIteratorNode(directory: str, context: IteratorContext) -> Non
     supported_filetypes = get_available_image_formats()
 
     just_image_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
+    if not len(just_image_files):
+        raise FileNotFoundError(f"{directory} has no valid images.")
+
+    if regex is not None:
+        logger.info(f"using regex expression: {regex}")
+        try:
+            compiled_re = re.compile(regex)
+        except re.error as e:
+            raise e.__class__(f"Compiling regex failed: {e}")
+
+        just_image_files: List[str] = list(
+            filter(compiled_re.fullmatch, just_image_files)
+        )
+        if not len(just_image_files):
+            raise FileNotFoundError("Regex filtered away all the images.")
 
     def before(filepath: str, index: int):
         context.inputs.set_values(img_path_node_id, [filepath, directory, index])
