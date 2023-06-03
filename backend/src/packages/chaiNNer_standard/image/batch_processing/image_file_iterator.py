@@ -96,7 +96,7 @@ async def ImageFileIteratorNode(
             filter(compiled_re.fullmatch, just_image_files)
         )
         if not len(just_image_files):
-            raise FileNotFoundError("Regex filtered away all the images.")
+            raise re.error("Regex filtered away all the images.")
 
     def before(filepath: str, index: int):
         context.inputs.set_values(img_path_node_id, [filepath, directory, index])
