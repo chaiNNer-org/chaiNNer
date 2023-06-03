@@ -90,7 +90,7 @@ async def ImageFileIteratorNode(
         try:
             compiled_re = re.compile(regex)
         except re.error as e:
-            raise e.__class__(f"Compiling regex failed: {e}")
+            raise re.error(f"Compiling regex failed: {e}")
 
         just_image_files: List[str] = list(
             filter(compiled_re.fullmatch, just_image_files)
