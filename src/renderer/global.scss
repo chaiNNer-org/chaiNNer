@@ -25,6 +25,12 @@
         format('truetype');
 }
 
+@font-face {
+    font-family: 'Noto Emoji';
+    font-display: swap;
+    src: url('../public/fonts/Noto Emoji/NotoEmoji-VariableFont_wght.ttf') format('truetype');
+}
+
 :not(input, textarea, button, svg, path, g, span, circle) {
     &,
     &::after,
