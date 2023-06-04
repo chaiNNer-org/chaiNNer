@@ -152,11 +152,11 @@ export const IconFactory = memo(
                     role="presentation"
                     style={{
                         color: accentColor,
-                        'font-weight': 'bold',
-                        'text-align': 'center',
-                        'vertical-align': 'middle',
-                        'text-rendering': 'geometricPrecision',
-                        'font-family': 'Noto Emoji, Open Sans, sans-serif',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        verticalAlign: 'middle',
+                        textRendering: 'geometricPrecision',
+                        fontFamily: 'Noto Emoji, Open Sans, sans-serif',
                     }}
                 >
                     {icon}
