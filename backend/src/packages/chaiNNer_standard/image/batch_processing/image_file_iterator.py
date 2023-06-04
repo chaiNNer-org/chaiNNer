@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-import re
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 from sanic.log import logger
@@ -15,7 +14,7 @@ from nodes.properties.outputs import (
     NumberOutput,
     TextOutput,
 )
-from nodes.utils.utils import list_all_files_sorted
+from nodes.utils.utils import list_glob
 from process import IteratorContext
 
 from .. import batch_processing_group
@@ -59,7 +58,7 @@ def ImageFileIteratorLoadImageNode(
     node_type="iterator",
     inputs=[
         DirectoryInput(),
-        TextInput("Regex", placeholder="").make_optional(),
+        TextInput("Glob expression", default="{*,**/*}"),
     ],
     outputs=[],
     default_nodes=[
@@ -72,7 +71,7 @@ def ImageFileIteratorLoadImageNode(
 )
 async def ImageFileIteratorNode(
     directory: str,
-    regex: Union[str, None],
+    glob_str: str,
     context: IteratorContext,
 ) -> None:
     logger.debug(f"Iterating over images in directory: {directory}")
@@ -81,22 +80,9 @@ async def ImageFileIteratorNode(
 
     supported_filetypes = get_available_image_formats()
 
-    just_image_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
+    just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
-
-    if regex is not None:
-        logger.info(f"using regex expression: {regex}")
-        try:
-            compiled_re = re.compile(regex)
-        except re.error as e:
-            raise re.error(f"Compiling regex failed: {e}")
-
-        just_image_files: List[str] = list(
-            filter(compiled_re.fullmatch, just_image_files)
-        )
-        if not len(just_image_files):
-            raise re.error("Regex filtered away all the images.")
 
     def before(filepath: str, index: int):
         context.inputs.set_values(img_path_node_id, [filepath, directory, index])

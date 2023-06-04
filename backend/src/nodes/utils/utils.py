@@ -8,6 +8,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
+from wcmatch import glob
 
 Size = Tuple[int, int]
 """
@@ -112,6 +113,23 @@ def list_all_files_sorted(
             if ext_filter is None or ext.lower() in ext_filter:
                 just_files.append(filepath)
     return just_files
+
+
+def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
+    files = glob.glob(  # get files
+        os.path.join(directory, globexpr), flags=glob.EXTGLOB | glob.BRACE
+    )
+
+    # use files with only {ext_filter} extensions
+    # {*,**/*}@(*.png|*.jpg|...)
+    extensions = os.path.join(directory, "{*,**/*}@(*" + "|*".join(ext_filter) + ")")
+    filtered = glob.globfilter(
+        files,
+        extensions,
+        flags=glob.EXTGLOB | glob.BRACE,
+    )
+
+    return list(map(str, filtered))
 
 
 @dataclass(frozen=True)
