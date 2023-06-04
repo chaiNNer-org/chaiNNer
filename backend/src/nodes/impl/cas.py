@@ -34,7 +34,9 @@ def create_cas_mask(img: np.ndarray, kernel) -> np.ndarray:
     min_d = np.minimum(1.0 - max_l, min_l, out=min_l)
     max_l += 1e-8
     min_d /= max_l
-    mask = np.sqrt(min_d, out=min_d)
+    mask = min_d
+    # no sqrt, because we only need that in linear color space
+    # mask = np.sqrt(mask, out=mask)
     return mask
 
 
