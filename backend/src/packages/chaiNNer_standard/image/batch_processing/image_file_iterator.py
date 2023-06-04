@@ -70,9 +70,7 @@ def ImageFileIteratorLoadImageNode(
     side_effects=True,
 )
 async def ImageFileIteratorNode(
-    directory: str,
-    glob_str: str,
-    context: IteratorContext,
+    directory: str, glob_str: str, context: IteratorContext
 ) -> None:
     logger.debug(f"Iterating over images in directory: {directory}")
 

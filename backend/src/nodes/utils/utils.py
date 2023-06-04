@@ -115,17 +115,19 @@ def list_all_files_sorted(
     return just_files
 
 
-def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
-    files = glob.glob(  # get files
-        os.path.join(directory, globexpr), flags=glob.EXTGLOB | glob.BRACE
-    )
+def extension_filter(lst: List[str]) -> str:
+    """generates a mcmatch.glob expression to filter files with specific extensions
+    ex. {*,**/*}@(*.png|*.jpg|...)"""
+    return "{*,**/*}@(*" + "|*".join(lst) + ")"
 
-    # use files with only {ext_filter} extensions
-    # {*,**/*}@(*.png|*.jpg|...)
-    extensions = os.path.join(directory, "{*,**/*}@(*" + "|*".join(ext_filter) + ")")
+
+def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
+    directory_expr = os.path.join(directory, globexpr)
+    extension_expr = os.path.join(directory, extension_filter(ext_filter))
+
     filtered = glob.globfilter(
-        files,
-        extensions,
+        glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
+        extension_expr,
         flags=glob.EXTGLOB | glob.BRACE,
     )
 
