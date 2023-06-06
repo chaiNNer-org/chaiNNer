@@ -33,7 +33,7 @@ PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"
         DirectoryOutput("Model Directory"),
         TextOutput("Subdirectory Path"),
         TextOutput("Model Name"),
-        NumberOutput("Overall Index"),
+        NumberOutput("Overall Index", output_type="uint"),
     ],
     node_type="iteratorHelper",
     side_effects=True,

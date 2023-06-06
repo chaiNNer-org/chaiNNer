@@ -65,7 +65,7 @@ class Writer:
     inputs=[IteratorInput().make_optional()],
     outputs=[
         ImageOutput("Frame Image", channels=3),
-        NumberOutput("Frame Index"),
+        NumberOutput("Frame Index", output_type="uint"),
         DirectoryOutput("Video Directory"),
         TextOutput("Video Name"),
     ],
