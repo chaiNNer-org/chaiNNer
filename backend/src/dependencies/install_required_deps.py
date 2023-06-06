@@ -15,7 +15,7 @@ try:
     for p in json_parse(pip_list):
         installed_packages[p["name"]] = p["version"]
 except Exception as e:
-    installed_packages = {}
+    print(f"Failed to get installed packages: {e}")
 
 
 deps: List[DependencyInfo] = [

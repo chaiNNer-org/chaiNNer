@@ -1,6 +1,8 @@
 import pynvml as nv
 from sanic.log import logger
 
+# pylint: disable=global-at-module-level
+global nvidia_is_available
 nvidia_is_available = False
 
 try:
@@ -15,10 +17,6 @@ except Exception as e:
 
 class NvidiaHelper:
     def __init__(self):
-        self.nvidia_is_available = nvidia_is_available
-        if not nvidia_is_available:
-            raise RuntimeError("Nvidia GPU not found, or invalid driver installed.")
-
         nv.nvmlInit()
 
         self.__num_gpus = nv.nvmlDeviceGetCount()
@@ -36,18 +34,12 @@ class NvidiaHelper:
             )
 
     def __del__(self):
-        if nvidia_is_available:
-            nv.nvmlShutdown()
+        nv.nvmlShutdown()
 
     def list_gpus(self):
-        if not nvidia_is_available:
-            return None
         return self.__gpus
 
     def get_current_vram_usage(self, gpu_index=0):
-        if not nvidia_is_available:
-            return None
-
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index]["handle"])
 
         return info.total, info.used, info.free

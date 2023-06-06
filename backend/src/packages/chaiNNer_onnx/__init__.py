@@ -60,16 +60,17 @@ dependencies.extend(
             size_estimate=500 * KB,
         ),
         Dependency(
-            display_name="SciPy",
-            pypi_name="scipy",
-            version="1.9.3",
-            size_estimate=42 * MB,
-        ),
-        Dependency(
             display_name="Numba",
             pypi_name="numba",
             version="0.56.3",
             size_estimate=2.5 * MB,
+        ),
+        Dependency(
+            display_name="re2",
+            pypi_name="google-re2",
+            version="1.0",
+            size_estimate=275 * KB,
+            import_name="re2",
         ),
     ]
 )

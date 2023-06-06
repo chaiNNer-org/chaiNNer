@@ -39,10 +39,6 @@ deps: List[DependencyInfo] = [
         "version": "2.28.2",
     },
     {
-        "package_name": "google-re2",
-        "version": "1.0",
-    },
-    {
         "package_name": "scipy",
         "version": "1.9.3",
     },
