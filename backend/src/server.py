@@ -20,8 +20,10 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
-from dependencies.store import installed_packages
-from dependencies.versioned_dependency_helpers import install_version_checked_dependency
+from dependencies.store import DependencyInfo
+from dependencies.versioned_dependency_helpers import (
+    install_version_checked_dependencies,
+)
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
 from nodes.utils.exec_options import (
@@ -375,22 +377,18 @@ async def get_dependencies(_request: Request):
 
 
 def import_packages():
-    def install_dep(dependency: api.Dependency, update_only: bool = False):
+    def install_deps(dependencies: List[api.Dependency]):
         try:
-            # importlib.import_module(dependency.import_name or dependency.package_name)
-            installed_package = installed_packages.get(dependency.pypi_name, None)
-            # I think there's a better way to do this, but I'm not sure what it is
-            if installed_package is None and update_only:
-                return
-            if installed_package is not None or (
-                installed_package is None and not update_only
-            ):
-                install_version_checked_dependency(
-                    dependency.pypi_name, dependency.version
-                )
-                return
+            dep_info: List[DependencyInfo] = [
+                {
+                    "package_name": dep.pypi_name,
+                    "version": dep.version,
+                }
+                for dep in dependencies
+            ]
+            install_version_checked_dependencies(dep_info)
         except Exception as ex:
-            logger.error(f"Failed to import {dependency.pypi_name}: {ex}")
+            logger.error(f"Error installing dependencies: {ex}")
 
     # Manually import built-in packages to get ordering correct
     # Using importlib here so we don't have to ignore that it isn't used
@@ -412,9 +410,9 @@ def import_packages():
         if package.name == "chaiNNer_standard":
             continue
         # logger.info(f"Checking dependencies for {package.name}...")
-        for dep in package.dependencies:
-            if dep.auto_update:
-                install_dep(dep, update_only=True)
+        auto_update_deps = [dep for dep in package.dependencies if dep.auto_update]
+        if len(auto_update_deps) > 0:
+            install_deps(auto_update_deps)
 
     logger.info("Done checking dependencies...")
 
@@ -477,7 +475,7 @@ async def after_server_start(sanic_app: Sanic, _):
     await AppContext.get(sanic_app).queue.put(
         {
             "event": "backend-ready",
-            "data": {},
+            "data": None,
         }
     )
 

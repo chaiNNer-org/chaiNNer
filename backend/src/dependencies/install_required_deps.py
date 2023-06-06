@@ -1,8 +1,9 @@
 import subprocess
 from json import loads as json_parse
+from typing import List
 
-from .store import installed_packages, python_path
-from .versioned_dependency_helpers import install_version_checked_dependency
+from .store import DependencyInfo, installed_packages, python_path
+from .versioned_dependency_helpers import install_version_checked_dependencies
 
 # Get the list of installed packages
 # We can't rely on using the package's __version__ attribute because not all packages actually have it
@@ -17,7 +18,7 @@ except Exception as e:
     installed_packages = {}
 
 
-deps = [
+deps: List[DependencyInfo] = [
     {
         "package_name": "sanic",
         "version": "23.3.0",
@@ -40,7 +41,4 @@ deps = [
     },
 ]
 
-for dependency in deps:
-    install_version_checked_dependency(
-        dependency["package_name"], dependency["version"]
-    )
+install_version_checked_dependencies(deps)

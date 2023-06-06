@@ -234,5 +234,5 @@ export interface BackendEventMap {
         message: string;
         percent: number;
     };
-    'backend-ready': object;
+    'backend-ready': null;
 }

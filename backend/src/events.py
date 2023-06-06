@@ -79,7 +79,7 @@ class BackendStatusEvent(TypedDict):
 
 class BackendReadyEvent(TypedDict):
     event: Literal["backend-ready"]
-    data: Dict
+    data: None
 
 
 Event = Union[

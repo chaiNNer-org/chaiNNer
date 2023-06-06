@@ -1,8 +1,9 @@
 import re
+from typing import List
 
 from semver.version import Version
 
-from .store import install_dependency, installed_packages
+from .store import DependencyInfo, install_dependencies, installed_packages
 
 
 def coerce_semver(version: str) -> Version:
@@ -20,12 +21,16 @@ def coerce_semver(version: str) -> Version:
         return Version(0, 0, 0)
 
 
-def install_version_checked_dependency(package_name: str, package_version: str):
-    version = installed_packages.get(package_name, None)
-    if package_version and version:
-        installed_version = coerce_semver(version)
-        dep_version = coerce_semver(package_version)
-        if installed_version < dep_version:
-            install_dependency(package_name, package_version)
-    elif not version:
-        install_dependency(package_name, package_version)
+def install_version_checked_dependencies(dependencies: List[DependencyInfo]):
+    dependencies_to_install = []
+    for dependency in dependencies:
+        version = installed_packages.get(dependency["package_name"], None)
+        if dependency["version"] and version:
+            installed_version = coerce_semver(version)
+            dep_version = coerce_semver(dependency["version"])
+            if installed_version < dep_version:
+                dependencies_to_install.append(dependency)
+        elif not version:
+            dependencies_to_install.append(dependency)
+    if len(dependencies_to_install) > 0:
+        install_dependencies(dependencies_to_install)

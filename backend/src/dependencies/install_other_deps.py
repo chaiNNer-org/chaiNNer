@@ -1,6 +1,9 @@
+from typing import List
+
 from system import is_arm_mac, is_windows
 
-from .versioned_dependency_helpers import install_version_checked_dependency
+from .store import DependencyInfo
+from .versioned_dependency_helpers import install_version_checked_dependencies
 
 # I'm leaving this here in case I can use the Dependency class in the future, so I don't lose the extra info
 
@@ -22,7 +25,7 @@ from .versioned_dependency_helpers import install_version_checked_dependency
 #         Dependency("Pywin32", "pywin32", "304", 12 * MB, import_name="win32clipboard")
 #     )
 
-deps = [
+deps: List[DependencyInfo] = [
     {
         "package_name": "appdirs",
         "version": "1.4.4",
@@ -52,7 +55,4 @@ if is_arm_mac:
 elif is_windows:
     deps.append({"package_name": "pywin32", "version": "304"})
 
-for dependency in deps:
-    install_version_checked_dependency(
-        dependency["package_name"], dependency["version"]
-    )
+install_version_checked_dependencies(deps)
