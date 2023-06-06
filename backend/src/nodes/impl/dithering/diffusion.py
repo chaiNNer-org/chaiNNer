@@ -11,7 +11,7 @@ def error_diffusion_dither(
 ) -> np.ndarray:
     image = as_3d(image)
 
-    output_image = as_float32(image)
+    output_image = as_float32(image).copy()
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
     for row in range(output_image.shape[0]):
         for col in range(output_image.shape[1]):

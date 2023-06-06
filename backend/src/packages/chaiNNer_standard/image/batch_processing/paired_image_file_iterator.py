@@ -39,7 +39,7 @@ PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
         TextOutput("Image Name B"),
-        NumberOutput("Overall Index"),
+        NumberOutput("Overall Index", output_type="uint"),
     ],
     side_effects=True,
 )
