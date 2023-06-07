@@ -123,44 +123,38 @@ export const pipInstallWithProgress = async (
                         resolve();
                     });
                 } else {
-                    const req = https.get(
-                        `https://pypi.org/pypi/${pkg.pypiName}/json`,
-                        (res) => {
-                            let output = '';
+                    const req = https.get(`https://pypi.org/pypi/${pkg.pypiName}/json`, (res) => {
+                        let output = '';
 
-                            res.on('data', (d) => {
-                                output += String(d);
-                            });
+                        res.on('data', (d) => {
+                            output += String(d);
+                        });
 
-                            res.on('close', () => {
-                                if (output) {
-                                    const releaseData = JSON.parse(output) as {
-                                        releases: Record<
-                                            string,
-                                            { filename: string; url: string }[]
-                                        >;
-                                    };
-                                    const releases = Array.from(releaseData.releases[pkg.version]);
-                                    const find = releases.find(
-                                        (file) => file.filename === wheelFileName
+                        res.on('close', () => {
+                            if (output) {
+                                const releaseData = JSON.parse(output) as {
+                                    releases: Record<string, { filename: string; url: string }[]>;
+                                };
+                                const releases = Array.from(releaseData.releases[pkg.version]);
+                                const find = releases.find(
+                                    (file) => file.filename === wheelFileName
+                                );
+                                if (!find)
+                                    throw new Error(
+                                        `Unable for find correct file for ${pkg.pypiName}==${pkg.version}`
                                     );
-                                    if (!find)
-                                        throw new Error(
-                                            `Unable for find correct file for ${pkg.pypiName}==${pkg.version}`
-                                        );
-                                    const { url } = find;
-                                    onStdout(`Downloading package from PyPi at: ${url}\n`);
-                                    downloadWheelAndInstall(
-                                        python,
-                                        url,
-                                        wheelFileName,
-                                        onProgress,
-                                        onStdio
-                                    ).then(() => resolve(), reject);
-                                }
-                            });
-                        }
-                    );
+                                const { url } = find;
+                                onStdout(`Downloading package from PyPi at: ${url}\n`);
+                                downloadWheelAndInstall(
+                                    python,
+                                    url,
+                                    wheelFileName,
+                                    onProgress,
+                                    onStdio
+                                ).then(() => resolve(), reject);
+                            }
+                        });
+                    });
 
                     req.on('error', (error) => {
                         onStderr(String(error));
