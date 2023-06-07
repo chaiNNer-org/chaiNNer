@@ -3,6 +3,7 @@ import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './i18n';
 import { useTranslation } from 'react-i18next';
+import { log } from '../common/log';
 import { ipcRenderer } from '../common/safeIpc';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
@@ -28,6 +29,7 @@ const Splash = memo(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
     useBackendEventSourceListener(eventSource, 'backend-status', (d) => {
+        log.info('🚀 ~ file: splash.tsx:31 ~ useBackendEventSourceListener ~ d:', d);
         if (d) {
             if (d.message) {
                 setStatus(d.message);
@@ -41,11 +43,10 @@ const Splash = memo(() => {
     const [backendReady, setBackendReady] = useState(false);
 
     useBackendEventSourceListener(eventSource, 'backend-ready', (d) => {
-        if (d) {
-            if (!backendReady) {
-                setBackendReady(true);
-                ipcRenderer.send('backend-ready');
-            }
+        log.info('🚀 ~ file: splash.tsx:45 ~ useBackendEventSourceListener ~ d:', d);
+        if (!backendReady) {
+            setBackendReady(true);
+            ipcRenderer.send('backend-ready');
         }
     });
 
