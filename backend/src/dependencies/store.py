@@ -18,16 +18,6 @@ def pin(package_name: str, version: str) -> str:
     return f"{package_name}=={version}"
 
 
-def create_install_string(dependency_info_array: List[DependencyInfo]) -> str:
-    return " ".join(
-        [
-            pin(dep_info["package_name"], dep_info["version"])
-            for dep_info in dependency_info_array
-            if dep_info["package_name"] not in installed_packages
-        ]
-    )
-
-
 def install_dependencies(dependency_info_array: List[DependencyInfo]):
     subprocess.check_call(
         [
@@ -36,8 +26,12 @@ def install_dependencies(dependency_info_array: List[DependencyInfo]):
             "pip",
             "install",
             "--upgrade",
-            create_install_string(dependency_info_array),
+            *[
+                pin(dep_info["package_name"], dep_info["version"])
+                for dep_info in dependency_info_array
+            ],
             "--disable-pip-version-check",
+            "--no-warn-script-location",
         ]
     )
     for dep_info in dependency_info_array:

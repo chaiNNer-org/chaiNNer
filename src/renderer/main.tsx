@@ -160,14 +160,12 @@ export const Main = memo(({ port }: MainProps) => {
             console.log('backend status', d);
         }
     });
-    useBackendEventSourceListener(eventSource, 'backend-ready', (d) => {
-        if (d) {
-            console.log('backend ready', d);
-            setNodesRefreshCounter((prev) => prev + 1);
-            if (!backendReady) {
-                setBackendReady(true);
-                ipcRenderer.send('backend-ready');
-            }
+    useBackendEventSourceListener(eventSource, 'backend-ready', () => {
+        console.log('backend ready');
+        setNodesRefreshCounter((prev) => prev + 1);
+        if (!backendReady) {
+            setBackendReady(true);
+            ipcRenderer.send('backend-ready');
         }
     });
 

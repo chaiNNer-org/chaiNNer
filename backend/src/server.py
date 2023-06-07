@@ -20,7 +20,7 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
-from dependencies.store import DependencyInfo
+from dependencies.store import DependencyInfo, installed_packages
 from dependencies.versioned_dependency_helpers import (
     install_version_checked_dependencies,
 )
@@ -410,7 +410,12 @@ def import_packages():
         if package.name == "chaiNNer_standard":
             continue
         # logger.info(f"Checking dependencies for {package.name}...")
-        auto_update_deps = [dep for dep in package.dependencies if dep.auto_update]
+        auto_update_deps = [
+            dep
+            for dep in package.dependencies
+            if dep.auto_update
+            and installed_packages.get(dep.pypi_name, None) is not None
+        ]
         if len(auto_update_deps) > 0:
             install_deps(auto_update_deps)
 
@@ -443,7 +448,7 @@ async def after_server_start(sanic_app: Sanic, _):
     await AppContext.get(sanic_app).queue.put(
         {
             "event": "backend-status",
-            "data": {"message": "Installing dependencies...", "percent": 50},
+            "data": {"message": "Installing dependencies...", "percent": 0.50},
         }
     )
 

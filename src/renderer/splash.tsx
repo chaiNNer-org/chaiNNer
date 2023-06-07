@@ -36,14 +36,14 @@ const Splash = memo(() => {
             }
             if (d.percent) {
                 setStatusProgress(d.percent);
+                setOverallProgress(d.percent);
             }
         }
     });
 
     const [backendReady, setBackendReady] = useState(false);
 
-    useBackendEventSourceListener(eventSource, 'backend-ready', (d) => {
-        log.info('🚀 ~ file: splash.tsx:45 ~ useBackendEventSourceListener ~ d:', d);
+    useBackendEventSourceListener(eventSource, 'backend-ready', () => {
         if (!backendReady) {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
