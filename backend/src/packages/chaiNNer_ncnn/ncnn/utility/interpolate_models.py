@@ -44,8 +44,8 @@ def check_will_upscale(interp: NcnnModelWrapper):
     ],
     outputs=[
         NcnnModelOutput(),
-        NumberOutput("Amount A", "100 - Input2"),
-        NumberOutput("Amount B", "Input2"),
+        NumberOutput("Amount A", output_type="100 - Input2"),
+        NumberOutput("Amount B", output_type="Input2"),
     ],
 )
 def interpolate_models_node(

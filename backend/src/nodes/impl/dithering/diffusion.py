@@ -2,7 +2,7 @@ import numpy as np
 
 from ..image_utils import as_3d
 from .color_distance import nearest_palette_color, nearest_uniform_color
-from .common import dtype_to_float, float_to_dtype
+from .common import as_dtype, as_float32
 from .constants import ERROR_DIFFUSION_MAPS, ErrorDiffusionMap
 
 
@@ -11,7 +11,7 @@ def error_diffusion_dither(
 ) -> np.ndarray:
     image = as_3d(image)
 
-    output_image = dtype_to_float(image)
+    output_image = as_float32(image).copy()
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
     for row in range(output_image.shape[0]):
         for col in range(output_image.shape[1]):
@@ -25,7 +25,7 @@ def error_diffusion_dither(
                 ):
                     continue
                 output_image[row + delta_row, col + delta_col, :] += error * coefficient
-    return float_to_dtype(output_image, image.dtype)
+    return as_dtype(output_image, image.dtype)
 
 
 def uniform_error_diffusion_dither(
@@ -42,7 +42,7 @@ def palette_error_diffusion_dither(
     palette: np.ndarray,
     error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
-    palette = dtype_to_float(as_3d(palette))
+    palette = as_float32(as_3d(palette))
 
     cache = []
 

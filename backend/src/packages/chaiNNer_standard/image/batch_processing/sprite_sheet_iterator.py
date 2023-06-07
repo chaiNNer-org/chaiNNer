@@ -22,7 +22,10 @@ SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
     inputs=[IteratorInput().make_optional()],
-    outputs=[ImageOutput(), NumberOutput("Overall Index")],
+    outputs=[
+        ImageOutput(),
+        NumberOutput("Overall Index", output_type="uint"),
+    ],
     side_effects=True,
 )
 def ImageSpriteSheetIteratorLoadImageNode(
