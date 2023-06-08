@@ -52,9 +52,10 @@ class AppContext:
     def __init__(self):
         self.executor: Optional[Executor] = None
         self.cache: Dict[NodeId, Output] = dict()
-        # This will be initialized by setup_queue.
+        # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
+        self.setup_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
         self.registry = api.registry
 
@@ -72,7 +73,7 @@ CORS(app)
 
 class SSEFilter(logging.Filter):
     def filter(self, record):
-        return not (record.request.endswith("/sse") and record.status == 200)  # type: ignore
+        return not ((record.request.endswith("/sse") or record.request.endswith("/setup-sse")) and record.status == 200)  # type: ignore
 
 
 class ZeroCounter:
@@ -441,11 +442,24 @@ async def sse(request: Request):
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
 
+@app.get("/setup-sse")
+async def setup_sse(request: Request):
+    ctx = AppContext.get(request.app)
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await ctx.setup_queue.get()
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, _):
     AppContext.get(sanic_app).queue = EventQueue()
+    AppContext.get(sanic_app).setup_queue = EventQueue()
 
-    await AppContext.get(sanic_app).queue.put(
+    await AppContext.get(sanic_app).setup_queue.put(
         {
             "event": "backend-status",
             "data": {"message": "Installing dependencies...", "percent": 0.50},
@@ -455,7 +469,7 @@ async def after_server_start(sanic_app: Sanic, _):
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_other_deps")
 
-    await AppContext.get(sanic_app).queue.put(
+    await AppContext.get(sanic_app).setup_queue.put(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 0.75},
@@ -470,14 +484,14 @@ async def after_server_start(sanic_app: Sanic, _):
 
     logger.info("Sending backend ready...")
 
-    await AppContext.get(sanic_app).queue.put(
+    await AppContext.get(sanic_app).setup_queue.put(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 0.9},
         }
     )
 
-    await AppContext.get(sanic_app).queue.put(
+    await AppContext.get(sanic_app).setup_queue.put(
         {
             "event": "backend-ready",
             "data": None,

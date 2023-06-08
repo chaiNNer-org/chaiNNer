@@ -1,5 +1,6 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import EventSource from 'eventsource';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
@@ -343,6 +344,35 @@ export const createMainWindow = async (args: OpenArguments) => {
         registerEventHandlerPreSetup(mainWindow, args);
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
         registerEventHandlerPostSetup(mainWindow, backend);
+
+        const sse = new EventSource(`http://localhost:${backend.port}/setup-sse`, {
+            withCredentials: true,
+        });
+
+        sse.addEventListener('backend-status', (e) => {
+            console.log('🚀 ~ file: main-window.ts:353 ~ sse.addEventListener ~ e:', e);
+            log.info(e);
+        });
+
+        sse.addEventListener('backend-ready', (e) => {
+            console.log('🚀 ~ file: main-window.ts:358 ~ sse.addEventListener ~ e:', e);
+            log.info(e);
+        });
+
+        sse.onmessage = (e) => {
+            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onmessage ~ e:', e);
+            log.info(e);
+        };
+
+        sse.onerror = (e) => {
+            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onerror ~ e:', e);
+            log.info(e);
+        };
+
+        sse.onopen = (e) => {
+            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onopen ~ e:', e);
+            log.info(e);
+        };
 
         // progressController.submitProgress({
         //     status: t('splash.loadingApp', 'Loading main application...'),
