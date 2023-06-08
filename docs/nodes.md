@@ -177,9 +177,39 @@ Note: We support Python 3.8 and 3.9, so you need to add `from __future__ import 
 
 ### Types
 
-All inputs and outputs have types. These types are automatically generated from the input/output class and the supplied arguments. E.g. `NumberInput("foo", minimum=0, maximum=100)` will have the type `int(0..100)` (read: an integer between 0 and 100 inclusive).
+All inputs and outputs have types. These types are automatically generated from the input/output class and their supplied arguments. E.g. `NumberInput("foo", minimum=0, maximum=100)` will have the type `int(0..100)` (read: an integer between 0 and 100 inclusive).
 
-Types are expressed using a custom type system called Navi. Navi is not relative to Python's type hints or TypeScript types, it's a completely separate system. Since the Navi types of inputs and outputs are automatically generated, you rarely have to interact with Navi directly.
+Types are expressed using a custom type system called Navi. Navi is not relative to Python's type hints or TypeScript types, it's a completely separate system.
+
+More information about Navi can be found in the [Navi documentation](./navi.md).
+
+#### Type narrowing
+
+While all inputs and outputs have automatically generated types, these types might not be precise enough. Especially outputs often have very broad types. E.g. `ImageOutput` has the type `Image`, which means "an image of any size". It could be a 1x1 image, or a 10000x10000 image. This is not very useful for the frontend.
+
+To fix this, most output classes have a type argument, typically called `output_type` or `*_type`. This argument is used to narrow the type of the output. E.g. `ImageOutput("foo", image_type="Image { width: 100, height: 100, channels: 3 }")` narrows the type to "an RGB image of size 100x100".
+
+Since output types often depend on inputs, you can reference inputs using special variables. E.g. `Input0` is the type of the input with ID 0.
+
+Let's take a look at the inputs and outputs of the Create Border node. This node adds a solid color border to an image. It has 2 inputs: the image and the width of the border.
+
+```python
+    inputs=[
+        ImageInput(),
+        NumberInput("Width", unit="px"),
+    ],
+    outputs=[
+        ImageOutput(
+            image_type="""
+                Image {
+                    width: Input0.width + 2 * Input1,
+                    height: Input0.height + 2 * Input1,
+                    channels: Input0.channels,
+                }
+            """,
+        )
+    ],
+```
 
 ## Broadcasts
 
