@@ -345,44 +345,25 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        const sse = new EventSource(`http://localhost:${backend.port}/setup-sse`, {
+        const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
             withCredentials: true,
         });
 
-        sse.addEventListener('backend-status', (e) => {
-            console.log('🚀 ~ file: main-window.ts:353 ~ sse.addEventListener ~ e:', e);
-            log.info(e);
+        sse.addEventListener('backend-started', () => {
+            mainWindow.webContents.send('backend-started');
         });
 
-        sse.addEventListener('backend-ready', (e) => {
-            console.log('🚀 ~ file: main-window.ts:358 ~ sse.addEventListener ~ e:', e);
-            log.info(e);
+        sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
+            if (e.data) {
+                const data = JSON.parse(e.data) as { message: string; percent: number };
+                progressController.submitProgress({
+                    status: data.message,
+                    totalProgress: data.percent,
+                });
+            }
         });
 
-        sse.onmessage = (e) => {
-            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onmessage ~ e:', e);
-            log.info(e);
-        };
-
-        sse.onerror = (e) => {
-            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onerror ~ e:', e);
-            log.info(e);
-        };
-
-        sse.onopen = (e) => {
-            console.log('🚀 ~ file: main-window.ts:369 ~ sse.onopen ~ e:', e);
-            log.info(e);
-        };
-
-        // progressController.submitProgress({
-        //     status: t('splash.loadingApp', 'Loading main application...'),
-        // });
-
-        if (mainWindow.isDestroyed()) {
-            return;
-        }
-
-        ipcMain.once('backend-ready', () => {
+        sse.addEventListener('backend-ready', () => {
             progressController.submitProgress({ totalProgress: 1 });
 
             if (mainWindow.isDestroyed()) {
@@ -404,6 +385,14 @@ export const createMainWindow = async (args: OpenArguments) => {
                 checkForUpdate();
             }
         });
+
+        // progressController.submitProgress({
+        //     status: t('splash.loadingApp', 'Loading main application...'),
+        // });
+
+        if (mainWindow.isDestroyed()) {
+            return;
+        }
 
         // and load the index.html of the app.
         mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);

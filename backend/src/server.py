@@ -461,6 +461,13 @@ async def after_server_start(sanic_app: Sanic, _):
 
     await AppContext.get(sanic_app).setup_queue.put(
         {
+            "event": "backend-started",
+            "data": None,
+        }
+    )
+
+    await AppContext.get(sanic_app).setup_queue.put(
+        {
             "event": "backend-status",
             "data": {"message": "Installing dependencies...", "percent": 0.50},
         }

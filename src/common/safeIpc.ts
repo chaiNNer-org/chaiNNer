@@ -56,6 +56,7 @@ export interface InvokeChannels {
 export interface SendChannels {
     'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-ready': SendChannelInfo;
+    'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
     'file-save-as': SendChannelInfo;

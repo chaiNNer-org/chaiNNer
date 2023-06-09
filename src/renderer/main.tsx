@@ -29,10 +29,7 @@ import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
-import {
-    useBackendEventSource,
-    useBackendEventSourceListener,
-} from './hooks/useBackendEventSource';
+
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
@@ -151,16 +148,12 @@ export const Main = memo(({ port }: MainProps) => {
         }
     }, [response, data, loading, error, backendReady, sendAlert, t]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [eventSource, eventSourceStatus] = useBackendEventSource(port);
-    useBackendEventSourceListener(eventSource, 'backend-status', (d) => {
-        if (d) {
-            // We know the backend is good at this point, so we can set the retry count to a high number
-            setRetryCount(9999);
-            console.log('backend status', d);
-        }
+    useIpcRendererListener('backend-started', (d) => {
+        // We know the backend is good at this point, so we can set the retry count to a high number
+        setRetryCount(9999);
     });
-    useBackendEventSourceListener(eventSource, 'backend-ready', () => {
+
+    useIpcRendererListener('backend-ready', () => {
         console.log('backend ready');
         setNodesRefreshCounter((prev) => prev + 1);
         if (!backendReady) {

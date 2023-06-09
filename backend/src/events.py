@@ -77,8 +77,8 @@ class BackendStatusEvent(TypedDict):
     data: BackendStatusData
 
 
-class BackendReadyEvent(TypedDict):
-    event: Literal["backend-ready"]
+class BackendStateEvent(TypedDict):
+    event: Union[Literal["backend-ready"], Literal["backend-started"]]
     data: None
 
 
@@ -88,7 +88,7 @@ Event = Union[
     NodeFinishEvent,
     IteratorProgressUpdateEvent,
     BackendStatusEvent,
-    BackendReadyEvent,
+    BackendStateEvent,
 ]
 
 
