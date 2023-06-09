@@ -393,7 +393,7 @@ export const createMainWindow = async (args: OpenArguments) => {
     }
 
     // Open the DevTools.
-    if (!app.isPackaged && !mainWindow.isDestroyed()) {
+    if (args.devtools && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
 };
