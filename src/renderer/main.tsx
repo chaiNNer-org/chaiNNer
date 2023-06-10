@@ -148,7 +148,7 @@ export const Main = memo(({ port }: MainProps) => {
         }
     }, [response, data, loading, error, backendReady, sendAlert, t]);
 
-    useIpcRendererListener('backend-started', (d) => {
+    useIpcRendererListener('backend-started', () => {
         // We know the backend is good at this point, so we can set the retry count to a high number
         setRetryCount(9999);
     });
