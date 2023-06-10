@@ -154,7 +154,7 @@ export const Main = memo(({ port }: MainProps) => {
     });
 
     useIpcRendererListener('backend-ready', () => {
-        console.log('backend ready');
+        // Refresh the nodes once the backend is ready
         setNodesRefreshCounter((prev) => prev + 1);
         if (!backendReady) {
             setBackendReady(true);
