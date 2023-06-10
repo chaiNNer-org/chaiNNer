@@ -55,6 +55,6 @@ def sharpen_node(
     else:
         diff = img - blurred
         diff = np.sign(diff) * np.maximum(0, np.abs(diff) - threshold)
-        img += diff * amount
+        img = img + diff * amount
 
     return img

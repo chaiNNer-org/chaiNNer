@@ -8,6 +8,7 @@ interface ArgumentOptions {
 export interface OpenArguments extends ArgumentOptions {
     command: 'open';
     file: string | undefined;
+    devtools: boolean;
 }
 export interface RunArguments extends ArgumentOptions {
     command: 'run';
@@ -25,10 +26,18 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
     const parsed = yargs(args)
         .scriptName('chainner')
         .command(['* [file]', 'open [file]'], 'Open the chaiNNer GUI', (y) => {
-            return y.positional('file', {
-                type: 'string',
-                description: 'An optional chain to open. This should be a .chn file',
-            });
+            return y
+                .positional('file', {
+                    type: 'string',
+                    description: 'An optional chain to open. This should be a .chn file',
+                })
+                .options({
+                    devtools: {
+                        type: 'boolean',
+                        default: false,
+                        description: "Open Electron's DevTools on launch.",
+                    },
+                });
         })
         .command(
             'run <file>',
@@ -83,6 +92,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
             return {
                 command: 'open',
                 file: parsed.file,
+                devtools: parsed.devtools,
                 ...options,
             };
         case 'run':
