@@ -342,7 +342,7 @@ export const createMainWindow = async (args: OpenArguments) => {
 
     try {
         registerEventHandlerPreSetup(mainWindow, args);
-        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
+        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
         const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
@@ -353,10 +353,11 @@ export const createMainWindow = async (args: OpenArguments) => {
             mainWindow.webContents.send('backend-started');
         });
 
+        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
                 const data = JSON.parse(e.data) as { message: string; percent: number };
-                progressController.submitProgress({
+                backendStatusProgressSlice.submitProgress({
                     status: data.message,
                     totalProgress: data.percent,
                 });
