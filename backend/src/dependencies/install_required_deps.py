@@ -11,7 +11,6 @@ try:
     pip_list = subprocess.check_output(
         [python_path, "-m", "pip", "list", "--format=json"]
     )
-    # set_installed_packages({p["name"]: p["version"] for p in json_parse(pip_list)})
     for p in json_parse(pip_list):
         installed_packages[p["name"]] = p["version"]
 except Exception as e:
