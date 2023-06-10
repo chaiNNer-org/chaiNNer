@@ -100,6 +100,8 @@ access_logger.addFilter(SSEFilter())
 @app.route("/nodes")
 async def nodes(_request: Request):
     """Gets a list of all nodes as well as the node information"""
+    if setup_task is not None:
+        await setup_task
     logger.debug(api.registry.categories)
 
     node_list = []
@@ -465,10 +467,12 @@ async def sse(request: Request):
 async def setup_sse(request: Request):
     ctx = AppContext.get(request.app)
     headers = {"Cache-Control": "no-cache"}
+    logger.info("Start sse ---------------- ")
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
         message = await ctx.setup_queue.get()
         if response is not None:
+            logger.info("Sending ---------------- " + message["event"])
             await response.send(f"event: {message['event']}\n")
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
@@ -481,6 +485,7 @@ async def setup(sanic_app: Sanic):
             "data": None,
         }
     )
+    await asyncio.sleep(1)
 
     await AppContext.get(sanic_app).setup_queue.put(
         {
@@ -488,6 +493,7 @@ async def setup(sanic_app: Sanic):
             "data": {"message": "Installing dependencies...", "percent": 0.0},
         }
     )
+    await asyncio.sleep(1)
 
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_other_deps")
@@ -498,6 +504,7 @@ async def setup(sanic_app: Sanic):
             "data": {"message": "Loading Nodes...", "percent": 0.75},
         }
     )
+    await asyncio.sleep(1)
 
     logger.info("Loading nodes...")
 
@@ -513,6 +520,7 @@ async def setup(sanic_app: Sanic):
             "data": {"message": "Loading Nodes...", "percent": 1},
         }
     )
+    await asyncio.sleep(1)
 
     await AppContext.get(sanic_app).setup_queue.put(
         {
@@ -520,6 +528,7 @@ async def setup(sanic_app: Sanic):
             "data": None,
         }
     )
+    await asyncio.sleep(1)
 
     logger.info("Done.")
 
@@ -529,7 +538,9 @@ async def after_server_start(sanic_app: Sanic, _):
     global setup_task
     AppContext.get(sanic_app).queue = EventQueue()
     AppContext.get(sanic_app).setup_queue = EventQueue()
+    logger.info("foo")
     setup_task = asyncio.create_task(setup(sanic_app))
+    logger.info("bar")
 
 
 def main():
