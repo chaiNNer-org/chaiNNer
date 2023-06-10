@@ -140,6 +140,7 @@
     "scheduler": "^0.22.0",
     "semver": "^7.3.7",
     "systeminformation": "^5.11.16",
+    "undici": "^5.22.1",
     "use-context-selector": "^1.4.0",
     "use-debounce": "^8.0.1",
     "use-http": "^1.0.26",
