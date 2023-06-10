@@ -479,32 +479,32 @@ async def setup_sse(request: Request):
 
 async def setup(sanic_app: Sanic):
     logger.info("Starting setup...")
-    await AppContext.get(sanic_app).setup_queue.put(
+    await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
             "event": "backend-started",
             "data": None,
-        }
+        },
+        timeout=1,
     )
-    await asyncio.sleep(1)
 
-    await AppContext.get(sanic_app).setup_queue.put(
+    await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Installing dependencies...", "percent": 0.0},
-        }
+        },
+        timeout=1,
     )
-    await asyncio.sleep(1)
 
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_other_deps")
 
-    await AppContext.get(sanic_app).setup_queue.put(
+    await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 0.75},
-        }
+        },
+        timeout=1,
     )
-    await asyncio.sleep(1)
 
     logger.info("Loading nodes...")
 
@@ -514,21 +514,21 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Sending backend ready...")
 
-    await AppContext.get(sanic_app).setup_queue.put(
+    await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 1},
-        }
+        },
+        timeout=1,
     )
-    await asyncio.sleep(1)
 
-    await AppContext.get(sanic_app).setup_queue.put(
+    await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
             "event": "backend-ready",
             "data": None,
-        }
+        },
+        timeout=1,
     )
-    await asyncio.sleep(1)
 
     logger.info("Done.")
 

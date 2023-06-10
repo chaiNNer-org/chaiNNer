@@ -101,3 +101,14 @@ class EventQueue:
 
     async def put(self, event: Event) -> None:
         await self.queue.put(event)
+
+    async def wait_until_empty(self, timeout: float) -> None:
+        while timeout > 0:
+            if self.queue.empty():
+                return
+            await asyncio.sleep(0.01)
+            timeout -= 0.01
+
+    async def put_and_wait(self, event: Event, timeout: float = float("inf")) -> None:
+        await self.queue.put(event)
+        await self.wait_until_empty(timeout)
