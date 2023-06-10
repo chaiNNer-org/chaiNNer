@@ -301,6 +301,7 @@ class PackageRegistry:
                         self.nodes[node.schema_id] = node, sub
 
 
+# pylint: disable=global-at-module-level
 global registry
 registry = PackageRegistry()
 

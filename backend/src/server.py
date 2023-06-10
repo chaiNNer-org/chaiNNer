@@ -467,12 +467,12 @@ async def sse(request: Request):
 async def setup_sse(request: Request):
     ctx = AppContext.get(request.app)
     headers = {"Cache-Control": "no-cache"}
-    logger.info("Start sse ---------------- ")
+    logger.debug("Start sse ---------------- ")
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
         message = await ctx.setup_queue.get()
         if response is not None:
-            logger.info("Sending ---------------- " + message["event"])
+            logger.debug(f"Sending ---------------- {message['event']}")
             await response.send(f"event: {message['event']}\n")
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
