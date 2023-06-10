@@ -535,12 +535,11 @@ async def setup(sanic_app: Sanic):
 
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
+    # pylint: disable=global-statement
     global setup_task
     AppContext.get(sanic_app).queue = EventQueue()
     AppContext.get(sanic_app).setup_queue = EventQueue()
-    logger.info("foo")
     setup_task = loop.create_task(setup(sanic_app))
-    logger.info("bar")
 
 
 def main():
