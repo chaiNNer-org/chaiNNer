@@ -4,8 +4,6 @@ from typing import List, TypedDict, Union
 
 python_path = sys.executable
 
-# pylint: disable=global-at-module-level
-global installed_packages
 installed_packages = {}
 
 

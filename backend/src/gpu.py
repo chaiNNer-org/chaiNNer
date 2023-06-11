@@ -1,8 +1,6 @@
 import pynvml as nv
 from sanic.log import logger
 
-# pylint: disable=global-at-module-level
-global nvidia_is_available
 nvidia_is_available = False
 
 try:
