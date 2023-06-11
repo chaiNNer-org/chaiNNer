@@ -353,6 +353,10 @@ export const createMainWindow = async (args: OpenArguments) => {
             mainWindow.webContents.send('backend-started');
         });
 
+        sse.onerror = (e) => {
+            log.error(e);
+        };
+
         const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
