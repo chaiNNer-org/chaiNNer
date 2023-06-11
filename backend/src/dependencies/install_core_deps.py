@@ -2,8 +2,7 @@ from typing import List
 
 from system import is_arm_mac, is_windows
 
-from .store import DependencyInfo
-from .versioned_dependency_helpers import install_version_checked_dependencies
+from .store import DependencyInfo, install_dependencies
 
 # I'm leaving this here in case I can use the Dependency class in the future, so I don't lose the extra info
 
@@ -51,4 +50,4 @@ if is_arm_mac:
 elif is_windows:
     deps.append({"package_name": "pywin32", "version": None})
 
-install_version_checked_dependencies(deps)
+install_dependencies(deps)
