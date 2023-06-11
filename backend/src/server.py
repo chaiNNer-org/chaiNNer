@@ -415,10 +415,6 @@ def import_packages():
     # Manually import built-in packages to get ordering correct
     # Using importlib here so we don't have to ignore that it isn't used
     importlib.import_module("packages.chaiNNer_standard")
-
-    # for dep in next(iter(api.registry.packages.values())).dependencies:
-    #     install_dep(dep)
-
     importlib.import_module("packages.chaiNNer_pytorch")
     importlib.import_module("packages.chaiNNer_ncnn")
     importlib.import_module("packages.chaiNNer_onnx")
@@ -431,7 +427,6 @@ def import_packages():
         logger.info(f"Checking dependencies for {package.name}...")
         if package.name == "chaiNNer_standard":
             continue
-        # logger.info(f"Checking dependencies for {package.name}...")
         auto_update_deps = [
             dep
             for dep in package.dependencies
@@ -443,9 +438,8 @@ def import_packages():
 
     logger.info("Done checking dependencies...")
 
-    # in the future, for external packages dir, scan & import
+    # TODO: in the future, for external packages dir, scan & import
     # for package in os.listdir(packages_dir):
-    #     # logger.info(package)
     #     importlib.import_module(package)
 
     api.registry.load_nodes(__file__)
