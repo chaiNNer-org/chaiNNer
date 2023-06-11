@@ -7,10 +7,11 @@ from gpu import nvidia_is_available
 
 python_version = sys.version_info
 
-dependencies = []
-if python_version.minor < 10:
-    dependencies.extend(
-        [
+
+def get_pytorch():
+    if python_version.minor < 10:
+        # <= 3.9
+        return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
@@ -30,10 +31,9 @@ if python_version.minor < 10:
                 else None,
             ),
         ]
-    )
-elif python_version.minor >= 10:
-    dependencies.extend(
-        [
+    else:
+        # >= 3.10
+        return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
@@ -53,10 +53,14 @@ elif python_version.minor >= 10:
                 else None,
             ),
         ]
-    )
 
-dependencies.extend(
-    [
+
+package = add_package(
+    __file__,
+    name="PyTorch",
+    description="PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).",
+    dependencies=[
+        *get_pytorch(),
         Dependency(
             display_name="FaceXLib",
             pypi_name="facexlib",
@@ -69,14 +73,7 @@ dependencies.extend(
             version="0.5.0",
             size_estimate=36.5 * KB,
         ),
-    ]
-)
-
-package = add_package(
-    __file__,
-    name="PyTorch",
-    description="PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).",
-    dependencies=dependencies,
+    ],
 )
 
 pytorch_category = package.add_category(

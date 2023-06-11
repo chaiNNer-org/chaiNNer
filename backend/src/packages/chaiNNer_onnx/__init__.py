@@ -31,27 +31,32 @@ def get_onnx_runtime():
         )
 
 
-dependencies = [
-    Dependency(
-        display_name="ONNX",
-        pypi_name="onnx",
-        version="1.13.0",
-        size_estimate=12 * MB,
-    ),
-]
+def get_onnx_optimizer():
+    if is_arm_mac:
+        return []
 
-if not is_arm_mac:
-    dependencies.append(
+    return [
         Dependency(
             display_name="ONNX Optimizer",
             pypi_name="onnxoptimizer",
             version="0.3.6",
             size_estimate=300 * KB,
         )
-    )
+    ]
 
-dependencies.extend(
-    [
+
+package = add_package(
+    __file__,
+    name="ONNX",
+    description="ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.",
+    dependencies=[
+        Dependency(
+            display_name="ONNX",
+            pypi_name="onnx",
+            version="1.13.0",
+            size_estimate=12 * MB,
+        ),
+        *get_onnx_optimizer(),
         get_onnx_runtime(),
         Dependency(
             display_name="Protobuf",
@@ -72,15 +77,7 @@ dependencies.extend(
             size_estimate=275 * KB,
             import_name="re2",
         ),
-    ]
-)
-
-
-package = add_package(
-    __file__,
-    name="ONNX",
-    description="ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.",
-    dependencies=dependencies,
+    ],
 )
 
 onnx_category = package.add_category(
