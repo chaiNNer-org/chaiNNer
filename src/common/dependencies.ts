@@ -1,15 +1,15 @@
 import { Version } from './common-types';
 
 export interface PyPiPackage {
-    displayName?: string;
+    displayName: string;
     pypiName: string;
     version: Version;
-    findLink?: string;
+    findLink?: string | null;
     /**
      * A size estimate (in bytes) for the whl file to download.
      */
     sizeEstimate: number;
-    autoUpdate?: boolean;
+    autoUpdate: boolean;
 }
 export interface Package {
     name: string;

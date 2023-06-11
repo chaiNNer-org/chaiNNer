@@ -3,14 +3,9 @@ import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './i18n';
 import { useTranslation } from 'react-i18next';
-import { log } from '../common/log';
 import { ipcRenderer } from '../common/safeIpc';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
-import { useAsyncEffect } from './hooks/useAsyncEffect';
-import {
-    useBackendEventSource,
-    useBackendEventSourceListener,
-} from './hooks/useBackendEventSource';
+
 import { theme } from './splashTheme';
 
 const Splash = memo(() => {
@@ -19,36 +14,6 @@ const Splash = memo(() => {
     const [status, setStatus] = useState(t('splash.loading', 'Loading...'));
     const [statusProgress, setStatusProgress] = useState<null | number>(null);
     const [overallProgress, setOverallProgress] = useState(0);
-
-    const [port, setPort] = useState<number>(8000);
-    useAsyncEffect(
-        () => ({ supplier: () => ipcRenderer.invoke('get-port'), successEffect: setPort }),
-        []
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [eventSource, eventSourceStatus] = useBackendEventSource(port);
-    useBackendEventSourceListener(eventSource, 'backend-status', (d) => {
-        log.info('🚀 ~ file: splash.tsx:31 ~ useBackendEventSourceListener ~ d:', d);
-        if (d) {
-            if (d.message) {
-                setStatus(d.message);
-            }
-            if (d.percent) {
-                setStatusProgress(d.percent);
-                setOverallProgress(d.percent);
-            }
-        }
-    });
-
-    const [backendReady, setBackendReady] = useState(false);
-
-    useBackendEventSourceListener(eventSource, 'backend-ready', () => {
-        if (!backendReady) {
-            setBackendReady(true);
-            ipcRenderer.send('backend-ready');
-        }
-    });
 
     // Register event listeners
     useEffect(() => {
