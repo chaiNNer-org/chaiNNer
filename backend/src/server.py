@@ -490,7 +490,7 @@ async def setup(sanic_app: Sanic):
     )
 
     # Now we can install the other dependencies
-    importlib.import_module("dependencies.install_other_deps")
+    importlib.import_module("dependencies.install_core_deps")
 
     await AppContext.get(sanic_app).setup_queue.put_and_wait(
         {
