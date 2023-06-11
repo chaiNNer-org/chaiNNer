@@ -1,10 +1,10 @@
 import subprocess
 import sys
-from typing import List, TypedDict, Union
+from typing import Dict, List, TypedDict, Union
 
 python_path = sys.executable
 
-installed_packages = {}
+installed_packages: Dict[str, Union[str, None]] = {}
 
 
 class DependencyInfo(TypedDict):

@@ -19,7 +19,7 @@ const Splash = memo(() => {
     useEffect(() => {
         ipcRenderer.on('splash-setup-progress', (event, progress) => {
             setOverallProgress(progress.totalProgress);
-            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress / 2 : null);
+            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress : null);
 
             if (progress.status) {
                 setStatus(progress.status);

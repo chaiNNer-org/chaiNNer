@@ -94,11 +94,9 @@ export const Main = memo(({ port }: MainProps) => {
         return () => clearInterval(interval);
     }, [periodicRefresh, refreshNodes]);
 
-    const [retryCount, setRetryCount] = useState(25);
-
     const { loading, error, data, response } = useFetch<BackendNodesResponse>(
         `http://localhost:${port}/nodes`,
-        { cachePolicy: CachePolicies.NO_CACHE, cache: 'no-cache', retries: retryCount },
+        { cachePolicy: CachePolicies.NO_CACHE, cache: 'no-cache', retries: 25 },
         [port, nodesRefreshCounter]
     );
 
@@ -147,11 +145,6 @@ export const Main = memo(({ port }: MainProps) => {
             });
         }
     }, [response, data, loading, error, backendReady, sendAlert, t]);
-
-    useIpcRendererListener('backend-started', () => {
-        // We know the backend is good at this point, so we can set the retry count to a high number
-        setRetryCount(9999);
-    });
 
     useIpcRendererListener('backend-ready', () => {
         // Refresh the nodes once the backend is ready
