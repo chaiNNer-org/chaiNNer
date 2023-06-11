@@ -1,6 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
+import { t } from 'i18next';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
@@ -369,7 +370,10 @@ export const createMainWindow = async (args: OpenArguments) => {
         });
 
         sse.addEventListener('backend-ready', () => {
-            progressController.submitProgress({ totalProgress: 1 });
+            progressController.submitProgress({
+                totalProgress: 1,
+                status: t('splash.loadingApp', 'Loading main application...'),
+            });
 
             if (mainWindow.isDestroyed()) {
                 dialog.showMessageBoxSync({
@@ -390,10 +394,6 @@ export const createMainWindow = async (args: OpenArguments) => {
                 checkForUpdate();
             }
         });
-
-        // progressController.submitProgress({
-        //     status: t('splash.loadingApp', 'Loading main application...'),
-        // });
 
         if (mainWindow.isDestroyed()) {
             return;
