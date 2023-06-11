@@ -1,4 +1,26 @@
 const AdmZip = require('adm-zip');
+const fs = require('fs');
+const path = require('path');
+
+const deletePycFiles = (directory) => {
+    fs.readdir(directory, { withFileTypes: true }, (err, files) => {
+        if (err) throw err;
+
+        files.forEach((file) => {
+            const fullPath = path.join(directory, file.name);
+
+            if (file.isDirectory()) {
+                if (file.name === '__pycache__') {
+                    fs.rm(fullPath, { recursive: true, force: true });
+                } else {
+                    deletePycFiles(fullPath);
+                }
+            } else if (file.isFile() && path.extname(file.name) === '.pyc') {
+                fs.unlink(fullPath);
+            }
+        });
+    });
+};
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
@@ -89,6 +111,11 @@ const config = {
         },
     ],
     hooks: {
+        prePackage: async () => {
+            // delete all .pyc files from backend folder, recursively
+            const backendPath = path.join(__dirname, 'backend/src');
+            deletePycFiles(backendPath);
+        },
         postMake: async (forgeConfig, makeResults) => {
             const justArtifacts = makeResults.map((m) => m.artifacts).reduce((a, b) => a.concat(b));
             const zipArtifact = justArtifacts.find((a) => a.endsWith('.zip'));
