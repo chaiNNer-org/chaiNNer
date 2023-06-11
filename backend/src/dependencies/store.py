@@ -1,6 +1,6 @@
 import subprocess
 import sys
-from typing import List, TypedDict
+from typing import List, TypedDict, Union
 
 python_path = sys.executable
 
@@ -11,10 +11,12 @@ installed_packages = {}
 
 class DependencyInfo(TypedDict):
     package_name: str
-    version: str
+    version: Union[str, None]
 
 
-def pin(package_name: str, version: str) -> str:
+def pin(package_name: str, version: Union[str, None]) -> str:
+    if version is None:
+        return package_name
     return f"{package_name}=={version}"
 
 
@@ -25,7 +27,6 @@ def install_dependencies(dependency_info_array: List[DependencyInfo]):
             "-m",
             "pip",
             "install",
-            "--upgrade",
             *[
                 pin(dep_info["package_name"], dep_info["version"])
                 for dep_info in dependency_info_array

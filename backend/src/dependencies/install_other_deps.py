@@ -49,6 +49,6 @@ deps: List[DependencyInfo] = [
 if is_arm_mac:
     deps.append({"package_name": "pasteboard", "version": "0.3.3"})
 elif is_windows:
-    deps.append({"package_name": "pywin32", "version": "304"})
+    deps.append({"package_name": "pywin32", "version": None})
 
 install_version_checked_dependencies(deps)
