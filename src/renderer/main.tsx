@@ -29,7 +29,6 @@ import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
-
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
