@@ -5,7 +5,6 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import { ipcRenderer } from '../common/safeIpc';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
-
 import { theme } from './splashTheme';
 
 const Splash = memo(() => {
