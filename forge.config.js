@@ -11,12 +11,12 @@ const deletePycFiles = (directory) => {
 
             if (file.isDirectory()) {
                 if (file.name === '__pycache__') {
-                    fs.rm(fullPath, { recursive: true, force: true });
+                    fs.rm(fullPath, { recursive: true, force: true }, () => {});
                 } else {
                     deletePycFiles(fullPath);
                 }
             } else if (file.isFile() && path.extname(file.name) === '.pyc') {
-                fs.unlink(fullPath);
+                fs.unlink(fullPath, () => {});
             }
         });
     });
