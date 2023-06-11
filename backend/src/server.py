@@ -93,6 +93,13 @@ class ZeroCounter:
 
 runIndividualCounter = ZeroCounter()
 
+setup_task = None
+
+
+async def nodes_available():
+    if setup_task is not None:
+        await setup_task
+
 
 access_logger.addFilter(SSEFilter())
 
@@ -100,8 +107,7 @@ access_logger.addFilter(SSEFilter())
 @app.route("/nodes")
 async def nodes(_request: Request):
     """Gets a list of all nodes as well as the node information"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     logger.debug(api.registry.categories)
 
     node_list = []
@@ -140,14 +146,10 @@ class RunRequest(TypedDict):
     sendBroadcastData: bool
 
 
-setup_task = None
-
-
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
     """Runs the provided nodes"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
 
     if ctx.executor:
@@ -220,8 +222,7 @@ class RunIndividualRequest(TypedDict):
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
     try:
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
@@ -274,8 +275,7 @@ async def run_individual(request: Request):
 
 @app.route("/clearcache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
     try:
         full_data = dict(request.json)  # type: ignore
@@ -290,8 +290,7 @@ async def clear_cache_individual(request: Request):
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
     """Pauses the current execution"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
@@ -311,8 +310,7 @@ async def pause(request: Request):
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
     """Pauses the current execution"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
@@ -332,8 +330,7 @@ async def resume(request: Request):
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
     """Kills the current execution"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
@@ -355,8 +352,7 @@ async def kill(request: Request):
 @app.route("/listgpus/ncnn", methods=["GET"])
 async def list_ncnn_gpus(_request: Request):
     """Lists the available GPUs for NCNN"""
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     try:
         # pylint: disable=import-outside-toplevel
         from ncnn_vulkan import ncnn
@@ -380,8 +376,7 @@ async def python_info(_request: Request):
 
 @app.route("/dependencies", methods=["GET"])
 async def get_dependencies(_request: Request):
-    if setup_task is not None:
-        await setup_task
+    await nodes_available()
     all_dependencies = []
     for package in api.registry.packages.values():
         pkg_dependencies = [x.toDict() for x in package.dependencies]
