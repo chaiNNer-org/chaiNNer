@@ -6,7 +6,7 @@ import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
 import { sanitizedEnv } from '../../common/env';
 import { log } from '../../common/log';
-import { lazy } from '../../common/util';
+import { delay, lazy } from '../../common/util';
 
 const getBackendPath = lazy((): string => {
     const candidates: string[] = [
@@ -186,7 +186,24 @@ export class BorrowedBackendProcess implements BaseBackendProcess {
 
     static async fromPort(port: number): Promise<BorrowedBackendProcess> {
         const backend = getBackend(port);
-        const python = await backend.pythonInfo();
+        let python: PythonInfo | undefined;
+        // try a few times to get python info, in case backend is still starting up
+        const maxTries = 50;
+        const startSleep = 1;
+        const maxSleep = 250;
+
+        for (let i = 0; i < maxTries; i += 1) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                python = await backend.pythonInfo();
+            } catch {
+                // eslint-disable-next-line no-await-in-loop
+                await delay(Math.max(maxSleep, startSleep * 2 ** i));
+            }
+        }
+        if (!python) {
+            throw new Error('Unable to get python info from backend');
+        }
         return new BorrowedBackendProcess(port, python);
     }
 }

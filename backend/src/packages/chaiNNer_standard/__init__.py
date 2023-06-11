@@ -2,7 +2,12 @@ from sanic.log import logger
 
 from api import add_package
 
-package = add_package(__file__, name="chaiNNer_standard", dependencies=[])
+package = add_package(
+    __file__,
+    name="chaiNNer_standard",
+    description="The standard set of nodes for chaiNNer.",
+    dependencies=[],
+)
 
 image_category = package.add_category(
     name="Image",
