@@ -46,10 +46,12 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
+from server_config import ServerConfig
 
 
 class AppContext:
     def __init__(self):
+        self.config: ServerConfig = None  # type: ignore
         self.executor: Optional[Executor] = None
         self.cache: Dict[NodeId, Output] = dict()
         # This will be initialized by after_server_start.
@@ -57,7 +59,6 @@ class AppContext:
         self.queue: EventQueue = None  # type: ignore
         self.setup_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
-        self.registry = api.registry
 
     @staticmethod
     def get(app_instance: Sanic) -> "AppContext":
@@ -465,8 +466,10 @@ async def setup_sse(request: Request):
 
 
 async def setup(sanic_app: Sanic):
+    setup_queue = AppContext.get(sanic_app).setup_queue
+
     logger.info("Starting setup...")
-    await AppContext.get(sanic_app).setup_queue.put_and_wait(
+    await setup_queue.put_and_wait(
         {
             "event": "backend-started",
             "data": None,
@@ -474,7 +477,7 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await AppContext.get(sanic_app).setup_queue.put_and_wait(
+    await setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Installing dependencies...", "percent": 0.0},
@@ -485,7 +488,7 @@ async def setup(sanic_app: Sanic):
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_core_deps")
 
-    await AppContext.get(sanic_app).setup_queue.put_and_wait(
+    await setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 0.75},
@@ -501,7 +504,7 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Sending backend ready...")
 
-    await AppContext.get(sanic_app).setup_queue.put_and_wait(
+    await setup_queue.put_and_wait(
         {
             "event": "backend-status",
             "data": {"message": "Loading Nodes...", "percent": 1},
@@ -509,7 +512,7 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await AppContext.get(sanic_app).setup_queue.put_and_wait(
+    await setup_queue.put_and_wait(
         {
             "event": "backend-ready",
             "data": None,
@@ -520,24 +523,49 @@ async def setup(sanic_app: Sanic):
     logger.info("Done.")
 
 
+exit_code = 0
+
+
+async def close_server(sanic_app: Sanic):
+    # pylint: disable=global-statement
+    global exit_code
+
+    try:
+        await nodes_available()
+        exit_code = 0
+    except Exception as ex:
+        logger.error(f"Error waiting for server to start: {ex}")
+        exit_code = 1
+
+    # now we can close the server
+    logger.info("Closing server...")
+    sanic_app.stop()
+
+
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # pylint: disable=global-statement
     global setup_task
-    AppContext.get(sanic_app).queue = EventQueue()
-    AppContext.get(sanic_app).setup_queue = EventQueue()
+
+    # initialize the queues
+    ctx = AppContext.get(sanic_app)
+    ctx.queue = EventQueue()
+    ctx.setup_queue = EventQueue()
+
+    # start the setup task
     setup_task = loop.create_task(setup(sanic_app))
+
+    # start task to close the server
+    if ctx.config.close_after_start:
+        loop.create_task(close_server(sanic_app))
 
 
 def main():
-    try:
-        port = int(sys.argv[1]) or 8000
-    except:
-        port = 8000
-    print(sys.argv)
-    if len(sys.argv) > 1 and sys.argv[1] == "--no-run":
-        sys.exit()
-    app.run(port=port, single_process=True)
+    config = ServerConfig.parse_argv()
+    AppContext.get(app).config = config
+    app.run(port=config.port, single_process=True)
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":
