@@ -8,7 +8,14 @@ from .store import DependencyInfo, install_dependencies, installed_packages, pyt
 # We can't rely on using the package's __version__ attribute because not all packages actually have it
 try:
     pip_list = subprocess.check_output(
-        [python_path, "-m", "pip", "list", "--format=json"]
+        [
+            python_path,
+            "-m",
+            "pip",
+            "list",
+            "--format=json",
+            "--disable-pip-version-check",
+        ]
     )
     for p in json_parse(pip_list):
         installed_packages[p["name"]] = p["version"]
