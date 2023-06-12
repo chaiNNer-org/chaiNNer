@@ -466,68 +466,64 @@ async def setup_sse(request: Request):
 
 
 async def setup(sanic_app: Sanic):
-    try:
-        setup_queue = AppContext.get(sanic_app).setup_queue
+    setup_queue = AppContext.get(sanic_app).setup_queue
 
-        logger.info("Starting setup...")
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-started",
-                "data": None,
-            },
-            timeout=1,
-        )
+    logger.info("Starting setup...")
+    await setup_queue.put_and_wait(
+        {
+            "event": "backend-started",
+            "data": None,
+        },
+        timeout=1,
+    )
 
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-status",
-                "data": {"message": "Installing dependencies...", "percent": 0.0},
-            },
-            timeout=1,
-        )
+    await setup_queue.put_and_wait(
+        {
+            "event": "backend-status",
+            "data": {"message": "Installing dependencies...", "percent": 0.0},
+        },
+        timeout=1,
+    )
 
-        # Now we can install the other dependencies
-        importlib.import_module("dependencies.install_core_deps")
+    # Now we can install the other dependencies
+    importlib.import_module("dependencies.install_core_deps")
 
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-status",
-                "data": {"message": "Loading Nodes...", "percent": 0.75},
-            },
-            timeout=1,
-        )
+    await setup_queue.put_and_wait(
+        {
+            "event": "backend-status",
+            "data": {"message": "Loading Nodes...", "percent": 0.75},
+        },
+        timeout=1,
+    )
 
-        logger.info("Loading nodes...")
+    logger.info("Loading nodes...")
 
-        # Now we can load all the nodes
-        # TODO: Pass in a callback func for updating progress
-        import_packages()
+    # Now we can load all the nodes
+    # TODO: Pass in a callback func for updating progress
+    import_packages()
 
-        logger.info("Sending backend ready...")
+    logger.info("Sending backend ready...")
 
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-status",
-                "data": {"message": "Loading Nodes...", "percent": 1},
-            },
-            timeout=1,
-        )
+    await setup_queue.put_and_wait(
+        {
+            "event": "backend-status",
+            "data": {"message": "Loading Nodes...", "percent": 1},
+        },
+        timeout=1,
+    )
 
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-ready",
-                "data": None,
-            },
-            timeout=1,
-        )
+    await setup_queue.put_and_wait(
+        {
+            "event": "backend-ready",
+            "data": None,
+        },
+        timeout=1,
+    )
 
-        logger.info("Done.")
-    except Exception as ex:
-        logger.error(f"Error during setup: {ex}")
-        sys.exit(1)
+    logger.info("Done.")
 
 
-async def close_server():
+async def close_server(sanic_app: Sanic):
     try:
         await nodes_available()
     except Exception as ex:
@@ -536,7 +532,7 @@ async def close_server():
 
     # now we can close the server
     logger.info("Closing server...")
-    sys.exit(0)
+    sanic_app.stop()
 
 
 @app.after_server_start
@@ -554,7 +550,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     # start task to close the server
     if ctx.config.close_after_start:
-        loop.create_task(close_server())
+        loop.create_task(close_server(sanic_app))
 
 
 def main():
