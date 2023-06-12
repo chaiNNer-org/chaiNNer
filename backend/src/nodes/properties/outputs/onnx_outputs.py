@@ -1,7 +1,7 @@
 import navi
+from nodes.base_output import BaseOutput
 
 from ...impl.onnx.model import OnnxModel
-from .base_output import BaseOutput
 
 
 class OnnxModelOutput(BaseOutput):

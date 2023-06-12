@@ -1,9 +1,9 @@
 from typing import List, Literal, Tuple, Union
 
 import navi
+from nodes.base_input import BaseInput, InputConversion, InputKind
 
 from ...utils.utils import round_half_up
-from .base_input import BaseInput, InputConversion, InputKind
 
 
 def clampNumber(

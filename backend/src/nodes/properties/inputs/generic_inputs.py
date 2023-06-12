@@ -9,6 +9,7 @@ import numpy as np
 from sanic.log import logger
 
 import navi
+from nodes.base_input import BaseInput, InputConversion
 
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
@@ -23,7 +24,6 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
-from .base_input import BaseInput, InputConversion
 from .numeric_inputs import NumberInput
 
 

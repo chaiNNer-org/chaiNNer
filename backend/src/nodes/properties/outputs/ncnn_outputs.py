@@ -1,8 +1,8 @@
 import navi
+from nodes.base_output import BaseOutput, OutputKind
 
 from ...impl.ncnn.model import NcnnModelWrapper
 from ...utils.format import format_channel_numbers
-from .base_output import BaseOutput, OutputKind
 
 
 class NcnnModelOutput(BaseOutput):

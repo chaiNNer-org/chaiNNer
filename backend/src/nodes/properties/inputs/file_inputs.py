@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 from typing import Literal, Union
 
+from nodes.base_input import BaseInput
+
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
-from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 
 FileInputKind = Union[

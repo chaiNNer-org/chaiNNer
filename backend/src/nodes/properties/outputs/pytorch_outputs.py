@@ -1,10 +1,10 @@
 from typing import List
 
 import navi
+from nodes.base_output import BaseOutput, OutputKind
 
 from ...impl.pytorch.types import PyTorchModel
 from ...utils.format import format_channel_numbers
-from .base_output import BaseOutput, OutputKind
 
 
 def _get_sizes(value: PyTorchModel) -> List[str]:

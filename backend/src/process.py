@@ -18,7 +18,7 @@ from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
 from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
-from nodes.properties.outputs.base_output import BaseOutput
+from nodes.base_output import BaseOutput
 from nodes.utils.utils import get_h_w_c
 from progress_controller import Aborted, ProgressController, ProgressToken
 

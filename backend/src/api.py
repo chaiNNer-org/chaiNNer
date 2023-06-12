@@ -9,9 +9,9 @@ from sanic.log import logger
 
 from base_types import InputId, OutputId
 from custom_types import NodeType, RunFn
+from nodes.base_input import BaseInput
+from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.properties.inputs.base_input import BaseInput
-from nodes.properties.outputs.base_output import BaseOutput
 from type_checking import (
     TypeCheckLevel,
     TypeMismatchError,

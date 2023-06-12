@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Union
 
 import navi
+from nodes.base_output import BaseOutput
 
 from ...impl.color.color import Color
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
-from .base_output import BaseOutput
 
 
 class NumberOutput(BaseOutput):

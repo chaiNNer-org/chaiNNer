@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import navi
-
-from .base_output import BaseOutput
+from nodes.base_output import BaseOutput
 
 
 class DirectoryOutput(BaseOutput):
