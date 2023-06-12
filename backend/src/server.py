@@ -543,7 +543,7 @@ async def close_server(sanic_app: Sanic):
     finally:
         # now we can close the server
         logger.info("Closing server...")
-        sanic_app.stop()
+        sys.exit(0)
 
 
 @app.after_server_start
