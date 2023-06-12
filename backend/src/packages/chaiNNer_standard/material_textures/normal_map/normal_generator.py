@@ -5,7 +5,6 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from nodes.impl.image_utils import get_h_w_c
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels
 from nodes.impl.normals.height import HeightSource, get_height_map
 from nodes.properties import expression
@@ -16,6 +15,7 @@ from nodes.properties.inputs import (
     SliderInput,
 )
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
 
 from .. import normal_map_group
 
