@@ -523,20 +523,9 @@ async def setup(sanic_app: Sanic):
     logger.info("Done.")
 
 
-async def close_server(sanic_app: Sanic):
-    config = AppContext.get(sanic_app).config
-    pool = AppContext.get(sanic_app).pool
-
+async def close_server():
     try:
         await nodes_available()
-
-        def get_nodes():
-            import requests
-
-            requests.get(f"http://127.0.0.1:{config.port}/nodes", timeout=60)
-
-        # make a request to /nodes to make sure the server is up
-        await sanic_app.loop.run_in_executor(pool, get_nodes)
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
         sys.exit(1)
@@ -561,7 +550,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     # start task to close the server
     if ctx.config.close_after_start:
-        loop.create_task(close_server(sanic_app))
+        loop.create_task(close_server())
 
 
 def main():
