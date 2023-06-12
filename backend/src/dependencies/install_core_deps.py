@@ -41,8 +41,22 @@ deps: List[DependencyInfo] = [
         "package_name": "scipy",
         "version": "1.9.3",
     },
-    {"package_name": "pynvml", "version": "11.5.0"},
-    {"package_name": "typing_extensions", "version": "4.6.2"},
+    {
+        "package_name": "pynvml",
+        "version": "11.5.0",
+    },
+    {
+        "package_name": "typing_extensions",
+        "version": "4.6.2",
+    },
+    {
+        "package_name": "opencv-python",
+        "version": "4.7.0.68",
+    },
+    {
+        "package_name": "Pillow",
+        "version": "9.2.0",
+    },
 ]
 
 if is_arm_mac:
