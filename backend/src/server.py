@@ -539,6 +539,7 @@ async def close_server(sanic_app: Sanic):
         await sanic_app.loop.run_in_executor(pool, get_nodes)
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
+        sys.exit(1)
     finally:
         # now we can close the server
         logger.info("Closing server...")
