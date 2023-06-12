@@ -527,10 +527,12 @@ exit_code = 0
 
 
 async def close_server(sanic_app: Sanic):
+    # pylint: disable=global-statement
     global exit_code
 
     try:
         await nodes_available()
+        exit_code = 0
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
         exit_code = 1
@@ -559,8 +561,6 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
 
 def main():
-    global exit_code
-
     config = ServerConfig.parse_argv()
     AppContext.get(app).config = config
     app.run(port=config.port, single_process=True)
