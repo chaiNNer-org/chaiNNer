@@ -41,7 +41,7 @@ def install_dependencies_impl(dependency_info_array: List[DependencyInfo]):
 
 
 def coerce_semver(version: str) -> Tuple[int, int, int]:
-    regex = r"(\d+)\.(\d+)\.(\d+)"
+    regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
     match = re.search(regex, version)
     if match:
         return (
