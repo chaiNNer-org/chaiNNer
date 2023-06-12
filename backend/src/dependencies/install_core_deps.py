@@ -44,6 +44,7 @@ deps: List[DependencyInfo] = [
     },
     {"package_name": "pynvml", "version": "11.5.0"},
     {"package_name": "typing_extensions", "version": "4.6.2"},
+    {"package_name": "wcmatch", "version": "8.4.1"},
 ]
 
 if is_arm_mac:
