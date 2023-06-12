@@ -1,25 +1,29 @@
 const AdmZip = require('adm-zip');
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
 
-const deletePycFiles = (directory) => {
-    fs.readdir(directory, { withFileTypes: true }, (err, files) => {
-        if (err) throw err;
+const deletePycFiles = async (directory) => {
+    try {
+        const files = await fs.readdir(directory, { withFileTypes: true });
+        await Promise.all(
+            files.map(async (file) => {
+                const fullPath = path.join(directory, file.name);
 
-        files.forEach((file) => {
-            const fullPath = path.join(directory, file.name);
-
-            if (file.isDirectory()) {
-                if (file.name === '__pycache__') {
-                    fs.rm(fullPath, { recursive: true, force: true });
-                } else {
-                    deletePycFiles(fullPath);
+                if (file.isDirectory()) {
+                    if (file.name === '__pycache__') {
+                        await fs.rm(fullPath, { recursive: true, force: true });
+                    } else {
+                        await deletePycFiles(fullPath);
+                    }
+                } else if (file.isFile() && path.extname(file.name) === '.pyc') {
+                    await fs.unlink(fullPath);
                 }
-            } else if (file.isFile() && path.extname(file.name) === '.pyc') {
-                fs.unlink(fullPath);
-            }
-        });
-    });
+            })
+        );
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 };
 
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
@@ -114,7 +118,7 @@ const config = {
         prePackage: async () => {
             // delete all .pyc files from backend folder, recursively
             const backendPath = path.join(__dirname, 'backend/src');
-            deletePycFiles(backendPath);
+            await deletePycFiles(backendPath);
         },
         postMake: async (forgeConfig, makeResults) => {
             const justArtifacts = makeResults.map((m) => m.artifacts).reduce((a, b) => a.concat(b));
