@@ -7,8 +7,8 @@ import numpy as np
 import navi
 
 from ...impl.color.color import Color
-from ...impl.image_utils import get_h_w_c
 from ...utils.format import format_color_with_channels, format_image_with_channels
+from ...utils.utils import get_h_w_c
 from .base_input import BaseInput
 
 
