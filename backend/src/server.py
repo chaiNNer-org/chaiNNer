@@ -525,14 +525,18 @@ async def setup(sanic_app: Sanic):
 
 async def close_server(sanic_app: Sanic):
     config = AppContext.get(sanic_app).config
+    pool = AppContext.get(sanic_app).pool
 
     try:
         await nodes_available()
 
-        import requests
+        def get_nodes():
+            import requests
+
+            requests.get(f"http://127.0.0.1:{config.port}/nodes", timeout=60)
 
         # make a request to /nodes to make sure the server is up
-        requests.get(f"http://127.0.0.1:{config.port}/nodes", timeout=60)
+        await sanic_app.loop.run_in_executor(pool, get_nodes)
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
     finally:
