@@ -4,8 +4,6 @@ import os
 from typing import List, Tuple
 
 import numpy as np
-from sanic.log import logger
-
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import DirectoryInput, IteratorInput, TextInput
 from nodes.properties.outputs import (
@@ -14,13 +12,33 @@ from nodes.properties.outputs import (
     NumberOutput,
     TextOutput,
 )
-from nodes.utils.utils import list_glob
 from process import IteratorContext
+from sanic.log import logger
+from wcmatch import glob
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
+
+
+def extension_filter(lst: List[str]) -> str:
+    """generates a mcmatch.glob expression to filter files with specific extensions
+    ex. {*,**/*}@(*.png|*.jpg|...)"""
+    return "{*,**/*}@(*" + "|*".join(lst) + ")"
+
+
+def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
+    directory_expr = os.path.join(directory, globexpr)
+    extension_expr = os.path.join(directory, extension_filter(ext_filter))
+
+    filtered = glob.globfilter(
+        glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
+        extension_expr,
+        flags=glob.EXTGLOB | glob.BRACE,
+    )
+
+    return list(map(str, filtered))
 
 
 @batch_processing_group.register(

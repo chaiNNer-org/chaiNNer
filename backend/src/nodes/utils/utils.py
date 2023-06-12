@@ -8,7 +8,6 @@ from typing import List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
-from wcmatch import glob
 
 Size = Tuple[int, int]
 """
@@ -113,25 +112,6 @@ def list_all_files_sorted(
             if ext_filter is None or ext.lower() in ext_filter:
                 just_files.append(filepath)
     return just_files
-
-
-def extension_filter(lst: List[str]) -> str:
-    """generates a mcmatch.glob expression to filter files with specific extensions
-    ex. {*,**/*}@(*.png|*.jpg|...)"""
-    return "{*,**/*}@(*" + "|*".join(lst) + ")"
-
-
-def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
-    directory_expr = os.path.join(directory, globexpr)
-    extension_expr = os.path.join(directory, extension_filter(ext_filter))
-
-    filtered = glob.globfilter(
-        glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
-        extension_expr,
-        flags=glob.EXTGLOB | glob.BRACE,
-    )
-
-    return list(map(str, filtered))
 
 
 @dataclass(frozen=True)
