@@ -29,14 +29,6 @@ deps: List[DependencyInfo] = [
         "package_name": "numpy",
         "version": "1.23.2",
     },
-    {
-        "package_name": "opencv-python",
-        "version": "4.7.0.68",
-    },
-    {
-        "package_name": "Pillow",
-        "version": "9.2.0",
-    },
 ]
 
 install_dependencies(deps)

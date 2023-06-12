@@ -5,9 +5,8 @@ from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
 import navi
 from base_types import InputId
-
-from .group import NestedGroup, group
-from .properties.inputs.base_input import BaseInput
+from nodes.base_input import BaseInput
+from nodes.group import NestedGroup, group
 
 InputValue = Union[int, str]
 EnumValues = Union[

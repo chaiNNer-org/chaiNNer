@@ -1,5 +1,6 @@
+from nodes.base_input import BaseInput
+
 from ...impl.ncnn.model import NcnnModelWrapper
-from .base_input import BaseInput
 
 
 class NcnnModelInput(BaseInput):

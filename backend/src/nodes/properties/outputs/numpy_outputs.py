@@ -5,12 +5,12 @@ import cv2
 import numpy as np
 
 import navi
+from nodes.base_output import BaseOutput, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c
-from .base_output import BaseOutput, OutputKind
 
 
 class NumPyOutput(BaseOutput):
