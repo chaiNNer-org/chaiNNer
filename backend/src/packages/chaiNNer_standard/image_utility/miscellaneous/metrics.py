@@ -6,6 +6,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
+from lazy import Lazy
 from nodes.impl.image_utils import calculate_ssim
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import NumberOutput
@@ -33,7 +34,7 @@ from .. import miscellaneous_group
 )
 def image_metrics_node(
     orig_img: np.ndarray, comp_img: np.ndarray
-) -> Tuple[float, float, float]:
+) -> Tuple[Lazy[float], Lazy[float], Lazy[float]]:
     """Compute MSE, PSNR, and SSIM"""
 
     assert (
@@ -47,8 +48,8 @@ def image_metrics_node(
         orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
         comp_img = cv2.cvtColor(comp_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
 
-    mse = round(np.mean((comp_img - orig_img) ** 2), 6)  # type: ignore
-    psnr = round(10 * math.log(1 / mse), 6)
-    ssim = round(calculate_ssim(comp_img, orig_img), 6)
+    mse = Lazy(lambda: round(float(np.mean((comp_img - orig_img) ** 2)), 6))  # type: ignore
+    psnr = Lazy(lambda: round(10 * math.log(1 / mse.value), 6))
+    ssim = Lazy(lambda: round(calculate_ssim(comp_img, orig_img), 6))
 
-    return (float(mse), float(psnr), ssim)
+    return (mse, psnr, ssim)
