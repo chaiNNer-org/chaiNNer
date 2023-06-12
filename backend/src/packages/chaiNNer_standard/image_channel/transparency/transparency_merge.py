@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -22,7 +22,7 @@ from . import node_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width & Input1.width",
                 height="Input0.height & Input1.height",
             ),

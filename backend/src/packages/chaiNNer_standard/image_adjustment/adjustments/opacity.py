@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.pil_utils import convert_to_BGRA
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -29,7 +29,7 @@ from .. import adjustments_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=4,
             assume_normalized=True,
         )

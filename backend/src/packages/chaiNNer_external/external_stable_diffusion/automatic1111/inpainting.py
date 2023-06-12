@@ -5,6 +5,7 @@ from typing import Optional
 
 import numpy as np
 
+import navi
 from nodes.groups import if_enum_group, seed_group
 from nodes.impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
@@ -20,7 +21,6 @@ from nodes.impl.external_stable_diffusion import (
     verify_api_connection,
 )
 from nodes.node_cache import cached
-from nodes.properties import expression
 from nodes.properties.inputs import (
     BoolInput,
     EnumInput,
@@ -50,7 +50,7 @@ class InpaintArea(Enum):
     icon="MdChangeCircle",
     inputs=[
         ImageInput(),
-        ImageInput("Mask", channels=1, image_type=expression.Image(size_as="Input0")),
+        ImageInput("Mask", channels=1, image_type=navi.Image(size_as="Input0")),
         TextInput("Prompt", multiline=True).make_optional(),
         TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(

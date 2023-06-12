@@ -3,10 +3,10 @@ from __future__ import annotations
 from enum import Enum
 from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
+import navi
 from base_types import InputId
 
 from .group import NestedGroup, group
-from .properties.expression import ExpressionJson
 from .properties.inputs.base_input import BaseInput
 
 InputValue = Union[int, str]
@@ -54,7 +54,7 @@ class _EnumConditionJson(TypedDict):
 class _TypeConditionJson(TypedDict):
     kind: Literal["type"]
     input: InputId
-    condition: ExpressionJson
+    condition: navi.ExpressionJson
 
 
 class Condition:
@@ -117,7 +117,7 @@ class Condition:
         )
 
     @staticmethod
-    def type(input_id: int, condition: ExpressionJson) -> Condition:
+    def type(input_id: int, condition: navi.ExpressionJson) -> Condition:
         """
         A condition to check whether a certain input is compatible a certain type.
         Here "compatible" is defined as overlapping.

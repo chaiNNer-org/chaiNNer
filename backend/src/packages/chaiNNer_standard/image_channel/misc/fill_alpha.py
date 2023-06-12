@@ -4,12 +4,12 @@ from enum import Enum
 
 import numpy as np
 
+import navi
 from nodes.impl.fill_alpha import (
     convert_to_binary_alpha,
     fill_alpha_edge_extend,
     fill_alpha_fragment_blur,
 )
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -33,7 +33,7 @@ class AlphaFillMethod(Enum):
     outputs=[
         ImageOutput(
             "RGB",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
     ],
