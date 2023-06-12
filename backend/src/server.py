@@ -540,10 +540,10 @@ async def close_server(sanic_app: Sanic):
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
         sys.exit(1)
-    finally:
-        # now we can close the server
-        logger.info("Closing server...")
-        sys.exit(0)
+
+    # now we can close the server
+    logger.info("Closing server...")
+    sys.exit(0)
 
 
 @app.after_server_start
