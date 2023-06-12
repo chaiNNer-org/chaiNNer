@@ -4,6 +4,9 @@ import os
 from typing import List, Tuple
 
 import numpy as np
+from sanic.log import logger
+from wcmatch import glob
+
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import DirectoryInput, IteratorInput, TextInput
 from nodes.properties.outputs import (
@@ -13,8 +16,6 @@ from nodes.properties.outputs import (
     TextOutput,
 )
 from process import IteratorContext
-from sanic.log import logger
-from wcmatch import glob
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
