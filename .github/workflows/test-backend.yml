@@ -35,6 +35,17 @@ jobs:
             - run: pip install -r requirements.txt
             - run: pytest ./backend/tests
 
+    backend-type-check-test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.9'
+            - run: python ./backend/src/run.py --close-after-start
+              env:
+                  TYPE_CHECK_LEVEL: 'error'
+
     backend-bootstrap:
         runs-on: ubuntu-latest
         strategy:
@@ -46,5 +57,3 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
             - run: python ./backend/src/run.py --close-after-start
-              env:
-                  TYPE_CHECK_LEVEL: 'error'
