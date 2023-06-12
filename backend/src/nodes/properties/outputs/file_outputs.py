@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .. import expression
-from .base_output import BaseOutput
+import navi
+from nodes.base_output import BaseOutput
 
 
 class DirectoryOutput(BaseOutput):
@@ -17,7 +17,7 @@ class DirectoryOutput(BaseOutput):
         super().__init__(directory_type, label, associated_type=str)
 
     def get_broadcast_type(self, value: str):
-        return expression.named("Directory", {"path": expression.literal(value)})
+        return navi.named("Directory", {"path": navi.literal(value)})
 
     def enforce(self, value) -> str:
         assert isinstance(value, str)

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Literal, Type, Union
 
+import navi
 from base_types import OutputId
-
-from .. import expression
 
 OutputKind = Literal["image", "large-image", "tagged", "generic"]
 
@@ -12,13 +11,13 @@ OutputKind = Literal["image", "large-image", "tagged", "generic"]
 class BaseOutput:
     def __init__(
         self,
-        output_type: expression.ExpressionJson,
+        output_type: navi.ExpressionJson,
         label: str,
         kind: OutputKind = "generic",
         has_handle: bool = True,
         associated_type: Union[Type, None] = None,
     ):
-        self.output_type: expression.ExpressionJson = output_type
+        self.output_type: navi.ExpressionJson = output_type
         self.label: str = label
         self.id: OutputId = OutputId(-1)
         self.never_reason: str | None = None
@@ -54,7 +53,7 @@ class BaseOutput:
     def get_broadcast_data(self, _value):
         return None
 
-    def get_broadcast_type(self, _value) -> expression.ExpressionJson | None:
+    def get_broadcast_type(self, _value) -> navi.ExpressionJson | None:
         return None
 
     def enforce(self, value: object) -> object:

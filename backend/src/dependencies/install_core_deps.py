@@ -2,8 +2,7 @@ from typing import List
 
 from system import is_arm_mac, is_windows
 
-from .store import DependencyInfo
-from .versioned_dependency_helpers import install_version_checked_dependencies
+from .store import DependencyInfo, install_dependencies
 
 # I'm leaving this here in case I can use the Dependency class in the future, so I don't lose the extra info
 
@@ -42,9 +41,26 @@ deps: List[DependencyInfo] = [
         "package_name": "scipy",
         "version": "1.9.3",
     },
-    {"package_name": "pynvml", "version": "11.5.0"},
-    {"package_name": "typing_extensions", "version": "4.6.2"},
-    {"package_name": "wcmatch", "version": "8.4.1"},
+    {
+        "package_name": "pynvml",
+        "version": "11.5.0",
+    },
+    {
+        "package_name": "typing_extensions",
+        "version": "4.6.2",
+    },
+    {
+        "package_name": "opencv-python",
+        "version": "4.7.0.68",
+    },
+    {
+        "package_name": "Pillow",
+        "version": "9.2.0",
+    },
+    {
+        "package_name": "wcmatch",
+        "version": "8.4.1",
+    },
 ]
 
 if is_arm_mac:
@@ -52,4 +68,4 @@ if is_arm_mac:
 elif is_windows:
     deps.append({"package_name": "pywin32", "version": None})
 
-install_version_checked_dependencies(deps)
+install_dependencies(deps)

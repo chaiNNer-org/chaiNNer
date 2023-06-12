@@ -349,14 +349,13 @@ export const createMainWindow = async (args: OpenArguments) => {
         const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
             withCredentials: true,
         });
+        sse.onopen = () => {
+            log.info('Successfully connected to setup SSE.');
+        };
 
         sse.addEventListener('backend-started', () => {
             mainWindow.webContents.send('backend-started');
         });
-
-        sse.onerror = (e) => {
-            log.error(e);
-        };
 
         const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {

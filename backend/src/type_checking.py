@@ -7,8 +7,8 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
 from custom_types import NodeType
-from nodes.properties.inputs.base_input import BaseInput
-from nodes.properties.outputs.base_output import BaseOutput
+from nodes.base_input import BaseInput
+from nodes.base_output import BaseOutput
 
 _Ty = NewType("_Ty", object)
 

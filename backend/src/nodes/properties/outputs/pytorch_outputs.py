@@ -1,9 +1,10 @@
 from typing import List
 
+import navi
+from nodes.base_output import BaseOutput, OutputKind
+
 from ...impl.pytorch.types import PyTorchModel
 from ...utils.format import format_channel_numbers
-from .. import expression
-from .base_output import BaseOutput, OutputKind
 
 
 def _get_sizes(value: PyTorchModel) -> List[str]:
@@ -49,7 +50,7 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
 class ModelOutput(BaseOutput):
     def __init__(
         self,
-        model_type: expression.ExpressionJson = "PyTorchModel",
+        model_type: navi.ExpressionJson = "PyTorchModel",
         label: str = "Model",
         kind: OutputKind = "generic",
     ):
@@ -65,15 +66,15 @@ class ModelOutput(BaseOutput):
         }
 
     def get_broadcast_type(self, value: PyTorchModel):
-        return expression.named(
+        return navi.named(
             "PyTorchModel",
             {
                 "scale": value.scale,
                 "inputChannels": value.in_nc,
                 "outputChannels": value.out_nc,
-                "arch": expression.literal(value.model_arch),
-                "subType": expression.literal(value.sub_type),
-                "size": expression.literal("x".join(_get_sizes(value))),
+                "arch": navi.literal(value.model_arch),
+                "subType": navi.literal(value.sub_type),
+                "size": navi.literal("x".join(_get_sizes(value))),
             },
         )
 
