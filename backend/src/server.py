@@ -20,10 +20,7 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
-from dependencies.store import DependencyInfo, installed_packages
-from dependencies.versioned_dependency_helpers import (
-    install_version_checked_dependencies,
-)
+from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
 from nodes.utils.exec_options import (
@@ -404,7 +401,7 @@ def import_packages():
                 }
                 for dep in dependencies
             ]
-            install_version_checked_dependencies(dep_info)
+            install_dependencies(dep_info)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
 

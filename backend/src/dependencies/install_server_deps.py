@@ -2,8 +2,7 @@ import subprocess
 from json import loads as json_parse
 from typing import List
 
-from .store import DependencyInfo, installed_packages, python_path
-from .versioned_dependency_helpers import install_version_checked_dependencies
+from .store import DependencyInfo, install_dependencies, installed_packages, python_path
 
 # Get the list of installed packages
 # We can't rely on using the package's __version__ attribute because not all packages actually have it
@@ -40,4 +39,4 @@ deps: List[DependencyInfo] = [
     },
 ]
 
-install_version_checked_dependencies(deps)
+install_dependencies(deps)
