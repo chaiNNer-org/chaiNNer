@@ -5,10 +5,10 @@ from enum import Enum
 import cv2
 import numpy as np
 
+import navi
 from nodes.impl.image_utils import get_h_w_c
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels
 from nodes.impl.normals.height import HeightSource, get_height_map
-from nodes.properties import expression
 from nodes.properties.inputs import (
     EnumInput,
     ImageInput,
@@ -106,7 +106,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=expression.Image(
+            image_type=navi.Image(
                 size_as="Input0",
                 channels="match Input7 { AlphaOutput::None => 3, _ => 4 }",
             ),

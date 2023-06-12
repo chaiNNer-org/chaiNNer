@@ -4,10 +4,11 @@ from typing import List, Optional, Union
 
 import numpy as np
 
+import navi
+
 from ...impl.color.color import Color
 from ...impl.image_utils import get_h_w_c
 from ...utils.format import format_color_with_channels, format_image_with_channels
-from .. import expression
 from .base_input import BaseInput
 
 
@@ -24,14 +25,14 @@ class ImageInput(BaseInput):
     def __init__(
         self,
         label: str = "Image",
-        image_type: expression.ExpressionJson = "Image | Color",
+        image_type: navi.ExpressionJson = "Image | Color",
         channels: Union[int, List[int], None] = None,
         allow_colors: bool = False,
     ):
-        base_type = [expression.Image(channels=channels)]
+        base_type = [navi.Image(channels=channels)]
         if allow_colors:
-            base_type.append(expression.Color(channels=channels))
-        image_type = expression.intersect(image_type, base_type)
+            base_type.append(navi.Color(channels=channels))
+        image_type = navi.intersect(image_type, base_type)
         super().__init__(image_type, label)
 
         self.channels: Optional[List[int]] = (
