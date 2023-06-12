@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
-from typing import Callable, Iterable, List, Literal, Set, Tuple, Union
+from typing import Callable, Iterable, List, Set, Tuple, Union
 
 import cv2
 import numpy as np
@@ -119,7 +119,7 @@ _decoders: List[Tuple[str, _Decoder]] = [
         FileNameOutput("Image Name", of_input=0),
     ],
 )
-def load_image_node(path: Literal["foo"]) -> Tuple[np.ndarray, str, str]:
+def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
     """Reads an image from the specified path and return it as a numpy array"""
 
     logger.debug(f"Reading image from path: {path}")
