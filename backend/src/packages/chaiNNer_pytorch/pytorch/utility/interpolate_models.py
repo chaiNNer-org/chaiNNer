@@ -82,8 +82,8 @@ def check_can_interp(model_a: dict, model_b: dict):
         ModelOutput(model_type="Input0 & Input1").with_never_reason(
             "Models must be of the same type and have the same parameters to be interpolated."
         ),
-        NumberOutput("Amount A", "100 - Input2"),
-        NumberOutput("Amount B", "Input2"),
+        NumberOutput("Amount A", output_type="100 - Input2"),
+        NumberOutput("Amount B", output_type="Input2"),
     ],
 )
 def interpolate_models_node(

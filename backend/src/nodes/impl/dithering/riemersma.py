@@ -5,7 +5,7 @@ import numpy as np
 
 from ..image_utils import as_3d
 from .color_distance import nearest_palette_color, nearest_uniform_color
-from .common import dtype_to_float, float_to_dtype
+from .common import as_dtype, as_float32
 from .hilbert import HilbertCurve
 
 
@@ -31,7 +31,7 @@ def riemersma_dither(
     curve_size = _next_power_of_two(max(image.shape))
 
     original_dtype = image.dtype
-    image = dtype_to_float(image)
+    image = as_float32(image)
 
     out = np.zeros_like(image)
     history = deque(maxlen=history_length)
@@ -45,7 +45,7 @@ def riemersma_dither(
         pixel = image[i, j, :] + es
         out[i, j, :] = nearest_color_func(pixel)
         history.appendleft(image[i, j, :] - out[i, j, :])  # type: ignore
-    return float_to_dtype(out, original_dtype)
+    return as_dtype(out, original_dtype)
 
 
 def uniform_riemersma_dither(
@@ -63,7 +63,7 @@ def palette_riemersma_dither(
     history_length: int,
     decay_ratio: float,
 ) -> np.ndarray:
-    palette = dtype_to_float(as_3d(palette))
+    palette = as_float32(as_3d(palette))
 
     cache = []
 

@@ -35,7 +35,7 @@ IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
         DirectoryOutput("Image Directory"),
         TextOutput("Subdirectory Path"),
         TextOutput("Image Name"),
-        NumberOutput("Overall Index"),
+        NumberOutput("Overall Index", output_type="uint"),
     ],
     side_effects=True,
 )

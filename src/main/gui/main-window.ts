@@ -1,5 +1,6 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import EventSource from 'eventsource';
 import { t } from 'i18next';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -342,19 +343,37 @@ export const createMainWindow = async (args: OpenArguments) => {
 
     try {
         registerEventHandlerPreSetup(mainWindow, args);
-        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
+        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        progressController.submitProgress({
-            status: t('splash.loadingApp', 'Loading main application...'),
+        const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
+            withCredentials: true,
         });
 
-        if (mainWindow.isDestroyed()) {
-            return;
-        }
+        sse.addEventListener('backend-started', () => {
+            mainWindow.webContents.send('backend-started');
+        });
 
-        ipcMain.once('backend-ready', () => {
-            progressController.submitProgress({ totalProgress: 1 });
+        sse.onerror = (e) => {
+            log.error(e);
+        };
+
+        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
+        sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
+            if (e.data) {
+                const data = JSON.parse(e.data) as { message: string; percent: number };
+                backendStatusProgressSlice.submitProgress({
+                    status: data.message,
+                    totalProgress: data.percent,
+                });
+            }
+        });
+
+        sse.addEventListener('backend-ready', () => {
+            progressController.submitProgress({
+                totalProgress: 1,
+                status: t('splash.loadingApp', 'Loading main application...'),
+            });
 
             if (mainWindow.isDestroyed()) {
                 dialog.showMessageBoxSync({
@@ -376,6 +395,10 @@ export const createMainWindow = async (args: OpenArguments) => {
             }
         });
 
+        if (mainWindow.isDestroyed()) {
+            return;
+        }
+
         // and load the index.html of the app.
         mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
     } catch (error) {
@@ -393,7 +416,7 @@ export const createMainWindow = async (args: OpenArguments) => {
     }
 
     // Open the DevTools.
-    if (!app.isPackaged && !mainWindow.isDestroyed()) {
+    if (args.devtools && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
 };

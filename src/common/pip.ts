@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
 import { PythonInfo, Version } from './common-types';
-import { Dependency } from './dependencies';
+import { Package } from './dependencies';
 import { sanitizedEnv } from './env';
 import { log } from './log';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
@@ -72,10 +72,10 @@ export const runPipList = async (info: PythonInfo, onStdio?: OnStdio): Promise<P
     return Object.fromEntries(list.map((e) => [e.name, e.version]));
 };
 
-const getFindLinks = (dependencies: readonly Dependency[]): string[] => {
+const getFindLinks = (dependencies: readonly Package[]): string[] => {
     const links = new Set<string>();
     for (const d of dependencies) {
-        for (const p of d.packages) {
+        for (const p of d.dependencies) {
             if (p.findLink) {
                 links.add(p.findLink);
             }
@@ -86,7 +86,7 @@ const getFindLinks = (dependencies: readonly Dependency[]): string[] => {
 
 export const runPipInstall = async (
     info: PythonInfo,
-    dependencies: readonly Dependency[],
+    dependencies: readonly Package[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
 ): Promise<void> => {
@@ -94,7 +94,7 @@ export const runPipInstall = async (
     if (onProgress === undefined) {
         // TODO: implement progress via this method (if possible)
         const deps = dependencies
-            .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
+            .map((d) => d.dependencies.map((p) => `${p.pypiName}==${p.version}`))
             .flat();
         const findLinks = getFindLinks(dependencies).flatMap((l) => ['--extra-index-url', l]);
 
@@ -102,7 +102,7 @@ export const runPipInstall = async (
     } else {
         const { python } = info;
         for (const dep of dependencies) {
-            for (const pkg of dep.packages) {
+            for (const pkg of dep.dependencies) {
                 // eslint-disable-next-line no-await-in-loop
                 await pipInstallWithProgress(python, pkg, onProgress, onStdio);
             }
@@ -113,12 +113,12 @@ export const runPipInstall = async (
 
 export const runPipUninstall = async (
     info: PythonInfo,
-    dependencies: readonly Dependency[],
+    dependencies: readonly Package[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
 ): Promise<void> => {
     onProgress?.(10);
-    const deps = dependencies.map((d) => d.packages.map((p) => p.packageName)).flat();
+    const deps = dependencies.map((d) => d.dependencies.map((p) => p.pypiName)).flat();
     onProgress?.(25);
     await runPip(info, ['uninstall', '-y', ...deps], onStdio);
     onProgress?.(100);

@@ -23,7 +23,9 @@ pywin32 ; sys_platform=="win32"
 requests
 sanic==23.3.0
 sanic_cors==2.2.0
+semver==3.0.0
 scipy==1.9.3
 wcmatch
+pynvml==11.5.0
 # torch
 # torchvision
