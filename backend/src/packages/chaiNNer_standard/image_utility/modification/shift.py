@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.image_utils import FillColor, shift
-from nodes.properties import expression
 from nodes.properties.inputs import FillColorDropdown, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -23,7 +23,7 @@ from .. import modification_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width",
                 height="Input0.height",
                 channels="FillColor::getOutputChannels(Input3, Input0.channels)",

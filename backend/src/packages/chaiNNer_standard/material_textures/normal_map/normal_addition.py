@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.normals.addition import AdditionMethod, add_normals
 from nodes.impl.normals.util import xyz_to_bgr
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
@@ -32,7 +32,7 @@ from .. import normal_map_group
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width & Input2.width",
                 height="Input0.height & Input2.height",
             ),

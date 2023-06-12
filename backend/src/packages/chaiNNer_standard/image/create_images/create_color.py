@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.color.color import Color
-from nodes.properties import expression
 from nodes.properties.inputs import ColorInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -22,7 +22,7 @@ from .. import create_images_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input1",
                 height="Input2",
                 channels="Input0.channels",

@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+import navi
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.gradients import (
@@ -14,7 +15,6 @@ from nodes.impl.gradients import (
     vertical_gradient,
 )
 from nodes.impl.image_utils import as_target_channels
-from nodes.properties import expression
 from nodes.properties.inputs import (
     BoolInput,
     ColorInput,
@@ -90,7 +90,7 @@ class GradientStyle(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0",
                 height="Input1",
                 channels="max(Input9.channels, Input10.channels)",

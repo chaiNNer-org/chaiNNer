@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -24,7 +24,7 @@ from .. import crop_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="(Input0.width - (Input2 + Input3)) & int(1..)",
                 height="(Input0.height - (Input1 + Input4)) & int(1..)",
                 channels_as="Input0",

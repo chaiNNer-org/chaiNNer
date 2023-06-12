@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -44,7 +44,7 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
         ImageInput("LUT"),
     ],
     outputs=[
-        ImageOutput(image_type=expression.Image(size_as="Input0", channels_as="Input1"))
+        ImageOutput(image_type=navi.Image(size_as="Input0", channels_as="Input1"))
     ],
 )
 def lut_node(

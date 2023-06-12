@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border
-from nodes.properties import expression
 from nodes.properties.inputs import BorderInput, ColorInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import Padding
@@ -28,7 +28,7 @@ from .. import border_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width + Input2 * 2",
                 height="Input0.height + Input2 * 2",
                 channels="BorderType::getOutputChannels(Input1, Input0.channels, Input3)",

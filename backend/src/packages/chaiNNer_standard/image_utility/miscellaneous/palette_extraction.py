@@ -4,13 +4,13 @@ from enum import Enum
 
 import numpy as np
 
+import navi
 from nodes.groups import if_enum_group
 from nodes.impl.dithering.palette import (
     distinct_colors_palette,
     kmeans_palette,
     median_cut_palette,
 )
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -54,7 +54,7 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
     outputs=[
         ImageOutput(
             "Palette",
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="""
                 match Input1 {
                     PaletteExtractionMethod::All => int(1..),
