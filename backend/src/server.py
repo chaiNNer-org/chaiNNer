@@ -360,8 +360,15 @@ async def list_ncnn_gpus(_request: Request):
             result.append(ncnn.get_gpu_info(i).device_name())
         return json(result)
     except Exception as exception:
-        logger.error(exception, exc_info=True)
-        return json([])
+        try:
+            from ncnn import ncnn
+
+            result = ["cpu"]
+            return json(result)
+        except Exception as exception2:
+            logger.error(exception, exc_info=True)
+            logger.error(exception2, exc_info=True)
+            return json([])
 
 
 @app.route("/python-info", methods=["GET"])

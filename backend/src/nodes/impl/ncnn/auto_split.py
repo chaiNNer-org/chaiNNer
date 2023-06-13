@@ -3,7 +3,15 @@ from __future__ import annotations
 import gc
 
 import numpy as np
-from ncnn_vulkan import ncnn
+
+try:
+    from ncnn_vulkan import ncnn
+
+    use_gpu = True
+except ImportError:
+    from ncnn import ncnn
+
+    use_gpu = False
 from sanic.log import logger
 
 from ...utils.utils import get_h_w_c
@@ -22,9 +30,10 @@ def ncnn_auto_split(
 ) -> np.ndarray:
     def upscale(img: np.ndarray, _):
         ex = net.create_extractor()
-        ex.set_blob_vkallocator(blob_vkallocator)
-        ex.set_workspace_vkallocator(blob_vkallocator)
-        ex.set_staging_vkallocator(staging_vkallocator)
+        if use_gpu:
+            ex.set_blob_vkallocator(blob_vkallocator)
+            ex.set_workspace_vkallocator(blob_vkallocator)
+            ex.set_staging_vkallocator(staging_vkallocator)
         # ex.set_light_mode(True)
         try:
             lr_c = get_h_w_c(img)[2]
@@ -49,17 +58,19 @@ def ncnn_auto_split(
             result = np.array(mat_out).transpose(1, 2, 0).astype(np.float32)
             del ex, mat_in, mat_out
             gc.collect()
-            # Clear VRAM
-            blob_vkallocator.clear()
-            staging_vkallocator.clear()
+            if use_gpu:
+                # Clear VRAM
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
             return result
         except Exception as e:
             if "vkQueueSubmit" in str(e):
                 ex = None
                 del ex
                 gc.collect()
-                blob_vkallocator.clear()
-                staging_vkallocator.clear()
+                if use_gpu:
+                    blob_vkallocator.clear()
+                    staging_vkallocator.clear()
                 # TODO: Have someone running into this issue enable this and see if it fixes anything
                 # ncnn.destroy_gpu_instance()
                 raise RuntimeError(
@@ -72,8 +83,9 @@ def ncnn_auto_split(
                 ex = None
                 del ex
                 gc.collect()
-                blob_vkallocator.clear()
-                staging_vkallocator.clear()
+                if use_gpu:
+                    blob_vkallocator.clear()
+                    staging_vkallocator.clear()
                 return Split()
             else:
                 # Re-raise the exception if not an OOM error
