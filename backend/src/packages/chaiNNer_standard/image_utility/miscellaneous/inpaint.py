@@ -5,8 +5,8 @@ from enum import Enum
 import cv2
 import numpy as np
 
+import navi
 from nodes.impl.image_utils import to_uint8
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -43,7 +43,7 @@ class InpaintAlgorithm(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width & Input1.width",
                 height="Input0.height & Input1.height",
                 channels="Input0.channels",

@@ -1,8 +1,9 @@
 from typing import List, Literal, Tuple, Union
 
+import navi
+from nodes.base_input import BaseInput, InputConversion, InputKind
+
 from ...utils.utils import round_half_up
-from .. import expression
-from .base_input import BaseInput, InputConversion, InputKind
 
 
 def clampNumber(
@@ -31,11 +32,11 @@ def get_number_type(
     min_value: Union[float, int, None],
     max_value: Union[float, int, None],
     precision: int,
-) -> expression.ExpressionJson:
+) -> navi.ExpressionJson:
     if precision > 0:
         # step is not an integer
-        return expression.interval(min_value, max_value)
-    return expression.int_interval(min_value, max_value)
+        return navi.interval(min_value, max_value)
+    return navi.int_interval(min_value, max_value)
 
 
 class NumberInput(BaseInput):

@@ -5,7 +5,7 @@ from enum import Enum
 import numpy as np
 from chainner_ext import fill_alpha_extend_color, fill_alpha_fragment_blur
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -29,7 +29,7 @@ class AlphaFillMethod(Enum):
     outputs=[
         ImageOutput(
             "RGB",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
     ],

@@ -47,6 +47,11 @@ class IteratorProgressUpdateData(TypedDict):
     running: Optional[List[NodeId]]
 
 
+class BackendStatusData(TypedDict):
+    message: str
+    percent: float
+
+
 class FinishEvent(TypedDict):
     event: Literal["finish"]
     data: FinishData
@@ -67,11 +72,23 @@ class IteratorProgressUpdateEvent(TypedDict):
     data: IteratorProgressUpdateData
 
 
+class BackendStatusEvent(TypedDict):
+    event: Literal["backend-status"]
+    data: BackendStatusData
+
+
+class BackendStateEvent(TypedDict):
+    event: Union[Literal["backend-ready"], Literal["backend-started"]]
+    data: None
+
+
 Event = Union[
     FinishEvent,
     ExecutionErrorEvent,
     NodeFinishEvent,
     IteratorProgressUpdateEvent,
+    BackendStatusEvent,
+    BackendStateEvent,
 ]
 
 
@@ -84,3 +101,14 @@ class EventQueue:
 
     async def put(self, event: Event) -> None:
         await self.queue.put(event)
+
+    async def wait_until_empty(self, timeout: float) -> None:
+        while timeout > 0:
+            if self.queue.empty():
+                return
+            await asyncio.sleep(0.01)
+            timeout -= 0.01
+
+    async def put_and_wait(self, event: Event, timeout: float = float("inf")) -> None:
+        await self.queue.put(event)
+        await self.wait_until_empty(timeout)

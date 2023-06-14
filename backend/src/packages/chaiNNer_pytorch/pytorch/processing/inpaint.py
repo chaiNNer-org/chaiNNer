@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 import torch
 
+import navi
 from nodes.impl.image_utils import as_3d
 from nodes.impl.pytorch.types import PyTorchInpaintModel
 from nodes.impl.pytorch.utils import (
@@ -14,7 +15,6 @@ from nodes.impl.pytorch.utils import (
     tensor2np,
     to_pytorch_execution_options,
 )
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput
 from nodes.properties.inputs.pytorch_inputs import InpaintModelInput
 from nodes.properties.outputs import ImageOutput
@@ -130,7 +130,7 @@ def inpaint(
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width & Input1.width",
                 height="Input0.height & Input1.height",
             ),

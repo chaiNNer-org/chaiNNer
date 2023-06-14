@@ -1,5 +1,7 @@
 import cv2
 
+import navi
+
 from ...impl.color.convert_data import (
     color_spaces,
     color_spaces_or_detectors,
@@ -10,7 +12,6 @@ from ...impl.color.convert_data import (
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
 from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
-from ..expression import named
 from .generic_inputs import DropDownInput, EnumInput
 
 
@@ -22,7 +23,7 @@ def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
             {
                 "option": c.name,
                 "value": c.id,
-                "type": named("ColorSpace", {"channels": c.channels}),
+                "type": navi.named("ColorSpace", {"channels": c.channels}),
             }
             for c in color_spaces_or_detectors
         ],
@@ -37,7 +38,7 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
             {
                 "option": c.name,
                 "value": c.id,
-                "type": named(
+                "type": navi.named(
                     "ColorSpace",
                     {
                         "channels": c.channels,

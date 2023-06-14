@@ -8,6 +8,9 @@ from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar
 import numpy as np
 from sanic.log import logger
 
+import navi
+from nodes.base_input import BaseInput, InputConversion
+
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
@@ -21,8 +24,6 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
-from .. import expression
-from .base_input import BaseInput, InputConversion
 from .numeric_inputs import NumberInput
 
 
@@ -34,7 +35,7 @@ class UntypedOption(TypedDict):
 class TypedOption(TypedDict):
     option: str
     value: str | int
-    type: expression.ExpressionJson
+    type: navi.ExpressionJson
 
 
 DropDownOption = Union[UntypedOption, TypedOption]
@@ -54,7 +55,7 @@ class DropDownInput(BaseInput):
 
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type: navi.ExpressionJson,
         label: str,
         options: List[DropDownOption],
         default_value: str | int | None = None,
@@ -316,7 +317,7 @@ class ColorInput(BaseInput):
         channels: int | List[int] | None = None,
     ):
         super().__init__(
-            input_type=expression.Color(channels=channels),
+            input_type=navi.Color(channels=channels),
             label=label,
             has_handle=True,
             kind="color",

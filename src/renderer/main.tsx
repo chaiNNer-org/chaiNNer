@@ -143,12 +143,16 @@ export const Main = memo(({ port }: MainProps) => {
                 return prev;
             });
         }
+    }, [response, data, loading, error, backendReady, sendAlert, t]);
 
+    useIpcRendererListener('backend-ready', () => {
+        // Refresh the nodes once the backend is ready
+        setNodesRefreshCounter((prev) => prev + 1);
         if (!backendReady) {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
-    }, [response, data, loading, error, backendReady, sendAlert, t]);
+    });
 
     useLastWindowSize();
 

@@ -1,8 +1,23 @@
 from sanic.log import logger
 
-from api import add_package
+from api import MB, Dependency, add_package
+from system import is_mac
 
-package = add_package(__file__, name="chaiNNer_ncnn", dependencies=[])
+package = add_package(
+    __file__,
+    name="NCNN",
+    description="NCNN uses .bin/.param models to upscale images. NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. Models can be converted from PyTorch to NCNN.",
+    dependencies=[
+        Dependency(
+            display_name="NCNN",
+            pypi_name="ncnn-vulkan",
+            version="2022.9.12",
+            size_estimate=7 * MB if is_mac else 4 * MB,
+            auto_update=True,
+            import_name="ncnn_vulkan",
+        ),
+    ],
+)
 
 ncnn_category = package.add_category(
     name="NCNN",
