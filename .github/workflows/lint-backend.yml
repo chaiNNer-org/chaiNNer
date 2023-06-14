@@ -36,6 +36,7 @@ jobs:
               run: black --check backend/
             - name: isort
               run: isort backend/ --check --profile=black --src=backend/src
+
     backend-lint:
         runs-on: ubuntu-latest
         steps:
@@ -47,5 +48,17 @@ jobs:
             - run: pip install -r requirements.txt
             - name: pylint
               run: pylint backend/ --output-format=colorized --disable="C,R" --fail-under=10
+
+    backend-pyright:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.9'
+                  cache: 'pip'
+            - run: pip install -r requirements.txt
+            - name: Start backend to install dependencies
+              run: python ./backend/src/run.py --close-after-start --install-builtin-packages
             - name: pyright
               run: pyright backend/
