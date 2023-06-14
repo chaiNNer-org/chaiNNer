@@ -7,8 +7,9 @@ import numpy as np
 from sanic.log import logger
 from wcmatch import glob
 
+from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.properties.inputs import DirectoryInput, IteratorInput, TextInput
+from nodes.properties.inputs import BoolInput, DirectoryInput, IteratorInput, TextInput
 from nodes.properties.outputs import (
     DirectoryOutput,
     ImageOutput,
@@ -77,7 +78,11 @@ def ImageFileIteratorLoadImageNode(
     node_type="iterator",
     inputs=[
         DirectoryInput(),
-        TextInput("Glob expression", default="{*,**/*}"),
+        BoolInput("Use glob expression", default=False),
+        if_group(Condition.bool(1, False))(BoolInput("Recursive")),
+        if_group(Condition.bool(1, True))(
+            TextInput("Glob expression", default="{*,**/*}"),
+        ),
     ],
     outputs=[],
     default_nodes=[
@@ -89,13 +94,20 @@ def ImageFileIteratorLoadImageNode(
     side_effects=True,
 )
 async def ImageFileIteratorNode(
-    directory: str, glob_str: str, context: IteratorContext
+    is_advanced: bool,
+    directory: str,
+    is_recursive: bool,
+    glob_str: str,
+    context: IteratorContext,
 ) -> None:
     logger.debug(f"Iterating over images in directory: {directory}")
 
     img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 
     supported_filetypes = get_available_image_formats()
+
+    if not is_advanced:
+        glob_str = "{*,**/*}" if is_recursive else "*"
 
     just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
