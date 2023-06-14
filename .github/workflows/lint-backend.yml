@@ -59,6 +59,6 @@ jobs:
                   cache: 'pip'
             - run: pip install -r requirements.txt
             - name: Start backend to install dependencies
-              run: python ./backend/src/run.py --close-after-start
+              run: python ./backend/src/run.py --close-after-start --install=chaiNNer_pytorch,chaiNNer_onnx,chaiNNer_ncnn
             - name: pyright
               run: pyright backend/
