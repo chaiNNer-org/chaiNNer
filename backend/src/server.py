@@ -391,7 +391,7 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-def import_packages():
+def import_packages(config: ServerConfig):
     def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
@@ -415,19 +415,24 @@ def import_packages():
 
     logger.info("Checking dependencies...")
 
-    # For these, do the same as the above, but only if auto_update is true
+    to_install: List[api.Dependency] = []
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
         if package.name == "chaiNNer_standard":
             continue
-        auto_update_deps = [
-            dep
-            for dep in package.dependencies
-            if dep.auto_update
-            and installed_packages.get(dep.pypi_name, None) is not None
-        ]
-        if len(auto_update_deps) > 0:
-            install_deps(auto_update_deps)
+
+        if config.install_builtin_packages:
+            to_install.extend(package.dependencies)
+            continue
+
+        # check auto updates
+        for dep in package.dependencies:
+            is_installed = installed_packages.get(dep.pypi_name, None) is not None
+            if dep.auto_update and is_installed:
+                to_install.append(dep)
+
+    if len(to_install) > 0:
+        install_deps(to_install)
 
     logger.info("Done checking dependencies...")
 
@@ -497,7 +502,7 @@ async def setup(sanic_app: Sanic):
 
     # Now we can load all the nodes
     # TODO: Pass in a callback func for updating progress
-    import_packages()
+    import_packages(AppContext.get(sanic_app).config)
 
     logger.info("Sending backend ready...")
 
