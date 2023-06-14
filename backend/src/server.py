@@ -421,8 +421,7 @@ def import_packages(config: ServerConfig):
         if package.name == "chaiNNer_standard":
             continue
 
-        if package.name in config.install:
-            # config says that this package has to be installed
+        if config.install_builtin_packages:
             to_install.extend(package.dependencies)
             continue
 

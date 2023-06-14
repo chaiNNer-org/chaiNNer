@@ -1,6 +1,5 @@
 import sys
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
 
 
 @dataclass
@@ -17,11 +16,11 @@ class ServerConfig:
     Usage: `--close-after-start`
     """
 
-    install: List[str] = field(default_factory=list)
+    install_builtin_packages: bool = False
     """
-    List of packages to install before readying the server.
+    Whether to install all built-in packages.
 
-    Usage: `--install=<package>,<package> ...`
+    Usage: `--install-builtin-packages`
     """
 
     @staticmethod
@@ -40,15 +39,13 @@ class ServerConfig:
             close_after_start = True
             argv.remove("--close-after-start")
 
-        install: List[str] = []
-        for arg in argv.copy():
-            if arg.startswith("--install="):
-                install = arg.split("=")[1].split(",")
-                argv.remove(arg)
-                break
+        install_builtin_packages = False
+        if "--install-builtin-packages" in argv:
+            install_builtin_packages = True
+            argv.remove("--install-builtin-packages")
 
         return ServerConfig(
             port=port,
             close_after_start=close_after_start,
-            install=install,
+            install_builtin_packages=install_builtin_packages,
         )
