@@ -57,6 +57,10 @@ deps: List[DependencyInfo] = [
         "package_name": "Pillow",
         "version": "9.2.0",
     },
+    {
+        "package_name": "chainner_ext",
+        "version": "0.0.0",
+    },
 ]
 
 if is_arm_mac:
