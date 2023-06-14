@@ -5,7 +5,8 @@
 1. Fork the repository on GitHub
 2. Clone the forked repository to your local machine
 3. Install the dependencies of the frontend with `npm ci`
-4. Install the dependencies of the backend with `pip install -r requirements.txt`
+4. Install the dev dependencies of the backend with `pip install -r requirements.txt`
+5. Install the dependencies of the backend with `python ./backend/src/run.py --close-after-start --install-builtin-packages`. The backend will install all of its dependencies with this command, including torch. This can take a while, so be patient.
 
 ChaiNNer is an Electron application that uses Python for the backend. The frontend and backend communicate through a JSON API. The frontend is located in the `src` folder and the backend is located in the `backend` folder.
 
