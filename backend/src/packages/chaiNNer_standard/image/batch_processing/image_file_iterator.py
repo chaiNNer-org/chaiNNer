@@ -59,9 +59,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     side_effects=True,
 )
-def ImageFileIteratorLoadImageNode(
-    path: str, root_dir: str, index: int
-) -> Tuple[np.ndarray, str, str, str, int]:
+def ImageFileIteratorLoadImageNode(path: str, root_dir: str, index: int) -> Tuple[np.ndarray, str, str, str, int]:
     img, img_dir, basename = load_image_node(path)
 
     # Get relative path from root directory passed by Iterator directory input
@@ -94,8 +92,8 @@ def ImageFileIteratorLoadImageNode(
     side_effects=True,
 )
 async def ImageFileIteratorNode(
-    is_advanced: bool,
     directory: str,
+    use_glob: bool,
     is_recursive: bool,
     glob_str: str,
     context: IteratorContext,
@@ -106,7 +104,7 @@ async def ImageFileIteratorNode(
 
     supported_filetypes = get_available_image_formats()
 
-    if not is_advanced:
+    if not use_glob:
         glob_str = "{*,**/*}" if is_recursive else "*"
 
     just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
