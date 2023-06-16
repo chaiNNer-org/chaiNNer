@@ -513,7 +513,6 @@ async def setup(sanic_app: Sanic):
     logger.info("Importing nodes...")
 
     # Now we can load all the nodes
-    # TODO: Pass in a callback func for updating progress
     await import_packages(AppContext.get(sanic_app).config, update_progress)
 
     logger.info("Sending backend ready...")
