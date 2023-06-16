@@ -391,7 +391,7 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-def import_packages(config: ServerConfig, update_progress_cb: Callable):
+async def import_packages(config: ServerConfig, update_progress_cb: Callable):
     def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
@@ -419,7 +419,7 @@ def import_packages(config: ServerConfig, update_progress_cb: Callable):
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
         if package.name == "chaiNNer_standard":
-            update_progress_cb("Installing core dependencies...", 0.65)
+            await update_progress_cb("Installing core dependencies...", 0.65)
             install_deps(package.dependencies)
 
         if config.install_builtin_packages:
@@ -514,7 +514,7 @@ async def setup(sanic_app: Sanic):
 
     # Now we can load all the nodes
     # TODO: Pass in a callback func for updating progress
-    import_packages(AppContext.get(sanic_app).config, update_progress)
+    await import_packages(AppContext.get(sanic_app).config, update_progress)
 
     logger.info("Sending backend ready...")
 
