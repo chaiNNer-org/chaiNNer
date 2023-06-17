@@ -11,10 +11,6 @@ deps: List[DependencyInfo] = [
         "package_name": "typing_extensions",
         "version": "4.6.2",
     },
-    {
-        "package_name": "chainner_ext",
-        "version": "0.0.0",
-    },
 ]
 
 install_dependencies(deps)

@@ -8,21 +8,79 @@ package = add_package(
     name="chaiNNer_standard",
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
-        Dependency("OpenCV", "opencv-python", "4.7.0.68", 30 * MB, import_name="cv2"),
-        Dependency("Pillow (PIL)", "Pillow", "9.2.0", 3 * MB, import_name="PIL"),
-        Dependency("appdirs", "appdirs", "1.4.4", 13.5 * KB),
-        Dependency("FFMPEG", "ffmpeg-python", "0.2.0", 25 * KB, import_name="ffmpeg"),
-        Dependency("Requests", "requests", "2.28.2", 452 * KB),
-        Dependency("re2", "google-re2", "1.0", 275 * KB, import_name="re2"),
-        Dependency("scipy", "scipy", "1.9.3", 42 * MB),
+        Dependency(
+            display_name="OpenCV",
+            pypi_name="opencv-python",
+            version="4.7.0.68",
+            size_estimate=30 * MB,
+            import_name="cv2",
+        ),
+        Dependency(
+            display_name="Pillow (PIL)",
+            pypi_name="Pillow",
+            version="9.2.0",
+            size_estimate=3 * MB,
+            import_name="PIL",
+        ),
+        Dependency(
+            display_name="appdirs",
+            pypi_name="appdirs",
+            version="1.4.4",
+            size_estimate=13.5 * KB,
+        ),
+        Dependency(
+            display_name="FFMPEG",
+            pypi_name="ffmpeg-python",
+            version="0.2.0",
+            size_estimate=25 * KB,
+            import_name="ffmpeg",
+        ),
+        Dependency(
+            display_name="Requests",
+            pypi_name="requests",
+            version="2.28.2",
+            size_estimate=452 * KB,
+        ),
+        Dependency(
+            display_name="re2",
+            pypi_name="google-re2",
+            version="1.0",
+            size_estimate=275 * KB,
+            import_name="re2",
+        ),
+        Dependency(
+            display_name="scipy",
+            pypi_name="scipy",
+            version="1.9.3",
+            size_estimate=42 * MB,
+        ),
+        Dependency(
+            display_name="ChaiNNer Extensions",
+            pypi_name="chainner_ext",
+            version="0.0.0",
+            size_estimate=1.1 * MB,
+        ),
     ],
 )
 
 if is_arm_mac:
-    package.add_dependency(Dependency("Pasteboard", "pasteboard", "0.3.3", 19 * KB))
+    package.add_dependency(
+        Dependency(
+            display_name="Pasteboard",
+            pypi_name="pasteboard",
+            version="0.3.3",
+            size_estimate=19 * KB,
+        )
+    )
 elif is_windows:
     package.add_dependency(
-        Dependency("Pywin32", "pywin32", "304", 12 * MB, import_name="win32clipboard")
+        Dependency(
+            display_name="Pywin32",
+            pypi_name="pywin32",
+            version="304",
+            size_estimate=12 * MB,
+            import_name="win32clipboard",
+        )
     )
 
 image_category = package.add_category(

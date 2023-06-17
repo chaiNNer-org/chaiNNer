@@ -418,13 +418,13 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
     to_install: List[api.Dependency] = []
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
-        if package.name == "chaiNNer_standard":
-            await update_progress_cb("Installing core dependencies...", 0.65)
-            install_deps(package.dependencies)
 
         if config.install_builtin_packages:
             to_install.extend(package.dependencies)
             continue
+
+        if package.name == "chaiNNer_standard":
+            to_install.extend(package.dependencies)
 
         # check auto updates
         for dep in package.dependencies:
@@ -491,24 +491,12 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Installing dependencies...", "percent": 0.0},
-        },
-        timeout=1,
-    )
+    await update_progress("Installing dependencies...", 0.0)
 
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_core_deps")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Importing Nodes...", "percent": 0.5},
-        },
-        timeout=1,
-    )
+    await update_progress("Importing nodes...", 0.5)
 
     logger.info("Importing nodes...")
 
@@ -517,13 +505,7 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Sending backend ready...")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 1},
-        },
-        timeout=1,
-    )
+    await update_progress("Loading Nodes...", 1.0)
 
     await setup_queue.put_and_wait(
         {
