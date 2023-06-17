@@ -115,8 +115,13 @@ async def install_dependencies_impl(
     dep_length = len(dependency_info_array)
     dep_counter = 0
 
+    DEP_MAX_PROGRESS = 0.8
+
     def get_progress_amount():
-        return min(max(0, dep_counter / dep_length), 1) * 0.8
+        return min(max(0, dep_counter / dep_length), 1) * DEP_MAX_PROGRESS
+
+    # Used to increment by a small amount between collect and download
+    dep_small_incr = (DEP_MAX_PROGRESS / dep_length) / 2
 
     process = subprocess.Popen(
         [
@@ -158,7 +163,7 @@ async def install_dependencies_impl(
             log_impl(f"Downloading {installing_name}...")
             await update_progress_cb(
                 f"Downloading {installing_name}...",
-                get_progress_amount() + 0.05,
+                get_progress_amount() + dep_small_incr,
             )
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
