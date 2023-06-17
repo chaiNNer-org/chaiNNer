@@ -146,10 +146,8 @@ async def install_dependencies_impl(
             if match:
                 package_name = match.group(1)
                 installing_name = dependency_name_map.get(package_name, package_name)
-                # TODO: This might overflow if there are sub-dependencies to download
                 dep_counter += 1
                 log_impl(f"Collecting {installing_name}...")
-                # TODO: progress amount
                 await update_progress_cb(
                     f"Collecting {installing_name}...", get_progress_amount()
                 )
@@ -158,7 +156,6 @@ async def install_dependencies_impl(
         # For now, we just tell the user that it's happening.
         elif "Downloading" in line:
             log_impl(f"Downloading {installing_name}...")
-            # TODO: progress amount
             await update_progress_cb(
                 f"Downloading {installing_name}...",
                 get_progress_amount() + 0.05,
@@ -167,7 +164,6 @@ async def install_dependencies_impl(
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
             log_impl("Installing collected packages...")
-            # TODO: progress amount
             await update_progress_cb(f"Installing collected packages...", 0.9)
 
     exitCode = process.wait()
