@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Coroutine, Dict, List, Optional, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
