@@ -1,4 +1,3 @@
-import asyncio
 import subprocess
 from json import loads as json_parse
 from typing import List
@@ -32,14 +31,17 @@ except Exception as e:
 deps: List[DependencyInfo] = [
     {
         "package_name": "sanic",
+        "display_name": "Sanic",
         "version": "23.3.0",
     },
     {
         "package_name": "Sanic-Cors",
+        "display_name": "Sanic-Cors",
         "version": "2.2.0",
     },
     {
         "package_name": "numpy",
+        "display_name": "NumPy",
         "version": "1.23.2",
     },
 ]

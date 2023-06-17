@@ -27,7 +27,7 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
 class DependencyInfo(TypedDict):
     package_name: str
-    display_name: Optional[str]
+    display_name: Optional[str] = None
     version: Union[str, None]
 
 
@@ -103,11 +103,17 @@ async def install_dependencies_impl(
     dependency_info_array: List[DependencyInfo],
     update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]],
 ):
-    # Dependency name map k: package_name, v: display_name
+    # If there's no progress callback, just install the dependencies synchronously
+    if update_progress_cb is None:
+        install_dependencies_sync_impl(dependency_info_array)
+        return
+
     dependency_name_map = {
         dep_info["package_name"]: dep_info["display_name"]
         for dep_info in dependency_info_array
     }
+    dep_length = len(dependency_info_array)
+    dep_counter = 0
 
     process = subprocess.Popen(
         [
@@ -131,25 +137,35 @@ async def install_dependencies_impl(
         if nextline == b"" and process.poll() is not None:
             break
         line = nextline.decode("utf-8").strip()
-        if update_progress_cb is not None:
-            if "Collecting" in line:
-                match = COLLECTING_REGEX.search(line)
-                if match:
-                    package_name = match.group(1)
-                    installing_name = dependency_name_map.get(
-                        package_name, package_name
-                    )
-                    log_impl(f"Collecting {installing_name}...")
-                    # TODO: progress amount
-                    await update_progress_cb(f"Collecting {installing_name}...", 1)
-            elif "Downloading" in line:
-                log_impl(f"Downloading {installing_name}...")
+        # The Collecting step of pip. It tells us what package is being installed.
+        if "Collecting" in line:
+            match = COLLECTING_REGEX.search(line)
+            if match:
+                package_name = match.group(1)
+                installing_name = dependency_name_map.get(package_name, package_name)
+                # TODO: This might overflow if there are sub-dependencies to download
+                dep_counter += 1
+                log_impl(f"Collecting {installing_name}...")
                 # TODO: progress amount
-                await update_progress_cb(f"Downloading {installing_name}...", 1)
-            elif "Installing collected packages" in line:
-                log_impl("Installing collected packages...")
-                # TODO: progress amount
-                await update_progress_cb(f"Installing collected packages...", 1)
+                await update_progress_cb(
+                    f"Collecting {installing_name}...", dep_counter / dep_length
+                )
+        # The Downloading step of pip. It tells us what package is currently being downloaded.
+        # Later, we can use this to get the progress of the download.
+        # For now, we just tell the user that it's happening.
+        elif "Downloading" in line:
+            log_impl(f"Downloading {installing_name}...")
+            # TODO: progress amount
+            await update_progress_cb(
+                f"Downloading {installing_name}...",
+                (dep_counter / dep_length) + 0.5,
+            )
+        # The Installing step of pip. Installs happen for all the collected packages at once.
+        # We can't get the progress of the installation, so we just tell the user that it's happening.
+        elif "Installing collected packages" in line:
+            log_impl("Installing collected packages...")
+            # TODO: progress amount
+            await update_progress_cb(f"Installing collected packages...", 1)
 
     exitCode = process.wait()
     log_impl(f"Installation exited with code {exitCode}")
