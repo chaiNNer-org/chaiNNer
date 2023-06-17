@@ -445,7 +445,7 @@ async def import_packages(
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
 
-    await update_progress_cb("Loading Nodes...", 0.75)
+    await update_progress_cb("Loading Nodes...", 1.0)
 
     api.registry.load_nodes(__file__)
 
