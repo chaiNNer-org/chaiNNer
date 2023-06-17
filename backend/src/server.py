@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Dict, List, Optional, TypedDict
+from typing import Callable, Dict, List, Optional, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -391,7 +391,7 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-def import_packages(config: ServerConfig):
+async def import_packages(config: ServerConfig, update_progress_cb: Callable):
     def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
@@ -418,12 +418,13 @@ def import_packages(config: ServerConfig):
     to_install: List[api.Dependency] = []
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
-        if package.name == "chaiNNer_standard":
-            continue
 
         if config.install_builtin_packages:
             to_install.extend(package.dependencies)
             continue
+
+        if package.name == "chaiNNer_standard":
+            to_install.extend(package.dependencies)
 
         # check auto updates
         for dep in package.dependencies:
@@ -439,6 +440,8 @@ def import_packages(config: ServerConfig):
     # TODO: in the future, for external packages dir, scan & import
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
+
+    update_progress_cb("Loading Nodes...", 0.75)
 
     api.registry.load_nodes(__file__)
 
@@ -470,6 +473,15 @@ async def setup_sse(request: Request):
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
+    async def update_progress(message: str, percent: float):
+        await setup_queue.put_and_wait(
+            {
+                "event": "backend-status",
+                "data": {"message": message, "percent": percent},
+            },
+            timeout=1,
+        )
+
     logger.info("Starting setup...")
     await setup_queue.put_and_wait(
         {
@@ -479,40 +491,21 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Installing dependencies...", "percent": 0.0},
-        },
-        timeout=1,
-    )
+    await update_progress("Installing dependencies...", 0.0)
 
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_core_deps")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 0.75},
-        },
-        timeout=1,
-    )
+    await update_progress("Importing nodes...", 0.5)
 
-    logger.info("Loading nodes...")
+    logger.info("Importing nodes...")
 
     # Now we can load all the nodes
-    # TODO: Pass in a callback func for updating progress
-    import_packages(AppContext.get(sanic_app).config)
+    await import_packages(AppContext.get(sanic_app).config, update_progress)
 
     logger.info("Sending backend ready...")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 1},
-        },
-        timeout=1,
-    )
+    await update_progress("Loading Nodes...", 1.0)
 
     await setup_queue.put_and_wait(
         {
