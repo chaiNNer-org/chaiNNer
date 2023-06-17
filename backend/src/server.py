@@ -400,6 +400,7 @@ async def import_packages(
             dep_info: List[DependencyInfo] = [
                 {
                     "package_name": dep.pypi_name,
+                    "display_name": dep.display_name,
                     "version": dep.version,
                 }
                 for dep in dependencies

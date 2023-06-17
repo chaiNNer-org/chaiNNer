@@ -27,6 +27,7 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
 class DependencyInfo(TypedDict):
     package_name: str
+    display_name: Optional[str]
     version: Union[str, None]
 
 
@@ -102,6 +103,12 @@ async def install_dependencies_impl(
     dependency_info_array: List[DependencyInfo],
     update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]],
 ):
+    # Dependency name map k: package_name, v: display_name
+    dependency_name_map = {
+        dep_info["package_name"]: dep_info["display_name"]
+        for dep_info in dependency_info_array
+    }
+
     process = subprocess.Popen(
         [
             python_path,
@@ -118,7 +125,7 @@ async def install_dependencies_impl(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
-    package_name = "Unknown"
+    installing_name = "Unknown"
     while True:
         nextline = process.stdout.readline()  # type: ignore
         if nextline == b"" and process.poll() is not None:
@@ -129,24 +136,28 @@ async def install_dependencies_impl(
                 match = COLLECTING_REGEX.search(line)
                 if match:
                     package_name = match.group(1)
-                    log_impl(f"Collecting {package_name}...")
+                    installing_name = dependency_name_map.get(
+                        package_name, package_name
+                    )
+                    log_impl(f"Collecting {installing_name}...")
                     # TODO: progress amount
-                    await update_progress_cb(f"Collecting {package_name}...", 1)
+                    await update_progress_cb(f"Collecting {installing_name}...", 1)
             elif "Downloading" in line:
-                log_impl(f"Downloading {package_name}...")
+                log_impl(f"Downloading {installing_name}...")
                 # TODO: progress amount
-                await update_progress_cb(f"Downloading {package_name}...", 1)
+                await update_progress_cb(f"Downloading {installing_name}...", 1)
             elif "Installing collected packages" in line:
                 log_impl("Installing collected packages...")
                 # TODO: progress amount
                 await update_progress_cb(f"Installing collected packages...", 1)
 
     exitCode = process.wait()
+    log_impl(f"Installation exited with code {exitCode}")
 
     for dep_info in dependency_info_array:
-        package_name = dep_info["package_name"]
+        installing_name = dep_info["package_name"]
         version = dep_info["version"]
-        installed_packages[package_name] = version
+        installed_packages[installing_name] = version
 
 
 async def install_dependencies(
