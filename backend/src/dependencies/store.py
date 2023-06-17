@@ -27,7 +27,7 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
 class DependencyInfo(TypedDict):
     package_name: str
-    display_name: Optional[str] = None
+    display_name: Optional[str]
     version: Union[str, None]
 
 
