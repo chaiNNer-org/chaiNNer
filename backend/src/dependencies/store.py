@@ -1,11 +1,28 @@
 import re
 import subprocess
 import sys
-from typing import Dict, List, Tuple, TypedDict, Union
+from typing import (
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
 python_path = sys.executable
 
 installed_packages: Dict[str, Union[str, None]] = {}
+
+try:
+    from sanic.log import logger
+except:
+    logger = None
+
+COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
 
 class DependencyInfo(TypedDict):
@@ -19,7 +36,33 @@ def pin(package_name: str, version: Union[str, None]) -> str:
     return f"{package_name}=={version}"
 
 
-def install_dependencies_impl(dependency_info_array: List[DependencyInfo]):
+def coerce_semver(version: str) -> Tuple[int, int, int]:
+    regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
+    match = re.search(regex, version)
+    if match:
+        return (
+            int(match.group(1) or 0),
+            int(match.group(2) or 0),
+            int(match.group(3) or 0),
+        )
+    return (0, 0, 0)
+
+
+def get_deps_to_install(dependencies: List[DependencyInfo]):
+    dependencies_to_install = []
+    for dependency in dependencies:
+        version = installed_packages.get(dependency["package_name"], None)
+        if dependency["version"] and version:
+            installed_version = coerce_semver(version)
+            dep_version = coerce_semver(dependency["version"])
+            if installed_version < dep_version:
+                dependencies_to_install.append(dependency)
+        elif not version:
+            dependencies_to_install.append(dependency)
+    return dependencies_to_install
+
+
+def install_dependencies_sync_impl(dependency_info_array: List[DependencyInfo]):
     subprocess.check_call(
         [
             python_path,
@@ -40,36 +83,85 @@ def install_dependencies_impl(dependency_info_array: List[DependencyInfo]):
         installed_packages[package_name] = version
 
 
-def coerce_semver(version: str) -> Tuple[int, int, int]:
-    regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
-    match = re.search(regex, version)
-    if match:
-        return (
-            int(match.group(1) or 0),
-            int(match.group(2) or 0),
-            int(match.group(3) or 0),
-        )
-    return (0, 0, 0)
-
-
-def install_dependencies(dependencies: List[DependencyInfo]):
-    dependencies_to_install = []
-    for dependency in dependencies:
-        version = installed_packages.get(dependency["package_name"], None)
-        if dependency["version"] and version:
-            installed_version = coerce_semver(version)
-            dep_version = coerce_semver(dependency["version"])
-            if installed_version < dep_version:
-                dependencies_to_install.append(dependency)
-        elif not version:
-            dependencies_to_install.append(dependency)
+def install_dependencies_sync(
+    dependencies: List[DependencyInfo],
+):
+    dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) > 0:
-        install_dependencies_impl(dependencies_to_install)
+        install_dependencies_sync_impl(dependencies_to_install)
+
+
+def log_impl(message: str):
+    if logger is not None:
+        logger.info(message)
+    else:
+        print(message, flush=True)
+
+
+async def install_dependencies_impl(
+    dependency_info_array: List[DependencyInfo],
+    update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]],
+):
+    process = subprocess.Popen(
+        [
+            python_path,
+            "-m",
+            "pip",
+            "install",
+            *[
+                pin(dep_info["package_name"], dep_info["version"])
+                for dep_info in dependency_info_array
+            ],
+            "--disable-pip-version-check",
+            "--no-warn-script-location",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    package_name = "Unknown"
+    while True:
+        nextline = process.stdout.readline()  # type: ignore
+        if nextline == b"" and process.poll() is not None:
+            break
+        line = nextline.decode("utf-8").strip()
+        if update_progress_cb is not None:
+            if "Collecting" in line:
+                match = COLLECTING_REGEX.search(line)
+                if match:
+                    package_name = match.group(1)
+                    log_impl(f"Collecting {package_name}...")
+                    # TODO: progress amount
+                    await update_progress_cb(f"Collecting {package_name}...", 1)
+            elif "Downloading" in line:
+                log_impl(f"Downloading {package_name}...")
+                # TODO: progress amount
+                await update_progress_cb(f"Downloading {package_name}...", 1)
+            elif "Installing collected packages" in line:
+                log_impl("Installing collected packages...")
+                # TODO: progress amount
+                await update_progress_cb(f"Installing collected packages...", 1)
+
+    exitCode = process.wait()
+
+    for dep_info in dependency_info_array:
+        package_name = dep_info["package_name"]
+        version = dep_info["version"]
+        installed_packages[package_name] = version
+
+
+async def install_dependencies(
+    dependencies: List[DependencyInfo],
+    update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]] = None,
+):
+    dependencies_to_install = get_deps_to_install(dependencies)
+    if len(dependencies_to_install) > 0:
+        await install_dependencies_impl(dependencies_to_install, update_progress_cb)
 
 
 __all__ = [
     "DependencyInfo",
     "python_path",
     "install_dependencies",
+    "install_dependencies_sync",
     "installed_packages",
 ]

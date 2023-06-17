@@ -1,6 +1,7 @@
+import asyncio
 from typing import List
 
-from .store import DependencyInfo, install_dependencies
+from .store import DependencyInfo, install_dependencies_sync
 
 deps: List[DependencyInfo] = [
     {
@@ -13,4 +14,4 @@ deps: List[DependencyInfo] = [
     },
 ]
 
-install_dependencies(deps)
+install_dependencies_sync(deps)

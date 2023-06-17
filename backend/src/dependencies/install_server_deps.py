@@ -1,8 +1,14 @@
+import asyncio
 import subprocess
 from json import loads as json_parse
 from typing import List
 
-from .store import DependencyInfo, install_dependencies, installed_packages, python_path
+from .store import (
+    DependencyInfo,
+    install_dependencies_sync,
+    installed_packages,
+    python_path,
+)
 
 # Get the list of installed packages
 # We can't rely on using the package's __version__ attribute because not all packages actually have it
@@ -38,4 +44,4 @@ deps: List[DependencyInfo] = [
     },
 ]
 
-install_dependencies(deps)
+install_dependencies_sync(deps)

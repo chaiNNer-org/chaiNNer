@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Callable, Dict, List, Optional, TypedDict
+from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -391,8 +391,11 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-async def import_packages(config: ServerConfig, update_progress_cb: Callable):
-    def install_deps(dependencies: List[api.Dependency]):
+async def import_packages(
+    config: ServerConfig,
+    update_progress_cb: Callable[[Any, Any], Coroutine[Any, Any, Any]],
+):
+    async def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
                 {
@@ -401,7 +404,7 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
                 }
                 for dep in dependencies
             ]
-            install_dependencies(dep_info)
+            await install_dependencies(dep_info, update_progress_cb)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
 
@@ -433,7 +436,7 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
                 to_install.append(dep)
 
     if len(to_install) > 0:
-        install_deps(to_install)
+        await install_deps(to_install)
 
     logger.info("Done checking dependencies...")
 
@@ -441,7 +444,7 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
 
-    update_progress_cb("Loading Nodes...", 0.75)
+    await update_progress_cb("Loading Nodes...", 0.75)
 
     api.registry.load_nodes(__file__)
 
