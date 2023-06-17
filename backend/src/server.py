@@ -504,8 +504,12 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Importing nodes...")
 
+    # Update progress between 0.5 and 1.0
+    async def update_sub_progress(message: str, percent: float):
+        await update_progress(message, 0.5 + percent / 2)
+
     # Now we can load all the nodes
-    await import_packages(AppContext.get(sanic_app).config, update_progress)
+    await import_packages(AppContext.get(sanic_app).config, update_sub_progress)
 
     logger.info("Sending backend ready...")
 

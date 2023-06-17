@@ -115,6 +115,9 @@ async def install_dependencies_impl(
     dep_length = len(dependency_info_array)
     dep_counter = 0
 
+    def get_progress_amount():
+        return min(max(0, dep_counter / dep_length), 1) * 0.8
+
     process = subprocess.Popen(
         [
             python_path,
@@ -148,7 +151,7 @@ async def install_dependencies_impl(
                 log_impl(f"Collecting {installing_name}...")
                 # TODO: progress amount
                 await update_progress_cb(
-                    f"Collecting {installing_name}...", dep_counter / dep_length
+                    f"Collecting {installing_name}...", get_progress_amount()
                 )
         # The Downloading step of pip. It tells us what package is currently being downloaded.
         # Later, we can use this to get the progress of the download.
@@ -158,17 +161,18 @@ async def install_dependencies_impl(
             # TODO: progress amount
             await update_progress_cb(
                 f"Downloading {installing_name}...",
-                (dep_counter / dep_length) + 0.5,
+                get_progress_amount() + 0.05,
             )
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
             log_impl("Installing collected packages...")
             # TODO: progress amount
-            await update_progress_cb(f"Installing collected packages...", 1)
+            await update_progress_cb(f"Installing collected packages...", 0.9)
 
     exitCode = process.wait()
     log_impl(f"Installation exited with code {exitCode}")
+    await update_progress_cb(f"Installing collected packages...", 1)
 
     for dep_info in dependency_info_array:
         installing_name = dep_info["package_name"]
