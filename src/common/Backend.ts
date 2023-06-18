@@ -1,3 +1,4 @@
+import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
@@ -10,6 +11,7 @@ import {
     SchemaId,
 } from './common-types';
 import { Package } from './dependencies';
+import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -103,7 +105,16 @@ export class Backend {
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        const options: RequestInit = { method, cache: 'no-cache' };
+        const options: RequestInit & undici.RequestInit = isRenderer
+            ? { method, cache: 'no-cache' }
+            : {
+                  method,
+                  cache: 'no-cache',
+                  dispatcher: new undici.Agent({
+                      bodyTimeout: 0,
+                      headersTimeout: 0,
+                  }),
+              };
         const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
@@ -112,8 +123,10 @@ export class Backend {
             };
             options.signal = signal;
         }
-
-        const resp = await fetch(`http://127.0.0.1:${this.port}${path}`, options);
+        const resp = await (isRenderer ? fetch : undici.fetch)(
+            `http://127.0.0.1:${this.port}${path}`,
+            options
+        );
         return (await resp.json()) as T;
     }
 
