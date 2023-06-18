@@ -1,21 +1,29 @@
 import { app } from 'electron';
-import log from 'electron-log';
+import electronLog from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import './i18n';
+import { LEVEL_NAME, log } from '../common/log';
 import { parseArgs } from './arguments';
 import { createCli } from './cli/create';
 import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
-import { getRootDirSync } from './platform';
+import { getLogsFolder, getRootDirSync } from './platform';
 
 const startApp = () => {
     const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
-    log.transports.file.resolvePath = (variables) =>
-        path.join(getRootDirSync(), 'logs', variables.fileName!);
-    log.transports.file.level = 'info';
+    electronLog.transports.file.resolvePath = (variables) =>
+        path.join(getLogsFolder(), variables.fileName!);
+    electronLog.transports.file.level = 'info';
+    electronLog.transports.console.level = 'debug';
+
+    log.addTransport({
+        log: ({ level, message, additional }) => {
+            electronLog[LEVEL_NAME[level]](message, ...additional);
+        },
+    });
 
     process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 

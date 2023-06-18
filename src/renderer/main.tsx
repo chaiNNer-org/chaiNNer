@@ -1,5 +1,4 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
-import log from 'electron-log';
 import isDeepEqual from 'fast-deep-equal';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +7,7 @@ import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
 import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
+import { log } from '../common/log';
 import { parseFunctionDefinitions } from '../common/nodes/parseFunctionDefinitions';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
@@ -78,6 +78,21 @@ export const Main = memo(({ port }: MainProps) => {
     const [nodesRefreshCounter, setNodesRefreshCounter] = useState(0);
     const refreshNodes = useCallback(() => setNodesRefreshCounter((prev) => prev + 1), []);
 
+    const [periodicRefresh, setPeriodicRefresh] = useState(false);
+    useAsyncEffect(
+        () => ({
+            supplier: () => ipcRenderer.invoke('refresh-nodes'),
+            successEffect: setPeriodicRefresh,
+        }),
+        []
+    );
+
+    useEffect(() => {
+        if (!periodicRefresh) return;
+        const interval = setInterval(refreshNodes, 1000 * 3);
+        return () => clearInterval(interval);
+    }, [periodicRefresh, refreshNodes]);
+
     const { loading, error, data, response } = useFetch<BackendNodesResponse>(
         `http://localhost:${port}/nodes`,
         { cachePolicy: CachePolicies.NO_CACHE, cache: 'no-cache', retries: 25 },
@@ -128,12 +143,16 @@ export const Main = memo(({ port }: MainProps) => {
                 return prev;
             });
         }
+    }, [response, data, loading, error, backendReady, sendAlert, t]);
 
+    useIpcRendererListener('backend-ready', () => {
+        // Refresh the nodes once the backend is ready
+        setNodesRefreshCounter((prev) => prev + 1);
         if (!backendReady) {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
-    }, [response, data, loading, error, backendReady, sendAlert, t]);
+    });
 
     useLastWindowSize();
 

@@ -1,22 +1,22 @@
-import log from 'electron-log';
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
 import { EdgeData, InputData, InputId, InputValue, Mutable, NodeData } from './common-types';
+import { log } from './log';
 import { SchemaMap } from './SchemaMap';
 import { joinEnglish } from './util';
 import type { Edge, Node } from 'reactflow';
 
-export type OverrideInputId = string & { readonly __override_input_id?: never };
+export type InputOverrideId = string & { readonly __input_override_id?: never };
 
-export const createOverrideInputId = (nodeId: string, inputId: InputId): OverrideInputId => {
+export const createInputOverrideId = (nodeId: string, inputId: InputId): InputOverrideId => {
     if (nodeId.length !== 36)
         throw new Error('Expected node id to be a 36 character hexadecimal UUID.');
     return `#${nodeId}:${inputId}`;
 };
 
-const isValidOverrideInputId = (id: OverrideInputId) => /^#[a-f0-9-]{36}:\d+$/.test(id);
-export const parseOverrideInputId = (id: OverrideInputId): { nodeId: string; inputId: InputId } => {
-    if (!isValidOverrideInputId(id)) throw new Error(`"${id}" is not a valid override input id.`);
+const isValidInputOverrideId = (id: InputOverrideId) => /^#[a-f0-9-]{36}:\d+$/.test(id);
+export const parseInputOverrideId = (id: InputOverrideId): { nodeId: string; inputId: InputId } => {
+    if (!isValidInputOverrideId(id)) throw new Error(`"${id}" is not a valid input override id.`);
 
     const nodeId = id.substring(1, 37);
     const inputId = Number(id.slice(38)) as InputId;
@@ -25,7 +25,7 @@ export const parseOverrideInputId = (id: OverrideInputId): { nodeId: string; inp
 };
 
 export interface OverrideFile {
-    inputs?: Record<OverrideInputId, string | number | null>;
+    inputs?: Record<InputOverrideId, string | number | null>;
 }
 
 export const readOverrideFile = async (filePath: string): Promise<OverrideFile> => {
@@ -106,10 +106,6 @@ const assignInput = (
             break;
         }
         case 'text': {
-            inputData[inputId] = String(value);
-            break;
-        }
-        case 'text-line': {
             const text = String(value);
 
             const { minLength, maxLength } = input;
@@ -139,7 +135,7 @@ export const applyOverrides = (
 
     const overrides = new Map<string, Map<InputId, string | number | null>>();
     for (const [id, value] of Object.entries(overrideFile.inputs)) {
-        const { nodeId, inputId } = parseOverrideInputId(id);
+        const { nodeId, inputId } = parseInputOverrideId(id);
 
         let perNode = overrides.get(nodeId);
         if (perNode === undefined) {

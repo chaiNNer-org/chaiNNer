@@ -4,11 +4,11 @@ from typing import Tuple
 
 import numpy as np
 
+import navi
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.model import OnnxRemBg
 from nodes.impl.onnx.session import get_onnx_session
 from nodes.impl.rembg.bg import remove_bg
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput, OnnxRemBgModelInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.inputs.numeric_inputs import NumberInput, SliderInput
@@ -40,14 +40,14 @@ from .. import processing_group
             "Image",
             image_type="""removeBackground(Input1, Input0)""",
         ),
-        ImageOutput("Mask", image_type=expression.Image(size_as="Input0"), channels=1),
+        ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
 )
 def rembg_node(
     img: np.ndarray,
     model: OnnxRemBg,
-    post_process_mask: int,
-    alpha_matting: int,
+    post_process_mask: bool,
+    alpha_matting: bool,
     foreground_threshold: int,
     background_threshold: int,
     kernel_size: int,
@@ -59,7 +59,7 @@ def rembg_node(
     return remove_bg(
         img,
         session,
-        bool(alpha_matting),
+        alpha_matting,
         foreground_threshold,
         background_threshold,
         alpha_matting_erode_size=kernel_size,

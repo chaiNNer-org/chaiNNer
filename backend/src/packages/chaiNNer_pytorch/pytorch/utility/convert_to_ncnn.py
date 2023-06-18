@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Tuple
 
+from nodes.impl.ncnn.model import NcnnModelWrapper
+from nodes.impl.pytorch.architecture.HAT import HAT
+from nodes.impl.pytorch.architecture.OmniSR.OmniSR import OmniSR
 from nodes.impl.pytorch.architecture.Swin2SR import Swin2SR
 from nodes.impl.pytorch.architecture.SwinIR import SwinIR
 from nodes.impl.pytorch.types import PyTorchSRModel
@@ -34,7 +37,9 @@ except:
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
     ],
 )
-def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Tuple[Any, str]:
+def convert_to_ncnn_node(
+    model: PyTorchSRModel, is_fp16: int
+) -> Tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
@@ -49,6 +54,14 @@ def convert_to_ncnn_node(model: PyTorchSRModel, is_fp16: int) -> Tuple[Any, str]
     assert not isinstance(
         model, Swin2SR
     ), "Swin2SR is not supported for NCNN conversion at this time."
+
+    assert not isinstance(
+        model, HAT
+    ), "HAT is not supported for NCNN conversion at this time."
+
+    assert not isinstance(
+        model, OmniSR
+    ), "OmniSR is not supported for NCNN conversion at this time."
 
     # Intermediate conversion to ONNX is always fp32
     onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]

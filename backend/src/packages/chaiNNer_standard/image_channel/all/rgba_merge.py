@@ -5,7 +5,7 @@ from typing import Union
 import cv2
 import numpy as np
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -29,7 +29,7 @@ from . import node_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 size_as="Input0",
                 channels="""
                     match (

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from enum import Enum
 from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
@@ -7,9 +8,15 @@ from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar
 import numpy as np
 from sanic.log import logger
 
+import navi
+from nodes.base_input import BaseInput, InputConversion
+
 from ...impl.blend import BlendMode
+from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor, normalize
+from ...impl.upscale.auto_split_tiles import TileSize
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
     join_pascal_case,
@@ -17,8 +24,6 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
-from .. import expression
-from .base_input import BaseInput, InputConversion
 from .numeric_inputs import NumberInput
 
 
@@ -30,7 +35,7 @@ class UntypedOption(TypedDict):
 class TypedOption(TypedDict):
     option: str
     value: str | int
-    type: expression.ExpressionJson
+    type: navi.ExpressionJson
 
 
 DropDownOption = Union[UntypedOption, TypedOption]
@@ -50,11 +55,12 @@ class DropDownInput(BaseInput):
 
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type: navi.ExpressionJson,
         label: str,
         options: List[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        associated_type: Union[Type, None] = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -69,6 +75,10 @@ class DropDownInput(BaseInput):
                 f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
             )
             self.default = options[0]["value"]
+
+        self.associated_type = (
+            associated_type if associated_type is not None else type(self.default)
+        )
 
     def toDict(self):
         return {
@@ -106,6 +116,7 @@ class BoolInput(DropDownInput):
             ],
             preferred_style="checkbox",
         )
+        self.associated_type = bool
 
     def enforce(self, value) -> bool:
         value = super().enforce(value)
@@ -185,6 +196,8 @@ class EnumInput(Generic[T], DropDownInput):
         self.type_name: str = type_name
         self.enum = enum
 
+        self.associated_type = enum
+
     def enforce(self, value) -> T:
         value = super().enforce(value)
         return self.enum(value)
@@ -200,6 +213,7 @@ class TextInput(BaseInput):
         min_length: int = 1,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
+        multiline: bool = False,
         allow_numbers: bool = True,
         default: Union[str, None] = None,
     ):
@@ -207,12 +221,14 @@ class TextInput(BaseInput):
             "string",
             label,
             has_handle=has_handle,
-            kind="text-line",
+            kind="text",
         )
         self.min_length = min_length
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+        self.multiline = multiline
+        self.associated_type = str
 
         if allow_numbers:
             self.input_conversions = [InputConversion("number", "toString(Input)")]
@@ -229,28 +245,7 @@ class TextInput(BaseInput):
             "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
-            "def": self.default,
-        }
-
-
-class TextAreaInput(BaseInput):
-    """Input for large text"""
-
-    def __init__(self, label: str = "Text", default: Union[str, None] = None):
-        super().__init__("string", label, has_handle=False, kind="text")
-        self.resizable = True
-        self.default = default
-
-    def enforce(self, value) -> str:
-        if isinstance(value, float) and int(value) == value:
-            # stringify integers values
-            return str(int(value))
-        return str(value)
-
-    def toDict(self):
-        return {
-            **super().toDict(),
-            "resizable": self.resizable,
+            "multiline": self.multiline,
             "def": self.default,
         }
 
@@ -259,7 +254,7 @@ class ClipboardInput(BaseInput):
     """Input for pasting from clipboard"""
 
     def __init__(self, label: str = "Clipboard input"):
-        super().__init__(["Image", "string", "number"], label, kind="text-line")
+        super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
     def enforce(self, value):
@@ -276,6 +271,7 @@ class ClipboardInput(BaseInput):
 class AnyInput(BaseInput):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
+        self.associated_type = object
 
     def enforce_(self, value):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
@@ -302,6 +298,8 @@ class SeedInput(NumberInput):
             }
         """
 
+        self.associated_type = Seed
+
     def enforce(self, value) -> Seed:
         if isinstance(value, Seed):
             return value
@@ -309,6 +307,81 @@ class SeedInput(NumberInput):
 
     def make_optional(self):
         raise ValueError("SeedInput cannot be made optional")
+
+
+class ColorInput(BaseInput):
+    def __init__(
+        self,
+        label: str = "Color",
+        default: Color | None = None,
+        channels: int | List[int] | None = None,
+    ):
+        super().__init__(
+            input_type=navi.Color(channels=channels),
+            label=label,
+            has_handle=True,
+            kind="color",
+        )
+
+        self.input_adapt = """
+            match Input {
+                string => parseColorJson(Input),
+                _ => never
+            }
+        """
+
+        self.channels: List[int] | None = (
+            [channels] if isinstance(channels, int) else channels
+        )
+
+        if self.channels is None:
+            if default is None:
+                default = Color.bgr((0.5, 0.5, 0.5))
+        else:
+            assert len(self.channels) >= 0
+            if default is None:
+                if 3 in self.channels:
+                    default = Color.bgr((0.5, 0.5, 0.5))
+                elif 4 in self.channels:
+                    default = Color.bgra((0.5, 0.5, 0.5, 1))
+                elif 1 in self.channels:
+                    default = Color.gray(0.5)
+                else:
+                    raise ValueError("Cannot find default color value")
+            else:
+                assert (
+                    default.channels in self.channels
+                ), "The default color is not accepted."
+
+        self.default: Color = default
+
+        self.associated_type = Color
+
+    def enforce(self, value) -> Color:
+        if isinstance(value, str):
+            # decode color JSON strings from the frontend
+            value = Color.from_json(json.loads(value))
+
+        assert isinstance(value, Color)
+
+        if self.channels is not None and value.channels not in self.channels:
+            expected = format_color_with_channels(self.channels, plural=True)
+            actual = format_color_with_channels([value.channels])
+            raise ValueError(
+                f"The input {self.label} only supports {expected} but was given {actual}."
+            )
+
+        return value
+
+    def toDict(self):
+        return {
+            **super().toDict(),
+            "def": json.dumps(self.default.to_json()),
+            "channels": self.channels,
+        }
+
+    def make_optional(self):
+        raise ValueError("ColorInput cannot be made optional")
 
 
 def IteratorInput():
@@ -324,6 +397,7 @@ def VideoTypeDropdown() -> DropDownInput:
         options=[
             {"option": "MP4", "value": "mp4"},
             {"option": "MKV", "value": "mkv"},
+            {"option": "MKV (FFV1)", "value": "mkv-ffv1"},
             {"option": "WEBM", "value": "webm"},
             {"option": "AVI", "value": "avi"},
             {"option": "GIF", "value": "gif"},
@@ -391,6 +465,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         input_type="TileSize",
         label=label,
         options=options,
+        associated_type=TileSize,
     )
 
 
@@ -414,6 +489,7 @@ def DdsFormatDropdown() -> DropDownInput:
         input_type="DdsFormat",
         label="DDS Format",
         options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
+        associated_type=DDSFormat,
     )
 
 

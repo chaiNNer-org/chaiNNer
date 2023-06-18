@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -19,7 +20,7 @@ class DarwinClipboard(ClipboardBase):
         if pasteboard is None:
             raise ModuleNotFoundError("Pasteboard is not available.")
 
-        self.pb = pasteboard.Pasteboard()
+        self.pb: Any = pasteboard.Pasteboard()
 
     def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
         if self.pb is None or pasteboard is None:

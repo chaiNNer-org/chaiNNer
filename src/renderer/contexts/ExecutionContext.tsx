@@ -1,10 +1,9 @@
-import log from 'electron-log';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
-import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
+import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
@@ -37,11 +36,19 @@ interface ExecutionStatusContextValue {
     paused: boolean;
 }
 
+export interface IteratorProgress {
+    percent?: number;
+    eta?: number;
+    index?: number;
+    total?: number;
+}
+
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
+    getIteratorProgress: (iteratorId: string) => IteratorProgress;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -55,14 +62,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const {
-        animate,
-        unAnimate,
-        setIteratorPercent,
-        typeStateRef,
-        outputDataActions,
-        getInputHash,
-    } = useContext(GlobalContext);
+    const { animate, unAnimate, typeStateRef, outputDataActions, getInputHash } =
+        useContext(GlobalContext);
     const { schemata, port, backend, ownsBackend, restartingRef, restart } =
         useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
@@ -77,6 +78,27 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
 
+    const [iteratorProgress, setIteratorProgress] = useState<
+        Record<string, IteratorProgress | undefined>
+    >({});
+
+    const setIteratorProgressImpl = useCallback(
+        (iteratorId: string, progress: IteratorProgress) => {
+            setIteratorProgress((prev) => ({
+                ...prev,
+                [iteratorId]: progress,
+            }));
+        },
+        [setIteratorProgress]
+    );
+
+    const getIteratorProgress = useCallback(
+        (iteratorId: string) => {
+            return iteratorProgress[iteratorId] ?? {};
+        },
+        [iteratorProgress]
+    );
+
     useEffect(() => {
         const displayProgress = status === ExecutionStatus.RUNNING ? percentComplete : undefined;
         ipcRenderer.send('set-progress-bar', displayProgress ?? null);
@@ -88,6 +110,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } else {
             ipcRenderer.send('stop-sleep-blocker');
             setPercentComplete(undefined);
+            setIteratorProgress({});
         }
     }, [status]);
 
@@ -149,19 +172,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
-    const updateIteratorProgress = useThrottledCallback<
+    const updateIteratorProgress = useCallback<
         BackendEventSourceListener<'iterator-progress-update'>
-    >((data) => {
-        if (data) {
-            const { percent, iteratorId, running: runningNodes } = data;
-            if (runningNodes && status === ExecutionStatus.RUNNING) {
-                animate(runningNodes);
-            } else if (status !== ExecutionStatus.RUNNING) {
-                unAnimate();
+    >(
+        (data) => {
+            if (data) {
+                const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
+
+                if (runningNodes && status === ExecutionStatus.RUNNING) {
+                    animate(runningNodes);
+                } else if (status !== ExecutionStatus.RUNNING) {
+                    unAnimate();
+                }
+                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
             }
-            setIteratorPercent(iteratorId, percent);
-        }
-    }, 350);
+        },
+        [animate, setIteratorProgressImpl, status, unAnimate]
+    );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
     useEffect(() => {
@@ -351,6 +378,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
+        setIteratorProgress({});
     }, [backend, restart, sendAlert]);
 
     useHotkeys(
@@ -417,6 +445,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
+        getIteratorProgress,
     });
 
     return (

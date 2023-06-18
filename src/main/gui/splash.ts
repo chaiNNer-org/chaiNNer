@@ -1,5 +1,5 @@
 import { BrowserWindow, MessageBoxOptions, app, dialog, shell } from 'electron';
-import log from 'electron-log';
+import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
 import { Progress, ProgressMonitor } from '../../common/ui/progress';
 import { assertNever } from '../../common/util';
@@ -62,12 +62,13 @@ export const addSplashScreen = (monitor: ProgressMonitor) => {
     }, 100);
 
     splash.once('ready-to-show', () => {
-        splash.show();
+        if (!splash.isDestroyed()) {
+            splash.show();
+        }
     });
 
     monitor.addProgressListener((progress) => {
         lastProgress = { ...progress };
-        splash.webContents.send('splash-setup-progress', progress);
 
         if (progress.totalProgress === 1) {
             progressFinished = true;
@@ -80,7 +81,9 @@ export const addSplashScreen = (monitor: ProgressMonitor) => {
 
         let messageBoxOptions: MessageBoxOptions;
         if (interrupt.type === 'critical error') {
-            splash.hide();
+            if (!splash.isDestroyed()) {
+                splash.hide();
+            }
 
             messageBoxOptions = {
                 type: 'error',

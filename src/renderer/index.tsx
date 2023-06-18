@@ -1,18 +1,26 @@
-import log from 'electron-log';
+import electronLog from 'electron-log';
 import path from 'path';
 import { createRoot } from 'react-dom/client';
+import { LEVEL_NAME, log } from '../common/log';
 import { ipcRenderer } from '../common/safeIpc';
 import { App } from './app';
 
 ipcRenderer
     .invoke('get-appdata')
     .then((rootDir) => {
-        log.transports.file.resolvePath = (variables) =>
+        electronLog.transports.file.resolvePath = (variables) =>
             path.join(rootDir, 'logs', variables.fileName!);
-        log.transports.file.level = 'info';
+        electronLog.transports.file.level = 'info';
+        electronLog.transports.console.level = 'debug';
+
+        log.addTransport({
+            log: ({ level, message, additional }) => {
+                electronLog[LEVEL_NAME[level]](message, ...additional);
+            },
+        });
     })
     .catch((err) => {
-        log.error(err);
+        electronLog.error(err);
     });
 
 const container = document.getElementById('root');

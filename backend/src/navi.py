@@ -201,3 +201,15 @@ def Image(
         fields["width"] = field(size_as, "width")
         fields["height"] = field(size_as, "height")
     return named("Image", fields)
+
+
+def Color(
+    channels: Optional[ExpressionJson] = None,
+    channels_as: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: Dict[str, ExpressionJson] = {}
+    if channels is not None:
+        fields["channels"] = channels
+    if channels_as is not None:
+        fields["channels"] = field(channels_as, "channels")
+    return named("Color", fields)

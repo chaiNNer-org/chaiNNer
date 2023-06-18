@@ -2,7 +2,7 @@ import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/na
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getField, isDirectory, isImage, withoutNull } from '../../common/types/util';
+import { getField, isColor, isDirectory, isImage, withoutNull } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -45,6 +45,16 @@ const getTypeText = (type: Type): TagValue[] => {
             }
         }
 
+        if (isColor(type)) {
+            const [channels] = type.fields;
+            if (isNumericLiteral(channels.type)) {
+                const mode = getColorMode(channels.type.value);
+                if (mode) {
+                    tags.push({ kind: 'literal', value: mode });
+                }
+            }
+        }
+
         if (isDirectory(type)) {
             const [path] = type.fields;
 
@@ -65,6 +75,25 @@ const getTypeText = (type: Type): TagValue[] => {
             const subType = getField(type, 'subType') ?? NeverType.instance;
             if (isStringLiteral(subType)) {
                 tags.push({ kind: 'literal', value: subType.value });
+            }
+        }
+    }
+    if (type.type === 'union') {
+        if (type.items.length === 2) {
+            const [color, image] = type.items;
+            if (isColor(color) && isImage(image)) {
+                const colorChannels = color.fields[0];
+                const imageChannels = image.fields[2];
+                if (
+                    isNumericLiteral(colorChannels.type) &&
+                    isNumericLiteral(imageChannels.type) &&
+                    colorChannels.type.value === imageChannels.type.value
+                ) {
+                    const mode = getColorMode(colorChannels.type.value);
+                    if (mode) {
+                        tags.push({ kind: 'literal', value: mode });
+                    }
+                }
             }
         }
     }

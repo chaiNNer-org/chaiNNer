@@ -1,14 +1,29 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { app } from 'electron';
-import log from 'electron-log';
+import { existsSync } from 'fs';
 import path from 'path';
 import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
 import { sanitizedEnv } from '../../common/env';
+import { log } from '../../common/log';
+import { delay, lazy } from '../../common/util';
 
-const backendPath = app.isPackaged
-    ? path.join(process.resourcesPath, 'src', 'run.py')
-    : './backend/src/run.py';
+const getBackendPath = lazy((): string => {
+    const candidates: string[] = [
+        path.join(process.resourcesPath, 'src', 'run.py'),
+        path.join(app.getAppPath(), '..', 'src', 'run.py'),
+        './backend/src/run.py',
+    ];
+
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            return candidate;
+        }
+    }
+
+    log.error('Unable to find backend path from the following candidates:', candidates);
+    throw new Error('Unable to find backend path');
+});
 
 interface BaseBackendProcess {
     readonly owned: boolean;
@@ -61,7 +76,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     ): ChildProcessWithoutNullStreams {
         log.info('Attempting to spawn backend...');
 
-        const backend = spawn(python, [backendPath, String(port)], {
+        const backend = spawn(python, [getBackendPath(), String(port)], {
             env: {
                 ...sanitizedEnv,
                 ...env,
@@ -171,7 +186,24 @@ export class BorrowedBackendProcess implements BaseBackendProcess {
 
     static async fromPort(port: number): Promise<BorrowedBackendProcess> {
         const backend = getBackend(port);
-        const python = await backend.pythonInfo();
+        let python: PythonInfo | undefined;
+        // try a few times to get python info, in case backend is still starting up
+        const maxTries = 50;
+        const startSleep = 1;
+        const maxSleep = 250;
+
+        for (let i = 0; i < maxTries; i += 1) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                python = await backend.pythonInfo();
+            } catch {
+                // eslint-disable-next-line no-await-in-loop
+                await delay(Math.max(maxSleep, startSleep * 2 ** i));
+            }
+        }
+        if (!python) {
+            throw new Error('Unable to get python info from backend');
+        }
         return new BorrowedBackendProcess(port, python);
     }
 }

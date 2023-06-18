@@ -1,12 +1,29 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-param-reassign */
 
-import log from 'electron-log';
 import { Edge, Node, Viewport, getConnectedEdges, getOutgoers } from 'reactflow';
 import semver from 'semver';
-import { EdgeData, InputValue, Mutable, NodeData, SchemaId } from './common-types';
+import {
+    ColorJson,
+    EdgeData,
+    InputId,
+    InputValue,
+    Mutable,
+    NodeData,
+    OutputId,
+    SchemaId,
+} from './common-types';
+import { log } from './log';
 import { legacyMigrations } from './migrations-legacy';
-import { deriveUniqueId, parseTargetHandle } from './util';
+import {
+    ParsedSourceHandle,
+    ParsedTargetHandle,
+    assertNever,
+    deriveUniqueId,
+    parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
+} from './util';
 
 interface ReadonlyNodeData extends Omit<NodeData, 'inputData'> {
     inputData: Record<number | string, InputValue>;
@@ -858,6 +875,251 @@ const seedInput: ModernMigration = (data) => {
     return data;
 };
 
+const createColor: ModernMigration = (data) => {
+    const CREATE_COLOR_GRAY = 'chainner:image:create_color_gray' as SchemaId;
+    const CREATE_COLOR_RGB = 'chainner:image:create_color_rgb' as SchemaId;
+    const CREATE_COLOR_RGBA = 'chainner:image:create_color_rgba' as SchemaId;
+    const CREATE_COLOR = 'chainner:image:create_color' as SchemaId;
+    const COLOR_FROM = 'chainner:utility:color_from_channels' as SchemaId;
+
+    const newNodes: N[] = [];
+    const newEdges: E[] = [];
+    const nodesToRemove = new Set<string>();
+
+    const newCreateColor = (color: ColorJson, width: number, height: number, from: N): string => {
+        const id = deriveUniqueId(`${CREATE_COLOR}/${from.id}`);
+        newNodes.push({
+            data: {
+                id,
+                schemaId: CREATE_COLOR,
+                inputData: {
+                    0: JSON.stringify(color),
+                    1: width,
+                    2: height,
+                },
+            },
+            id,
+            position: { ...from.position },
+            type: 'regularNode',
+            selected: false,
+            zIndex: from.zIndex,
+            parentNode: from.parentNode,
+        });
+        return id;
+    };
+    const getColorFromInputData = (color: ColorJson): Record<string | number, InputValue> => {
+        const to8Bit = (n: number) => Math.round(n * 255);
+        const toPercent = (n: number) => Number((n * 100).toFixed(1));
+
+        switch (color.kind) {
+            case 'grayscale': {
+                const [luma] = color.values;
+                return { 0: 0, 1: to8Bit(luma) };
+            }
+            case 'rgb': {
+                const [r, g, b] = color.values;
+                return { 0: 1, 2: to8Bit(r), 3: to8Bit(g), 4: to8Bit(b) };
+            }
+            case 'rgba': {
+                const [r, g, b, a] = color.values;
+                return { 0: 2, 2: to8Bit(r), 3: to8Bit(g), 4: to8Bit(b), 5: toPercent(a) };
+            }
+            default:
+                return assertNever(color);
+        }
+    };
+    const newColorFrom = (color: ColorJson, from: N): string => {
+        const id = deriveUniqueId(`${COLOR_FROM}/${from.id}`);
+        newNodes.push({
+            data: {
+                id,
+                schemaId: COLOR_FROM,
+                inputData: getColorFromInputData(color),
+            },
+            id,
+            position: { x: from.position.x - 260, y: from.position.y },
+            type: 'regularNode',
+            selected: false,
+            zIndex: from.zIndex,
+            parentNode: from.parentNode,
+        });
+        return id;
+    };
+
+    const hasSomeEdgesToTargets = (nodeId: string, inputIds: number[]): boolean => {
+        const handles = new Set<string>();
+        for (const inputId of inputIds) {
+            handles.add(stringifyTargetHandle({ nodeId, inputId: inputId as InputId }));
+        }
+
+        for (const e of data.edges) {
+            if (handles.has(e.targetHandle!)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const changeEdgeIfExistsTarget = (from: ParsedTargetHandle, to: ParsedTargetHandle): void => {
+        const handle = stringifyTargetHandle(from);
+        for (const e of data.edges) {
+            if (e.targetHandle === handle) {
+                e.targetHandle = stringifyTargetHandle(to);
+                e.target = to.nodeId;
+                break;
+            }
+        }
+    };
+    const changeEdgeIfExistsSource = (from: ParsedSourceHandle, to: ParsedSourceHandle): void => {
+        const handle = stringifySourceHandle(from);
+        for (const e of data.edges) {
+            if (e.sourceHandle === handle) {
+                e.sourceHandle = stringifySourceHandle(to);
+                e.source = to.nodeId;
+            }
+        }
+    };
+    const newEdge = (from: ParsedSourceHandle, to: ParsedTargetHandle): void => {
+        const f = stringifySourceHandle(from);
+        const t = stringifyTargetHandle(to);
+        newEdges.push({
+            id: deriveUniqueId(f + t),
+            source: from.nodeId,
+            sourceHandle: f,
+            target: to.nodeId,
+            targetHandle: t,
+            type: 'main',
+            animated: false,
+        });
+    };
+
+    data.nodes.forEach((node) => {
+        if (
+            node.data.schemaId === CREATE_COLOR_GRAY ||
+            node.data.schemaId === CREATE_COLOR_RGB ||
+            node.data.schemaId === CREATE_COLOR_RGBA
+        ) {
+            let inputDataColor: ColorJson;
+            if (node.data.schemaId === CREATE_COLOR_GRAY) {
+                inputDataColor = {
+                    kind: 'grayscale',
+                    values: [Number(node.data.inputData[2] ?? 126) / 255],
+                };
+            } else if (node.data.schemaId === CREATE_COLOR_RGB) {
+                inputDataColor = {
+                    kind: 'rgb',
+                    values: [
+                        Number(node.data.inputData[2] ?? 126) / 255,
+                        Number(node.data.inputData[3] ?? 126) / 255,
+                        Number(node.data.inputData[4] ?? 126) / 255,
+                    ],
+                };
+            } else if (node.data.schemaId === CREATE_COLOR_RGBA) {
+                inputDataColor = {
+                    kind: 'rgba',
+                    values: [
+                        Number(node.data.inputData[2] ?? 126) / 255,
+                        Number(node.data.inputData[3] ?? 126) / 255,
+                        Number(node.data.inputData[4] ?? 126) / 255,
+                        Number(node.data.inputData[5] ?? 126) / 255,
+                    ],
+                };
+            } else {
+                throw new Error('Invalid schema id');
+            }
+
+            const width = Number(node.data.inputData[0] ?? 1);
+            const height = Number(node.data.inputData[1] ?? 1);
+            const ccId = newCreateColor(inputDataColor, width, height, node);
+            nodesToRemove.add(node.id);
+            // rewire image output edges
+            changeEdgeIfExistsSource(
+                { nodeId: node.id, outputId: 0 as OutputId },
+                { nodeId: ccId, outputId: 0 as OutputId }
+            );
+            // rewire width and height edges
+            changeEdgeIfExistsTarget(
+                { nodeId: node.id, inputId: 0 as InputId },
+                { nodeId: ccId, inputId: 1 as InputId }
+            );
+            changeEdgeIfExistsTarget(
+                { nodeId: node.id, inputId: 1 as InputId },
+                { nodeId: ccId, inputId: 2 as InputId }
+            );
+
+            // if the color channel inputs have edges, then we need to cerate a Color From node
+            if (hasSomeEdgesToTargets(node.id, [2, 3, 4, 5])) {
+                const cfId = newColorFrom(inputDataColor, node);
+
+                newEdge(
+                    { nodeId: cfId, outputId: 0 as OutputId },
+                    { nodeId: ccId, inputId: 0 as InputId }
+                );
+
+                if (node.data.schemaId === CREATE_COLOR_GRAY) {
+                    changeEdgeIfExistsTarget(
+                        { nodeId: node.id, inputId: 2 as InputId },
+                        { nodeId: cfId, inputId: 1 as InputId }
+                    );
+                } else {
+                    // RGB or RGBA
+                    changeEdgeIfExistsTarget(
+                        { nodeId: node.id, inputId: 2 as InputId },
+                        { nodeId: cfId, inputId: 2 as InputId }
+                    );
+                    changeEdgeIfExistsTarget(
+                        { nodeId: node.id, inputId: 3 as InputId },
+                        { nodeId: cfId, inputId: 3 as InputId }
+                    );
+                    changeEdgeIfExistsTarget(
+                        { nodeId: node.id, inputId: 4 as InputId },
+                        { nodeId: cfId, inputId: 4 as InputId }
+                    );
+                }
+
+                if (
+                    node.data.schemaId === CREATE_COLOR_RGBA &&
+                    hasSomeEdgesToTargets(node.id, [5])
+                ) {
+                    // RGBA alpha
+                    // This is a bit more involved because we need to convert from 0-255 to 0-100
+                    const mathId = deriveUniqueId(`math/${node.id}`);
+                    newNodes.push({
+                        data: {
+                            id: mathId,
+                            schemaId: 'chainner:utility:math' as SchemaId,
+                            inputData: {
+                                0: 0,
+                                1: 'div',
+                                2: 2.55,
+                            },
+                        },
+                        id: mathId,
+                        position: { x: node.position.x - 540, y: node.position.y },
+                        type: 'regularNode',
+                        selected: false,
+                        zIndex: node.zIndex,
+                        parentNode: node.parentNode,
+                    });
+                    changeEdgeIfExistsTarget(
+                        { nodeId: node.id, inputId: 5 as InputId },
+                        { nodeId: mathId, inputId: 0 as InputId }
+                    );
+                    newEdge(
+                        { nodeId: mathId, outputId: 0 as OutputId },
+                        { nodeId: cfId, inputId: 5 as InputId }
+                    );
+                }
+            }
+        }
+    });
+
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+    data.nodes = data.nodes.filter((n) => !nodesToRemove.has(n.id));
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -903,6 +1165,7 @@ const migrations = [
     changeColorSpaceAlpha,
     deriveSeed,
     seedInput,
+    createColor,
 ];
 
 export const currentMigration = migrations.length;

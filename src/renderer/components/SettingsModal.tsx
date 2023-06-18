@@ -33,7 +33,6 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import log from 'electron-log';
 import { readdir, unlink } from 'fs/promises';
 import path from 'path';
 import {
@@ -49,6 +48,7 @@ import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { getOnnxTensorRtCacheLocation, hasTensorRt } from '../../common/env';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -332,6 +332,7 @@ const PythonSettings = memo(() => {
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
+        useOnnxShouldTensorRtFp16,
     } = useContext(SettingsContext);
     const { backend } = useContext(BackendContext);
 
@@ -346,6 +347,7 @@ const PythonSettings = memo(() => {
     const [onnxGPU, setOnnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
     const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
     const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
 
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
@@ -612,19 +614,25 @@ const PythonSettings = memo(() => {
                                                 for (const file of files) {
                                                     unlink(
                                                         path.join(onnxTensorRtCacheLocation, file)
-                                                    ).catch((error) => {
-                                                        log.error(error);
-                                                    });
+                                                    ).catch(log.error);
                                                 }
                                             })
-                                            .catch((err) => {
-                                                log.error(err);
-                                            });
+                                            .catch(log.error);
                                     }}
                                 >
                                     Clear Cache
                                 </Button>
                             </HStack>
+                        )}
+                        {isUsingTensorRt && (
+                            <Toggle
+                                description="Use FP16 inference with TensorRT."
+                                title="TensorRT FP16 Mode"
+                                value={onnxShouldTensorRtFp16}
+                                onToggle={() => {
+                                    setOnnxShouldTensorRtFp16((prev) => !prev);
+                                }}
+                            />
                         )}
                     </VStack>
                 </TabPanel>

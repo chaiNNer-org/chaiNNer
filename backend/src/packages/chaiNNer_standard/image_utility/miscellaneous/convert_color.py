@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.group import group
 from nodes.groups import if_enum_group
 from nodes.impl.color.convert import (
@@ -10,7 +11,6 @@ from nodes.impl.color.convert import (
     convert,
 )
 from nodes.impl.color.convert_data import color_spaces, get_alpha_partner
-from nodes.properties import expression
 from nodes.properties.inputs import (
     BoolInput,
     ColorSpaceDetectorInput,
@@ -35,7 +35,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     ),
     icon="MdColorLens",
     inputs=[
-        ImageInput(image_type=expression.Image(channels="Input1.channels")),
+        ImageInput(image_type=navi.Image(channels="Input1.channels")),
         group("from-to-dropdowns")(
             ColorSpaceDetectorInput(label="From").with_id(1),
             ColorSpaceInput(label="To").with_id(2),
@@ -46,7 +46,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 size_as="Input0",
                 channels="""
                     if bool::and(Input2.supportsAlpha, Input3) {

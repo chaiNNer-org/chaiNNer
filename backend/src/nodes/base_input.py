@@ -1,20 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal
+from typing import List, Literal, Optional, Type, Union
 
+import navi
 from base_types import InputId
-
-from .. import expression
 
 InputKind = Literal[
     "number",
     "slider",
     "dropdown",
     "text",
-    "text-line",
     "directory",
     "file",
+    "color",
     "generic",
 ]
 
@@ -38,8 +37,8 @@ class InputConversion:
     ```
     """
 
-    type: expression.ExpressionJson
-    convert: expression.ExpressionJson
+    type: navi.ExpressionJson
+    convert: navi.ExpressionJson
 
     def toDict(self):
         return {
@@ -51,20 +50,22 @@ class InputConversion:
 class BaseInput:
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type: navi.ExpressionJson,
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
+        associated_type: Union[Type, None] = None,
     ):
-        self.input_type: expression.ExpressionJson = input_type
+        self.input_type: navi.ExpressionJson = input_type
         self.input_conversions: List[InputConversion] = []
-        self.input_adapt: expression.ExpressionJson | None = None
+        self.input_adapt: navi.ExpressionJson | None = None
         self.type_definitions: str | None = None
         self.kind: InputKind = kind
         self.label: str = label
         self.optional: bool = False
         self.has_handle: bool = has_handle
         self.id: InputId = InputId(-1)
+        self.associated_type: Type = associated_type
 
     # This is the method that should be created by each input
     def enforce(self, value: object):
@@ -101,6 +102,9 @@ class BaseInput:
 
     def make_optional(self):
         self.optional = True
+        if self.associated_type is not None:
+            associated_type = self.associated_type
+            self.associated_type = Optional[associated_type]
         return self
 
     def __repr__(self):

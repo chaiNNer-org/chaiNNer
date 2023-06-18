@@ -43,6 +43,28 @@ def format_image_with_channels(
         return f"an image with {join_english(channels, conj=conj)} channel(s)"
 
 
+def format_color_with_channels(
+    channels: List[int],
+    conj: Conj = "and",
+    plural: bool = False,
+) -> str:
+    assert len(channels) > 0
+
+    named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
+    if all([x in named for x in channels]):
+        if plural:
+            return join_english(channels, lambda c: named[c], conj=conj) + " colors"
+        else:
+            return (
+                "a " + join_english(channels, lambda c: named[c], conj=conj) + " color"
+            )
+
+    if plural:
+        return f"color with {join_english(channels, conj=conj)} channel(s)"
+    else:
+        return f"a color with {join_english(channels, conj=conj)} channel(s)"
+
+
 _CHANNEL_NUMBER_NAME = {1: "GRAY", 3: "RGB", 4: "RGBA"}
 
 

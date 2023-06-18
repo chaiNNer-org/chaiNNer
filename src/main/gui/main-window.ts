@@ -1,8 +1,9 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
-import log from 'electron-log';
+import EventSource from 'eventsource';
 import { t } from 'i18next';
 import { Version, WindowSize } from '../../common/common-types';
+import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { CriticalError } from '../../common/ui/error';
@@ -45,7 +46,7 @@ const checkForUpdate = () => {
                 await shell.openExternal(latest.releaseUrl);
             }
         })
-        .catch((reason) => log.error(reason));
+        .catch(log.error);
 };
 
 const registerEventHandlerPreSetup = (
@@ -56,6 +57,7 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('get-appdata', () => getRootDirSync());
     ipcMain.handle('get-gpu-info', getGpuInfo);
     ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
+    ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };
@@ -173,7 +175,7 @@ const registerEventHandlerPreSetup = (
             // Focus main window if a second instance was attempted
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
-        })().catch((error) => log.error(error));
+        })().catch(log.error);
     });
 };
 
@@ -341,19 +343,46 @@ export const createMainWindow = async (args: OpenArguments) => {
 
     try {
         registerEventHandlerPreSetup(mainWindow, args);
-        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.9), args);
+        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        progressController.submitProgress({
-            status: t('splash.loadingApp', 'Loading main application...'),
+        const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
+            withCredentials: true,
+        });
+        sse.onopen = () => {
+            log.info('Successfully connected to setup SSE.');
+        };
+
+        sse.addEventListener('backend-started', () => {
+            mainWindow.webContents.send('backend-started');
         });
 
-        if (mainWindow.isDestroyed()) {
-            return;
-        }
+        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
+        sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
+            if (e.data) {
+                const data = JSON.parse(e.data) as { message: string; percent: number };
+                backendStatusProgressSlice.submitProgress({
+                    status: data.message,
+                    totalProgress: data.percent,
+                });
+            }
+        });
 
-        ipcMain.once('backend-ready', () => {
-            progressController.submitProgress({ totalProgress: 1 });
+        sse.addEventListener('backend-ready', () => {
+            progressController.submitProgress({
+                totalProgress: 1,
+                status: t('splash.loadingApp', 'Loading main application...'),
+            });
+
+            if (mainWindow.isDestroyed()) {
+                dialog.showMessageBoxSync({
+                    type: 'error',
+                    title: 'Unable to start application',
+                    message: 'The main window was closed before the backend was ready.',
+                });
+                app.quit();
+                return;
+            }
 
             mainWindow.show();
             if (lastWindowSize?.maximized) {
@@ -365,8 +394,12 @@ export const createMainWindow = async (args: OpenArguments) => {
             }
         });
 
+        if (mainWindow.isDestroyed()) {
+            return;
+        }
+
         // and load the index.html of the app.
-        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch((error) => log.error(error));
+        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
     } catch (error) {
         if (error instanceof CriticalError) {
             await progressController.submitInterrupt(error.interrupt);
@@ -382,7 +415,7 @@ export const createMainWindow = async (args: OpenArguments) => {
     }
 
     // Open the DevTools.
-    if (!app.isPackaged && !mainWindow.isDestroyed()) {
+    if (args.devtools && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
 };

@@ -3,8 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.impl.dithering.common import dtype_to_uint8
-from nodes.impl.image_utils import as_3d
+from nodes.impl.image_utils import as_3d, to_uint8
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -23,7 +22,7 @@ from .. import miscellaneous_group
     outputs=[ImageOutput(image_type="Input0")],
 )
 def distance_transform_node(img: np.ndarray, spread: int) -> np.ndarray:
-    img = as_3d(dtype_to_uint8(img))
+    img = as_3d(to_uint8(img, normalized=True))
     img[img < 128] = 0
     img[img >= 128] = 255
 

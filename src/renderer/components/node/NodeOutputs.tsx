@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
 import { NeverType, Type, evaluate } from '@chainner/navi';
-import log from 'electron-log';
 import { memo, useCallback, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
+import { log } from '../../../common/log';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { ExpressionJson, fromJson } from '../../../common/types/json';
 import { isStartingNode } from '../../../common/util';

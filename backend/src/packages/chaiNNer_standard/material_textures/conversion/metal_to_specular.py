@@ -4,8 +4,8 @@ from typing import Tuple
 
 import numpy as np
 
+import navi
 from nodes.impl.pil_utils import InterpolationMethod, resize
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -67,7 +67,7 @@ def metal_to_spec(
         ImageOutput("Diffuse", image_type="Input0"),
         ImageOutput(
             "Specular",
-            image_type=expression.Image(size_as="Input1"),
+            image_type=navi.Image(size_as="Input1"),
             channels=3,
         ),
         ImageOutput(

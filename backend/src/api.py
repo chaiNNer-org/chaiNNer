@@ -3,25 +3,25 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Tuple,
-    TypedDict,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
 
 from sanic.log import logger
 
 from base_types import InputId, OutputId
+from custom_types import NodeType, RunFn
+from nodes.base_input import BaseInput
+from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.properties.inputs.base_input import BaseInput
-from nodes.properties.outputs.base_output import BaseOutput
+from type_checking import (
+    TypeCheckLevel,
+    TypeMismatchError,
+    get_type_check_level,
+    typeValidateSchema,
+)
+
+KB = 1024**1
+MB = 1024**2
+GB = 1024**3
 
 
 def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
@@ -59,11 +59,6 @@ def _process_outputs(base_outputs: Iterable[BaseOutput]):
             output_value.id = OutputId(i)
         outputs.append(output_value)
     return outputs
-
-
-RunFn = Callable[..., Any]
-
-NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 
 
 class DefaultNode(TypedDict):
@@ -114,10 +109,28 @@ class NodeGroup:
         side_effects: bool = False,
         deprecated: bool = False,
         default_nodes: List[DefaultNode] | None = None,
+        decorators: List[Callable] | None = None,
     ):
         def inner_wrapper(wrapped_func: T) -> T:
             p_inputs, group_layout = _process_inputs(inputs)
-            p_output = _process_outputs(outputs)
+            p_outputs = _process_outputs(outputs)
+
+            TYPE_CHECK_LEVEL = get_type_check_level()
+
+            if TYPE_CHECK_LEVEL != TypeCheckLevel.NONE:
+                try:
+                    typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
+                except TypeMismatchError as e:
+                    full_error_message = f"Error in {schema_id}: {e}"
+                    if TYPE_CHECK_LEVEL == TypeCheckLevel.WARN:
+                        logger.warning(full_error_message)
+                    elif TYPE_CHECK_LEVEL == TypeCheckLevel.ERROR:
+                        # pylint: disable=raise-missing-from
+                        raise TypeMismatchError(full_error_message)
+
+            if decorators is not None:
+                for decorator in decorators:
+                    wrapped_func = decorator(wrapped_func)
 
             node = NodeData(
                 schema_id=schema_id,
@@ -127,7 +140,7 @@ class NodeGroup:
                 type=node_type,
                 inputs=p_inputs,
                 group_layout=group_layout,
-                outputs=p_output,
+                outputs=p_outputs,
                 side_effects=side_effects,
                 deprecated=deprecated,
                 default_nodes=default_nodes,
@@ -166,10 +179,33 @@ class Category:
 
 
 @dataclass
+class Dependency:
+    display_name: str
+    pypi_name: str
+    version: str
+    size_estimate: int | float
+    auto_update: bool = False
+    extra_index_url: str | None = None
+
+    import_name: str | None = None
+
+    def toDict(self):
+        return {
+            "displayName": self.display_name,
+            "pypiName": self.pypi_name,
+            "version": self.version,
+            "sizeEstimate": int(self.size_estimate),
+            "autoUpdate": self.auto_update,
+            "findLink": self.extra_index_url,
+        }
+
+
+@dataclass
 class Package:
     where: str
     name: str
-    dependencies: List[str] = field(default_factory=list)
+    description: str
+    dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
 
     def add_category(
@@ -190,6 +226,12 @@ class Package:
         )
         self.categories.append(result)
         return result
+
+    def add_dependency(
+        self,
+        dependency: Dependency,
+    ):
+        self.dependencies.append(dependency)
 
 
 def _iter_py_files(directory: str):
@@ -215,6 +257,7 @@ class PackageRegistry:
 
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
+        type_errors: List[TypeMismatchError] = []
 
         for package in list(self.packages.values()):
             for file_path in _iter_py_files(os.path.dirname(package.where)):
@@ -228,9 +271,15 @@ class PackageRegistry:
                     except ImportError as e:
                         import_errors.append(e)
                     except RuntimeError as e:
-                        logger.warning(f"Failed to load {module}: {e}")
+                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except ValueError as e:
-                        logger.warning(f"Failed to load {module}: {e}")
+                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
+                    except TypeMismatchError as e:
+                        logger.error(e)
+                        type_errors.append(e)
+
+        if len(type_errors) > 0:
+            raise RuntimeError(f"Type errors occurred in {len(type_errors)} node(s)")
 
         logger.info(import_errors)
         self._refresh_nodes()
@@ -255,5 +304,7 @@ class PackageRegistry:
 registry = PackageRegistry()
 
 
-def add_package(where: str, name: str, dependencies: List[str]) -> Package:
-    return registry.add(Package(where, name, dependencies))
+def add_package(
+    where: str, name: str, description: str, dependencies: List[Dependency]
+) -> Package:
+    return registry.add(Package(where, name, description, dependencies))

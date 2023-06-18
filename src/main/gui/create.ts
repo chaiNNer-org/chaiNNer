@@ -1,11 +1,16 @@
 import { BrowserWindow, app, dialog } from 'electron';
-import log from 'electron-log';
+import electronLog from 'electron-log';
+import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
 import { createMainWindow } from './main-window';
 
+const mdCodeBlock = (code: string): string => {
+    return `\`\`\`\n${code}\n\`\`\``;
+};
+
 const setupErrorHandling = () => {
-    log.catchErrors({
+    electronLog.catchErrors({
         showDialog: false,
         onError: (error, versions, submitIssue) => {
             dialog
@@ -18,10 +23,14 @@ const setupErrorHandling = () => {
                 })
                 .then((result) => {
                     if (result.response === 1) {
+                        const stack = error.stack
+                            ? `\n${error.stack.replace(String(error), '')}`
+                            : '';
+
                         submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
                             title: `Error report: ${error.message}`,
                             body: [
-                                `\`\`\`\n${String(error)}\n\`\`\``,
+                                mdCodeBlock(String(error) + stack),
                                 `ChaiNNer: ${String(versions?.app)}`,
                                 `OS: ${String(versions?.os)}`,
                             ].join('\n'),
@@ -30,17 +39,8 @@ const setupErrorHandling = () => {
                         app.quit();
                     }
                 })
-                .catch((e) => log.error(e));
+                .catch(log.error);
         },
-    });
-
-    process.on('uncaughtException', (error) => {
-        dialog.showMessageBoxSync({
-            type: 'error',
-            title: 'Error in Main process',
-            message: `Something failed: ${String(error)}`,
-        });
-        app.exit(1);
     });
 };
 
@@ -55,7 +55,11 @@ export const createGuiApp = (args: OpenArguments) => {
     }
 
     const createWindow = lazy(() => {
-        createMainWindow(args).catch((error) => log.error(error));
+        createMainWindow(args).catch((error) => {
+            log.error(error);
+            // rethrow to let the global error handler deal with it
+            return Promise.reject(error);
+        });
     });
 
     // This method will be called when Electron has finished

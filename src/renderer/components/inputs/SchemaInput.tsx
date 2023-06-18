@@ -13,6 +13,7 @@ import {
 import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { ColorInput } from './ColorInput';
 import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
 import { FileInput } from './FileInput';
@@ -21,7 +22,6 @@ import { HandleWrapper, InputContainer, WithLabel } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
-import { TextAreaInput } from './TextAreaInput';
 import { TextInput } from './TextInput';
 
 const InputComponents: {
@@ -32,11 +32,11 @@ const InputComponents: {
 } = {
     file: FileInput,
     directory: DirectoryInput,
-    'text-line': TextInput,
-    text: TextAreaInput,
+    text: TextInput,
     dropdown: DropDownInput,
     number: NumberInput,
     slider: SliderInput,
+    color: ColorInput,
     generic: GenericInput,
 };
 
@@ -136,7 +136,7 @@ export const SchemaInput = memo(
             );
         }
 
-        if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown') {
+        if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown' && kind !== 'color') {
             inputElement = <WithLabel input={input}>{inputElement}</WithLabel>;
         }
 

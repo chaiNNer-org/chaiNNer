@@ -1,8 +1,8 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
-import log from 'electron-log';
 import { memo } from 'react';
 import { SiKofi } from 'react-icons/si';
 import { links } from '../../../common/links';
+import { log } from '../../../common/log';
 import { ipcRenderer } from '../../../common/safeIpc';
 
 export const KoFiButton = memo(() => {

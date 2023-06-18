@@ -1,21 +1,7 @@
 from __future__ import annotations
 
-from .. import expression
-from .base_output import BaseOutput
-
-
-class FileOutput(BaseOutput):
-    """Output for saving a local file"""
-
-    def __init__(self, file_type: expression.ExpressionJson, label: str):
-        super().__init__(file_type, label)
-
-    def get_broadcast_data(self, value: str):
-        return value
-
-    def enforce(self, value) -> str:
-        assert isinstance(value, str)
-        return value
+import navi
+from nodes.base_output import BaseOutput
 
 
 class DirectoryOutput(BaseOutput):
@@ -28,10 +14,10 @@ class DirectoryOutput(BaseOutput):
             else f"splitFilePath(Input{of_input}.path).dir"
         )
 
-        super().__init__(directory_type, label)
+        super().__init__(directory_type, label, associated_type=str)
 
     def get_broadcast_type(self, value: str):
-        return expression.named("Directory", {"path": expression.literal(value)})
+        return navi.named("Directory", {"path": navi.literal(value)})
 
     def enforce(self, value) -> str:
         assert isinstance(value, str)

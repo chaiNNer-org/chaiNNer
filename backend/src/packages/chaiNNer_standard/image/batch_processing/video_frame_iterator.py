@@ -43,6 +43,7 @@ codec_map = {
     "mp4": "libx264",
     "avi": "libx264",
     "mkv": "libx264",
+    "mkv-ffv1": "ffv1",
     "webm": "libvpx-vp9",
     "gif": "gif",
 }
@@ -64,7 +65,7 @@ class Writer:
     inputs=[IteratorInput().make_optional()],
     outputs=[
         ImageOutput("Frame Image", channels=3),
-        NumberOutput("Frame Index"),
+        NumberOutput("Frame Index", output_type="uint"),
         DirectoryOutput("Video Directory"),
         TextOutput("Video Name"),
     ],
@@ -126,7 +127,10 @@ def VideoFrameIteratorFrameWriterNode(
 
     if writer.out is None:
         try:
-            video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
+            extension = video_type
+            if video_type == "mkv-ffv1":
+                extension = "mkv"
+            video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
             writer.out = (
                 ffmpeg.input(
                     "pipe:",
@@ -264,14 +268,20 @@ async def SimpleVideoFrameIteratorNode(path: str, context: IteratorContext) -> N
         if "gif" not in ext.lower():
             full_out_path = f"{base}_audio{ext}"
             audio_stream = ffmpeg.input(path).audio
-            video_stream = ffmpeg.input(out_path)
-            output_video = ffmpeg.output(
-                audio_stream,
-                video_stream,
-                full_out_path,
-                vcodec="copy",
-            ).overwrite_output()
-            ffmpeg.run(output_video)
-            # delete original, rename new
-            os.remove(out_path)
-            os.rename(full_out_path, out_path)
+            try:
+                if audio_stream is not None:
+                    video_stream = ffmpeg.input(out_path)
+                    output_video = ffmpeg.output(
+                        audio_stream,
+                        video_stream,
+                        full_out_path,
+                        vcodec="copy",
+                    ).overwrite_output()
+                    ffmpeg.run(output_video)
+                    # delete original, rename new
+                    os.remove(out_path)
+                    os.rename(full_out_path, out_path)
+            except:
+                logger.warning(
+                    f"Failed to copy audio to video, input file probably contains no audio. Ignoring audio copy."
+                )

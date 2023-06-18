@@ -4,10 +4,12 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from ...impl.image_utils import get_h_w_c
-from ...utils.format import format_image_with_channels
-from .. import expression
-from .base_input import BaseInput
+import navi
+from nodes.base_input import BaseInput
+
+from ...impl.color.color import Color
+from ...utils.format import format_color_with_channels, format_image_with_channels
+from ...utils.utils import get_h_w_c
 
 
 class AudioInput(BaseInput):
@@ -23,20 +25,42 @@ class ImageInput(BaseInput):
     def __init__(
         self,
         label: str = "Image",
-        image_type: expression.ExpressionJson = "Image",
+        image_type: navi.ExpressionJson = "Image | Color",
         channels: Union[int, List[int], None] = None,
+        allow_colors: bool = False,
     ):
-        image_type = expression.intersect(
-            image_type,
-            expression.Image(channels=channels),
-        )
+        base_type = [navi.Image(channels=channels)]
+        if allow_colors:
+            base_type.append(navi.Color(channels=channels))
+        image_type = navi.intersect(image_type, base_type)
         super().__init__(image_type, label)
 
         self.channels: Optional[List[int]] = (
             [channels] if isinstance(channels, int) else channels
         )
+        self.allow_colors: bool = allow_colors
+
+        self.associated_type = np.ndarray
+
+        if self.allow_colors:
+            self.associated_type = Union[np.ndarray, Color]
 
     def enforce(self, value):
+        if isinstance(value, Color):
+            if not self.allow_colors:
+                raise ValueError(
+                    f"The input {self.label} does not accept colors, but was connected with one."
+                )
+
+            if self.channels is not None and value.channels not in self.channels:
+                expected = format_color_with_channels(self.channels, plural=True)
+                actual = format_color_with_channels([value.channels])
+                raise ValueError(
+                    f"The input {self.label} only supports {expected} but was given {actual}."
+                )
+
+            return value
+
         assert isinstance(value, np.ndarray)
         _, _, c = get_h_w_c(value)
 

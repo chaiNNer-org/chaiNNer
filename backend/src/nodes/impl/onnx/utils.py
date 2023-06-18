@@ -24,9 +24,10 @@ def parse_onnx_shape(
 ) -> Tuple[OnnxInputShape, int, int | None, int | None]:
     if isinstance(shape[1], int) and shape[1] <= 4:
         return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
-    else:
-        assert isinstance(shape[3], int), "Channels must be int"
+    elif isinstance(shape[3], int) and shape[3] <= 4:
         return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
+    else:
+        return "BCHW", 3, as_int(shape[3]), as_int(shape[2])
 
 
 def get_input_shape(

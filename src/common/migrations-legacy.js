@@ -1,8 +1,8 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
-import log from 'electron-log';
 import { isEdge, isNode } from 'reactflow';
+import { log } from './log';
 
 // ==============
 //   pre-alpha

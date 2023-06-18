@@ -4,13 +4,12 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.group import group
-from nodes.groups import if_enum_group
+import navi
+from nodes.groups import if_enum_group, seed_group
 from nodes.impl.image_utils import cartesian_product
 from nodes.impl.noise_functions.blue import create_blue_noise
 from nodes.impl.noise_functions.simplex import SimplexNoise
 from nodes.impl.noise_functions.value import ValueNoise
-from nodes.properties import expression
 from nodes.properties.inputs import (
     BoolInput,
     EnumInput,
@@ -86,7 +85,7 @@ def _add_noise(
     inputs=[
         NumberInput("Width", minimum=1, unit="px", default=256),
         NumberInput("Height", minimum=1, unit="px", default=256),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
         EnumInput(
             NoiseMethod,
             default_value=NoiseMethod.SIMPLEX,
@@ -106,7 +105,7 @@ def _add_noise(
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
             if_enum_group(6, FractalMethod.PINK)(
-                NumberInput("Layers", minimum=2, default=3, precision=1).with_id(7),
+                NumberInput("Layers", minimum=2, default=3, precision=0).with_id(7),
                 NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
                     8
                 ),
@@ -129,7 +128,7 @@ def _add_noise(
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0",
                 height="Input1",
             ),

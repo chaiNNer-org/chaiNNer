@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Union
 
-from nodes.properties.inputs import TextAreaInput
+from nodes.properties.inputs import TextInput
 
 from .. import text_group
 
@@ -13,7 +13,7 @@ from .. import text_group
     description="Make a sticky note for whatever notes or comments you want to leave in the chain.",
     icon="MdOutlineStickyNote2",
     inputs=[
-        TextAreaInput(label="Note Text").make_optional(),
+        TextInput(label="Note Text", multiline=True, has_handle=False).make_optional(),
     ],
     outputs=[],
 )

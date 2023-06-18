@@ -1,5 +1,4 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
-import log from 'electron-log';
 import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -26,6 +25,7 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -137,7 +137,6 @@ interface Global {
         iteratorSize: IteratorSize | null,
         dimensions?: Size
     ) => void;
-    setIteratorPercent: (id: string, percent: number) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: (value: string | undefined) => void;
     setCollidingEdge: (value: string | undefined) => void;
@@ -514,7 +513,7 @@ export const GlobalProvider = memo(
                             ipcRenderer.send('exit-after-save');
                         }
                     })
-                    .catch((reason) => log.error(reason));
+                    .catch(log.error);
             }, [performSave])
         );
 
@@ -634,7 +633,7 @@ export const GlobalProvider = memo(
         useIpcRendererListener(
             'file-new',
             useCallback(() => {
-                clearState().catch((reason) => log.error(reason));
+                clearState().catch(log.error);
             }, [clearState])
         );
 
@@ -664,7 +663,7 @@ export const GlobalProvider = memo(
                     if (result.kind === 'Success') {
                         setStateFromJSONRef
                             .current(result.saveData, result.path, true)
-                            .catch((reason) => log.error(reason));
+                            .catch(log.error);
                     } else {
                         removeRecentPath(result.path);
                         sendAlert({
@@ -1135,20 +1134,6 @@ export const GlobalProvider = memo(
             [changeNodes]
         );
 
-        const setIteratorPercent = useCallback(
-            (id: string, percent: number) => {
-                rfSetNodes((nodes) => {
-                    const foundNode = nodes.find((n) => n.id === id);
-                    if (foundNode) {
-                        const newNode = withNewData(foundNode, 'percentComplete', percent);
-                        return [...nodes.filter((n) => n.id !== id), newNode];
-                    }
-                    return nodes;
-                });
-            },
-            [rfSetNodes]
-        );
-
         const duplicateNodes = useCallback(
             (ids: readonly string[], withInputEdges = false) => {
                 const nodesToCopy = expandSelection(getNodes(), ids);
@@ -1218,7 +1203,7 @@ export const GlobalProvider = memo(
                     });
                     outputDataActions.delete(id);
                     addInputDataChanges();
-                    backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
+                    backend.clearNodeCacheIndividual(id).catch(log.error);
                 });
             },
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
@@ -1248,9 +1233,7 @@ export const GlobalProvider = memo(
 
                 takeScreenshot(currentFlowWrapper, currentReactFlowInstance, viewportExportPadding)
                     .then(saveAs)
-                    .catch((error) => {
-                        log.error(error);
-                    });
+                    .catch(log.error);
             },
             [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
         );
@@ -1381,7 +1364,6 @@ export const GlobalProvider = memo(
             removeEdgeById,
             duplicateNodes,
             updateIteratorBounds,
-            setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
             setCollidingEdge,

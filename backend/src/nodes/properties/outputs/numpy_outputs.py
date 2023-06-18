@@ -4,12 +4,13 @@ from typing import Optional, Tuple
 import cv2
 import numpy as np
 
+import navi
+from nodes.base_output import BaseOutput, OutputKind
+
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c
-from .. import expression
-from .base_output import BaseOutput, OutputKind
 
 
 class NumPyOutput(BaseOutput):
@@ -17,12 +18,18 @@ class NumPyOutput(BaseOutput):
 
     def __init__(
         self,
-        output_type: expression.ExpressionJson,
+        output_type: navi.ExpressionJson,
         label: str,
         kind: OutputKind = "generic",
         has_handle: bool = True,
     ):
-        super().__init__(output_type, label, kind=kind, has_handle=has_handle)
+        super().__init__(
+            output_type,
+            label,
+            kind=kind,
+            has_handle=has_handle,
+            associated_type=np.ndarray,
+        )
 
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
@@ -38,14 +45,14 @@ class ImageOutput(NumPyOutput):
     def __init__(
         self,
         label: str = "Image",
-        image_type: expression.ExpressionJson = "Image",
+        image_type: navi.ExpressionJson = "Image",
         kind: OutputKind = "image",
         has_handle: bool = True,
         channels: Optional[int] = None,
         assume_normalized: bool = False,
     ):
         super().__init__(
-            expression.intersect(image_type, expression.Image(channels=channels)),
+            navi.intersect(image_type, navi.Image(channels=channels)),
             label,
             kind=kind,
             has_handle=has_handle,
@@ -64,7 +71,7 @@ class ImageOutput(NumPyOutput):
 
     def get_broadcast_type(self, value: np.ndarray):
         h, w, c = get_h_w_c(value)
-        return expression.Image(width=w, height=h, channels=c)
+        return navi.Image(width=w, height=h, channels=c)
 
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
@@ -130,11 +137,18 @@ class LargeImageOutput(ImageOutput):
     def __init__(
         self,
         label: str = "Image",
-        image_type: expression.ExpressionJson = "Image",
+        image_type: navi.ExpressionJson = "Image",
         kind: OutputKind = "large-image",
         has_handle: bool = True,
+        assume_normalized: bool = False,
     ):
-        super().__init__(label, image_type, kind=kind, has_handle=has_handle)
+        super().__init__(
+            label,
+            image_type,
+            kind=kind,
+            has_handle=has_handle,
+            assume_normalized=assume_normalized,
+        )
 
     def get_broadcast_data(self, value: np.ndarray):
         img = value

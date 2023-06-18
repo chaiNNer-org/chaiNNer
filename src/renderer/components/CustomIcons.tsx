@@ -139,7 +139,29 @@ export const IconFactory = memo(
                     />
                 );
             default:
-            // nothing
+                break;
+        }
+
+        // using segmenter to account for non-latin and emoji characters
+        const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length === 1;
+        if (isSingleCharacter) {
+            return (
+                <h5
+                    aria-hidden="true"
+                    className="chakra-heading"
+                    role="presentation"
+                    style={{
+                        color: accentColor,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        verticalAlign: 'middle',
+                        textRendering: 'geometricPrecision',
+                        fontFamily: 'Noto Emoji, Open Sans, sans-serif',
+                    }}
+                >
+                    {icon}
+                </h5>
+            );
         }
 
         const prefix = icon.slice(0, 2).toLowerCase();

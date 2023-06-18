@@ -1,20 +1,29 @@
 from __future__ import annotations
 
+from typing import Union
+
+import navi
+from nodes.base_output import BaseOutput
+
+from ...impl.color.color import Color
+from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
-from .. import expression
-from .base_output import BaseOutput
 
 
 class NumberOutput(BaseOutput):
     def __init__(
         self,
         label: str,
-        output_type: expression.ExpressionJson = "number",
+        output_type: navi.ExpressionJson = "number",
     ):
-        super().__init__(expression.intersect("number", output_type), label)
+        super().__init__(
+            navi.intersect("number", output_type),
+            label,
+            associated_type=Union[int, float],
+        )
 
     def get_broadcast_type(self, value: int | float):
-        return expression.literal(value)
+        return navi.literal(value)
 
     def enforce(self, value) -> int | float:
         assert isinstance(value, (int, float))
@@ -25,12 +34,12 @@ class TextOutput(BaseOutput):
     def __init__(
         self,
         label: str,
-        output_type: expression.ExpressionJson = "string",
+        output_type: navi.ExpressionJson = "string",
     ):
-        super().__init__(expression.intersect("string", output_type), label)
+        super().__init__(navi.intersect("string", output_type), label)
 
     def get_broadcast_type(self, value: str):
-        return expression.literal(value)
+        return navi.literal(value)
 
     def enforce(self, value) -> str:
         assert isinstance(value, str)
@@ -53,4 +62,34 @@ class SeedOutput(BaseOutput):
 
     def enforce(self, value) -> Seed:
         assert isinstance(value, Seed)
+        return value
+
+
+class ColorOutput(BaseOutput):
+    def __init__(
+        self,
+        label: str = "Color",
+        color_type: navi.ExpressionJson = "Color",
+        channels: int | None = None,
+    ):
+        super().__init__(
+            output_type=navi.intersect(color_type, navi.Color(channels=channels)),
+            label=label,
+            kind="generic",
+        )
+
+        self.channels = channels
+
+    def enforce(self, value) -> Color:
+        assert isinstance(value, Color)
+
+        if self.channels is not None and value.channels != self.channels:
+            expected = format_color_with_channels([self.channels])
+            actual = format_color_with_channels([value.channels])
+            raise ValueError(
+                f"The output {self.label} was supposed to return {expected} but actually returned {actual}."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+            )
+
         return value

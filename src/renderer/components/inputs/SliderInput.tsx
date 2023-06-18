@@ -75,7 +75,6 @@ export const SliderInput = memo(
             noteExpression,
             ends,
             gradient,
-            label,
         } = input;
 
         const [inputString, setInputString] = useState(String(value));
@@ -176,8 +175,8 @@ export const SliderInput = memo(
                 return { type: 'no-fill' };
             }
             // TODO: Use the new label design
-            return { type: 'old-label', label };
-        }, [label, gradient, filled]);
+            return { type: 'old-label' };
+        }, [gradient, filled]);
 
         const slider = (
             <VStack w="full">

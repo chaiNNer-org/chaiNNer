@@ -230,8 +230,7 @@ const getInputDataAdapters = (
             switch (input.kind) {
                 case 'number':
                 case 'slider':
-                case 'text':
-                case 'text-line': {
+                case 'text': {
                     adapters.set(input.id, (value) => literal(value as never));
                     break;
                 }

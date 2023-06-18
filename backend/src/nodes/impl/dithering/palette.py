@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from ..image_utils import as_3d
-from .common import dtype_to_float
+from .common import as_float32
 
 
 def distinct_colors_palette(image: np.ndarray) -> np.ndarray:
@@ -14,7 +14,7 @@ def distinct_colors_palette(image: np.ndarray) -> np.ndarray:
 
 def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     image = as_3d(image)
-    flat_image = dtype_to_float(image.reshape((-1, image.shape[2])))
+    flat_image = as_float32(image.reshape((-1, image.shape[2])))
 
     max_iter = 10
     epsilon = 1.0
@@ -55,7 +55,7 @@ class MedianCutBucket:
 
 def median_cut_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     image = as_3d(image)
-    flat_image = dtype_to_float(image.reshape((-1, image.shape[2])))
+    flat_image = as_float32(image.reshape((-1, image.shape[2])))
 
     buckets = [MedianCutBucket(flat_image)]
     while len(buckets) < num_colors:

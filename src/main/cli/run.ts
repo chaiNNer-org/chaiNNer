@@ -1,5 +1,4 @@
 import { app } from 'electron';
-import log from 'electron-log';
 import EventSource from 'eventsource';
 import {
     Backend,
@@ -11,6 +10,7 @@ import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-ty
 import { getOnnxTensorRtCacheLocation } from '../../common/env';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { applyOverrides, readOverrideFile } from '../../common/input-override';
+import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
@@ -153,6 +153,7 @@ const getExecutionOptions = (): BackendExecutionOptions => {
         onnxExecutionProvider: getSetting('onnx-execution-provider', 'CUDAExecutionProvider'),
         onnxShouldTensorRtCache: getSetting('onnx-should-tensorrt-cache', false),
         onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(app.getPath('userData')),
+        onnxShouldTensorRtFp16: getSetting('onnx-should-tensorrt-fp16', false),
     };
 };
 

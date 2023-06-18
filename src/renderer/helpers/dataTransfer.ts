@@ -1,7 +1,7 @@
-import log from 'electron-log';
 import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
+import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -127,7 +127,7 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
                     // TODO: 1 is hard-coded. Find a better way
                     ipcRenderer.sendTo(1, 'file-open', result);
                 })
-                .catch((reason) => log.error(reason));
+                .catch(log.error);
 
             return true;
         }

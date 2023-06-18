@@ -1,6 +1,7 @@
+import navi
+from nodes.base_output import BaseOutput
+
 from ...impl.onnx.model import OnnxModel
-from ...properties import expression
-from .base_output import BaseOutput
 
 
 class OnnxModelOutput(BaseOutput):
@@ -8,14 +9,14 @@ class OnnxModelOutput(BaseOutput):
 
     def __init__(
         self,
-        model_type: expression.ExpressionJson = "OnnxModel",
+        model_type: navi.ExpressionJson = "OnnxModel",
         label: str = "Model",
     ):
-        super().__init__(model_type, label)
+        super().__init__(model_type, label, associated_type=OnnxModel)
 
     def get_broadcast_type(self, value: OnnxModel):
         fields = {
-            "subType": expression.literal(value.sub_type),
+            "subType": navi.literal(value.sub_type),
         }
 
         if value.scale_width:
@@ -23,4 +24,4 @@ class OnnxModelOutput(BaseOutput):
         if value.scale_height:
             fields["scaleHeight"] = value.scale_height
 
-        return expression.named("OnnxModel", fields)
+        return navi.named("OnnxModel", fields)

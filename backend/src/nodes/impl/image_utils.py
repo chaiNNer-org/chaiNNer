@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 
 from ..utils.utils import Padding, get_h_w_c, split_file_path
+from .color.color import Color
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -61,7 +62,9 @@ class BorderType(Enum):
     WRAP = 3
     REPLICATE = 1
     BLACK = 0
+    WHITE = 6
     TRANSPARENT = 5
+    CUSTOM_COLOR = 7
 
 
 class NormalMapType(Enum):
@@ -218,6 +221,7 @@ def create_border(
     img: np.ndarray,
     border_type: BorderType,
     border: Padding,
+    color: Color | None = None,
 ) -> np.ndarray:
     """
     Returns a new image with a specified border.
@@ -237,6 +241,22 @@ def create_border(
         cv_border_type = cv2.BORDER_CONSTANT
         value = 0
         img = as_target_channels(img, 4)
+    elif border_type == BorderType.WHITE:
+        cv_border_type = cv2.BORDER_CONSTANT
+        value = (1,) * c
+    elif border_type == BorderType.CUSTOM_COLOR:
+        assert (
+            color is not None
+        ), "Creating a border with a custom color requires supplying a custom color."
+
+        # widen image or color to make them compatible
+        if color.channels > c:
+            img = as_target_channels(img, color.channels)
+        elif c > color.channels:
+            color = Color.from_1x1_image(as_target_channels(color.to_1x1_image(), c))
+
+        cv_border_type = cv2.BORDER_CONSTANT
+        value = color.value
 
     return cv2.copyMakeBorder(
         img,

@@ -1,4 +1,6 @@
-from .base_input import BaseInput
+from nodes.base_input import BaseInput
+
+from ...impl.ncnn.model import NcnnModelWrapper
 
 
 class NcnnModelInput(BaseInput):
@@ -6,3 +8,4 @@ class NcnnModelInput(BaseInput):
 
     def __init__(self, label: str = "Model"):
         super().__init__("NcnnNetwork", label)
+        self.associated_type = NcnnModelWrapper

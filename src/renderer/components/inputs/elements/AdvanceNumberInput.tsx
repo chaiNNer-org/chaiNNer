@@ -8,7 +8,7 @@ import {
     NumberInputStepper,
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo } from 'react';
-import { areApproximatelyEqual, stopPropagation } from '../../../../common/util';
+import { areApproximatelyEqual, noop, stopPropagation } from '../../../../common/util';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
     if (min != null && value < min) return min;
@@ -44,6 +44,7 @@ interface AdvancedNumberInputProps {
 
     onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
     inputWidth?: string;
+    noRepeatOnBlur?: boolean;
 }
 
 export const AdvancedNumberInput = memo(
@@ -65,23 +66,28 @@ export const AdvancedNumberInput = memo(
 
         onContextMenu,
         inputWidth,
+        noRepeatOnBlur = false,
     }: AdvancedNumberInputProps) => {
-        const onBlur = () => {
-            const valAsNumber =
-                precision > 0
-                    ? parseFloat(inputString || String(defaultValue))
-                    : Math.round(parseFloat(inputString || String(defaultValue)));
+        const onBlur = noRepeatOnBlur
+            ? noop
+            : () => {
+                  const valAsNumber =
+                      precision > 0
+                          ? parseFloat(inputString || String(defaultValue))
+                          : Math.round(parseFloat(inputString || String(defaultValue)));
 
-            if (!Number.isNaN(valAsNumber)) {
-                const value = Number(clamp(valAsNumber, min, max).toFixed(precision));
+                  if (!Number.isNaN(valAsNumber)) {
+                      const value = Number(clamp(valAsNumber, min, max).toFixed(precision));
 
-                // Make sure the input value has been altered so onChange gets correct value if adjustment needed
-                setImmediate(() => {
-                    setInput(value);
-                    setInputString(hideTrailingZeros ? String(value) : value.toFixed(precision));
-                });
-            }
-        };
+                      // Make sure the input value has been altered so onChange gets correct value if adjustment needed
+                      setImmediate(() => {
+                          setInput(value);
+                          setInputString(
+                              hideTrailingZeros ? String(value) : value.toFixed(precision)
+                          );
+                      });
+                  }
+              };
 
         if (small) {
             return (

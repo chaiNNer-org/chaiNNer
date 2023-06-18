@@ -5,8 +5,8 @@ from typing import Optional
 
 import numpy as np
 
-from nodes.group import group
-from nodes.groups import if_enum_group
+import navi
+from nodes.groups import if_enum_group, seed_group
 from nodes.impl.external_stable_diffusion import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
@@ -21,14 +21,13 @@ from nodes.impl.external_stable_diffusion import (
     verify_api_connection,
 )
 from nodes.node_cache import cached
-from nodes.properties import expression
 from nodes.properties.inputs import (
     BoolInput,
     EnumInput,
     ImageInput,
     SeedInput,
     SliderInput,
-    TextAreaInput,
+    TextInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
@@ -51,9 +50,9 @@ class InpaintArea(Enum):
     icon="MdChangeCircle",
     inputs=[
         ImageInput(),
-        ImageInput("Mask", channels=1, image_type=expression.Image(size_as="Input0")),
-        TextAreaInput("Prompt").make_optional(),
-        TextAreaInput("Negative Prompt").make_optional(),
+        ImageInput("Mask", channels=1, image_type=navi.Image(size_as="Input0")),
+        TextInput("Prompt", multiline=True).make_optional(),
+        TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(
             "Denoising Strength",
             minimum=0,
@@ -63,7 +62,7 @@ class InpaintArea(Enum):
             controls_step=0.1,
             precision=2,
         ),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
@@ -131,8 +130,8 @@ class InpaintArea(Enum):
             channels=3,
         ),
     ],
+    decorators=[cached],
 )
-@cached
 def img2img_inpainting_node(
     image: np.ndarray,
     mask: np.ndarray,
@@ -147,7 +146,7 @@ def img2img_inpainting_node(
     width: int,
     height: int,
     tiling: bool,
-    mask_blur: float,
+    mask_blur: int,
     inpainting_fill: InpaintingFill,
     inpaint_area: InpaintArea,
     inpaint_full_res_padding: int,

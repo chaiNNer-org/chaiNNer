@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput, TextAreaInput
+from nodes.properties.inputs import ImageInput, NumberInput, TextInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
@@ -16,7 +16,7 @@ from .. import miscellaneous_group
     icon="MdAutoFixHigh",
     inputs=[
         ImageInput("Image"),
-        TextAreaInput("Kernel String"),
+        TextInput("Kernel String", multiline=True, has_handle=False),
         NumberInput("Padding", minimum=0, default=0),
     ],
     outputs=[
