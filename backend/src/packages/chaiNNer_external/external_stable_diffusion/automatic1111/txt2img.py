@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from nodes.group import group
+from nodes.groups import seed_group
 from nodes.impl.external_stable_diffusion import (
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_TEXT2IMG_PATH,
@@ -20,7 +20,7 @@ from nodes.properties.inputs import (
     EnumInput,
     SeedInput,
     SliderInput,
-    TextAreaInput,
+    TextInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
@@ -37,9 +37,9 @@ verify_api_connection()
     description="Generate an image using Automatic1111",
     icon="BsFillImageFill",
     inputs=[
-        TextAreaInput("Prompt", has_handle=True).make_optional(),
-        TextAreaInput("Negative Prompt", has_handle=True).make_optional(),
-        group("seed")(SeedInput()),
+        TextInput("Prompt", multiline=True).make_optional(),
+        TextInput("Negative Prompt", multiline=True).make_optional(),
+        seed_group(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,

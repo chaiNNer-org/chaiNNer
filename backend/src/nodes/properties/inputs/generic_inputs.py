@@ -8,6 +8,9 @@ from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar
 import numpy as np
 from sanic.log import logger
 
+import navi
+from nodes.base_input import BaseInput, InputConversion
+
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
@@ -21,8 +24,6 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
-from .. import expression
-from .base_input import BaseInput, InputConversion
 from .numeric_inputs import NumberInput
 
 
@@ -34,7 +35,7 @@ class UntypedOption(TypedDict):
 class TypedOption(TypedDict):
     option: str
     value: str | int
-    type: expression.ExpressionJson
+    type: navi.ExpressionJson
 
 
 DropDownOption = Union[UntypedOption, TypedOption]
@@ -54,7 +55,7 @@ class DropDownInput(BaseInput):
 
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type: navi.ExpressionJson,
         label: str,
         options: List[DropDownOption],
         default_value: str | int | None = None,
@@ -212,6 +213,7 @@ class TextInput(BaseInput):
         min_length: int = 1,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
+        multiline: bool = False,
         allow_numbers: bool = True,
         default: Union[str, None] = None,
     ):
@@ -219,12 +221,13 @@ class TextInput(BaseInput):
             "string",
             label,
             has_handle=has_handle,
-            kind="text-line",
+            kind="text",
         )
         self.min_length = min_length
         self.max_length = max_length
         self.placeholder = placeholder
         self.default = default
+        self.multiline = multiline
         self.associated_type = str
 
         if allow_numbers:
@@ -242,31 +245,7 @@ class TextInput(BaseInput):
             "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
-            "def": self.default,
-        }
-
-
-class TextAreaInput(BaseInput):
-    """Input for large text"""
-
-    def __init__(
-        self, label: str = "Text", default: Union[str, None] = None, has_handle=False
-    ):
-        super().__init__("string", label, has_handle=has_handle, kind="text")
-        self.resizable = True
-        self.default = default
-        self.associated_type = str
-
-    def enforce(self, value) -> str:
-        if isinstance(value, float) and int(value) == value:
-            # stringify integers values
-            return str(int(value))
-        return str(value)
-
-    def toDict(self):
-        return {
-            **super().toDict(),
-            "resizable": self.resizable,
+            "multiline": self.multiline,
             "def": self.default,
         }
 
@@ -275,7 +254,7 @@ class ClipboardInput(BaseInput):
     """Input for pasting from clipboard"""
 
     def __init__(self, label: str = "Clipboard input"):
-        super().__init__(["Image", "string", "number"], label, kind="text-line")
+        super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
     def enforce(self, value):
@@ -338,7 +317,7 @@ class ColorInput(BaseInput):
         channels: int | List[int] | None = None,
     ):
         super().__init__(
-            input_type=expression.Color(channels=channels),
+            input_type=navi.Color(channels=channels),
             label=label,
             has_handle=True,
             kind="color",
@@ -418,6 +397,7 @@ def VideoTypeDropdown() -> DropDownInput:
         options=[
             {"option": "MP4", "value": "mp4"},
             {"option": "MKV", "value": "mkv"},
+            {"option": "MKV (FFV1)", "value": "mkv-ffv1"},
             {"option": "WEBM", "value": "webm"},
             {"option": "AVI", "value": "avi"},
             {"option": "GIF", "value": "gif"},

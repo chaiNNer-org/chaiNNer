@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np
 
-from .common import apply_to_all_channels, dtype_to_float, float_to_dtype
+from .common import as_dtype, as_float32, map_channels
 from .constants import THRESHOLD_MAPS, ThresholdMap
 
 
@@ -30,9 +30,8 @@ def one_channel_ordered_dither(
     """
 
     tm = get_threshold_map(image.shape, threshold_map=threshold_map)
-    return float_to_dtype(
-        np.floor((dtype_to_float(image) + tm) * (num_colors - 1) + 0.5)
-        / (num_colors - 1),
+    return as_dtype(
+        np.floor((as_float32(image) + tm) * (num_colors - 1) + 0.5) / (num_colors - 1),
         image.dtype,
     )
 
@@ -40,9 +39,7 @@ def one_channel_ordered_dither(
 def ordered_dither(
     image: np.ndarray, threshold_map: ThresholdMap, num_colors: int
 ) -> np.ndarray:
-    return apply_to_all_channels(
-        one_channel_ordered_dither,
+    return map_channels(
         image,
-        threshold_map=threshold_map,
-        num_colors=num_colors,
+        lambda channel: one_channel_ordered_dither(channel, threshold_map, num_colors),
     )

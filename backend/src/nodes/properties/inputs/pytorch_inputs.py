@@ -14,8 +14,8 @@ try:
 except:
     torch = None
 
-from ..expression import ExpressionJson, intersect
-from .base_input import BaseInput
+import navi
+from nodes.base_input import BaseInput
 
 
 class ModelInput(BaseInput):
@@ -24,7 +24,7 @@ class ModelInput(BaseInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type: ExpressionJson = "PyTorchModel",
+        input_type: navi.ExpressionJson = "PyTorchModel",
     ):
         super().__init__(input_type, label)
         if torch is not None:
@@ -41,11 +41,11 @@ class SrModelInput(ModelInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type: ExpressionJson = "PyTorchModel",
+        input_type: navi.ExpressionJson = "PyTorchModel",
     ):
         super().__init__(
             label,
-            intersect(input_type, "PyTorchSRModel"),
+            navi.intersect(input_type, "PyTorchSRModel"),
         )
         if torch is not None:
             self.associated_type = PyTorchSRModel
@@ -61,11 +61,11 @@ class SrModelInput(ModelInput):
 
 class FaceModelInput(ModelInput):
     def __init__(
-        self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"
+        self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
         super().__init__(
             label,
-            intersect(input_type, "PyTorchFaceModel"),
+            navi.intersect(input_type, "PyTorchFaceModel"),
         )
         if torch is not None:
             self.associated_type = PyTorchFaceModel
@@ -81,11 +81,11 @@ class FaceModelInput(ModelInput):
 
 class InpaintModelInput(ModelInput):
     def __init__(
-        self, label: str = "Model", input_type: ExpressionJson = "PyTorchModel"
+        self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
         super().__init__(
             label,
-            intersect(input_type, "PyTorchInpaintModel"),
+            navi.intersect(input_type, "PyTorchInpaintModel"),
         )
         if torch is not None:
             self.associated_type = PyTorchInpaintModel

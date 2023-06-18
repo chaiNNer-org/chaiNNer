@@ -26,6 +26,7 @@ export interface InvokeChannels {
     'get-python': ChannelInfo<PythonInfo>;
     'get-port': ChannelInfo<number>;
     'get-localstorage-location': ChannelInfo<string>;
+    'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
     'get-vram-usage': ChannelInfo<number | null>;
     'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
@@ -55,6 +56,7 @@ export interface InvokeChannels {
 export interface SendChannels {
     'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-ready': SendChannelInfo;
+    'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
     'file-save-as': SendChannelInfo;

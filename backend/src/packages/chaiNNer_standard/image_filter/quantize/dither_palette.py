@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+import navi
 from nodes.groups import if_enum_group
 from nodes.impl.dithering.color_distance import batch_nearest_palette_color
 from nodes.impl.dithering.constants import (
@@ -12,9 +13,9 @@ from nodes.impl.dithering.constants import (
 )
 from nodes.impl.dithering.diffusion import palette_error_diffusion_dither
 from nodes.impl.dithering.riemersma import palette_riemersma_dither
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
 
 from .. import quantize_group
 
@@ -39,7 +40,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
     icon="MdShowChart",
     inputs=[
         ImageInput(),
-        ImageInput(label="Palette", image_type=expression.Image(channels_as="Input0")),
+        ImageInput(label="Palette", image_type=navi.Image(channels_as="Input0")),
         EnumInput(
             PaletteDitherAlgorithm,
             option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
@@ -69,6 +70,10 @@ def palette_dither_node(
     error_diffusion_map: ErrorDiffusionMap,
     history_length: int,
 ) -> np.ndarray:
+    assert (
+        get_h_w_c(img)[2] == get_h_w_c(palette)[2]
+    ), "Image and palette must have the same number of channels."
+
     if dither_algorithm == PaletteDitherAlgorithm.NONE:
         return batch_nearest_palette_color(
             img,

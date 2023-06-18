@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ..image_utils import as_3d
-from .common import dtype_to_float, float_to_dtype
+from .common import as_dtype, as_float32
 
 
 def nearest_uniform_color(value: np.ndarray, num_colors: int) -> np.ndarray:
@@ -12,8 +12,8 @@ def nearest_uniform_color(value: np.ndarray, num_colors: int) -> np.ndarray:
 
 
 def batch_nearest_uniform_color(image: np.ndarray, num_colors: int) -> np.ndarray:
-    return float_to_dtype(
-        np.floor(dtype_to_float(image) * (num_colors - 1) + 0.5) / (num_colors - 1),
+    return as_dtype(
+        np.floor(as_float32(image) * (num_colors - 1) + 0.5) / (num_colors - 1),
         image.dtype,
     )
 

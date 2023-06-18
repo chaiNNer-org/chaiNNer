@@ -3,16 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Literal, Optional, Type, Union
 
+import navi
 from base_types import InputId
-
-from .. import expression
 
 InputKind = Literal[
     "number",
     "slider",
     "dropdown",
     "text",
-    "text-line",
     "directory",
     "file",
     "color",
@@ -39,8 +37,8 @@ class InputConversion:
     ```
     """
 
-    type: expression.ExpressionJson
-    convert: expression.ExpressionJson
+    type: navi.ExpressionJson
+    convert: navi.ExpressionJson
 
     def toDict(self):
         return {
@@ -52,15 +50,15 @@ class InputConversion:
 class BaseInput:
     def __init__(
         self,
-        input_type: expression.ExpressionJson,
+        input_type: navi.ExpressionJson,
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
         associated_type: Union[Type, None] = None,
     ):
-        self.input_type: expression.ExpressionJson = input_type
+        self.input_type: navi.ExpressionJson = input_type
         self.input_conversions: List[InputConversion] = []
-        self.input_adapt: expression.ExpressionJson | None = None
+        self.input_adapt: navi.ExpressionJson | None = None
         self.type_definitions: str | None = None
         self.kind: InputKind = kind
         self.label: str = label

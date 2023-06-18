@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.group import group
+from nodes.groups import seed_group
 from nodes.impl.noise import (
     NoiseColor,
     gaussian_noise,
@@ -46,7 +46,7 @@ class NoiseType(Enum):
             },
         ),
         SliderInput("Amount", minimum=0, maximum=100, default=50),
-        group("seed")(SeedInput()),
+        seed_group(SeedInput()),
     ],
     outputs=[
         ImageOutput(

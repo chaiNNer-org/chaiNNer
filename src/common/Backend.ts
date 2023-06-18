@@ -9,6 +9,7 @@ import {
     PythonInfo,
     SchemaId,
 } from './common-types';
+import { Package } from './dependencies';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -56,6 +57,7 @@ export interface BackendExecutionOptions {
     onnxExecutionProvider: string;
     onnxShouldTensorRtCache: boolean;
     onnxTensorRtCachePath: string;
+    onnxShouldTensorRtFp16: boolean;
 }
 export interface BackendRunRequest {
     data: BackendJsonNode[];
@@ -172,6 +174,10 @@ export class Backend {
     pythonInfo(): Promise<PythonInfo> {
         return this.fetchJson('/python-info', 'GET');
     }
+
+    dependencies(): Promise<Package[]> {
+        return this.fetchJson('/dependencies', 'GET');
+    }
 }
 
 const backendCache = new Map<number, Backend>();
@@ -224,4 +230,9 @@ export interface BackendEventMap {
         iteratorId: string;
         running?: string[] | null;
     };
+    'backend-status': {
+        message: string;
+        percent: number;
+    };
+    'backend-ready': null;
 }

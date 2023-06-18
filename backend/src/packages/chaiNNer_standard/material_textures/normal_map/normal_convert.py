@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.image_utils import NormalMapType
 from nodes.impl.normals.util import (
     XYZ,
@@ -10,7 +11,6 @@ from nodes.impl.normals.util import (
     xyz_to_bgr,
     xyz_to_octahedral_bgr,
 )
-from nodes.properties import expression
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -49,7 +49,7 @@ from .. import normal_map_group
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="Input0.width",
                 height="Input0.height",
             ),

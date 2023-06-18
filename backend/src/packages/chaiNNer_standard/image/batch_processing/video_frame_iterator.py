@@ -43,6 +43,7 @@ codec_map = {
     "mp4": "libx264",
     "avi": "libx264",
     "mkv": "libx264",
+    "mkv-ffv1": "ffv1",
     "webm": "libvpx-vp9",
     "gif": "gif",
 }
@@ -64,7 +65,7 @@ class Writer:
     inputs=[IteratorInput().make_optional()],
     outputs=[
         ImageOutput("Frame Image", channels=3),
-        NumberOutput("Frame Index"),
+        NumberOutput("Frame Index", output_type="uint"),
         DirectoryOutput("Video Directory"),
         TextOutput("Video Name"),
     ],
@@ -126,7 +127,10 @@ def VideoFrameIteratorFrameWriterNode(
 
     if writer.out is None:
         try:
-            video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
+            extension = video_type
+            if video_type == "mkv-ffv1":
+                extension = "mkv"
+            video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
             writer.out = (
                 ffmpeg.input(
                     "pipe:",

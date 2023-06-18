@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 from sanic.log import logger
 
+import navi
 from nodes.impl.pil_utils import InterpolationMethod, resize
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput, InterpolationInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
@@ -33,7 +33,7 @@ from .. import resize_group
     ],
     outputs=[
         ImageOutput(
-            image_type=expression.Image(
+            image_type=navi.Image(
                 width="max(1, int & round(Input0.width * Input1 / 100))",
                 height="max(1, int & round(Input0.height * Input1 / 100))",
                 channels_as="Input0",

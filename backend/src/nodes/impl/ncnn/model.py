@@ -609,7 +609,7 @@ class NcnnModel:
             assert isinstance(num_output, int), "Num output must be int"
             num_input = weight_data_length // num_output
             weight_data = weight_data.reshape((num_input, num_output))
-            weight_dict["weight"] = NcnnWeight(weight_data)
+            weight_dict["weight"] = NcnnWeight(weight_data, quantize_tag)
 
             has_bias = layer.params[1].value
             if has_bias == 1:
@@ -622,6 +622,26 @@ class NcnnModel:
             slope_data_size = num_slope * 4
             slope_data = np.frombuffer(binf.read(slope_data_size), np.float32)
             weight_dict["slope"] = NcnnWeight(slope_data)
+        elif op_type == "Scale":
+            scale_data_length = layer.params[0].value
+            assert isinstance(scale_data_length, int), "Scale data size must be int"
+            if scale_data_length != -233:
+                quantize_tag = binf.read(4)
+                dtype = DTYPE_DICT[quantize_tag]
+                scale_data_size = (
+                    scale_data_length * 2
+                    if quantize_tag == DTYPE_FP16
+                    else scale_data_length * 4
+                )
+                scale_data = np.frombuffer(binf.read(scale_data_size), dtype)
+                weight_dict["weight"] = NcnnWeight(scale_data, quantize_tag)
+
+                has_bias = layer.params[1].value
+                if has_bias == 1:
+                    bias_data = np.frombuffer(
+                        binf.read(scale_data_length * 4), np.float32
+                    )
+                    weight_dict["bias"] = NcnnWeight(bias_data)
         else:
             if len(layer.params.weight_order) != 0:
                 error_msg = f"Load weights not added for {op_type} yet, please report"

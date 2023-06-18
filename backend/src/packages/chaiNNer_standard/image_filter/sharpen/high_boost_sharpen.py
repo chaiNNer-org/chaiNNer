@@ -5,7 +5,9 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
+from nodes.groups import if_enum_group
+from nodes.impl.cas import cas_mix
+from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import sharpen_group
@@ -33,6 +35,18 @@ class KernelType(Enum):
             controls_step=1,
             scale="log",
         ),
+        BoolInput("Contrast Adaptive", default=False).with_id(3),
+        if_enum_group(3, 1)(
+            SliderInput(
+                "Contrast Adaptive Bias",
+                minimum=1,
+                maximum=3,
+                default=2,
+                precision=2,
+                controls_step=0.1,
+                slider_step=0.1,
+            )
+        ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
@@ -40,6 +54,8 @@ def sharpen_hbf_node(
     img: np.ndarray,
     kernel_type: KernelType,
     amount: float,
+    contrast_adaptive: bool,
+    bias: float,
 ) -> np.ndarray:
     if amount == 0:
         return img
@@ -53,4 +69,11 @@ def sharpen_hbf_node(
         kernel = identity - np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) / 5
 
     kernel = kernel * amount + identity
-    return cv2.filter2D(img, -1, kernel)
+    sharpened = cv2.filter2D(img, -1, kernel)
+
+    if contrast_adaptive:
+        shape = cv2.MORPH_RECT if kernel_type == KernelType.STRONG else cv2.MORPH_CROSS
+        kernel = cv2.getStructuringElement(shape, (3, 3))
+        sharpened = cas_mix(img, sharpened, kernel, bias)
+
+    return sharpened

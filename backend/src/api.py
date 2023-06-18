@@ -9,15 +9,19 @@ from sanic.log import logger
 
 from base_types import InputId, OutputId
 from custom_types import NodeType, RunFn
+from nodes.base_input import BaseInput
+from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.properties.inputs.base_input import BaseInput
-from nodes.properties.outputs.base_output import BaseOutput
 from type_checking import (
     TypeCheckLevel,
     TypeMismatchError,
     get_type_check_level,
     typeValidateSchema,
 )
+
+KB = 1024**1
+MB = 1024**2
+GB = 1024**3
 
 
 def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
@@ -175,10 +179,33 @@ class Category:
 
 
 @dataclass
+class Dependency:
+    display_name: str
+    pypi_name: str
+    version: str
+    size_estimate: int | float
+    auto_update: bool = False
+    extra_index_url: str | None = None
+
+    import_name: str | None = None
+
+    def toDict(self):
+        return {
+            "displayName": self.display_name,
+            "pypiName": self.pypi_name,
+            "version": self.version,
+            "sizeEstimate": int(self.size_estimate),
+            "autoUpdate": self.auto_update,
+            "findLink": self.extra_index_url,
+        }
+
+
+@dataclass
 class Package:
     where: str
     name: str
-    dependencies: List[str] = field(default_factory=list)
+    description: str
+    dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
 
     def add_category(
@@ -199,6 +226,12 @@ class Package:
         )
         self.categories.append(result)
         return result
+
+    def add_dependency(
+        self,
+        dependency: Dependency,
+    ):
+        self.dependencies.append(dependency)
 
 
 def _iter_py_files(directory: str):
@@ -271,5 +304,7 @@ class PackageRegistry:
 registry = PackageRegistry()
 
 
-def add_package(where: str, name: str, dependencies: List[str]) -> Package:
-    return registry.add(Package(where, name, dependencies))
+def add_package(
+    where: str, name: str, description: str, dependencies: List[Dependency]
+) -> Package:
+    return registry.add(Package(where, name, description, dependencies))

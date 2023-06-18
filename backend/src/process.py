@@ -5,6 +5,7 @@ import functools
 import gc
 import time
 import uuid
+from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, TypeVar
 
@@ -17,8 +18,8 @@ from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
 from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
-from nodes.impl.image_utils import get_h_w_c
-from nodes.properties.outputs.base_output import BaseOutput
+from nodes.base_output import BaseOutput
+from nodes.utils.utils import get_h_w_c
 from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = List[object]
@@ -293,7 +294,7 @@ def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
     return wrapper
 
 
-async def timed_supplier_async(supplier):
+async def timed_supplier_async(supplier: Callable[[], Awaitable[T]]) -> Tuple[T, float]:
     start = time.time()
     result = await supplier()
     duration = time.time() - start

@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy } from 'react-icons/md';
 import { InputId } from '../../../../common/common-types';
-import { createOverrideInputId } from '../../../../common/input-override';
+import { createInputOverrideId } from '../../../../common/input-override';
 
 interface CopyOverrideIdSectionProps {
     nodeId: string | undefined;
@@ -24,10 +24,10 @@ export const CopyOverrideIdSection = memo(({ nodeId, inputId }: CopyOverrideIdSe
             <MenuItem
                 icon={<MdContentCopy />}
                 onClick={() => {
-                    clipboard.writeText(createOverrideInputId(nodeId, inputId));
+                    clipboard.writeText(createInputOverrideId(nodeId, inputId));
                 }}
             >
-                {t('inputs.copyOverrideInputId', 'Copy Override Input Id')}
+                {t('inputs.copyInputOverrideId', 'Copy Input Override Id')}
             </MenuItem>
         </>
     );

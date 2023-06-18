@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+import navi
 from nodes.impl.normals.util import gr_to_xyz, xyz_to_bgr
-from nodes.properties import expression
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -22,7 +22,7 @@ from .. import normal_map_group
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
     ],

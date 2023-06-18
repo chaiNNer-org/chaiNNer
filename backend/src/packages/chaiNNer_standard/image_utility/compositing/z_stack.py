@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.group import group
+from nodes.groups import optional_list_group
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import ALPHABET, get_h_w_c
@@ -28,7 +28,7 @@ class Expression(Enum):
         EnumInput(Expression),
         ImageInput("Image A"),
         ImageInput("Image B"),
-        group("optional-list")(
+        optional_list_group(
             *[
                 ImageInput(f"Image {letter}").make_optional()
                 for letter in ALPHABET[2:14]

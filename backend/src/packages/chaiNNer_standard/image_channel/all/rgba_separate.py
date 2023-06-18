@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-from nodes.properties import expression
+import navi
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -24,25 +24,25 @@ from . import node_group
     outputs=[
         ImageOutput(
             "R Channel",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ).with_id(2),
         ImageOutput(
             "G Channel",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ).with_id(1),
         ImageOutput(
             "B Channel",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ).with_id(0),
         ImageOutput(
             "A Channel",
-            image_type=expression.Image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ),
