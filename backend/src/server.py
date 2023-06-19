@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Callable, Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -20,6 +20,7 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
+from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
@@ -391,17 +392,21 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-async def import_packages(config: ServerConfig, update_progress_cb: Callable):
-    def install_deps(dependencies: List[api.Dependency]):
+async def import_packages(
+    config: ServerConfig,
+    update_progress_cb: UpdateProgressFn,
+):
+    async def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
                 {
                     "package_name": dep.pypi_name,
+                    "display_name": dep.display_name,
                     "version": dep.version,
                 }
                 for dep in dependencies
             ]
-            install_dependencies(dep_info)
+            await install_dependencies(dep_info, update_progress_cb)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
 
@@ -433,7 +438,7 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
                 to_install.append(dep)
 
     if len(to_install) > 0:
-        install_deps(to_install)
+        await install_deps(to_install)
 
     logger.info("Done checking dependencies...")
 
@@ -441,7 +446,7 @@ async def import_packages(config: ServerConfig, update_progress_cb: Callable):
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
 
-    update_progress_cb("Loading Nodes...", 0.75)
+    await update_progress_cb("Loading Nodes...", 1.0)
 
     api.registry.load_nodes(__file__)
 
@@ -500,8 +505,12 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Importing nodes...")
 
+    # Update progress between 0.5 and 1.0
+    async def update_sub_progress(message: str, percent: float):
+        await update_progress(message, 0.5 + percent / 2)
+
     # Now we can load all the nodes
-    await import_packages(AppContext.get(sanic_app).config, update_progress)
+    await import_packages(AppContext.get(sanic_app).config, update_sub_progress)
 
     logger.info("Sending backend ready...")
 
