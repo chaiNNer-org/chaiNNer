@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Any, Callable, Coroutine, Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -20,6 +20,7 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
+from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
@@ -393,7 +394,7 @@ async def get_dependencies(_request: Request):
 
 async def import_packages(
     config: ServerConfig,
-    update_progress_cb: Callable[[Any, Any], Coroutine[Any, Any, Any]],
+    update_progress_cb: UpdateProgressFn,
 ):
     async def install_deps(dependencies: List[api.Dependency]):
         try:

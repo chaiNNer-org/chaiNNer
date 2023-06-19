@@ -1,26 +1,13 @@
 import re
 import subprocess
 import sys
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    TypedDict,
-    Union,
-)
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
+
+from custom_types import UpdateProgressFn
 
 python_path = sys.executable
 
 installed_packages: Dict[str, Union[str, None]] = {}
-
-try:
-    from sanic.log import logger
-except:
-    logger = None
 
 COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
@@ -63,7 +50,13 @@ def get_deps_to_install(dependencies: List[DependencyInfo]):
     return dependencies_to_install
 
 
-def install_dependencies_sync_impl(dependency_info_array: List[DependencyInfo]):
+def install_dependencies_sync(
+    dependencies: List[DependencyInfo],
+):
+    dependencies_to_install = get_deps_to_install(dependencies)
+    if len(dependencies_to_install) == 0:
+        return
+
     subprocess.check_call(
         [
             python_path,
@@ -72,47 +65,36 @@ def install_dependencies_sync_impl(dependency_info_array: List[DependencyInfo]):
             "install",
             *[
                 pin(dep_info["package_name"], dep_info["version"])
-                for dep_info in dependency_info_array
+                for dep_info in dependencies_to_install
             ],
             "--disable-pip-version-check",
             "--no-warn-script-location",
         ]
     )
-    for dep_info in dependency_info_array:
+    for dep_info in dependencies_to_install:
         package_name = dep_info["package_name"]
         version = dep_info["version"]
         installed_packages[package_name] = version
 
 
-def install_dependencies_sync(
+async def install_dependencies(
     dependencies: List[DependencyInfo],
-):
-    dependencies_to_install = get_deps_to_install(dependencies)
-    if len(dependencies_to_install) > 0:
-        install_dependencies_sync_impl(dependencies_to_install)
-
-
-def log_impl(message: str):
-    if logger is not None:
-        logger.info(message)
-    else:
-        print(message, flush=True)
-
-
-async def install_dependencies_impl(
-    dependency_info_array: List[DependencyInfo],
-    update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]],
+    update_progress_cb: Optional[UpdateProgressFn] = None,
 ):
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:
-        install_dependencies_sync_impl(dependency_info_array)
+        install_dependencies_sync(dependencies)
+        return
+
+    dependencies_to_install = get_deps_to_install(dependencies)
+    if len(dependencies_to_install) == 0:
         return
 
     dependency_name_map = {
         dep_info["package_name"]: dep_info["display_name"]
-        for dep_info in dependency_info_array
+        for dep_info in dependencies_to_install
     }
-    dep_length = len(dependency_info_array)
+    dep_length = len(dependencies_to_install)
     dep_counter = 0
 
     DEP_MAX_PROGRESS = 0.8
@@ -131,7 +113,7 @@ async def install_dependencies_impl(
             "install",
             *[
                 pin(dep_info["package_name"], dep_info["version"])
-                for dep_info in dependency_info_array
+                for dep_info in dependencies_to_install
             ],
             "--disable-pip-version-check",
             "--no-warn-script-location",
@@ -152,7 +134,6 @@ async def install_dependencies_impl(
                 package_name = match.group(1)
                 installing_name = dependency_name_map.get(package_name, package_name)
                 dep_counter += 1
-                log_impl(f"Collecting {installing_name}...")
                 await update_progress_cb(
                     f"Collecting {installing_name}...", get_progress_amount()
                 )
@@ -160,7 +141,6 @@ async def install_dependencies_impl(
         # Later, we can use this to get the progress of the download.
         # For now, we just tell the user that it's happening.
         elif "Downloading" in line:
-            log_impl(f"Downloading {installing_name}...")
             await update_progress_cb(
                 f"Downloading {installing_name}...",
                 get_progress_amount() + dep_small_incr,
@@ -168,26 +148,15 @@ async def install_dependencies_impl(
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
-            log_impl("Installing collected packages...")
             await update_progress_cb(f"Installing collected packages...", 0.9)
 
-    exitCode = process.wait()
-    log_impl(f"Installation exited with code {exitCode}")
+    process.wait()
     await update_progress_cb(f"Installing collected packages...", 1)
 
-    for dep_info in dependency_info_array:
+    for dep_info in dependencies_to_install:
         installing_name = dep_info["package_name"]
         version = dep_info["version"]
         installed_packages[installing_name] = version
-
-
-async def install_dependencies(
-    dependencies: List[DependencyInfo],
-    update_progress_cb: Optional[Callable[[Any, Any], Coroutine[Any, Any, Any]]] = None,
-):
-    dependencies_to_install = get_deps_to_install(dependencies)
-    if len(dependencies_to_install) > 0:
-        await install_dependencies_impl(dependencies_to_install, update_progress_cb)
 
 
 __all__ = [
