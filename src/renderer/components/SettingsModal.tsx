@@ -373,10 +373,7 @@ const PythonSettings = memo(() => {
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
     useAsyncEffect(
         () => ({
-            supplier: async () => {
-                const info = await backend.listNvidiaGpus();
-                return info.map((gpu) => gpu.name);
-            },
+            supplier: async () => backend.listNvidiaGpus(),
             successEffect: setNvidiaGpuList,
         }),
         [backend]

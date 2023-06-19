@@ -13,7 +13,7 @@ except Exception as e:
     logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
 
 
-class NvidiaHelper:
+class _NvidiaHelper:
     def __init__(self):
         nv.nvmlInit()
 
@@ -27,6 +27,7 @@ class NvidiaHelper:
                     "name": nv.nvmlDeviceGetName(handle),
                     "uuid": nv.nvmlDeviceGetUUID(handle),
                     "index": i,
+                    "handle": handle,
                 }
             )
 
@@ -34,13 +35,15 @@ class NvidiaHelper:
         nv.nvmlShutdown()
 
     def list_gpus(self):
-        return self.__gpus
+        return [gpu["name"] for gpu in self.__gpus]
 
     def get_current_vram_usage(self, gpu_index=0):
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index]["handle"])
 
         return info.total, info.used, info.free
 
+
+NvidiaHelper = _NvidiaHelper()
 
 __all__ = [
     "nvidia_is_available",
