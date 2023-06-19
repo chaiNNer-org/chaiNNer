@@ -27,7 +27,6 @@ class NvidiaHelper:
                     "name": nv.nvmlDeviceGetName(handle),
                     "uuid": nv.nvmlDeviceGetUUID(handle),
                     "index": i,
-                    "handle": handle,
                 }
             )
 

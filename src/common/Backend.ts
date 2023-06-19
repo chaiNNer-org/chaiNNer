@@ -83,6 +83,12 @@ export interface BackendError {
     error: string;
 }
 
+export interface ListNvidiaGPUsItem {
+    name: string;
+    uuid: string;
+    index: number;
+}
+
 /**
  * A wrapper to communicate with the backend.
  *
@@ -182,6 +188,13 @@ export class Backend {
      */
     listNcnnGpus(): Promise<string[]> {
         return this.fetchJson('/listgpus/ncnn', 'GET');
+    }
+
+    /**
+     * Gets a list of all Nvidia GPU devices and their indexes
+     */
+    listNvidiaGpus(): Promise<ListNvidiaGPUsItem[]> {
+        return this.fetchJson('/listgpus/nvidia', 'GET');
     }
 
     pythonInfo(): Promise<PythonInfo> {
