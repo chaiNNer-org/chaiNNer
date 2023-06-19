@@ -33,16 +33,19 @@ deps: List[DependencyInfo] = [
         "package_name": "sanic",
         "display_name": "Sanic",
         "version": "23.3.0",
+        "from_file": "sanic-23.3.0-py3-none-any.whl",
     },
     {
         "package_name": "Sanic-Cors",
         "display_name": "Sanic-Cors",
         "version": "2.2.0",
+        "from_file": "Sanic_Cors-2.2.0-py2.py3-none-any.whl",
     },
     {
         "package_name": "numpy",
         "display_name": "NumPy",
         "version": "1.23.2",
+        "from_file": None,
     },
 ]
 
