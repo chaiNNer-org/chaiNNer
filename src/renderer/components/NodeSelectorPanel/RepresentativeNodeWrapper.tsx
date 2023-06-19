@@ -1,4 +1,4 @@
-import { StarIcon } from '@chakra-ui/icons';
+import { InfoIcon, StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -6,6 +6,7 @@ import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
@@ -32,6 +33,7 @@ export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
         const reactFlowInstance = useReactFlow();
+        const { openNodeDocumentation } = useContext(NodeDocumentationContext);
 
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(node.schemaId);
@@ -61,6 +63,14 @@ export const RepresentativeNodeWrapper = memo(
                     }}
                 >
                     {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                </MenuItem>
+                <MenuItem
+                    icon={<InfoIcon />}
+                    onClick={() => {
+                        openNodeDocumentation(node.schemaId);
+                    }}
+                >
+                    Open Documentation
                 </MenuItem>
             </MenuList>
         ));
