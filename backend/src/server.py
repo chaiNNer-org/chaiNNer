@@ -371,12 +371,17 @@ async def list_nvidia_gpus(_request: Request):
     await nodes_available()
     try:
         # pylint: disable=import-outside-toplevel
-        from gpu import NvidiaHelper, nvidia_is_available
+        from gpu import get_nvidia_helper, nvidia_is_available
 
         if not nvidia_is_available:
             return json([])
 
-        result = NvidiaHelper().list_gpus()
+        nv = get_nvidia_helper()
+
+        if nv is None:
+            return json([])
+
+        result = nv.list_gpus()
         return json(result)
     except Exception as exception:
         logger.error(exception, exc_info=True)

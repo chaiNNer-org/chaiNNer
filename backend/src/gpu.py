@@ -14,11 +14,6 @@ except Exception as e:
 
 
 class NvidiaHelper:
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(NvidiaHelper, cls).__new__(cls)
-            return cls.instance
-
     def __init__(self):
         nv.nvmlInit()
 
@@ -48,7 +43,20 @@ class NvidiaHelper:
         return info.total, info.used, info.free
 
 
+_cachedNvidiaHelper = None
+
+
+def get_nvidia_helper():
+    # pylint: disable=global-statement
+    global _cachedNvidiaHelper
+    if not nvidia_is_available:
+        return None
+    if not _cachedNvidiaHelper:
+        _cachedNvidiaHelper = NvidiaHelper()
+    return _cachedNvidiaHelper
+
+
 __all__ = [
     "nvidia_is_available",
-    "NvidiaHelper",
+    "get_nvidia_helper",
 ]
