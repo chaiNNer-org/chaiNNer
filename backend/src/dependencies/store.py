@@ -94,16 +94,19 @@ async def install_dependencies(
         dep_info["package_name"]: dep_info["display_name"]
         for dep_info in dependencies_to_install
     }
-    dep_length = len(dependencies_to_install)
-    dep_counter = 0
+    deps_count = len(dependencies_to_install)
+    deps_counter = 0
+    transitive_deps_counter = 0
 
     DEP_MAX_PROGRESS = 0.8
 
     def get_progress_amount():
-        return min(max(0, dep_counter / dep_length), 1) * DEP_MAX_PROGRESS
+        transitive_progress = 1 - 1 / (2**transitive_deps_counter)
+        progress = (deps_counter + transitive_progress) / (deps_count + 1)
+        return min(max(0, progress), 1) * DEP_MAX_PROGRESS
 
     # Used to increment by a small amount between collect and download
-    dep_small_incr = (DEP_MAX_PROGRESS / dep_length) / 2
+    dep_small_incr = (DEP_MAX_PROGRESS / deps_count) / 2
 
     process = subprocess.Popen(
         [
@@ -132,8 +135,12 @@ async def install_dependencies(
             match = COLLECTING_REGEX.search(line)
             if match:
                 package_name = match.group(1)
-                installing_name = dependency_name_map.get(package_name, package_name)
-                dep_counter += 1
+                installing_name = dependency_name_map.get(package_name, None)
+                if installing_name is None:
+                    installing_name = package_name
+                    transitive_deps_counter += 1
+                else:
+                    deps_counter += 1
                 await update_progress_cb(
                     f"Collecting {installing_name}...", get_progress_amount()
                 )
@@ -148,10 +155,10 @@ async def install_dependencies(
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
-            await update_progress_cb(f"Installing collected packages...", 0.9)
+            await update_progress_cb(f"Installing collected dependencies...", 0.9)
 
     process.wait()
-    await update_progress_cb(f"Installing collected packages...", 1)
+    await update_progress_cb(f"Finished installing dependencies...", 1)
 
     for dep_info in dependencies_to_install:
         installing_name = dep_info["package_name"]
