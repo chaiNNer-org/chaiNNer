@@ -41,6 +41,32 @@ deps: List[DependencyInfo] = [
         "version": "2.2.0",
         "from_file": "Sanic_Cors-2.2.0-py2.py3-none-any.whl",
     },
+    # Sanic's downstream deps that are py3-non-any
+    {
+        "package_name": "aiofiles",
+        "display_name": "aiofiles",
+        "version": "23.1.0",
+        "from_file": "aiofiles-23.1.0-py3-none-any.whl",
+    },
+    {
+        "package_name": "html5tagger",
+        "display_name": "html5tagger",
+        "version": "1.3.0",
+        "from_file": "html5tagger-1.3.0-py3-none-any.whl",
+    },
+    {
+        "package_name": "sanic-routing",
+        "display_name": "sanic-routing",
+        "version": "22.8.0",
+        "from_file": "sanic_routing-22.8.0-py3-none-any.whl",
+    },
+    {
+        "package_name": "tracerite",
+        "display_name": "tracerite",
+        "version": "1.1.0",
+        "from_file": "tracerite-1.1.0-py3-none-any.whl",
+    },
+    # TODO: Try to get numpy out of here
     {
         "package_name": "numpy",
         "display_name": "NumPy",
