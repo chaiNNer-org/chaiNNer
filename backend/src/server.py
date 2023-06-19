@@ -376,7 +376,7 @@ async def list_nvidia_gpus(_request: Request):
         if not nvidia_is_available:
             return json([])
 
-        result = NvidiaHelper.list_gpus()
+        result = NvidiaHelper().list_gpus()
         return json(result)
     except Exception as exception:
         logger.error(exception, exc_info=True)

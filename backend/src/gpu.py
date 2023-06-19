@@ -13,7 +13,12 @@ except Exception as e:
     logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
 
 
-class _NvidiaHelper:
+class NvidiaHelper:
+    def __new__(cls):
+        if not hasattr(cls, "instance"):
+            cls.instance = super(NvidiaHelper, cls).__new__(cls)
+            return cls.instance
+
     def __init__(self):
         nv.nvmlInit()
 
@@ -42,8 +47,6 @@ class _NvidiaHelper:
 
         return info.total, info.used, info.free
 
-
-NvidiaHelper = _NvidiaHelper()
 
 __all__ = [
     "nvidia_is_available",
