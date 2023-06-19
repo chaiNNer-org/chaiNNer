@@ -1,5 +1,7 @@
 import {
+    Box,
     Button,
+    Code,
     HStack,
     Heading,
     IconButton,
@@ -18,6 +20,7 @@ import { memo } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
+import { prettyPrintType } from '../../common/types/pretty';
 import { BackendContext } from '../contexts/BackendContext';
 import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 
@@ -29,10 +32,17 @@ interface NodeDocumentationModalProps {
 
 export const NodeDocumentationModal = memo(
     ({ isOpen, onClose, selectedSchemaId }: NodeDocumentationModalProps) => {
-        const { schemata } = useContext(BackendContext);
+        const { schemata, functionDefinitions } = useContext(BackendContext);
 
         const schema = schemata.schemata;
         const selectedSchema = schemata.get(selectedSchemaId ?? schema[0].schemaId);
+        const selectedFunctionDefinition = functionDefinitions.get(
+            selectedSchemaId ?? schema[0].schemaId
+        );
+        console.log(
+            '🚀 ~ file: NodeDocumentationModal.tsx:40 ~ selectedFunctionDefinition:',
+            selectedFunctionDefinition
+        );
 
         return (
             <Modal
@@ -57,20 +67,52 @@ export const NodeDocumentationModal = memo(
                         position="relative"
                         px={4}
                     >
-                        <Heading size="lg">{selectedSchema.name}</Heading>
-                        <Heading size="sm">{selectedSchema.category}</Heading>
-                        <Text>{selectedSchema.description}</Text>
-                        <Heading size="sm">Inputs</Heading>
-                        <VStack>
-                            {selectedSchema.inputs.map((input) => (
-                                <Text>{input.label}</Text>
-                            ))}
-                        </VStack>
-                        <Heading size="sm">Outputs</Heading>
-                        <VStack>
-                            {selectedSchema.outputs.map((output) => (
-                                <Text>{output.label}</Text>
-                            ))}
+                        <VStack
+                            alignItems="left"
+                            textAlign="left"
+                            w="full"
+                        >
+                            <Heading size="lg">{selectedSchema.name}</Heading>
+                            <Heading size="sm">{selectedSchema.category}</Heading>
+                            <Text>{selectedSchema.description}</Text>
+                            <Heading size="sm">Inputs</Heading>
+                            <VStack
+                                alignItems="left"
+                                textAlign="left"
+                                w="full"
+                            >
+                                {selectedSchema.inputs.map((input) => {
+                                    const type = selectedFunctionDefinition?.inputDefaults.get(
+                                        input.id
+                                    );
+
+                                    return (
+                                        <Box key={input.id}>
+                                            <Text>{input.label}</Text>
+                                            {type && <Code>{prettyPrintType(type)}</Code>}
+                                        </Box>
+                                    );
+                                })}
+                            </VStack>
+                            <Heading size="sm">Outputs</Heading>
+                            <VStack
+                                alignItems="left"
+                                textAlign="left"
+                                w="full"
+                            >
+                                {selectedSchema.outputs.map((output) => {
+                                    const type = selectedFunctionDefinition?.outputDefaults.get(
+                                        output.id
+                                    );
+
+                                    return (
+                                        <Box key={output.id}>
+                                            <Text>{output.label}</Text>
+                                            {type && <Code>{prettyPrintType(type)}</Code>}
+                                        </Box>
+                                    );
+                                })}
+                            </VStack>
                         </VStack>
                     </ModalBody>
 
