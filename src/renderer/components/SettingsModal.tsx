@@ -373,13 +373,10 @@ const PythonSettings = memo(() => {
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
     useAsyncEffect(
         () => ({
-            supplier: async () => {
-                const nvidiaGpus = await ipcRenderer.invoke('get-nvidia-gpus');
-                return nvidiaGpus ?? [];
-            },
+            supplier: async () => backend.listNvidiaGpus(),
             successEffect: setNvidiaGpuList,
         }),
-        []
+        [backend]
     );
 
     const [ncnnGPU, setNcnnGPU] = useNcnnGPU;

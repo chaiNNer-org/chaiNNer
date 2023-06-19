@@ -184,6 +184,13 @@ export class Backend {
         return this.fetchJson('/listgpus/ncnn', 'GET');
     }
 
+    /**
+     * Gets a list of all Nvidia GPU devices and their indexes
+     */
+    listNvidiaGpus(): Promise<string[]> {
+        return this.fetchJson('/listgpus/nvidia', 'GET');
+    }
+
     pythonInfo(): Promise<PythonInfo> {
         return this.fetchJson('/python-info', 'GET');
     }

@@ -365,6 +365,26 @@ async def list_ncnn_gpus(_request: Request):
         return json([])
 
 
+@app.route("/listgpus/nvidia", methods=["GET"])
+async def list_nvidia_gpus(_request: Request):
+    """Lists the available GPUs for NCNN"""
+    await nodes_available()
+    try:
+        # pylint: disable=import-outside-toplevel
+        from gpu import get_nvidia_helper
+
+        nv = get_nvidia_helper()
+
+        if nv is None:
+            return json([])
+
+        result = nv.list_gpus()
+        return json(result)
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json([])
+
+
 @app.route("/python-info", methods=["GET"])
 async def python_info(_request: Request):
     version = (

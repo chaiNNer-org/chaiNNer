@@ -35,7 +35,7 @@ class NvidiaHelper:
         nv.nvmlShutdown()
 
     def list_gpus(self):
-        return self.__gpus
+        return [gpu["name"] for gpu in self.__gpus]
 
     def get_current_vram_usage(self, gpu_index=0):
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index]["handle"])
@@ -43,7 +43,20 @@ class NvidiaHelper:
         return info.total, info.used, info.free
 
 
+_cachedNvidiaHelper = None
+
+
+def get_nvidia_helper():
+    # pylint: disable=global-statement
+    global _cachedNvidiaHelper
+    if not nvidia_is_available:
+        return None
+    if not _cachedNvidiaHelper:
+        _cachedNvidiaHelper = NvidiaHelper()
+    return _cachedNvidiaHelper
+
+
 __all__ = [
     "nvidia_is_available",
-    "NvidiaHelper",
+    "get_nvidia_helper",
 ]
