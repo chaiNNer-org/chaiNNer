@@ -66,6 +66,13 @@ deps: List[DependencyInfo] = [
         "version": "1.1.0",
         "from_file": "tracerite-1.1.0-py3-none-any.whl",
     },
+    # Sanic's downstream deps that we want to pin anyway
+    {
+        "package_name": "websockets",
+        "display_name": "websockets",
+        "version": "11.0.3",
+        "from_file": None,
+    },
     # TODO: Try to get numpy out of here
     {
         "package_name": "numpy",
