@@ -61,6 +61,10 @@ deps: List[DependencyInfo] = [
         "package_name": "wcmatch",
         "version": "8.4.1",
     },
+    {
+        "package_name": "chainner_ext",
+        "version": "0.0.0",
+    },
 ]
 
 if is_arm_mac:
