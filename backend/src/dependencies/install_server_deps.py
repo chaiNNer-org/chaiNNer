@@ -39,11 +39,6 @@ deps: List[DependencyInfo] = [
         "display_name": "Sanic-Cors",
         "version": "2.2.0",
     },
-    {
-        "package_name": "numpy",
-        "display_name": "NumPy",
-        "version": "1.23.2",
-    },
 ]
 
 install_dependencies_sync(deps)
