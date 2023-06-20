@@ -2,19 +2,14 @@ import asyncio
 from typing import Dict, List, Literal, Optional, TypedDict, Union
 
 from base_types import InputId, NodeId, OutputId
+from nodes.base_input import ErrorValue
 
 
 class FinishData(TypedDict):
     message: str
 
 
-class ImageInputInfo(TypedDict):
-    width: int
-    height: int
-    channels: int
-
-
-InputsDict = Dict[InputId, Union[str, int, float, ImageInputInfo, None]]
+InputsDict = Dict[InputId, ErrorValue]
 
 
 class ExecutionErrorSource(TypedDict):

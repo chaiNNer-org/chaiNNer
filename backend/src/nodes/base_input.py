@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal, Optional, Type, Union
+from enum import Enum
+from typing import List, Literal, Optional, Type, TypedDict, Union
 
 import navi
 from base_types import InputId
@@ -47,6 +48,25 @@ class InputConversion:
         }
 
 
+class LiteralErrorValue(TypedDict):
+    type: Literal["literal"]
+    value: str | int | float | None
+
+
+class FormattedErrorValue(TypedDict):
+    type: Literal["formatted"]
+    formatString: str
+
+
+class UnknownErrorValue(TypedDict):
+    type: Literal["unknown"]
+    typeName: str
+    typeModule: str
+
+
+ErrorValue = Union[LiteralErrorValue, FormattedErrorValue, UnknownErrorValue]
+
+
 class BaseInput:
     def __init__(
         self,
@@ -81,6 +101,24 @@ class BaseInput:
             f"but does not exist for {self.kind} input with type {self.input_type} and label {self.label}"
         )
         return self.enforce(value)
+
+    def get_error_value(self, value: object) -> ErrorValue:
+        if isinstance(value, Enum):
+            # unwrap enum
+            value = value.value
+
+        if isinstance(value, bool):
+            # bools need to be 0 or 1
+            return {"type": "literal", "value": int(value)}
+
+        if isinstance(value, (int, float, str)) or value is None:
+            return {"type": "literal", "value": value}
+
+        return {
+            "type": "unknown",
+            "typeName": type(value).__qualname__,
+            "typeModule": type(value).__module__,
+        }
 
     def toDict(self):
         actual_type = [self.input_type, "null"] if self.optional else self.input_type

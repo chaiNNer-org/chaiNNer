@@ -3,7 +3,11 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from chainner_ext import fill_alpha_extend_color, fill_alpha_fragment_blur
+from chainner_ext import (
+    fill_alpha_extend_color,
+    fill_alpha_fragment_blur,
+    fill_alpha_nearest_color,
+)
 
 import navi
 from nodes.properties.inputs import EnumInput, ImageInput
@@ -15,6 +19,7 @@ from . import node_group
 class AlphaFillMethod(Enum):
     EXTEND_TEXTURE = 1
     EXTEND_COLOR = 2
+    NEAREST_COLOR = 3
 
 
 @node_group.register(
@@ -47,6 +52,13 @@ def fill_alpha_node(img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
         img = fill_alpha_extend_color(img, threshold=0.05, iterations=100_000)
     elif method == AlphaFillMethod.EXTEND_COLOR:
         img = fill_alpha_extend_color(img, threshold=0.05, iterations=100_000)
+    elif method == AlphaFillMethod.NEAREST_COLOR:
+        img = fill_alpha_nearest_color(
+            img,
+            threshold=0.05,
+            min_radius=100_000,
+            anti_aliasing=True,
+        )
     else:
         assert False, f"Invalid alpha fill method {method}"
 

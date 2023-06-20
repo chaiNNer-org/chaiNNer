@@ -73,12 +73,18 @@ deps: List[DependencyInfo] = [
         "version": "11.0.3",
         "from_file": None,
     },
-    # TODO: Try to get numpy out of here
+    # Other deps necessary for general use
     {
-        "package_name": "numpy",
-        "display_name": "NumPy",
-        "version": "1.23.2",
-        "from_file": None,
+        "package_name": "typing_extensions",
+        "display_name": "typing_extensions",
+        "version": "4.6.2",
+        "from_file": "typing_extensions-4.6.3-py3-none-any.whl",
+    },
+    {
+        "package_name": "pynvml",
+        "display_name": "pynvml",
+        "version": "11.5.0",
+        "from_file": "pynvml-11.5.0-py3-none-any.whl",
     },
 ]
 
