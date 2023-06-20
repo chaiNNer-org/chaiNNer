@@ -20,8 +20,10 @@ import {
     UnorderedList,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useRef } from 'react';
+import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
+import { PropsWithChildren, memo, useEffect, useMemo, useRef } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
 import { prettyPrintType } from '../../common/types/pretty';
@@ -37,6 +39,13 @@ interface NodeDocumentationModalProps {
     onOpen: (schemaId?: SchemaId) => void;
     selectedSchemaId: SchemaId | undefined;
 }
+
+const customMarkdownTheme = {
+    p: (props: PropsWithChildren<unknown>) => {
+        const { children } = props;
+        return <Text mb={0}>{children}</Text>;
+    },
+};
 
 export const NodeDocumentationModal = memo(
     ({ isOpen, onClose, selectedSchemaId, onOpen }: NodeDocumentationModalProps) => {
@@ -173,16 +182,24 @@ export const NodeDocumentationModal = memo(
                                     <HStack>
                                         <IconFactory
                                             accentColor={selectedAccentColor}
-                                            boxSize={8}
+                                            boxSize={6}
                                             icon={selectedSchema.icon}
                                         />
                                         <Heading size="lg">{selectedSchema.name}</Heading>
                                     </HStack>
-                                    {/* <Heading size="sm">{selectedSchema.category}</Heading> */}
-                                    <Text>{selectedSchema.description}</Text>
+                                    <ReactMarkdown
+                                        components={ChakraUIRenderer(customMarkdownTheme)}
+                                    >
+                                        {selectedSchema.description}
+                                    </ReactMarkdown>
                                 </Box>
                                 <Box>
-                                    <Heading size="sm">Inputs</Heading>
+                                    <Heading
+                                        mb={1}
+                                        size="sm"
+                                    >
+                                        Inputs
+                                    </Heading>
                                     <UnorderedList
                                         alignItems="left"
                                         ml={8}
@@ -196,7 +213,16 @@ export const NodeDocumentationModal = memo(
                                                 );
                                             return (
                                                 <ListItem key={input.id}>
-                                                    <Text>{input.label}</Text>
+                                                    <Text fontWeight="bold">{input.label}</Text>
+                                                    {input.description && (
+                                                        <ReactMarkdown
+                                                            components={ChakraUIRenderer(
+                                                                customMarkdownTheme
+                                                            )}
+                                                        >
+                                                            {input.description}
+                                                        </ReactMarkdown>
+                                                    )}
                                                     {type && <Code>{prettyPrintType(type)}</Code>}
                                                 </ListItem>
                                             );
@@ -204,7 +230,12 @@ export const NodeDocumentationModal = memo(
                                     </UnorderedList>
                                 </Box>
                                 <Box>
-                                    <Heading size="sm">Outputs</Heading>
+                                    <Heading
+                                        mb={1}
+                                        size="sm"
+                                    >
+                                        Outputs
+                                    </Heading>
                                     <UnorderedList
                                         alignItems="left"
                                         ml={8}
@@ -219,7 +250,16 @@ export const NodeDocumentationModal = memo(
 
                                             return (
                                                 <ListItem key={output.id}>
-                                                    <Text>{output.label}</Text>
+                                                    <Text fontWeight="bold">{output.label}</Text>
+                                                    {output.description && (
+                                                        <ReactMarkdown
+                                                            components={ChakraUIRenderer(
+                                                                customMarkdownTheme
+                                                            )}
+                                                        >
+                                                            {output.description}
+                                                        </ReactMarkdown>
+                                                    )}
                                                     {type && <Code>{prettyPrintType(type)}</Code>}
                                                 </ListItem>
                                             );

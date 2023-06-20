@@ -27,11 +27,11 @@ import { BackendProvider } from './contexts/BackendContext';
 import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
+import { NodeDocumentationProvider } from './contexts/NodeDocumentationContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
-import { NodeDocumentationProvider } from './contexts/NodeDocumentationContext';
 
 interface NodesInfo {
     rawResponse: BackendNodesResponse;

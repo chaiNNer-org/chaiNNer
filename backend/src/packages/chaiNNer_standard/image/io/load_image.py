@@ -10,7 +10,11 @@ from PIL import Image
 from sanic.log import logger
 
 from nodes.impl.dds.texconv import dds_to_png_texconv
-from nodes.impl.image_formats import get_opencv_formats, get_pil_formats
+from nodes.impl.image_formats import (
+    get_available_image_formats,
+    get_opencv_formats,
+    get_pil_formats,
+)
 from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
@@ -106,17 +110,29 @@ _decoders: List[Tuple[str, _Decoder]] = [
     ("texconv-dds", _read_dds),
 ]
 
+valid_formats = get_available_image_formats()
+
 
 @io_group.register(
     schema_id="chainner:image:load",
     name="Load Image",
-    description="Load image from specified file.",
+    description=f"Load image from specified file. Supported formats: {', '.join(valid_formats)}",
     icon="BsFillImageFill",
-    inputs=[ImageFileInput(primary_input=True)],
+    inputs=[
+        ImageFileInput(primary_input=True).with_documentation(
+            description="Select the path of an image file."
+        )
+    ],
     outputs=[
-        LargeImageOutput(),
-        DirectoryOutput("Image Directory", of_input=0),
-        FileNameOutput("Image Name", of_input=0),
+        LargeImageOutput().with_documentation(
+            description="The node will display a preview of the selected image as well as type information for it. Connect this output to the input of another node to pass the image to it."
+        ),
+        DirectoryOutput("Image Directory", of_input=0).with_documentation(
+            description="The directory output lets you reuse the directory of the input image in other nodes."
+        ),
+        FileNameOutput("Image Name", of_input=0).with_documentation(
+            description="The file name output lets you reuse the file name of the input image in other nodes."
+        ),
     ],
 )
 def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
