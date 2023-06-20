@@ -13,11 +13,6 @@ deps: List[DependencyInfo] = [
         "display_name": "typing_extensions",
         "version": "4.6.2",
     },
-    {
-        "package_name": "numpy",
-        "display_name": "NumPy",
-        "version": "1.23.2",
-    },
 ]
 
 install_dependencies_sync(deps)
