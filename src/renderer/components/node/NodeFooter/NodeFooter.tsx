@@ -10,13 +10,13 @@ import { ValidityIndicator } from './ValidityIndicator';
 
 interface NodeFooterProps {
     validity: Validity;
-    useDisable: UseDisabled;
+    useDisable?: UseDisabled;
     animated: boolean;
     id: string;
 }
 
 export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFooterProps) => {
-    const { canDisable } = useDisable;
+    const { canDisable } = useDisable ?? { canDisable: false };
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
     );
@@ -34,7 +34,7 @@ export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFoot
                 w="full"
             >
                 <Center marginRight="auto">
-                    {canDisable && <DisableToggle useDisable={useDisable} />}
+                    {canDisable && useDisable && <DisableToggle useDisable={useDisable} />}
                 </Center>
 
                 <Center w="full">
