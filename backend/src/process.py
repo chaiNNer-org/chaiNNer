@@ -51,11 +51,6 @@ def enforce_output(raw_output: object, node: NodeData) -> Output:
             len(output) == l
         ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
 
-    # make outputs readonly
-    for o in output:
-        if isinstance(o, np.ndarray):
-            o.setflags(write=False)
-
     # output-specific validations
     for i, o in enumerate(node.outputs):
         output[i] = o.enforce(output[i])
