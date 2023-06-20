@@ -9,7 +9,6 @@ from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, TypeVar
 
-import numpy as np
 from sanic.log import logger
 
 from api import NodeData
@@ -19,7 +18,6 @@ from chain.chain import Chain, FunctionNode, IteratorNode, Node, SubChain
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.base_output import BaseOutput
-from nodes.utils.utils import get_h_w_c
 from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = List[object]
@@ -73,15 +71,8 @@ def run_node(node: NodeData, inputs: Iterable[object], node_id: NodeId) -> Outpu
         # collect information to provide good error messages
         input_dict: InputsDict = {}
         for index, node_input in enumerate(node.inputs):
-            input_id = node_input.id
             input_value = enforced_inputs[index]
-            if input_value is None:
-                input_dict[input_id] = None
-            elif isinstance(input_value, (str, int, float)):
-                input_dict[input_id] = input_value
-            elif isinstance(input_value, np.ndarray):
-                h, w, c = get_h_w_c(input_value)
-                input_dict[input_id] = {"width": w, "height": h, "channels": c}
+            input_dict[node_input.id] = node_input.get_error_value(input_value)
 
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 

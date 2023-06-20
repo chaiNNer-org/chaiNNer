@@ -17,15 +17,29 @@ export interface BackendSuccessResponse {
     type: 'success';
     message: string;
 }
+
+export interface BackendLiteralErrorValue {
+    type: 'literal';
+    value: string | number | null;
+}
+export interface BackendFormattedErrorValue {
+    type: 'formatted';
+    formatString: string;
+}
+export interface BackendUnknownErrorValue {
+    type: 'unknown';
+    typeName: string;
+    typeModule: string;
+}
+export type BackendErrorValue =
+    | BackendLiteralErrorValue
+    | BackendFormattedErrorValue
+    | BackendUnknownErrorValue;
+
 export interface BackendExceptionSource {
     nodeId: string;
     schemaId: SchemaId;
-    inputs: Partial<
-        Record<
-            InputId,
-            { width: number; height: number; channels: number } | string | number | null
-        >
-    >;
+    inputs: Record<InputId, BackendErrorValue>;
 }
 export interface BackendExceptionResponse {
     type: 'error';
