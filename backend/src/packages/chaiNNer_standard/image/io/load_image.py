@@ -116,23 +116,19 @@ valid_formats = get_available_image_formats()
 @io_group.register(
     schema_id="chainner:image:load",
     name="Load Image",
-    description=f"Load image from specified file. Supported formats: {', '.join(valid_formats)}",
+    description="Load image from specified file. This node will output the loaded image, the directory of the image file, and the name of the image file (without file extension).",
     icon="BsFillImageFill",
     inputs=[
         ImageFileInput(primary_input=True).with_documentation(
-            description="Select the path of an image file."
+            description=f"Select the path of an image file. Supports the following image formats: {', '.join(valid_formats)}"
         )
     ],
     outputs=[
         LargeImageOutput().with_documentation(
             description="The node will display a preview of the selected image as well as type information for it. Connect this output to the input of another node to pass the image to it."
         ),
-        DirectoryOutput("Image Directory", of_input=0).with_documentation(
-            description="The directory output lets you reuse the directory of the input image in other nodes."
-        ),
-        FileNameOutput("Image Name", of_input=0).with_documentation(
-            description="The file name output lets you reuse the file name of the input image in other nodes."
-        ),
+        DirectoryOutput("Image Directory", of_input=0),
+        FileNameOutput("Image Name", of_input=0),
     ],
 )
 def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
