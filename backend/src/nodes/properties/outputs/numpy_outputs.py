@@ -91,16 +91,20 @@ class ImageOutput(NumPyOutput):
         if c == 1 and value.ndim == 3:
             value = value[:, :, 0]
 
-        if self.assume_normalized:
-            assert value.dtype == np.float32, (
-                f"The output {self.label} did not return a normalized image."
-                f" This is a bug in the implementation of the node."
-                f" Please report this bug."
-                f"\n\nTo the author of this node: Either use `normalize` or remove `assume_normalized=True` from this output."
-            )
-            return value
+        if not self.assume_normalized:
+            value = normalize(value)
 
-        return normalize(value)
+        assert value.dtype == np.float32, (
+            f"The output {self.label} did not return a normalized image."
+            f" This is a bug in the implementation of the node."
+            f" Please report this bug."
+            f"\n\nTo the author of this node: Either use `normalize` or remove `assume_normalized=True` from this output."
+        )
+
+        # make image readonly
+        value.setflags(write=False)
+
+        return value
 
 
 def preview_encode(

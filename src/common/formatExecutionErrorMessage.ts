@@ -17,38 +17,39 @@ export const formatExecutionErrorMessage = (
         name = `${schema.category} ${schema.name}`;
     }
 
-    const inputs = schema.inputs.flatMap((i) => {
-        const value = source.inputs[i.id];
-        if (value === undefined) return [];
+    const inputs = schema.inputs.map((i) => {
+        const inputValue = source.inputs[i.id];
 
         let valueStr: string;
-        const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
-        if (option) {
-            valueStr = option.option;
-        } else if (value === null) {
-            valueStr = 'None';
-        } else if (typeof value === 'number') {
-            valueStr = String(value);
-            if ((i.kind === 'number' || i.kind === 'slider') && i.unit) {
-                valueStr += i.unit;
-            }
-        } else if (typeof value === 'string') {
-            valueStr = JSON.stringify(value);
+        if (inputValue.type === 'formatted') {
+            valueStr = inputValue.formatString;
+        } else if (inputValue.type === 'unknown') {
+            valueStr = `Value of type '${inputValue.typeModule}.${inputValue.typeName}'`;
         } else {
-            let type = 'Image';
-            if (value.channels === 1) type = 'Grayscale image';
-            if (value.channels === 3) type = 'RGB image';
-            if (value.channels === 4) type = 'RGBA image';
-            valueStr = `${type} ${value.width}x${value.height}`;
+            const { value } = inputValue;
+
+            const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
+            if (option) {
+                valueStr = option.option;
+            } else if (value === null) {
+                valueStr = 'None';
+            } else if (typeof value === 'number') {
+                valueStr = String(value);
+                if ((i.kind === 'number' || i.kind === 'slider') && i.unit) {
+                    valueStr += i.unit;
+                }
+            } else if (typeof value === 'string') {
+                valueStr = JSON.stringify(value);
+            } else {
+                // just in case
+                valueStr = String(value);
+            }
         }
 
-        return [formatListItem(i.label, valueStr)];
+        return formatListItem(i.label, valueStr);
     });
-    const partial = inputs.length === schema.inputs.length;
-    const inputsInfo =
-        inputs.length === 0
-            ? ''
-            : `Input values${partial ? '' : ' (partial)'}:\n${inputs.join('\n')}`;
+
+    const inputsInfo = inputs.length === 0 ? '' : `Input values:\n${inputs.join('\n')}`;
 
     return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
 };

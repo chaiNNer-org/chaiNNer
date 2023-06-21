@@ -40,9 +40,14 @@ deps: List[DependencyInfo] = [
         "version": "2.2.0",
     },
     {
-        "package_name": "numpy",
-        "display_name": "NumPy",
-        "version": "1.23.2",
+        "package_name": "pynvml",
+        "display_name": "pynvml",
+        "version": "11.5.0",
+    },
+    {
+        "package_name": "typing_extensions",
+        "display_name": "typing_extensions",
+        "version": "4.6.2",
     },
 ]
 
