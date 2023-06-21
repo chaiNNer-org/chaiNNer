@@ -4,6 +4,7 @@ import {
     Center,
     Code,
     Divider,
+    Flex,
     HStack,
     Heading,
     IconButton,
@@ -183,155 +184,184 @@ export const NodeDocumentationModal = memo(
                                 h="full"
                                 w="full"
                             >
-                                <VStack
-                                    alignItems="left"
-                                    display="block"
-                                    divider={<Divider />}
-                                    h="full"
-                                    maxH="full"
-                                    pl={8}
-                                    spacing={2}
-                                    textAlign="left"
-                                    w="full"
+                                <Flex
+                                    overflowY="scroll"
+                                    position="relative"
                                 >
-                                    <Box>
-                                        <HStack>
-                                            <IconFactory
-                                                accentColor={selectedAccentColor}
-                                                boxSize={6}
-                                                icon={selectedSchema.icon}
-                                            />
-                                            <Heading size="lg">{selectedSchema.name}</Heading>
-                                        </HStack>
-                                        <ReactMarkdown
-                                            components={ChakraUIRenderer(customMarkdownTheme)}
-                                        >
-                                            {selectedSchema.description}
-                                        </ReactMarkdown>
-                                    </Box>
-                                    <Box>
-                                        <Heading
-                                            mb={1}
-                                            size="sm"
-                                        >
-                                            Inputs
-                                        </Heading>
-                                        <UnorderedList
-                                            alignItems="left"
-                                            ml={8}
-                                            textAlign="left"
-                                            w="full"
-                                        >
-                                            {selectedSchema.inputs.map((input) => {
-                                                const type =
-                                                    selectedFunctionDefinition?.inputDefaults.get(
-                                                        input.id
-                                                    );
-                                                return (
-                                                    <ListItem key={input.id}>
-                                                        <Text fontWeight="bold">{input.label}</Text>
-                                                        {input.description && (
-                                                            <ReactMarkdown
-                                                                components={ChakraUIRenderer(
-                                                                    customMarkdownTheme
+                                    <VStack
+                                        alignItems="left"
+                                        display="block"
+                                        divider={<Divider />}
+                                        h="full"
+                                        maxH="full"
+                                        pl={8}
+                                        spacing={2}
+                                        textAlign="left"
+                                        w="full"
+                                    >
+                                        <Box>
+                                            <HStack>
+                                                <IconFactory
+                                                    accentColor={selectedAccentColor}
+                                                    boxSize={6}
+                                                    icon={selectedSchema.icon}
+                                                />
+                                                <Heading size="lg">{selectedSchema.name}</Heading>
+                                            </HStack>
+                                            <ReactMarkdown
+                                                components={ChakraUIRenderer(customMarkdownTheme)}
+                                            >
+                                                {selectedSchema.description}
+                                            </ReactMarkdown>
+                                        </Box>
+                                        <Box position="relative">
+                                            <Heading
+                                                mb={1}
+                                                size="sm"
+                                            >
+                                                Inputs
+                                            </Heading>
+                                            {selectedSchema.outputs.length > 0 ? (
+                                                <UnorderedList
+                                                    alignItems="left"
+                                                    ml={0}
+                                                    pl={8}
+                                                    textAlign="left"
+                                                    w="full"
+                                                >
+                                                    {selectedSchema.inputs.map((input) => {
+                                                        const type =
+                                                            selectedFunctionDefinition?.inputDefaults.get(
+                                                                input.id
+                                                            );
+                                                        return (
+                                                            <ListItem key={input.id}>
+                                                                <Text fontWeight="bold">
+                                                                    {input.label}
+                                                                </Text>
+                                                                {input.description && (
+                                                                    <ReactMarkdown
+                                                                        components={ChakraUIRenderer(
+                                                                            customMarkdownTheme
+                                                                        )}
+                                                                    >
+                                                                        {input.description}
+                                                                    </ReactMarkdown>
                                                                 )}
-                                                            >
-                                                                {input.description}
-                                                            </ReactMarkdown>
-                                                        )}
-                                                        {type && (
-                                                            <Code>{prettyPrintType(type)}</Code>
-                                                        )}
-                                                    </ListItem>
-                                                );
-                                            })}
-                                        </UnorderedList>
-                                    </Box>
-                                    <Box>
-                                        <Heading
-                                            mb={1}
-                                            size="sm"
-                                        >
-                                            Outputs
-                                        </Heading>
-                                        <UnorderedList
-                                            alignItems="left"
-                                            ml={8}
-                                            textAlign="left"
-                                            w="full"
-                                        >
-                                            {selectedSchema.outputs.map((output) => {
-                                                const type =
-                                                    selectedFunctionDefinition?.outputDefaults.get(
-                                                        output.id
-                                                    );
+                                                                {type && (
+                                                                    <Code>
+                                                                        {prettyPrintType(type)}
+                                                                    </Code>
+                                                                )}
+                                                            </ListItem>
+                                                        );
+                                                    })}
+                                                </UnorderedList>
+                                            ) : (
+                                                <Text>This node has no inputs.</Text>
+                                            )}
+                                        </Box>
+                                        <Box position="relative">
+                                            <Heading
+                                                mb={1}
+                                                size="sm"
+                                            >
+                                                Outputs
+                                            </Heading>
+                                            {selectedSchema.outputs.length > 0 ? (
+                                                <UnorderedList
+                                                    alignItems="left"
+                                                    ml={0}
+                                                    pl={8}
+                                                    textAlign="left"
+                                                    w="full"
+                                                >
+                                                    {selectedSchema.outputs.map((output) => {
+                                                        const type =
+                                                            selectedFunctionDefinition?.outputDefaults.get(
+                                                                output.id
+                                                            );
 
-                                                return (
-                                                    <ListItem key={output.id}>
-                                                        <Text fontWeight="bold">
-                                                            {output.label}
-                                                        </Text>
-                                                        {output.description && (
-                                                            <ReactMarkdown
-                                                                components={ChakraUIRenderer(
-                                                                    customMarkdownTheme
+                                                        return (
+                                                            <ListItem key={output.id}>
+                                                                <Text fontWeight="bold">
+                                                                    {output.label}
+                                                                </Text>
+                                                                {output.description && (
+                                                                    <ReactMarkdown
+                                                                        components={ChakraUIRenderer(
+                                                                            customMarkdownTheme
+                                                                        )}
+                                                                    >
+                                                                        {output.description}
+                                                                    </ReactMarkdown>
                                                                 )}
-                                                            >
-                                                                {output.description}
-                                                            </ReactMarkdown>
-                                                        )}
-                                                        {type && (
-                                                            <Code>{prettyPrintType(type)}</Code>
-                                                        )}
-                                                    </ListItem>
-                                                );
-                                            })}
-                                        </UnorderedList>
-                                    </Box>
-                                    <Center>
+                                                                {type && (
+                                                                    <Code>
+                                                                        {prettyPrintType(type)}
+                                                                    </Code>
+                                                                )}
+                                                            </ListItem>
+                                                        );
+                                                    })}
+                                                </UnorderedList>
+                                            ) : (
+                                                <Text>This node has no outputs.</Text>
+                                            )}
+                                        </Box>
+                                    </VStack>
+                                    <Box
+                                        pl={8}
+                                        position="relative"
+                                    >
                                         <Center
-                                            bg="var(--node-bg-color)"
-                                            borderColor="var(--node-border-color)"
-                                            borderRadius="lg"
-                                            borderWidth="0.5px"
-                                            boxShadow="lg"
-                                            minWidth="240px"
-                                            overflow="hidden"
-                                            transition="0.15s ease-in-out"
+                                            pointerEvents="none"
+                                            w="auto"
                                         >
-                                            <VStack
-                                                spacing={0}
-                                                w="full"
+                                            <Center
+                                                bg="var(--node-bg-color)"
+                                                borderColor="var(--node-border-color)"
+                                                borderRadius="lg"
+                                                borderWidth="0.5px"
+                                                boxShadow="lg"
+                                                minWidth="240px"
+                                                overflow="hidden"
+                                                transition="0.15s ease-in-out"
                                             >
                                                 <VStack
                                                     spacing={0}
                                                     w="full"
                                                 >
-                                                    <NodeHeader
-                                                        accentColor={selectedAccentColor}
-                                                        disabledStatus={DisabledStatus.Enabled}
-                                                        icon={selectedSchema.icon}
-                                                        name={selectedSchema.name}
-                                                        parentNode={undefined}
-                                                        selected={false}
-                                                    />
-                                                    <NodeBody
-                                                        isLocked
+                                                    <VStack
+                                                        spacing={0}
+                                                        w="full"
+                                                    >
+                                                        <NodeHeader
+                                                            accentColor={selectedAccentColor}
+                                                            disabledStatus={DisabledStatus.Enabled}
+                                                            icon={selectedSchema.icon}
+                                                            name={selectedSchema.name}
+                                                            parentNode={undefined}
+                                                            selected={false}
+                                                        />
+                                                        <NodeBody
+                                                            animated={false}
+                                                            id={selectedSchema.schemaId}
+                                                            inputData={{}}
+                                                            isLocked={false}
+                                                            schema={selectedSchema}
+                                                        />
+                                                    </VStack>
+                                                    <NodeFooter
                                                         animated={false}
                                                         id={selectedSchema.schemaId}
-                                                        inputData={{}}
-                                                        schema={selectedSchema}
+                                                        validity={{ isValid: true }}
                                                     />
                                                 </VStack>
-                                                <NodeFooter
-                                                    animated={false}
-                                                    id={selectedSchema.schemaId}
-                                                    validity={{ isValid: true }}
-                                                />
-                                            </VStack>
+                                            </Center>
                                         </Center>
-                                    </Center>
-                                </VStack>
+                                    </Box>
+                                </Flex>
                             </Box>
                         </HStack>
                     </ModalBody>
