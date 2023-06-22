@@ -111,5 +111,6 @@
         "source.organizeImports": true
     }
   },
-  "isort.args":["--profile", "black", "--src", "${workspaceFolder}/backend/src"]
+  "isort.args":["--profile", "black", "--src", "${workspaceFolder}/backend/src"],
+  "black-formatter.args": ["--line-length=88"]
 }

@@ -14,7 +14,7 @@ from .. import utility_group
 @utility_group.register(
     schema_id="chainner:image:get_bbox",
     name="Get Bounding Box",
-    description="Get the X, Y, Height, and Width of a bounding box in the image in px.",
+    description="Gets a bounding box (X, Y, Height, and Width) of the white area of a mask.",
     icon="BsRulers",
     inputs=[
         ImageInput(channels=1),
