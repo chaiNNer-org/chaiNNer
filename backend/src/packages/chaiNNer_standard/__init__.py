@@ -9,6 +9,12 @@ package = add_package(
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
         Dependency(
+            display_name="Numpy",
+            pypi_name="numpy",
+            version="1.23.2",
+            size_estimate=15 * MB,
+        ),
+        Dependency(
             display_name="OpenCV",
             pypi_name="opencv-python",
             version="4.7.0.68",

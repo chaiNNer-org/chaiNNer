@@ -1,11 +1,12 @@
 # pylint: disable=relative-beyond-top-level
+from __future__ import annotations
 
 from typing import List, Optional, Union
 
 import numpy as np
 
 import navi
-from nodes.base_input import BaseInput
+from nodes.base_input import BaseInput, ErrorValue
 
 from ...impl.color.color import Color
 from ...utils.format import format_color_with_channels, format_image_with_channels
@@ -77,6 +78,28 @@ class ImageInput(BaseInput):
             value = value[:, :, 0]
 
         return value
+
+    def get_error_value(self, value: np.ndarray | Color) -> ErrorValue:
+        def get_channels(channel: int) -> str:
+            if channel == 1:
+                return "Grayscale"
+            if channel == 3:
+                return "RGB"
+            if channel == 4:
+                return "RGBA"
+            return f"{channel}-channel"
+
+        if isinstance(value, Color):
+            return {
+                "type": "formatted",
+                "formatString": f"{get_channels(value.channels)} Color",
+            }
+        else:
+            h, w, c = get_h_w_c(value)
+            return {
+                "type": "formatted",
+                "formatString": f"{get_channels(c)} Image {w}x{h}",
+            }
 
 
 class VideoInput(BaseInput):
