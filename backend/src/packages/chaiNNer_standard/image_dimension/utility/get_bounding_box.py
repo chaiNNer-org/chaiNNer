@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import Tuple
 
-import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import NumberOutput
 from nodes.utils.utils import get_h_w_c
 
