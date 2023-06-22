@@ -116,39 +116,59 @@ const Toggle = memo(({ title, description, isDisabled, value, onToggle }: Toggle
     );
 });
 
-interface DropdownProps extends SettingsItemProps {
+interface DropdownProps<T> extends SettingsItemProps {
     isDisabled?: boolean;
-    value: string | number;
-    options: { label: string; value: string | number }[];
-    onChange: React.ChangeEventHandler<HTMLSelectElement>;
+    value: T;
+    options: readonly { label: string; value: T }[];
+    onChange: (value: T) => void;
 }
 
-const Dropdown = memo(
-    ({ title, description, isDisabled, value, options, onChange }: DropdownProps) => {
-        return (
-            <SettingsItem
-                description={description}
-                title={title}
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+function Dropdown<T>({
+    title,
+    description,
+    isDisabled,
+    value,
+    options,
+    onChange,
+}: DropdownProps<T>) {
+    const index = options.findIndex((o) => o.value === value);
+
+    useEffect(() => {
+        if (index === -1 && !isDisabled) {
+            if (options.length > 0) {
+                onChange(options[0].value);
+            }
+        }
+    }, [index, options, onChange, isDisabled]);
+
+    return (
+        <SettingsItem
+            description={description}
+            title={title}
+        >
+            <Select
+                isDisabled={isDisabled}
+                minWidth="350px"
+                value={index === -1 ? 0 : index}
+                onChange={(e) => {
+                    const optionIndex = Number(e.target.value);
+                    onChange(options[optionIndex].value);
+                }}
             >
-                <Select
-                    isDisabled={isDisabled}
-                    minWidth="350px"
-                    value={value}
-                    onChange={onChange}
-                >
-                    {options.map(({ label, value: v }) => (
-                        <option
-                            key={v}
-                            value={v}
-                        >
-                            {label}
-                        </option>
-                    ))}
-                </Select>
-            </SettingsItem>
-        );
-    }
-);
+                {options.map(({ label }, i) => (
+                    <option
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={i}
+                        value={i}
+                    >
+                        {label}
+                    </option>
+                ))}
+            </Select>
+        </SettingsItem>
+    );
+}
 
 const AppearanceSettings = memo(() => {
     const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } =
@@ -353,13 +373,10 @@ const PythonSettings = memo(() => {
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
     useAsyncEffect(
         () => ({
-            supplier: async () => {
-                const nvidiaGpus = await ipcRenderer.invoke('get-nvidia-gpus');
-                return nvidiaGpus ?? [];
-            },
+            supplier: async () => backend.listNvidiaGpus(),
             successEffect: setNvidiaGpuList,
         }),
-        []
+        [backend]
     );
 
     const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
@@ -538,9 +555,7 @@ const PythonSettings = memo(() => {
                             }))}
                             title="PyTorch GPU"
                             value={pytorchGPU}
-                            onChange={(e) => {
-                                setPytorchGPU(Number(e.target.value));
-                            }}
+                            onChange={setPytorchGPU}
                         />
                     </VStack>
                 </TabPanel>
@@ -558,9 +573,7 @@ const PythonSettings = memo(() => {
                             }))}
                             title="NCNN GPU"
                             value={ncnnGPU}
-                            onChange={(e) => {
-                                setNcnnGPU(Number(e.target.value));
-                            }}
+                            onChange={setNcnnGPU}
                         />
                     </VStack>
                 </TabPanel>
@@ -578,18 +591,14 @@ const PythonSettings = memo(() => {
                             }))}
                             title="ONNX GPU"
                             value={onnxGPU}
-                            onChange={(e) => {
-                                setOnnxGPU(Number(e.target.value));
-                            }}
+                            onChange={setOnnxGPU}
                         />
                         <Dropdown
                             description="What provider to use for ONNX."
                             options={onnxExecutionProviders}
                             title="ONNX Execution Provider"
                             value={onnxExecutionProvider}
-                            onChange={(e) => {
-                                setOnnxExecutionProvider(String(e.target.value));
-                            }}
+                            onChange={setOnnxExecutionProvider}
                         />
                         {isUsingTensorRt && (
                             <HStack>

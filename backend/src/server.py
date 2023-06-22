@@ -20,6 +20,7 @@ from base_types import NodeId
 from chain.cache import OutputCache
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
+from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from nodes.group import Group
@@ -364,6 +365,26 @@ async def list_ncnn_gpus(_request: Request):
         return json([])
 
 
+@app.route("/listgpus/nvidia", methods=["GET"])
+async def list_nvidia_gpus(_request: Request):
+    """Lists the available GPUs for NCNN"""
+    await nodes_available()
+    try:
+        # pylint: disable=import-outside-toplevel
+        from gpu import get_nvidia_helper
+
+        nv = get_nvidia_helper()
+
+        if nv is None:
+            return json([])
+
+        result = nv.list_gpus()
+        return json(result)
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json([])
+
+
 @app.route("/python-info", methods=["GET"])
 async def python_info(_request: Request):
     version = (
@@ -391,17 +412,21 @@ async def get_dependencies(_request: Request):
     return json(all_dependencies)
 
 
-def import_packages(config: ServerConfig):
-    def install_deps(dependencies: List[api.Dependency]):
+async def import_packages(
+    config: ServerConfig,
+    update_progress_cb: UpdateProgressFn,
+):
+    async def install_deps(dependencies: List[api.Dependency]):
         try:
             dep_info: List[DependencyInfo] = [
                 {
                     "package_name": dep.pypi_name,
+                    "display_name": dep.display_name,
                     "version": dep.version,
                 }
                 for dep in dependencies
             ]
-            install_dependencies(dep_info)
+            await install_dependencies(dep_info, update_progress_cb)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
 
@@ -418,12 +443,13 @@ def import_packages(config: ServerConfig):
     to_install: List[api.Dependency] = []
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
-        if package.name == "chaiNNer_standard":
-            continue
 
         if config.install_builtin_packages:
             to_install.extend(package.dependencies)
             continue
+
+        if package.name == "chaiNNer_standard":
+            to_install.extend(package.dependencies)
 
         # check auto updates
         for dep in package.dependencies:
@@ -432,13 +458,15 @@ def import_packages(config: ServerConfig):
                 to_install.append(dep)
 
     if len(to_install) > 0:
-        install_deps(to_install)
+        await install_deps(to_install)
 
     logger.info("Done checking dependencies...")
 
     # TODO: in the future, for external packages dir, scan & import
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
+
+    await update_progress_cb("Loading Nodes...", 1.0)
 
     api.registry.load_nodes(__file__)
 
@@ -470,6 +498,15 @@ async def setup_sse(request: Request):
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
+    async def update_progress(message: str, percent: float):
+        await setup_queue.put_and_wait(
+            {
+                "event": "backend-status",
+                "data": {"message": message, "percent": percent},
+            },
+            timeout=1,
+        )
+
     logger.info("Starting setup...")
     await setup_queue.put_and_wait(
         {
@@ -479,40 +516,25 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Installing dependencies...", "percent": 0.0},
-        },
-        timeout=1,
-    )
+    await update_progress("Installing dependencies...", 0.0)
 
     # Now we can install the other dependencies
     importlib.import_module("dependencies.install_core_deps")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 0.75},
-        },
-        timeout=1,
-    )
+    await update_progress("Importing nodes...", 0.5)
 
-    logger.info("Loading nodes...")
+    logger.info("Importing nodes...")
+
+    # Update progress between 0.5 and 1.0
+    async def update_sub_progress(message: str, percent: float):
+        await update_progress(message, 0.5 + percent / 2)
 
     # Now we can load all the nodes
-    # TODO: Pass in a callback func for updating progress
-    import_packages(AppContext.get(sanic_app).config)
+    await import_packages(AppContext.get(sanic_app).config, update_sub_progress)
 
     logger.info("Sending backend ready...")
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-status",
-            "data": {"message": "Loading Nodes...", "percent": 1},
-        },
-        timeout=1,
-    )
+    await update_progress("Loading Nodes...", 1.0)
 
     await setup_queue.put_and_wait(
         {
