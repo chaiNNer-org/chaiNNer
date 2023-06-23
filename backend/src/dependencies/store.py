@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import sys
@@ -6,6 +7,7 @@ from typing import Dict, List, Optional, Tuple, TypedDict, Union
 from custom_types import UpdateProgressFn
 
 python_path = sys.executable
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 installed_packages: Dict[str, Union[str, None]] = {}
 
@@ -15,12 +17,23 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 class DependencyInfo(TypedDict):
     package_name: str
     display_name: Optional[str]
-    version: Union[str, None]
+    version: Optional[str]
+    from_file: Optional[str]
 
 
-def pin(package_name: str, version: Union[str, None]) -> str:
+def pin(dependency: DependencyInfo) -> str:
+    package_name = dependency["package_name"]
+    version = dependency["version"]
+    from_file = dependency["from_file"]
+
+    if from_file is not None:
+        whl_file = f"{dir_path}/whls/{package_name}/{from_file}"
+        if os.path.isfile(whl_file):
+            return whl_file
+
     if version is None:
         return package_name
+
     return f"{package_name}=={version}"
 
 
@@ -63,10 +76,7 @@ def install_dependencies_sync(
             "-m",
             "pip",
             "install",
-            *[
-                pin(dep_info["package_name"], dep_info["version"])
-                for dep_info in dependencies_to_install
-            ],
+            *[pin(dep_info) for dep_info in dependencies_to_install],
             "--disable-pip-version-check",
             "--no-warn-script-location",
         ]
@@ -114,10 +124,7 @@ async def install_dependencies(
             "-m",
             "pip",
             "install",
-            *[
-                pin(dep_info["package_name"], dep_info["version"])
-                for dep_info in dependencies_to_install
-            ],
+            *[pin(dep_info) for dep_info in dependencies_to_install],
             "--disable-pip-version-check",
             "--no-warn-script-location",
         ],
