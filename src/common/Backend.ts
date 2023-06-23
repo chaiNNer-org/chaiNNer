@@ -267,6 +267,7 @@ export interface BackendEventMap {
     'backend-status': {
         message: string;
         percent: number;
+        statusPercent?: number;
     };
     'backend-ready': null;
 }

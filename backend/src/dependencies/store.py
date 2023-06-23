@@ -1,8 +1,9 @@
+import json
 import os
 import re
 import subprocess
 import sys
-from typing import Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 from custom_types import UpdateProgressFn
 
@@ -65,12 +66,12 @@ def get_deps_to_install(dependencies: List[DependencyInfo]):
 
 def install_dependencies_sync(
     dependencies: List[DependencyInfo],
-):
+) -> int:
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return -1
 
-    subprocess.check_call(
+    status = subprocess.check_call(
         [
             python_path,
             "-m",
@@ -86,19 +87,21 @@ def install_dependencies_sync(
         version = dep_info["version"]
         installed_packages[package_name] = version
 
+    return status
+
 
 async def install_dependencies(
     dependencies: List[DependencyInfo],
     update_progress_cb: Optional[UpdateProgressFn] = None,
-):
+    log_fn: Optional[Callable[[str], None]] = None,
+) -> int:
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:
-        install_dependencies_sync(dependencies)
-        return
+        return install_dependencies_sync(dependencies)
 
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return -1
 
     dependency_name_map = {
         dep_info["package_name"]: dep_info["display_name"]
@@ -122,11 +125,13 @@ async def install_dependencies(
         [
             python_path,
             "-m",
-            "pip",
+            # TODO: Change this back to "pip" once pip updates with my changes
+            "chainner_pip",
             "install",
             *[pin(dep_info) for dep_info in dependencies_to_install],
-            "--disable-pip-version-check",
+            "--disable-chainner_pip-version-check",
             "--no-warn-script-location",
+            "--progress-bar=json",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -137,6 +142,8 @@ async def install_dependencies(
         if nextline == b"" and process.poll() is not None:
             break
         line = nextline.decode("utf-8").strip()
+        if log_fn is not None:
+            log_fn(line)
         # The Collecting step of pip. It tells us what package is being installed.
         if "Collecting" in line:
             match = COLLECTING_REGEX.search(line)
@@ -149,7 +156,7 @@ async def install_dependencies(
                 else:
                     deps_counter += 1
                 await update_progress_cb(
-                    f"Collecting {installing_name}...", get_progress_amount()
+                    f"Collecting {installing_name}...", get_progress_amount(), None
                 )
         # The Downloading step of pip. It tells us what package is currently being downloaded.
         # Later, we can use this to get the progress of the download.
@@ -158,19 +165,39 @@ async def install_dependencies(
             await update_progress_cb(
                 f"Downloading {installing_name}...",
                 get_progress_amount() + dep_small_incr,
+                None,
             )
+        # We can parse this line to get the progress of the download, but only in our pip fork for now
+        elif "Progress:" in line:
+            json_line = line.replace("Progress:", "").strip()
+            try:
+                parsed = json.loads(json_line)
+                current, total = parsed["current"], parsed["total"]
+                if total is not None and total > 0:
+                    percent = current / total
+                    await update_progress_cb(
+                        f"Downloading {installing_name}...",
+                        get_progress_amount() + dep_small_incr,
+                        percent,
+                    )
+            except Exception as e:
+                if log_fn is not None:
+                    log_fn(str(e))
+                # pass
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
-            await update_progress_cb(f"Installing collected dependencies...", 0.9)
+            await update_progress_cb(f"Installing collected dependencies...", 0.9, None)
 
-    process.wait()
-    await update_progress_cb(f"Finished installing dependencies...", 1)
+    status = process.wait()
+    await update_progress_cb(f"Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
         installing_name = dep_info["package_name"]
         version = dep_info["version"]
         installed_packages[installing_name] = version
+
+    return status
 
 
 __all__ = [

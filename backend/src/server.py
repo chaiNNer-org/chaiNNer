@@ -7,7 +7,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict, Union
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -427,7 +427,10 @@ async def import_packages(
                 }
                 for dep in dependencies
             ]
-            await install_dependencies(dep_info, update_progress_cb)
+            status = await install_dependencies(
+                dep_info, update_progress_cb, logger.info
+            )
+            logger.info(f"Install status: {status}")
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
 
@@ -458,6 +461,8 @@ async def import_packages(
             if dep.auto_update and is_installed:
                 to_install.append(dep)
 
+    logger.info(f"Installing {to_install}")
+
     if len(to_install) > 0:
         await install_deps(to_install)
 
@@ -467,7 +472,7 @@ async def import_packages(
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
 
-    await update_progress_cb("Loading Nodes...", 1.0)
+    await update_progress_cb("Loading Nodes...", 1.0, None)
 
     api.registry.load_nodes(__file__)
 
@@ -499,11 +504,17 @@ async def setup_sse(request: Request):
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
-    async def update_progress(message: str, percent: float):
+    async def update_progress(
+        message: str, percent: float, status_percent: Union[float, None] = None
+    ):
         await setup_queue.put_and_wait(
             {
                 "event": "backend-status",
-                "data": {"message": message, "percent": percent},
+                "data": {
+                    "message": message,
+                    "percent": percent,
+                    "statusPercent": status_percent,
+                },
             },
             timeout=1,
         )
@@ -517,7 +528,7 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    await update_progress("Importing nodes...", 0.0)
+    await update_progress("Importing nodes...", 0.0, None)
 
     logger.info("Importing nodes...")
 
@@ -526,7 +537,7 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Sending backend ready...")
 
-    await update_progress("Loading Nodes...", 1.0)
+    await update_progress("Loading Nodes...", 1.0, None)
 
     await setup_queue.put_and_wait(
         {

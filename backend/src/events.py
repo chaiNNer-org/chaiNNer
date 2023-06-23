@@ -45,6 +45,7 @@ class IteratorProgressUpdateData(TypedDict):
 class BackendStatusData(TypedDict):
     message: str
     percent: float
+    statusPercent: Optional[float]
 
 
 class FinishEvent(TypedDict):
