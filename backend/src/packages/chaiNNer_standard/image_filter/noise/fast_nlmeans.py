@@ -19,7 +19,7 @@ from .. import noise_group
     inputs=[
         ImageInput("Image", channels=[1, 3, 4]),
         SliderInput(
-            "Strength for luminance component",
+            "Luminance strength",
             minimum=0.,
             maximum=50.,
             default=3.0,
@@ -28,7 +28,7 @@ from .. import noise_group
             slider_step=0.1,
         ),
         SliderInput(
-            "Strength for color component",
+            "Color strength",
             minimum=0.,
             maximum=50.,
             default=3.,
