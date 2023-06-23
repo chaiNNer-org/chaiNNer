@@ -21,20 +21,21 @@ from .. import utility_group
         SliderInput(
             "Threshold",
             precision=1,
-            minimum=1,
+            minimum=0,
+            maximum=100,
             controls_step=1,
             slider_step=1,
-            default=1,
+            default=0,
         ),
     ],
     outputs=[
-        NumberOutput("X"),
-        NumberOutput("Y"),
-        NumberOutput("Width"),
-        NumberOutput("Height"),
+        NumberOutput("X", output_type="min(uint, Input0.width - 1)"),
+        NumberOutput("Y", output_type="min(uint, Input0.height - 1)"),
+        NumberOutput("Width", output_type="min(uint, Input0.width)"),
+        NumberOutput("Height", output_type="min(uint, Input0.height)"),
     ],
 )
-def get_dimensions_node(
+def get_bounding_box_node(
     img: np.ndarray,
     thresh_val: float,
 ) -> Tuple[int, int, int, int]:
