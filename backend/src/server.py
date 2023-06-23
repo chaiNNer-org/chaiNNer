@@ -461,8 +461,6 @@ async def import_packages(
             if dep.auto_update and is_installed:
                 to_install.append(dep)
 
-    logger.info(f"Installing {to_install}")
-
     if len(to_install) > 0:
         await install_deps(to_install)
 
