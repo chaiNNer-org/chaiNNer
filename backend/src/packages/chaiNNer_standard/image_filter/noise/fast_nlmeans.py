@@ -5,6 +5,7 @@ import cv2
 
 from nodes.properties.inputs import ImageInput, SliderInput, NumberInput
 from nodes.properties.outputs import ImageOutput
+from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.utils.utils import get_h_w_c
 
@@ -27,14 +28,19 @@ from .. import noise_group
             controls_step=0.1,
             slider_step=0.1,
         ),
-        SliderInput(
-            "Color strength",
-            minimum=0.,
-            maximum=50.,
-            default=3.,
-            precision=1,
-            controls_step=0.1,
-            slider_step=0.1,
+        if_group(
+            Condition.type(0, "Image { channels: 3 }")
+            | Condition.type(0, "Image { channels: 4 }")
+        )(
+            SliderInput(
+                "Color strength",
+                minimum=0.,
+                maximum=50.,
+                default=3.,
+                precision=1,
+                controls_step=0.1,
+                slider_step=0.1,
+            )
         ),
         NumberInput("Template window size",
             minimum=1,
