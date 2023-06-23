@@ -423,6 +423,7 @@ async def import_packages(
                     "package_name": dep.pypi_name,
                     "display_name": dep.display_name,
                     "version": dep.version,
+                    "from_file": None,
                 }
                 for dep in dependencies
             ]
