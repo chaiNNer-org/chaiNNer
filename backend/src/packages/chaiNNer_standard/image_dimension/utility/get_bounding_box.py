@@ -31,8 +31,8 @@ from .. import utility_group
     outputs=[
         NumberOutput("X", output_type="min(uint, Input0.width - 1)"),
         NumberOutput("Y", output_type="min(uint, Input0.height - 1)"),
-        NumberOutput("Width", output_type="min(uint, Input0.width)"),
-        NumberOutput("Height", output_type="min(uint, Input0.height)"),
+        NumberOutput("Width", output_type="min(uint, Input0.width) & 1.."),
+        NumberOutput("Height", output_type="min(uint, Input0.height) & 1.."),
     ],
 )
 def get_bounding_box_node(
@@ -45,14 +45,9 @@ def get_bounding_box_node(
     h, w, _ = get_h_w_c(img)
 
     r = np.any(img > thresh, 1)
-    if r.any():
-        c = np.any(img > thresh, 0)
-        x, y = c.argmax(), r.argmax()
-        return (
-            int(x),
-            int(y),
-            int(w - x - c[::-1].argmax()),
-            int(h - y - r[::-1].argmax()),
-        )
-    else:
-        return 0, 0, w, h
+    c = np.any(img > thresh, 0)
+    if not (r.any() and c.any()):
+        raise RuntimeError("Resulting bounding box is empty.")
+
+    x, y = c.argmax(), r.argmax()
+    return int(x), int(y), int(w - x - c[::-1].argmax()), int(h - y - r[::-1].argmax())
