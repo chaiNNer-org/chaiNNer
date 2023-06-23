@@ -102,87 +102,92 @@ export const NodeDocumentationModal = memo(
                         px={4}
                     >
                         <HStack w="full">
-                            <Box w={64}>
-                                <VStack
-                                    h="full"
-                                    left={0}
-                                    maxH="full"
-                                    overflowY="scroll"
-                                    position="absolute"
-                                    spacing={0}
-                                    top={0}
-                                    w={64}
-                                >
-                                    {categories.map((category) => {
-                                        const categoryNodes = byCategories.get(category.name);
+                            <Box
+                                h="full"
+                                w={64}
+                            >
+                                <Box w={64}>
+                                    <VStack
+                                        h="full"
+                                        left={0}
+                                        maxH="full"
+                                        overflowY="scroll"
+                                        position="absolute"
+                                        spacing={0}
+                                        top={0}
+                                        w={64}
+                                    >
+                                        {categories.map((category) => {
+                                            const categoryNodes = byCategories.get(category.name);
 
-                                        if (!categoryNodes || categoryNodes.length === 0) {
-                                            return null;
-                                        }
+                                            if (!categoryNodes || categoryNodes.length === 0) {
+                                                return null;
+                                            }
 
-                                        return (
-                                            <>
-                                                <Center
-                                                    borderBottomColor="gray.500"
-                                                    borderBottomWidth="1px"
-                                                    p={2}
-                                                    pt={4}
-                                                    w="full"
-                                                >
-                                                    <HStack>
-                                                        <IconFactory
-                                                            accentColor={category.color}
-                                                            icon={category.icon}
-                                                        />
-                                                        <Text>{category.name}</Text>
-                                                    </HStack>
-                                                </Center>
-                                                {categoryNodes.map((node) => {
-                                                    const isSelected =
-                                                        node.schemaId === selectedSchemaId;
-                                                    return (
-                                                        <Center
-                                                            _hover={{
-                                                                backgroundColor: 'var(--bg-700)',
-                                                            }}
-                                                            backgroundColor={
-                                                                isSelected
-                                                                    ? 'var(--bg-700)'
-                                                                    : 'var(--bg-800)'
-                                                            }
-                                                            borderBottomColor="gray.500"
-                                                            borderBottomWidth="1px"
-                                                            borderLeftColor={category.color}
-                                                            borderLeftWidth={isSelected ? 8 : 4}
-                                                            cursor="pointer"
-                                                            p={2}
-                                                            ref={
-                                                                isSelected
-                                                                    ? selectedElement
-                                                                    : undefined
-                                                            }
-                                                            w="full"
-                                                            onClick={() => {
-                                                                onOpen(node.schemaId);
-                                                            }}
-                                                        >
-                                                            <Text
+                                            return (
+                                                <>
+                                                    <Center
+                                                        borderBottomColor="gray.500"
+                                                        borderBottomWidth="1px"
+                                                        p={2}
+                                                        pt={4}
+                                                        w="full"
+                                                    >
+                                                        <HStack>
+                                                            <IconFactory
+                                                                accentColor={category.color}
+                                                                icon={category.icon}
+                                                            />
+                                                            <Text>{category.name}</Text>
+                                                        </HStack>
+                                                    </Center>
+                                                    {categoryNodes.map((node) => {
+                                                        const isSelected =
+                                                            node.schemaId === selectedSchemaId;
+                                                        return (
+                                                            <Center
+                                                                _hover={{
+                                                                    backgroundColor:
+                                                                        'var(--bg-700)',
+                                                                }}
+                                                                backgroundColor={
+                                                                    isSelected
+                                                                        ? 'var(--bg-700)'
+                                                                        : 'var(--bg-800)'
+                                                                }
+                                                                borderBottomColor="gray.500"
+                                                                borderBottomWidth="1px"
+                                                                borderLeftColor={category.color}
+                                                                borderLeftWidth={isSelected ? 8 : 4}
                                                                 cursor="pointer"
-                                                                key={node.schemaId}
+                                                                p={2}
+                                                                ref={
+                                                                    isSelected
+                                                                        ? selectedElement
+                                                                        : undefined
+                                                                }
+                                                                w="full"
+                                                                onClick={() => {
+                                                                    onOpen(node.schemaId);
+                                                                }}
                                                             >
-                                                                {node.name}
-                                                            </Text>
-                                                        </Center>
-                                                    );
-                                                })}
-                                            </>
-                                        );
-                                    })}
-                                </VStack>
+                                                                <Text
+                                                                    cursor="pointer"
+                                                                    key={node.schemaId}
+                                                                >
+                                                                    {node.name}
+                                                                </Text>
+                                                            </Center>
+                                                        );
+                                                    })}
+                                                </>
+                                            );
+                                        })}
+                                    </VStack>
+                                </Box>
                             </Box>
                             <Box
                                 h="full"
-                                pl={8}
                                 w="full"
                             >
                                 <Flex
