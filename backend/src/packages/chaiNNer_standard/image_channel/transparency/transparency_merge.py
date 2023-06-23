@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
-import navi
+from nodes.impl.color.color import Color
+from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -17,50 +17,63 @@ from . import node_group
     description="Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",
     icon="MdCallMerge",
     inputs=[
-        ImageInput("RGB Channels"),
-        ImageInput("Alpha Channel", channels=1),
+        ImageInput("RGB Channels", allow_colors=True),
+        ImageInput("Alpha Channel", allow_colors=True, channels=1),
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(
-                width="Input0.width & Input1.width",
-                height="Input0.height & Input1.height",
-            ),
+            image_type="""
+                let anyImages = bool::or(Input0 == Image, Input1 == Image);
+
+                def getWidth(i: any) = match i { Image => i.width, _ => uint };
+                def getHeight(i: any) = match i { Image => i.height, _ => uint };
+
+                let valid = if anyImages { any } else { never };
+
+                valid & Image {
+                    width: getWidth(Input0) & getWidth(Input1),
+                    height: getHeight(Input0) & getHeight(Input1),
+                }
+            """,
             channels=4,
             assume_normalized=True,
         ).with_never_reason(
-            "The RGB and alpha channels have different sizes but must have the same size."
+            "RGB and Alpha must have the same size, and at least one must be an image."
         )
     ],
 )
-def merge_transparency_node(rgb: np.ndarray, a: np.ndarray) -> np.ndarray:
+def merge_transparency_node(
+    rgb: np.ndarray | Color,
+    a: np.ndarray | Color,
+) -> np.ndarray:
     """Combine separate channels into a multi-chanel image"""
 
-    start_shape = rgb.shape[:2]
-    logger.debug(start_shape)
+    start_shape = None
 
-    for im in rgb, a:
-        logger.debug(im.shape[:2])
-        assert (
-            im.shape[:2] == start_shape
-        ), "All images to be merged must be the same resolution"
+    # determine shape
+    for i in rgb, a:
+        if isinstance(i, np.ndarray):
+            start_shape = (i.shape[0], i.shape[1])
+            break
 
-    if rgb.ndim == 2:
-        rgb = cv2.merge((rgb, rgb, rgb))
-    elif rgb.ndim > 2 and rgb.shape[2] == 2:
-        rgb = cv2.merge(
-            (rgb, np.zeros((rgb.shape[0], rgb.shape[1], 1), dtype=rgb.dtype))
+    if start_shape is None:
+        raise ValueError(
+            "At least one input must be an image, but both RGB and Alpha are colors."
         )
-    elif rgb.shape[2] > 3:
-        rgb = rgb[:, :, :3]
 
-    if a.ndim > 2:
-        a = a[:, :, 0]
-    a = np.expand_dims(a, axis=2)
+    # check same size
+    for i in rgb, a:
+        if isinstance(i, np.ndarray):
+            assert (
+                i.shape[:2] == start_shape
+            ), "All channel images must have the same resolution"
 
-    imgs = [rgb, a]
-    for img in imgs:
-        logger.debug(img.shape)
-    img = np.concatenate(imgs, axis=2)
+    def to_image(i: np.ndarray | Color) -> np.ndarray:
+        if isinstance(i, np.ndarray):
+            return i
+        return i.to_image(start_shape[1], start_shape[0])
 
-    return img
+    rgb = as_target_channels(to_image(rgb), 3, narrowing=True)
+    a = to_image(a)
+
+    return np.dstack((rgb, a))
