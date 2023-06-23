@@ -46,7 +46,7 @@ def get_bounding_box_node(
 
     r = np.any(img > thresh, 1)
     c = np.any(img > thresh, 0)
-    if not (r.any() and c.any()):
+    if not r.any():
         raise RuntimeError("Resulting bounding box is empty.")
 
     x, y = c.argmax(), r.argmax()
