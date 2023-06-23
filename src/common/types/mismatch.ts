@@ -11,7 +11,7 @@ import {
 import { assertNever } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { prettyPrintType } from './pretty';
-import { IntNumberType, isImage } from './util';
+import { IntNumberType, isColor, isImage } from './util';
 
 export type AssignmentErrorTrace = FieldAssignmentError | GeneralAssignmentError;
 export interface GeneralAssignmentError {
@@ -153,7 +153,7 @@ const getAcceptedNumbers = (number: IntNumberType): Set<number> | undefined => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     return infinite ? undefined : numbers;
 };
-const formatChannelNumber = (n: IntNumberType): string | undefined => {
+const formatChannelNumber = (n: IntNumberType, subject = 'image'): string | undefined => {
     const numbers = getAcceptedNumbers(n);
     if (!numbers) return undefined;
 
@@ -164,9 +164,10 @@ const formatChannelNumber = (n: IntNumberType): string | undefined => {
 
     if (known.length === numbers.size) {
         const article = known[0] === 'grayscale' ? 'a' : 'an';
-        if (known.length === 1) return `${article} ${known[0]} image`;
-        if (known.length === 2) return `${article} ${known[0]} or ${known[1]} image`;
-        if (known.length === 3) return `${article} ${known[0]}, ${known[1]} or ${known[2]} image`;
+        if (known.length === 1) return `${article} ${known[0]} ${subject}`;
+        if (known.length === 2) return `${article} ${known[0]} or ${known[1]} ${subject}`;
+        if (known.length === 3)
+            return `${article} ${known[0]}, ${known[1]} or ${known[2]} ${subject}`;
     }
 
     return undefined;
@@ -203,6 +204,30 @@ export const simpleError = (
             if (isDisjointWith(aChannels, dChannels)) {
                 const aString = formatChannelNumber(aChannels);
                 const dString = formatChannelNumber(dChannels);
+                if (aString && dString) {
+                    return {
+                        assigned: aString,
+                        definition: dString,
+                    };
+                }
+            }
+        }
+    }
+
+    // color channel mismatch
+    if (isColor(assigned)) {
+        const d = evaluate(
+            new IntersectionExpression([definition, new NamedExpression('Color')]),
+            getChainnerScope()
+        );
+
+        if (isColor(d)) {
+            const aChannels = assigned.fields[0].type;
+            const dChannels = d.fields[0].type;
+
+            if (isDisjointWith(aChannels, dChannels)) {
+                const aString = formatChannelNumber(aChannels, 'color');
+                const dString = formatChannelNumber(dChannels, 'color');
                 if (aString && dString) {
                     return {
                         assigned: aString,
