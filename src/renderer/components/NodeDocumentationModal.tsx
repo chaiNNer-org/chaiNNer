@@ -182,6 +182,7 @@ export const NodeDocumentationModal = memo(
                             </Box>
                             <Box
                                 h="full"
+                                pl={8}
                                 w="full"
                             >
                                 <Flex
@@ -194,7 +195,6 @@ export const NodeDocumentationModal = memo(
                                         divider={<Divider />}
                                         h="full"
                                         maxH="full"
-                                        pl={8}
                                         spacing={2}
                                         textAlign="left"
                                         w="full"
