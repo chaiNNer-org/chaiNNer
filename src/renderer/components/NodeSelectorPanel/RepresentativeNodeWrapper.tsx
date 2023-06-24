@@ -1,6 +1,7 @@
-import { InfoIcon, StarIcon } from '@chakra-ui/icons';
+import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
+import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import ReactMarkdown from 'react-markdown';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -65,7 +66,7 @@ export const RepresentativeNodeWrapper = memo(
                     {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                 </MenuItem>
                 <MenuItem
-                    icon={<InfoIcon />}
+                    icon={<BsFillJournalBookmarkFill />}
                     onClick={() => {
                         openNodeDocumentation(node.schemaId);
                     }}
