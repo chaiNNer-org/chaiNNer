@@ -39,18 +39,16 @@ from .. import noise_group
                 slider_step=0.1,
             )
         ),
-        NumberInput("Template window size",
+        NumberInput("Patch radius",
             minimum=1,
-            default=7,
-            maximum=49,
-            precision=0,
-            controls_step=2),
-        NumberInput("Search window size",
+            default=3,
+            maximum=30,
+            precision=0),
+        NumberInput("Search radius",
             minimum=1,
-            default=21,
-            maximum=49,
-            precision=0,
-            controls_step=2),
+            default=10,
+            maximum=30,
+            precision=0),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
@@ -58,21 +56,20 @@ def fast_nlmeans_node(
     img: np.ndarray,
     h: float,
     h_color: float,
-    template_window_size: int,
-    search_window_size: int,
+    patch_radius: int,
+    search_radius: int,
 ) -> np.ndarray:
-
-    if not (template_window_size % 2):
-        raise ValueError("\'Template window size\' must be an odd value.")
-    if not (search_window_size % 2):
-        raise ValueError("\'Search window size\' must be an odd value.")
 
     _, _, c = get_h_w_c(img)
     image_array = to_uint8(img)
 
+    patch_window_size = 2 * patch_radius + 1
+    search_window_size = 2 * search_radius + 1
+
     if c == 1:
-        denoised = cv2.fastNlMeansDenoising(src=image_array, h=h,
-            templateWindowSize=template_window_size, searchWindowSize=search_window_size)
+        denoised = cv2.fastNlMeansDenoising(src= image_array, h=h,
+            templateWindowSize=patch_window_size,
+            searchWindowSize=search_window_size)
 
     else:
         rgb = image_array[:, :, :3]
@@ -80,7 +77,8 @@ def fast_nlmeans_node(
             alpha = image_array[:, :, 3]
 
         denoised = cv2.fastNlMeansDenoisingColored(src=rgb, h=h, hColor=h_color,
-            templateWindowSize=template_window_size, searchWindowSize=search_window_size)
+            templateWindowSize=patch_window_size,
+            searchWindowSize=search_window_size)
 
         if c == 4:
             denoised = np.dstack((denoised, alpha))
