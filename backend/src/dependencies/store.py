@@ -3,7 +3,8 @@ import os
 import re
 import subprocess
 import sys
-from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from logging import Logger
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
 from custom_types import UpdateProgressFn
 
@@ -66,10 +67,10 @@ def get_deps_to_install(dependencies: List[DependencyInfo]):
 
 def install_dependencies_sync(
     dependencies: List[DependencyInfo],
-) -> int:
+):
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return -1
+        return
 
     status = subprocess.check_call(
         [
@@ -93,15 +94,16 @@ def install_dependencies_sync(
 async def install_dependencies(
     dependencies: List[DependencyInfo],
     update_progress_cb: Optional[UpdateProgressFn] = None,
-    log_fn: Optional[Callable[[str], None]] = None,
-) -> int:
+    logger: Optional[Logger] = None,
+):
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:
-        return install_dependencies_sync(dependencies)
+        install_dependencies_sync(dependencies)
+        return
 
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return -1
+        return
 
     dependency_name_map = {
         dep_info["package_name"]: dep_info["display_name"]
@@ -142,8 +144,8 @@ async def install_dependencies(
         if nextline == b"" and process.poll() is not None:
             break
         line = nextline.decode("utf-8").strip()
-        if log_fn is not None:
-            log_fn(line)
+        if logger is not None:
+            logger.info(line)
         # The Collecting step of pip. It tells us what package is being installed.
         if "Collecting" in line:
             match = COLLECTING_REGEX.search(line)
@@ -181,15 +183,15 @@ async def install_dependencies(
                         percent,
                     )
             except Exception as e:
-                if log_fn is not None:
-                    log_fn(str(e))
+                if logger is not None:
+                    logger.error(str(e))
                 # pass
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
             await update_progress_cb(f"Installing collected dependencies...", 0.9, None)
 
-    status = process.wait()
+    process.wait()
     await update_progress_cb(f"Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
@@ -197,7 +199,7 @@ async def install_dependencies(
         version = dep_info["version"]
         installed_packages[installing_name] = version
 
-    return status
+    return
 
 
 __all__ = [
