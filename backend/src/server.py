@@ -427,7 +427,7 @@ async def import_packages(
                 }
                 for dep in dependencies
             ]
-            status = await install_dependencies(dep_info, update_progress_cb, logger)
+            await install_dependencies(dep_info, update_progress_cb, logger)
             logger.info(f"Install status: {status}")
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
