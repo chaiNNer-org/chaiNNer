@@ -61,6 +61,13 @@ package = add_package(
             size_estimate=42 * MB,
         ),
         Dependency(
+            display_name="Wildcard Match",
+            pypi_name="wcmatch",
+            version="8.4.1",
+            size_estimate=39 * KB,
+            import_name="wcmatch",
+        ),
+        Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
             version="0.0.0",
