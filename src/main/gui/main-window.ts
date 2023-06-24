@@ -362,13 +362,13 @@ export const createMainWindow = async (args: OpenArguments) => {
             if (e.data) {
                 const data = JSON.parse(e.data) as {
                     message: string;
-                    percent: number;
-                    statusPercent?: number;
+                    progress: number;
+                    statusProgress?: number;
                 };
                 backendStatusProgressSlice.submitProgress({
                     status: data.message,
-                    totalProgress: data.percent,
-                    statusProgress: data.statusPercent,
+                    totalProgress: data.progress,
+                    statusProgress: data.statusProgress,
                 });
             }
         });

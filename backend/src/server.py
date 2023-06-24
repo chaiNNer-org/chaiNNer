@@ -501,15 +501,15 @@ async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
     async def update_progress(
-        message: str, percent: float, status_percent: Union[float, None] = None
+        message: str, progress: float, status_progress: Union[float, None] = None
     ):
         await setup_queue.put_and_wait(
             {
                 "event": "backend-status",
                 "data": {
                     "message": message,
-                    "percent": percent,
-                    "statusPercent": status_percent,
+                    "progress": progress,
+                    "statusProgress": status_progress,
                 },
             },
             timeout=1,
