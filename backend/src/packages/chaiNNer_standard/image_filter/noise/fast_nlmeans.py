@@ -73,6 +73,7 @@ def fast_nlmeans_node(
 
     else:
         rgb = image_array[:, :, :3]
+        alpha = None
         if c == 4:
             alpha = image_array[:, :, 3]
 
@@ -80,7 +81,7 @@ def fast_nlmeans_node(
             templateWindowSize=patch_window_size,
             searchWindowSize=search_window_size)
 
-        if c == 4:
+        if alpha is not None:
             denoised = np.dstack((denoised, alpha))
 
     return denoised
