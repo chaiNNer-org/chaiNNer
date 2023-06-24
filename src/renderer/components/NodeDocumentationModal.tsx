@@ -20,7 +20,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo, useEffect, useMemo, useRef } from 'react';
+import { PropsWithChildren, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
@@ -72,6 +72,17 @@ export const NodeDocumentationModal = memo(
 
         const selectedElement = useRef<HTMLDivElement>(null);
 
+        const [selectScrollTrigger, setSelectScrollTrigger] = useState(false);
+
+        useEffect(() => {
+            setSelectScrollTrigger(!selectScrollTrigger);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [isOpen, selectedSchemaId, setSelectScrollTrigger]);
+
+        // This is a hack. Sometimes, I hate react.
+        // Basically, if you use the menu way of opening the modal, the above useEffect will trigger
+        // before the ref actually gets set, so it won't scroll to the selected element.
+        // This forces it to scroll in the render after the ref is set.
         useEffect(() => {
             if (selectedElement.current) {
                 selectedElement.current.scrollIntoView({
@@ -80,7 +91,7 @@ export const NodeDocumentationModal = memo(
                     inline: 'nearest',
                 });
             }
-        }, [isOpen, selectedSchemaId]);
+        }, [selectScrollTrigger]);
 
         return (
             <Modal
