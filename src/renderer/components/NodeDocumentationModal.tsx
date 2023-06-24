@@ -1,6 +1,5 @@
 import {
     Box,
-    Button,
     Center,
     Code,
     Divider,
@@ -13,7 +12,6 @@ import {
     ModalBody,
     ModalCloseButton,
     ModalContent,
-    ModalFooter,
     ModalHeader,
     ModalOverlay,
     Text,
@@ -100,6 +98,7 @@ export const NodeDocumentationModal = memo(
                     maxW="unset"
                     my={0}
                     w="calc(100% - 7.5rem)"
+                    overflow="hidden"
                 >
                     <ModalHeader>Node Documentation</ModalHeader>
                     <ModalCloseButton />
@@ -396,18 +395,6 @@ export const NodeDocumentationModal = memo(
                             </Box>
                         </HStack>
                     </ModalBody>
-
-                    <ModalFooter>
-                        <HStack>
-                            <Button
-                                colorScheme="blue"
-                                mr={3}
-                                onClick={onClose}
-                            >
-                                Close
-                            </Button>
-                        </HStack>
-                    </ModalFooter>
                 </ModalContent>
             </Modal>
         );
