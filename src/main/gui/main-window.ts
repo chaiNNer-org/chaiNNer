@@ -365,7 +365,7 @@ export const createMainWindow = async (args: OpenArguments) => {
                 backendStatusProgressSlice.submitProgress({
                     status: data.message,
                     totalProgress: data.progress,
-                    statusProgress: data.statusProgress,
+                    statusProgress: data.statusProgress ?? undefined,
                 });
             }
         });
