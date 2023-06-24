@@ -88,7 +88,6 @@ def install_dependencies_sync(
         version = dep_info["version"]
         installed_packages[package_name] = version
 
-    return status
 
 
 async def install_dependencies(
