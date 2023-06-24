@@ -72,7 +72,7 @@ def install_dependencies_sync(
     if len(dependencies_to_install) == 0:
         return
 
-    status = subprocess.check_call(
+    subprocess.check_call(
         [
             python_path,
             "-m",
