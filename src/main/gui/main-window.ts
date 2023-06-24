@@ -6,6 +6,7 @@ import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
+import { BackendEventMap } from '../../common/Backend';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
 import { OpenArguments, parseArgs } from '../arguments';
