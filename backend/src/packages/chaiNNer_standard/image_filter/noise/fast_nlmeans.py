@@ -28,10 +28,7 @@ from .. import noise_group
             controls_step=0.1,
             slider_step=0.1,
         ),
-        if_group(
-            Condition.type(0, "Image { channels: 3 }")
-            | Condition.type(0, "Image { channels: 4 }")
-        )(
+        if_group(Condition.type(0, "Image { channels: 3 | 4 }"))(
             SliderInput(
                 "Color strength",
                 minimum=0.,
