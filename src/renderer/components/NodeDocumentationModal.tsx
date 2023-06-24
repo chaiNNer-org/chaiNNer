@@ -350,60 +350,60 @@ export const NodeDocumentationModal = memo(
                                                 )}
                                             </Box>
                                         </VStack>
-                                        <Box
-                                            pl={8}
-                                            position="relative"
-                                        >
-                                            <Center
-                                                pointerEvents="none"
-                                                w="auto"
-                                            >
-                                                <Center
-                                                    bg="var(--node-bg-color)"
-                                                    borderColor="var(--node-border-color)"
-                                                    borderRadius="lg"
-                                                    borderWidth="0.5px"
-                                                    boxShadow="lg"
-                                                    minWidth="240px"
-                                                    overflow="hidden"
-                                                    transition="0.15s ease-in-out"
-                                                >
-                                                    <VStack
-                                                        spacing={0}
-                                                        w="full"
-                                                    >
-                                                        <VStack
-                                                            spacing={0}
-                                                            w="full"
-                                                        >
-                                                            <NodeHeader
-                                                                accentColor={selectedAccentColor}
-                                                                disabledStatus={
-                                                                    DisabledStatus.Enabled
-                                                                }
-                                                                icon={selectedSchema.icon}
-                                                                name={selectedSchema.name}
-                                                                parentNode={undefined}
-                                                                selected={false}
-                                                            />
-                                                            <NodeBody
-                                                                animated={false}
-                                                                id={selectedSchema.schemaId}
-                                                                inputData={{}}
-                                                                isLocked={false}
-                                                                schema={selectedSchema}
-                                                            />
-                                                        </VStack>
-                                                        <NodeFooter
-                                                            animated={false}
-                                                            id={selectedSchema.schemaId}
-                                                            validity={{ isValid: true }}
-                                                        />
-                                                    </VStack>
-                                                </Center>
-                                            </Center>
-                                        </Box>
                                     </Flex>
+                                </Box>
+                            </Box>
+                            <Box
+                                h="full"
+                                position="relative"
+                            >
+                                <Box position="relative">
+                                    <Center
+                                        pointerEvents="none"
+                                        w="auto"
+                                    >
+                                        <Center
+                                            bg="var(--node-bg-color)"
+                                            borderColor="var(--node-border-color)"
+                                            borderRadius="lg"
+                                            borderWidth="0.5px"
+                                            boxShadow="lg"
+                                            minWidth="240px"
+                                            overflow="hidden"
+                                            transition="0.15s ease-in-out"
+                                        >
+                                            <VStack
+                                                spacing={0}
+                                                w="full"
+                                            >
+                                                <VStack
+                                                    spacing={0}
+                                                    w="full"
+                                                >
+                                                    <NodeHeader
+                                                        accentColor={selectedAccentColor}
+                                                        disabledStatus={DisabledStatus.Enabled}
+                                                        icon={selectedSchema.icon}
+                                                        name={selectedSchema.name}
+                                                        parentNode={undefined}
+                                                        selected={false}
+                                                    />
+                                                    <NodeBody
+                                                        animated={false}
+                                                        id={selectedSchema.schemaId}
+                                                        inputData={{}}
+                                                        isLocked={false}
+                                                        schema={selectedSchema}
+                                                    />
+                                                </VStack>
+                                                <NodeFooter
+                                                    animated={false}
+                                                    id={selectedSchema.schemaId}
+                                                    validity={{ isValid: true }}
+                                                />
+                                            </VStack>
+                                        </Center>
+                                    </Center>
                                 </Box>
                             </Box>
                         </HStack>
