@@ -4,7 +4,15 @@ from contextlib import contextmanager
 
 import cv2
 import numpy as np
-from ncnn_vulkan import ncnn
+
+try:
+    from ncnn_vulkan import ncnn
+
+    use_gpu = True
+except ImportError:
+    from ncnn import ncnn
+
+    use_gpu = False
 from sanic.log import logger
 
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
@@ -61,26 +69,44 @@ def upscale_impl(
     net = get_ncnn_net(model, exec_options)
     # Try/except block to catch errors
     try:
-        vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
+        if use_gpu:
+            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
 
-        def estimate():
-            heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
-            return MaxTileSize(
-                estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
-            )
+            def estimate_gpu():
+                heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
+                return MaxTileSize(
+                    estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
+                )
 
-        with ncnn_allocators(vkdev) as (
-            blob_vkallocator,
-            staging_vkallocator,
-        ):
+            with ncnn_allocators(vkdev) as (
+                blob_vkallocator,
+                staging_vkallocator,
+            ):
+                return ncnn_auto_split(
+                    img,
+                    net,
+                    input_name=input_name,
+                    output_name=output_name,
+                    blob_vkallocator=blob_vkallocator,
+                    staging_vkallocator=staging_vkallocator,
+                    tiler=parse_tile_size_input(tile_size, estimate_gpu),
+                )
+        else:
+
+            def estimate_cpu():
+                # TODO: Improve tile size estimation in CPU mode.
+                raise ValueError(
+                    "Tile size estimation not supported with NCNN CPU inference"
+                )
+
             return ncnn_auto_split(
                 img,
                 net,
                 input_name=input_name,
                 output_name=output_name,
-                blob_vkallocator=blob_vkallocator,
-                staging_vkallocator=staging_vkallocator,
-                tiler=parse_tile_size_input(tile_size, estimate),
+                blob_vkallocator=None,
+                staging_vkallocator=None,
+                tiler=parse_tile_size_input(tile_size, estimate_cpu),
             )
     except (RuntimeError, ValueError):
         raise
