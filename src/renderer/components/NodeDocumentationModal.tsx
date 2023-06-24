@@ -48,7 +48,14 @@ interface NodeDocumentationModalProps {
 const customMarkdownTheme = {
     p: (props: PropsWithChildren<unknown>) => {
         const { children } = props;
-        return <Text mb={0}>{children}</Text>;
+        return (
+            <Text
+                mb={0}
+                userSelect="text"
+            >
+                {children}
+            </Text>
+        );
     },
 };
 
@@ -125,7 +132,10 @@ export const NodeDocumentationModal = memo(
                                             }
 
                                             return (
-                                                <>
+                                                <Box
+                                                    key={category.name}
+                                                    w="full"
+                                                >
                                                     <Center
                                                         borderBottomColor="gray.500"
                                                         borderBottomWidth="1px"
@@ -145,7 +155,7 @@ export const NodeDocumentationModal = memo(
                                                         const isSelected =
                                                             node.schemaId === selectedSchemaId;
                                                         return (
-                                                            <Center
+                                                            <HStack
                                                                 _hover={{
                                                                     backgroundColor:
                                                                         'var(--bg-700)',
@@ -160,6 +170,7 @@ export const NodeDocumentationModal = memo(
                                                                 borderLeftColor={category.color}
                                                                 borderLeftWidth={isSelected ? 8 : 4}
                                                                 cursor="pointer"
+                                                                key={node.schemaId}
                                                                 p={2}
                                                                 ref={
                                                                     isSelected
@@ -171,16 +182,17 @@ export const NodeDocumentationModal = memo(
                                                                     onOpen(node.schemaId);
                                                                 }}
                                                             >
+                                                                <IconFactory icon={node.icon} />
                                                                 <Text
                                                                     cursor="pointer"
                                                                     key={node.schemaId}
                                                                 >
                                                                     {node.name}
                                                                 </Text>
-                                                            </Center>
+                                                            </HStack>
                                                         );
                                                     })}
-                                                </>
+                                                </Box>
                                             );
                                         })}
                                     </VStack>
@@ -204,14 +216,19 @@ export const NodeDocumentationModal = memo(
                                         textAlign="left"
                                         w="full"
                                     >
-                                        <Box>
+                                        <Box userSelect="text">
                                             <HStack>
                                                 <IconFactory
                                                     accentColor={selectedAccentColor}
                                                     boxSize={6}
                                                     icon={selectedSchema.icon}
                                                 />
-                                                <Heading size="lg">{selectedSchema.name}</Heading>
+                                                <Heading
+                                                    size="lg"
+                                                    userSelect="text"
+                                                >
+                                                    {selectedSchema.name}
+                                                </Heading>
                                             </HStack>
                                             <ReactMarkdown
                                                 components={ChakraUIRenderer(customMarkdownTheme)}
@@ -223,6 +240,7 @@ export const NodeDocumentationModal = memo(
                                             <Heading
                                                 mb={1}
                                                 size="sm"
+                                                userSelect="text"
                                             >
                                                 Inputs
                                             </Heading>
@@ -232,6 +250,7 @@ export const NodeDocumentationModal = memo(
                                                     ml={0}
                                                     pl={8}
                                                     textAlign="left"
+                                                    userSelect="text"
                                                     w="full"
                                                 >
                                                     {selectedSchema.inputs.map((input) => {
@@ -241,7 +260,10 @@ export const NodeDocumentationModal = memo(
                                                             );
                                                         return (
                                                             <ListItem key={input.id}>
-                                                                <Text fontWeight="bold">
+                                                                <Text
+                                                                    fontWeight="bold"
+                                                                    userSelect="text"
+                                                                >
                                                                     {input.label}
                                                                 </Text>
                                                                 {input.description && (
@@ -254,7 +276,7 @@ export const NodeDocumentationModal = memo(
                                                                     </ReactMarkdown>
                                                                 )}
                                                                 {type && (
-                                                                    <Code>
+                                                                    <Code userSelect="text">
                                                                         {prettyPrintType(type)}
                                                                     </Code>
                                                                 )}
@@ -270,6 +292,7 @@ export const NodeDocumentationModal = memo(
                                             <Heading
                                                 mb={1}
                                                 size="sm"
+                                                userSelect="text"
                                             >
                                                 Outputs
                                             </Heading>
@@ -289,7 +312,10 @@ export const NodeDocumentationModal = memo(
 
                                                         return (
                                                             <ListItem key={output.id}>
-                                                                <Text fontWeight="bold">
+                                                                <Text
+                                                                    fontWeight="bold"
+                                                                    userSelect="text"
+                                                                >
                                                                     {output.label}
                                                                 </Text>
                                                                 {output.description && (
@@ -302,7 +328,7 @@ export const NodeDocumentationModal = memo(
                                                                     </ReactMarkdown>
                                                                 )}
                                                                 {type && (
-                                                                    <Code>
+                                                                    <Code userSelect="text">
                                                                         {prettyPrintType(type)}
                                                                     </Code>
                                                                 )}
