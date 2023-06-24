@@ -322,7 +322,7 @@ export const NodeDocumentationModal = memo(
                                                 >
                                                     Inputs
                                                 </Heading>
-                                                {selectedSchema.outputs.length > 0 ? (
+                                                {selectedSchema.inputs.length > 0 ? (
                                                     <UnorderedList
                                                         alignItems="left"
                                                         ml={0}
