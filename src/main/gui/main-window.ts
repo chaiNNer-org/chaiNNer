@@ -360,11 +360,7 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
-                const data = JSON.parse(e.data) as {
-                    message: string;
-                    progress: number;
-                    statusProgress?: number;
-                };
+                const data = JSON.parse(e.data) as BackendEventMap['backend-status'];
                 backendStatusProgressSlice.submitProgress({
                     status: data.message,
                     totalProgress: data.progress,
