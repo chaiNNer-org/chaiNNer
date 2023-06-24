@@ -18,13 +18,14 @@ import {
     Tooltip,
     UnorderedList,
     VStack,
+    useMediaQuery,
 } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { PropsWithChildren, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { SchemaId } from '../../common/common-types';
+import { NodeSchema, SchemaId } from '../../common/common-types';
 import { DisabledStatus } from '../../common/nodes/disabled';
 import { prettyPrintType } from '../../common/types/pretty';
 import { BackendContext } from '../contexts/BackendContext';
@@ -56,6 +57,59 @@ const customMarkdownTheme = {
         );
     },
 };
+
+const FakeNodeExample = memo(
+    ({ accentColor, selectedSchema }: { accentColor: string; selectedSchema: NodeSchema }) => {
+        return (
+            <Center
+                pointerEvents="none"
+                w="auto"
+            >
+                <Center
+                    bg="var(--node-bg-color)"
+                    borderColor="var(--node-border-color)"
+                    borderRadius="lg"
+                    borderWidth="0.5px"
+                    boxShadow="lg"
+                    minWidth="240px"
+                    overflow="hidden"
+                    transition="0.15s ease-in-out"
+                >
+                    <VStack
+                        spacing={0}
+                        w="full"
+                    >
+                        <VStack
+                            spacing={0}
+                            w="full"
+                        >
+                            <NodeHeader
+                                accentColor={accentColor}
+                                disabledStatus={DisabledStatus.Enabled}
+                                icon={selectedSchema.icon}
+                                name={selectedSchema.name}
+                                parentNode={undefined}
+                                selected={false}
+                            />
+                            <NodeBody
+                                animated={false}
+                                id={selectedSchema.schemaId}
+                                inputData={{}}
+                                isLocked={false}
+                                schema={selectedSchema}
+                            />
+                        </VStack>
+                        <NodeFooter
+                            animated={false}
+                            id={selectedSchema.schemaId}
+                            validity={{ isValid: true }}
+                        />
+                    </VStack>
+                </Center>
+            </Center>
+        );
+    }
+);
 
 export const NodeDocumentationModal = memo(
     ({ isOpen, onClose, selectedSchemaId, onOpen }: NodeDocumentationModalProps) => {
@@ -92,6 +146,8 @@ export const NodeDocumentationModal = memo(
                 });
             }
         }, [selectScrollTrigger]);
+
+        const [isLargerThan1200] = useMediaQuery('(min-width: 1200px)');
 
         return (
             <Modal
@@ -218,6 +274,8 @@ export const NodeDocumentationModal = memo(
                             >
                                 <Box w="full">
                                     <Flex
+                                        direction="column"
+                                        gap={2}
                                         left={0}
                                         maxH="full"
                                         overflowY="scroll"
@@ -361,62 +419,35 @@ export const NodeDocumentationModal = memo(
                                                 )}
                                             </Box>
                                         </VStack>
+                                        {!isLargerThan1200 && (
+                                            <Box
+                                                h="full"
+                                                position="relative"
+                                            >
+                                                <Box position="relative">
+                                                    <FakeNodeExample
+                                                        accentColor={selectedAccentColor}
+                                                        selectedSchema={selectedSchema}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        )}
                                     </Flex>
                                 </Box>
                             </Box>
-                            <Box
-                                h="full"
-                                position="relative"
-                            >
-                                <Box position="relative">
-                                    <Center
-                                        pointerEvents="none"
-                                        w="auto"
-                                    >
-                                        <Center
-                                            bg="var(--node-bg-color)"
-                                            borderColor="var(--node-border-color)"
-                                            borderRadius="lg"
-                                            borderWidth="0.5px"
-                                            boxShadow="lg"
-                                            minWidth="240px"
-                                            overflow="hidden"
-                                            transition="0.15s ease-in-out"
-                                        >
-                                            <VStack
-                                                spacing={0}
-                                                w="full"
-                                            >
-                                                <VStack
-                                                    spacing={0}
-                                                    w="full"
-                                                >
-                                                    <NodeHeader
-                                                        accentColor={selectedAccentColor}
-                                                        disabledStatus={DisabledStatus.Enabled}
-                                                        icon={selectedSchema.icon}
-                                                        name={selectedSchema.name}
-                                                        parentNode={undefined}
-                                                        selected={false}
-                                                    />
-                                                    <NodeBody
-                                                        animated={false}
-                                                        id={selectedSchema.schemaId}
-                                                        inputData={{}}
-                                                        isLocked={false}
-                                                        schema={selectedSchema}
-                                                    />
-                                                </VStack>
-                                                <NodeFooter
-                                                    animated={false}
-                                                    id={selectedSchema.schemaId}
-                                                    validity={{ isValid: true }}
-                                                />
-                                            </VStack>
-                                        </Center>
-                                    </Center>
+                            {isLargerThan1200 && (
+                                <Box
+                                    h="full"
+                                    position="relative"
+                                >
+                                    <Box position="relative">
+                                        <FakeNodeExample
+                                            accentColor={selectedAccentColor}
+                                            selectedSchema={selectedSchema}
+                                        />
+                                    </Box>
                                 </Box>
-                            </Box>
+                            )}
                         </HStack>
                     </ModalBody>
                 </ModalContent>
