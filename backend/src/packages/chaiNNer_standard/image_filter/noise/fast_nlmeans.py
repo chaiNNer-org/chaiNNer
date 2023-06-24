@@ -21,8 +21,8 @@ from .. import noise_group
         ImageInput("Image", channels=[1, 3, 4]),
         SliderInput(
             "Luminance strength",
-            minimum=0.,
-            maximum=50.,
+            minimum=0,
+            maximum=50,
             default=3.0,
             precision=1,
             controls_step=0.1,
