@@ -89,7 +89,6 @@ def install_dependencies_sync(
         installed_packages[package_name] = version
 
 
-
 async def install_dependencies(
     dependencies: List[DependencyInfo],
     update_progress_cb: Optional[UpdateProgressFn] = None,
