@@ -33,6 +33,6 @@ jobs:
                   cache: 'npm'
             - run: npm ci --force
             - name: eslint
-              run: npm run lint-js-ci
+              run: npm run lint:js-ci
             - name: typescript
               run: npx tsc

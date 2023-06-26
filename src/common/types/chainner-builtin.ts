@@ -4,6 +4,7 @@ import {
     IntIntervalType,
     Intrinsic,
     NeverType,
+    NumberPrimitive,
     StringLiteralType,
     StringPrimitive,
     StringType,
@@ -12,11 +13,16 @@ import {
     handleNumberLiterals,
     intersect,
     literal,
+    wrapQuaternary,
     wrapTernary,
     wrapUnary,
 } from '@chainner/navi';
 import path from 'path';
 import { ColorJson } from '../common-types';
+import { log } from '../log';
+import { RRegex } from '../rust-regex';
+import { assertNever } from '../util';
+import type { Group, Hir } from 'rregex';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -25,6 +31,11 @@ type ReplacementToken =
 class ReplacementString {
     readonly tokens: readonly ReplacementToken[];
 
+    /**
+     * The names of all replacements in this string.
+     *
+     * Example: `foo {4} bar {baz}` will have the names `4` and `baz`.
+     */
     readonly names: ReadonlySet<string>;
 
     constructor(pattern: string) {
@@ -142,6 +153,159 @@ export const formatTextPattern = (
 
     return Intrinsic.concat(...concatArgs);
 };
+
+/**
+ * Iterates over all groups in the given hir in order.
+ */
+function* iterGroups(hir: Hir): Iterable<Group> {
+    const { kind } = hir;
+    if (kind['@variant'] === 'Group') {
+        yield kind['@values'][0];
+    }
+
+    switch (kind['@variant']) {
+        case 'Anchor':
+        case 'Class':
+        case 'Empty':
+        case 'Literal':
+        case 'WordBoundary': {
+            break;
+        }
+        case 'Group':
+        case 'Repetition': {
+            yield* iterGroups(kind['@values'][0].hir);
+            break;
+        }
+        case 'Alternation':
+        case 'Concat': {
+            for (const h of kind['@values'][0]) {
+                yield* iterGroups(h);
+            }
+            break;
+        }
+
+        default:
+            return assertNever(kind);
+    }
+}
+interface CapturingGroupInfo {
+    count: number;
+    names: string[];
+}
+const getCapturingGroupInfo = (regex: RRegex): CapturingGroupInfo => {
+    let count = 0;
+    const names: string[] = [];
+
+    for (const { kind } of iterGroups(regex.syntax())) {
+        if (kind['@variant'] === 'NonCapturing') {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+        if (kind['@variant'] === 'CaptureName') {
+            names.push(kind.name);
+        }
+        count += 1;
+    }
+
+    return { count, names };
+};
+const regexReplaceImpl = (
+    text: string,
+    regexPattern: string,
+    replacementPattern: string,
+    count: number
+): string | undefined => {
+    // parse and validate before doing actual work
+    const regex = new RRegex(regexPattern);
+    const replacement = new ReplacementString(replacementPattern);
+
+    // check replacement keys
+    const captures = getCapturingGroupInfo(regex);
+    const availableNames = new Set<string>([
+        ...captures.names,
+        '0',
+        ...Array.from({ length: captures.count }, (_, i) => String(i + 1)),
+    ]);
+    for (const name of replacement.names) {
+        if (!availableNames.has(name)) {
+            throw new Error(
+                'Invalid replacement pattern.' +
+                    ` "{${name}}" is not a valid replacement.` +
+                    ` Available replacements: ${[...availableNames].join(', ')}.`
+            );
+        }
+    }
+
+    // do actual work
+    if (count === 0) {
+        return text;
+    }
+    const matches = regex.findAll(text).slice(0, Math.max(0, count || 0));
+    if (matches.length === 0) {
+        return text;
+    }
+
+    // rregex doesn't support captures right now, so we can only support {0}
+    // https://github.com/2fd/rregex/issues/32
+    if (replacement.names.size > 0) {
+        const [first] = replacement.names;
+        if (replacement.names.size > 1 || first !== '0') {
+            return undefined;
+        }
+    }
+
+    // rregex currently only supports byte offsets in matches. So we have to
+    // match spans on UTF8 and then convert it back to Unicode.
+    const utf8 = Buffer.from(text, 'utf8');
+    const toUTF16 = (offset: number) => {
+        return utf8.toString('utf8', 0, offset).length;
+    };
+
+    let result = '';
+    let lastIndex = 0;
+    for (const match of matches) {
+        result += text.slice(lastIndex, toUTF16(match.start));
+
+        const replacements = new Map<string, string>();
+        replacements.set('0', match.value);
+        result += replacement.replace(replacements);
+
+        lastIndex = toUTF16(match.end);
+    }
+    result += text.slice(lastIndex);
+
+    return result;
+};
+export const regexReplace = wrapQuaternary<
+    StringPrimitive,
+    StringPrimitive,
+    StringPrimitive,
+    NumberPrimitive,
+    StringPrimitive
+>((text, regexPattern, replacementPattern, count) => {
+    if (
+        text.type === 'literal' &&
+        regexPattern.type === 'literal' &&
+        replacementPattern.type === 'literal' &&
+        count.type === 'literal'
+    ) {
+        try {
+            const result = regexReplaceImpl(
+                text.value,
+                regexPattern.value,
+                replacementPattern.value,
+                count.value
+            );
+            if (result !== undefined) {
+                return new StringLiteralType(result);
+            }
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+    return StringType.instance;
+});
 
 // Python-conform padding implementations.
 // The challenge here is that JS string lengths count UTF-16 char codes,

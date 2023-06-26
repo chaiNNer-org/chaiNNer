@@ -2,10 +2,10 @@ import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import isDeepEqual from 'fast-deep-equal';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from 'react-query';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import useFetch, { CachePolicies } from 'use-http';
-import { BackendNodesResponse } from '../common/Backend';
+import { BackendNodesResponse, getBackend } from '../common/Backend';
 import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
 import { log } from '../common/log';
 import { parseFunctionDefinitions } from '../common/nodes/parseFunctionDefinitions';
@@ -22,7 +22,7 @@ import { IteratorNode } from './components/node/IteratorNode';
 import { Node } from './components/node/Node';
 import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
 import { ReactFlowBox } from './components/ReactFlowBox';
-import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
+import { AlertBoxContext, AlertId, AlertType } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';
 import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
@@ -69,15 +69,19 @@ interface MainProps {
 export const Main = memo(({ port }: MainProps) => {
     const { t, ready } = useTranslation();
 
-    const { sendAlert } = useContext(AlertBoxContext);
+    const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo>();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
     const [backendReady, setBackendReady] = useState(false);
-    const [nodesRefreshCounter, setNodesRefreshCounter] = useState(0);
-    const refreshNodes = useCallback(() => setNodesRefreshCounter((prev) => prev + 1), []);
+
+    const queryClient = useQueryClient();
+    const refreshNodes = useCallback(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        queryClient.invalidateQueries({ queryKey: ['nodes'] });
+    }, [queryClient]);
 
     const [periodicRefresh, setPeriodicRefresh] = useState(false);
     useAsyncEffect(
@@ -88,37 +92,60 @@ export const Main = memo(({ port }: MainProps) => {
         []
     );
 
-    useEffect(() => {
-        if (!periodicRefresh) return;
-        const interval = setInterval(refreshNodes, 1000 * 3);
-        return () => clearInterval(interval);
-    }, [periodicRefresh, refreshNodes]);
+    const nodesQuery = useQuery({
+        queryKey: ['nodes', port],
+        queryFn: async () => {
+            try {
+                const response = await getBackend(port).nodes();
+                if ('status' in response) {
+                    throw new Error(`${response.message}\n${response.description}`);
+                }
+                return response;
+            } catch (error) {
+                log.error(error);
+                throw error;
+            }
+        },
+        cacheTime: 0,
+        retry: 25,
+        refetchOnWindowFocus: false,
+        refetchInterval: periodicRefresh ? 1000 * 3 : false,
+    });
 
-    const { loading, error, data, response } = useFetch<BackendNodesResponse>(
-        `http://localhost:${port}/nodes`,
-        { cachePolicy: CachePolicies.NO_CACHE, cache: 'no-cache', retries: 25 },
-        [port, nodesRefreshCounter]
-    );
+    let nodeQueryError: unknown;
+    if (nodesQuery.status === 'error') {
+        nodeQueryError = nodesQuery.error;
+    } else if (nodesQuery.failureCount > 0) {
+        nodeQueryError = 'Failed to fetch backend nodes.';
+    }
+
+    const lastErrorAlert = useRef<AlertId>();
+    const forgetLastErrorAlert = useCallback(() => {
+        if (lastErrorAlert.current !== undefined) {
+            forgetAlert(lastErrorAlert.current);
+            lastErrorAlert.current = undefined;
+        }
+    }, [forgetAlert]);
 
     useEffect(() => {
-        if (error) {
-            sendAlert({
+        if (nodeQueryError) {
+            const message =
+                nodeQueryError instanceof Error ? nodeQueryError.message : String(nodeQueryError);
+            forgetLastErrorAlert();
+            lastErrorAlert.current = sendAlert({
                 type: AlertType.CRIT_ERROR,
                 message: `${t(
                     'error.message.criticalBackend',
                     'A critical error occurred while processing the node data returned by the backend.'
-                )} ${t('error.error', 'Error')}: ${error.message}`,
+                )}\n\n${t('error.error', 'Error')}: ${message}`,
             });
         }
-    }, [error, sendAlert, t]);
+    }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t]);
 
     useEffect(() => {
-        if (loading) {
-            return;
-        }
-
-        if (response.ok && data && !error) {
-            const rawResponse = data;
+        if (nodesQuery.status === 'success') {
+            forgetLastErrorAlert();
+            const rawResponse = nodesQuery.data;
             setNodesInfo((prev) => {
                 if (isDeepEqual(prev?.rawResponse, rawResponse)) {
                     return prev;
@@ -128,7 +155,8 @@ export const Main = memo(({ port }: MainProps) => {
                     return processBackendResponse(rawResponse);
                 } catch (e) {
                     log.error(e);
-                    sendAlert({
+                    forgetLastErrorAlert();
+                    lastErrorAlert.current = sendAlert({
                         type: AlertType.CRIT_ERROR,
                         title: t(
                             'error.title.unableToProcessNodes',
@@ -144,11 +172,11 @@ export const Main = memo(({ port }: MainProps) => {
                 return prev;
             });
         }
-    }, [response, data, loading, error, backendReady, sendAlert, t]);
+    }, [nodesQuery.status, nodesQuery.data, backendReady, sendAlert, forgetLastErrorAlert, t]);
 
     useIpcRendererListener('backend-ready', () => {
         // Refresh the nodes once the backend is ready
-        setNodesRefreshCounter((prev) => prev + 1);
+        refreshNodes();
         if (!backendReady) {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
@@ -188,7 +216,7 @@ export const Main = memo(({ port }: MainProps) => {
         []
     );
 
-    if (error) return null;
+    if (nodesQuery.isError) return null;
 
     if (!nodesInfo || !pythonInfo || !ready) {
         return (

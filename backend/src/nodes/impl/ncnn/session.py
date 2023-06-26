@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import tempfile
 from weakref import WeakKeyDictionary
 
-from ncnn_vulkan import ncnn
+try:
+    from ncnn_vulkan import ncnn
+
+    use_gpu = True
+except ImportError:
+    from ncnn import ncnn
+
+    use_gpu = False
 
 from ...utils.exec_options import ExecutionOptions
 from .model import NcnnModelWrapper
@@ -22,13 +30,25 @@ def create_ncnn_net(
         net.opt.use_fp16_storage = False
         net.opt.use_fp16_arithmetic = False
 
-    # Use vulkan compute
-    net.opt.use_vulkan_compute = True
-    net.set_vulkan_device(exec_options.ncnn_gpu_index)
+    if use_gpu:
+        # Use vulkan compute
+        net.opt.use_vulkan_compute = True
+        net.set_vulkan_device(exec_options.ncnn_gpu_index)
 
     # Load model param and bin
-    net.load_param_mem(model.model.write_param())
-    net.load_model_mem(model.model.bin)
+    if use_gpu:
+        net.load_param_mem(model.model.write_param())
+        net.load_model_mem(model.model.bin)
+    else:
+        with tempfile.TemporaryDirectory() as tmp_model_dir:
+            param_filename = tmp_model_dir + "/ncnn-model.param"
+            bin_filename = tmp_model_dir + "/ncnn-model.bin"
+
+            model.model.write_param(param_filename)
+            model.model.write_bin(bin_filename)
+
+            net.load_param(param_filename)
+            net.load_model(bin_filename)
 
     return net
 
