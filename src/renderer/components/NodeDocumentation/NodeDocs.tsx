@@ -200,7 +200,58 @@ export const NodeDocs = memo(() => {
                                     {selectedSchema.description}
                                 </ReactMarkdown>
                             </Box>
-
+                            <Box position="relative">
+                                <Heading
+                                    mb={1}
+                                    size="sm"
+                                    userSelect="text"
+                                >
+                                    Inputs
+                                </Heading>
+                                {selectedSchema.inputs.length > 0 ? (
+                                    <UnorderedList
+                                        alignItems="left"
+                                        ml={0}
+                                        pl={8}
+                                        textAlign="left"
+                                        userSelect="text"
+                                        w="full"
+                                    >
+                                        {selectedSchema.inputs.map((input) => {
+                                            const type =
+                                                selectedFunctionDefinition?.inputDefaults.get(
+                                                    input.id
+                                                );
+                                            return (
+                                                <ListItem key={input.id}>
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        userSelect="text"
+                                                    >
+                                                        {input.label}
+                                                    </Text>
+                                                    {input.description && (
+                                                        <ReactMarkdown
+                                                            components={ChakraUIRenderer(
+                                                                customMarkdownTheme
+                                                            )}
+                                                        >
+                                                            {input.description}
+                                                        </ReactMarkdown>
+                                                    )}
+                                                    {type && (
+                                                        <Code userSelect="text">
+                                                            {prettyPrintType(type)}
+                                                        </Code>
+                                                    )}
+                                                </ListItem>
+                                            );
+                                        })}
+                                    </UnorderedList>
+                                ) : (
+                                    <Text>This node has no inputs.</Text>
+                                )}
+                            </Box>
                             <Box position="relative">
                                 <Heading
                                     mb={1}
