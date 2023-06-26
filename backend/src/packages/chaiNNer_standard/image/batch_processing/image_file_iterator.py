@@ -73,7 +73,7 @@ def ImageFileIteratorLoadImageNode(
 @batch_processing_group.register(
     schema_id="chainner:image:file_iterator",
     name="Image File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the image files. Supports the same file types as [](#chainner:image:load).",
+    description="Iterate over all files in a directory and run the provided nodes on just the image files. Supports the same file types as [Load Image](#chainner:image:load).",
     icon="MdLoop",
     node_type="iterator",
     inputs=[
