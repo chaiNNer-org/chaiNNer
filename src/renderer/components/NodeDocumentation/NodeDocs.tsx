@@ -19,6 +19,7 @@ import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
 import { NodeSchema, SchemaId } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
@@ -142,6 +143,131 @@ const FakeNodeExample = memo(
     }
 );
 
+const SingleNodeInfo = memo(
+    ({
+        schema,
+        accentColor,
+        functionDefinition,
+    }: {
+        schema: NodeSchema;
+        accentColor: string;
+        functionDefinition?: FunctionDefinition;
+    }) => {
+        return (
+            <>
+                <Box userSelect="text">
+                    <HStack>
+                        <IconFactory
+                            accentColor={accentColor}
+                            boxSize={6}
+                            icon={schema.icon}
+                        />
+                        <Heading
+                            size="lg"
+                            userSelect="text"
+                        >
+                            {schema.name}
+                        </Heading>
+                    </HStack>
+                    <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
+                        {schema.description}
+                    </ReactMarkdown>
+                </Box>
+                <Box position="relative">
+                    <Heading
+                        mb={1}
+                        size="sm"
+                        userSelect="text"
+                    >
+                        Inputs
+                    </Heading>
+                    {schema.inputs.length > 0 ? (
+                        <UnorderedList
+                            alignItems="left"
+                            ml={0}
+                            pl={8}
+                            textAlign="left"
+                            userSelect="text"
+                            w="full"
+                        >
+                            {schema.inputs.map((input) => {
+                                const type = functionDefinition?.inputDefaults.get(input.id);
+                                return (
+                                    <ListItem key={input.id}>
+                                        <Text
+                                            fontWeight="bold"
+                                            userSelect="text"
+                                        >
+                                            {input.label}
+                                        </Text>
+                                        {input.description && (
+                                            <ReactMarkdown
+                                                components={ChakraUIRenderer(customMarkdownTheme)}
+                                            >
+                                                {input.description}
+                                            </ReactMarkdown>
+                                        )}
+                                        {type && (
+                                            <Code userSelect="text">{prettyPrintType(type)}</Code>
+                                        )}
+                                    </ListItem>
+                                );
+                            })}
+                        </UnorderedList>
+                    ) : (
+                        <Text>This node has no inputs.</Text>
+                    )}
+                </Box>
+                <Box position="relative">
+                    <Heading
+                        mb={1}
+                        size="sm"
+                        userSelect="text"
+                    >
+                        Outputs
+                    </Heading>
+                    {schema.outputs.length > 0 ? (
+                        <UnorderedList
+                            alignItems="left"
+                            ml={0}
+                            pl={8}
+                            textAlign="left"
+                            w="full"
+                        >
+                            {schema.outputs.map((output) => {
+                                const type = functionDefinition?.outputDefaults.get(output.id);
+
+                                return (
+                                    <ListItem key={output.id}>
+                                        <Text
+                                            fontWeight="bold"
+                                            userSelect="text"
+                                        >
+                                            {output.label}
+                                        </Text>
+                                        {output.description && (
+                                            <ReactMarkdown
+                                                components={ChakraUIRenderer(customMarkdownTheme)}
+                                            >
+                                                {output.description}
+                                            </ReactMarkdown>
+                                        )}
+                                        {type && (
+                                            <Code userSelect="text">{prettyPrintType(type)}</Code>
+                                        )}
+                                    </ListItem>
+                                );
+                            })}
+                        </UnorderedList>
+                    ) : (
+                        <Text>This node has no outputs.</Text>
+                    )}
+                </Box>
+            </>
+        );
+    }
+);
+
 export const NodeDocs = memo(() => {
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
     const { selectedSchemaId } = useContext(NodeDocumentationContext);
@@ -155,185 +281,81 @@ export const NodeDocs = memo(() => {
 
     const [isLargerThan1200] = useMediaQuery('(min-width: 1200px)');
 
-    return (
-        <>
-            <Box
-                h="full"
-                position="relative"
-                w="full"
-            >
-                <Box w="full">
-                    <Flex
-                        direction="column"
-                        gap={2}
-                        left={0}
-                        maxH="full"
-                        overflowY="scroll"
-                        position="absolute"
-                        top={0}
-                    >
-                        <VStack
-                            alignItems="left"
-                            display="block"
-                            divider={<Divider />}
-                            h="full"
-                            maxH="full"
-                            spacing={2}
-                            textAlign="left"
-                            w="full"
-                        >
-                            <Box userSelect="text">
-                                <HStack>
-                                    <IconFactory
-                                        accentColor={selectedAccentColor}
-                                        boxSize={6}
-                                        icon={selectedSchema.icon}
-                                    />
-                                    <Heading
-                                        size="lg"
-                                        userSelect="text"
-                                    >
-                                        {selectedSchema.name}
-                                    </Heading>
-                                </HStack>
-                                <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
-                                    {selectedSchema.description}
-                                </ReactMarkdown>
-                            </Box>
-                            <Box position="relative">
-                                <Heading
-                                    mb={1}
-                                    size="sm"
-                                    userSelect="text"
-                                >
-                                    Inputs
-                                </Heading>
-                                {selectedSchema.inputs.length > 0 ? (
-                                    <UnorderedList
-                                        alignItems="left"
-                                        ml={0}
-                                        pl={8}
-                                        textAlign="left"
-                                        userSelect="text"
-                                        w="full"
-                                    >
-                                        {selectedSchema.inputs.map((input) => {
-                                            const type =
-                                                selectedFunctionDefinition?.inputDefaults.get(
-                                                    input.id
-                                                );
-                                            return (
-                                                <ListItem key={input.id}>
-                                                    <Text
-                                                        fontWeight="bold"
-                                                        userSelect="text"
-                                                    >
-                                                        {input.label}
-                                                    </Text>
-                                                    {input.description && (
-                                                        <ReactMarkdown
-                                                            components={ChakraUIRenderer(
-                                                                customMarkdownTheme
-                                                            )}
-                                                        >
-                                                            {input.description}
-                                                        </ReactMarkdown>
-                                                    )}
-                                                    {type && (
-                                                        <Code userSelect="text">
-                                                            {prettyPrintType(type)}
-                                                        </Code>
-                                                    )}
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </UnorderedList>
-                                ) : (
-                                    <Text>This node has no inputs.</Text>
-                                )}
-                            </Box>
-                            <Box position="relative">
-                                <Heading
-                                    mb={1}
-                                    size="sm"
-                                    userSelect="text"
-                                >
-                                    Outputs
-                                </Heading>
-                                {selectedSchema.outputs.length > 0 ? (
-                                    <UnorderedList
-                                        alignItems="left"
-                                        ml={0}
-                                        pl={8}
-                                        textAlign="left"
-                                        w="full"
-                                    >
-                                        {selectedSchema.outputs.map((output) => {
-                                            const type =
-                                                selectedFunctionDefinition?.outputDefaults.get(
-                                                    output.id
-                                                );
+    const hasIteratorHelperNodes =
+        selectedSchema.defaultNodes && selectedSchema.defaultNodes.length > 0;
 
-                                            return (
-                                                <ListItem key={output.id}>
-                                                    <Text
-                                                        fontWeight="bold"
-                                                        userSelect="text"
-                                                    >
-                                                        {output.label}
-                                                    </Text>
-                                                    {output.description && (
-                                                        <ReactMarkdown
-                                                            components={ChakraUIRenderer(
-                                                                customMarkdownTheme
-                                                            )}
-                                                        >
-                                                            {output.description}
-                                                        </ReactMarkdown>
-                                                    )}
-                                                    {type && (
-                                                        <Code userSelect="text">
-                                                            {prettyPrintType(type)}
-                                                        </Code>
-                                                    )}
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </UnorderedList>
-                                ) : (
-                                    <Text>This node has no outputs.</Text>
-                                )}
-                            </Box>
-                        </VStack>
-                        {!isLargerThan1200 && (
-                            <Box
-                                h="full"
-                                position="relative"
-                            >
-                                <Box position="relative">
-                                    <FakeNodeExample
-                                        accentColor={selectedAccentColor}
-                                        selectedSchema={selectedSchema}
-                                    />
-                                </Box>
-                            </Box>
-                        )}
-                    </Flex>
-                </Box>
-            </Box>
-            {isLargerThan1200 && (
-                <Box
-                    h="full"
-                    position="relative"
+    return (
+        <Box
+            h="full"
+            position="relative"
+            w="full"
+        >
+            <Box w="full">
+                <Flex
+                    direction={isLargerThan1200 ? 'row' : 'column'}
+                    gap={2}
+                    left={0}
+                    maxH="full"
+                    overflowY="scroll"
+                    position="absolute"
+                    top={0}
+                    w="full"
                 >
-                    <Box position="relative">
-                        <FakeNodeExample
+                    <VStack
+                        alignItems="left"
+                        display="block"
+                        divider={<Divider />}
+                        h="full"
+                        maxH="full"
+                        spacing={2}
+                        textAlign="left"
+                        w="full"
+                    >
+                        <SingleNodeInfo
                             accentColor={selectedAccentColor}
-                            selectedSchema={selectedSchema}
+                            functionDefinition={selectedFunctionDefinition}
+                            schema={selectedSchema}
                         />
+                        {hasIteratorHelperNodes &&
+                            selectedSchema.defaultNodes.map((defaultNode) => {
+                                const nodeSchema = schemata.get(defaultNode.schemaId);
+                                const nodeFunctionDefinition = functionDefinitions.get(
+                                    defaultNode.schemaId
+                                );
+                                return (
+                                    <SingleNodeInfo
+                                        accentColor={selectedAccentColor}
+                                        functionDefinition={nodeFunctionDefinition}
+                                        key={defaultNode.schemaId}
+                                        schema={nodeSchema}
+                                    />
+                                );
+                            })}
+                    </VStack>
+                    <Box
+                        h="full"
+                        position="relative"
+                    >
+                        <VStack position="relative">
+                            <FakeNodeExample
+                                accentColor={selectedAccentColor}
+                                selectedSchema={selectedSchema}
+                            />
+                            {hasIteratorHelperNodes &&
+                                selectedSchema.defaultNodes.map((defaultNode) => {
+                                    const nodeSchema = schemata.get(defaultNode.schemaId);
+                                    return (
+                                        <FakeNodeExample
+                                            accentColor={selectedAccentColor}
+                                            key={defaultNode.schemaId}
+                                            selectedSchema={nodeSchema}
+                                        />
+                                    );
+                                })}
+                        </VStack>
                     </Box>
-                </Box>
-            )}
-        </>
+                </Flex>
+            </Box>
+        </Box>
     );
 });
