@@ -25,9 +25,12 @@ import { useMemoObject } from '../hooks/useMemo';
 import { ContextMenuContext } from './ContextMenuContext';
 import { HotkeysContext } from './HotKeyContext';
 
+export type AlertId = number & { __alertId: never };
+
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
-    sendAlert: (message: Pick<AlertOptions, 'type' | 'title' | 'message'>) => void;
+    sendAlert: (message: Pick<AlertOptions, 'type' | 'title' | 'message'>) => AlertId;
+    forgetAlert: (id: AlertId) => void;
     showAlert: (message: AlertOptions) => Promise<number>;
 }
 
@@ -54,15 +57,24 @@ export interface AlertOptions {
 }
 
 interface InternalMessage extends AlertOptions {
+    id: AlertId;
     title: string;
     resolve: (button: number) => void;
 }
 
 const EMPTY_MESSAGE: InternalMessage = {
     type: AlertType.INFO,
+    id: -1 as AlertId,
     title: '',
     message: '',
     resolve: noop,
+};
+
+let idCounter = 1;
+const newAlertId = (): AlertId => {
+    const id = idCounter;
+    idCounter += 1;
+    return id as AlertId;
 };
 
 const ALERT_FOCUS_ID = 'alert-focus-button';
@@ -211,7 +223,6 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);
     const current = queue[0] as InternalMessage | undefined;
-    const isLast = queue.length < 2;
 
     const [done, setDone] = useState(0);
     useEffect(() => {
@@ -220,24 +231,27 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         }
     }, [current]);
 
-    const push = useCallback(
-        (message: InternalMessage) => setQueue((q) => [...q, message]),
-        [setQueue]
-    );
-    const showAlert = useCallback(
-        (message: AlertOptions) => {
+    const push = useCallback((message: InternalMessage) => setQueue((q) => [...q, message]), []);
+    const showAlertInternal = useCallback(
+        (message: AlertOptions, id: AlertId) => {
             closeContextMenu();
             return new Promise<number>((resolve) => {
-                push({ ...message, title: message.title ?? message.type, resolve });
+                push({ ...message, id, title: message.title ?? message.type, resolve });
             });
         },
         [push, closeContextMenu]
     );
+    const showAlert = useCallback(
+        (message: AlertOptions) => showAlertInternal(message, newAlertId()),
+        [showAlertInternal]
+    );
     const sendAlert = useCallback(
-        (message: AlertOptions) => {
-            showAlert(message).catch(log.error);
+        (message: AlertOptions): AlertId => {
+            const id = newAlertId();
+            showAlertInternal(message, id).catch(log.error);
+            return id;
         },
-        [showAlert]
+        [showAlertInternal]
     );
 
     const { isOpen, onOpen, onClose: onDisclosureClose } = useDisclosure();
@@ -249,18 +263,24 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             onOpen();
         }
     }, [current, isOpen, onOpen, setHotkeysEnabled]);
+    useEffect(() => {
+        if (!current && isOpen) {
+            onDisclosureClose();
+            setHotkeysEnabled(true);
+        }
+    }, [current, isOpen, onDisclosureClose, setHotkeysEnabled]);
+
+    const forgetAlert = useCallback((id: AlertId): void => {
+        setQueue((q) => q.filter((a) => a.id !== id));
+    }, []);
 
     const onClose = useCallback(
         (button: number) => {
             setQueue((q) => q.slice(1));
             setDone((prev) => prev + 1);
-            if (isLast) {
-                onDisclosureClose();
-                setHotkeysEnabled(true);
-            }
             current?.resolve(button);
         },
-        [current, isLast, setQueue, onDisclosureClose, setHotkeysEnabled]
+        [current]
     );
 
     const buttons = useMemo(() => {
@@ -283,7 +303,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         [toast]
     );
 
-    const value = useMemoObject<AlertBox>({ sendAlert, showAlert, sendToast });
+    const value = useMemoObject<AlertBox>({ sendAlert, forgetAlert, showAlert, sendToast });
 
     useEffect(() => {
         const timerId = setTimeout(() => {
