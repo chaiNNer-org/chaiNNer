@@ -154,7 +154,16 @@ const SingleNodeInfo = memo(
         functionDefinition?: FunctionDefinition;
     }) => {
         return (
-            <>
+            <VStack
+                alignItems="left"
+                display="block"
+                divider={<Divider />}
+                h="full"
+                maxH="full"
+                spacing={2}
+                textAlign="left"
+                w="full"
+            >
                 <Box userSelect="text">
                     <HStack>
                         <IconFactory
@@ -263,7 +272,7 @@ const SingleNodeInfo = memo(
                         <Text>This node has no outputs.</Text>
                     )}
                 </Box>
-            </>
+            </VStack>
         );
     }
 );
@@ -307,7 +316,7 @@ export const NodeDocs = memo(() => {
                         divider={<Divider />}
                         h="full"
                         maxH="full"
-                        spacing={2}
+                        spacing={4}
                         textAlign="left"
                         w="full"
                     >
