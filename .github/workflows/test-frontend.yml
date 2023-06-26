@@ -30,4 +30,4 @@ jobs:
                   node-version: 16
                   cache: 'npm'
             - run: npm ci --force
-            - run: npm run test-js
+            - run: npm run test:js
