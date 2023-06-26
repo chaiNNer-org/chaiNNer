@@ -1,7 +1,7 @@
 import { Box, Center, HStack, SimpleGrid } from '@chakra-ui/react';
 import { memo } from 'react';
 import { DependencyManagerButton } from '../DependencyManagerButton';
-import { NodeDocumentationButton } from '../NodeDocumentationModal';
+import { NodeDocumentationButton } from '../NodeDocumentation/NodeDocumentationModal';
 import { SettingsButton } from '../SettingsModal';
 import { SystemStats } from '../SystemStats';
 import { AppInfo } from './AppInfo';
