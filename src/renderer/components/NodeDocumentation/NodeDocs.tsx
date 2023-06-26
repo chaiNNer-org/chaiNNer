@@ -6,6 +6,7 @@ import {
     Flex,
     HStack,
     Heading,
+    Link,
     ListItem,
     Text,
     UnorderedList,
@@ -16,7 +17,7 @@ import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { PropsWithChildren, memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../../common/common-types';
+import { NodeSchema, SchemaId } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -39,6 +40,53 @@ const customMarkdownTheme = {
             </Text>
         );
     },
+    // If I don't give this a type of unknown, ReactMarkdown yells at me
+    // Just trust me, this works
+    a: memo((props: PropsWithChildren<unknown>) => {
+        const { children, href } = props as PropsWithChildren<{ href: string }>;
+
+        const { schemata } = useContext(BackendContext);
+        const { openNodeDocumentation } = useContext(NodeDocumentationContext);
+
+        const isInternalNodeLink = href.startsWith('#');
+        const linkedSchemaId = href.substring(1);
+
+        if (isInternalNodeLink) {
+            const nodeSchema = schemata.get(linkedSchemaId as SchemaId);
+            if (nodeSchema.schemaId !== '') {
+                return (
+                    <Text
+                        _hover={{
+                            textDecoration: 'underline',
+                        }}
+                        as="i"
+                        backgroundColor="var(--bg-700)"
+                        borderRadius={4}
+                        color="blue.500"
+                        cursor="pointer"
+                        fontWeight="bold"
+                        px={2}
+                        py={1}
+                        userSelect="text"
+                        onClick={() => openNodeDocumentation(nodeSchema.schemaId)}
+                    >
+                        {nodeSchema.name}
+                    </Text>
+                );
+            }
+        }
+
+        return (
+            <Link
+                isExternal
+                color="blue.500"
+                href={href.toString()}
+                userSelect="text"
+            >
+                {children}
+            </Link>
+        );
+    }),
 };
 
 const FakeNodeExample = memo(
