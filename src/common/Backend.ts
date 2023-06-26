@@ -97,6 +97,12 @@ export interface BackendError {
     error: string;
 }
 
+export interface ServerError {
+    message: string;
+    description: string;
+    status: number;
+}
+
 /**
  * A wrapper to communicate with the backend.
  *
@@ -147,7 +153,7 @@ export class Backend {
     /**
      * Gets a list of all nodes as well as the node information
      */
-    nodes(): Promise<BackendNodesResponse> {
+    nodes(): Promise<BackendNodesResponse | ServerError> {
         return this.fetchJson('/nodes', 'GET');
     }
 
