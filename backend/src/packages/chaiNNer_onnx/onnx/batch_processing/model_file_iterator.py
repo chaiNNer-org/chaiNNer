@@ -52,7 +52,7 @@ def ModelFileIteratorLoadModelNode(
 @batch_processing_group.register(
     schema_id="chainner:onnx:model_file_iterator",
     name="Model File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the ONNX model files (.onnx). Supports the same models as [Load Model](#chainner:onnx:load_model).",
+    description="Iterate over all files in a directory and run the provided nodes on just the ONNX model files (.onnx). Supports the same models as [](#chainner:onnx:load_model).",
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
