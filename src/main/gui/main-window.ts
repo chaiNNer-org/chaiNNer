@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
 import { t } from 'i18next';
+import { BackendEventMap } from '../../common/Backend';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
@@ -360,10 +361,11 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
-                const data = JSON.parse(e.data) as { message: string; percent: number };
+                const data = JSON.parse(e.data) as BackendEventMap['backend-status'];
                 backendStatusProgressSlice.submitProgress({
                     status: data.message,
-                    totalProgress: data.percent,
+                    totalProgress: data.progress,
+                    statusProgress: data.statusProgress ?? undefined,
                 });
             }
         });
