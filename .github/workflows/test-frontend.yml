@@ -23,11 +23,14 @@ on:
 jobs:
     frontend-tests:
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [16, 18]
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
               with:
-                  node-version: 16
+                  node-version: ${{ matrix.node-version }}
                   cache: 'npm'
-            - run: npm ci --force
-            - run: npm run test-js
+            - run: npm ci
+            - run: npm run test:js
