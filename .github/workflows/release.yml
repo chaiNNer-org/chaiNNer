@@ -32,7 +32,7 @@ jobs:
               with:
                   node-version: 16
                   cache: 'npm'
-            - run: npm ci --force
+            - run: npm ci
             - name: publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
