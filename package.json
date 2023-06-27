@@ -114,6 +114,7 @@
     "@react-nano/use-event-source": "^0.12.0",
     "adm-zip": "^0.5.10",
     "bezier-js": "^6.1.0",
+    "chakra-ui-markdown-renderer": "^4.1.0",
     "chokidar": "^3.5.3",
     "decompress": "^4.2.1",
     "electron-log": "^4.4.8",

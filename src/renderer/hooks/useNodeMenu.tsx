@@ -7,11 +7,12 @@ import {
     UnlockIcon,
 } from '@chakra-ui/icons';
 import { MenuItem, MenuList } from '@chakra-ui/react';
-import { BsLayerForward } from 'react-icons/bs';
+import { BsFillJournalBookmarkFill, BsLayerForward } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
+import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
 
@@ -25,7 +26,8 @@ export const useNodeMenu = (
     useDisabled: UseDisabled,
     { canLock = true, reload }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
-    const { id, isLocked = false, parentNode } = data;
+    const { openNodeDocumentation } = useContext(NodeDocumentationContext);
+    const { id, isLocked = false, parentNode, schemaId } = data;
 
     const { removeNodesById, clearNodes, duplicateNodes, toggleNodeLock, releaseNodeFromParent } =
         useContext(GlobalContext);
@@ -96,6 +98,14 @@ export const useNodeMenu = (
                     Release
                 </MenuItem>
             )}
+            <MenuItem
+                icon={<BsFillJournalBookmarkFill />}
+                onClick={() => {
+                    openNodeDocumentation(schemaId);
+                }}
+            >
+                Open Documentation
+            </MenuItem>
         </MenuList>
     ));
 };

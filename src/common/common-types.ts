@@ -52,6 +52,8 @@ interface InputBase {
     readonly label: string;
     readonly optional: boolean;
     readonly hasHandle: boolean;
+    readonly description?: string;
+    readonly examples?: readonly string[] | null;
 }
 export interface InputOption {
     option: string;
@@ -141,6 +143,8 @@ export interface Output {
     readonly label: string;
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
+    readonly description?: string;
+    readonly examples?: readonly string[] | null;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;

@@ -54,7 +54,7 @@ def ModelFileIteratorLoadModelNode(
 @batch_processing_group.register(
     schema_id="chainner:ncnn:model_file_iterator",
     name="Model File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the NCNN model files (.param/.bin). Supports everything _Load Model_ does.",
+    description="Iterate over all files in a directory and run the provided nodes on just the NCNN model files (.param/.bin). Supports the same models as [](#chainner:ncnn:load_model).",
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
