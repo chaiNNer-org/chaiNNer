@@ -1,7 +1,7 @@
 import { Center, VStack } from '@chakra-ui/react';
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { InputId, InputValue, NodeData } from '../../../common/common-types';
+import { NodeData } from '../../../common/common-types';
 import { DisabledStatus, getDisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -29,12 +29,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
     const { id, inputData, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
-    const setInputValue = useCallback(
-        (inputId: InputId, value: InputValue): void => {
-            setNodeInputValue(id, inputId, value);
-        },
-        [id, setNodeInputValue]
-    );
+    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file

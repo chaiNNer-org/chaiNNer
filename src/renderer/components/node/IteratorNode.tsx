@@ -1,7 +1,7 @@
 import { Box, Center, Text, VStack } from '@chakra-ui/react';
-import { memo, useCallback, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { InputId, InputValue, NodeData } from '../../../common/common-types';
+import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
@@ -37,12 +37,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
 
     const { id, inputData, isLocked, schemaId, iteratorSize, minWidth, minHeight } = data;
 
-    const setInputValue = useCallback(
-        (inputId: InputId, value: InputValue): void => {
-            setNodeInputValue(id, inputId, value);
-        },
-        [id, setNodeInputValue]
-    );
+    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
     const iteratorProgress = getIteratorProgress(id);
 
