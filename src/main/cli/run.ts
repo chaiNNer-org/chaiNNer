@@ -105,11 +105,15 @@ const getBackendNodes = async (backend: Backend): Promise<NodeSchema[]> => {
     for (let i = 0; i < maxTries; i += 1) {
         try {
             // eslint-disable-next-line no-await-in-loop
-            return (await backend.nodes()).nodes;
+            const response = await backend.nodes();
+            if ('nodes' in response) {
+                return response.nodes;
+            }
         } catch {
-            // eslint-disable-next-line no-await-in-loop
-            await delay(Math.max(maxSleep, startSleep * 2 ** i));
+            // ignore error
         }
+        // eslint-disable-next-line no-await-in-loop
+        await delay(Math.max(maxSleep, startSleep * 2 ** i));
     }
 
     throw new Error('Unable to connect to backend server');

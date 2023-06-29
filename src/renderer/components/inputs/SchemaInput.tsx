@@ -5,6 +5,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import {
     Input,
     InputData,
+    InputId,
     InputKind,
     InputSize,
     InputValue,
@@ -46,8 +47,8 @@ export interface SingleInputProps {
     nodeId: string;
     isLocked: boolean;
     inputData: InputData;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize: InputSize | undefined;
-    onSetValue?: (value: InputValue) => void;
     afterInput?: JSX.Element;
 }
 /**
@@ -60,13 +61,13 @@ export const SchemaInput = memo(
         nodeId,
         isLocked,
         inputData,
+        setInputValue,
         inputSize,
-        onSetValue,
         afterInput,
     }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle } = input;
 
-        const { setNodeInputValue, useInputSize: useInputSizeContext } = useContext(GlobalContext);
+        const { useInputSize: useInputSizeContext } = useContext(GlobalContext);
 
         const functionDefinition = useContextSelector(BackendContext, (c) =>
             c.functionDefinitions.get(schemaId)
@@ -78,15 +79,13 @@ export const SchemaInput = memo(
         const value = getInputValue(inputId, inputData);
         const setValue = useCallback(
             (data: NonNullable<InputValue>) => {
-                setNodeInputValue(nodeId, inputId, data);
-                onSetValue?.(data);
+                setInputValue(inputId, data);
             },
-            [nodeId, inputId, setNodeInputValue, onSetValue]
+            [inputId, setInputValue]
         );
         const resetValue = useCallback(() => {
-            setNodeInputValue(nodeId, inputId, undefined);
-            onSetValue?.(undefined);
-        }, [nodeId, inputId, setNodeInputValue, onSetValue]);
+            setInputValue(inputId, undefined);
+        }, [inputId, setInputValue]);
 
         const useInputConnected = useCallback((): boolean => {
             // TODO: move the function call into the selector

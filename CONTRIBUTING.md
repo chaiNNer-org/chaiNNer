@@ -26,6 +26,17 @@ There are 2 way to run chaiNNer:
 
 Generally, use `npm run dev` when you want to develop the backend or the frontend, and use `npm start` you want to start chaiNNer in a more production-like mode.
 
+## Useful commands
+
+The following commands will only work after you have installed the dependencies of the frontend and the backend, so be sure to follow [Getting Started](#getting-started).
+
+-   `npm run dev` & `npm start` - See [Running the Application](#running-the-application)
+-   `npm run debug` - Same as `npm run dev`, but starts the backend with debugger support. You can attach a debugger to the backend by using the `Attach Debugger to chaiNNer` launch configuration in VSCode. This allows you to set breakpoints in the backend code.
+-   `npm run lint` - Runs the linter on the frontend and backend code.
+-   `npm run lint:fix` - Runs the linter on the frontend and backend code and fixes all fixable errors. This includes formatting, sorting imports, etc.
+-   `npm run test` - Runs the tests.
+-   `npm run test:update` - Runs the tests and updates any outdated snapshots.
+
 ## Project structure
 
 The project is split into 2 parts: the frontend and the backend. The frontend is located in the `src` folder and the backend is located in the `backend` folder.

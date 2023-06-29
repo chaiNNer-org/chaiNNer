@@ -35,6 +35,8 @@
     --fg-000: white;
     --fg-300: var(--gray-300);
 
+    --link-color: var(--chakra-colors-blue-300);
+
     /* node colors */
     --node-border-color: var(--gray-800);
     --node-bg-color: var(--gray-750);
@@ -86,6 +88,8 @@
     /* font colors */
     --fg-000: black;
     --fg-300: var(--gray-500);
+
+    --link-color: var(--chakra-colors-blue-500);
 
     /* node colors */
     --node-border-color: var(--gray-100);

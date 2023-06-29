@@ -86,6 +86,12 @@ deps: List[DependencyInfo] = [
         "version": "11.5.0",
         "from_file": "pynvml-11.5.0-py3-none-any.whl",
     },
+    {
+        "package_name": "chainner-pip",
+        "display_name": "chainner-pip",
+        "version": "23.2.0",
+        "from_file": "chainner_pip-23.2.0-py3-none-any.whl",
+    },
 ]
 
 install_dependencies_sync(deps)

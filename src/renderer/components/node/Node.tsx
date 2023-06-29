@@ -63,6 +63,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
+    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
+
     const { getEdge } = useReactFlow();
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -218,6 +220,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         inputSize={inputSize}
                         isLocked={isLocked}
                         schema={schema}
+                        setInputValue={setInputValue}
                     />
                 </VStack>
                 <NodeFooter

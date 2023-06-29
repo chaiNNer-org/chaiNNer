@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const CopyPlugin = require('copy-webpack-plugin');
+
 /** @type {import("webpack").Configuration} */
 module.exports = {
     /**
@@ -12,6 +15,11 @@ module.exports = {
         // eslint-disable-next-line global-require
         rules: require('./webpack.rules'),
     },
+    plugins: [
+        new CopyPlugin({
+            patterns: [{ from: 'node_modules/rregex/lib/rregex.wasm' }],
+        }),
+    ],
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },

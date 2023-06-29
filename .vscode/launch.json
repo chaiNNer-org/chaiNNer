@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Attach Debugger",
+			"name": "Attach Debugger to chaiNNer",
 			"type": "python",
 			"request": "attach",
 			"connect": {

@@ -39,6 +39,12 @@ export const NumberInput = memo(
             });
         }, [value]);
 
+        useEffect(() => {
+            if (value === undefined) {
+                setValue(def);
+            }
+        }, [value, def, setValue]);
+
         const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const typeNumberString = isNumericLiteral(inputType) ? inputType.toString() : '';

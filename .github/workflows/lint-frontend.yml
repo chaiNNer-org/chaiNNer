@@ -31,8 +31,8 @@ jobs:
               with:
                   node-version: 16
                   cache: 'npm'
-            - run: npm ci --force
+            - run: npm ci
             - name: eslint
-              run: npm run lint-js-ci
+              run: npm run lint:js-ci
             - name: typescript
               run: npx tsc

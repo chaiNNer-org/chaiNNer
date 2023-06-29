@@ -10,7 +10,11 @@ from PIL import Image
 from sanic.log import logger
 
 from nodes.impl.dds.texconv import dds_to_png_texconv
-from nodes.impl.image_formats import get_opencv_formats, get_pil_formats
+from nodes.impl.image_formats import (
+    get_available_image_formats,
+    get_opencv_formats,
+    get_pil_formats,
+)
 from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
@@ -106,15 +110,23 @@ _decoders: List[Tuple[str, _Decoder]] = [
     ("texconv-dds", _read_dds),
 ]
 
+valid_formats = get_available_image_formats()
+
 
 @io_group.register(
     schema_id="chainner:image:load",
     name="Load Image",
-    description="Load image from specified file.",
+    description="Load image from specified file. This node will output the loaded image, the directory of the image file, and the name of the image file (without file extension).",
     icon="BsFillImageFill",
-    inputs=[ImageFileInput(primary_input=True)],
+    inputs=[
+        ImageFileInput(primary_input=True).with_documentation(
+            description=f"Select the path of an image file. Supports the following image formats: {', '.join(valid_formats)}"
+        )
+    ],
     outputs=[
-        LargeImageOutput(),
+        LargeImageOutput().with_documentation(
+            description="The node will display a preview of the selected image as well as type information for it. Connect this output to the input of another node to pass the image to it."
+        ),
         DirectoryOutput("Image Directory", of_input=0),
         FileNameOutput("Image Name", of_input=0),
     ],

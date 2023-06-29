@@ -52,7 +52,7 @@ def ModelFileIteratorLoadModelNode(
 @batch_processing_group.register(
     schema_id="chainner:pytorch:model_file_iterator",
     name="Model File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the PyTorch model files (.pth). Supports everything _Load Model_ does.",
+    description="Iterate over all files in a directory and run the provided nodes on just the PyTorch model files (.pth). Supports the same models as [](#chainner:pytorch:load_model).",
     icon="MdLoop",
     inputs=[
         DirectoryInput(),

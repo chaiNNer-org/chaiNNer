@@ -123,7 +123,7 @@ export const RepresentativeNode = memo(
                                         p={0}
                                         size="xs"
                                         textAlign="left"
-                                        textOverflow="hidden"
+                                        textOverflow="truncate"
                                         verticalAlign="middle"
                                         whiteSpace="nowrap"
                                     >

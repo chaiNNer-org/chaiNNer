@@ -23,11 +23,13 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata, categories } = useContext(BackendContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
+
+    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -104,6 +106,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                         inputData={inputData}
                         isLocked={isLocked}
                         schema={schema}
+                        setInputValue={setInputValue}
                     />
                 </VStack>
                 <NodeFooter
