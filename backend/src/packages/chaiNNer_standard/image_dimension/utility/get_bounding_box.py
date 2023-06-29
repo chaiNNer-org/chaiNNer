@@ -29,8 +29,8 @@ from .. import utility_group
         ),
     ],
     outputs=[
-        NumberOutput("X", output_type="min(uint, Input0.width - 1)"),
-        NumberOutput("Y", output_type="min(uint, Input0.height - 1)"),
+        NumberOutput("X", output_type="min(uint, Input0.width - 1) & 0.."),
+        NumberOutput("Y", output_type="min(uint, Input0.height - 1) & 0.."),
         NumberOutput("Width", output_type="min(uint, Input0.width) & 1.."),
         NumberOutput("Height", output_type="min(uint, Input0.height) & 1.."),
     ],
