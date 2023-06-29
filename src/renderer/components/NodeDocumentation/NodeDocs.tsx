@@ -15,10 +15,10 @@ import {
     useMediaQuery,
 } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo } from 'react';
+import { PropsWithChildren, memo, useCallback, useEffect, useState } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { NodeSchema, SchemaId } from '../../../common/common-types';
+import { InputData, InputId, InputValue, NodeSchema, SchemaId } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
@@ -94,58 +94,87 @@ const customMarkdownTheme = {
     }),
 };
 
-const FakeNodeExample = memo(
-    ({ accentColor, selectedSchema }: { accentColor: string; selectedSchema: NodeSchema }) => {
-        return (
+interface NodeExampleProps {
+    accentColor: string;
+    selectedSchema: NodeSchema;
+}
+const FakeNodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps) => {
+    const [state, setState] = useState<{ inputData: InputData; schema: NodeSchema }>({
+        inputData: {},
+        schema: selectedSchema,
+    });
+
+    const setInputValue = useCallback(
+        (inputId: InputId, value: InputValue): void => {
+            setState((prev) => {
+                const inputData = prev.schema === selectedSchema ? prev.inputData : {};
+                return {
+                    inputData: {
+                        ...inputData,
+                        [inputId]: value,
+                    },
+                    schema: selectedSchema,
+                };
+            });
+        },
+        [selectedSchema]
+    );
+
+    useEffect(() => {
+        console.log(state.inputData);
+    }, [state.inputData]);
+
+    const inputData = state.schema === selectedSchema ? state.inputData : {};
+    return (
+        <Center
+            pointerEvents="none"
+            w="auto"
+        >
             <Center
-                pointerEvents="none"
-                w="auto"
+                bg="var(--node-bg-color)"
+                borderColor="var(--node-border-color)"
+                borderRadius="lg"
+                borderWidth="0.5px"
+                boxShadow="lg"
+                minWidth="240px"
+                overflow="hidden"
+                transition="0.15s ease-in-out"
             >
-                <Center
-                    bg="var(--node-bg-color)"
-                    borderColor="var(--node-border-color)"
-                    borderRadius="lg"
-                    borderWidth="0.5px"
-                    boxShadow="lg"
-                    minWidth="240px"
-                    overflow="hidden"
-                    transition="0.15s ease-in-out"
+                <VStack
+                    spacing={0}
+                    w="full"
                 >
                     <VStack
                         spacing={0}
                         w="full"
                     >
-                        <VStack
-                            spacing={0}
-                            w="full"
-                        >
-                            <NodeHeader
-                                accentColor={accentColor}
-                                disabledStatus={DisabledStatus.Enabled}
-                                icon={selectedSchema.icon}
-                                name={selectedSchema.name}
-                                parentNode={undefined}
-                                selected={false}
-                            />
-                            <NodeBody
-                                animated={false}
-                                id={selectedSchema.schemaId}
-                                inputData={{}}
-                                isLocked={false}
-                                schema={selectedSchema}
-                            />
-                        </VStack>
-                        <NodeFooter
+                        <NodeHeader
+                            accentColor={accentColor}
+                            disabledStatus={DisabledStatus.Enabled}
+                            icon={selectedSchema.icon}
+                            name={selectedSchema.name}
+                            parentNode={undefined}
+                            selected={false}
+                        />
+                        <NodeBody
                             animated={false}
-                            id={selectedSchema.schemaId}
-                            validity={{ isValid: true }}
+                            id="<fake node id>"
+                            inputData={inputData}
+                            isLocked={false}
+                            schema={selectedSchema}
+                            setInputValue={setInputValue}
                         />
                     </VStack>
-                </Center>
+                    <NodeFooter
+                        animated={false}
+                        id="<fake node id>"
+                        validity={{ isValid: true }}
+                    />
+                </VStack>
             </Center>
-        );
-    }
-);
+        </Center>
+    );
+});
 
 interface NodeInfoProps {
     schema: NodeSchema;

@@ -1,9 +1,9 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { DragEvent, memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Input, NodeData } from '../../../common/common-types';
+import { Input, InputId, InputValue, NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import {
     EMPTY_ARRAY,
@@ -62,6 +62,13 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
+
+    const setInputValue = useCallback(
+        (inputId: InputId, value: InputValue): void => {
+            setNodeInputValue(id, inputId, value);
+        },
+        [id, setNodeInputValue]
+    );
 
     const { getEdge } = useReactFlow();
 
@@ -218,6 +225,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         inputSize={inputSize}
                         isLocked={isLocked}
                         schema={schema}
+                        setInputValue={setInputValue}
                     />
                 </VStack>
                 <NodeFooter

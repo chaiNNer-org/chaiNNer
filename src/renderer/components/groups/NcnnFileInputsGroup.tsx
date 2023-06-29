@@ -1,8 +1,6 @@
 import { memo, useEffect } from 'react';
-import { useContext } from 'use-context-selector';
 import { log } from '../../../common/log';
 import { checkFileExists, getInputValue } from '../../../common/util';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 
@@ -27,6 +25,7 @@ export const NcnnFileInputsGroup = memo(
     ({
         inputs,
         inputData,
+        setInputValue,
         inputSize,
         isLocked,
         nodeId,
@@ -34,23 +33,17 @@ export const NcnnFileInputsGroup = memo(
     }: GroupProps<'ncnn-file-inputs'>) => {
         const [paramInput, binInput] = inputs;
 
-        const { setNodeInputValue } = useContext(GlobalContext);
-
         useEffect(() => {
             const paramPath = getInputValue(paramInput.id, inputData);
             const binPath = getInputValue(binInput.id, inputData);
 
             if (typeof paramPath === 'string' && binPath === undefined) {
-                ifOtherExists(paramPath, '.bin', (bin) =>
-                    setNodeInputValue(nodeId, binInput.id, bin)
-                );
+                ifOtherExists(paramPath, '.bin', (bin) => setInputValue(binInput.id, bin));
             }
             if (typeof binPath === 'string' && paramPath === undefined) {
-                ifOtherExists(binPath, '.param', (param) =>
-                    setNodeInputValue(nodeId, paramInput.id, param)
-                );
+                ifOtherExists(binPath, '.param', (param) => setInputValue(paramInput.id, param));
             }
-        }, [paramInput, binInput, inputData, nodeId, setNodeInputValue]);
+        }, [paramInput, binInput, inputData, setInputValue]);
 
         return (
             <>
@@ -61,11 +54,11 @@ export const NcnnFileInputsGroup = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
-                    onSetValue={(file) => {
+                    setInputValue={(inputId, file) => {
+                        setInputValue(inputId, file);
+
                         if (typeof file === 'string') {
-                            ifOtherExists(file, '.bin', (bin) =>
-                                setNodeInputValue(nodeId, binInput.id, bin)
-                            );
+                            ifOtherExists(file, '.bin', (bin) => setInputValue(binInput.id, bin));
                         }
                     }}
                 />
@@ -76,10 +69,12 @@ export const NcnnFileInputsGroup = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
-                    onSetValue={(file) => {
+                    setInputValue={(inputId, file) => {
+                        setInputValue(inputId, file);
+
                         if (typeof file === 'string') {
                             ifOtherExists(file, '.param', (param) =>
-                                setNodeInputValue(nodeId, paramInput.id, param)
+                                setInputValue(paramInput.id, param)
                             );
                         }
                     }}

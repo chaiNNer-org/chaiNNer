@@ -1,6 +1,12 @@
 import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
-import { InputData, InputSize, NodeSchema } from '../../../common/common-types';
+import {
+    InputData,
+    InputId,
+    InputSize,
+    InputValue,
+    NodeSchema,
+} from '../../../common/common-types';
 import { isAutoInput } from '../../../common/util';
 import { NodeInputs } from './NodeInputs';
 import { NodeOutputs } from './NodeOutputs';
@@ -9,13 +15,22 @@ interface NodeBodyProps {
     id: string;
     inputData: InputData;
     inputSize?: InputSize;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     isLocked?: boolean;
     schema: NodeSchema;
     animated?: boolean;
 }
 
 export const NodeBody = memo(
-    ({ schema, id, inputData, inputSize, isLocked, animated = false }: NodeBodyProps) => {
+    ({
+        schema,
+        id,
+        inputData,
+        setInputValue,
+        inputSize,
+        isLocked,
+        animated = false,
+    }: NodeBodyProps) => {
         const { inputs, outputs, schemaId } = schema;
 
         const autoInput = inputs.length === 1 && isAutoInput(inputs[0]);
@@ -34,6 +49,7 @@ export const NodeBody = memo(
                             inputSize={inputSize}
                             isLocked={isLocked}
                             schema={schema}
+                            setInputValue={setInputValue}
                         />
                     </Box>
                 )}
