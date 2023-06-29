@@ -15,7 +15,7 @@ import {
     useMediaQuery,
 } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo, useCallback, useEffect, useState } from 'react';
+import { PropsWithChildren, memo, useCallback, useState } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
 import { InputData, InputId, InputValue, NodeSchema, SchemaId } from '../../../common/common-types';
@@ -119,10 +119,6 @@ const FakeNodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps)
         },
         [selectedSchema]
     );
-
-    useEffect(() => {
-        console.log(state.inputData);
-    }, [state.inputData]);
 
     const inputData = state.schema === selectedSchema ? state.inputData : {};
     return (
