@@ -1,7 +1,13 @@
 /* eslint-disable react/prop-types */
 import { memo } from 'react';
 import { useContext } from 'use-context-selector';
-import { InputData, InputSize, NodeSchema } from '../../../common/common-types';
+import {
+    InputData,
+    InputId,
+    InputSize,
+    InputValue,
+    NodeSchema,
+} from '../../../common/common-types';
 import { getUniqueKey } from '../../../common/group-inputs';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GroupElement } from '../groups/Group';
@@ -12,12 +18,13 @@ interface NodeInputsProps {
     schema: NodeSchema;
     id: string;
     inputData: InputData;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize?: InputSize;
     isLocked?: boolean;
 }
 
 const ItemRenderer: InputItemRenderer = memo(
-    ({ item, inputData, inputSize, isLocked, nodeId, schemaId }) => {
+    ({ item, inputData, setInputValue, inputSize, isLocked, nodeId, schemaId }) => {
         if (item.kind === 'group') {
             const { group } = item;
             return (
@@ -30,6 +37,7 @@ const ItemRenderer: InputItemRenderer = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
+                    setInputValue={setInputValue}
                 />
             );
         }
@@ -42,13 +50,14 @@ const ItemRenderer: InputItemRenderer = memo(
                 isLocked={isLocked}
                 nodeId={nodeId}
                 schemaId={schemaId}
+                setInputValue={setInputValue}
             />
         );
     }
 );
 
 export const NodeInputs = memo(
-    ({ schema, id, inputData, inputSize, isLocked = false }: NodeInputsProps) => {
+    ({ schema, id, inputData, setInputValue, inputSize, isLocked = false }: NodeInputsProps) => {
         const { schemaInputs } = useContext(BackendContext);
 
         const { schemaId } = schema;
@@ -66,6 +75,7 @@ export const NodeInputs = memo(
                         key={getUniqueKey(item)}
                         nodeId={id}
                         schemaId={schemaId}
+                        setInputValue={setInputValue}
                     />
                 ))}
             </>

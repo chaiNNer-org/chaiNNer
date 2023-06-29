@@ -1,33 +1,33 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { HiOutlineRefresh } from 'react-icons/hi';
-import { useContext, useContextSelector } from 'use-context-selector';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 
 export const SeedGroup = memo(
-    ({ inputs, inputData, inputSize, isLocked, nodeId, schemaId }: GroupProps<'seed'>) => {
+    ({
+        inputs,
+        inputData,
+        setInputValue,
+        inputSize,
+        isLocked,
+        nodeId,
+        schemaId,
+    }: GroupProps<'seed'>) => {
         const [input] = inputs;
-
-        const { setNodeInputValue } = useContext(GlobalContext);
 
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             nodeId,
             input.id
         );
 
-        const setValue = useCallback(
-            (data: number) => {
-                setNodeInputValue(nodeId, input.id, data);
-            },
-            [nodeId, input.id, setNodeInputValue]
-        );
-
         const setRandom = useCallback(() => {
             const RANDOM_MAX = 1e6;
-            setValue(Math.floor(Math.random() * RANDOM_MAX));
-        }, [setValue]);
+            const randomValue = Math.floor(Math.random() * RANDOM_MAX);
+            setInputValue(input.id, randomValue);
+        }, [input.id, setInputValue]);
 
         return (
             <SchemaInput
@@ -59,6 +59,7 @@ export const SeedGroup = memo(
                 isLocked={isLocked}
                 nodeId={nodeId}
                 schemaId={schemaId}
+                setInputValue={setInputValue}
             />
         );
     }

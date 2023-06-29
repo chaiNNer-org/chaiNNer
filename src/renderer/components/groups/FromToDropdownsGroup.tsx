@@ -1,27 +1,23 @@
 import { Box, HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { IoMdArrowForward } from 'react-icons/io';
-import { useContext } from 'use-context-selector';
-import { Input, InputData, OfKind } from '../../../common/common-types';
+import { Input, InputData, InputId, InputValue, OfKind } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DropDown } from '../inputs/elements/Dropdown';
 import { InputContainer } from '../inputs/InputContainer';
 import { GroupProps } from './props';
 
 interface SmallDropDownProps {
-    nodeId: string;
     input: OfKind<Input, 'dropdown'>;
     inputData: InputData;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     isLocked: boolean;
 }
-const SmallDropDown = memo(({ nodeId, input, inputData, isLocked }: SmallDropDownProps) => {
-    const { setNodeInputValue } = useContext(GlobalContext);
-
+const SmallDropDown = memo(({ input, inputData, setInputValue, isLocked }: SmallDropDownProps) => {
     const value = getInputValue<string | number>(input.id, inputData);
     const setValue = useCallback(
-        (data?: string | number) => setNodeInputValue(nodeId, input.id, data ?? input.def),
-        [setNodeInputValue, nodeId, input]
+        (data?: string | number) => setInputValue(input.id, data ?? input.def),
+        [setInputValue, input]
     );
 
     return (
@@ -38,7 +34,7 @@ const SmallDropDown = memo(({ nodeId, input, inputData, isLocked }: SmallDropDow
 });
 
 export const FromToDropdownsGroup = memo(
-    ({ inputs, inputData, isLocked, nodeId }: GroupProps<'from-to-dropdowns'>) => {
+    ({ inputs, inputData, setInputValue, isLocked }: GroupProps<'from-to-dropdowns'>) => {
         const [from, to] = inputs;
 
         return (
@@ -52,7 +48,7 @@ export const FromToDropdownsGroup = memo(
                         input={from}
                         inputData={inputData}
                         isLocked={isLocked}
-                        nodeId={nodeId}
+                        setInputValue={setInputValue}
                     />
                     <Box>
                         <IoMdArrowForward />
@@ -61,7 +57,7 @@ export const FromToDropdownsGroup = memo(
                         input={to}
                         inputData={inputData}
                         isLocked={isLocked}
-                        nodeId={nodeId}
+                        setInputValue={setInputValue}
                     />
                 </HStack>
             </InputContainer>

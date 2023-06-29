@@ -2,7 +2,7 @@ import { constants } from 'fs';
 import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
-import type { InputData, InputId, InputValue, NodeSchema, OutputId } from './common-types';
+import type { Input, InputData, InputId, InputValue, NodeSchema, OutputId } from './common-types';
 
 export const EMPTY_ARRAY: readonly never[] = [];
 export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
@@ -273,3 +273,6 @@ export const getInputValue = <T extends NonNullable<InputValue>>(
 ): T | undefined => {
     return (inputData[inputId] ?? undefined) as T | undefined;
 };
+
+export const isAutoInput = (input: Input): boolean =>
+    input.kind === 'generic' && input.optional && !input.hasHandle;

@@ -2,7 +2,9 @@ import {
     Group,
     GroupKind,
     InputData,
+    InputId,
     InputSize,
+    InputValue,
     OfKind,
     SchemaId,
 } from '../../../common/common-types';
@@ -12,6 +14,7 @@ export type InputItemRenderer = (props: {
     item: InputItem;
     nodeId: string;
     inputData: InputData;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize?: InputSize;
     isLocked: boolean;
     schemaId: SchemaId;
@@ -24,6 +27,7 @@ export interface GroupProps<Kind extends GroupKind> {
     nodeId: string;
     isLocked: boolean;
     inputData: InputData;
+    setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize: InputSize | undefined;
     ItemRenderer: InputItemRenderer;
 }

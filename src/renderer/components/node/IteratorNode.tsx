@@ -5,7 +5,7 @@ import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { useDisabled } from '../../hooks/useDisabled';
@@ -33,8 +33,11 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const { schemata, categories } = useContext(BackendContext);
     const { getIteratorProgress } = useContext(ExecutionContext);
+    const { setNodeInputValue } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, schemaId, iteratorSize, minWidth, minHeight } = data;
+
+    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
     const iteratorProgress = getIteratorProgress(id);
 
@@ -97,6 +100,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                             inputData={inputData}
                             isLocked={isLocked}
                             schema={schema}
+                            setInputValue={setInputValue}
                         />
                     </Box>
                     <Center>

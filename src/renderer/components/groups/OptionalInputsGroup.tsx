@@ -12,6 +12,7 @@ export const OptionalInputsGroup = memo(
     ({
         inputs,
         inputData,
+        setInputValue,
         inputSize,
         isLocked,
         nodeId,
@@ -56,6 +57,7 @@ export const OptionalInputsGroup = memo(
                         key={getUniqueKey(item)}
                         nodeId={nodeId}
                         schemaId={schemaId}
+                        setInputValue={setInputValue}
                     />
                 ))}
                 {showMoreButton && (
