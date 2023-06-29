@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
 import cv2
+import numpy as np
 
-from nodes.properties.inputs import ImageInput, SliderInput, NumberInput
-from nodes.properties.outputs import ImageOutput
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
+from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import noise_group
@@ -31,24 +31,16 @@ from .. import noise_group
         if_group(Condition.type(0, "Image { channels: 3 | 4 }"))(
             SliderInput(
                 "Color strength",
-                minimum=0.,
-                maximum=50.,
-                default=3.,
+                minimum=0.0,
+                maximum=50.0,
+                default=3.0,
                 precision=1,
                 controls_step=0.1,
                 slider_step=0.1,
             )
         ),
-        NumberInput("Patch radius",
-            minimum=1,
-            default=3,
-            maximum=30,
-            precision=0),
-        NumberInput("Search radius",
-            minimum=1,
-            default=10,
-            maximum=30,
-            precision=0),
+        NumberInput("Patch radius", minimum=1, default=3, maximum=30, precision=0),
+        NumberInput("Search radius", minimum=1, default=10, maximum=30, precision=0),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
@@ -59,7 +51,6 @@ def fast_nlmeans_node(
     patch_radius: int,
     search_radius: int,
 ) -> np.ndarray:
-
     _, _, c = get_h_w_c(img)
     image_array = to_uint8(img)
 
@@ -67,9 +58,12 @@ def fast_nlmeans_node(
     search_window_size = 2 * search_radius + 1
 
     if c == 1:
-        denoised = cv2.fastNlMeansDenoising(src= image_array, h=h,
+        denoised = cv2.fastNlMeansDenoising(
+            src=image_array,
+            h=h,
             templateWindowSize=patch_window_size,
-            searchWindowSize=search_window_size)
+            searchWindowSize=search_window_size,
+        )
 
     else:
         rgb = image_array[:, :, :3]
@@ -77,12 +71,15 @@ def fast_nlmeans_node(
         if c == 4:
             alpha = image_array[:, :, 3]
 
-        denoised = cv2.fastNlMeansDenoisingColored(src=rgb, h=h, hColor=h_color,
+        denoised = cv2.fastNlMeansDenoisingColored(
+            src=rgb,
+            h=h,
+            hColor=h_color,
             templateWindowSize=patch_window_size,
-            searchWindowSize=search_window_size)
+            searchWindowSize=search_window_size,
+        )
 
         if alpha is not None:
             denoised = np.dstack((denoised, alpha))
 
     return denoised
-
