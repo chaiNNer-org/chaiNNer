@@ -1,4 +1,5 @@
-import { Type } from '@chainner/navi';
+/* eslint-disable no-continue */
+import { Type, ValueType } from '@chainner/navi';
 import { assertNever } from '../util';
 
 export const prettyPrintType = (type: Type): string => {
@@ -21,10 +22,36 @@ export const prettyPrintType = (type: Type): string => {
             if (type.min === 0 && type.max === Infinity) {
                 return 'uint';
             }
+            if (type.min + 1 === type.max) {
+                return `${type.min} | ${type.max}`;
+            }
             return type.toString();
 
-        case 'union':
-            return type.items.map(prettyPrintType).join(' | ');
+        case 'union': {
+            const literals: number[] = [];
+            const other: ValueType[] = [];
+            for (const item of type.items) {
+                if (item.underlying === 'number') {
+                    if (item.type === 'literal' && Number.isFinite(item.value)) {
+                        literals.push(item.value);
+                        continue;
+                    }
+                    if (item.type === 'int-interval' && item.min + 1 === item.max) {
+                        literals.push(item.min);
+                        literals.push(item.max);
+                        continue;
+                    }
+                }
+                other.push(item);
+            }
+
+            const union = [...literals, ...other.map(prettyPrintType)].join(' | ');
+
+            // hacky way to detect boolean
+            if (union === 'false | true') return 'bool';
+
+            return union;
+        }
 
         case 'struct':
             if (type.fields.length === 0) return type.name;

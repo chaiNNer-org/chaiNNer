@@ -1,11 +1,9 @@
 import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
-import { Input, InputData, InputSize, NodeSchema } from '../../../common/common-types';
+import { InputData, InputSize, NodeSchema } from '../../../common/common-types';
+import { isAutoInput } from '../../../common/util';
 import { NodeInputs } from './NodeInputs';
 import { NodeOutputs } from './NodeOutputs';
-
-const isAutoInput = (input: Input): boolean =>
-    input.kind === 'generic' && input.optional && !input.hasHandle;
 
 interface NodeBodyProps {
     id: string;

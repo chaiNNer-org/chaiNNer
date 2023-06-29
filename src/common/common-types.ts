@@ -143,7 +143,7 @@ export interface Output {
     readonly label: string;
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
-    readonly description?: string;
+    readonly description?: string | null;
     readonly examples?: readonly string[] | null;
 }
 
