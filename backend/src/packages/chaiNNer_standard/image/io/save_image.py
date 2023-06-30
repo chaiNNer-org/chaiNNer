@@ -62,7 +62,7 @@ class JpegSubsampling(Enum):
 @io_group.register(
     schema_id="chainner:image:save",
     name="Save Image",
-    description=["Save image to file at a specified directory.", "Most input"],
+    description="Save image to file at a specified directory.",
     icon="MdSave",
     inputs=[
         ImageInput(),
