@@ -43,6 +43,10 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
     schema_id="chainner:utility:math",
     name="Math",
     description="Perform mathematical operations on numbers.",
+    see_also=[
+        "chainner:utility:math_round",
+        "chainner:utility:number",
+    ],
     icon="MdCalculate",
     inputs=[
         NumberInput(

@@ -22,6 +22,7 @@ class KernelType(Enum):
     schema_id="chainner:image:sharpen_hbf",
     name="High Boost Filter",
     description="Apply sharpening to an image using a high boost filter.",
+    see_also="chainner:image:sharpen",
     icon="MdBlurOff",
     inputs=[
         ImageInput(),
@@ -35,7 +36,12 @@ class KernelType(Enum):
             controls_step=1,
             scale="log",
         ),
-        BoolInput("Contrast Adaptive", default=False).with_id(3),
+        BoolInput("Contrast Adaptive", default=False)
+        .with_id(3)
+        .with_docs(
+            "Enable contrast adaptive sharpening.",
+            "This will sharpen the image more evenly and prevents over-sharpening in dark areas and areas that are already quite sharp.",
+        ),
         if_enum_group(3, 1)(
             SliderInput(
                 "Contrast Adaptive Bias",
@@ -45,6 +51,9 @@ class KernelType(Enum):
                 precision=2,
                 controls_step=0.1,
                 slider_step=0.1,
+            ).with_docs(
+                "A bias that controls the strength of the contrast adaptiveness. A bias of 2 is recommended, because it offers a good trade-off between sharpening and contrast adaptiveness.",
+                "A high bias will result in more sharpening but lose contrast adaptiveness. The bias is bounded between 1 and 3 because values higher than 3 effectively disable the contrast adaptiveness. A bias less than 2 will result in noticeable less sharpening, but apply that sharpening very evenly.",
             )
         ),
     ],

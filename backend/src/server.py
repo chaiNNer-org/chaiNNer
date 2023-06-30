@@ -121,6 +121,7 @@ async def nodes(_request: Request):
                 g.toDict() if isinstance(g, Group) else g for g in node.group_layout
             ],
             "description": node.description,
+            "seeAlso": node.see_also,
             "icon": node.icon,
             "subcategory": sub.name,
             "nodeType": node.type,

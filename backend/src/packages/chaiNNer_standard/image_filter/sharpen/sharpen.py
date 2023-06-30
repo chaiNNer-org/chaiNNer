@@ -13,6 +13,7 @@ from .. import sharpen_group
     schema_id="chainner:image:sharpen",
     name="Unsharp Mask",
     description="Apply sharpening to an image using an unsharp mask.",
+    see_also="chainner:image:sharpen_hbf",
     icon="MdBlurOff",
     inputs=[
         ImageInput(),
