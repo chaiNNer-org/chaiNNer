@@ -6,9 +6,9 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start -- --devtools",
-    "frontend": "electron-forge start -- --no-backend --devtools",
-    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --no-backend --refresh --devtools\"",
-    "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --no-backend --refresh --devtools\"",
+    "frontend": "electron-forge start -- --remote-backend http://localhost:8000 --devtools",
+    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --remote-backend http://localhost:8000 --refresh --devtools\"",
+    "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --remote-backend http://localhost:8000 --refresh --devtools\"",
     "debug:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",

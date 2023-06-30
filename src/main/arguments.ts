@@ -2,7 +2,7 @@ import yargs from 'yargs/yargs';
 import { assertNever } from '../common/util';
 
 interface ArgumentOptions {
-    noBackend: boolean;
+    remoteBackend: string | undefined;
     refresh: boolean;
 }
 export interface OpenArguments extends ArgumentOptions {
@@ -62,9 +62,8 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
             }
         )
         .options({
-            backend: {
-                type: 'boolean',
-                default: true,
+            remoteBackend: {
+                type: 'string',
                 description:
                     'An internal developer option to use a different backend. Do not use this as this is not a stable option and may change or disappear at any time',
                 hidden: true,
@@ -81,7 +80,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
         .parseSync();
 
     const options: ArgumentOptions = {
-        noBackend: !parsed.backend,
+        remoteBackend: parsed.remoteBackend,
         refresh: parsed.refresh,
     };
 

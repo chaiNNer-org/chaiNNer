@@ -56,7 +56,7 @@ export const BackendProvider = memo(
         refreshNodes,
         children,
     }: React.PropsWithChildren<BackendProviderProps>) => {
-        const backend = getBackend(port);
+        const backend = getBackend(`http://127.0.0.1:${port}`);
 
         const [ownsBackend, setOwnsBackend] = useState<boolean>(false);
         const ownsBackendRef = useRef(ownsBackend);

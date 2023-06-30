@@ -211,15 +211,15 @@ const setupOwnedBackend = async (
 
 const setupBorrowedBackend = async (
     token: ProgressToken,
-    port: number
+    url: string
 ): Promise<BorrowedBackendProcess> => {
-    log.info(`Attempting to setup backend from port ${port}...`);
+    log.info(`Attempting to setup backend from URL ${url}...`);
 
     token.submitProgress({
         status: t('splash.startingBackend', 'Starting up backend process...'),
         totalProgress: 0.8,
     });
-    return BorrowedBackendProcess.fromPort(port);
+    return BorrowedBackendProcess.fromURL(url);
 };
 
 export const setupBackend = async (
@@ -228,13 +228,20 @@ export const setupBackend = async (
     systemPythonLocation: string | undefined | null,
     hasNvidia: () => Promise<boolean>,
     rootDir: string,
-    noOwnedBackend: boolean
+    remoteBackend: string | undefined
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 
-    const backend = noOwnedBackend
-        ? await setupBorrowedBackend(token, 8000)
-        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia, rootDir);
+    const backend =
+        remoteBackend !== undefined
+            ? await setupBorrowedBackend(token, remoteBackend)
+            : await setupOwnedBackend(
+                  token,
+                  useSystemPython,
+                  systemPythonLocation,
+                  hasNvidia,
+                  rootDir
+              );
 
     token.submitProgress({ totalProgress: 1 });
     return backend;

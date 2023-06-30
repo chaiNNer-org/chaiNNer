@@ -92,7 +92,7 @@ const createBackend = async (token: ProgressToken, args: RunArguments) => {
         systemPythonLocation,
         () => hasNvidia,
         getRootDirSync(),
-        args.noBackend
+        args.remoteBackend
     );
 };
 
@@ -126,12 +126,12 @@ interface ReadyBackend {
     eventSource: EventSource;
 }
 const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBackend> => {
-    const backend = getBackend(backendProcess.port);
+    const backend = getBackend(backendProcess.url);
 
     const schemata = new SchemaMap(await getBackendNodes(backend));
 
     // only connect the event source after we first heard back from the backend
-    const eventSource = new EventSource(`http://localhost:${backendProcess.port}/sse`, {
+    const eventSource = new EventSource(`${backendProcess.url}/sse`, {
         withCredentials: true,
     });
 

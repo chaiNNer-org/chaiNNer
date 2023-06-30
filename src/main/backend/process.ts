@@ -28,6 +28,7 @@ const getBackendPath = lazy((): string => {
 interface BaseBackendProcess {
     readonly owned: boolean;
     readonly port: number;
+    readonly url: string;
     readonly python: PythonInfo;
 }
 
@@ -39,6 +40,8 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     readonly owned = true;
 
     readonly port: number;
+
+    readonly url: string;
 
     readonly python: PythonInfo;
 
@@ -55,6 +58,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         process: ChildProcessWithoutNullStreams
     ) {
         this.port = port;
+        this.url = `http://127.0.0.1:${this.port}`;
         this.python = python;
         this.env = env;
         this.setNewProcess(process);
@@ -177,15 +181,18 @@ export class BorrowedBackendProcess implements BaseBackendProcess {
 
     readonly port: number;
 
+    readonly url: string;
+
     readonly python: PythonInfo;
 
-    private constructor(port: number, python: PythonInfo) {
-        this.port = port;
+    private constructor(url: string, python: PythonInfo) {
+        this.url = url;
+        this.port = parseInt(new URL(this.url).port, 10);
         this.python = python;
     }
 
-    static async fromPort(port: number): Promise<BorrowedBackendProcess> {
-        const backend = getBackend(port);
+    static async fromURL(url: string): Promise<BorrowedBackendProcess> {
+        const backend = getBackend(url);
         let python: PythonInfo | undefined;
         // try a few times to get python info, in case backend is still starting up
         const maxTries = 50;
@@ -204,7 +211,7 @@ export class BorrowedBackendProcess implements BaseBackendProcess {
         if (!python) {
             throw new Error('Unable to get python info from backend');
         }
-        return new BorrowedBackendProcess(port, python);
+        return new BorrowedBackendProcess(url, python);
     }
 }
 

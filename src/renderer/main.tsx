@@ -96,7 +96,7 @@ export const Main = memo(({ port }: MainProps) => {
         queryKey: ['nodes', port],
         queryFn: async () => {
             try {
-                const response = await getBackend(port).nodes();
+                const response = await getBackend(`http://127.0.0.1:${port}`).nodes();
                 if ('status' in response) {
                     throw new Error(`${response.message}\n${response.description}`);
                 }

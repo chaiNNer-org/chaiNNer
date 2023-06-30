@@ -310,7 +310,7 @@ const createBackend = async (token: ProgressToken, args: OpenArguments) => {
         systemPythonLocation,
         () => nvidiaSmiPromise,
         getRootDirSync(),
-        args.noBackend
+        args.remoteBackend
     );
 };
 
@@ -346,7 +346,7 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
+        const sse = new EventSource(`${backend.url}/setup-sse`, {
             withCredentials: true,
         });
         sse.onopen = () => {
