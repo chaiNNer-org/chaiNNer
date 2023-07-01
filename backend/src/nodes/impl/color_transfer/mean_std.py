@@ -78,7 +78,7 @@ def scale_array(
     return scaled
 
 
-def color_transfer(
+def mean_std_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
     colorspace: TransferColorSpace,
