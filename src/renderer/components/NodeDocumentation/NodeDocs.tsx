@@ -7,7 +7,6 @@ import {
     Flex,
     HStack,
     Heading,
-    Link,
     ListItem,
     Text,
     UnorderedList,
@@ -69,19 +68,6 @@ const customMarkdownTheme: Components = {
             </Text>
         );
     },
-    // eslint-disable-next-line react/prop-types
-    a: memo(({ children, href }) => {
-        return (
-            <Link
-                isExternal
-                color="blue.500"
-                href={href}
-                userSelect="text"
-            >
-                {children}
-            </Link>
-        );
-    }),
     // eslint-disable-next-line react/prop-types
     code: memo(({ inline, className, children, ...props }) => {
         const { schemata } = useContext(BackendContext);
