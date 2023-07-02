@@ -190,14 +190,13 @@ const registerEventHandlerPostSetup = (
 
     if (backend.owned) {
         backend.addErrorListener((error) => {
-            const messageBoxOptions = {
+            dialog.showMessageBoxSync({
                 type: 'error',
                 title: 'Unexpected Error',
                 message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
                     error
                 )}`,
-            };
-            dialog.showMessageBoxSync(messageBoxOptions);
+            });
             app.exit(1);
         });
 
