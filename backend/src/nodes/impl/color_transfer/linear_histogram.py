@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.impl.image_utils import to_uint8
-
 __author__ = "Daniel Steinberg"
 __copyright__ = "Copyright 2022, Daniel Steinberg"
 __credits__ = ["Daniel Steinberg"]
@@ -33,8 +31,8 @@ def linear_histogram_transfer(
     shape = img.shape
 
     # Convert HxWxC image to a (H*W)xC matrix.
-    content = to_uint8(img).reshape(-1, shape[-1])
-    reference = to_uint8(ref_img).reshape(-1, shape[-1])
+    content = img.reshape(-1, shape[-1])
+    reference = ref_img.reshape(-1, shape[-1])
 
     mu_content = np.mean(content, axis=0)
     mu_reference = np.mean(reference, axis=0)
@@ -48,6 +46,6 @@ def linear_histogram_transfer(
     transfer = transfer + mu_reference
 
     # Restore image dimensions.
-    transfer = transfer.reshape(img.shape).clip(0, 255).round() / 255.0
+    transfer = transfer.reshape(img.shape).clip(0, 1)
 
     return transfer
