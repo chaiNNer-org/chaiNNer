@@ -67,8 +67,16 @@ class JpegSubsampling(Enum):
     inputs=[
         ImageInput(),
         DirectoryInput(has_handle=True),
-        TextInput("Subdirectory Path").make_optional(),
-        TextInput("Image Name"),
+        TextInput("Subdirectory Path")
+        .make_optional()
+        .with_docs(
+            "An optional subdirectory path. Use this to save the image to a subdirectory of the specified directory. If the subdirectory does not exist, it will be created. Multiple subdirectories can be specified by separating them with a forward slash (`/`).",
+            "Example: `foo/bar`",
+        ),
+        TextInput("Image Name").with_docs(
+            "The name of the image file **without** the file extension. If the file already exists, it will be overwritten.",
+            "Example: `my-image`",
+        ),
         ImageExtensionDropdown().with_id(4),
         if_enum_group(4, ["jpg", "webp"])(
             SliderInput(

@@ -7,18 +7,16 @@ import {
     Flex,
     HStack,
     Heading,
-    Link,
     ListItem,
     Text,
     UnorderedList,
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { InputData, InputId, InputValue, NodeSchema, SchemaId } from '../../../common/common-types';
+import { InputData, InputId, InputValue, NodeSchema } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
@@ -32,67 +30,8 @@ import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
 import { TypeTag } from '../TypeTag';
-
-const customMarkdownTheme = {
-    p: (props: PropsWithChildren<unknown>) => {
-        const { children } = props;
-        return (
-            <Text
-                mb={0}
-                userSelect="text"
-            >
-                {children}
-            </Text>
-        );
-    },
-    // If I don't give this a type of unknown, ReactMarkdown yells at me
-    // Just trust me, this works
-    a: memo((props: PropsWithChildren<unknown>) => {
-        const { children, href } = props as PropsWithChildren<{ href: string }>;
-
-        const { schemata } = useContext(BackendContext);
-        const { openNodeDocumentation } = useContext(NodeDocumentationContext);
-
-        const isInternalNodeLink = href.startsWith('#');
-        const linkedSchemaId = href.substring(1);
-
-        if (isInternalNodeLink) {
-            const nodeSchema = schemata.get(linkedSchemaId as SchemaId);
-            if (nodeSchema.schemaId !== '') {
-                return (
-                    <Text
-                        _hover={{
-                            textDecoration: 'underline',
-                        }}
-                        as="i"
-                        backgroundColor="var(--bg-700)"
-                        borderRadius={4}
-                        color="var(--link-color)"
-                        cursor="pointer"
-                        fontWeight="bold"
-                        px={2}
-                        py={1}
-                        userSelect="text"
-                        onClick={() => openNodeDocumentation(nodeSchema.schemaId)}
-                    >
-                        {nodeSchema.name}
-                    </Text>
-                );
-            }
-        }
-
-        return (
-            <Link
-                isExternal
-                color="blue.500"
-                href={href.toString()}
-                userSelect="text"
-            >
-                {children}
-            </Link>
-        );
-    }),
-};
+import { docsMarkdown } from './docsMarkdown';
+import { SchemaLink } from './SchemaLink';
 
 interface NodeExampleProps {
     accentColor: string;
@@ -172,14 +111,57 @@ const FakeNodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps)
     );
 });
 
+interface InputOutputItemProps {
+    label: string;
+    description?: string | null;
+    type: Type;
+    optional: boolean;
+}
+const InputOutputItem = memo(({ label, description, type, optional }: InputOutputItemProps) => {
+    if (optional) {
+        // eslint-disable-next-line no-param-reassign
+        type = withoutNull(type);
+    }
+
+    return (
+        <ListItem my={2}>
+            <Text
+                fontWeight="bold"
+                userSelect="text"
+            >
+                {label}
+                {optional && (
+                    <TypeTag
+                        isOptional
+                        fontSize="small"
+                        height="auto"
+                        mt="-0.2rem"
+                        verticalAlign="middle"
+                    >
+                        optional
+                    </TypeTag>
+                )}
+            </Text>
+            {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
+            <Code userSelect="text">{prettyPrintType(type)}</Code>
+        </ListItem>
+    );
+});
+
 interface NodeInfoProps {
     schema: NodeSchema;
     accentColor: string;
     functionDefinition?: FunctionDefinition;
 }
 const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeInfoProps) => {
+    const { schemata } = useContext(BackendContext);
+
     const inputs = schema.inputs.filter((i) => !isAutoInput(i));
     const outputs = schema.outputs.filter((o) => o.hasHandle);
+
+    const seeAlso = schema.seeAlso
+        .filter((schemaId) => schemata.has(schemaId))
+        .map((schemaId) => schemata.get(schemaId));
 
     return (
         <VStack
@@ -206,9 +188,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {schema.name}
                     </Heading>
                 </HStack>
-                <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
-                    {schema.description}
-                </ReactMarkdown>
+                <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>
             </Box>
             <Box position="relative">
                 <Heading
@@ -228,41 +208,17 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         w="full"
                     >
                         {inputs.map((input) => {
-                            let type: Type =
-                                functionDefinition?.inputDefaults.get(input.id) ??
-                                NeverType.instance;
-                            if (input.optional) {
-                                type = withoutNull(type);
-                            }
-
                             return (
-                                <ListItem key={input.id}>
-                                    <Text
-                                        fontWeight="bold"
-                                        userSelect="text"
-                                    >
-                                        {input.label}
-                                        {input.optional && (
-                                            <TypeTag
-                                                isOptional
-                                                fontSize="small"
-                                                height="auto"
-                                                mt="-0.2rem"
-                                                verticalAlign="middle"
-                                            >
-                                                optional
-                                            </TypeTag>
-                                        )}
-                                    </Text>
-                                    {input.description && (
-                                        <ReactMarkdown
-                                            components={ChakraUIRenderer(customMarkdownTheme)}
-                                        >
-                                            {input.description}
-                                        </ReactMarkdown>
-                                    )}
-                                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                                </ListItem>
+                                <InputOutputItem
+                                    description={input.description}
+                                    key={input.id}
+                                    label={input.label}
+                                    optional={input.optional}
+                                    type={
+                                        functionDefinition?.inputDefaults.get(input.id) ??
+                                        NeverType.instance
+                                    }
+                                />
                             );
                         })}
                     </UnorderedList>
@@ -287,27 +243,17 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         w="full"
                     >
                         {outputs.map((output) => {
-                            const type =
-                                functionDefinition?.outputDefaults.get(output.id) ??
-                                NeverType.instance;
-
                             return (
-                                <ListItem key={output.id}>
-                                    <Text
-                                        fontWeight="bold"
-                                        userSelect="text"
-                                    >
-                                        {output.label}
-                                    </Text>
-                                    {output.description && (
-                                        <ReactMarkdown
-                                            components={ChakraUIRenderer(customMarkdownTheme)}
-                                        >
-                                            {output.description}
-                                        </ReactMarkdown>
-                                    )}
-                                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                                </ListItem>
+                                <InputOutputItem
+                                    description={output.description}
+                                    key={output.id}
+                                    label={output.label}
+                                    optional={false}
+                                    type={
+                                        functionDefinition?.outputDefaults.get(output.id) ??
+                                        NeverType.instance
+                                    }
+                                />
                             );
                         })}
                     </UnorderedList>
@@ -315,6 +261,35 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                     <Text>This node has no outputs.</Text>
                 )}
             </Box>
+            {seeAlso.length > 0 && (
+                <Box position="relative">
+                    <Heading
+                        mb={1}
+                        size="sm"
+                        userSelect="text"
+                    >
+                        See also
+                    </Heading>
+                    <UnorderedList
+                        alignItems="left"
+                        ml={0}
+                        pl={8}
+                        textAlign="left"
+                        w="full"
+                    >
+                        {seeAlso.map((also) => {
+                            return (
+                                <ListItem
+                                    key={also.schemaId}
+                                    my={2}
+                                >
+                                    <SchemaLink schema={also} />
+                                </ListItem>
+                            );
+                        })}
+                    </UnorderedList>
+                </Box>
+            )}
         </VStack>
     );
 });

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Literal, Type, Union
+from typing import Literal, Type, Union
 
 import navi
 from base_types import OutputId
@@ -28,7 +28,6 @@ class BaseOutput:
 
         # Optional documentation
         self.description: str | None = None
-        self.examples: List[Any] | None = None
 
     def toDict(self):
         return {
@@ -39,7 +38,6 @@ class BaseOutput:
             "kind": self.kind,
             "hasHandle": self.has_handle,
             "description": self.description,
-            "examples": [str(e) for e in self.examples] if self.examples else None,
         }
 
     def with_id(self, output_id: OutputId | int):
@@ -50,9 +48,8 @@ class BaseOutput:
         self.never_reason = reason
         return self
 
-    def with_documentation(self, description: str, examples: List[Any] | None = None):
-        self.description = description
-        self.examples = examples
+    def with_docs(self, *description: str):
+        self.description = "\n\n".join(description)
         return self
 
     def __repr__(self):

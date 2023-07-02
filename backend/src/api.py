@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar, Union
+from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
 
 from sanic.log import logger
 
@@ -24,14 +24,14 @@ MB = 1024**2
 GB = 1024**3
 
 
-def _process_inputs(base_inputs: Iterable[Union[BaseInput, NestedGroup]]):
+def _process_inputs(base_inputs: Iterable[BaseInput | NestedGroup]):
     inputs: List[BaseInput] = []
     groups: List[NestedIdGroup] = []
 
     def add_inputs(
-        current: Iterable[Union[BaseInput, NestedGroup]]
-    ) -> List[Union[InputId, NestedIdGroup]]:
-        layout: List[Union[InputId, NestedIdGroup]] = []
+        current: Iterable[BaseInput | NestedGroup],
+    ) -> List[InputId | NestedIdGroup]:
+        layout: List[InputId | NestedIdGroup] = []
 
         for x in current:
             if isinstance(x, Group):
@@ -69,13 +69,14 @@ class DefaultNode(TypedDict):
 class NodeData:
     schema_id: str
     description: str
+    see_also: List[str]
     name: str
     icon: str
     type: NodeType
 
     inputs: List[BaseInput]
     outputs: List[BaseOutput]
-    group_layout: List[Union[InputId, NestedIdGroup]]
+    group_layout: List[InputId | NestedIdGroup]
 
     side_effects: bool
     deprecated: bool
@@ -101,8 +102,8 @@ class NodeGroup:
         self,
         schema_id: str,
         name: str,
-        description: str,
-        inputs: List[Union[BaseInput, NestedGroup]],
+        description: str | List[str],
+        inputs: List[BaseInput | NestedGroup],
         outputs: List[BaseOutput],
         icon: str = "BsQuestionCircleFill",
         node_type: NodeType = "regularNode",
@@ -110,7 +111,16 @@ class NodeGroup:
         deprecated: bool = False,
         default_nodes: List[DefaultNode] | None = None,
         decorators: List[Callable] | None = None,
+        see_also: List[str] | str | None = None,
     ):
+        if not isinstance(description, str):
+            description = "\n\n".join(description)
+
+        if see_also is None:
+            see_also = []
+        if isinstance(see_also, str):
+            see_also = [see_also]
+
         def inner_wrapper(wrapped_func: T) -> T:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
@@ -136,6 +146,7 @@ class NodeGroup:
                 schema_id=schema_id,
                 name=name,
                 description=description,
+                see_also=see_also,
                 icon=icon,
                 type=node_type,
                 inputs=p_inputs,
