@@ -45,7 +45,7 @@
     stroke-dashoffset: 2;
     stroke-linecap: round;
     animation: 'none';
-    opacity: 0%;
+    opacity: 0;
 
     &.animated {
         stroke-dasharray: 1 10 !important;
@@ -57,7 +57,7 @@
 
     &.running {
         animation: 'dashdraw-chain 0.5s linear infinite';
-        opacity: 100%;
+        opacity: 1;
     }
 
     &.colliding {
@@ -69,7 +69,7 @@
         stroke-width: 3px;
 
         &.animated {
-            opacity: 100%;
+            opacity: 1;
         }
 
         &.hovered {
@@ -78,7 +78,7 @@
 
         &.running {
             animation: 'dashdraw-chain 0.5s linear infinite';
-            opacity: 100%;
+            opacity: 1;
         }
     }
 }
