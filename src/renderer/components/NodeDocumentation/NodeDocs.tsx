@@ -13,12 +13,10 @@ import {
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo, useCallback, useState } from 'react';
-import { Components } from 'react-markdown';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { InputData, InputId, InputValue, NodeSchema, SchemaId } from '../../../common/common-types';
+import { InputData, InputId, InputValue, NodeSchema } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
@@ -32,64 +30,8 @@ import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
 import { TypeTag } from '../TypeTag';
-
-const SchemaLink = memo(({ schema }: { schema: NodeSchema }) => {
-    const { openNodeDocumentation } = useContext(NodeDocumentationContext);
-
-    return (
-        <Text
-            _hover={{
-                textDecoration: 'underline',
-            }}
-            as="i"
-            backgroundColor="var(--bg-700)"
-            borderRadius={4}
-            color="var(--link-color)"
-            cursor="pointer"
-            fontWeight="bold"
-            px={2}
-            py={1}
-            userSelect="text"
-            onClick={() => openNodeDocumentation(schema.schemaId)}
-        >
-            {schema.name}
-        </Text>
-    );
-});
-
-const customMarkdownTheme: Components = {
-    p: ({ children }) => {
-        return (
-            <Text
-                my={2}
-                userSelect="text"
-            >
-                {children}
-            </Text>
-        );
-    },
-    // eslint-disable-next-line react/prop-types
-    code: memo(({ inline, className, children, ...props }) => {
-        const { schemata } = useContext(BackendContext);
-
-        // const language = /language-([\w-]+)/.exec(className || '')?.[1];
-        const text = String(children);
-
-        if (inline && schemata.has(text as SchemaId)) {
-            return <SchemaLink schema={schemata.get(text as SchemaId)} />;
-        }
-
-        return (
-            <Code
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                className={className}
-            >
-                {children}
-            </Code>
-        );
-    }),
-};
+import { docsMarkdown } from './docsMarkdown';
+import { SchemaLink } from './SchemaLink';
 
 interface NodeExampleProps {
     accentColor: string;
@@ -200,11 +142,7 @@ const InputOutputItem = memo(({ label, description, type, optional }: InputOutpu
                     </TypeTag>
                 )}
             </Text>
-            {description && (
-                <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
-                    {description}
-                </ReactMarkdown>
-            )}
+            {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
             <Code userSelect="text">{prettyPrintType(type)}</Code>
         </ListItem>
     );
@@ -250,9 +188,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {schema.name}
                     </Heading>
                 </HStack>
-                <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
-                    {schema.description}
-                </ReactMarkdown>
+                <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>
             </Box>
             <Box position="relative">
                 <Heading
