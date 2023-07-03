@@ -71,8 +71,14 @@ def run_node(node: NodeData, inputs: Iterable[object], node_id: NodeId) -> Outpu
         # collect information to provide good error messages
         input_dict: InputsDict = {}
         for index, node_input in enumerate(node.inputs):
-            input_value = enforced_inputs[index]
-            input_dict[node_input.id] = node_input.get_error_value(input_value)
+            try:
+                input_value = enforced_inputs[index]
+                input_dict[node_input.id] = node_input.get_error_value(input_value)
+            except Exception as inner_e:
+                logger.error(
+                    f"Error getting error value for input {node_input.label} (id {node_input.id})",
+                    inner_e,
+                )
 
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 

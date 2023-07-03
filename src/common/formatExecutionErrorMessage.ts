@@ -21,7 +21,9 @@ export const formatExecutionErrorMessage = (
         const inputValue = source.inputs[i.id];
 
         let valueStr: string;
-        if (inputValue.type === 'formatted') {
+        if (inputValue === undefined) {
+            valueStr = '*unknown*';
+        } else if (inputValue.type === 'formatted') {
             valueStr = inputValue.formatString;
         } else if (inputValue.type === 'unknown') {
             valueStr = `Value of type '${inputValue.typeModule}.${inputValue.typeName}'`;
