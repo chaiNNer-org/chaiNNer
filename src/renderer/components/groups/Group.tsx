@@ -7,6 +7,7 @@ import {
     InputSize,
     InputValue,
     SchemaId,
+    Size,
 } from '../../../common/common-types';
 import { InputItem } from '../../../common/group-inputs';
 import { ConditionalGroup } from './ConditionalGroup';
@@ -37,6 +38,7 @@ interface GroupElementProps {
     inputData: InputData;
     setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize: InputSize | undefined;
+    setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
     ItemRenderer: InputItemRenderer;
 }
 
@@ -50,6 +52,7 @@ export const GroupElement = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         ItemRenderer,
     }: GroupElementProps) => {
         const GroupType = GroupComponents[group.kind];
@@ -63,6 +66,7 @@ export const GroupElement = memo(
                 isLocked={isLocked}
                 nodeId={nodeId}
                 schemaId={schemaId}
+                setInputSize={setInputSize}
                 setInputValue={setInputValue}
             />
         );

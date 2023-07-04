@@ -12,6 +12,7 @@ export const SeedGroup = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         nodeId,
         schemaId,
@@ -59,6 +60,7 @@ export const SeedGroup = memo(
                 isLocked={isLocked}
                 nodeId={nodeId}
                 schemaId={schemaId}
+                setInputSize={setInputSize}
                 setInputValue={setInputValue}
             />
         );

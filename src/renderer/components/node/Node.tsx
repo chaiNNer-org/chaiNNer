@@ -57,13 +57,15 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode, setNodeInputValue, setNodeInputSize } =
+        useContext(GlobalContext);
     const { schemata, categories } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
+    const setInputSize = useMemo(() => setNodeInputSize.bind(null, id), [id, setNodeInputSize]);
 
     const { getEdge } = useReactFlow();
 
@@ -220,6 +222,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         inputSize={inputSize}
                         isLocked={isLocked}
                         schema={schema}
+                        setInputSize={setInputSize}
                         setInputValue={setInputValue}
                     />
                 </VStack>

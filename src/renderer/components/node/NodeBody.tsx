@@ -6,6 +6,7 @@ import {
     InputSize,
     InputValue,
     NodeSchema,
+    Size,
 } from '../../../common/common-types';
 import { isAutoInput } from '../../../common/util';
 import { NodeInputs } from './NodeInputs';
@@ -14,8 +15,9 @@ import { NodeOutputs } from './NodeOutputs';
 interface NodeBodyProps {
     id: string;
     inputData: InputData;
-    inputSize?: InputSize;
     setInputValue: (inputId: InputId, value: InputValue) => void;
+    inputSize: InputSize | undefined;
+    setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
     isLocked?: boolean;
     schema: NodeSchema;
     animated?: boolean;
@@ -28,6 +30,7 @@ export const NodeBody = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         animated = false,
     }: NodeBodyProps) => {
@@ -49,6 +52,7 @@ export const NodeBody = memo(
                             inputSize={inputSize}
                             isLocked={isLocked}
                             schema={schema}
+                            setInputSize={setInputSize}
                             setInputValue={setInputValue}
                         />
                     </Box>

@@ -11,12 +11,10 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly definitionType: Type;
     readonly isLocked: boolean;
     readonly inputKey: string;
+    readonly size: Readonly<Size> | undefined;
+    readonly setSize: (size: Readonly<Size>) => void;
     readonly useInputConnected: () => boolean;
     readonly useInputType: () => Type;
-    readonly useInputSize: () => readonly [
-        Readonly<Size> | undefined,
-        (size: Readonly<Size>) => void
-    ];
     readonly nodeId?: string;
     readonly nodeSchemaId?: SchemaId;
 }

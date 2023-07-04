@@ -1,7 +1,7 @@
 import { NeverType, Type } from '@chainner/navi';
 import { HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import {
     Input,
     InputData,
@@ -10,10 +10,11 @@ import {
     InputSize,
     InputValue,
     SchemaId,
+    Size,
 } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { ColorInput } from './ColorInput';
 import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
@@ -49,6 +50,7 @@ export interface SingleInputProps {
     inputData: InputData;
     setInputValue: (inputId: InputId, value: InputValue) => void;
     inputSize: InputSize | undefined;
+    setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
     afterInput?: JSX.Element;
 }
 /**
@@ -63,11 +65,10 @@ export const SchemaInput = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         afterInput,
     }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle } = input;
-
-        const { useInputSize: useInputSizeContext } = useContext(GlobalContext);
 
         const functionDefinition = useContextSelector(BackendContext, (c) =>
             c.functionDefinitions.get(schemaId)
@@ -78,14 +79,22 @@ export const SchemaInput = memo(
 
         const value = getInputValue(inputId, inputData);
         const setValue = useCallback(
-            (data: NonNullable<InputValue>) => {
-                setInputValue(inputId, data);
+            (newValue: NonNullable<InputValue>) => {
+                setInputValue(inputId, newValue);
             },
             [inputId, setInputValue]
         );
         const resetValue = useCallback(() => {
             setInputValue(inputId, undefined);
         }, [inputId, setInputValue]);
+
+        const size = inputSize?.[inputId];
+        const setSize = useCallback(
+            (newSize: Readonly<Size>) => {
+                setInputSize(inputId, newSize);
+            },
+            [inputId, setInputSize]
+        );
 
         const useInputConnected = useCallback((): boolean => {
             // TODO: move the function call into the selector
@@ -102,11 +111,6 @@ export const SchemaInput = memo(
                 return type ?? NeverType.instance;
             });
         }, [nodeId, inputId]);
-        const useInputSize = useCallback(
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            () => useInputSizeContext(nodeId, inputId, inputSize),
-            [useInputSizeContext, nodeId, inputId, inputSize]
-        );
 
         const InputType = InputComponents[kind];
         let inputElement = (
@@ -118,9 +122,10 @@ export const SchemaInput = memo(
                 nodeId={nodeId}
                 nodeSchemaId={schemaId}
                 resetValue={resetValue}
+                setSize={setSize}
                 setValue={setValue}
+                size={size}
                 useInputConnected={useInputConnected}
-                useInputSize={useInputSize}
                 useInputType={useInputType}
                 value={value}
             />

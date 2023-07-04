@@ -14,6 +14,7 @@ export const RequiredGroup = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         nodeId,
         schemaId,
@@ -45,6 +46,7 @@ export const RequiredGroup = memo(
                         key={getUniqueKey(item)}
                         nodeId={nodeId}
                         schemaId={schemaId}
+                        setInputSize={setInputSize}
                         setInputValue={setInputValue}
                     />
                 ))}

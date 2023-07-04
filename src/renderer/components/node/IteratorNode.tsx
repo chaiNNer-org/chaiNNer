@@ -3,6 +3,7 @@ import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { EMPTY_OBJECT, noop } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -98,8 +99,10 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         <NodeInputs
                             id={id}
                             inputData={inputData}
+                            inputSize={EMPTY_OBJECT}
                             isLocked={isLocked}
                             schema={schema}
+                            setInputSize={noop}
                             setInputValue={setInputValue}
                         />
                     </Box>

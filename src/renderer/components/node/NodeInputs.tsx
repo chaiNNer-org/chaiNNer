@@ -7,6 +7,7 @@ import {
     InputSize,
     InputValue,
     NodeSchema,
+    Size,
 } from '../../../common/common-types';
 import { getUniqueKey } from '../../../common/group-inputs';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -19,12 +20,13 @@ interface NodeInputsProps {
     id: string;
     inputData: InputData;
     setInputValue: (inputId: InputId, value: InputValue) => void;
-    inputSize?: InputSize;
+    inputSize: InputSize | undefined;
+    setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
     isLocked?: boolean;
 }
 
 const ItemRenderer: InputItemRenderer = memo(
-    ({ item, inputData, setInputValue, inputSize, isLocked, nodeId, schemaId }) => {
+    ({ item, inputData, setInputValue, inputSize, setInputSize, isLocked, nodeId, schemaId }) => {
         if (item.kind === 'group') {
             const { group } = item;
             return (
@@ -37,6 +39,7 @@ const ItemRenderer: InputItemRenderer = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
+                    setInputSize={setInputSize}
                     setInputValue={setInputValue}
                 />
             );
@@ -50,6 +53,7 @@ const ItemRenderer: InputItemRenderer = memo(
                 isLocked={isLocked}
                 nodeId={nodeId}
                 schemaId={schemaId}
+                setInputSize={setInputSize}
                 setInputValue={setInputValue}
             />
         );
@@ -57,7 +61,15 @@ const ItemRenderer: InputItemRenderer = memo(
 );
 
 export const NodeInputs = memo(
-    ({ schema, id, inputData, setInputValue, inputSize, isLocked = false }: NodeInputsProps) => {
+    ({
+        schema,
+        id,
+        inputData,
+        setInputValue,
+        inputSize,
+        setInputSize,
+        isLocked = false,
+    }: NodeInputsProps) => {
         const { schemaInputs } = useContext(BackendContext);
 
         const { schemaId } = schema;
@@ -75,6 +87,7 @@ export const NodeInputs = memo(
                         key={getUniqueKey(item)}
                         nodeId={id}
                         schemaId={schemaId}
+                        setInputSize={setInputSize}
                         setInputValue={setInputValue}
                     />
                 ))}

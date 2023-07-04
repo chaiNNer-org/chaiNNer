@@ -12,6 +12,7 @@ export const ConditionalGroup = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         nodeId,
         schemaId,
@@ -49,6 +50,7 @@ export const ConditionalGroup = memo(
                         key={getUniqueKey(item)}
                         nodeId={nodeId}
                         schemaId={schemaId}
+                        setInputSize={setInputSize}
                         setInputValue={setInputValue}
                     />
                 ))}

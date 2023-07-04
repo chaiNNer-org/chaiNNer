@@ -25,7 +25,8 @@ export const TextInput = memo(
         isLocked,
         useInputConnected,
         useInputType,
-        useInputSize,
+        size,
+        setSize,
         nodeId,
     }: InputProps<'text', string>) => {
         const { label, multiline, minLength, maxLength, def, placeholder } = input;
@@ -112,7 +113,6 @@ export const TextInput = memo(
         ));
 
         // size
-        const [size, setSize] = useInputSize();
         useEffect(() => {
             if (!size) {
                 setSize(DEFAULT_SIZE);

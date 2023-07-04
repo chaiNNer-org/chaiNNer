@@ -27,6 +27,7 @@ export const NcnnFileInputsGroup = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         nodeId,
         schemaId,
@@ -54,6 +55,7 @@ export const NcnnFileInputsGroup = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
+                    setInputSize={setInputSize}
                     setInputValue={(inputId, file) => {
                         setInputValue(inputId, file);
 
@@ -69,6 +71,7 @@ export const NcnnFileInputsGroup = memo(
                     isLocked={isLocked}
                     nodeId={nodeId}
                     schemaId={schemaId}
+                    setInputSize={setInputSize}
                     setInputValue={(inputId, file) => {
                         setInputValue(inputId, file);
 

@@ -14,6 +14,7 @@ export const OptionalInputsGroup = memo(
         inputData,
         setInputValue,
         inputSize,
+        setInputSize,
         isLocked,
         nodeId,
         schemaId,
@@ -57,6 +58,7 @@ export const OptionalInputsGroup = memo(
                         key={getUniqueKey(item)}
                         nodeId={nodeId}
                         schemaId={schemaId}
+                        setInputSize={setInputSize}
                         setInputValue={setInputValue}
                     />
                 ))}
