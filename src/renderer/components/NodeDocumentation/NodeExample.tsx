@@ -95,13 +95,16 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                         />
                         <NodeBody
                             animated={false}
-                            id="<fake node id>"
-                            inputData={inputData}
-                            inputSize={inputSize}
-                            isLocked={false}
-                            schema={selectedSchema}
-                            setInputSize={setSingleInputSize}
-                            setInputValue={setInputValue}
+                            nodeState={{
+                                id: '<fake node id>',
+                                schemaId: selectedSchema.schemaId,
+                                schema: selectedSchema,
+                                inputData,
+                                setInputValue,
+                                inputSize,
+                                setInputSize: setSingleInputSize,
+                                isLocked: false,
+                            }}
                         />
                     </VStack>
                     <NodeFooter

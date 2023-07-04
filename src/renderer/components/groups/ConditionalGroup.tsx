@@ -7,18 +7,8 @@ import { GroupProps } from './props';
 import { someInput } from './util';
 
 export const ConditionalGroup = memo(
-    ({
-        inputs,
-        inputData,
-        setInputValue,
-        inputSize,
-        setInputSize,
-        isLocked,
-        nodeId,
-        schemaId,
-        group,
-        ItemRenderer,
-    }: GroupProps<'conditional'>) => {
+    ({ inputs, nodeState, group, ItemRenderer }: GroupProps<'conditional'>) => {
+        const { id: nodeId, inputData } = nodeState;
         const { condition } = group.options;
 
         const isNodeInputLocked = useContextSelector(
@@ -43,15 +33,9 @@ export const ConditionalGroup = memo(
             <>
                 {inputs.filter(showInput).map((item) => (
                     <ItemRenderer
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
                         item={item}
                         key={getUniqueKey(item)}
-                        nodeId={nodeId}
-                        schemaId={schemaId}
-                        setInputSize={setInputSize}
-                        setInputValue={setInputValue}
+                        nodeState={nodeState}
                     />
                 ))}
             </>

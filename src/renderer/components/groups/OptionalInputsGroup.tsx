@@ -9,17 +9,9 @@ import { GroupProps } from './props';
 import { someInput } from './util';
 
 export const OptionalInputsGroup = memo(
-    ({
-        inputs,
-        inputData,
-        setInputValue,
-        inputSize,
-        setInputSize,
-        isLocked,
-        nodeId,
-        schemaId,
-        ItemRenderer,
-    }: GroupProps<'optional-list'>) => {
+    ({ inputs, nodeState, ItemRenderer }: GroupProps<'optional-list'>) => {
+        const { id: nodeId, inputData } = nodeState;
+
         const isNodeInputLocked = useContextSelector(
             GlobalVolatileContext,
             (c) => c.isNodeInputLocked
@@ -51,15 +43,9 @@ export const OptionalInputsGroup = memo(
             <>
                 {inputs.slice(0, uncovered).map((item) => (
                     <ItemRenderer
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
                         item={item}
                         key={getUniqueKey(item)}
-                        nodeId={nodeId}
-                        schemaId={schemaId}
-                        setInputSize={setInputSize}
-                        setInputValue={setInputValue}
+                        nodeState={nodeState}
                     />
                 ))}
                 {showMoreButton && (

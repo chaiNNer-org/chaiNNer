@@ -7,6 +7,7 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import { useNodeStateFromData } from '../../helpers/nodeState';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useValidity } from '../../hooks/useValidity';
 import { NodeBody } from './NodeBody';
@@ -19,27 +20,21 @@ interface IteratorHelperNodeProps {
 }
 
 export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) => {
+    const nodeState = useNodeStateFromData(data);
+    const { schema } = nodeState;
+
     const effectivelyDisabledNodes = useContextSelector(
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { updateIteratorBounds, setHoveredNode, setNodeInputValue, setNodeInputSize } =
-        useContext(GlobalContext);
-    const { schemata, categories } = useContext(BackendContext);
+    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { categories } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
+    const { id, inputData, parentNode } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
-    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
-    const setInputSize = useMemo(() => setNodeInputSize.bind(null, id), [id, setNodeInputSize]);
-
-    // We get inputs and outputs this way in case something changes with them in the future
-    // This way, we have to do less in the migration file
-    const schema = schemata.get(schemaId);
-    const { icon, category, name } = schema;
-
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getCategoryAccentColor(categories, category);
+    const accentColor = getCategoryAccentColor(categories, schema.category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -98,20 +93,12 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                     <NodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabledStatus}
-                        icon={icon}
-                        name={name}
+                        icon={schema.icon}
+                        name={schema.name}
                         parentNode={parentNode}
                         selected={selected}
                     />
-                    <NodeBody
-                        id={id}
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
-                        schema={schema}
-                        setInputSize={setInputSize}
-                        setInputValue={setInputValue}
-                    />
+                    <NodeBody nodeState={nodeState} />
                 </VStack>
                 <NodeFooter
                     animated={animated}

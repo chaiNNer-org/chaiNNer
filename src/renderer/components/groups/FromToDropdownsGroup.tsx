@@ -34,7 +34,8 @@ const SmallDropDown = memo(({ input, inputData, setInputValue, isLocked }: Small
 });
 
 export const FromToDropdownsGroup = memo(
-    ({ inputs, inputData, setInputValue, isLocked }: GroupProps<'from-to-dropdowns'>) => {
+    ({ inputs, nodeState }: GroupProps<'from-to-dropdowns'>) => {
+        const { inputData, setInputValue, isLocked } = nodeState;
         const [from, to] = inputs;
 
         return (
