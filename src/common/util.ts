@@ -7,6 +7,7 @@ import type { Input, InputData, InputId, InputValue, NodeSchema, OutputId } from
 export const EMPTY_ARRAY: readonly never[] = [];
 export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
 export const EMPTY_MAP: ReadonlyMap<never, never> = new Map<never, never>();
+export const EMPTY_OBJECT: Readonly<Record<string, never>> = Object.freeze({});
 
 export const noop = () => {};
 

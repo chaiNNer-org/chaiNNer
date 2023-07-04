@@ -1,7 +1,6 @@
 import { NeverType, Type } from '@chainner/navi';
 import {
     Box,
-    Center,
     Code,
     Divider,
     Flex,
@@ -13,11 +12,10 @@ import {
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { memo, useCallback, useState } from 'react';
+import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { InputData, InputId, InputValue, NodeSchema } from '../../../common/common-types';
-import { DisabledStatus } from '../../../common/nodes/disabled';
+import { NodeSchema } from '../../../common/common-types';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
@@ -26,90 +24,10 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
-import { NodeBody } from '../node/NodeBody';
-import { NodeFooter } from '../node/NodeFooter/NodeFooter';
-import { NodeHeader } from '../node/NodeHeader';
 import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
+import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
-
-interface NodeExampleProps {
-    accentColor: string;
-    selectedSchema: NodeSchema;
-}
-const FakeNodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps) => {
-    const [state, setState] = useState<{ inputData: InputData; schema: NodeSchema }>({
-        inputData: {},
-        schema: selectedSchema,
-    });
-
-    const setInputValue = useCallback(
-        (inputId: InputId, value: InputValue): void => {
-            setState((prev) => {
-                const inputData = prev.schema === selectedSchema ? prev.inputData : {};
-                return {
-                    inputData: {
-                        ...inputData,
-                        [inputId]: value,
-                    },
-                    schema: selectedSchema,
-                };
-            });
-        },
-        [selectedSchema]
-    );
-
-    const inputData = state.schema === selectedSchema ? state.inputData : {};
-    return (
-        <Center
-            pointerEvents="none"
-            w="auto"
-        >
-            <Center
-                bg="var(--node-bg-color)"
-                borderColor="var(--node-border-color)"
-                borderRadius="lg"
-                borderWidth="0.5px"
-                boxShadow="lg"
-                minWidth="240px"
-                overflow="hidden"
-                transition="0.15s ease-in-out"
-            >
-                <VStack
-                    spacing={0}
-                    w="full"
-                >
-                    <VStack
-                        spacing={0}
-                        w="full"
-                    >
-                        <NodeHeader
-                            accentColor={accentColor}
-                            disabledStatus={DisabledStatus.Enabled}
-                            icon={selectedSchema.icon}
-                            name={selectedSchema.name}
-                            parentNode={undefined}
-                            selected={false}
-                        />
-                        <NodeBody
-                            animated={false}
-                            id="<fake node id>"
-                            inputData={inputData}
-                            isLocked={false}
-                            schema={selectedSchema}
-                            setInputValue={setInputValue}
-                        />
-                    </VStack>
-                    <NodeFooter
-                        animated={false}
-                        id="<fake node id>"
-                        validity={{ isValid: true }}
-                    />
-                </VStack>
-            </Center>
-        </Center>
-    );
-});
 
 interface InputOutputItemProps {
     label: string;
@@ -363,7 +281,7 @@ export const NodeDocs = memo(() => {
                         position="relative"
                     >
                         <VStack position="relative">
-                            <FakeNodeExample
+                            <NodeExample
                                 accentColor={selectedAccentColor}
                                 selectedSchema={selectedSchema}
                             />
@@ -371,7 +289,7 @@ export const NodeDocs = memo(() => {
                                 selectedSchema.defaultNodes.map((defaultNode) => {
                                     const nodeSchema = schemata.get(defaultNode.schemaId);
                                     return (
-                                        <FakeNodeExample
+                                        <NodeExample
                                             accentColor={selectedAccentColor}
                                             key={defaultNode.schemaId}
                                             selectedSchema={nodeSchema}

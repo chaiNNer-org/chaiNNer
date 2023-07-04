@@ -17,6 +17,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { useNodeStateFromData } from '../../helpers/nodeState';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
@@ -56,21 +57,21 @@ export interface NodeProps {
 }
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
+    const nodeState = useNodeStateFromData(data);
+    const { schema, setInputValue } = nodeState;
+
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
-    const { schemata, categories } = useContext(BackendContext);
+    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { categories } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
+    const { id, inputData, parentNode } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
-
-    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
     const { getEdge } = useReactFlow();
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const schema = schemata.get(schemaId);
-    const { inputs, icon, category, name } = schema;
+    const { inputs, category } = schema;
 
     const { validity } = useValidity(id, schema, inputData);
 
@@ -133,7 +134,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
             if (p) {
-                setNodeInputValue<string>(id, fileInput.id, p);
+                setInputValue(fileInput.id, p);
                 return;
             }
 
@@ -208,19 +209,14 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     <NodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
-                        icon={icon}
-                        name={name}
+                        icon={schema.icon}
+                        name={schema.name}
                         parentNode={parentNode}
                         selected={selected}
                     />
                     <NodeBody
                         animated={animated}
-                        id={id}
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
-                        schema={schema}
-                        setInputValue={setInputValue}
+                        nodeState={nodeState}
                     />
                 </VStack>
                 <NodeFooter

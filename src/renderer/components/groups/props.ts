@@ -1,33 +1,15 @@
-import {
-    Group,
-    GroupKind,
-    InputData,
-    InputId,
-    InputSize,
-    InputValue,
-    OfKind,
-    SchemaId,
-} from '../../../common/common-types';
+import { Group, GroupKind, OfKind } from '../../../common/common-types';
 import { GroupInputs, InputItem } from '../../../common/group-inputs';
+import { NodeState } from '../../helpers/nodeState';
 
 export type InputItemRenderer = (props: {
     item: InputItem;
-    nodeId: string;
-    inputData: InputData;
-    setInputValue: (inputId: InputId, value: InputValue) => void;
-    inputSize?: InputSize;
-    isLocked: boolean;
-    schemaId: SchemaId;
+    nodeState: NodeState;
 }) => JSX.Element | null;
 
 export interface GroupProps<Kind extends GroupKind> {
     group: OfKind<Group, Kind>;
     inputs: GroupInputs[Kind];
-    schemaId: SchemaId;
-    nodeId: string;
-    isLocked: boolean;
-    inputData: InputData;
-    setInputValue: (inputId: InputId, value: InputValue) => void;
-    inputSize: InputSize | undefined;
+    nodeState: NodeState;
     ItemRenderer: InputItemRenderer;
 }
