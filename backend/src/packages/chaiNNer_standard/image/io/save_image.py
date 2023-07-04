@@ -66,7 +66,7 @@ class JpegSubsampling(Enum):
     icon="MdSave",
     inputs=[
         ImageInput(),
-        DirectoryInput(has_handle=True),
+        DirectoryInput(must_exist=False, has_handle=True),
         TextInput("Subdirectory Path")
         .make_optional()
         .with_docs(
