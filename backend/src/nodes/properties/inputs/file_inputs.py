@@ -111,7 +111,12 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
 class DirectoryInput(BaseInput):
     """Input for submitting a local directory"""
 
-    def __init__(self, label: str = "Base Directory", has_handle: bool = False):
+    def __init__(
+        self,
+        label: str = "Base Directory",
+        has_handle: bool = False,
+        must_exist: bool = True,
+    ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
 
         self.input_adapt = """
@@ -121,11 +126,14 @@ class DirectoryInput(BaseInput):
             }
         """
 
+        self.must_exist: bool = must_exist
+
         self.associated_type = str
 
     def enforce(self, value):
         assert isinstance(value, str)
-        assert os.path.exists(value), f"Directory {value} does not exist"
+        if self.must_exist:
+            assert os.path.exists(value), f"Directory {value} does not exist"
         return value
 
 
