@@ -28,12 +28,12 @@ const useStateForSchema = function <T>(
         (value: (prev: T) => T): void => {
             setState((prev) => {
                 return {
-                    value: value(prev.value),
+                    value: value(prev.schema === schema ? prev.value : defaultValue),
                     schema,
                 };
             });
         },
-        [schema]
+        [schema, defaultValue]
     );
 
     const value = state.schema === schema ? state.value : defaultValue;
@@ -64,6 +64,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
 
     return (
         <Center
+            key={selectedSchema.schemaId}
             pointerEvents="none"
             w="auto"
         >
