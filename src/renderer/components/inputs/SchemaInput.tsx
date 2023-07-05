@@ -52,6 +52,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         inputSize,
         setInputSize,
         isLocked,
+        connectedInputs,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -80,14 +81,6 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         [inputId, setInputSize]
     );
 
-    const useInputConnected = useCallback((): boolean => {
-        // TODO: move the function call into the selector
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        return useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            nodeId,
-            inputId
-        );
-    }, [nodeId, inputId]);
     const useInputType = useCallback((): Type => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         return useContextSelector(GlobalVolatileContext, (c) => {
@@ -102,6 +95,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             definitionType={definitionType}
             input={input as never}
             inputKey={`${schemaId}-${inputId}`}
+            isConnected={connectedInputs.has(inputId)}
             isLocked={isLocked}
             nodeId={nodeId}
             nodeSchemaId={schemaId}
@@ -109,7 +103,6 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             setSize={setSize}
             setValue={setValue}
             size={size}
-            useInputConnected={useInputConnected}
             useInputType={useInputType}
             value={value}
         />

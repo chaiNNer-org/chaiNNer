@@ -10,10 +10,10 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly input: Omit<PartialBy<OfKind<Input, Kind>, 'id'>, 'type' | 'conversion'>;
     readonly definitionType: Type;
     readonly isLocked: boolean;
+    readonly isConnected: boolean;
     readonly inputKey: string;
     readonly size: Readonly<Size> | undefined;
     readonly setSize: (size: Readonly<Size>) => void;
-    readonly useInputConnected: () => boolean;
     readonly useInputType: () => Type;
     readonly nodeId?: string;
     readonly nodeSchemaId?: SchemaId;

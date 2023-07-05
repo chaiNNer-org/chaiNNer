@@ -1,19 +1,14 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { HiOutlineRefresh } from 'react-icons/hi';
-import { useContextSelector } from 'use-context-selector';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 
 export const SeedGroup = memo(({ inputs, nodeState }: GroupProps<'seed'>) => {
-    const { id: nodeId, setInputValue, isLocked } = nodeState;
-    const [input] = inputs;
+    const { setInputValue, isLocked, connectedInputs } = nodeState;
 
-    const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-        nodeId,
-        input.id
-    );
+    const [input] = inputs;
+    const isInputLocked = connectedInputs.has(input.id);
 
     const setRandom = useCallback(() => {
         const RANDOM_MAX = 1e6;

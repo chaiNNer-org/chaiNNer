@@ -11,10 +11,6 @@ export const ConditionalGroup = memo(
         const { id: nodeId, inputData } = nodeState;
         const { condition } = group.options;
 
-        const isNodeInputLocked = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.isNodeInputLocked
-        );
         const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
         const isEnabled = useMemo(
@@ -26,7 +22,7 @@ export const ConditionalGroup = memo(
             if (isEnabled) return true;
 
             // input or some input of the group is connected to another node
-            return someInput(input, ({ id }) => isNodeInputLocked(nodeId, id));
+            return someInput(input, ({ id }) => nodeState.connectedInputs.has(id));
         };
 
         return (
