@@ -44,7 +44,11 @@ def principal_color_transfer(
     eigval_content, eigvec_content = np.linalg.eig(cov_content)
     eigval_reference, eigvec_reference = np.linalg.eig(cov_reference)
 
-    scaling = np.diag(np.sqrt(eigval_reference / eigval_content))
+    # Division by 0 is forbidden: change null values to arbitrary values
+    eigval_content = np.where(eigval_content == 0, 1e-42, eigval_content)
+    eigval_factor = eigval_reference / eigval_content
+
+    scaling = np.diag(np.sqrt(eigval_factor.clip(min=0)))
     transform = eigvec_reference.dot(scaling).dot(eigvec_content.T)
     transfer = (content - mu_content).dot(transform.T) + mu_reference
 
