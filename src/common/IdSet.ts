@@ -34,6 +34,8 @@ export namespace IdSet {
         let s = '';
         let last = -1;
         for (const id of sorted) {
+            if (id < 0 || id > 65535 || !Number.isInteger(id)) throw new Error(`Invalid id: ${id}`);
+
             if (id !== last) {
                 last = id;
                 s += String.fromCharCode(id);
@@ -46,13 +48,3 @@ export namespace IdSet {
         return fromSorted(sorted);
     };
 }
-
-export const toIdSetMap = <K, V extends number>(
-    map: ReadonlyMap<K, Iterable<V>>
-): Map<K, IdSet<V>> => {
-    const result = new Map<K, IdSet<V>>();
-    for (const [k, iter] of map) {
-        result.set(k, IdSet.from(iter));
-    }
-    return result;
-};
