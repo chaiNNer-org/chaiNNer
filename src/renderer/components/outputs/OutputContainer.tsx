@@ -1,10 +1,10 @@
 import { Type } from '@chainner/navi';
 import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import { Connection, useReactFlow } from 'reactflow';
-import { useContext, useContextSelector } from 'use-context-selector';
-import { OutputId } from '../../../common/common-types';
-import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
+import { Connection } from 'reactflow';
+import { useContext } from 'use-context-selector';
+import { Output } from '../../../common/common-types';
+import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/accentColors';
@@ -12,38 +12,26 @@ import { Handle } from '../Handle';
 import { TypeTags } from '../TypeTag';
 
 interface OutputContainerProps {
-    hasHandle: boolean;
-    outputId: OutputId;
+    output: Output;
     id: string;
     definitionType: Type;
-    label: string;
+    type: Type | undefined;
     generic: boolean;
+    isConnected: boolean;
 }
 
 export const OutputContainer = memo(
     ({
         children,
-        hasHandle,
-        outputId,
+        output,
         id,
         definitionType,
-        label,
+        type,
         generic,
+        isConnected,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFrom } =
-            useContext(GlobalVolatileContext);
-
-        const { getEdges } = useReactFlow();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const edges = useMemo(() => getEdges(), [edgeChanges, getEdges]);
-        const isConnected = !!edges.find(
-            (e) => e.source === id && parseSourceHandle(e.sourceHandle!).outputId === outputId
-        );
+        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
-
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(id)?.outputs.get(outputId)
-        );
 
         const isValidConnectionForRf = useCallback(
             (connection: Readonly<Connection>): boolean => {
@@ -52,11 +40,11 @@ export const OutputContainer = memo(
             [isValidConnection]
         );
 
+        const sourceHandle = stringifySourceHandle({ nodeId: id, outputId: output.id });
+
         const validity = useMemo(() => {
             // no active connection
             if (!connectingFrom) return VALID;
-
-            const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
 
             // We only want to display the connectingFrom source handle
             if (connectingFrom.handleType === 'source') {
@@ -71,11 +59,11 @@ export const OutputContainer = memo(
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-        }, [connectingFrom, id, outputId, isValidConnection]);
+        }, [connectingFrom, id, sourceHandle, isValidConnection]);
 
         let contents = children;
-        const handleColors = getTypeAccentColors(type || definitionType);
-        if (hasHandle) {
+        if (output.hasHandle) {
+            const handleColors = getTypeAccentColors(type || definitionType);
             contents = (
                 <HStack h="full">
                     {children}
@@ -86,7 +74,7 @@ export const OutputContainer = memo(
                         <Handle
                             connectedColor={isConnected ? handleColors[0] : undefined}
                             handleColors={handleColors}
-                            id={stringifySourceHandle({ nodeId: id, outputId })}
+                            id={sourceHandle}
                             isValidConnection={isValidConnectionForRf}
                             type="output"
                             validity={validity}
@@ -127,12 +115,12 @@ export const OutputContainer = memo(
                             </Center>
                         )}
                         <Text
-                            display={label ? 'block' : 'none'}
+                            display={output.label ? 'block' : 'none'}
                             fontSize="xs"
                             lineHeight="0.9rem"
                             textAlign="center"
                         >
-                            {label}
+                            {output.label}
                         </Text>
                     </Center>
                 )}

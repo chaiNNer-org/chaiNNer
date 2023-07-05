@@ -30,14 +30,14 @@ const pickImage = (previews: PreviewImage[], realSize: number) => {
     return found ?? previews[previews.length - 1];
 };
 
-export const LargeImageOutput = memo(({ outputId, useOutputData, animated }: OutputProps) => {
+export const LargeImageOutput = memo(({ output, useOutputData, animated }: OutputProps) => {
     const { t } = useTranslation();
 
     const dpr = useDevicePixelRatio();
     const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
     const realSize = IMAGE_PREVIEW_SIZE * zoom * dpr;
 
-    const { last, stale } = useOutputData<LargeImageBroadcastData>(outputId);
+    const { last, stale } = useOutputData<LargeImageBroadcastData>(output.id);
 
     const imgBgColor = 'var(--node-image-preview-bg)';
     const fontColor = 'var(--node-image-preview-color)';

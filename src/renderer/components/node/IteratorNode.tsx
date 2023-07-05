@@ -127,9 +127,8 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         w="full"
                     >
                         <NodeOutputs
-                            id={id}
-                            outputs={outputs}
-                            schemaId={nodeState.schemaId}
+                            animated={false}
+                            nodeState={nodeState}
                         />
                     </Box>
                 </VStack>

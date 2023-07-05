@@ -1,15 +1,9 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
-import { useContextSelector } from 'use-context-selector';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
-export const GenericOutput = memo(({ label, id, outputId }: OutputProps) => {
-    const type = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)?.outputs.get(outputId)
-    );
-
+export const GenericOutput = memo(({ output, type }: OutputProps) => {
     return (
         <Flex
             h="full"
@@ -18,17 +12,15 @@ export const GenericOutput = memo(({ label, id, outputId }: OutputProps) => {
             w="full"
         >
             <Spacer />
-            {type && (
-                <Center
-                    h="2rem"
-                    verticalAlign="middle"
-                >
-                    <TypeTags
-                        isOptional={false}
-                        type={type}
-                    />
-                </Center>
-            )}
+            <Center
+                h="2rem"
+                verticalAlign="middle"
+            >
+                <TypeTags
+                    isOptional={false}
+                    type={type}
+                />
+            </Center>
             <Text
                 h="full"
                 lineHeight="2rem"
@@ -36,7 +28,7 @@ export const GenericOutput = memo(({ label, id, outputId }: OutputProps) => {
                 ml={1}
                 textAlign="right"
             >
-                {label}
+                {output.label}
             </Text>
         </Flex>
     );

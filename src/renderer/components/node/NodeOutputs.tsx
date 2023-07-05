@@ -1,15 +1,14 @@
-/* eslint-disable react/jsx-props-no-spreading */
-
 import { NeverType, Type, evaluate } from '@chainner/navi';
 import { memo, useCallback, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
+import { OutputId, OutputKind } from '../../../common/common-types';
 import { log } from '../../../common/log';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { ExpressionJson, fromJson } from '../../../common/types/json';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { NodeState } from '../../helpers/nodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
@@ -17,13 +16,8 @@ import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps, UseOutputData } from '../outputs/props';
 import { TaggedOutput } from '../outputs/TaggedOutput';
 
-interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
-    definitionType: Type;
-}
-
 const OutputComponents: Readonly<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Record<OutputKind, React.MemoExoticComponent<(props: any) => JSX.Element>>
+    Record<OutputKind, React.MemoExoticComponent<(props: OutputProps) => JSX.Element>>
 > = {
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
@@ -37,31 +31,7 @@ const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     generic: true,
 };
 
-const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
-    const OutputType = OutputComponents[kind];
-    return (
-        <OutputContainer
-            definitionType={props.definitionType}
-            generic={OutputIsGeneric[kind]}
-            hasHandle={props.hasHandle}
-            id={props.id}
-            key={`${props.id}-${props.outputId}`}
-            label={props.label}
-            outputId={props.outputId}
-        >
-            <OutputType {...props} />
-        </OutputContainer>
-    );
-};
-
 const NO_OUTPUT_DATA: UseOutputData<never> = { current: undefined, last: undefined, stale: false };
-
-interface NodeOutputProps {
-    outputs: readonly Output[];
-    id: string;
-    schemaId: SchemaId;
-    animated?: boolean;
-}
 
 const evalExpression = (expression: ExpressionJson | null | undefined): Type | undefined => {
     if (expression == null) return undefined;
@@ -72,8 +42,15 @@ const evalExpression = (expression: ExpressionJson | null | undefined): Type | u
     }
 };
 
-export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: NodeOutputProps) => {
-    const { functionDefinitions, schemata } = useContext(BackendContext);
+interface NodeOutputProps {
+    nodeState: NodeState;
+    animated: boolean;
+}
+
+export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
+    const { id, schema, schemaId } = nodeState;
+
+    const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
@@ -97,7 +74,6 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
 
     const currentTypes = stale ? undefined : outputDataEntry?.types;
 
-    const schema = schemata.get(schemaId);
     useEffect(() => {
         if (isStartingNode(schema)) {
             for (const output of schema.outputs) {
@@ -110,19 +86,32 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
     const functions = functionDefinitions.get(schemaId)?.outputDefaults;
     return (
         <>
-            {outputs.map((output) => {
-                const props: FullOutputProps = {
-                    ...output,
-                    id,
-                    outputId: output.id,
-                    useOutputData,
-                    kind: output.kind,
-                    schemaId,
-                    definitionType: functions?.get(output.id) ?? NeverType.instance,
-                    hasHandle: output.hasHandle,
-                    animated,
-                };
-                return pickOutput(output.kind, props);
+            {schema.outputs.map((output) => {
+                const definitionType = functions?.get(output.id) ?? NeverType.instance;
+                const type = nodeState.type.instance?.outputs.get(output.id);
+
+                const OutputType = OutputComponents[output.kind];
+                return (
+                    <OutputContainer
+                        definitionType={definitionType}
+                        generic={OutputIsGeneric[output.kind]}
+                        id={id}
+                        isConnected={nodeState.connectedOutputs.has(output.id)}
+                        key={`${id}-${output.id}`}
+                        output={output}
+                        type={type}
+                    >
+                        <OutputType
+                            animated={animated}
+                            definitionType={definitionType}
+                            id={id}
+                            output={output}
+                            schema={nodeState.schema}
+                            type={type ?? NeverType.instance}
+                            useOutputData={useOutputData}
+                        />
+                    </OutputContainer>
+                );
             })}
         </>
     );

@@ -8,6 +8,7 @@ import {
     InputValue,
     NodeData,
     NodeSchema,
+    OutputId,
     SchemaId,
     Size,
 } from '../../common/common-types';
@@ -67,6 +68,7 @@ export interface NodeState {
     readonly setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
     readonly isLocked: boolean;
     readonly connectedInputs: ReadonlySet<InputId>;
+    readonly connectedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
     readonly testCondition: (condition: Condition) => boolean;
 }
@@ -82,13 +84,17 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
 
-    const connectedInputsString = useContextSelector(GlobalVolatileContext, (c) =>
-        c.getConnectedInputs(id)
+    const connectedString = useContextSelector(GlobalVolatileContext, (c) =>
+        JSON.stringify(c.getConnected(id))
     );
-    const connectedInputs = useMemo(() => {
-        if (IdSet.isEmpty(connectedInputsString)) return EMPTY_SET;
-        return IdSet.toSet(connectedInputsString);
-    }, [connectedInputsString]);
+    const [connectedInputs, connectedOutputs] = useMemo(() => {
+        const [inputsSet, outputsSet] = JSON.parse(connectedString) as [
+            IdSet<InputId>,
+            IdSet<OutputId>
+        ];
+
+        return [IdSet.toSet(inputsSet), IdSet.toSet(outputsSet)];
+    }, [connectedString]);
 
     const type = useTypeInfo(id);
 
@@ -107,6 +113,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         setInputSize,
         isLocked: isLocked ?? false,
         connectedInputs,
+        connectedOutputs,
         type,
         testCondition,
     });

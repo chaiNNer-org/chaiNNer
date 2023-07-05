@@ -2,32 +2,17 @@ import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { BsEyeFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
-import {
-    createUniqueId,
-    parseSourceHandle,
-    stringifySourceHandle,
-    stringifyTargetHandle,
-} from '../../../common/util';
-import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
-export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: OutputProps) => {
-    const type = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)?.outputs.get(outputId)
-    );
-
+export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProps) => {
     const { selectNode, createNode, createConnection } = useContext(GlobalContext);
-
-    const outputIndex = useContextSelector(BackendContext, (c) =>
-        c.schemata.get(schemaId).outputs.findIndex((o) => o.id === outputId)
-    );
-
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     return (
@@ -56,14 +41,11 @@ export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: Outpu
                 onClick={() => {
                     const byId = new Map(getNodes().map((n) => [n.id, n]));
 
+                    const sourceHandle = stringifySourceHandle({ nodeId: id, outputId: output.id });
+
                     // check whether there already is a view node
                     const viewId = getEdges()
-                        .filter(
-                            (e) =>
-                                e.source === id &&
-                                e.sourceHandle &&
-                                parseSourceHandle(e.sourceHandle).outputId === outputId
-                        )
+                        .filter((e) => e.source === id && e.sourceHandle === sourceHandle)
                         .map((e) => e.target)
                         .find((i) => byId.get(i)?.data.schemaId === VIEW_SCHEMA_ID);
                     if (viewId !== undefined) {
@@ -75,6 +57,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: Outpu
                     const containingNode = byId.get(id);
                     if (containingNode) {
                         const nodeId = createUniqueId();
+                        const outputIndex = schema.outputs.findIndex((o) => o.id === output.id);
 
                         // TODO: This is a bit of hardcoding, but it works
                         createNode(
@@ -97,7 +80,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: Outpu
                         );
                         createConnection({
                             source: id,
-                            sourceHandle: stringifySourceHandle({ nodeId: id, outputId }),
+                            sourceHandle,
                             target: nodeId,
                             targetHandle: stringifyTargetHandle({
                                 nodeId,
@@ -113,17 +96,15 @@ export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: Outpu
                 />
             </Center>
             <Spacer />
-            {type && (
-                <Center
-                    h="2rem"
-                    verticalAlign="middle"
-                >
-                    <TypeTags
-                        isOptional={false}
-                        type={type}
-                    />
-                </Center>
-            )}
+            <Center
+                h="2rem"
+                verticalAlign="middle"
+            >
+                <TypeTags
+                    isOptional={false}
+                    type={type}
+                />
+            </Center>
             <Text
                 h="full"
                 lineHeight="2rem"
@@ -131,7 +112,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, schemaId }: Outpu
                 ml={1}
                 textAlign="right"
             >
-                {label}
+                {output.label}
             </Text>
         </Flex>
     );

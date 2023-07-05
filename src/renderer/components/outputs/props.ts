@@ -1,5 +1,5 @@
 import { Type } from '@chainner/navi';
-import { OutputId, OutputKind, SchemaId } from '../../../common/common-types';
+import { NodeSchema, Output, OutputId } from '../../../common/common-types';
 
 export interface UseOutputData<T> {
     /** The current output data. Current here means most recent + up to date (= same input hash). */
@@ -11,13 +11,11 @@ export interface UseOutputData<T> {
 }
 
 export interface OutputProps {
+    readonly output: Output;
     readonly id: string;
-    readonly outputId: OutputId;
-    readonly label: string;
-    readonly schemaId: SchemaId;
+    readonly schema: NodeSchema;
     readonly definitionType: Type;
-    readonly hasHandle: boolean;
+    readonly type: Type;
     readonly useOutputData: <T>(outputId: OutputId) => UseOutputData<T>;
     readonly animated: boolean;
-    readonly kind: OutputKind;
 }
