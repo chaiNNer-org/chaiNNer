@@ -23,11 +23,13 @@ export const HandleWrapper = memo(
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        const edges = useMemo(() => getEdges(), [edgeChanges, getEdges]);
-        const connectedEdge = edges.find(
-            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
-        );
+
+        const connectedEdge = useMemo(() => {
+            return getEdges().find(
+                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
+            );
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [edgeChanges, getEdges, id, inputId]);
         const isConnected = !!connectedEdge;
         const [connectingFrom] = useConnectingFrom;
 
@@ -64,22 +66,22 @@ export const HandleWrapper = memo(
 
         const handleColors = getTypeAccentColors(connectableType);
 
-        const parentTypeColor = useMemo(() => {
+        const sourceTypeColor = useMemo(() => {
             if (connectedEdge) {
-                const parentNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
-                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
-                if (parentNode) {
-                    const parentDef = functionDefinitions.get(parentNode.data.schemaId);
-                    if (!parentDef) {
+                const sourceNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
+                const sourceOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
+                if (sourceNode) {
+                    const sourceDef = functionDefinitions.get(sourceNode.data.schemaId);
+                    if (!sourceDef) {
                         return defaultColor;
                     }
-                    const parentType =
-                        typeState.functions.get(parentNode.id)?.outputs.get(parentOutputId) ??
-                        parentDef.outputDefaults.get(parentOutputId);
-                    if (!parentType) {
+                    const sourceType =
+                        typeState.functions.get(sourceNode.id)?.outputs.get(sourceOutputId) ??
+                        sourceDef.outputDefaults.get(sourceOutputId);
+                    if (!sourceType) {
                         return defaultColor;
                     }
-                    return getTypeAccentColors(parentType)[0];
+                    return getTypeAccentColors(sourceType)[0];
                 }
                 return defaultColor;
             }
@@ -95,7 +97,7 @@ export const HandleWrapper = memo(
                 >
                     <Handle
                         connectedColor={
-                            isConnected ? parentTypeColor ?? handleColors[0] : undefined
+                            isConnected ? sourceTypeColor ?? handleColors[0] : undefined
                         }
                         handleColors={handleColors}
                         id={targetHandle}
