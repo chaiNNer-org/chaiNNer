@@ -16,9 +16,8 @@ export interface UseDisabled {
 export const useDisabled = (data: NodeData): UseDisabled => {
     const { id, isDisabled, schemaId } = data;
 
-    const effectivelyDisabledNodes = useContextSelector(
-        GlobalVolatileContext,
-        (c) => c.effectivelyDisabledNodes
+    const status = useContextSelector(GlobalVolatileContext, (c) =>
+        getDisabledStatus(data, c.effectivelyDisabledNodes)
     );
     const { setNodeDisabled } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
@@ -30,7 +29,7 @@ export const useDisabled = (data: NodeData): UseDisabled => {
             (schema.hasSideEffects || schema.outputs.length > 0) &&
             schema.nodeType !== 'iteratorHelper',
         isDirectlyDisabled: isDisabled ?? false,
-        status: getDisabledStatus(data, effectivelyDisabledNodes),
+        status,
         toggleDirectlyDisabled: useCallback(
             () => setNodeDisabled(id, !isDisabled),
             [setNodeDisabled, id, isDisabled]
