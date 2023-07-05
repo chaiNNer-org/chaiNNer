@@ -57,8 +57,8 @@ export const SliderInput = memo(
         value,
         setValue,
         input,
+        isConnected,
         isLocked,
-        useInputConnected,
         useInputType,
         nodeId,
         nodeSchemaId,
@@ -121,12 +121,11 @@ export const SliderInput = memo(
             );
         }, [input, schema]);
 
-        const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const typeNumber = isNumericLiteral(inputType) ? inputType.value : undefined;
         const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
 
-        const displaySliderValue: number = isInputConnected ? typeNumber ?? def : sliderValue;
+        const displaySliderValue: number = isConnected ? typeNumber ?? def : sliderValue;
         const expr = noteExpression
             ? tryEvaluate(noteExpression, {
                   min,
@@ -184,7 +183,7 @@ export const SliderInput = memo(
                     {ends[0] && <Text fontSize="xs">{ends[0]}</Text>}
                     <StyledSlider
                         def={def}
-                        isDisabled={isLocked || isInputConnected}
+                        isDisabled={isLocked || isConnected}
                         max={max}
                         min={min}
                         scale={scale}
@@ -202,9 +201,9 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputString={isInputConnected ? typeNumberString : inputString}
+                        inputString={isConnected ? typeNumberString : inputString}
                         inputWidth={`${inputWidthRem}rem`}
-                        isDisabled={isLocked || isInputConnected}
+                        isDisabled={isLocked || isConnected}
                         max={max}
                         min={min}
                         precision={precision}

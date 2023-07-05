@@ -119,13 +119,14 @@ valid_formats = get_available_image_formats()
     description="Load image from specified file. This node will output the loaded image, the directory of the image file, and the name of the image file (without file extension).",
     icon="BsFillImageFill",
     inputs=[
-        ImageFileInput(primary_input=True).with_documentation(
-            description=f"Select the path of an image file. Supports the following image formats: {', '.join(valid_formats)}"
+        ImageFileInput(primary_input=True).with_docs(
+            "Select the path of an image file.",
+            f"Supports the following image formats: {', '.join(valid_formats)}",
         )
     ],
     outputs=[
-        LargeImageOutput().with_documentation(
-            description="The node will display a preview of the selected image as well as type information for it. Connect this output to the input of another node to pass the image to it."
+        LargeImageOutput().with_docs(
+            "The node will display a preview of the selected image as well as type information for it. Connect this output to the input of another node to pass the image to it."
         ),
         DirectoryOutput("Image Directory", of_input=0),
         FileNameOutput("Image Name", of_input=0),

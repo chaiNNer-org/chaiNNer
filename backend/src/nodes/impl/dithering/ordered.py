@@ -31,7 +31,7 @@ def one_channel_ordered_dither(
 
     tm = get_threshold_map(image.shape, threshold_map=threshold_map)
     return as_dtype(
-        np.floor((as_float32(image) + tm) * (num_colors - 1) + 0.5) / (num_colors - 1),
+        np.floor(as_float32(image) * (num_colors - 1) + tm + 0.5) / (num_colors - 1),
         image.dtype,
     )
 

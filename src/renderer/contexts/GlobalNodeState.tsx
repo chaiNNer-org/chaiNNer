@@ -17,7 +17,6 @@ import {
     InputData,
     InputId,
     InputKind,
-    InputSize,
     InputValue,
     IteratorSize,
     Mutable,
@@ -37,10 +36,12 @@ import {
 } from '../../common/types/mismatch';
 import { withoutNull } from '../../common/types/util';
 import {
+    EMPTY_ARRAY,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
     deriveUniqueId,
+    lazy,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -94,7 +95,7 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    isNodeInputLocked: (id: string, inputId: InputId) => boolean;
+    getConnectedInputs: (id: string) => readonly InputId[];
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
@@ -121,11 +122,7 @@ interface Global {
     createNode: (proto: NodeProto, parentId?: string) => void;
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
-    useInputSize: (
-        id: string,
-        inputId: InputId,
-        inputSize: InputSize | undefined
-    ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
+    setNodeInputSize: (nodeId: string, inputId: InputId, value: Readonly<Size>) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -260,7 +257,8 @@ export const GlobalProvider = memo(
                     nodeMap,
                     getEdges(),
                     manualOutputTypes.map,
-                    functionDefinitions
+                    functionDefinitions,
+                    typeStateRef.current
                 );
                 setTypeState(types);
                 typeStateRef.current = types;
@@ -941,29 +939,21 @@ export const GlobalProvider = memo(
             [modifyNode, addInputDataChanges]
         );
 
-        const useInputSize = useCallback(
-            (
-                id: string,
-                inputId: InputId,
-                inputSize: InputSize | undefined
-            ): readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void] => {
-                const currentSize = inputSize?.[inputId];
-                const setInputSize = (size: Readonly<Size>) => {
-                    modifyNode(id, (old) => {
-                        const newInputSize: Record<string, Readonly<Size>> = {
-                            ...old.data.inputSize,
-                            [inputId]: size,
+        const setNodeInputSize = useCallback(
+            (nodeId: string, inputId: InputId, size: Readonly<Size>): void => {
+                modifyNode(nodeId, (old) => {
+                    const newInputSize: Record<string, Readonly<Size>> = {
+                        ...old.data.inputSize,
+                        [inputId]: size,
+                    };
+                    Object.entries(newInputSize).forEach(([key, value]) => {
+                        newInputSize[key] = {
+                            ...value,
+                            width: size.width,
                         };
-                        Object.entries(newInputSize).forEach(([key, value]) => {
-                            newInputSize[key] = {
-                                ...value,
-                                width: size.width,
-                            };
-                        });
-                        return withNewData(old, 'inputSize', newInputSize);
                     });
-                };
-                return [currentSize, setInputSize] as const;
+                    return withNewData(old, 'inputSize', newInputSize);
+                });
             },
             [modifyNode]
         );
@@ -1032,17 +1022,29 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const isNodeInputLocked = useCallback(
-            (id: string, inputId: InputId): boolean => {
-                return getEdges().some(
-                    (e) =>
-                        e.target === id &&
-                        !!e.targetHandle &&
-                        parseTargetHandle(e.targetHandle).inputId === inputId
-                );
+        const connectedInputsMap = useMemo(
+            () => {
+                return lazy(() => {
+                    const map = new Map<string, InputId[]>();
+                    for (const e of getEdges()) {
+                        if (e.targetHandle) {
+                            let inputs = map.get(e.target);
+                            if (inputs === undefined) {
+                                inputs = [];
+                                map.set(e.target, inputs);
+                            }
+                            inputs.push(parseTargetHandle(e.targetHandle).inputId);
+                        }
+                    }
+                    return map;
+                });
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
             [edgeChanges, getEdges]
+        );
+        const getConnectedInputs = useCallback(
+            (id: string): readonly InputId[] => connectedInputsMap().get(id) ?? EMPTY_ARRAY,
+            [connectedInputsMap]
         );
 
         const setIteratorSize = useCallback(
@@ -1307,7 +1309,7 @@ export const GlobalProvider = memo(
             nodeChanges,
             edgeChanges,
             typeState,
-            isNodeInputLocked,
+            getConnectedInputs,
             effectivelyDisabledNodes,
             isValidConnection,
             zoom,
@@ -1335,7 +1337,7 @@ export const GlobalProvider = memo(
             createNode,
             createConnection,
             setNodeInputValue,
-            useInputSize,
+            setNodeInputSize,
             toggleNodeLock,
             clearNodes,
             removeNodesById,

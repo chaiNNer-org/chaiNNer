@@ -154,6 +154,8 @@ def lens_blur(
             default=5,
             precision=0,
             controls_step=1,
+        ).with_docs(
+            "This controls the quality of the lens blur. More components will result in a more realistic blur, but will also be slower to compute."
         ),
         SliderInput(
             "Exposure Gamma",

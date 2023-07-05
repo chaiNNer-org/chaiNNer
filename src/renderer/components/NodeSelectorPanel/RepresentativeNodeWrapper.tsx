@@ -1,57 +1,33 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Text, Tooltip, useDisclosure } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { DragEvent, PropsWithChildren, memo, useCallback, useEffect, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import ReactMarkdown from 'react-markdown';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeSchema, SchemaId } from '../../../common/common-types';
-import { BackendContext } from '../../contexts/BackendContext';
+import { NodeSchema } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
 import { RepresentativeNode } from './RepresentativeNode';
 
-const customMarkdownTheme = {
-    // If I don't give this a type of unknown, ReactMarkdown yells at me
-    // Just trust me, this works
-    a: memo((props: PropsWithChildren<unknown>) => {
-        const { children, href } = props as PropsWithChildren<{ href: string }>;
+interface TooltipLabelProps {
+    name?: string;
+    description: string;
+}
+const TooltipLabel = memo(({ name, description }: TooltipLabelProps) => {
+    const firstParagraph = description.split('\n')[0];
 
-        const { schemata } = useContext(BackendContext);
-
-        const isInternalNodeLink = href.startsWith('#');
-        const linkedSchemaId = href.substring(1);
-
-        if (isInternalNodeLink) {
-            const nodeSchema = schemata.get(linkedSchemaId as SchemaId);
-            if (nodeSchema.schemaId !== '') {
-                return (
-                    <Text
-                        as="i"
-                        fontWeight="bold"
-                        m={0}
-                    >
-                        {nodeSchema.name}
-                    </Text>
-                );
-            }
-        }
-
-        return (
-            <Text
-                as="i"
-                fontWeight="bold"
-                m={0}
-            >
-                {children}
-            </Text>
-        );
-    }),
-};
+    return (
+        <>
+            {name && <Text fontWeight="bold">{name}</Text>}
+            <ReactMarkdown components={tooltipDocsMarkdown}>{firstParagraph}</ReactMarkdown>
+        </>
+    );
+});
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
     const data: ChainnerDragData = {
@@ -157,11 +133,10 @@ export const RepresentativeNodeWrapper = memo(
                             hasArrow
                             borderRadius={8}
                             label={
-                                <ReactMarkdown
-                                    components={ChakraUIRenderer(customMarkdownTheme)}
-                                >{`**${collapsed ? node.name : ''}**\n\n${
-                                    node.description
-                                }`}</ReactMarkdown>
+                                <TooltipLabel
+                                    description={node.description}
+                                    name={collapsed ? node.name : undefined}
+                                />
                             }
                             openDelay={500}
                             placement="bottom"

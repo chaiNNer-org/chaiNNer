@@ -53,7 +53,6 @@ interface InputBase {
     readonly optional: boolean;
     readonly hasHandle: boolean;
     readonly description?: string;
-    readonly examples?: readonly string[] | null;
 }
 export interface InputOption {
     option: string;
@@ -144,7 +143,6 @@ export interface Output {
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
     readonly description?: string | null;
-    readonly examples?: readonly string[] | null;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
@@ -237,6 +235,7 @@ export interface NodeSchema {
     readonly category: string;
     readonly subcategory: string;
     readonly description: string;
+    readonly seeAlso: readonly SchemaId[];
     readonly icon: string;
     readonly nodeType: NodeType;
     readonly inputs: readonly Input[];

@@ -1,28 +1,14 @@
 import { Box, Button, Center, Icon } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { IoAddOutline } from 'react-icons/io5';
-import { useContextSelector } from 'use-context-selector';
 import { getUniqueKey } from '../../../common/group-inputs';
 import { findLastIndex, getInputValue } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
 export const OptionalInputsGroup = memo(
-    ({
-        inputs,
-        inputData,
-        setInputValue,
-        inputSize,
-        isLocked,
-        nodeId,
-        schemaId,
-        ItemRenderer,
-    }: GroupProps<'optional-list'>) => {
-        const isNodeInputLocked = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.isNodeInputLocked
-        );
+    ({ inputs, nodeState, ItemRenderer }: GroupProps<'optional-list'>) => {
+        const { inputData, connectedInputs } = nodeState;
 
         // number of edges that need to be uncovered due to either having a value or an edge
         const uncoveredDueToValue = useMemo(() => {
@@ -30,11 +16,11 @@ export const OptionalInputsGroup = memo(
                 findLastIndex(inputs, (item) => {
                     return someInput(item, (input) => {
                         const value = getInputValue(input.id, inputData);
-                        return value !== undefined || isNodeInputLocked(nodeId, input.id);
+                        return value !== undefined || connectedInputs.has(input.id);
                     });
                 }) + 1
             );
-        }, [inputs, inputData, nodeId, isNodeInputLocked]);
+        }, [inputs, inputData, connectedInputs]);
 
         // number of inputs the user set to be uncovered
         const [userUncovered, setUserUncovered] = useState(0);
@@ -50,14 +36,9 @@ export const OptionalInputsGroup = memo(
             <>
                 {inputs.slice(0, uncovered).map((item) => (
                     <ItemRenderer
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
                         item={item}
                         key={getUniqueKey(item)}
-                        nodeId={nodeId}
-                        schemaId={schemaId}
-                        setInputValue={setInputValue}
+                        nodeState={nodeState}
                     />
                 ))}
                 {showMoreButton && (

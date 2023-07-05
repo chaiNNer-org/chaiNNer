@@ -12,7 +12,11 @@ from .. import miscellaneous_group
 @miscellaneous_group.register(
     schema_id="chainner:image:high_pass",
     name="High Pass",
-    description="Apply High Pass filter on image",
+    description=[
+        "Apply High Pass filter on image.",
+        "A high pass filter is a filter will remove all low-frequency detail below a certain threshold. This will result in an image that is mostly edges and high-frequency detail.",
+        "Note: This node will leave the alpha channel of the image (if it has one) unchanged.",
+    ],
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(channels=[1, 3, 4]),

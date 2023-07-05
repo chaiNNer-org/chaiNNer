@@ -5,9 +5,10 @@ import { NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import { useNodeStateFromData } from '../../helpers/nodeState';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useValidity } from '../../hooks/useValidity';
@@ -31,13 +32,13 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
-    const { schemata, categories } = useContext(BackendContext);
+    const nodeState = useNodeStateFromData(data);
+    const { schema } = nodeState;
+
+    const { categories } = useContext(BackendContext);
     const { getIteratorProgress } = useContext(ExecutionContext);
-    const { setNodeInputValue } = useContext(GlobalContext);
 
-    const { id, inputData, isLocked, schemaId, iteratorSize, minWidth, minHeight } = data;
-
-    const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
+    const { id, inputData, iteratorSize, minWidth, minHeight } = data;
 
     const iteratorProgress = getIteratorProgress(id);
 
@@ -45,11 +46,10 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon, category, name } = schema;
+    const { inputs, outputs } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getCategoryAccentColor(categories, category);
+    const accentColor = getCategoryAccentColor(categories, schema.category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -85,9 +85,9 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                     <IteratorNodeHeader
                         accentColor={accentColor}
                         disabledStatus={disabled.status}
-                        icon={icon}
+                        icon={schema.icon}
                         iteratorProgress={iteratorProgress}
-                        name={name}
+                        name={schema.name}
                         selected={selected}
                     />
                     {inputs.length > 0 && <Box py={1} />}
@@ -95,13 +95,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         bgColor="var(--bg-700)"
                         w="full"
                     >
-                        <NodeInputs
-                            id={id}
-                            inputData={inputData}
-                            isLocked={isLocked}
-                            schema={schema}
-                            setInputValue={setInputValue}
-                        />
+                        <NodeInputs nodeState={nodeState} />
                     </Box>
                     <Center>
                         <Text
@@ -135,7 +129,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         <NodeOutputs
                             id={id}
                             outputs={outputs}
-                            schemaId={schemaId}
+                            schemaId={nodeState.schemaId}
                         />
                     </Box>
                 </VStack>

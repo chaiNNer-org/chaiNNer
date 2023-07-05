@@ -81,6 +81,6 @@ export const testInputConditionTypeState = (
         condition,
         inputData,
         (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-        (id) => typeState.isInputConnected(nodeId, id)
+        (id) => typeState.edges.isInputConnected(nodeId, id)
     );
 };

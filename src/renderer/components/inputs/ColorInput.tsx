@@ -296,13 +296,7 @@ const ColorPickerPopover = memo(({ color, onChange, kinds }: ColorPickerProps) =
 });
 
 export const ColorInput = memo(
-    ({
-        value,
-        setValue,
-        input,
-        definitionType,
-        useInputConnected,
-    }: InputProps<'color', string>) => {
+    ({ value, setValue, input, definitionType, isConnected }: InputProps<'color', string>) => {
         const { label, optional, def, channels } = input;
 
         const noValue = value === undefined;
@@ -330,7 +324,6 @@ export const ColorInput = memo(
             }
         }, [invalidColor, setValue, def]);
 
-        const connected = useInputConnected();
         const kinds = useMemo(() => {
             if (!channels) {
                 return ALL_KINDS;
@@ -362,7 +355,7 @@ export const ColorInput = memo(
                             type={definitionType}
                         />
                     </Center>
-                    {!connected && color && (
+                    {!isConnected && color && (
                         <>
                             <Spacer />
                             <ColorPickerPopover

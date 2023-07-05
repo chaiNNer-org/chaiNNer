@@ -39,7 +39,7 @@ export type BackendErrorValue =
 export interface BackendExceptionSource {
     nodeId: string;
     schemaId: SchemaId;
-    inputs: Record<InputId, BackendErrorValue>;
+    inputs: Partial<Record<InputId, BackendErrorValue>>;
 }
 export interface BackendExceptionResponse {
     type: 'error';

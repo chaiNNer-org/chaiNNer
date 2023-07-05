@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Literal, Optional, Type, TypedDict, Union
+from typing import List, Literal, Optional, Type, TypedDict, Union
 
 import navi
 from base_types import InputId
@@ -89,7 +89,6 @@ class BaseInput:
 
         # Optional documentation
         self.description: str | None = None
-        self.examples: List[Any] | None = None
 
     # This is the method that should be created by each input
     def enforce(self, value: object):
@@ -137,16 +136,14 @@ class BaseInput:
             "optional": self.optional,
             "hasHandle": self.has_handle,
             "description": self.description,
-            "examples": [str(e) for e in self.examples] if self.examples else None,
         }
 
     def with_id(self, input_id: InputId | int):
         self.id = InputId(input_id)
         return self
 
-    def with_documentation(self, description: str, examples: List[Any] | None = None):
-        self.description = description
-        self.examples = examples
+    def with_docs(self, *description: str):
+        self.description = "\n\n".join(description)
         return self
 
     def make_optional(self):

@@ -7,23 +7,10 @@ import { GroupProps } from './props';
 import { someInput } from './util';
 
 export const ConditionalGroup = memo(
-    ({
-        inputs,
-        inputData,
-        setInputValue,
-        inputSize,
-        isLocked,
-        nodeId,
-        schemaId,
-        group,
-        ItemRenderer,
-    }: GroupProps<'conditional'>) => {
+    ({ inputs, nodeState, group, ItemRenderer }: GroupProps<'conditional'>) => {
+        const { id: nodeId, inputData } = nodeState;
         const { condition } = group.options;
 
-        const isNodeInputLocked = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.isNodeInputLocked
-        );
         const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
 
         const isEnabled = useMemo(
@@ -35,21 +22,16 @@ export const ConditionalGroup = memo(
             if (isEnabled) return true;
 
             // input or some input of the group is connected to another node
-            return someInput(input, ({ id }) => isNodeInputLocked(nodeId, id));
+            return someInput(input, ({ id }) => nodeState.connectedInputs.has(id));
         };
 
         return (
             <>
                 {inputs.filter(showInput).map((item) => (
                     <ItemRenderer
-                        inputData={inputData}
-                        inputSize={inputSize}
-                        isLocked={isLocked}
                         item={item}
                         key={getUniqueKey(item)}
-                        nodeId={nodeId}
-                        schemaId={schemaId}
-                        setInputValue={setInputValue}
+                        nodeState={nodeState}
                     />
                 ))}
             </>

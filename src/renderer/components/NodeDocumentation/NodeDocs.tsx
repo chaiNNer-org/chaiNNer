@@ -1,25 +1,21 @@
 import { NeverType, Type } from '@chainner/navi';
 import {
     Box,
-    Center,
     Code,
     Divider,
     Flex,
     HStack,
     Heading,
-    Link,
     ListItem,
     Text,
     UnorderedList,
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo, useCallback, useState } from 'react';
+import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { InputData, InputId, InputValue, NodeSchema, SchemaId } from '../../../common/common-types';
-import { DisabledStatus } from '../../../common/nodes/disabled';
+import { NodeSchema } from '../../../common/common-types';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
@@ -28,147 +24,45 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
-import { NodeBody } from '../node/NodeBody';
-import { NodeFooter } from '../node/NodeFooter/NodeFooter';
-import { NodeHeader } from '../node/NodeHeader';
 import { TypeTag } from '../TypeTag';
+import { docsMarkdown } from './docsMarkdown';
+import { NodeExample } from './NodeExample';
+import { SchemaLink } from './SchemaLink';
 
-const customMarkdownTheme = {
-    p: (props: PropsWithChildren<unknown>) => {
-        const { children } = props;
-        return (
-            <Text
-                mb={0}
-                userSelect="text"
-            >
-                {children}
-            </Text>
-        );
-    },
-    // If I don't give this a type of unknown, ReactMarkdown yells at me
-    // Just trust me, this works
-    a: memo((props: PropsWithChildren<unknown>) => {
-        const { children, href } = props as PropsWithChildren<{ href: string }>;
-
-        const { schemata } = useContext(BackendContext);
-        const { openNodeDocumentation } = useContext(NodeDocumentationContext);
-
-        const isInternalNodeLink = href.startsWith('#');
-        const linkedSchemaId = href.substring(1);
-
-        if (isInternalNodeLink) {
-            const nodeSchema = schemata.get(linkedSchemaId as SchemaId);
-            if (nodeSchema.schemaId !== '') {
-                return (
-                    <Text
-                        _hover={{
-                            textDecoration: 'underline',
-                        }}
-                        as="i"
-                        backgroundColor="var(--bg-700)"
-                        borderRadius={4}
-                        color="var(--link-color)"
-                        cursor="pointer"
-                        fontWeight="bold"
-                        px={2}
-                        py={1}
-                        userSelect="text"
-                        onClick={() => openNodeDocumentation(nodeSchema.schemaId)}
-                    >
-                        {nodeSchema.name}
-                    </Text>
-                );
-            }
-        }
-
-        return (
-            <Link
-                isExternal
-                color="blue.500"
-                href={href.toString()}
-                userSelect="text"
-            >
-                {children}
-            </Link>
-        );
-    }),
-};
-
-interface NodeExampleProps {
-    accentColor: string;
-    selectedSchema: NodeSchema;
+interface InputOutputItemProps {
+    label: string;
+    description?: string | null;
+    type: Type;
+    optional: boolean;
 }
-const FakeNodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps) => {
-    const [state, setState] = useState<{ inputData: InputData; schema: NodeSchema }>({
-        inputData: {},
-        schema: selectedSchema,
-    });
+const InputOutputItem = memo(({ label, description, type, optional }: InputOutputItemProps) => {
+    if (optional) {
+        // eslint-disable-next-line no-param-reassign
+        type = withoutNull(type);
+    }
 
-    const setInputValue = useCallback(
-        (inputId: InputId, value: InputValue): void => {
-            setState((prev) => {
-                const inputData = prev.schema === selectedSchema ? prev.inputData : {};
-                return {
-                    inputData: {
-                        ...inputData,
-                        [inputId]: value,
-                    },
-                    schema: selectedSchema,
-                };
-            });
-        },
-        [selectedSchema]
-    );
-
-    const inputData = state.schema === selectedSchema ? state.inputData : {};
     return (
-        <Center
-            pointerEvents="none"
-            w="auto"
-        >
-            <Center
-                bg="var(--node-bg-color)"
-                borderColor="var(--node-border-color)"
-                borderRadius="lg"
-                borderWidth="0.5px"
-                boxShadow="lg"
-                minWidth="240px"
-                overflow="hidden"
-                transition="0.15s ease-in-out"
+        <ListItem my={2}>
+            <Text
+                fontWeight="bold"
+                userSelect="text"
             >
-                <VStack
-                    spacing={0}
-                    w="full"
-                >
-                    <VStack
-                        spacing={0}
-                        w="full"
+                {label}
+                {optional && (
+                    <TypeTag
+                        isOptional
+                        fontSize="small"
+                        height="auto"
+                        mt="-0.2rem"
+                        verticalAlign="middle"
                     >
-                        <NodeHeader
-                            accentColor={accentColor}
-                            disabledStatus={DisabledStatus.Enabled}
-                            icon={selectedSchema.icon}
-                            name={selectedSchema.name}
-                            parentNode={undefined}
-                            selected={false}
-                        />
-                        <NodeBody
-                            animated={false}
-                            id="<fake node id>"
-                            inputData={inputData}
-                            isLocked={false}
-                            schema={selectedSchema}
-                            setInputValue={setInputValue}
-                        />
-                    </VStack>
-                    <NodeFooter
-                        animated={false}
-                        id="<fake node id>"
-                        validity={{ isValid: true }}
-                    />
-                </VStack>
-            </Center>
-        </Center>
+                        optional
+                    </TypeTag>
+                )}
+            </Text>
+            {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
+            <Code userSelect="text">{prettyPrintType(type)}</Code>
+        </ListItem>
     );
 });
 
@@ -178,8 +72,14 @@ interface NodeInfoProps {
     functionDefinition?: FunctionDefinition;
 }
 const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeInfoProps) => {
+    const { schemata } = useContext(BackendContext);
+
     const inputs = schema.inputs.filter((i) => !isAutoInput(i));
     const outputs = schema.outputs.filter((o) => o.hasHandle);
+
+    const seeAlso = schema.seeAlso
+        .filter((schemaId) => schemata.has(schemaId))
+        .map((schemaId) => schemata.get(schemaId));
 
     return (
         <VStack
@@ -206,9 +106,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {schema.name}
                     </Heading>
                 </HStack>
-                <ReactMarkdown components={ChakraUIRenderer(customMarkdownTheme)}>
-                    {schema.description}
-                </ReactMarkdown>
+                <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>
             </Box>
             <Box position="relative">
                 <Heading
@@ -228,41 +126,17 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         w="full"
                     >
                         {inputs.map((input) => {
-                            let type: Type =
-                                functionDefinition?.inputDefaults.get(input.id) ??
-                                NeverType.instance;
-                            if (input.optional) {
-                                type = withoutNull(type);
-                            }
-
                             return (
-                                <ListItem key={input.id}>
-                                    <Text
-                                        fontWeight="bold"
-                                        userSelect="text"
-                                    >
-                                        {input.label}
-                                        {input.optional && (
-                                            <TypeTag
-                                                isOptional
-                                                fontSize="small"
-                                                height="auto"
-                                                mt="-0.2rem"
-                                                verticalAlign="middle"
-                                            >
-                                                optional
-                                            </TypeTag>
-                                        )}
-                                    </Text>
-                                    {input.description && (
-                                        <ReactMarkdown
-                                            components={ChakraUIRenderer(customMarkdownTheme)}
-                                        >
-                                            {input.description}
-                                        </ReactMarkdown>
-                                    )}
-                                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                                </ListItem>
+                                <InputOutputItem
+                                    description={input.description}
+                                    key={input.id}
+                                    label={input.label}
+                                    optional={input.optional}
+                                    type={
+                                        functionDefinition?.inputDefaults.get(input.id) ??
+                                        NeverType.instance
+                                    }
+                                />
                             );
                         })}
                     </UnorderedList>
@@ -287,27 +161,17 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         w="full"
                     >
                         {outputs.map((output) => {
-                            const type =
-                                functionDefinition?.outputDefaults.get(output.id) ??
-                                NeverType.instance;
-
                             return (
-                                <ListItem key={output.id}>
-                                    <Text
-                                        fontWeight="bold"
-                                        userSelect="text"
-                                    >
-                                        {output.label}
-                                    </Text>
-                                    {output.description && (
-                                        <ReactMarkdown
-                                            components={ChakraUIRenderer(customMarkdownTheme)}
-                                        >
-                                            {output.description}
-                                        </ReactMarkdown>
-                                    )}
-                                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                                </ListItem>
+                                <InputOutputItem
+                                    description={output.description}
+                                    key={output.id}
+                                    label={output.label}
+                                    optional={false}
+                                    type={
+                                        functionDefinition?.outputDefaults.get(output.id) ??
+                                        NeverType.instance
+                                    }
+                                />
                             );
                         })}
                     </UnorderedList>
@@ -315,6 +179,35 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                     <Text>This node has no outputs.</Text>
                 )}
             </Box>
+            {seeAlso.length > 0 && (
+                <Box position="relative">
+                    <Heading
+                        mb={1}
+                        size="sm"
+                        userSelect="text"
+                    >
+                        See also
+                    </Heading>
+                    <UnorderedList
+                        alignItems="left"
+                        ml={0}
+                        pl={8}
+                        textAlign="left"
+                        w="full"
+                    >
+                        {seeAlso.map((also) => {
+                            return (
+                                <ListItem
+                                    key={also.schemaId}
+                                    my={2}
+                                >
+                                    <SchemaLink schema={also} />
+                                </ListItem>
+                            );
+                        })}
+                    </UnorderedList>
+                </Box>
+            )}
         </VStack>
     );
 });
@@ -388,7 +281,7 @@ export const NodeDocs = memo(() => {
                         position="relative"
                     >
                         <VStack position="relative">
-                            <FakeNodeExample
+                            <NodeExample
                                 accentColor={selectedAccentColor}
                                 selectedSchema={selectedSchema}
                             />
@@ -396,7 +289,7 @@ export const NodeDocs = memo(() => {
                                 selectedSchema.defaultNodes.map((defaultNode) => {
                                     const nodeSchema = schemata.get(defaultNode.schemaId);
                                     return (
-                                        <FakeNodeExample
+                                        <NodeExample
                                             accentColor={selectedAccentColor}
                                             key={defaultNode.schemaId}
                                             selectedSchema={nodeSchema}

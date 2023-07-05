@@ -1,14 +1,7 @@
 import { memo } from 'react';
-import {
-    Group,
-    GroupKind,
-    InputData,
-    InputId,
-    InputSize,
-    InputValue,
-    SchemaId,
-} from '../../../common/common-types';
+import { Group, GroupKind } from '../../../common/common-types';
 import { InputItem } from '../../../common/group-inputs';
+import { NodeState } from '../../helpers/nodeState';
 import { ConditionalGroup } from './ConditionalGroup';
 import { FromToDropdownsGroup } from './FromToDropdownsGroup';
 import { NcnnFileInputsGroup } from './NcnnFileInputsGroup';
@@ -31,39 +24,19 @@ const GroupComponents: {
 interface GroupElementProps {
     group: Group;
     inputs: readonly InputItem[];
-    schemaId: SchemaId;
-    nodeId: string;
-    isLocked: boolean;
-    inputData: InputData;
-    setInputValue: (inputId: InputId, value: InputValue) => void;
-    inputSize: InputSize | undefined;
+    nodeState: NodeState;
     ItemRenderer: InputItemRenderer;
 }
 
 export const GroupElement = memo(
-    ({
-        group,
-        inputs,
-        schemaId,
-        nodeId,
-        isLocked,
-        inputData,
-        setInputValue,
-        inputSize,
-        ItemRenderer,
-    }: GroupElementProps) => {
+    ({ group, inputs, nodeState, ItemRenderer }: GroupElementProps) => {
         const GroupType = GroupComponents[group.kind];
         return (
             <GroupType
                 ItemRenderer={ItemRenderer}
                 group={group as never}
-                inputData={inputData}
-                inputSize={inputSize}
                 inputs={inputs as never}
-                isLocked={isLocked}
-                nodeId={nodeId}
-                schemaId={schemaId}
-                setInputValue={setInputValue}
+                nodeState={nodeState}
             />
         );
     }
