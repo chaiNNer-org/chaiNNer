@@ -255,7 +255,8 @@ export const GlobalProvider = memo(
                     nodeMap,
                     getEdges(),
                     manualOutputTypes.map,
-                    functionDefinitions
+                    functionDefinitions,
+                    typeStateRef.current
                 );
                 setTypeState(types);
                 typeStateRef.current = types;

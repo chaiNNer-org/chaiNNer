@@ -1,27 +1,33 @@
-import { EvaluationError, NonNeverType, StructType, Type } from '@chainner/navi';
+import { EvaluationError, NonNeverType, StructType, Type, isSameType } from '@chainner/navi';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { log } from '../log';
 import { FunctionDefinition, FunctionInstance } from '../types/function';
-import {
-    EMPTY_ARRAY,
-    EMPTY_MAP,
-    parseSourceHandle,
-    parseTargetHandle,
-    stringifyTargetHandle,
-} from '../util';
+import { EMPTY_MAP } from '../util';
+import { EdgeState } from './EdgeState';
 import type { Edge, Node } from 'reactflow';
 
-export interface TypeStateEdge {
-    readonly from: readonly [node: string, outputId: OutputId];
-    readonly to: readonly [node: string, inputId: InputId];
-}
+const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
+    if (a.definition !== b.definition) return false;
+
+    for (const [key, value] of a.inputs) {
+        const otherValue = b.inputs.get(key);
+        if (!otherValue || !isSameType(value, otherValue)) return false;
+    }
+
+    for (const [key, value] of a.outputs) {
+        const otherValue = b.outputs.get(key);
+        if (!otherValue || !isSameType(value, otherValue)) return false;
+    }
+
+    return true;
+};
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
 
     readonly evaluationErrors: ReadonlyMap<string, EvaluationError>;
 
-    readonly edges: readonly TypeStateEdge[];
+    readonly edges: EdgeState;
 
     private constructor(
         functions: TypeState['functions'],
@@ -33,31 +39,28 @@ export class TypeState {
         this.edges = edges;
     }
 
-    static readonly empty = new TypeState(EMPTY_MAP, EMPTY_MAP, EMPTY_ARRAY);
+    static readonly empty = new TypeState(EMPTY_MAP, EMPTY_MAP, EdgeState.empty);
 
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
-        edges: readonly Edge<EdgeData>[],
+        rawEdges: readonly Edge<EdgeData>[],
         outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
-        functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
+        functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
+        previousTypeState?: TypeState
     ): TypeState {
-        // eslint-disable-next-line no-param-reassign
-        edges = edges.filter((e) => e.sourceHandle && e.targetHandle);
-
-        const byTargetHandle = new Map(edges.map((e) => [e.targetHandle!, e]));
+        const edges = EdgeState.create(rawEdges);
 
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
 
         const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
-            const edge = byTargetHandle.get(stringifyTargetHandle({ nodeId: id, inputId }));
-            if (edge && edge.sourceHandle) {
-                const sourceHandle = parseSourceHandle(edge.sourceHandle);
-                const sourceNode = nodesMap.get(sourceHandle.nodeId);
+            const edge = edges.get(id, inputId);
+            if (edge) {
+                const sourceNode = nodesMap.get(edge.source);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    return functionInstance?.outputs.get(sourceHandle.outputId);
+                    return functionInstance?.outputs.get(edge.outputId);
                 }
             }
             return undefined;
@@ -108,6 +111,11 @@ export class TypeState {
                 instance = definition.defaultInstance;
             }
 
+            const previousInstance = previousTypeState?.functions.get(n.id);
+            if (previousInstance && instanceEqual(previousInstance, instance)) {
+                instance = previousInstance;
+            }
+
             functions.set(n.id, instance);
             return instance;
         };
@@ -116,16 +124,6 @@ export class TypeState {
             addNode(n);
         }
 
-        const tsEdges: TypeStateEdge[] = edges.map((e) => {
-            const from = parseSourceHandle(e.sourceHandle!);
-            const to = parseTargetHandle(e.targetHandle!);
-            return { from: [from.nodeId, from.outputId], to: [to.nodeId, to.inputId] };
-        });
-
-        return new TypeState(functions, evaluationErrors, tsEdges);
-    }
-
-    isInputConnected(nodeId: string, inputId: InputId): boolean {
-        return this.edges.some((e) => e.to[0] === nodeId && e.to[1] === inputId);
+        return new TypeState(functions, evaluationErrors, edges);
     }
 }

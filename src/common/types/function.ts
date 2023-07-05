@@ -497,18 +497,9 @@ export class FunctionInstance {
 
     static fromPartialInputs(
         definition: FunctionDefinition,
-        partialInputs:
-            | ReadonlyMap<InputId, NonNeverType>
-            | ((inputId: InputId) => NonNeverType | undefined),
+        partialInputs: (inputId: InputId) => NonNeverType | undefined,
         outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP
     ): FunctionInstance {
-        if (typeof partialInputs === 'object') {
-            if (partialInputs.size === 0) return definition.defaultInstance;
-            const map = partialInputs;
-            // eslint-disable-next-line no-param-reassign
-            partialInputs = (id) => map.get(id);
-        }
-
         const inputErrors: FunctionInputAssignmentError[] = [];
         const outputErrors: FunctionOutputError[] = [];
 
