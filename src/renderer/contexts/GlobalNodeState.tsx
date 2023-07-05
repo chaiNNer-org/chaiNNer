@@ -24,6 +24,7 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { IdSet, toIdSetMap } from '../../common/IdSet';
 import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { TypeState } from '../../common/nodes/TypeState';
@@ -36,7 +37,6 @@ import {
 } from '../../common/types/mismatch';
 import { withoutNull } from '../../common/types/util';
 import {
-    EMPTY_ARRAY,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -95,7 +95,7 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    getConnectedInputs: (id: string) => readonly InputId[];
+    getConnectedInputs: (id: string) => IdSet<InputId>;
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
@@ -1036,14 +1036,14 @@ export const GlobalProvider = memo(
                             inputs.push(parseTargetHandle(e.targetHandle).inputId);
                         }
                     }
-                    return map;
+                    return toIdSetMap(map);
                 });
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
             [edgeChanges, getEdges]
         );
         const getConnectedInputs = useCallback(
-            (id: string): readonly InputId[] => connectedInputsMap().get(id) ?? EMPTY_ARRAY,
+            (id: string): IdSet<InputId> => connectedInputsMap().get(id) ?? IdSet.empty,
             [connectedInputsMap]
         );
 

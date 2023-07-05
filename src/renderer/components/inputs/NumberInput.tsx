@@ -17,7 +17,7 @@ export const NumberInput = memo(
         input,
         isConnected,
         isLocked,
-        useInputType,
+        inputType,
         nodeId,
     }: InputProps<'number', number>) => {
         const { def, min, max, unit, precision, controlsStep, hideTrailingZeros } = input;
@@ -45,7 +45,6 @@ export const NumberInput = memo(
             }
         }, [value, def, setValue]);
 
-        const inputType = useInputType();
         const typeNumberString = isNumericLiteral(inputType) ? inputType.toString() : '';
         const displayString = isConnected ? typeNumberString : inputString;
 
