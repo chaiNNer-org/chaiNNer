@@ -42,7 +42,7 @@ export const DirectoryInput = memo(
         isLocked,
         input,
         inputKey,
-        useInputConnected,
+        isConnected,
         useInputType,
         nodeId,
     }: InputProps<'directory', string>) => {
@@ -62,15 +62,14 @@ export const DirectoryInput = memo(
             }
         };
 
-        const isInputConnected = useInputConnected();
         const inputType = useInputType();
-        const displayDirectory = isInputConnected ? getDirectoryPath(inputType) : value;
+        const displayDirectory = isConnected ? getDirectoryPath(inputType) : value;
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
                     icon={<BsFolderPlus />}
-                    isDisabled={isLocked || isInputConnected}
+                    isDisabled={isLocked || isConnected}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
                 >
@@ -129,7 +128,7 @@ export const DirectoryInput = memo(
                         isReadOnly
                         borderRadius="lg"
                         cursor="pointer"
-                        disabled={isLocked || isInputConnected}
+                        disabled={isLocked || isConnected}
                         draggable={false}
                         placeholder="Click to select..."
                         size="sm"

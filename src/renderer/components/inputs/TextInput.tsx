@@ -22,8 +22,8 @@ export const TextInput = memo(
         setValue,
         resetValue,
         input,
+        isConnected,
         isLocked,
-        useInputConnected,
         useInputType,
         size,
         setSize,
@@ -62,14 +62,13 @@ export const TextInput = memo(
             500
         );
 
-        const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
         const typeText =
             strType.underlying === 'string' && strType.type === 'literal'
                 ? strType.value
                 : undefined;
-        const displayText = isInputConnected ? typeText : tempText;
+        const displayText = isConnected ? typeText : tempText;
 
         const { t } = useTranslation();
 
@@ -88,7 +87,7 @@ export const TextInput = memo(
                 </MenuItem>
                 <MenuItem
                     icon={<MdContentPaste />}
-                    isDisabled={isInputConnected}
+                    isDisabled={isConnected}
                     onClick={() => {
                         let text = clipboard.readText();
                         // replace new lines
@@ -172,7 +171,7 @@ export const TextInput = memo(
                 >
                     <Textarea
                         className="nodrag"
-                        disabled={isLocked || isInputConnected}
+                        disabled={isLocked || isConnected}
                         draggable={false}
                         h="100%"
                         maxLength={maxLength ?? undefined}
@@ -195,7 +194,7 @@ export const TextInput = memo(
             <Input
                 borderRadius="lg"
                 className="nodrag"
-                disabled={isLocked || isInputConnected}
+                disabled={isLocked || isConnected}
                 draggable={false}
                 maxLength={maxLength ?? undefined}
                 placeholder={placeholder ?? label}

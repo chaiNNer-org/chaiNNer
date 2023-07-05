@@ -9,7 +9,7 @@ import {
     Size,
 } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
-import { EMPTY_OBJECT } from '../../../common/util';
+import { EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
@@ -105,6 +105,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 inputSize,
                                 setInputSize: setSingleInputSize,
                                 isLocked: false,
+                                connectedInputs: EMPTY_SET,
                             }}
                         />
                     </VStack>
