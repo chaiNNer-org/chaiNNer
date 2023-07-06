@@ -84,7 +84,7 @@ def VideoFrameIteratorFrameLoaderNode(
     icon="MdVideoCameraBack",
     node_type="iteratorHelper",
     inputs=[
-        ImageInput("Frame"),
+        ImageInput("Frame", channels=3),
         DirectoryInput("Output Video Directory", has_handle=True),
         TextInput("Output Video Name"),
         VideoTypeDropdown(),
