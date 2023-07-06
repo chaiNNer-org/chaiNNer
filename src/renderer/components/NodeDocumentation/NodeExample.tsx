@@ -69,8 +69,13 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         [setInputSize]
     );
 
+    const nodeIdPrefix = 'FakeId ';
+    const suffixLength = 36 - nodeIdPrefix.length;
+    const nodeId =
+        nodeIdPrefix + selectedSchema.schemaId.slice(-suffixLength).padStart(suffixLength, ' ');
+    if (nodeId.length !== 36) throw new Error('Fake node ID must have the length of a real one.');
+
     const { functionDefinitions } = useContext(BackendContext);
-    const nodeId = '<fake node id>';
 
     const typeState = useMemo(() => {
         const node: Node<NodeData> = {
