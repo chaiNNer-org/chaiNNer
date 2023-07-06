@@ -79,6 +79,7 @@ export interface FileInput extends InputBase {
 }
 export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
+    readonly hideLabel: boolean;
 }
 export interface TextInput extends InputBase {
     readonly kind: 'text';

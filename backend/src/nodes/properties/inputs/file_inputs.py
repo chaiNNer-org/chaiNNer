@@ -116,6 +116,7 @@ class DirectoryInput(BaseInput):
         label: str = "Base Directory",
         has_handle: bool = False,
         must_exist: bool = True,
+        hide_label: bool = False,
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
 
@@ -127,8 +128,15 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
+        self.hide_label: bool = hide_label
 
         self.associated_type = str
+
+    def toDict(self):
+        return {
+            **super().toDict(),
+            "hideLabel": self.hide_label,
+        }
 
     def enforce(self, value):
         assert isinstance(value, str)
