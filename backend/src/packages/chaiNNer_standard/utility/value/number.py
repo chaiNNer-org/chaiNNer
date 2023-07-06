@@ -18,6 +18,7 @@ from .. import value_group
             maximum=None,
             precision=100,
             controls_step=1,
+            hide_label=True,
         ),
     ],
     outputs=[

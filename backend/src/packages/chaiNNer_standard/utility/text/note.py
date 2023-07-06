@@ -13,7 +13,12 @@ from .. import text_group
     description="Make a sticky note for whatever notes or comments you want to leave in the chain.",
     icon="MdOutlineStickyNote2",
     inputs=[
-        TextInput(label="Note Text", multiline=True, has_handle=False).make_optional(),
+        TextInput(
+            label="Note Text",
+            multiline=True,
+            has_handle=False,
+            hide_label=True,
+        ).make_optional(),
     ],
     outputs=[],
 )

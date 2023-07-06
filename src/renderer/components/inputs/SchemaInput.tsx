@@ -11,7 +11,7 @@ import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
 import { FileInput } from './FileInput';
 import { GenericInput } from './GenericInput';
-import { HandleWrapper, InputContainer, WithLabel } from './InputContainer';
+import { HandleWrapper, InputContainer } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
@@ -109,10 +109,6 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 {afterInput}
             </HStack>
         );
-    }
-
-    if (kind !== 'generic' && kind !== 'slider' && kind !== 'dropdown' && kind !== 'color') {
-        inputElement = <WithLabel input={input}>{inputElement}</WithLabel>;
     }
 
     return (

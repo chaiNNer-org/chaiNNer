@@ -22,6 +22,7 @@ import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
+import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const FileInput = memo(
@@ -153,45 +154,47 @@ export const FileInput = memo(
         ));
 
         return (
-            <VStack
-                spacing={0}
-                onContextMenu={menu.onContextMenu}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
-            >
-                <Tooltip
-                    borderRadius={8}
-                    label={filePath}
-                    maxW="auto"
-                    openDelay={500}
-                    px={2}
-                    py={0}
+            <WithLabel input={input}>
+                <VStack
+                    spacing={0}
+                    onContextMenu={menu.onContextMenu}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
                 >
-                    <InputGroup size="sm">
-                        <InputLeftElement pointerEvents="none">
-                            <Icon
-                                as={BsFileEarmarkPlus}
-                                m={0}
-                            />
-                        </InputLeftElement>
+                    <Tooltip
+                        borderRadius={8}
+                        label={filePath}
+                        maxW="auto"
+                        openDelay={500}
+                        px={2}
+                        py={0}
+                    >
+                        <InputGroup size="sm">
+                            <InputLeftElement pointerEvents="none">
+                                <Icon
+                                    as={BsFileEarmarkPlus}
+                                    m={0}
+                                />
+                            </InputLeftElement>
 
-                        <Input
-                            isReadOnly
-                            alt={filePath}
-                            borderRadius="lg"
-                            cursor="pointer"
-                            disabled={isLocked || isConnected}
-                            draggable={false}
-                            placeholder="Click to select a file..."
-                            size="sm"
-                            textOverflow="ellipsis"
-                            value={filePath ? path.parse(filePath).base : ''}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onClick={onButtonClick}
-                        />
-                    </InputGroup>
-                </Tooltip>
-            </VStack>
+                            <Input
+                                isReadOnly
+                                alt={filePath}
+                                borderRadius="lg"
+                                cursor="pointer"
+                                disabled={isLocked || isConnected}
+                                draggable={false}
+                                placeholder="Click to select a file..."
+                                size="sm"
+                                textOverflow="ellipsis"
+                                value={filePath ? path.parse(filePath).base : ''}
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                onClick={onButtonClick}
+                            />
+                        </InputGroup>
+                    </Tooltip>
+                </VStack>
+            </WithLabel>
         );
     }
 );

@@ -12,6 +12,7 @@ import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { DragHandleSVG } from '../CustomIcons';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
+import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const DEFAULT_SIZE = { width: 240, height: 80 };
@@ -121,8 +122,9 @@ export const TextInput = memo(
 
         const startSize = useRef(size ?? DEFAULT_SIZE);
 
+        let inputElement;
         if (multiline) {
-            return (
+            inputElement = (
                 <Resizable
                     className="nodrag"
                     defaultSize={size ?? DEFAULT_SIZE}
@@ -187,25 +189,27 @@ export const TextInput = memo(
                     />
                 </Resizable>
             );
+        } else {
+            inputElement = (
+                <Input
+                    borderRadius="lg"
+                    className="nodrag"
+                    disabled={isLocked || isConnected}
+                    draggable={false}
+                    maxLength={maxLength ?? undefined}
+                    placeholder={placeholder ?? label}
+                    size="sm"
+                    value={displayText ?? ''}
+                    onChange={(event) => {
+                        setTempText(event.target.value);
+                        handleChange(event);
+                    }}
+                    onContextMenu={menu.onContextMenu}
+                    onKeyDown={stopPropagation}
+                />
+            );
         }
 
-        return (
-            <Input
-                borderRadius="lg"
-                className="nodrag"
-                disabled={isLocked || isConnected}
-                draggable={false}
-                maxLength={maxLength ?? undefined}
-                placeholder={placeholder ?? label}
-                size="sm"
-                value={displayText ?? ''}
-                onChange={(event) => {
-                    setTempText(event.target.value);
-                    handleChange(event);
-                }}
-                onContextMenu={menu.onContextMenu}
-                onKeyDown={stopPropagation}
-            />
-        );
+        return <MaybeLabel input={input}>{inputElement}</MaybeLabel>;
     }
 );

@@ -186,3 +186,14 @@ export const WithoutLabel = memo(
         );
     }
 );
+
+interface MaybeLabelProps {
+    input: WithLabelProps['input'] & { hideLabel: boolean };
+}
+
+export const MaybeLabel = memo(({ input, children }: React.PropsWithChildren<MaybeLabelProps>) => {
+    if (input.hideLabel) {
+        return <WithoutLabel>{children}</WithoutLabel>;
+    }
+    return <WithLabel input={input}>{children}</WithLabel>;
+});
