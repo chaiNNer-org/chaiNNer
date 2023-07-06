@@ -216,6 +216,7 @@ class TextInput(BaseInput):
         multiline: bool = False,
         allow_numbers: bool = True,
         default: Union[str, None] = None,
+        hide_label: bool = False,
     ):
         super().__init__(
             "string",
@@ -228,6 +229,8 @@ class TextInput(BaseInput):
         self.placeholder = placeholder
         self.default = default
         self.multiline = multiline
+        self.hide_label = hide_label
+
         self.associated_type = str
 
         if allow_numbers:
@@ -247,6 +250,7 @@ class TextInput(BaseInput):
             "placeholder": self.placeholder,
             "multiline": self.multiline,
             "def": self.default,
+            "hideLabel": self.hide_label,
         }
 
 

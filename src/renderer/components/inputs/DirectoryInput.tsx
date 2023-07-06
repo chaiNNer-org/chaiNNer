@@ -18,6 +18,7 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
+import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
@@ -105,39 +106,41 @@ export const DirectoryInput = memo(
         ));
 
         return (
-            <Tooltip
-                borderRadius={8}
-                label={displayDirectory}
-                maxW="auto"
-                openDelay={500}
-                px={2}
-                py={0}
-            >
-                <InputGroup
-                    size="sm"
-                    onContextMenu={menu.onContextMenu}
+            <WithLabel input={input}>
+                <Tooltip
+                    borderRadius={8}
+                    label={displayDirectory}
+                    maxW="auto"
+                    openDelay={500}
+                    px={2}
+                    py={0}
                 >
-                    <InputLeftElement pointerEvents="none">
-                        <Icon
-                            as={BsFolderPlus}
-                            m={0}
-                        />
-                    </InputLeftElement>
-                    <Input
-                        isReadOnly
-                        borderRadius="lg"
-                        cursor="pointer"
-                        disabled={isLocked || isConnected}
-                        draggable={false}
-                        placeholder="Click to select..."
+                    <InputGroup
                         size="sm"
-                        textOverflow="ellipsis"
-                        value={displayDirectory ?? ''}
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        onClick={onButtonClick}
-                    />
-                </InputGroup>
-            </Tooltip>
+                        onContextMenu={menu.onContextMenu}
+                    >
+                        <InputLeftElement pointerEvents="none">
+                            <Icon
+                                as={BsFolderPlus}
+                                m={0}
+                            />
+                        </InputLeftElement>
+                        <Input
+                            isReadOnly
+                            borderRadius="lg"
+                            cursor="pointer"
+                            disabled={isLocked || isConnected}
+                            draggable={false}
+                            placeholder="Click to select..."
+                            size="sm"
+                            textOverflow="ellipsis"
+                            value={displayDirectory ?? ''}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onClick={onButtonClick}
+                        />
+                    </InputGroup>
+                </Tooltip>
+            </WithLabel>
         );
     }
 );

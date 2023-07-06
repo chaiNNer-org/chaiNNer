@@ -54,6 +54,7 @@ class NumberInput(BaseInput):
         note_expression: Union[str, None] = None,
         kind: InputKind = "number",
         hide_trailing_zeros: bool = True,
+        hide_label: bool = False,
     ):
         super().__init__("number", label, kind=kind, has_handle=True)
         self.precision = precision
@@ -67,6 +68,8 @@ class NumberInput(BaseInput):
         self.unit = unit
         self.note_expression = note_expression
         self.hide_trailing_zeros = hide_trailing_zeros
+        self.hide_label = hide_label
+
         self.associated_type = float if precision > 0 else int
 
         self.input_type = get_number_type(
@@ -88,6 +91,7 @@ class NumberInput(BaseInput):
             "controlsStep": self.controls_step,
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
+            "hideLabel": self.hide_label,
         }
 
     def make_optional(self):

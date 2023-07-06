@@ -87,6 +87,7 @@ export interface TextInput extends InputBase {
     readonly maxLength?: number | null;
     readonly placeholder?: string | null;
     readonly def?: string | null;
+    readonly hideLabel: boolean;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
@@ -98,6 +99,7 @@ export interface NumberInput extends InputBase {
     readonly unit?: string | null;
     readonly noteExpression?: string | null;
     readonly hideTrailingZeros: boolean;
+    readonly hideLabel: boolean;
 }
 export interface SliderInput extends InputBase {
     readonly kind: 'slider';

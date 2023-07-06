@@ -8,6 +8,7 @@ import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
+import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const NumberInput = memo(
@@ -84,22 +85,24 @@ export const NumberInput = memo(
         ));
 
         return (
-            <HStack w="full">
-                <AdvancedNumberInput
-                    controlsStep={controlsStep}
-                    defaultValue={def}
-                    hideTrailingZeros={hideTrailingZeros}
-                    inputString={displayString}
-                    isDisabled={isLocked || isConnected}
-                    max={max ?? Infinity}
-                    min={min ?? -Infinity}
-                    precision={precision}
-                    setInput={setValue}
-                    setInputString={setInputString}
-                    unit={unit}
-                    onContextMenu={menu.onContextMenu}
-                />
-            </HStack>
+            <MaybeLabel input={input}>
+                <HStack w="full">
+                    <AdvancedNumberInput
+                        controlsStep={controlsStep}
+                        defaultValue={def}
+                        hideTrailingZeros={hideTrailingZeros}
+                        inputString={displayString}
+                        isDisabled={isLocked || isConnected}
+                        max={max ?? Infinity}
+                        min={min ?? -Infinity}
+                        precision={precision}
+                        setInput={setValue}
+                        setInputString={setInputString}
+                        unit={unit}
+                        onContextMenu={menu.onContextMenu}
+                    />
+                </HStack>
+            </MaybeLabel>
         );
     }
 );
