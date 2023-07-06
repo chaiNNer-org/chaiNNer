@@ -18,7 +18,7 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
-import { WithLabel } from './InputContainer';
+import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
@@ -106,7 +106,7 @@ export const DirectoryInput = memo(
         ));
 
         return (
-            <WithLabel input={input}>
+            <MaybeLabel input={input}>
                 <Tooltip
                     borderRadius={8}
                     label={displayDirectory}
@@ -140,7 +140,7 @@ export const DirectoryInput = memo(
                         />
                     </InputGroup>
                 </Tooltip>
-            </WithLabel>
+            </MaybeLabel>
         );
     }
 );
