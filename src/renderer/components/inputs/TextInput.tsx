@@ -24,7 +24,7 @@ export const TextInput = memo(
         input,
         isConnected,
         isLocked,
-        useInputType,
+        inputType,
         size,
         setSize,
         nodeId,
@@ -62,7 +62,6 @@ export const TextInput = memo(
             500
         );
 
-        const inputType = useInputType();
         const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
         const typeText =
             strType.underlying === 'string' && strType.type === 'literal'

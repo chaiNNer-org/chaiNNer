@@ -14,7 +14,7 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly inputKey: string;
     readonly size: Readonly<Size> | undefined;
     readonly setSize: (size: Readonly<Size>) => void;
-    readonly useInputType: () => Type;
+    readonly inputType: Type;
     readonly nodeId?: string;
     readonly nodeSchemaId?: SchemaId;
 }

@@ -24,6 +24,7 @@ import {
     OutputId,
     Size,
 } from '../../common/common-types';
+import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { TypeState } from '../../common/nodes/TypeState';
@@ -36,7 +37,6 @@ import {
 } from '../../common/types/mismatch';
 import { withoutNull } from '../../common/types/util';
 import {
-    EMPTY_ARRAY,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -91,11 +91,13 @@ import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { SettingsContext } from './SettingsContext';
 
+const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
+
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    getConnectedInputs: (id: string) => readonly InputId[];
+    getConnected: (id: string) => readonly [IdSet<InputId>, IdSet<OutputId>];
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
@@ -1025,25 +1027,39 @@ export const GlobalProvider = memo(
         const connectedInputsMap = useMemo(
             () => {
                 return lazy(() => {
-                    const map = new Map<string, InputId[]>();
+                    const map = new Map<string, { in: InputId[]; out: OutputId[] }>();
                     for (const e of getEdges()) {
                         if (e.targetHandle) {
-                            let inputs = map.get(e.target);
-                            if (inputs === undefined) {
-                                inputs = [];
-                                map.set(e.target, inputs);
+                            let entry = map.get(e.target);
+                            if (entry === undefined) {
+                                entry = { in: [], out: [] };
+                                map.set(e.target, entry);
                             }
-                            inputs.push(parseTargetHandle(e.targetHandle).inputId);
+                            entry.in.push(parseTargetHandle(e.targetHandle).inputId);
+                        }
+                        if (e.sourceHandle) {
+                            let entry = map.get(e.source);
+                            if (entry === undefined) {
+                                entry = { in: [], out: [] };
+                                map.set(e.source, entry);
+                            }
+                            entry.out.push(parseSourceHandle(e.sourceHandle).outputId);
                         }
                     }
-                    return map;
+
+                    const result = new Map<string, readonly [IdSet<InputId>, IdSet<OutputId>]>();
+                    for (const [id, { in: ins, out: outs }] of map.entries()) {
+                        result.set(id, [IdSet.from(ins), IdSet.from(outs)]);
+                    }
+                    return result;
                 });
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
             [edgeChanges, getEdges]
         );
-        const getConnectedInputs = useCallback(
-            (id: string): readonly InputId[] => connectedInputsMap().get(id) ?? EMPTY_ARRAY,
+        const getConnected = useCallback(
+            (id: string): readonly [IdSet<InputId>, IdSet<OutputId>] =>
+                connectedInputsMap().get(id) ?? EMPTY_CONNECTED,
             [connectedInputsMap]
         );
 
@@ -1309,7 +1325,7 @@ export const GlobalProvider = memo(
             nodeChanges,
             edgeChanges,
             typeState,
-            getConnectedInputs,
+            getConnected,
             effectivelyDisabledNodes,
             isValidConnection,
             zoom,

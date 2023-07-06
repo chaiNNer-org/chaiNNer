@@ -43,7 +43,7 @@ export const DirectoryInput = memo(
         input,
         inputKey,
         isConnected,
-        useInputType,
+        inputType,
         nodeId,
     }: InputProps<'directory', string>) => {
         const { t } = useTranslation();
@@ -62,7 +62,6 @@ export const DirectoryInput = memo(
             }
         };
 
-        const inputType = useInputType();
         const displayDirectory = isConnected ? getDirectoryPath(inputType) : value;
 
         const menu = useContextMenu(() => (

@@ -35,9 +35,7 @@ export const NodeBody = memo(({ nodeState, animated = false }: NodeBodyProps) =>
             >
                 <NodeOutputs
                     animated={animated}
-                    id={nodeState.id}
-                    outputs={outputs}
-                    schemaId={nodeState.schemaId}
+                    nodeState={nodeState}
                 />
             </Box>
         </>

@@ -1,11 +1,10 @@
-import { NeverType, Type } from '@chainner/navi';
+import { NeverType } from '@chainner/navi';
 import { HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { Input, InputKind, InputValue, Size } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
 import { ColorInput } from './ColorInput';
 import { DirectoryInput } from './DirectoryInput';
@@ -53,6 +52,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         setInputSize,
         isLocked,
         connectedInputs,
+        type,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -81,13 +81,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         [inputId, setInputSize]
     );
 
-    const useInputType = useCallback((): Type => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        return useContextSelector(GlobalVolatileContext, (c) => {
-            const type = c.typeState.functions.get(nodeId)?.inputs.get(inputId);
-            return type ?? NeverType.instance;
-        });
-    }, [nodeId, inputId]);
+    const inputType = type.instance?.inputs.get(inputId) ?? NeverType.instance;
 
     const InputType = InputComponents[kind];
     let inputElement = (
@@ -95,6 +89,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             definitionType={definitionType}
             input={input as never}
             inputKey={`${schemaId}-${inputId}`}
+            inputType={inputType}
             isConnected={connectedInputs.has(inputId)}
             isLocked={isLocked}
             nodeId={nodeId}
@@ -103,7 +98,6 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             setSize={setSize}
             setValue={setValue}
             size={size}
-            useInputType={useInputType}
             value={value}
         />
     );

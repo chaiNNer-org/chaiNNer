@@ -1,15 +1,22 @@
 import { Center, VStack } from '@chakra-ui/react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { Node } from 'reactflow';
+import { useContext } from 'use-context-selector';
 import {
+    Condition,
     InputData,
     InputId,
     InputSize,
     InputValue,
+    NodeData,
     NodeSchema,
     Size,
 } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
-import { EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
+import { TypeState } from '../../../common/nodes/TypeState';
+import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
+import { TypeInfo, testInputConditionTypeInfo } from '../../helpers/nodeState';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
@@ -62,6 +69,37 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         [setInputSize]
     );
 
+    const nodeIdPrefix = 'FakeId ';
+    const suffixLength = 36 - nodeIdPrefix.length;
+    const nodeId =
+        nodeIdPrefix + selectedSchema.schemaId.slice(-suffixLength).padStart(suffixLength, ' ');
+    if (nodeId.length !== 36) throw new Error('Fake node ID must have the length of a real one.');
+
+    const { functionDefinitions } = useContext(BackendContext);
+
+    const typeState = useMemo(() => {
+        const node: Node<NodeData> = {
+            id: nodeId,
+            position: { x: 0, y: 0 },
+            data: {
+                id: nodeId,
+                schemaId: selectedSchema.schemaId,
+                inputData,
+            },
+        };
+        return TypeState.create(
+            new Map([[nodeId, node]]),
+            EMPTY_ARRAY,
+            EMPTY_MAP,
+            functionDefinitions
+        );
+    }, [nodeId, selectedSchema, inputData, functionDefinitions]);
+
+    const typeInfo: TypeInfo = {
+        instance: typeState.functions.get(nodeId),
+        connectedInputs: EMPTY_SET,
+    };
+
     return (
         <Center
             key={selectedSchema.schemaId}
@@ -97,7 +135,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                         <NodeBody
                             animated={false}
                             nodeState={{
-                                id: '<fake node id>',
+                                id: nodeId,
                                 schemaId: selectedSchema.schemaId,
                                 schema: selectedSchema,
                                 inputData,
@@ -106,12 +144,16 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 setInputSize: setSingleInputSize,
                                 isLocked: false,
                                 connectedInputs: EMPTY_SET,
+                                connectedOutputs: EMPTY_SET,
+                                type: typeInfo,
+                                testCondition: (condition: Condition): boolean =>
+                                    testInputConditionTypeInfo(condition, inputData, typeInfo),
                             }}
                         />
                     </VStack>
                     <NodeFooter
                         animated={false}
-                        id="<fake node id>"
+                        id={nodeId}
                         validity={{ isValid: true }}
                     />
                 </VStack>

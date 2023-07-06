@@ -59,7 +59,7 @@ export const SliderInput = memo(
         input,
         isConnected,
         isLocked,
-        useInputType,
+        inputType,
         nodeId,
         nodeSchemaId,
     }: InputProps<'slider', number>) => {
@@ -121,7 +121,6 @@ export const SliderInput = memo(
             );
         }, [input, schema]);
 
-        const inputType = useInputType();
         const typeNumber = isNumericLiteral(inputType) ? inputType.value : undefined;
         const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
 

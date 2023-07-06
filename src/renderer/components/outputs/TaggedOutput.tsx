@@ -6,8 +6,8 @@ interface TagData {
     tags?: readonly string[] | null;
 }
 
-export const TaggedOutput = memo(({ outputId, useOutputData, animated }: OutputProps) => {
-    const { current } = useOutputData<TagData>(outputId);
+export const TaggedOutput = memo(({ output, useOutputData, animated }: OutputProps) => {
+    const { current } = useOutputData<TagData>(output.id);
 
     return (
         <ModelDataTags
