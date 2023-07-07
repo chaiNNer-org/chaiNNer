@@ -22,7 +22,7 @@ import { withoutNull } from '../../../common/types/util';
 import { isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
-import { getCategoryAccentColor } from '../../helpers/accentColors';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
@@ -41,13 +41,17 @@ const InputOutputItem = memo(({ label, description, type, optional }: InputOutpu
         type = withoutNull(type);
     }
 
+    const handleColors = getTypeAccentColors(type);
+
     return (
         <ListItem my={2}>
-            <Text
-                fontWeight="bold"
-                userSelect="text"
-            >
-                {label}
+            <HStack>
+                <Text
+                    fontWeight="bold"
+                    userSelect="text"
+                >
+                    {label}
+                </Text>
                 {optional && (
                     <TypeTag
                         isOptional
@@ -59,7 +63,16 @@ const InputOutputItem = memo(({ label, description, type, optional }: InputOutpu
                         optional
                     </TypeTag>
                 )}
-            </Text>
+                {handleColors.map((color) => (
+                    <Box
+                        bgColor={color}
+                        borderRadius="100%"
+                        h="0.5rem"
+                        w="0.5rem"
+                    />
+                ))}
+            </HStack>
+
             {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
             <Code userSelect="text">{prettyPrintType(type)}</Code>
         </ListItem>
