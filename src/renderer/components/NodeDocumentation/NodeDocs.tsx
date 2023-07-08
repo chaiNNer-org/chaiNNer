@@ -22,7 +22,7 @@ import { withoutNull } from '../../../common/types/util';
 import { isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
-import { getCategoryAccentColor } from '../../helpers/accentColors';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
@@ -34,37 +34,57 @@ interface InputOutputItemProps {
     description?: string | null;
     type: Type;
     optional: boolean;
+    hasHandle?: boolean;
 }
-const InputOutputItem = memo(({ label, description, type, optional }: InputOutputItemProps) => {
-    if (optional) {
-        // eslint-disable-next-line no-param-reassign
-        type = withoutNull(type);
-    }
+const InputOutputItem = memo(
+    ({ label, description, type, optional, hasHandle = true }: InputOutputItemProps) => {
+        if (optional) {
+            // eslint-disable-next-line no-param-reassign
+            type = withoutNull(type);
+        }
 
-    return (
-        <ListItem my={2}>
-            <Text
-                fontWeight="bold"
-                userSelect="text"
-            >
-                {label}
-                {optional && (
-                    <TypeTag
-                        isOptional
-                        fontSize="small"
-                        height="auto"
-                        mt="-0.2rem"
-                        verticalAlign="middle"
+        const handleColors = getTypeAccentColors(type);
+
+        return (
+            <ListItem my={2}>
+                <HStack>
+                    <Text
+                        fontWeight="bold"
+                        userSelect="text"
                     >
-                        optional
-                    </TypeTag>
+                        {label}
+                    </Text>
+                    {optional && (
+                        <TypeTag
+                            isOptional
+                            fontSize="small"
+                            height="auto"
+                            mt="-0.2rem"
+                            verticalAlign="middle"
+                        >
+                            optional
+                        </TypeTag>
+                    )}
+                    {hasHandle &&
+                        handleColors.map((color) => (
+                            <Box
+                                bgColor={color}
+                                borderRadius="100%"
+                                h="0.5rem"
+                                key={color}
+                                w="0.5rem"
+                            />
+                        ))}
+                </HStack>
+
+                {description && (
+                    <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>
                 )}
-            </Text>
-            {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
-            <Code userSelect="text">{prettyPrintType(type)}</Code>
-        </ListItem>
-    );
-});
+                <Code userSelect="text">{prettyPrintType(type)}</Code>
+            </ListItem>
+        );
+    }
+);
 
 interface NodeInfoProps {
     schema: NodeSchema;
@@ -129,6 +149,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                             return (
                                 <InputOutputItem
                                     description={input.description}
+                                    hasHandle={input.hasHandle}
                                     key={input.id}
                                     label={input.label}
                                     optional={input.optional}
