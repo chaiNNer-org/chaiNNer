@@ -258,7 +258,7 @@ export const NodeDocs = memo(() => {
             <Box w="full">
                 <Flex
                     direction={isLargerThan1200 ? 'row' : 'column'}
-                    gap={2}
+                    gap={4}
                     left={0}
                     maxH="full"
                     overflowY="scroll"
@@ -301,7 +301,11 @@ export const NodeDocs = memo(() => {
                         h="full"
                         position="relative"
                     >
-                        <VStack position="relative">
+                        <VStack
+                            alignItems="left"
+                            mr={6}
+                            position="relative"
+                        >
                             <NodeExample
                                 accentColor={selectedAccentColor}
                                 selectedSchema={selectedSchema}
