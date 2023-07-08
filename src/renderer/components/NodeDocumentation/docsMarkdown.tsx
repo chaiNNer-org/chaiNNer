@@ -10,7 +10,14 @@ import { SchemaLink } from './SchemaLink';
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
         p: ({ children }) => {
-            return <Text userSelect="text">{children}</Text>;
+            return (
+                <Text
+                    my={2}
+                    userSelect="text"
+                >
+                    {children}
+                </Text>
+            );
         },
         // eslint-disable-next-line react/prop-types
         code: memo(({ inline, className, children, ...props }) => {

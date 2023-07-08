@@ -43,9 +43,9 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
 
     const handleColors = getTypeAccentColors(type);
 
-    const isFileInput = 'kind' in item && item.kind === 'file';
+    const isFileInput = item.kind === 'file';
     const supportedFileTypes = isFileInput ? item.filetypes : [];
-    const isPrimaryInput = isFileInput && 'primaryInput' in item && item.primaryInput;
+    const isPrimaryInput = isFileInput && item.primaryInput;
 
     return (
         <ListItem my={2}>
@@ -79,15 +79,15 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     ))}
             </HStack>
 
+            {item.description && (
+                <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+            )}
+
             <VStack
                 alignItems="start"
-                my={2}
+                mb={2}
                 w="full"
             >
-                {item.description && (
-                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
-                )}
-
                 {isFileInput && supportedFileTypes.length > 0 && (
                     <Text
                         fontSize="md"
