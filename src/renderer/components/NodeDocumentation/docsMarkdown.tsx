@@ -12,7 +12,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
         p: ({ children }) => {
             return (
                 <Text
-                    my={2}
+                    // my={2}
                     userSelect="text"
                 >
                     {children}

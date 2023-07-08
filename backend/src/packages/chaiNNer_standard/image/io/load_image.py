@@ -120,8 +120,7 @@ valid_formats = get_available_image_formats()
     icon="BsFillImageFill",
     inputs=[
         ImageFileInput(primary_input=True).with_docs(
-            "Select the path of an image file.",
-            f"Supports the following image formats: {', '.join(valid_formats)}",
+            "Select the path of an image file."
         )
     ],
     outputs=[
