@@ -35,7 +35,8 @@ interface InputOutputItemProps {
 }
 
 const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
-    if ('optional' in item && item.optional) {
+    const isOptional = 'optional' in item && item.optional;
+    if (isOptional) {
         // eslint-disable-next-line no-param-reassign
         type = withoutNull(type);
     }
@@ -55,7 +56,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                 >
                     {item.label}
                 </Text>
-                {'optional' in item && item.optional && (
+                {isOptional && (
                     <TypeTag
                         isOptional
                         fontSize="small"
