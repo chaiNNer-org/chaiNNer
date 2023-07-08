@@ -16,10 +16,17 @@ export interface HandleWrapperProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
+    useFakeHandles: boolean;
 }
 
 export const HandleWrapper = memo(
-    ({ children, id, inputId, connectableType }: React.PropsWithChildren<HandleWrapperProps>) => {
+    ({
+        children,
+        id,
+        inputId,
+        connectableType,
+        useFakeHandles,
+    }: React.PropsWithChildren<HandleWrapperProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
@@ -103,6 +110,7 @@ export const HandleWrapper = memo(
                         id={targetHandle}
                         isValidConnection={isValidConnectionForRf}
                         type="input"
+                        useFakeHandles={useFakeHandles}
                         validity={validity}
                     />
                 </Center>

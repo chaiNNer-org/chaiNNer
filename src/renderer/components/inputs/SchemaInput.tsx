@@ -53,6 +53,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         isLocked,
         connectedInputs,
         type,
+        useFakeHandles,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -118,6 +119,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                     connectableType={connectableType}
                     id={nodeId}
                     inputId={inputId}
+                    useFakeHandles={useFakeHandles}
                 >
                     {inputElement}
                 </HandleWrapper>

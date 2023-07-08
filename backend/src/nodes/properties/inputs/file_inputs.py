@@ -101,7 +101,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
         input_type_name="PthFile",
-        label="Pretrained Model",
+        label="Model",
         file_kind="pth",
         filetypes=[".pt", ".pth"],
         primary_input=primary_input,
