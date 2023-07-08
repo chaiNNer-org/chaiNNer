@@ -1,5 +1,7 @@
 import {
+    Box,
     HStack,
+    Icon,
     IconButton,
     Modal,
     ModalBody,
@@ -40,7 +42,22 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                 overflow="hidden"
                 w="calc(100% - 7.5rem)"
             >
-                <ModalHeader>Node Documentation</ModalHeader>
+                <ModalHeader
+                    display="flex"
+                    flexDirection="row"
+                    gap={2}
+                >
+                    <Box
+                        display="flex"
+                        h="full"
+                    >
+                        <Icon
+                            as={BsFillJournalBookmarkFill}
+                            m="auto"
+                        />
+                    </Box>
+                    Node Documentation
+                </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody
                     overflow="hidden"
