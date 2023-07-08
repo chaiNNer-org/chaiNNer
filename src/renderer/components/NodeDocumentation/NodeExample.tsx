@@ -115,6 +115,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                 minWidth="240px"
                 overflow="hidden"
                 transition="0.15s ease-in-out"
+                w="full"
             >
                 <VStack
                     spacing={0}
@@ -148,6 +149,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 type: typeInfo,
                                 testCondition: (condition: Condition): boolean =>
                                     testInputConditionTypeInfo(condition, inputData, typeInfo),
+                                useFakeHandles: true,
                             }}
                         />
                     </VStack>

@@ -1,4 +1,4 @@
-import { Tooltip, chakra } from '@chakra-ui/react';
+import { Box, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
@@ -11,6 +11,8 @@ interface HandleElementProps {
     type: HandleType;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     validity: Validity;
+    id: string;
+    useFakeHandles?: boolean;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -20,36 +22,56 @@ const HandleElement = memo(
         isValidConnection,
         validity,
         type,
+        id,
+        useFakeHandles = false,
         ...props
-    }: React.PropsWithChildren<HandleElementProps>) => (
-        <Tooltip
-            hasArrow
-            borderRadius={8}
-            display={validity.isValid ? 'none' : 'block'}
-            label={
-                validity.isValid ? undefined : (
-                    <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
-                )
-            }
-            mt={1}
-            opacity={validity.isValid ? 0 : 1}
-            openDelay={500}
-            px={2}
-            py={1}
-        >
-            <RFHandle
-                isConnectable
-                className={`${type}-handle`}
-                isValidConnection={isValidConnection}
-                position={type === 'input' ? Position.Left : Position.Right}
-                type={type === 'input' ? 'target' : 'source'}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+    }: React.PropsWithChildren<HandleElementProps>) => {
+        return (
+            <Tooltip
+                hasArrow
+                borderRadius={8}
+                display={validity.isValid ? 'none' : 'block'}
+                label={
+                    validity.isValid ? undefined : (
+                        <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
+                    )
+                }
+                mt={1}
+                opacity={validity.isValid ? 0 : 1}
+                openDelay={500}
+                px={2}
+                py={1}
             >
-                {children}
-            </RFHandle>
-        </Tooltip>
-    )
+                {useFakeHandles ? (
+                    <Box
+                        bg="#1a192b"
+                        border="1px solid white"
+                        borderRadius="100%"
+                        className={`${type}-handle react-flow__handle react-flow__handle-${
+                            type === 'input' ? 'left' : 'right'
+                        }`}
+                        h="6px"
+                        w="6px"
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                ) : (
+                    <RFHandle
+                        isConnectable
+                        className={`${type}-handle`}
+                        id={id}
+                        isValidConnection={isValidConnection}
+                        position={type === 'input' ? Position.Left : Position.Right}
+                        type={type === 'input' ? 'target' : 'source'}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    >
+                        {children}
+                    </RFHandle>
+                )}
+            </Tooltip>
+        );
+    }
 );
 
 const Div = chakra('div', {
@@ -63,6 +85,7 @@ export interface HandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
     connectedColor: string | undefined;
+    useFakeHandles?: boolean;
 }
 
 const getBackground = (colors: readonly string[]): string => {
@@ -79,7 +102,15 @@ const getBackground = (colors: readonly string[]): string => {
 };
 
 export const Handle = memo(
-    ({ id, type, validity, isValidConnection, handleColors, connectedColor }: HandleProps) => {
+    ({
+        id,
+        type,
+        validity,
+        isValidConnection,
+        handleColors,
+        connectedColor,
+        useFakeHandles = false,
+    }: HandleProps) => {
         const isConnected = !!connectedColor;
 
         const connectedBg = 'var(--connection-color)';
@@ -121,6 +152,7 @@ export const Handle = memo(
                     position: 'relative',
                 }}
                 type={type}
+                useFakeHandles={useFakeHandles}
                 validity={validity}
                 onContextMenu={noContextMenu}
             />
