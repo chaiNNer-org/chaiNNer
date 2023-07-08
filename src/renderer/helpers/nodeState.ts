@@ -117,5 +117,6 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         connectedOutputs,
         type,
         testCondition,
+        useFakeHandles: false,
     });
 };
