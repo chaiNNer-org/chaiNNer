@@ -71,6 +71,7 @@ const InputOutputItem = memo(
                                 bgColor={color}
                                 borderRadius="100%"
                                 h="0.5rem"
+                                key={color}
                                 w="0.5rem"
                             />
                         ))}
