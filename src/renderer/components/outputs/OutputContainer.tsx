@@ -18,7 +18,7 @@ interface OutputContainerProps {
     type: Type | undefined;
     generic: boolean;
     isConnected: boolean;
-    useFakeHandles?: boolean;
+    useFakeHandles: boolean;
 }
 
 export const OutputContainer = memo(

@@ -12,7 +12,7 @@ interface HandleElementProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     validity: Validity;
     id: string;
-    useFakeHandles?: boolean;
+    useFakeHandles: boolean;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -23,7 +23,7 @@ const HandleElement = memo(
         validity,
         type,
         id,
-        useFakeHandles = false,
+        useFakeHandles,
         ...props
     }: React.PropsWithChildren<HandleElementProps>) => {
         return (
@@ -85,7 +85,7 @@ export interface HandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
     connectedColor: string | undefined;
-    useFakeHandles?: boolean;
+    useFakeHandles: boolean;
 }
 
 const getBackground = (colors: readonly string[]): string => {
@@ -109,7 +109,7 @@ export const Handle = memo(
         isValidConnection,
         handleColors,
         connectedColor,
-        useFakeHandles = false,
+        useFakeHandles,
     }: HandleProps) => {
         const isConnected = !!connectedColor;
 

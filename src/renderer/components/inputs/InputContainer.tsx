@@ -16,7 +16,7 @@ export interface HandleWrapperProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
-    useFakeHandles?: boolean;
+    useFakeHandles: boolean;
 }
 
 export const HandleWrapper = memo(
