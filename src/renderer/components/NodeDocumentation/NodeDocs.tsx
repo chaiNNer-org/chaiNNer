@@ -15,7 +15,7 @@ import {
 import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../../common/common-types';
+import { Input, NodeSchema, Output } from '../../../common/common-types';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
@@ -30,61 +30,99 @@ import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
 interface InputOutputItemProps {
-    label: string;
-    description?: string | null;
+    item: Input | Output;
     type: Type;
-    optional: boolean;
-    hasHandle?: boolean;
 }
-const InputOutputItem = memo(
-    ({ label, description, type, optional, hasHandle = true }: InputOutputItemProps) => {
-        if (optional) {
-            // eslint-disable-next-line no-param-reassign
-            type = withoutNull(type);
-        }
 
-        const handleColors = getTypeAccentColors(type);
+const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
+    const isOptional = 'optional' in item && item.optional;
+    if (isOptional) {
+        // eslint-disable-next-line no-param-reassign
+        type = withoutNull(type);
+    }
 
-        return (
-            <ListItem my={2}>
-                <HStack>
+    const handleColors = getTypeAccentColors(type);
+
+    const isFileInput = item.kind === 'file';
+    const supportedFileTypes = isFileInput ? item.filetypes : [];
+    const isPrimaryInput = isFileInput && item.primaryInput;
+
+    return (
+        <ListItem my={2}>
+            <HStack mb={1}>
+                <Text
+                    fontWeight="bold"
+                    userSelect="text"
+                >
+                    {item.label}
+                </Text>
+                {isOptional && (
+                    <TypeTag
+                        isOptional
+                        fontSize="small"
+                        height="auto"
+                        mt="-0.2rem"
+                        verticalAlign="middle"
+                    >
+                        optional
+                    </TypeTag>
+                )}
+                {item.hasHandle &&
+                    handleColors.map((color) => (
+                        <Box
+                            bgColor={color}
+                            borderRadius="100%"
+                            h="0.5rem"
+                            key={color}
+                            w="0.5rem"
+                        />
+                    ))}
+            </HStack>
+
+            {item.description && (
+                <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+            )}
+
+            <VStack
+                alignItems="start"
+                mb={1}
+                w="full"
+            >
+                {isFileInput && supportedFileTypes.length > 0 && (
                     <Text
-                        fontWeight="bold"
+                        fontSize="md"
                         userSelect="text"
                     >
-                        {label}
-                    </Text>
-                    {optional && (
-                        <TypeTag
-                            isOptional
-                            fontSize="small"
-                            height="auto"
-                            mt="-0.2rem"
-                            verticalAlign="middle"
-                        >
-                            optional
-                        </TypeTag>
-                    )}
-                    {hasHandle &&
-                        handleColors.map((color) => (
-                            <Box
-                                bgColor={color}
-                                borderRadius="100%"
-                                h="0.5rem"
-                                key={color}
-                                w="0.5rem"
-                            />
+                        Supported file types:
+                        {supportedFileTypes.map((fileType) => (
+                            <TypeTag
+                                fontSize="small"
+                                height="auto"
+                                mt="-0.2rem"
+                                verticalAlign="middle"
+                            >
+                                {fileType}
+                            </TypeTag>
                         ))}
-                </HStack>
-
-                {description && (
-                    <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>
+                    </Text>
                 )}
+
+                {isFileInput && isPrimaryInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        This input is the primary input for its supported file types. This means
+                        that you can drag and drop supported files into chaiNNer, and it will create
+                        a node with this input filled in automatically.
+                    </Text>
+                )}
+
                 <Code userSelect="text">{prettyPrintType(type)}</Code>
-            </ListItem>
-        );
-    }
-);
+            </VStack>
+        </ListItem>
+    );
+});
 
 interface NodeInfoProps {
     schema: NodeSchema;
@@ -148,11 +186,8 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {inputs.map((input) => {
                             return (
                                 <InputOutputItem
-                                    description={input.description}
-                                    hasHandle={input.hasHandle}
+                                    item={input}
                                     key={input.id}
-                                    label={input.label}
-                                    optional={input.optional}
                                     type={
                                         functionDefinition?.inputDefaults.get(input.id) ??
                                         NeverType.instance
@@ -184,10 +219,8 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {outputs.map((output) => {
                             return (
                                 <InputOutputItem
-                                    description={output.description}
+                                    item={output}
                                     key={output.id}
-                                    label={output.label}
-                                    optional={false}
                                     type={
                                         functionDefinition?.outputDefaults.get(output.id) ??
                                         NeverType.instance
