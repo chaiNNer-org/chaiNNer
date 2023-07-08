@@ -49,7 +49,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
 
     return (
         <ListItem my={2}>
-            <HStack>
+            <HStack mb={1}>
                 <Text
                     fontWeight="bold"
                     userSelect="text"
@@ -85,7 +85,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
 
             <VStack
                 alignItems="start"
-                mb={2}
+                mb={1}
                 w="full"
             >
                 {isFileInput && supportedFileTypes.length > 0 && (
