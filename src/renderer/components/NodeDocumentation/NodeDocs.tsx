@@ -8,6 +8,7 @@ import {
     Heading,
     ListItem,
     Text,
+    Tooltip,
     UnorderedList,
     VStack,
     useMediaQuery,
@@ -28,6 +29,13 @@ import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
+
+const getTypeTooltipText = (item: Input | Output) => {
+    if (item.kind === 'number' || item.kind === 'slider') {
+        const prefix = item.precision === 0 ? 'An integer' : 'A float';
+        return `${prefix} between ${item.min ?? '-infinity'} and ${item.max ?? 'infinity'}`;
+    }
+};
 
 interface InputOutputItemProps {
     item: Input | Output;
@@ -51,6 +59,8 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const isTextInput = item.kind === 'text';
 
     const isDropdownInput = item.kind === 'dropdown';
+
+    const tooltipText = getTypeTooltipText(item);
 
     return (
         <ListItem my={2}>
@@ -123,66 +133,15 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
-                {isNumberInput && (
-                    <>
-                        {item.min !== undefined && item.min !== null && (
-                            <Text
-                                fontSize="md"
-                                userSelect="text"
-                            >
-                                {`Minimum: ${item.min}`}
-                            </Text>
-                        )}
-                        {item.max !== undefined && item.max !== null && (
-                            <Text
-                                fontSize="md"
-                                userSelect="text"
-                            >
-                                {`Maximum: ${item.max}`}
-                            </Text>
-                        )}
-                        <Text
-                            fontSize="md"
-                            userSelect="text"
-                        >
-                            {`Precision: ${
-                                item.precision === 0
-                                    ? 'Whole numbers'
-                                    : `${item.precision} decimal place${
-                                          item.precision === 1 ? '' : 's'
-                                      }`
-                            }`}
-                        </Text>
-                    </>
-                )}
-
                 {isTextInput && (
-                    <>
-                        {item.minLength !== undefined && item.minLength !== null && (
-                            <Text
-                                fontSize="md"
-                                userSelect="text"
-                            >
-                                Minimum length: {item.minLength}
-                            </Text>
-                        )}
-                        {item.maxLength !== undefined && item.maxLength !== null && (
-                            <Text
-                                fontSize="md"
-                                userSelect="text"
-                            >
-                                Maximum length: {item.maxLength}
-                            </Text>
-                        )}
-                        {item.multiline && (
-                            <Text
-                                fontSize="md"
-                                userSelect="text"
-                            >
-                                Multiline
-                            </Text>
-                        )}
-                    </>
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        {`A ${item.multiline ? 'multi-line ' : ''}string between ${
+                            item.minLength ?? 0
+                        } and ${item.maxLength ?? 'infinity'} characters long.`}
+                    </Text>
                 )}
 
                 {isDropdownInput && (
@@ -205,7 +164,14 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
-                <Code userSelect="text">{prettyPrintType(type)}</Code>
+                <Tooltip
+                    borderRadius={8}
+                    label={tooltipText}
+                    px={2}
+                    py={1}
+                >
+                    <Code userSelect="text">{prettyPrintType(type)}</Code>
+                </Tooltip>
             </VStack>
         </ListItem>
     );
