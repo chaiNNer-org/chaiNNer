@@ -33,7 +33,9 @@ NCNN_ITERATOR_NODE_ID = "chainner:ncnn:model_iterator_load"
         DirectoryOutput("Model Directory"),
         TextOutput("Subdirectory Path"),
         TextOutput("Model Name"),
-        NumberOutput("Overall Index", output_type="uint"),
+        NumberOutput("Overall Index", output_type="uint").with_docs(
+            "A counter that starts at 0 and increments by 1 for each model."
+        ),
     ],
     node_type="iteratorHelper",
     side_effects=True,
