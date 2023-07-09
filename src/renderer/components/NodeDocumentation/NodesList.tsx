@@ -27,14 +27,40 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
         prefix: true,
         combineWith: 'AND',
     });
-    const matchingSchemaIds = useMemo(() => searchResult.map((s) => String(s.id)), [searchResult]);
 
+    const scoreMap = useMemo(() => {
+        const map = new Map<string, number>();
+        searchResult.forEach((result) => {
+            map.set(String(result.id), result.score);
+        });
+        return map;
+    }, [searchResult]);
+
+    const matchingSchemaIds = useMemo(() => searchResult.map((s) => String(s.id)), [searchResult]);
     const filteredSchema = useMemo(
         () => schema.filter((s) => !searchQuery || matchingSchemaIds.includes(s.schemaId)),
         [matchingSchemaIds, schema, searchQuery]
     );
 
     const byCategories = useMemo(() => getNodesByCategory(filteredSchema), [filteredSchema]);
+
+    const categoriesByMaxNodeScore = useMemo(
+        () =>
+            searchQuery
+                ? [...categories].sort((a, b) => {
+                      const aMaxScore = Math.max(
+                          ...(byCategories.get(a.name)?.map((n) => scoreMap.get(n.schemaId) ?? 0) ??
+                              [])
+                      );
+                      const bMaxScore = Math.max(
+                          ...(byCategories.get(b.name)?.map((n) => scoreMap.get(n.schemaId) ?? 0) ??
+                              [])
+                      );
+                      return bMaxScore - aMaxScore;
+                  })
+                : categories,
+        [byCategories, categories, scoreMap, searchQuery]
+    );
 
     const selectedElement = useRef<HTMLDivElement>(null);
 
@@ -78,12 +104,20 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
                     {filteredSchema.length === 0 ? (
                         <Text>No nodes found</Text>
                     ) : (
-                        categories.map((category) => {
+                        categoriesByMaxNodeScore.map((category) => {
                             const categoryNodes = byCategories.get(category.name);
 
                             if (!categoryNodes || categoryNodes.length === 0) {
                                 return null;
                             }
+
+                            const categoryNodesByScore = searchQuery
+                                ? [...categoryNodes].sort(
+                                      (a, b) =>
+                                          (scoreMap.get(b.schemaId) ?? 0) -
+                                          (scoreMap.get(a.schemaId) ?? 0)
+                                  )
+                                : categoryNodes;
 
                             return (
                                 <Box
@@ -105,43 +139,39 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
                                             <Text>{category.name}</Text>
                                         </HStack>
                                     </Center>
-                                    {categoryNodes
-                                        // .filter((n) => filteredSchemaIds.includes(n.schemaId))
-                                        .map((node) => {
-                                            const isSelected = node.schemaId === selectedSchemaId;
-                                            return (
-                                                <HStack
-                                                    _hover={{
-                                                        backgroundColor: 'var(--bg-700)',
-                                                    }}
-                                                    backgroundColor={
-                                                        isSelected
-                                                            ? 'var(--bg-700)'
-                                                            : 'var(--bg-800)'
-                                                    }
-                                                    borderBottomColor="gray.500"
-                                                    borderBottomWidth="1px"
-                                                    borderLeftColor={category.color}
-                                                    borderLeftWidth={isSelected ? 8 : 4}
+                                    {categoryNodesByScore.map((node) => {
+                                        const isSelected = node.schemaId === selectedSchemaId;
+                                        return (
+                                            <HStack
+                                                _hover={{
+                                                    backgroundColor: 'var(--bg-700)',
+                                                }}
+                                                backgroundColor={
+                                                    isSelected ? 'var(--bg-700)' : 'var(--bg-800)'
+                                                }
+                                                borderBottomColor="gray.500"
+                                                borderBottomWidth="1px"
+                                                borderLeftColor={category.color}
+                                                borderLeftWidth={isSelected ? 8 : 4}
+                                                cursor="pointer"
+                                                key={node.schemaId}
+                                                p={2}
+                                                ref={isSelected ? selectedElement : undefined}
+                                                w="full"
+                                                onClick={() => {
+                                                    openNodeDocumentation(node.schemaId);
+                                                }}
+                                            >
+                                                <IconFactory icon={node.icon} />
+                                                <Text
                                                     cursor="pointer"
                                                     key={node.schemaId}
-                                                    p={2}
-                                                    ref={isSelected ? selectedElement : undefined}
-                                                    w="full"
-                                                    onClick={() => {
-                                                        openNodeDocumentation(node.schemaId);
-                                                    }}
                                                 >
-                                                    <IconFactory icon={node.icon} />
-                                                    <Text
-                                                        cursor="pointer"
-                                                        key={node.schemaId}
-                                                    >
-                                                        {node.name}
-                                                    </Text>
-                                                </HStack>
-                                            );
-                                        })}
+                                                    {node.name}
+                                                </Text>
+                                            </HStack>
+                                        );
+                                    })}
                                 </Box>
                             );
                         })
