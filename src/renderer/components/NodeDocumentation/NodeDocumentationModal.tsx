@@ -3,6 +3,7 @@ import {
     HStack,
     Icon,
     IconButton,
+    Input,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -44,24 +45,29 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                 w="calc(100% - 7.5rem)"
             >
                 <ModalHeader
-                    display="flex"
-                    flexDirection="row"
-                    gap={2}
+                // display="flex"
+                // flexDirection="row"
+                // gap={2}
                 >
-                    <Box
-                        display="flex"
-                        h="full"
-                    >
-                        <Icon
-                            as={BsFillJournalBookmarkFill}
-                            m="auto"
+                    <HStack w="full">
+                        <Box
+                            display="flex"
+                            h="full"
+                        >
+                            <Icon
+                                as={BsFillJournalBookmarkFill}
+                                m="auto"
+                            />
+                        </Box>
+                        <Box whiteSpace="nowrap">Node Documentation</Box>
+                        <Input
+                            placeholder="Search..."
+                            value={searchQuery}
+                            w="full"
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                    </Box>
-                    Node Documentation
-                    <input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                        <Box w={8} />
+                    </HStack>
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody
