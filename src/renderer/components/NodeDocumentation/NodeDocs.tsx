@@ -47,6 +47,11 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const supportedFileTypes = isFileInput ? item.filetypes : [];
     const isPrimaryInput = isFileInput && item.primaryInput;
 
+    const isNumberInput = item.kind === 'number' || item.kind === 'slider';
+    const isTextInput = item.kind === 'text';
+
+    const isDropdownInput = item.kind === 'dropdown';
+
     return (
         <ListItem my={2}>
             <HStack mb={1}>
@@ -78,16 +83,15 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         />
                     ))}
             </HStack>
-
-            {item.description && (
-                <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
-            )}
-
             <VStack
                 alignItems="start"
-                mb={1}
+                spacing={1}
                 w="full"
             >
+                {item.description && (
+                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+                )}
+
                 {isFileInput && supportedFileTypes.length > 0 && (
                     <Text
                         fontSize="md"
@@ -98,6 +102,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                             <TypeTag
                                 fontSize="small"
                                 height="auto"
+                                key={fileType}
                                 mt="-0.2rem"
                                 verticalAlign="middle"
                             >
@@ -115,6 +120,88 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         This input is the primary input for its supported file types. This means
                         that you can drag and drop supported files into chaiNNer, and it will create
                         a node with this input filled in automatically.
+                    </Text>
+                )}
+
+                {isNumberInput && (
+                    <>
+                        {item.min !== undefined && item.min !== null && (
+                            <Text
+                                fontSize="md"
+                                userSelect="text"
+                            >
+                                {`Minimum: ${item.min}`}
+                            </Text>
+                        )}
+                        {item.max !== undefined && item.max !== null && (
+                            <Text
+                                fontSize="md"
+                                userSelect="text"
+                            >
+                                {`Maximum: ${item.max}`}
+                            </Text>
+                        )}
+                        <Text
+                            fontSize="md"
+                            userSelect="text"
+                        >
+                            {`Precision: ${
+                                item.precision === 0
+                                    ? 'Whole numbers'
+                                    : `${item.precision} decimal place${
+                                          item.precision === 1 ? '' : 's'
+                                      }`
+                            }`}
+                        </Text>
+                    </>
+                )}
+
+                {isTextInput && (
+                    <>
+                        {item.minLength !== undefined && item.minLength !== null && (
+                            <Text
+                                fontSize="md"
+                                userSelect="text"
+                            >
+                                Minimum length: {item.minLength}
+                            </Text>
+                        )}
+                        {item.maxLength !== undefined && item.maxLength !== null && (
+                            <Text
+                                fontSize="md"
+                                userSelect="text"
+                            >
+                                Maximum length: {item.minLength}
+                            </Text>
+                        )}
+                        {item.multiline && (
+                            <Text
+                                fontSize="md"
+                                userSelect="text"
+                            >
+                                Multiline
+                            </Text>
+                        )}
+                    </>
+                )}
+
+                {isDropdownInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        Options:
+                        {item.options.map((o) => (
+                            <TypeTag
+                                fontSize="small"
+                                height="auto"
+                                key={o.value}
+                                mt="-0.2rem"
+                                verticalAlign="middle"
+                            >
+                                {o.option}
+                            </TypeTag>
+                        ))}
                     </Text>
                 )}
 
