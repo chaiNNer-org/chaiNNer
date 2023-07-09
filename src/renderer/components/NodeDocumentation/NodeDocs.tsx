@@ -55,7 +55,6 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const supportedFileTypes = isFileInput ? item.filetypes : [];
     const isPrimaryInput = isFileInput && item.primaryInput;
 
-    const isNumberInput = item.kind === 'number' || item.kind === 'slider';
     const isTextInput = item.kind === 'text';
 
     const isDropdownInput = item.kind === 'dropdown';
