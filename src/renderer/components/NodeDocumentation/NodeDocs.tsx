@@ -171,7 +171,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                                 fontSize="md"
                                 userSelect="text"
                             >
-                                Maximum length: {item.minLength}
+                                Maximum length: {item.maxLength}
                             </Text>
                         )}
                         {item.multiline && (
