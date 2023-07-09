@@ -14,10 +14,9 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
 
-    const miniSearch = new MiniSearch({
-        idField: 'schemaId',
-        fields: ['category', 'description', 'name', 'subcategory'],
-    });
+    const idField: keyof NodeSchema = 'schemaId';
+    const fields: (keyof NodeSchema)[] = ['category', 'description', 'name', 'subcategory'];
+    const miniSearch = new MiniSearch({ idField, fields });
 
     miniSearch.addAll(schema);
 
