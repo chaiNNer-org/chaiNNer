@@ -3,7 +3,6 @@ import {
     HStack,
     Icon,
     IconButton,
-    Input,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -25,7 +24,6 @@ interface NodeDocumentationModalProps {
 }
 
 export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentationModalProps) => {
-    const [searchQuery, setSearchQuery] = useState('');
     return (
         <Modal
             isCentered
@@ -56,13 +54,6 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                             />
                         </Box>
                         <Box whiteSpace="nowrap">Node Documentation</Box>
-                        <Input
-                            placeholder="Search..."
-                            value={searchQuery}
-                            w="full"
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Box w={8} />
                     </HStack>
                 </ModalHeader>
                 <ModalCloseButton />
@@ -75,7 +66,7 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                         h="full"
                         w="full"
                     >
-                        <NodesList searchQuery={searchQuery} />
+                        <NodesList />
                         <NodeDocs />
                     </HStack>
                 </ModalBody>

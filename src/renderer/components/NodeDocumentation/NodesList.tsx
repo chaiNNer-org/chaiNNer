@@ -7,13 +7,16 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getNodesByCategory } from '../../helpers/nodeSearchFuncs';
 import { IconFactory } from '../CustomIcons';
+import { SearchBar } from '../SearchBar';
 
-export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
+export const NodesList = memo(() => {
     const { selectedSchemaId, isOpen, openNodeDocumentation } =
         useContext(NodeDocumentationContext);
 
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     const idField: keyof NodeSchema = 'schemaId';
     const fields: (keyof NodeSchema)[] = ['category', 'description', 'name', 'subcategory'];
@@ -101,6 +104,18 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
                     top={0}
                     w={64}
                 >
+                    <Box
+                        bgColor="var(--bg-800)"
+                        position="sticky"
+                        top={0}
+                    >
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onClick={() => {}}
+                            onClose={() => setSearchQuery('')}
+                        />
+                    </Box>
                     {filteredSchema.length === 0 ? (
                         <Text>No nodes found</Text>
                     ) : (
