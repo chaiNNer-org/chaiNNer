@@ -11,7 +11,7 @@ import {
     ModalOverlay,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
@@ -24,6 +24,7 @@ interface NodeDocumentationModalProps {
 }
 
 export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentationModalProps) => {
+    const [searchQuery, setSearchQuery] = useState('');
     return (
         <Modal
             isCentered
@@ -57,6 +58,10 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                         />
                     </Box>
                     Node Documentation
+                    <input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody
@@ -68,7 +73,7 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                         h="full"
                         w="full"
                     >
-                        <NodesList />
+                        <NodesList searchQuery={searchQuery} />
                         <NodeDocs />
                     </HStack>
                 </ModalBody>

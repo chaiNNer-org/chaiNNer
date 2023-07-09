@@ -1,4 +1,5 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
+import MiniSearch from 'minisearch';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -6,13 +7,38 @@ import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContex
 import { getNodesByCategory } from '../../helpers/nodeSearchFuncs';
 import { IconFactory } from '../CustomIcons';
 
-export const NodesList = memo(() => {
+export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
     const { selectedSchemaId, isOpen, openNodeDocumentation } =
         useContext(NodeDocumentationContext);
 
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
-    const byCategories = useMemo(() => getNodesByCategory(schema), [schema]);
+
+    const miniSearch = new MiniSearch({
+        idField: 'schemaId',
+        fields: ['category', 'description', 'name', 'subcategory'],
+    });
+
+    miniSearch.addAll(schema);
+
+    const filteredSchema = miniSearch.search(searchQuery, {
+        boost: { name: 2 },
+        fuzzy: 0.2,
+        prefix: true,
+        combineWith: 'AND',
+    });
+    const filteredSchemaIds = useMemo(
+        () => [...new Set(filteredSchema.map((s) => String(s.id)))],
+        [filteredSchema]
+    );
+
+    const byCategories = useMemo(
+        () =>
+            getNodesByCategory(
+                schema.filter((s) => !searchQuery || filteredSchemaIds.includes(s.schemaId))
+            ),
+        [schema, filteredSchemaIds, searchQuery]
+    );
 
     const selectedElement = useRef<HTMLDivElement>(null);
 
@@ -80,39 +106,41 @@ export const NodesList = memo(() => {
                                         <Text>{category.name}</Text>
                                     </HStack>
                                 </Center>
-                                {categoryNodes.map((node) => {
-                                    const isSelected = node.schemaId === selectedSchemaId;
-                                    return (
-                                        <HStack
-                                            _hover={{
-                                                backgroundColor: 'var(--bg-700)',
-                                            }}
-                                            backgroundColor={
-                                                isSelected ? 'var(--bg-700)' : 'var(--bg-800)'
-                                            }
-                                            borderBottomColor="gray.500"
-                                            borderBottomWidth="1px"
-                                            borderLeftColor={category.color}
-                                            borderLeftWidth={isSelected ? 8 : 4}
-                                            cursor="pointer"
-                                            key={node.schemaId}
-                                            p={2}
-                                            ref={isSelected ? selectedElement : undefined}
-                                            w="full"
-                                            onClick={() => {
-                                                openNodeDocumentation(node.schemaId);
-                                            }}
-                                        >
-                                            <IconFactory icon={node.icon} />
-                                            <Text
+                                {categoryNodes
+                                    // .filter((n) => filteredSchemaIds.includes(n.schemaId))
+                                    .map((node) => {
+                                        const isSelected = node.schemaId === selectedSchemaId;
+                                        return (
+                                            <HStack
+                                                _hover={{
+                                                    backgroundColor: 'var(--bg-700)',
+                                                }}
+                                                backgroundColor={
+                                                    isSelected ? 'var(--bg-700)' : 'var(--bg-800)'
+                                                }
+                                                borderBottomColor="gray.500"
+                                                borderBottomWidth="1px"
+                                                borderLeftColor={category.color}
+                                                borderLeftWidth={isSelected ? 8 : 4}
                                                 cursor="pointer"
                                                 key={node.schemaId}
+                                                p={2}
+                                                ref={isSelected ? selectedElement : undefined}
+                                                w="full"
+                                                onClick={() => {
+                                                    openNodeDocumentation(node.schemaId);
+                                                }}
                                             >
-                                                {node.name}
-                                            </Text>
-                                        </HStack>
-                                    );
-                                })}
+                                                <IconFactory icon={node.icon} />
+                                                <Text
+                                                    cursor="pointer"
+                                                    key={node.schemaId}
+                                                >
+                                                    {node.name}
+                                                </Text>
+                                            </HStack>
+                                        );
+                                    })}
                             </Box>
                         );
                     })}
