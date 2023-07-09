@@ -2,6 +2,7 @@ import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import MiniSearch from 'minisearch';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
+import { NodeSchema } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getNodesByCategory } from '../../helpers/nodeSearchFuncs';
