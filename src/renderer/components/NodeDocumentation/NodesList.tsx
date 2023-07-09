@@ -27,10 +27,7 @@ export const NodesList = memo(({ searchQuery }: { searchQuery: string }) => {
         prefix: true,
         combineWith: 'AND',
     });
-    const matchingSchemaIds = useMemo(
-        () => [...new Set(searchResult.map((s) => String(s.id)))],
-        [searchResult]
-    );
+    const matchingSchemaIds = useMemo(() => searchResult.map((s) => String(s.id)), [searchResult]);
 
     const filteredSchema = useMemo(
         () => schema.filter((s) => !searchQuery || matchingSchemaIds.includes(s.schemaId)),
