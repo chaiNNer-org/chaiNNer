@@ -11,7 +11,7 @@ import {
     ModalOverlay,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
