@@ -1,6 +1,6 @@
 import https from 'https';
-import { Version } from '../common/common-types';
-import { parse, versionGt } from '../common/version';
+import { Version } from '../common-types';
+import { parse, versionGt } from '../version';
 
 export interface LatestVersion {
     version: Version;

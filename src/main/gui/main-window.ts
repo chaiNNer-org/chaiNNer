@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
 import { t } from 'i18next';
+import { hasUpdate } from '../../common/api/update';
 import { BackendEventMap } from '../../common/Backend';
 import { Version, WindowSize } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -16,7 +17,6 @@ import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from '../
 import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
 import { getGpuInfo } from '../systemInfo';
-import { hasUpdate } from '../update';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
 
