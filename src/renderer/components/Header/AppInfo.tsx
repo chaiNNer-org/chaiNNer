@@ -54,7 +54,7 @@ export const AppInfo = memo(() => {
         if (!appVersion) {
             return;
         }
-        getLatestVersionIfUpdateAvailable('0.18.2')
+        getLatestVersionIfUpdateAvailable(appVersion)
             .then((data) => {
                 if (data) {
                     setUpdateVersion(data.version);
