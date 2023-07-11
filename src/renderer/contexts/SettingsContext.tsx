@@ -60,7 +60,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useSystemPythonLocation = useMemoArray(
         useLocalStorage<string | null>('system-python-location', null)
     );
-    const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup', true));
+    const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup-2', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
     const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));

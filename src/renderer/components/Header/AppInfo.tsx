@@ -67,17 +67,18 @@ export const AppInfo = memo(() => {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
 
-    const firstRenderRef = useRef(true);
     const leastDestructiveRef = useRef(null);
 
     useEffect(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
-            if (checkUpdOnStrtUp) {
+        if (checkUpdOnStrtUp) {
+            if (appVersion && updateVersion) {
+                if (localStorage.getItem(`ignore-update:${updateVersion.tag_name}`) === 'true') {
+                    return;
+                }
                 onAlertOpen();
             }
         }
-    }, [checkUpdOnStrtUp, onAlertOpen]);
+    }, [appVersion, checkUpdOnStrtUp, onAlertOpen, updateVersion]);
 
     return (
         <>
@@ -190,22 +191,37 @@ export const AppInfo = memo(() => {
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
-                            <Button
-                                ref={leastDestructiveRef}
-                                onClick={onAlertClose}
-                            >
-                                Close
-                            </Button>
-                            <Button
-                                colorScheme="green"
-                                ml={3}
-                                onClick={() => {
-                                    onModalOpen();
-                                    onAlertClose();
-                                }}
-                            >
-                                View Update
-                            </Button>
+                            <HStack>
+                                <Button
+                                    ref={leastDestructiveRef}
+                                    variant="ghost"
+                                    onClick={onAlertClose}
+                                >
+                                    Close
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        if (updateVersion?.tag_name) {
+                                            localStorage.setItem(
+                                                `ignore-update:${updateVersion.tag_name}`,
+                                                'true'
+                                            );
+                                        }
+                                        onAlertClose();
+                                    }}
+                                >
+                                    Ignore Update
+                                </Button>
+                                <Button
+                                    colorScheme="green"
+                                    onClick={() => {
+                                        onModalOpen();
+                                        onAlertClose();
+                                    }}
+                                >
+                                    View Update
+                                </Button>
+                            </HStack>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialogOverlay>
