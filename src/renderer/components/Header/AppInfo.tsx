@@ -1,5 +1,11 @@
 import { DownloadIcon } from '@chakra-ui/icons';
 import {
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogOverlay,
     Box,
     Button,
     HStack,
@@ -19,14 +25,19 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useContext } from 'use-context-selector';
 import { LatestReleaseType, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
 import { ipcRenderer } from '../../../common/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
 
 export const AppInfo = memo(() => {
+    const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
+    const [checkUpdOnStrtUp] = useCheckUpdOnStrtUp;
+
     const [appVersion, setAppVersion] = useState<string | null>(null);
     useAsyncEffect(
         () => ({
@@ -50,10 +61,23 @@ export const AppInfo = memo(() => {
                     setChangelog(data.changelog);
                 }
             })
-            .catch(console.error);
+            .catch(() => {});
     }, [appVersion]);
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
+
+    const firstRenderRef = useRef(true);
+    const leastDestructiveRef = useRef(null);
+
+    useEffect(() => {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            if (checkUpdOnStrtUp) {
+                onAlertOpen();
+            }
+        }
+    }, [checkUpdOnStrtUp, onAlertOpen]);
 
     return (
         <>
@@ -84,7 +108,7 @@ export const AppInfo = memo(() => {
                                 colorScheme="green"
                                 icon={<DownloadIcon />}
                                 variant="ghost"
-                                onClick={() => onOpen()}
+                                onClick={onModalOpen}
                             />
                         </Tooltip>
                     )}
@@ -92,10 +116,10 @@ export const AppInfo = memo(() => {
             </Box>
             <Modal
                 isCentered
-                isOpen={isOpen}
+                isOpen={isModalOpen}
                 scrollBehavior="inside"
                 size="xl"
-                onClose={onClose}
+                onClose={onModalClose}
             >
                 <ModalOverlay />
                 <ModalContent
@@ -121,7 +145,7 @@ export const AppInfo = memo(() => {
                         <HStack>
                             <Button
                                 variant="ghost"
-                                onClick={onClose}
+                                onClick={onModalClose}
                             >
                                 Close
                             </Button>
@@ -145,6 +169,47 @@ export const AppInfo = memo(() => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+            <AlertDialog
+                isCentered
+                isOpen={isAlertOpen}
+                leastDestructiveRef={leastDestructiveRef}
+                onClose={onAlertClose}
+            >
+                <AlertDialogOverlay>
+                    <AlertDialogContent bgColor="var(--chain-editor-bg)">
+                        <AlertDialogHeader
+                            fontSize="lg"
+                            fontWeight="bold"
+                        >
+                            Update Available ({updateVersion?.tag_name})
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>
+                            There is an update available for version {updateVersion?.tag_name}.
+                            Would you like to view the changelog?
+                        </AlertDialogBody>
+
+                        <AlertDialogFooter>
+                            <Button
+                                ref={leastDestructiveRef}
+                                onClick={onAlertClose}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                colorScheme="green"
+                                ml={3}
+                                onClick={() => {
+                                    onModalOpen();
+                                    onAlertClose();
+                                }}
+                            >
+                                View Update
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
         </>
     );
 });
