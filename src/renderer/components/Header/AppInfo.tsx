@@ -156,7 +156,7 @@ export const AppInfo = memo(() => {
                                 colorScheme="green"
                                 href={updateVersion?.html_url}
                             >
-                                Download from Github
+                                Download from GitHub
                             </Button>
                             <Button
                                 isExternal
