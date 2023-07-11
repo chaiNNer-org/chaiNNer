@@ -28,12 +28,20 @@ export const getReleasesAfterVersion = async (version: string) => {
 export const getComputedChangelogAfterVersion = async (version: string) => {
     const releasesAfterVersion = await getReleasesAfterVersion(version);
     const computedChangelog = releasesAfterVersion.reduce((acc: string, curr) => {
-        return `${acc}\n# ${curr.name ?? ''}\n${curr.body ?? ''}`;
+        return `${acc}\n\n# ${curr.name ?? ''}\n${curr.body ?? ''}\n\n---\n\n`;
     }, '');
     return computedChangelog;
 };
 
-export const hasUpdateAvailable = async (version: string) => {
+export type LatestReleaseType = (typeof getLatestRelease extends () => Promise<infer U>
+    ? U
+    : never)['data'];
+
+export const getLatestVersionIfUpdateAvailable = async (version: string) => {
     const latestRelease = await getLatestRelease();
-    return semver.gt(latestRelease.data.tag_name, version);
+    if (semver.gt(latestRelease.data.tag_name, version)) {
+        const changelog = await getComputedChangelogAfterVersion(version);
+        return { version: latestRelease.data, changelog };
+    }
+    return null;
 };
