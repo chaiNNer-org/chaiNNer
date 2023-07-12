@@ -1,5 +1,6 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -143,11 +144,16 @@ interface WithLabelProps {
     input: {
         readonly label: string;
         readonly optional: boolean;
+        readonly hint: boolean;
+        readonly description: string;
     };
 }
 
 export const WithLabel = memo(
-    ({ input: { label, optional }, children }: React.PropsWithChildren<WithLabelProps>) => {
+    ({
+        input: { label, optional, hint, description },
+        children,
+    }: React.PropsWithChildren<WithLabelProps>) => {
         return (
             <Box
                 className="with-label"
@@ -159,21 +165,40 @@ export const WithLabel = memo(
                     py={0.5}
                     verticalAlign="middle"
                 >
-                    <Text
-                        fontSize="xs"
-                        lineHeight="0.9rem"
-                        textAlign="center"
+                    <Tooltip
+                        borderRadius={8}
+                        label={hint ? description : undefined}
+                        px={2}
+                        py={1}
                     >
-                        {label}
-                    </Text>
-                    {optional && (
-                        <Center
-                            h="1rem"
-                            verticalAlign="middle"
+                        <HStack
+                            m={0}
+                            p={0}
+                            spacing={1}
                         >
-                            <TypeTag isOptional>optional</TypeTag>
-                        </Center>
-                    )}
+                            <Text
+                                fontSize="xs"
+                                lineHeight="0.9rem"
+                                textAlign="center"
+                            >
+                                {label}
+                            </Text>
+                            {optional && (
+                                <Center
+                                    h="1rem"
+                                    verticalAlign="middle"
+                                >
+                                    <TypeTag isOptional>optional</TypeTag>
+                                </Center>
+                            )}
+                            {hint && (
+                                <InfoIcon
+                                    boxSize={2}
+                                    // ml={1}
+                                />
+                            )}
+                        </HStack>
+                    </Tooltip>
                 </Center>
                 <Box pb={1}>{children}</Box>
             </Box>

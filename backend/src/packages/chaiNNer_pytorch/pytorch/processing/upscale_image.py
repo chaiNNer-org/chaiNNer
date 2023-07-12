@@ -84,6 +84,7 @@ def upscale(
             "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
             "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
             "If you are having issues with the automatic mode, you can manually select a tile size. Sometimes, a manually selected tile size may be faster than what the automatic mode picks.",
+            hint=True,
         ),
     ],
     outputs=[

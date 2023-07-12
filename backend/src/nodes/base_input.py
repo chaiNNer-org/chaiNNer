@@ -89,6 +89,7 @@ class BaseInput:
 
         # Optional documentation
         self.description: str | None = None
+        self.hint: bool = False
 
     # This is the method that should be created by each input
     def enforce(self, value: object):
@@ -136,14 +137,16 @@ class BaseInput:
             "optional": self.optional,
             "hasHandle": self.has_handle,
             "description": self.description,
+            "hint": self.hint,
         }
 
     def with_id(self, input_id: InputId | int):
         self.id = InputId(input_id)
         return self
 
-    def with_docs(self, *description: str):
+    def with_docs(self, *description: str, hint=False):
         self.description = "\n\n".join(description)
+        self.hint = hint
         return self
 
     def make_optional(self):
