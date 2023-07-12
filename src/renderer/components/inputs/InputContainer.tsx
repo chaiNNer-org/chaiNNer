@@ -174,7 +174,7 @@ export const WithLabel = memo(
                         <HStack
                             m={0}
                             p={0}
-                            spacing={1}
+                            spacing={0}
                         >
                             <Text
                                 fontSize="xs"
@@ -192,10 +192,16 @@ export const WithLabel = memo(
                                 </Center>
                             )}
                             {hint && (
-                                <InfoIcon
-                                    boxSize={2}
-                                    // ml={1}
-                                />
+                                <Center
+                                    h="auto"
+                                    m={0}
+                                    p={0}
+                                >
+                                    <InfoIcon
+                                        boxSize={2}
+                                        ml={1}
+                                    />
+                                </Center>
                             )}
                         </HStack>
                     </Tooltip>
