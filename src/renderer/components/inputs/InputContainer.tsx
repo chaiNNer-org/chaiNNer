@@ -183,14 +183,6 @@ export const WithLabel = memo(
                             >
                                 {label}
                             </Text>
-                            {optional && (
-                                <Center
-                                    h="1rem"
-                                    verticalAlign="middle"
-                                >
-                                    <TypeTag isOptional>optional</TypeTag>
-                                </Center>
-                            )}
                             {hint && (
                                 <Center
                                     h="auto"
@@ -201,6 +193,14 @@ export const WithLabel = memo(
                                         boxSize={2}
                                         ml={1}
                                     />
+                                </Center>
+                            )}
+                            {optional && (
+                                <Center
+                                    h="1rem"
+                                    verticalAlign="middle"
+                                >
+                                    <TypeTag isOptional>optional</TypeTag>
                                 </Center>
                             )}
                         </HStack>

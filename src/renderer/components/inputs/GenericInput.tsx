@@ -1,11 +1,12 @@
-import { Box, Center, Text } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const GenericInput = memo(({ input, definitionType }: InputProps<'generic'>) => {
-    const { label, optional } = input;
+    const { label, optional, hint, description } = input;
 
     return (
         <WithoutLabel>
@@ -13,13 +14,38 @@ export const GenericInput = memo(({ input, definitionType }: InputProps<'generic
                 display="flex"
                 flexDirection="row"
             >
-                <Text>{label}</Text>
-                <Center>
-                    <TypeTags
-                        isOptional={optional}
-                        type={definitionType}
-                    />
-                </Center>
+                <Tooltip
+                    borderRadius={8}
+                    label={hint ? description : undefined}
+                    px={2}
+                    py={1}
+                >
+                    <HStack
+                        m={0}
+                        p={0}
+                        spacing={0}
+                    >
+                        <Text>{label}</Text>
+                        {hint && (
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
+                            >
+                                <InfoIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        )}
+                        <Center>
+                            <TypeTags
+                                isOptional={optional}
+                                type={definitionType}
+                            />
+                        </Center>
+                    </HStack>
+                </Tooltip>
             </Box>
         </WithoutLabel>
     );
