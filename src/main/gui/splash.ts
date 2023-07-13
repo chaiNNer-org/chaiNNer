@@ -21,7 +21,7 @@ export const addSplashScreen = (monitor: ProgressMonitor) => {
         minimizable: true,
         maximizable: false,
         closable: false,
-        alwaysOnTop: true,
+        alwaysOnTop: false,
         titleBarStyle: 'hidden',
         transparent: true,
         roundedCorners: true,
