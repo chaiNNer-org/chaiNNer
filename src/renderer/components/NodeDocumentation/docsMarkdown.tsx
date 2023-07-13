@@ -1,4 +1,4 @@
-import { Code, Text } from '@chakra-ui/react';
+import { Code, Link, Text } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo } from 'react';
 import { Components } from 'react-markdown';
@@ -17,6 +17,18 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                 >
                     {children}
                 </Text>
+            );
+        },
+        a: ({ children, href }) => {
+            return (
+                <Link
+                    isExternal
+                    href={href}
+                    textColor={interactive && href ? 'blue.500' : 'inherit'}
+                    textDecoration={interactive && href ? 'underline' : 'inherit'}
+                >
+                    {children}
+                </Link>
             );
         },
         // eslint-disable-next-line react/prop-types
