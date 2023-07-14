@@ -29,7 +29,6 @@ def extension_filter(lst: List[str]) -> str:
     """generates a mcmatch.glob expression to filter files with specific extensions
     ex. {*,**/*}@(*.png|*.jpg|...)"""
     return "{*,**/*}@(*" + "|*".join(lst) + ")"
-    # return "*.png"
 
 
 def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
