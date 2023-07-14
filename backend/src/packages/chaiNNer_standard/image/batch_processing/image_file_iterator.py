@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from pathlib import PureWindowsPath
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
@@ -18,7 +18,6 @@ from nodes.properties.outputs import (
     TextOutput,
 )
 from process import IteratorContext
-from system import is_windows
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
@@ -34,11 +33,8 @@ def extension_filter(lst: List[str]) -> str:
 
 
 def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
-    directory_expr = os.path.join(directory, globexpr)
-    extension_expr = os.path.join(directory, extension_filter(ext_filter))
-    if is_windows:
-        directory_expr = PureWindowsPath(os.path.normpath(directory_expr)).as_posix()
-        extension_expr = PureWindowsPath(os.path.normpath(extension_expr)).as_posix()
+    directory_expr = (Path(directory) / globexpr).as_posix()
+    extension_expr = (Path(directory) / extension_filter(ext_filter)).as_posix()
 
     filtered = glob.globfilter(
         glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
