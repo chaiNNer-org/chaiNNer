@@ -139,7 +139,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     >
                         {`A ${item.multiline ? 'multi-line ' : ''}string between ${
                             item.minLength ?? 0
-                        } and ${item.maxLength ?? 'infinity'} characters long.`}
+                        } and ${item.maxLength ?? 'any'} characters long.`}
                     </Text>
                 )}
 
