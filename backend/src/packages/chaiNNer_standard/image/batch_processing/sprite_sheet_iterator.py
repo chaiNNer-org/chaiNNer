@@ -18,13 +18,15 @@ SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
 @batch_processing_group.register(
     schema_id=SPRITESHEET_ITERATOR_INPUT_NODE_ID,
     name="Load Image (Iterator)",
-    description="",
+    description="Outputs the sub-image and the index.",
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
     inputs=[IteratorInput().make_optional()],
     outputs=[
         ImageOutput(),
-        NumberOutput("Overall Index", output_type="uint"),
+        NumberOutput("Overall Index", output_type="uint").with_docs(
+            "A counter that starts at 0 and increments by 1 for each image."
+        ),
     ],
     side_effects=True,
 )
@@ -37,7 +39,7 @@ def ImageSpriteSheetIteratorLoadImageNode(
 @batch_processing_group.register(
     schema_id=SPRITESHEET_ITERATOR_OUTPUT_NODE_ID,
     name="Append Image",
-    description="",
+    description="Combines the image back into the spritesheet.",
     icon="CgExtensionAdd",
     node_type="iteratorHelper",
     inputs=[ImageInput()],
@@ -53,7 +55,10 @@ def ImageSpriteSheetIteratorAppendImageNode(
 @batch_processing_group.register(
     schema_id="chainner:image:spritesheet_iterator",
     name="Spritesheet Iterator",
-    description="Iterate over sub-images in a single image spritesheet.",
+    description=[
+        "Iterate over sub-images in a single image spritesheet.",
+        "This iterator splits the image into tiles that it then runs your iterator chain on, and then recombines the tiles into a single image.",
+    ],
     icon="MdLoop",
     node_type="iterator",
     inputs=[
@@ -63,12 +68,16 @@ def ImageSpriteSheetIteratorAppendImageNode(
             controls_step=1,
             minimum=1,
             default=1,
+        ).with_docs(
+            "The number of rows to split the image into. The height of the image must be a multiple of this number."
         ),
         NumberInput(
             "Number of columns (width)",
             controls_step=1,
             minimum=1,
             default=1,
+        ).with_docs(
+            "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
     ],
     outputs=[ImageOutput()],

@@ -8,6 +8,7 @@ import {
     Heading,
     ListItem,
     Text,
+    Tooltip,
     UnorderedList,
     VStack,
     useMediaQuery,
@@ -29,6 +30,13 @@ import { docsMarkdown } from './docsMarkdown';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
+const getTypeTooltipText = (item: Input | Output) => {
+    if (item.kind === 'number' || item.kind === 'slider') {
+        const prefix = item.precision === 0 ? 'An integer' : 'A float';
+        return `${prefix} between ${item.min ?? '-infinity'} and ${item.max ?? 'infinity'}`;
+    }
+};
+
 interface InputOutputItemProps {
     item: Input | Output;
     type: Type;
@@ -46,6 +54,12 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const isFileInput = item.kind === 'file';
     const supportedFileTypes = isFileInput ? item.filetypes : [];
     const isPrimaryInput = isFileInput && item.primaryInput;
+
+    const isTextInput = item.kind === 'text';
+
+    const isDropdownInput = item.kind === 'dropdown';
+
+    const tooltipText = getTypeTooltipText(item);
 
     return (
         <ListItem my={2}>
@@ -78,16 +92,15 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         />
                     ))}
             </HStack>
-
-            {item.description && (
-                <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
-            )}
-
             <VStack
                 alignItems="start"
-                mb={1}
+                spacing={1}
                 w="full"
             >
+                {item.description && (
+                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+                )}
+
                 {isFileInput && supportedFileTypes.length > 0 && (
                     <Text
                         fontSize="md"
@@ -98,6 +111,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                             <TypeTag
                                 fontSize="small"
                                 height="auto"
+                                key={fileType}
                                 mt="-0.2rem"
                                 verticalAlign="middle"
                             >
@@ -118,7 +132,52 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
-                <Code userSelect="text">{prettyPrintType(type)}</Code>
+                {isTextInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        {`A ${item.multiline ? 'multi-line ' : ''}string ${
+                            item.maxLength
+                                ? `between ${item.minLength ?? 0} and ${item.maxLength}`
+                                : `at least ${item.minLength ?? 0}`
+                        } character${
+                            (item.maxLength === null || item.maxLength === undefined) &&
+                            item.minLength === 1
+                                ? ''
+                                : 's'
+                        } long.`}
+                    </Text>
+                )}
+
+                {isDropdownInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        Options:
+                        {item.options.map((o) => (
+                            <TypeTag
+                                fontSize="small"
+                                height="auto"
+                                key={o.value}
+                                mt="-0.2rem"
+                                verticalAlign="middle"
+                            >
+                                {o.option}
+                            </TypeTag>
+                        ))}
+                    </Text>
+                )}
+
+                <Tooltip
+                    borderRadius={8}
+                    label={tooltipText}
+                    px={2}
+                    py={1}
+                >
+                    <Code userSelect="text">{prettyPrintType(type)}</Code>
+                </Tooltip>
             </VStack>
         </ListItem>
     );
