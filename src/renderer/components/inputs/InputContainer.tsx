@@ -144,8 +144,8 @@ interface WithLabelProps {
     input: {
         readonly label: string;
         readonly optional: boolean;
-        readonly hint: boolean;
-        readonly description: string;
+        readonly hint?: boolean;
+        readonly description?: string;
     };
 }
 
