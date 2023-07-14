@@ -12,7 +12,8 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
         p: ({ children }) => {
             return (
                 <Text
-                    mb={1}
+                    fontSize="md"
+                    marginTop={1}
                     userSelect="text"
                 >
                     {children}
