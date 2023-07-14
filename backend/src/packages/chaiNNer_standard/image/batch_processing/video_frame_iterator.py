@@ -65,7 +65,9 @@ class Writer:
     inputs=[IteratorInput().make_optional()],
     outputs=[
         ImageOutput("Frame Image", channels=3),
-        NumberOutput("Frame Index", output_type="uint"),
+        NumberOutput("Frame Index", output_type="uint").with_docs(
+            "A counter that starts at 0 and increments by 1 for each frame."
+        ),
         DirectoryOutput("Video Directory"),
         TextOutput("Video Name"),
     ],
@@ -88,7 +90,9 @@ def VideoFrameIteratorFrameLoaderNode(
         DirectoryInput("Output Video Directory", has_handle=True),
         TextInput("Output Video Name"),
         VideoTypeDropdown(),
-        VideoPresetDropdown(),
+        VideoPresetDropdown().with_docs(
+            "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
+        ),
         SliderInput(
             "Quality (CRF)",
             precision=0,
@@ -98,8 +102,13 @@ def VideoFrameIteratorFrameLoaderNode(
             maximum=51,
             default=23,
             ends=("Best", "Worst"),
+        ).with_docs(
+            "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
         ),
-        BoolInput("Copy Audio", default=True),
+        BoolInput("Copy Audio", default=True).with_docs(
+            "Due to the complexity of the way we use FFMPEG, copying the audio is done in a separate pass after the video is written.",
+            "This isn't ideal, and sometimes fails. If it isn't working for you, use FFMPEG to mux the audio externally.",
+        ),
     ],
     outputs=[],
     side_effects=True,
@@ -167,7 +176,11 @@ def VideoFrameIteratorFrameWriterNode(
 @batch_processing_group.register(
     schema_id="chainner:image:video_frame_iterator",
     name="Video Frame Iterator",
-    description="Iterate over all frames in a video, and write to a video buffer.",
+    description=[
+        "Iterate over all frames in a video, and write to a video buffer.",
+        "Uses FFMPEG to read and write video files.",
+        "This iterator is much slower than just using FFMPEG directly, so if you are doing a simple conversion, just use FFMPEG outside chaiNNer instead.",
+    ],
     icon="MdVideoCameraBack",
     node_type="iterator",
     inputs=[

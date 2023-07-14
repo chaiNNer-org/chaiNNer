@@ -23,8 +23,8 @@ interface BackendContextState {
      *
      * Some categories might be empty.
      */
-    categories: Category[];
-    categoriesMissingNodes: string[];
+    categories: readonly Category[];
+    categoriesMissingNodes: readonly string[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
     scope: Scope;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;

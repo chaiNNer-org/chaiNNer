@@ -26,7 +26,7 @@ PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 @batch_processing_group.register(
     schema_id=PAIRED_IMAGE_ITERATOR_NODE_ID,
     name="Load Image (Iterator)",
-    description="",
+    description="Loads each image pair from the directories and outputs both images, directories, subdirectories, filenames, and the index.",
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
     inputs=[IteratorInput().make_optional()],
@@ -39,7 +39,9 @@ PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
         TextOutput("Image Name B"),
-        NumberOutput("Overall Index", output_type="uint"),
+        NumberOutput("Overall Index", output_type="uint").with_docs(
+            "A counter that starts at 0 and increments by 1 for each image."
+        ),
     ],
     side_effects=True,
 )
@@ -69,7 +71,7 @@ def ImageFileIteratorLoadImageNodeA(
 @batch_processing_group.register(
     schema_id="chainner:image:paired_image_file_iterator",
     name="Image Pairs Iterator",
-    description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already upscaled content.",
+    description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already processed content.",
     icon="MdLoop",
     node_type="iterator",
     inputs=[
@@ -84,6 +86,9 @@ def ImageFileIteratorLoadImageNodeA(
         },
     ],
     side_effects=True,
+    see_also=[
+        "chainner:image:file_iterator",
+    ],
 )
 async def PairedImageFileIteratorNode(
     directory_a: str, directory_b: str, context: IteratorContext

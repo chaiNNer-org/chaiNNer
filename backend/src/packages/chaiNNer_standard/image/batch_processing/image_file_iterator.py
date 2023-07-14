@@ -46,7 +46,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
 @batch_processing_group.register(
     schema_id=IMAGE_ITERATOR_NODE_ID,
     name="Load Image (Iterator)",
-    description="",
+    description="Loads each image file in the directory and outputs the image, directory, subdirectory, filename, and the index.",
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
     inputs=[IteratorInput().make_optional()],
@@ -55,7 +55,9 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
         DirectoryOutput("Image Directory"),
         TextOutput("Subdirectory Path"),
         TextOutput("Image Name"),
-        NumberOutput("Overall Index", output_type="uint"),
+        NumberOutput("Overall Index", output_type="uint").with_docs(
+            "A counter that starts at 0 and increments by 1 for each image."
+        ),
     ],
     side_effects=True,
 )
@@ -73,15 +75,22 @@ def ImageFileIteratorLoadImageNode(
 @batch_processing_group.register(
     schema_id="chainner:image:file_iterator",
     name="Image File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the image files. Supports the same file types as `chainner:image:load`.",
+    description=[
+        "Iterate over all files in a directory/folder (batch processing) and run the provided nodes on just the image files. Supports the same file types as `chainner:image:load`.",
+        "Optionally, you can toggle whether to iterate recursively (subdirectories) or use a glob expression to filter the files.",
+    ],
     icon="MdLoop",
     node_type="iterator",
     inputs=[
         DirectoryInput(),
         BoolInput("Use WCMatch glob expression", default=False),
-        if_group(Condition.bool(1, False))(BoolInput("Recursive")),
+        if_group(Condition.bool(1, False))(
+            BoolInput("Recursive").with_docs("Iterate recursively over subdirectories.")
+        ),
         if_group(Condition.bool(1, True))(
-            TextInput("WCMatch Glob expression", default="{*,**/*}"),
+            TextInput("WCMatch Glob expression", default="{*,**/*}").with_docs(
+                "For information on how to use WCMatch glob expressions, see [here](https://facelessuser.github.io/wcmatch/glob/)."
+            ),
         ),
     ],
     outputs=[],
@@ -92,6 +101,9 @@ def ImageFileIteratorLoadImageNode(
         },
     ],
     side_effects=True,
+    see_also=[
+        "chainner:image:load",
+    ],
 )
 async def ImageFileIteratorNode(
     directory: str,
