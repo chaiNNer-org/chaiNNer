@@ -34,6 +34,9 @@ from .. import io_group
         DirectoryOutput("Model Directory", of_input=0).with_id(2),
         FileNameOutput("Model Name", of_input=0).with_id(1),
     ],
+    see_also=[
+        "chainner:pytorch:model_file_iterator",
+    ],
 )
 def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict

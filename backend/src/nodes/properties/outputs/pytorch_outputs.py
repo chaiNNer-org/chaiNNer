@@ -30,6 +30,7 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
     elif "OmniSR" in value.model_arch:
         return [
             f"{value.num_feat}nf",
+            f"w{value.window_size}",
             f"{value.res_num}nr",
         ]
     elif value.model_arch in [
