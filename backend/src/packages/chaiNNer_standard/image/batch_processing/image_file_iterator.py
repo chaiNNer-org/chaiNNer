@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import PureWindowsPath
 from typing import List, Tuple
 
 import numpy as np
@@ -17,6 +18,7 @@ from nodes.properties.outputs import (
     TextOutput,
 )
 from process import IteratorContext
+from system import is_windows
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
@@ -28,11 +30,15 @@ def extension_filter(lst: List[str]) -> str:
     """generates a mcmatch.glob expression to filter files with specific extensions
     ex. {*,**/*}@(*.png|*.jpg|...)"""
     return "{*,**/*}@(*" + "|*".join(lst) + ")"
+    # return "*.png"
 
 
 def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
     directory_expr = os.path.join(directory, globexpr)
     extension_expr = os.path.join(directory, extension_filter(ext_filter))
+    if is_windows:
+        directory_expr = PureWindowsPath(os.path.normpath(directory_expr)).as_posix()
+        extension_expr = PureWindowsPath(os.path.normpath(extension_expr)).as_posix()
 
     filtered = glob.globfilter(
         glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
@@ -112,7 +118,9 @@ async def ImageFileIteratorNode(
     glob_str: str,
     context: IteratorContext,
 ) -> None:
-    logger.debug(f"Iterating over images in directory: {directory}")
+    logger.info(
+        f"Iterating over images in directory: {directory}, {use_glob} {glob_str} {is_recursive}"
+    )
 
     img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 
