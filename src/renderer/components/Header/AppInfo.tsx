@@ -28,7 +28,7 @@ import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useContext } from 'use-context-selector';
-import { LatestReleaseType, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
+import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
 import { ipcRenderer } from '../../../common/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
 import { SettingsContext } from '../../contexts/SettingsContext';
@@ -47,7 +47,7 @@ export const AppInfo = memo(() => {
         []
     );
 
-    const [updateVersion, setUpdateVersion] = useState<LatestReleaseType>();
+    const [updateVersion, setUpdateVersion] = useState<GitHubRelease>();
     const [changelog, setChangelog] = useState<string>();
 
     useEffect(() => {
