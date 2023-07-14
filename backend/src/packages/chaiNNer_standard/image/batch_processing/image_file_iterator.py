@@ -118,7 +118,7 @@ async def ImageFileIteratorNode(
     glob_str: str,
     context: IteratorContext,
 ) -> None:
-    logger.info(
+    logger.debug(
         f"Iterating over images in directory: {directory}, {use_glob} {glob_str} {is_recursive}"
     )
 
