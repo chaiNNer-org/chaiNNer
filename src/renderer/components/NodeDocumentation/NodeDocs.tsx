@@ -137,9 +137,16 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         fontSize="md"
                         userSelect="text"
                     >
-                        {`A ${item.multiline ? 'multi-line ' : ''}string between ${
-                            item.minLength ?? 0
-                        } and ${item.maxLength ?? 'any'} characters long.`}
+                        {`A ${item.multiline ? 'multi-line ' : ''}string ${
+                            item.maxLength
+                                ? `between ${item.minLength ?? 0} and ${item.maxLength}`
+                                : `at least ${item.minLength ?? 0}`
+                        } character${
+                            (item.maxLength === null || item.maxLength === undefined) &&
+                            item.minLength === 1
+                                ? ''
+                                : 's'
+                        } long.`}
                     </Text>
                 )}
 
