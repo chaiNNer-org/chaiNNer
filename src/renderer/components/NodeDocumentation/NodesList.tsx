@@ -15,14 +15,28 @@ export const NodesList = memo(() => {
 
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
+    const searchableSchema = useMemo(() => {
+        return schema.map((s) => ({
+            ...s,
+            inputs: s.inputs.map((i) => `${i.label} ${i.description ?? ''}`),
+            outputs: s.outputs.map((o) => `${o.label} ${o.description ?? ''}`),
+        }));
+    }, [schema]);
 
     const [searchQuery, setSearchQuery] = useState('');
 
     const idField: keyof NodeSchema = 'schemaId';
-    const fields: (keyof NodeSchema)[] = ['category', 'description', 'name', 'subcategory'];
+    const fields: (keyof NodeSchema)[] = [
+        'category',
+        'description',
+        'name',
+        'subcategory',
+        'inputs',
+        'outputs',
+    ];
     const miniSearch = new MiniSearch({ idField, fields });
 
-    miniSearch.addAll(schema);
+    miniSearch.addAll(searchableSchema);
 
     const searchResult = miniSearch.search(searchQuery, {
         boost: { name: 2 },
