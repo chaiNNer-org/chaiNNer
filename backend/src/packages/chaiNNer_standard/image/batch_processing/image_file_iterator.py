@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
@@ -31,8 +32,8 @@ def extension_filter(lst: List[str]) -> str:
 
 
 def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
-    directory_expr = os.path.join(directory, globexpr)
-    extension_expr = os.path.join(directory, extension_filter(ext_filter))
+    directory_expr = (Path(directory) / globexpr).as_posix()
+    extension_expr = (Path(directory) / extension_filter(ext_filter)).as_posix()
 
     filtered = glob.globfilter(
         glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
@@ -112,7 +113,9 @@ async def ImageFileIteratorNode(
     glob_str: str,
     context: IteratorContext,
 ) -> None:
-    logger.debug(f"Iterating over images in directory: {directory}")
+    logger.debug(
+        f"Iterating over images in directory: {directory}, {use_glob} {glob_str} {is_recursive}"
+    )
 
     img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 
