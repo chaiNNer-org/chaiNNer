@@ -27,6 +27,7 @@ import {
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
 import { ipcRenderer } from '../../../common/safeIpc';
@@ -72,7 +73,8 @@ export const AppInfo = memo(() => {
     useEffect(() => {
         if (checkUpdOnStrtUp) {
             if (appVersion && updateVersion) {
-                if (localStorage.getItem(`ignore-update:${updateVersion.tag_name}`) === 'true') {
+                const lastIgnoredUpdate = localStorage.getItem(`ignored-update`);
+                if (lastIgnoredUpdate && semver.lte(lastIgnoredUpdate, updateVersion.tag_name)) {
                     return;
                 }
                 onAlertOpen();
@@ -203,8 +205,8 @@ export const AppInfo = memo(() => {
                                     onClick={() => {
                                         if (updateVersion?.tag_name) {
                                             localStorage.setItem(
-                                                `ignore-update:${updateVersion.tag_name}`,
-                                                'true'
+                                                `ignored-update`,
+                                                updateVersion.tag_name
                                             );
                                         }
                                         onAlertClose();
