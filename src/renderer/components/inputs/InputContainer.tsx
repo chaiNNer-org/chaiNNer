@@ -1,7 +1,8 @@
 import { Type } from '@chainner/navi';
-import { InfoIcon } from '@chakra-ui/icons';
-import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, Tooltip, Icon } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
+import { BsQuestionCircle } from 'react-icons/bs';
+import ReactMarkdown from 'react-markdown';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
@@ -11,6 +12,7 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { Handle } from '../Handle';
+import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
 import { TypeTag } from '../TypeTag';
 
 export interface HandleWrapperProps {
@@ -166,8 +168,16 @@ export const WithLabel = memo(
                     verticalAlign="middle"
                 >
                     <Tooltip
+                        hasArrow
                         borderRadius={8}
-                        label={hint ? description : undefined}
+                        label={
+                            hint ? (
+                                <ReactMarkdown components={tooltipDocsMarkdown}>
+                                    {description ?? ''}
+                                </ReactMarkdown>
+                            ) : undefined
+                        }
+                        openDelay={500}
                         px={2}
                         py={1}
                     >
@@ -189,7 +199,8 @@ export const WithLabel = memo(
                                     m={0}
                                     p={0}
                                 >
-                                    <InfoIcon
+                                    <Icon
+                                        as={BsQuestionCircle}
                                         boxSize={2}
                                         ml={1}
                                     />
