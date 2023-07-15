@@ -155,15 +155,15 @@ export const AppInfo = memo(() => {
                             <Button
                                 isExternal
                                 as={Link}
-                                colorScheme="green"
+                                colorScheme="gray"
                                 href={updateVersion?.html_url}
                             >
-                                Download from GitHub
+                                View release on GitHub
                             </Button>
                             <Button
                                 isExternal
                                 as={Link}
-                                colorScheme="blue"
+                                colorScheme="green"
                                 href="https://chaiNNer.app/download"
                             >
                                 Download from chaiNNer.app
