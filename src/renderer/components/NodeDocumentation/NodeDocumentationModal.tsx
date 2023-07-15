@@ -42,21 +42,19 @@ export const NodeDocumentationModal = memo(({ isOpen, onClose }: NodeDocumentati
                 overflow="hidden"
                 w="calc(100% - 7.5rem)"
             >
-                <ModalHeader
-                    display="flex"
-                    flexDirection="row"
-                    gap={2}
-                >
-                    <Box
-                        display="flex"
-                        h="full"
-                    >
-                        <Icon
-                            as={BsFillJournalBookmarkFill}
-                            m="auto"
-                        />
-                    </Box>
-                    Node Documentation
+                <ModalHeader>
+                    <HStack w="full">
+                        <Box
+                            display="flex"
+                            h="full"
+                        >
+                            <Icon
+                                as={BsFillJournalBookmarkFill}
+                                m="auto"
+                            />
+                        </Box>
+                        <Box whiteSpace="nowrap">Node Documentation</Box>
+                    </HStack>
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody
