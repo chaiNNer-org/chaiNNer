@@ -16,39 +16,10 @@ import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from '../
 import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
 import { getGpuInfo } from '../systemInfo';
-import { hasUpdate } from '../update';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
 
 const version = app.getVersion() as Version;
-
-// Check for update
-const checkForUpdate = () => {
-    hasUpdate(version)
-        .then(async (latest) => {
-            if (!latest) return;
-
-            const splitBody = latest.body.split('\n');
-            const changelogItems = splitBody.filter(
-                (line) => line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')
-            );
-
-            const buttonResult = await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
-                type: 'info',
-                title: 'An update is available for chaiNNer!',
-                message: `Version ${latest.version} is available for download from GitHub.`,
-                detail: `Currently installed: ${version}\n\nRelease notes:\n\n${changelogItems.join(
-                    '\n'
-                )}`,
-                buttons: [`Get version ${latest.version}`, 'Ok'],
-                defaultId: 1,
-            });
-            if (buttonResult.response === 0) {
-                await shell.openExternal(latest.releaseUrl);
-            }
-        })
-        .catch(log.error);
-};
 
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
@@ -388,10 +359,6 @@ export const createMainWindow = async (args: OpenArguments) => {
             mainWindow.show();
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
-            }
-            const checkUpdateOnStartup = settingStorage.getItem('check-upd-on-strtup') === 'true';
-            if (app.isPackaged && checkUpdateOnStartup) {
-                checkForUpdate();
             }
         });
 
