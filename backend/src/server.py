@@ -56,6 +56,7 @@ class AppContext:
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
         self.setup_queue: EventQueue = None  # type: ignore
+        self.pip_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
@@ -406,7 +407,17 @@ async def get_dependencies(_request: Request):
     await nodes_available()
     all_dependencies = []
     for package in api.registry.packages.values():
-        pkg_dependencies = [x.toDict() for x in package.dependencies]
+        pkg_dependencies = []
+        for pkg_dep in package.dependencies:
+            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
+            pkg_dep_item = {
+                **pkg_dep.toDict(),
+            }
+            if installed_version is None:
+                pkg_dep_item["installed"] = False
+            else:
+                pkg_dep_item["installed"] = installed_version
+            pkg_dependencies.append(pkg_dep_item)
         if package.name == "chaiNNer_standard":
             continue
         else:
@@ -551,6 +562,43 @@ async def setup(sanic_app: Sanic):
     )
 
     logger.info("Done.")
+
+
+@app.get("/pip-sse")
+async def pip_sse(request: Request):
+    ctx = AppContext.get(request.app)
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await ctx.pip_queue.get()
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
+@app.route("/dependencies/install", methods=["POST"])
+async def install_dependencies_req(request: Request):
+    await nodes_available()
+    ctx = AppContext.get(request.app)
+
+    try:
+        full_data = dict(request.json)  # type: ignore
+        dep_info: List[DependencyInfo] = [
+            {
+                "package_name": dep["pypi_name"],
+                "display_name": dep["display_name"],
+                "version": dep["version"],
+                "from_file": dep["from_file"],
+            }
+            for dep in full_data["dependencies"]
+        ]
+        # await install_dependencies(dep_info, ctx.pip_queue, logger)
+        return json(successResponse("Successfully installed dependencies!"), status=200)
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json(
+            errorResponse("Error installing dependencies!", exception), status=500
+        )
 
 
 exit_code = 0

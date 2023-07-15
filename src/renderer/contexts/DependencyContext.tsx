@@ -37,8 +37,6 @@ import { Version } from '../../common/common-types';
 import { Package, PyPiPackage } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
-import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
-import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -77,7 +75,7 @@ const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
 const FeaturePackage = memo(
-    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion?: Version }) => {
+    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion: Version | false }) => {
         let color = 'red.500';
         let tagText = 'Missing';
         let versionString: string = pkg.version;
@@ -116,7 +114,6 @@ const FeaturePackage = memo(
 const Feature = memo(
     ({
         dep,
-        pipList,
         isRunningShell,
         progress,
         onInstall,
@@ -124,17 +121,15 @@ const Feature = memo(
         onUpdate,
     }: {
         dep: Package;
-        pipList: PipList;
         isRunningShell: boolean;
         progress?: number;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
     }) => {
-        const missingPackages = dep.dependencies.filter((p) => !pipList[p.pypiName]);
-        const outdatedPackages = dep.dependencies.filter((p) => {
-            const installedVersion = pipList[p.pypiName];
-            return installedVersion && versionGt(p.version, installedVersion);
+        const missingPackages = dep.dependencies.filter((d) => !d.installed);
+        const outdatedPackages = dep.dependencies.filter((d) => {
+            return d.installed && versionGt(d.version, d.installed);
         });
 
         return (
@@ -256,11 +251,11 @@ const Feature = memo(
                         key={dep.name}
                         w="full"
                     >
-                        {dep.dependencies.map((p) => (
+                        {dep.dependencies.map((d) => (
                             <FeaturePackage
-                                installedVersion={pipList[p.pypiName]}
-                                key={p.pypiName}
-                                pkg={p}
+                                installedVersion={d.installed}
+                                key={d.pypiName}
+                                pkg={d}
                             />
                         ))}
                     </VStack>
@@ -280,39 +275,20 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const [isSystemPython] = useIsSystemPython;
 
-    const [pipList, setPipList] = useState<PipList>();
-    const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
-
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [usePipDirectly, setUsePipDirectly] = useState(false);
 
-    useAsyncEffect(() => {
-        if (pipList) return;
-        return {
-            supplier: () => runPipList(pythonInfo),
-            successEffect: setPipList,
-        };
-    }, [pythonInfo, pipList, setPipList]);
-
-    const [hasNvidia, setHasNvidia] = useState(false);
-    useAsyncEffect(
-        () => ({
-            supplier: async () => !!(await ipcRenderer.invoke('get-nvidia-gpu-name')),
-            successEffect: setHasNvidia,
-        }),
-        []
-    );
-
-    const [availableDeps, setAvailableDeps] = useState<Package[]>([]);
+    const [depList, setDepList] = useState<Package[]>([]);
+    const [refreshDepListTrigger, setRefreshDepListTrigger] = useState(false);
     useAsyncEffect(
         () => ({
             supplier: async () => {
                 const res = await backend.dependencies();
                 return res.filter((d) => d.dependencies.length > 0);
             },
-            successEffect: setAvailableDeps,
+            successEffect: setDepList,
         }),
-        [backend]
+        [backend, refreshDepListTrigger]
     );
 
     const [installingPackage, setInstallingPackage] = useState<Package | null>(null);
@@ -343,7 +319,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             })
             .finally(() => {
                 setIsRunningShell(false);
-                refreshInstalledPackages();
+                setRefreshDepListTrigger(!refreshDepListTrigger);
                 setInstallingPackage(null);
                 setUninstallingPackage(null);
                 setProgress(0);
@@ -353,16 +329,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const installPackage = (dep: Package) => {
         setInstallingPackage(dep);
-        changePackages(() =>
-            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
-        );
+        // changePackages(() =>
+        //     runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        // );
     };
 
     const uninstallPackage = (dep: Package) => {
         setUninstallingPackage(dep);
-        changePackages(() =>
-            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
-        );
+        // changePackages(() =>
+        //     runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        // );
     };
 
     useEffect(() => {
@@ -373,22 +349,18 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
     const currentlyProcessingDeps =
-        pipList === undefined || installingPackage !== null || uninstallingPackage !== null;
+        depList === undefined || installingPackage !== null || uninstallingPackage !== null;
 
     const availableUpdates = useMemo(() => {
-        return availableDeps.filter(({ dependencies }) =>
-            dependencies.some(({ pypiName, version }) => {
-                if (!pipList) {
-                    return false;
-                }
-                const installedVersion = pipList[pypiName];
-                if (!installedVersion) {
+        return depList.filter(({ dependencies }) =>
+            dependencies.some(({ version, installed }) => {
+                if (!installed) {
                     return true;
                 }
-                return versionGt(version, installedVersion);
+                return versionGt(version, installed);
             })
         ).length;
-    }, [pipList, availableDeps]);
+    }, [depList]);
 
     const value = useMemoObject<DependencyContextValue>({
         openDependencyManager: onOpen,
@@ -444,14 +416,14 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
-                            <Flex w="full">
+                            {/* <Flex w="full">
                                 <Text
                                     flex="1"
                                     textAlign="left"
                                 >
                                     {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
                                 </Text>
-                            </Flex>
+                            </Flex> */}
                             <Flex
                                 align="center"
                                 w="full"
@@ -497,7 +469,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     </Button>
                                 </HStack>
                             </Flex>
-                            {!pipList ? (
+                            {!depList ? (
                                 <Spinner />
                             ) : (
                                 <Accordion
@@ -505,7 +477,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     // allowMultiple={false}
                                     w="full"
                                 >
-                                    {availableDeps.map((dep) => {
+                                    {depList.map((dep) => {
                                         const install = () => installPackage(dep);
                                         const uninstall = () => {
                                             showAlert({
@@ -541,7 +513,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 dep={dep}
                                                 isRunningShell={isRunningShell}
                                                 key={dep.name}
-                                                pipList={pipList}
                                                 progress={
                                                     !usePipDirectly &&
                                                     isRunningShell &&
