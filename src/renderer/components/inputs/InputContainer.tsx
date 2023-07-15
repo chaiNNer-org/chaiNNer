@@ -1,5 +1,5 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text, Tooltip, Icon } from '@chakra-ui/react';
+import { Box, Center, HStack, Icon, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { BsQuestionCircle } from 'react-icons/bs';
 import ReactMarkdown from 'react-markdown';
