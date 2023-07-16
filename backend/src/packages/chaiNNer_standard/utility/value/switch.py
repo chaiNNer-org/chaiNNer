@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Union
+from typing import Union
 
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import AnyInput, EnumInput
