@@ -20,5 +20,6 @@ jobs:
               with:
                   url: 'https://api.github.com/repos/chaiNNer-org/chaiNNer-org.github.io/dispatches'
                   method: 'POST'
-                  customHeaders: '{"Accept": "application/vnd.github+json", "Authorization": "token ${{ secrets.GITHUB_TOKEN }}"}'
+                  customHeaders: '{"Accept": "application/vnd.github+json"}'
+                  bearerToken: ${{ secrets.GITHUB_TOKEN }}
                   data: '{"event_type": "webhook"}'
