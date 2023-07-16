@@ -66,7 +66,7 @@ def convenient_upscale(
         )
 
         # Interpolate between the alpha values to get a less noisy alpha
-        alpha_candidates = 1 - (white_up - black_up)
+        alpha_candidates = 1 - (white_up - black_up)  #  type: ignore
         alpha_min = np.min(alpha_candidates, axis=2)
         alpha_max = np.max(alpha_candidates, axis=2)
         alpha_mean = np.mean(alpha_candidates, axis=2)
