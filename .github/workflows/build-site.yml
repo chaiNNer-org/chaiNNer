@@ -1,0 +1,21 @@
+name: Build chaiNNer.app
+
+on:
+    release:
+        types:
+            - published
+            - edited
+
+    workflow_dispatch:
+
+jobs:
+    build-site:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Trigger chaiNNer.app build + deploy
+              uses: fjogeleit/http-request-action@v1
+              with:
+                  url: 'https://api.github.com/repos/chaiNNer-org/chaiNNer-org.github.io/dispatches'
+                  method: 'POST'
+                  customHeaders: '{"Accept": "application/vnd.github+json", "Authorization": "token ${{ secrets.GITHUB_TOKEN }}"}'
+                  data: '{"event_type": "webhook"}'
