@@ -50,7 +50,14 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         OnnxGenericModelInput().with_id(0),
-        TileSizeDropdown(estimate=False).with_id(2),
+        TileSizeDropdown(estimate=False)
+        .with_id(2)
+        .with_docs(
+            "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
+            "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
+            "Generally it's recommended to use the largest tile size possible for best performance, but depending on the model and image size, this may not be possible.",
+            "ONNX upscaling does not support an automatic mode, meaning you may need to manually select a tile size for it to work.",
+        ),
     ],
     outputs=[ImageOutput("Upscaled Image")],
     name="Upscale Image",
