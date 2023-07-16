@@ -125,7 +125,14 @@ def upscale_impl(
     inputs=[
         ImageInput().with_id(1),
         NcnnModelInput().with_id(0),
-        TileSizeDropdown().with_id(2),
+        TileSizeDropdown()
+        .with_id(2)
+        .with_docs(
+            "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
+            "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
+            "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
+            "If you are having issues with the automatic mode, you can manually select a tile size. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
+        ),
     ],
     outputs=[
         ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),

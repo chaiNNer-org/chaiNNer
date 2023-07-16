@@ -53,6 +53,7 @@ interface InputBase {
     readonly optional: boolean;
     readonly hasHandle: boolean;
     readonly description?: string;
+    readonly hint: boolean;
 }
 export interface InputOption {
     option: string;
