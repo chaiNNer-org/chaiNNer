@@ -5,6 +5,9 @@ on:
         types:
             - published
             - edited
+    push:
+        branches:
+            - site-webhook
 
     workflow_dispatch:
 
