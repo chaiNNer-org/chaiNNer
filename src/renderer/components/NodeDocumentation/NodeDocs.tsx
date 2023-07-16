@@ -368,11 +368,29 @@ export const NodeDocs = memo(() => {
                         textAlign="left"
                         w="full"
                     >
-                        <SingleNodeInfo
-                            accentColor={selectedAccentColor}
-                            functionDefinition={selectedFunctionDefinition}
-                            schema={selectedSchema}
-                        />
+                        <HStack>
+                            <SingleNodeInfo
+                                accentColor={selectedAccentColor}
+                                functionDefinition={selectedFunctionDefinition}
+                                schema={selectedSchema}
+                            />
+                            <Box
+                                h="full"
+                                position="relative"
+                            >
+                                <Box
+                                    h="full"
+                                    mr={6}
+                                    position="relative"
+                                    verticalAlign="top"
+                                >
+                                    <NodeExample
+                                        accentColor={selectedAccentColor}
+                                        selectedSchema={selectedSchema}
+                                    />
+                                </Box>
+                            </Box>
+                        </HStack>
                         {hasIteratorHelperNodes &&
                             selectedSchema.defaultNodes.map((defaultNode) => {
                                 const nodeSchema = schemata.get(defaultNode.schemaId);
@@ -380,16 +398,35 @@ export const NodeDocs = memo(() => {
                                     defaultNode.schemaId
                                 );
                                 return (
-                                    <SingleNodeInfo
-                                        accentColor={selectedAccentColor}
-                                        functionDefinition={nodeFunctionDefinition}
-                                        key={defaultNode.schemaId}
-                                        schema={nodeSchema}
-                                    />
+                                    <HStack>
+                                        <SingleNodeInfo
+                                            accentColor={selectedAccentColor}
+                                            functionDefinition={nodeFunctionDefinition}
+                                            key={defaultNode.schemaId}
+                                            schema={nodeSchema}
+                                        />
+                                        <Box
+                                            h="full"
+                                            position="relative"
+                                        >
+                                            <Box
+                                                h="full"
+                                                mr={6}
+                                                position="relative"
+                                                verticalAlign="top"
+                                            >
+                                                <NodeExample
+                                                    accentColor={selectedAccentColor}
+                                                    key={defaultNode.schemaId}
+                                                    selectedSchema={nodeSchema}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    </HStack>
                                 );
                             })}
                     </VStack>
-                    <Box
+                    {/* <Box
                         h="full"
                         position="relative"
                     >
@@ -414,7 +451,7 @@ export const NodeDocs = memo(() => {
                                     );
                                 })}
                         </VStack>
-                    </Box>
+                    </Box> */}
                 </Flex>
             </Box>
         </Box>
