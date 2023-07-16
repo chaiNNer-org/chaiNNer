@@ -65,7 +65,7 @@ def convenient_upscale(
             upscale(as_target_channels(white, model_in_nc, True)), 3, True
         )
 
-        # Interpolate between the alpha values to get a less noisy alpha
+        # Interpolate between the alpha values to get a more defined alpha
         alpha_candidates = 1 - (white_up - black_up)  #  type: ignore
         alpha_min = np.min(alpha_candidates, axis=2)
         alpha_max = np.max(alpha_candidates, axis=2)
