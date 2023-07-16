@@ -1,6 +1,6 @@
-import { Box, Center, HStack, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { QuestionIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
-import { BsQuestionCircle } from 'react-icons/bs';
 import ReactMarkdown from 'react-markdown';
 import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
 import { TypeTags } from '../TypeTag';
@@ -42,8 +42,7 @@ export const GenericInput = memo(({ input, definitionType }: InputProps<'generic
                                 m={0}
                                 p={0}
                             >
-                                <Icon
-                                    as={BsQuestionCircle}
+                                <QuestionIcon
                                     boxSize={3}
                                     ml={1}
                                 />

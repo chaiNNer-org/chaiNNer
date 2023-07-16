@@ -1,7 +1,7 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { QuestionIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import { BsQuestionCircle } from 'react-icons/bs';
 import ReactMarkdown from 'react-markdown';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -199,9 +199,8 @@ export const WithLabel = memo(
                                     m={0}
                                     p={0}
                                 >
-                                    <Icon
-                                        as={BsQuestionCircle}
-                                        boxSize={2}
+                                    <QuestionIcon
+                                        boxSize={3}
                                         ml={1}
                                     />
                                 </Center>
