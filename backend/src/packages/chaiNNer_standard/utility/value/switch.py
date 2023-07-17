@@ -56,18 +56,20 @@ class ValueIndex(Enum):
                 ValueIndex::J => Input10,
                 _ => never
             };
-            
+
             match value {
                 null => never,
                 _ => value
             }
             """,
             label="Value",
-        )
+        ).with_never_reason("The selected value should have a connection.")
     ],
     see_also=["chainner:utility:pass_through"],
 )
 def switch_node(selection: ValueIndex, *args: Union[object, None]) -> object:
     if args[selection.value] is not None:
         return args[selection.value]
-    raise RuntimeError("Invalid value selected")
+    raise RuntimeError(
+        "Invalid value selected. The selected value should have a connection."
+    )
