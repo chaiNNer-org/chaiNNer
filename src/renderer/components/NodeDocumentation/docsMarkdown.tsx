@@ -1,25 +1,40 @@
-import { Code, Link, Text } from '@chakra-ui/react';
+import { Code, Highlight, Link, Text } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { memo } from 'react';
+import { PropsWithChildren, memo } from 'react';
 import { Components } from 'react-markdown';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
+import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { SchemaLink } from './SchemaLink';
 
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
-        p: ({ children }) => {
+        p: memo(({ children }: PropsWithChildren<unknown>) => {
+            const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
+            const { searchTerms } = useNodeDocumentationSearch;
+
+            const stringChildren = Array.isArray(children)
+                ? (children as string[]).join('')
+                : String(children);
+
             return (
                 <Text
                     fontSize="md"
                     marginTop={1}
                     userSelect="text"
                 >
-                    {children}
+                    <Highlight
+                        query={searchTerms}
+                        styles={{
+                            backgroundColor: 'yellow.300',
+                        }}
+                    >
+                        {stringChildren}
+                    </Highlight>
                 </Text>
             );
-        },
+        }),
         a: ({ children, href }) => {
             return (
                 <Link

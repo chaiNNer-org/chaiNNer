@@ -6,6 +6,7 @@ import {
     Flex,
     HStack,
     Heading,
+    Highlight,
     ListItem,
     Text,
     Tooltip,
@@ -189,7 +190,10 @@ interface NodeInfoProps {
     functionDefinition?: FunctionDefinition;
 }
 const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeInfoProps) => {
+    const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
     const { schemata } = useContext(BackendContext);
+
+    const { searchTerms } = useNodeDocumentationSearch;
 
     const inputs = schema.inputs.filter((i) => !isAutoInput(i));
     const outputs = schema.outputs.filter((o) => o.hasHandle);
@@ -220,7 +224,14 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         size="lg"
                         userSelect="text"
                     >
-                        {schema.name}
+                        <Highlight
+                            query={searchTerms}
+                            styles={{
+                                backgroundColor: 'yellow.300',
+                            }}
+                        >
+                            {schema.name}
+                        </Highlight>
                     </Heading>
                 </HStack>
                 <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>

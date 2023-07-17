@@ -1,8 +1,6 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
-import MiniSearch from 'minisearch';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getNodesByCategory } from '../../helpers/nodeSearchFuncs';
@@ -10,40 +8,13 @@ import { IconFactory } from '../CustomIcons';
 import { SearchBar } from '../SearchBar';
 
 export const NodesList = memo(() => {
-    const { selectedSchemaId, isOpen, openNodeDocumentation } =
+    const { selectedSchemaId, isOpen, openNodeDocumentation, useNodeDocumentationSearch } =
         useContext(NodeDocumentationContext);
 
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
-    const searchableSchema = useMemo(() => {
-        return schema.map((s) => ({
-            ...s,
-            inputs: s.inputs.map((i) => `${i.label} ${i.description ?? ''}`),
-            outputs: s.outputs.map((o) => `${o.label} ${o.description ?? ''}`),
-        }));
-    }, [schema]);
 
-    const [searchQuery, setSearchQuery] = useState('');
-
-    const idField: keyof NodeSchema = 'schemaId';
-    const fields: (keyof NodeSchema)[] = [
-        'category',
-        'description',
-        'name',
-        'subcategory',
-        'inputs',
-        'outputs',
-    ];
-    const miniSearch = new MiniSearch({ idField, fields });
-
-    miniSearch.addAll(searchableSchema);
-
-    const searchResult = miniSearch.search(searchQuery, {
-        boost: { name: 2 },
-        fuzzy: 0.2,
-        prefix: true,
-        combineWith: 'AND',
-    });
+    const { searchQuery, setSearchQuery, searchResult } = useNodeDocumentationSearch;
 
     const scoreMap = useMemo(() => {
         const map = new Map<string, number>();
