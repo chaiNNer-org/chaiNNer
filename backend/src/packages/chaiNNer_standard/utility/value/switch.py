@@ -43,19 +43,25 @@ class ValueIndex(Enum):
     outputs=[
         BaseOutput(
             output_type="""
-        match Input0 {
-            ValueIndex::A => Input1,
-            ValueIndex::B => Input2,
-            ValueIndex::C => Input3,
-            ValueIndex::D => Input4,
-            ValueIndex::E => Input5,
-            ValueIndex::F => Input6,
-            ValueIndex::G => Input7,
-            ValueIndex::H => Input8,
-            ValueIndex::I => Input9,
-            ValueIndex::J => Input10,
-            _ => never
-        }""",
+            let value = match Input0 {
+                ValueIndex::A => Input1,
+                ValueIndex::B => Input2,
+                ValueIndex::C => Input3,
+                ValueIndex::D => Input4,
+                ValueIndex::E => Input5,
+                ValueIndex::F => Input6,
+                ValueIndex::G => Input7,
+                ValueIndex::H => Input8,
+                ValueIndex::I => Input9,
+                ValueIndex::J => Input10,
+                _ => never
+            };
+            
+            match value {
+                null => never,
+                _ => value
+            }
+            """,
             label="Value",
         )
     ],
