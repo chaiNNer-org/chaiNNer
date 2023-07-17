@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Union
+from typing import Optional
 
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import AnyInput, EnumInput
@@ -67,7 +67,7 @@ class ValueIndex(Enum):
     ],
     see_also=["chainner:utility:pass_through"],
 )
-def switch_node(selection: ValueIndex, *args: Union[object, None]) -> object:
+def switch_node(selection: ValueIndex, *args: Optional[object]) -> object:
     if args[selection.value] is not None:
         return args[selection.value]
     raise RuntimeError(
