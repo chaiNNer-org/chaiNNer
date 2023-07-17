@@ -50,6 +50,21 @@ export const NodesList = memo(() => {
         [byCategories, categories, scoreMap, searchQuery]
     );
 
+    const highestNode = useMemo(
+        () =>
+            byCategories
+                .get(categoriesByMaxNodeScore[0].name)
+                ?.sort(
+                    (a, b) => (scoreMap.get(b.schemaId) ?? 0) - (scoreMap.get(a.schemaId) ?? 0)
+                )[0] ?? undefined,
+        [byCategories, categoriesByMaxNodeScore, scoreMap]
+    );
+
+    useEffect(() => {
+        openNodeDocumentation(highestNode?.schemaId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [highestNode]);
+
     const selectedElement = useRef<HTMLDivElement>(null);
 
     const [selectScrollTrigger, setSelectScrollTrigger] = useState(false);
