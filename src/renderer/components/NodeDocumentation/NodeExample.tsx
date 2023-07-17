@@ -104,7 +104,6 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         <Center
             key={selectedSchema.schemaId}
             pointerEvents="none"
-            w="auto"
         >
             <Center
                 bg="var(--node-bg-color)"
@@ -115,7 +114,6 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                 minWidth="240px"
                 overflow="hidden"
                 transition="0.15s ease-in-out"
-                w="full"
             >
                 <VStack
                     spacing={0}
