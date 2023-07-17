@@ -44,6 +44,9 @@ interface InputOutputItemProps {
 }
 
 const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
+    const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
+    const { searchTerms } = useNodeDocumentationSearch;
+
     const isOptional = 'optional' in item && item.optional;
     if (isOptional) {
         // eslint-disable-next-line no-param-reassign
@@ -69,7 +72,14 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     fontWeight="bold"
                     userSelect="text"
                 >
-                    {item.label}
+                    <Highlight
+                        query={searchTerms}
+                        styles={{
+                            backgroundColor: 'yellow.300',
+                        }}
+                    >
+                        {item.label}
+                    </Highlight>
                 </Text>
                 {isOptional && (
                     <TypeTag
