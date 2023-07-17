@@ -1,6 +1,7 @@
 import { NeverType, Type } from '@chainner/navi';
 import {
     Box,
+    Center,
     Code,
     Divider,
     Flex,
@@ -331,15 +332,15 @@ export const NodeDocs = memo(() => {
 
     const schema = schemata.schemata;
     const selectedSchema = schemata.get(selectedSchemaId ?? schema[0].schemaId);
-    const selectedFunctionDefinition = functionDefinitions.get(
-        selectedSchemaId ?? schema[0].schemaId
-    );
+
     const selectedAccentColor = getCategoryAccentColor(categories, selectedSchema.category);
 
     const [isLargerThan1200] = useMediaQuery('(min-width: 1200px)');
 
-    const hasIteratorHelperNodes =
-        selectedSchema.defaultNodes && selectedSchema.defaultNodes.length > 0;
+    const nodeDocsToShow = [
+        selectedSchema,
+        ...(selectedSchema.defaultNodes?.map((n) => schemata.get(n.schemaId)) ?? []),
+    ];
 
     return (
         <Box
@@ -348,9 +349,7 @@ export const NodeDocs = memo(() => {
             w="full"
         >
             <Box w="full">
-                <Flex
-                    direction={isLargerThan1200 ? 'row' : 'column'}
-                    gap={4}
+                <Box
                     left={0}
                     maxH="full"
                     overflowY="scroll"
@@ -368,91 +367,44 @@ export const NodeDocs = memo(() => {
                         textAlign="left"
                         w="full"
                     >
-                        <HStack>
-                            <SingleNodeInfo
-                                accentColor={selectedAccentColor}
-                                functionDefinition={selectedFunctionDefinition}
-                                schema={selectedSchema}
-                            />
-                            <Box
-                                h="full"
-                                position="relative"
-                            >
-                                <Box
-                                    h="full"
-                                    mr={6}
-                                    position="relative"
-                                    verticalAlign="top"
+                        {nodeDocsToShow.map((nodeSchema) => {
+                            const nodeFunctionDefinition = functionDefinitions.get(
+                                nodeSchema.schemaId
+                            );
+                            return (
+                                <Flex
+                                    direction={isLargerThan1200 ? 'row' : 'column'}
+                                    gap={4}
                                 >
-                                    <NodeExample
+                                    <SingleNodeInfo
                                         accentColor={selectedAccentColor}
-                                        selectedSchema={selectedSchema}
+                                        functionDefinition={nodeFunctionDefinition}
+                                        key={nodeSchema.schemaId}
+                                        schema={nodeSchema}
                                     />
-                                </Box>
-                            </Box>
-                        </HStack>
-                        {hasIteratorHelperNodes &&
-                            selectedSchema.defaultNodes.map((defaultNode) => {
-                                const nodeSchema = schemata.get(defaultNode.schemaId);
-                                const nodeFunctionDefinition = functionDefinitions.get(
-                                    defaultNode.schemaId
-                                );
-                                return (
-                                    <HStack>
-                                        <SingleNodeInfo
-                                            accentColor={selectedAccentColor}
-                                            functionDefinition={nodeFunctionDefinition}
-                                            key={defaultNode.schemaId}
-                                            schema={nodeSchema}
-                                        />
+                                    <Center
+                                        h="full"
+                                        position="relative"
+                                        verticalAlign="top"
+                                    >
                                         <Box
-                                            h="full"
+                                            maxW="fit-content"
+                                            mr={6}
                                             position="relative"
+                                            w="auto"
                                         >
-                                            <Box
-                                                h="full"
-                                                mr={6}
-                                                position="relative"
-                                                verticalAlign="top"
-                                            >
-                                                <NodeExample
-                                                    accentColor={selectedAccentColor}
-                                                    key={defaultNode.schemaId}
-                                                    selectedSchema={nodeSchema}
-                                                />
-                                            </Box>
+                                            <NodeExample
+                                                accentColor={selectedAccentColor}
+                                                key={nodeSchema.schemaId}
+                                                selectedSchema={nodeSchema}
+                                            />
                                         </Box>
-                                    </HStack>
-                                );
-                            })}
+                                    </Center>
+                                </Flex>
+                            );
+                        })}
                     </VStack>
-                    {/* <Box
-                        h="full"
-                        position="relative"
-                    >
-                        <VStack
-                            alignItems="left"
-                            mr={6}
-                            position="relative"
-                        >
-                            <NodeExample
-                                accentColor={selectedAccentColor}
-                                selectedSchema={selectedSchema}
-                            />
-                            {hasIteratorHelperNodes &&
-                                selectedSchema.defaultNodes.map((defaultNode) => {
-                                    const nodeSchema = schemata.get(defaultNode.schemaId);
-                                    return (
-                                        <NodeExample
-                                            accentColor={selectedAccentColor}
-                                            key={defaultNode.schemaId}
-                                            selectedSchema={nodeSchema}
-                                        />
-                                    );
-                                })}
-                        </VStack>
-                    </Box> */}
-                </Flex>
+                </Box>
             </Box>
         </Box>
     );
