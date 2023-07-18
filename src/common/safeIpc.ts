@@ -28,7 +28,6 @@ export interface InvokeChannels {
     'get-localstorage-location': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
-    'get-vram-usage': ChannelInfo<number | null>;
     'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<
         Electron.OpenDialogReturnValue,
