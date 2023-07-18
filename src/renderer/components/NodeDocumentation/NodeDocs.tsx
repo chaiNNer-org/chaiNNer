@@ -17,7 +17,9 @@ import {
 import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { Input, NodeSchema, Output } from '../../../common/common-types';
+import { Condition, Input, NodeSchema, Output } from '../../../common/common-types';
+import { isTautology } from '../../../common/nodes/condition';
+import { getInputCondition } from '../../../common/nodes/inputCondition';
 import { explain } from '../../../common/types/explain';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
@@ -28,7 +30,9 @@ import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContex
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
+import { ConditionExplanation } from './ConditionExplanation';
 import { docsMarkdown } from './docsMarkdown';
+import { DropDownOptions } from './DropDownOptions';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
@@ -57,11 +61,13 @@ const TypeView = memo(({ type }: TypeViewProps) => {
 });
 
 interface InputOutputItemProps {
+    schema: NodeSchema;
     item: Input | Output;
     type: Type;
+    condition?: Condition;
 }
 
-const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
+const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItemProps) => {
     const isOptional = 'optional' in item && item.optional;
     if (isOptional) {
         // eslint-disable-next-line no-param-reassign
@@ -148,6 +154,24 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
+                {condition && !isTautology(condition) && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Condition:
+                        </Text>
+                        <ConditionExplanation
+                            condition={condition}
+                            schema={schema}
+                        />
+                    </Text>
+                )}
+
                 {isTextInput && (
                     <Text
                         fontSize="md"
@@ -177,17 +201,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         >
                             Options:
                         </Text>
-                        {item.options.map((o) => (
-                            <TypeTag
-                                fontSize="small"
-                                height="auto"
-                                key={o.value}
-                                mt="-0.2rem"
-                                verticalAlign="middle"
-                            >
-                                {o.option}
-                            </TypeTag>
-                        ))}
+                        <DropDownOptions options={item.options} />
                     </Text>
                 )}
 
@@ -269,8 +283,10 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {inputs.map((input) => {
                             return (
                                 <InputOutputItem
+                                    condition={getInputCondition(schema, input.id)}
                                     item={input}
                                     key={input.id}
+                                    schema={schema}
                                     type={
                                         functionDefinition?.inputDefaults.get(input.id) ??
                                         NeverType.instance
@@ -304,6 +320,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                                 <InputOutputItem
                                     item={output}
                                     key={output.id}
+                                    schema={schema}
                                     type={
                                         functionDefinition?.outputDefaults.get(output.id) ??
                                         NeverType.instance
