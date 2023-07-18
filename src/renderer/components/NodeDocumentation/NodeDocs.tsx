@@ -18,10 +18,11 @@ import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
 import { Input, NodeSchema, Output } from '../../../common/common-types';
+import { explain } from '../../../common/types/explain';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
-import { isAutoInput } from '../../../common/util';
+import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
@@ -31,12 +32,29 @@ import { docsMarkdown } from './docsMarkdown';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
-const getTypeTooltipText = (item: Input | Output) => {
-    if (item.kind === 'number' || item.kind === 'slider') {
-        const prefix = item.precision === 0 ? 'An integer' : 'A float';
-        return `${prefix} between ${item.min ?? '-infinity'} and ${item.max ?? 'infinity'}`;
-    }
-};
+interface TypeViewProps {
+    type: Type;
+}
+const TypeView = memo(({ type }: TypeViewProps) => {
+    const tooltipText = explain(type, { detailed: true });
+
+    return (
+        <Tooltip
+            borderRadius={8}
+            label={tooltipText && capitalize(tooltipText)}
+            px={2}
+            py={1}
+        >
+            <Code
+                display="inline"
+                userSelect="text"
+                whiteSpace="pre-line"
+            >
+                {prettyPrintType(type)}
+            </Code>
+        </Tooltip>
+    );
+});
 
 interface InputOutputItemProps {
     item: Input | Output;
@@ -57,10 +75,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const isPrimaryInput = isFileInput && item.primaryInput;
 
     const isTextInput = item.kind === 'text';
-
     const isDropdownInput = item.kind === 'dropdown';
-
-    const tooltipText = getTypeTooltipText(item);
 
     return (
         <ListItem my={2}>
@@ -156,7 +171,12 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         fontSize="md"
                         userSelect="text"
                     >
-                        Options:
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Options:
+                        </Text>
                         {item.options.map((o) => (
                             <TypeTag
                                 fontSize="small"
@@ -171,14 +191,17 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
-                <Tooltip
-                    borderRadius={8}
-                    label={tooltipText}
-                    px={2}
-                    py={1}
-                >
-                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                </Tooltip>
+                {!isDropdownInput && (
+                    <Box whiteSpace="nowrap">
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Type:
+                        </Text>
+                        <TypeView type={type} />
+                    </Box>
+                )}
             </VStack>
         </ListItem>
     );
