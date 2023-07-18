@@ -1,8 +1,6 @@
 import {
-    IntIntervalType,
     IntersectionExpression,
     NamedExpression,
-    NumericLiteralType,
     StructType,
     Type,
     evaluate,
@@ -10,8 +8,9 @@ import {
 } from '@chainner/navi';
 import { assertNever } from '../util';
 import { getChainnerScope } from './chainner-scope';
+import { explain, formatChannelNumber } from './explain';
 import { prettyPrintType } from './pretty';
-import { IntNumberType, isColor, isImage } from './util';
+import { isColor, isImage } from './util';
 
 export type AssignmentErrorTrace = FieldAssignmentError | GeneralAssignmentError;
 export interface GeneralAssignmentError {
@@ -128,64 +127,6 @@ export const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
     ];
 };
 
-const getAcceptedNumbers = (number: IntNumberType): Set<number> | undefined => {
-    const numbers = new Set<number>();
-    let infinite = false;
-
-    const add = (n: NumericLiteralType | IntIntervalType): void => {
-        if (n.type === 'literal') {
-            numbers.add(n.value);
-        } else if (n.max - n.min < 10) {
-            for (let i = n.min; i <= n.max; i += 1) {
-                numbers.add(i);
-            }
-        } else {
-            infinite = true;
-        }
-    };
-
-    if (number.type === 'union') {
-        number.items.forEach(add);
-    } else {
-        add(number);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    return infinite ? undefined : numbers;
-};
-const formatChannelNumber = (n: IntNumberType, subject = 'image'): string | undefined => {
-    const numbers = getAcceptedNumbers(n);
-    if (!numbers) return undefined;
-
-    const known: string[] = [];
-    if (numbers.has(1)) known.push('grayscale');
-    if (numbers.has(3)) known.push('RGB');
-    if (numbers.has(4)) known.push('RGBA');
-
-    if (known.length === numbers.size) {
-        const article = known[0] === 'grayscale' ? 'a' : 'an';
-        if (known.length === 1) return `${article} ${known[0]} ${subject}`;
-        if (known.length === 2) return `${article} ${known[0]} or ${known[1]} ${subject}`;
-        if (known.length === 3)
-            return `${article} ${known[0]}, ${known[1]} or ${known[2]} ${subject}`;
-    }
-
-    return undefined;
-};
-const explainNumber = (n: Type): string | undefined => {
-    if (n.underlying === 'number') {
-        if (n.type === 'number') return 'a number';
-        if (n.type === 'literal') return `the number ${n.value}`;
-
-        const kind = n.type === 'int-interval' ? 'an integer' : 'a number';
-        if (n.min === -Infinity && n.max === Infinity) return kind;
-        if (n.min === -Infinity) return `${kind} that is at most ${n.max}`;
-        if (n.max === Infinity) return `${kind} that is at least ${n.min}`;
-        return `${kind} between ${n.min} and ${n.max}`;
-    }
-    return undefined;
-};
-
 export const simpleError = (
     assigned: Type,
     definition: Type
@@ -202,8 +143,8 @@ export const simpleError = (
             const dChannels = d.fields[2].type;
 
             if (isDisjointWith(aChannels, dChannels)) {
-                const aString = formatChannelNumber(aChannels);
-                const dString = formatChannelNumber(dChannels);
+                const aString = formatChannelNumber(aChannels, 'image');
+                const dString = formatChannelNumber(dChannels, 'image');
                 if (aString && dString) {
                     return {
                         assigned: aString,
@@ -239,8 +180,8 @@ export const simpleError = (
     }
 
     // number mismatch
-    const assignedNumber = explainNumber(assigned);
-    const definitionNumber = explainNumber(definition);
+    const assignedNumber = explain(assigned, { strictUnion: true });
+    const definitionNumber = explain(definition, { strictUnion: true });
     if (assignedNumber && definitionNumber) {
         return {
             assigned: assignedNumber,
