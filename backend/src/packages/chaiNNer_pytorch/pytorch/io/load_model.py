@@ -21,18 +21,20 @@ from .. import io_group
 @io_group.register(
     schema_id="chainner:pytorch:load_model",
     name="Load Model",
-    description="""Load PyTorch state dict (.pth) or TorchScript (.pt) file
-            into an auto-detected supported model architecture.
-            Supports most variations of the RRDB architecture
-            (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
-            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.
-            Links to the models can be found in chaiNNer's README.""",
+    description=[
+        "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an auto-detected supported model architecture.",
+        "Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.",
+        "Links to the official models can be found in chaiNNer's README, and also alongside community-trained models on [OpenModelDB](https://openmodeldb.info/).",
+    ],
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
     outputs=[
         ModelOutput(kind="tagged"),
         DirectoryOutput("Model Directory", of_input=0).with_id(2),
         FileNameOutput("Model Name", of_input=0).with_id(1),
+    ],
+    see_also=[
+        "chainner:pytorch:model_file_iterator",
     ],
 )
 def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:

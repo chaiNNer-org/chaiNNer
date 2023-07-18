@@ -1,6 +1,8 @@
 import { Type } from '@chainner/navi';
-import { Box, Center, HStack, Text } from '@chakra-ui/react';
+import { QuestionIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
@@ -10,16 +12,24 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { Handle } from '../Handle';
+import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
 import { TypeTag } from '../TypeTag';
 
 export interface HandleWrapperProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
+    useFakeHandles: boolean;
 }
 
 export const HandleWrapper = memo(
-    ({ children, id, inputId, connectableType }: React.PropsWithChildren<HandleWrapperProps>) => {
+    ({
+        children,
+        id,
+        inputId,
+        connectableType,
+        useFakeHandles,
+    }: React.PropsWithChildren<HandleWrapperProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
@@ -103,6 +113,7 @@ export const HandleWrapper = memo(
                         id={targetHandle}
                         isValidConnection={isValidConnectionForRf}
                         type="input"
+                        useFakeHandles={useFakeHandles}
                         validity={validity}
                     />
                 </Center>
@@ -135,11 +146,16 @@ interface WithLabelProps {
     input: {
         readonly label: string;
         readonly optional: boolean;
+        readonly hint?: boolean;
+        readonly description?: string;
     };
 }
 
 export const WithLabel = memo(
-    ({ input: { label, optional }, children }: React.PropsWithChildren<WithLabelProps>) => {
+    ({
+        input: { label, optional, hint, description },
+        children,
+    }: React.PropsWithChildren<WithLabelProps>) => {
         return (
             <Box
                 className="with-label"
@@ -151,21 +167,54 @@ export const WithLabel = memo(
                     py={0.5}
                     verticalAlign="middle"
                 >
-                    <Text
-                        fontSize="xs"
-                        lineHeight="0.9rem"
-                        textAlign="center"
+                    <Tooltip
+                        hasArrow
+                        borderRadius={8}
+                        label={
+                            hint ? (
+                                <ReactMarkdown components={tooltipDocsMarkdown}>
+                                    {description ?? ''}
+                                </ReactMarkdown>
+                            ) : undefined
+                        }
+                        openDelay={500}
+                        px={2}
+                        py={1}
                     >
-                        {label}
-                    </Text>
-                    {optional && (
-                        <Center
-                            h="1rem"
-                            verticalAlign="middle"
+                        <HStack
+                            m={0}
+                            p={0}
+                            spacing={0}
                         >
-                            <TypeTag isOptional>optional</TypeTag>
-                        </Center>
-                    )}
+                            <Text
+                                fontSize="xs"
+                                lineHeight="0.9rem"
+                                textAlign="center"
+                            >
+                                {label}
+                            </Text>
+                            {hint && (
+                                <Center
+                                    h="auto"
+                                    m={0}
+                                    p={0}
+                                >
+                                    <QuestionIcon
+                                        boxSize={3}
+                                        ml={1}
+                                    />
+                                </Center>
+                            )}
+                            {optional && (
+                                <Center
+                                    h="1rem"
+                                    verticalAlign="middle"
+                                >
+                                    <TypeTag isOptional>optional</TypeTag>
+                                </Center>
+                            )}
+                        </HStack>
+                    </Tooltip>
                 </Center>
                 <Box pb={1}>{children}</Box>
             </Box>

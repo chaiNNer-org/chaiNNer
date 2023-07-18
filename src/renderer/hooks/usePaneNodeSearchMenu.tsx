@@ -111,7 +111,7 @@ interface MenuProps {
     targets: ReadonlyMap<NodeSchema, ConnectionTarget>;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
-    categories: Category[];
+    categories: readonly Category[];
 }
 
 const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {

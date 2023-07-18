@@ -1,6 +1,7 @@
 import { NeverType, Type } from '@chainner/navi';
 import {
     Box,
+    Center,
     Code,
     Divider,
     Flex,
@@ -8,6 +9,7 @@ import {
     Heading,
     ListItem,
     Text,
+    Tooltip,
     UnorderedList,
     VStack,
     useMediaQuery,
@@ -15,40 +17,76 @@ import {
 import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../../common/common-types';
+import { Input, NodeSchema, Output } from '../../../common/common-types';
+import { explain } from '../../../common/types/explain';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
-import { isAutoInput } from '../../../common/util';
+import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
-import { getCategoryAccentColor } from '../../helpers/accentColors';
+import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
-interface InputOutputItemProps {
-    label: string;
-    description?: string | null;
+interface TypeViewProps {
     type: Type;
-    optional: boolean;
 }
-const InputOutputItem = memo(({ label, description, type, optional }: InputOutputItemProps) => {
-    if (optional) {
+const TypeView = memo(({ type }: TypeViewProps) => {
+    const tooltipText = explain(type, { detailed: true });
+
+    return (
+        <Tooltip
+            borderRadius={8}
+            label={tooltipText && capitalize(tooltipText)}
+            px={2}
+            py={1}
+        >
+            <Code
+                display="inline"
+                userSelect="text"
+                whiteSpace="pre-line"
+            >
+                {prettyPrintType(type)}
+            </Code>
+        </Tooltip>
+    );
+});
+
+interface InputOutputItemProps {
+    item: Input | Output;
+    type: Type;
+}
+
+const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
+    const isOptional = 'optional' in item && item.optional;
+    if (isOptional) {
         // eslint-disable-next-line no-param-reassign
         type = withoutNull(type);
     }
 
+    const handleColors = getTypeAccentColors(type);
+
+    const isFileInput = item.kind === 'file';
+    const supportedFileTypes = isFileInput ? item.filetypes : [];
+    const isPrimaryInput = isFileInput && item.primaryInput;
+
+    const isTextInput = item.kind === 'text';
+    const isDropdownInput = item.kind === 'dropdown';
+
     return (
         <ListItem my={2}>
-            <Text
-                fontWeight="bold"
-                userSelect="text"
-            >
-                {label}
-                {optional && (
+            <HStack mb={1}>
+                <Text
+                    fontWeight="bold"
+                    userSelect="text"
+                >
+                    {item.label}
+                </Text>
+                {isOptional && (
                     <TypeTag
                         isOptional
                         fontSize="small"
@@ -59,9 +97,112 @@ const InputOutputItem = memo(({ label, description, type, optional }: InputOutpu
                         optional
                     </TypeTag>
                 )}
-            </Text>
-            {description && <ReactMarkdown components={docsMarkdown}>{description}</ReactMarkdown>}
-            <Code userSelect="text">{prettyPrintType(type)}</Code>
+                {item.hasHandle &&
+                    handleColors.map((color) => (
+                        <Box
+                            bgColor={color}
+                            borderRadius="100%"
+                            h="0.5rem"
+                            key={color}
+                            w="0.5rem"
+                        />
+                    ))}
+            </HStack>
+            <VStack
+                alignItems="start"
+                spacing={1}
+                w="full"
+            >
+                {item.description && (
+                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+                )}
+
+                {isFileInput && supportedFileTypes.length > 0 && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        Supported file types:
+                        {supportedFileTypes.map((fileType) => (
+                            <TypeTag
+                                fontSize="small"
+                                height="auto"
+                                key={fileType}
+                                mt="-0.2rem"
+                                verticalAlign="middle"
+                            >
+                                {fileType}
+                            </TypeTag>
+                        ))}
+                    </Text>
+                )}
+
+                {isFileInput && isPrimaryInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        This input is the primary input for its supported file types. This means
+                        that you can drag and drop supported files into chaiNNer, and it will create
+                        a node with this input filled in automatically.
+                    </Text>
+                )}
+
+                {isTextInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        {`A ${item.multiline ? 'multi-line ' : ''}string ${
+                            item.maxLength
+                                ? `between ${item.minLength ?? 0} and ${item.maxLength}`
+                                : `at least ${item.minLength ?? 0}`
+                        } character${
+                            (item.maxLength === null || item.maxLength === undefined) &&
+                            item.minLength === 1
+                                ? ''
+                                : 's'
+                        } long.`}
+                    </Text>
+                )}
+
+                {isDropdownInput && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Options:
+                        </Text>
+                        {item.options.map((o) => (
+                            <TypeTag
+                                fontSize="small"
+                                height="auto"
+                                key={o.value}
+                                mt="-0.2rem"
+                                verticalAlign="middle"
+                            >
+                                {o.option}
+                            </TypeTag>
+                        ))}
+                    </Text>
+                )}
+
+                {!isDropdownInput && (
+                    <Box whiteSpace="nowrap">
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Type:
+                        </Text>
+                        <TypeView type={type} />
+                    </Box>
+                )}
+            </VStack>
         </ListItem>
     );
 });
@@ -128,10 +269,8 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {inputs.map((input) => {
                             return (
                                 <InputOutputItem
-                                    description={input.description}
+                                    item={input}
                                     key={input.id}
-                                    label={input.label}
-                                    optional={input.optional}
                                     type={
                                         functionDefinition?.inputDefaults.get(input.id) ??
                                         NeverType.instance
@@ -163,10 +302,8 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {outputs.map((output) => {
                             return (
                                 <InputOutputItem
-                                    description={output.description}
+                                    item={output}
                                     key={output.id}
-                                    label={output.label}
-                                    optional={false}
                                     type={
                                         functionDefinition?.outputDefaults.get(output.id) ??
                                         NeverType.instance
@@ -218,15 +355,15 @@ export const NodeDocs = memo(() => {
 
     const schema = schemata.schemata;
     const selectedSchema = schemata.get(selectedSchemaId ?? schema[0].schemaId);
-    const selectedFunctionDefinition = functionDefinitions.get(
-        selectedSchemaId ?? schema[0].schemaId
-    );
+
     const selectedAccentColor = getCategoryAccentColor(categories, selectedSchema.category);
 
     const [isLargerThan1200] = useMediaQuery('(min-width: 1200px)');
 
-    const hasIteratorHelperNodes =
-        selectedSchema.defaultNodes && selectedSchema.defaultNodes.length > 0;
+    const nodeDocsToShow = [
+        selectedSchema,
+        ...(selectedSchema.defaultNodes?.map((n) => schemata.get(n.schemaId)) ?? []),
+    ];
 
     return (
         <Box
@@ -235,9 +372,7 @@ export const NodeDocs = memo(() => {
             w="full"
         >
             <Box w="full">
-                <Flex
-                    direction={isLargerThan1200 ? 'row' : 'column'}
-                    gap={2}
+                <Box
                     left={0}
                     maxH="full"
                     overflowY="scroll"
@@ -255,50 +390,44 @@ export const NodeDocs = memo(() => {
                         textAlign="left"
                         w="full"
                     >
-                        <SingleNodeInfo
-                            accentColor={selectedAccentColor}
-                            functionDefinition={selectedFunctionDefinition}
-                            schema={selectedSchema}
-                        />
-                        {hasIteratorHelperNodes &&
-                            selectedSchema.defaultNodes.map((defaultNode) => {
-                                const nodeSchema = schemata.get(defaultNode.schemaId);
-                                const nodeFunctionDefinition = functionDefinitions.get(
-                                    defaultNode.schemaId
-                                );
-                                return (
+                        {nodeDocsToShow.map((nodeSchema) => {
+                            const nodeFunctionDefinition = functionDefinitions.get(
+                                nodeSchema.schemaId
+                            );
+                            return (
+                                <Flex
+                                    direction={isLargerThan1200 ? 'row' : 'column'}
+                                    gap={4}
+                                >
                                     <SingleNodeInfo
                                         accentColor={selectedAccentColor}
                                         functionDefinition={nodeFunctionDefinition}
-                                        key={defaultNode.schemaId}
+                                        key={nodeSchema.schemaId}
                                         schema={nodeSchema}
                                     />
-                                );
-                            })}
+                                    <Center
+                                        h="full"
+                                        position="relative"
+                                        verticalAlign="top"
+                                    >
+                                        <Box
+                                            maxW="fit-content"
+                                            mr={6}
+                                            position="relative"
+                                            w="auto"
+                                        >
+                                            <NodeExample
+                                                accentColor={selectedAccentColor}
+                                                key={nodeSchema.schemaId}
+                                                selectedSchema={nodeSchema}
+                                            />
+                                        </Box>
+                                    </Center>
+                                </Flex>
+                            );
+                        })}
                     </VStack>
-                    <Box
-                        h="full"
-                        position="relative"
-                    >
-                        <VStack position="relative">
-                            <NodeExample
-                                accentColor={selectedAccentColor}
-                                selectedSchema={selectedSchema}
-                            />
-                            {hasIteratorHelperNodes &&
-                                selectedSchema.defaultNodes.map((defaultNode) => {
-                                    const nodeSchema = schemata.get(defaultNode.schemaId);
-                                    return (
-                                        <NodeExample
-                                            accentColor={selectedAccentColor}
-                                            key={defaultNode.schemaId}
-                                            selectedSchema={nodeSchema}
-                                        />
-                                    );
-                                })}
-                        </VStack>
-                    </Box>
-                </Flex>
+                </Box>
             </Box>
         </Box>
     );

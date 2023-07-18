@@ -104,7 +104,6 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         <Center
             key={selectedSchema.schemaId}
             pointerEvents="none"
-            w="auto"
         >
             <Center
                 bg="var(--node-bg-color)"
@@ -148,6 +147,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 type: typeInfo,
                                 testCondition: (condition: Condition): boolean =>
                                     testInputConditionTypeInfo(condition, inputData, typeInfo),
+                                useFakeHandles: true,
                             }}
                         />
                     </VStack>
