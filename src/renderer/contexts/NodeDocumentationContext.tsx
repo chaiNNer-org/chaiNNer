@@ -11,11 +11,11 @@ interface NodeDocumentationContextState {
     isOpen: boolean;
     openNodeDocumentation: (schemaId?: SchemaId) => void;
     onClose: () => void;
-    useNodeDocumentationSearch: {
+    nodeDocsSearchState: {
         searchQuery: string;
         setSearchQuery: (query: string) => void;
-        searchResult: SearchResult[];
-        searchTerms: string[];
+        searchResult: readonly SearchResult[];
+        searchTerms: readonly string[];
     };
 }
 
@@ -67,7 +67,7 @@ export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChil
 
     const searchTerms = searchResult.find((s) => s.id === selectedSchemaId)?.terms ?? [];
 
-    const useNodeDocumentationSearch = {
+    const nodeDocsSearchState = {
         searchQuery,
         setSearchQuery,
         searchResult,
@@ -79,7 +79,7 @@ export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChil
         isOpen,
         openNodeDocumentation,
         onClose,
-        useNodeDocumentationSearch,
+        nodeDocsSearchState,
     });
 
     return (

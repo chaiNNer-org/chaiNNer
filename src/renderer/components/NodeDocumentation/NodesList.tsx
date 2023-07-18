@@ -8,13 +8,13 @@ import { IconFactory } from '../CustomIcons';
 import { SearchBar } from '../SearchBar';
 
 export const NodesList = memo(() => {
-    const { selectedSchemaId, isOpen, openNodeDocumentation, useNodeDocumentationSearch } =
+    const { selectedSchemaId, isOpen, openNodeDocumentation, nodeDocsSearchState } =
         useContext(NodeDocumentationContext);
 
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
 
-    const { searchQuery, setSearchQuery, searchResult } = useNodeDocumentationSearch;
+    const { searchQuery, setSearchQuery, searchResult } = nodeDocsSearchState;
 
     const scoreMap = useMemo(() => {
         const map = new Map<string, number>();

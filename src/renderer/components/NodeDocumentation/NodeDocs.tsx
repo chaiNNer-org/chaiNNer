@@ -45,8 +45,8 @@ interface InputOutputItemProps {
 }
 
 const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
-    const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
-    const { searchTerms } = useNodeDocumentationSearch;
+    const { nodeDocsSearchState } = useContext(NodeDocumentationContext);
+    const { searchTerms } = nodeDocsSearchState;
 
     const isOptional = 'optional' in item && item.optional;
     if (isOptional) {
@@ -74,7 +74,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     userSelect="text"
                 >
                     <Highlight
-                        query={searchTerms}
+                        query={[...searchTerms]}
                         styles={{
                             backgroundColor: 'yellow.300',
                         }}
@@ -201,10 +201,10 @@ interface NodeInfoProps {
     functionDefinition?: FunctionDefinition;
 }
 const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeInfoProps) => {
-    const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
+    const { nodeDocsSearchState } = useContext(NodeDocumentationContext);
     const { schemata } = useContext(BackendContext);
 
-    const { searchTerms } = useNodeDocumentationSearch;
+    const { searchTerms } = nodeDocsSearchState;
 
     const inputs = schema.inputs.filter((i) => !isAutoInput(i));
     const outputs = schema.outputs.filter((o) => o.hasHandle);
@@ -236,7 +236,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         userSelect="text"
                     >
                         <Highlight
-                            query={searchTerms}
+                            query={[...searchTerms]}
                             styles={{
                                 backgroundColor: 'yellow.300',
                             }}

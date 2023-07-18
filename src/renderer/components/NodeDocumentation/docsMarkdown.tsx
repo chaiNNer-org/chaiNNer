@@ -11,8 +11,8 @@ import { SchemaLink } from './SchemaLink';
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
         p: memo(({ children }: PropsWithChildren<unknown>) => {
-            const { useNodeDocumentationSearch } = useContext(NodeDocumentationContext);
-            const { searchTerms } = useNodeDocumentationSearch;
+            const { nodeDocsSearchState } = useContext(NodeDocumentationContext);
+            const { searchTerms } = nodeDocsSearchState;
 
             const stringChildren = Array.isArray(children)
                 ? (children as string[]).join('')
@@ -25,7 +25,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     userSelect="text"
                 >
                     <Highlight
-                        query={searchTerms}
+                        query={[...searchTerms]}
                         styles={{
                             backgroundColor: 'yellow.300',
                         }}
