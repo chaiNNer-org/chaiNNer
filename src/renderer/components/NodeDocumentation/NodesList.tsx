@@ -60,10 +60,13 @@ export const NodesList = memo(() => {
         [byCategories, categoriesByMaxNodeScore, scoreMap]
     );
 
+    const prevHighestNode = useRef(highestNode);
     useEffect(() => {
-        openNodeDocumentation(highestNode?.schemaId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [highestNode]);
+        if (prevHighestNode.current?.schemaId !== highestNode?.schemaId) {
+            openNodeDocumentation(highestNode?.schemaId);
+            prevHighestNode.current = highestNode;
+        }
+    }, [highestNode, openNodeDocumentation]);
 
     const selectedElement = useRef<HTMLDivElement>(null);
 
