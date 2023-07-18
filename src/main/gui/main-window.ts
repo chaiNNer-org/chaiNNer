@@ -13,7 +13,6 @@ import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
-import { getGpuInfo } from '../systemInfo';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
 
@@ -25,7 +24,6 @@ const registerEventHandlerPreSetup = (
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDirSync());
-    ipcMain.handle('get-gpu-info', getGpuInfo);
     ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
     ipcMain.handle('refresh-nodes', () => args.refresh);
 

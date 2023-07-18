@@ -38,7 +38,6 @@ import { Package, PyPiPackage } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
-import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -297,10 +296,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [hasNvidia, setHasNvidia] = useState(false);
     useAsyncEffect(
         () => ({
-            supplier: async () => !!(await ipcRenderer.invoke('get-nvidia-gpu-name')),
+            supplier: async () => (await backend.listNvidiaGpus()).length > 0,
             successEffect: setHasNvidia,
         }),
-        []
+        [backend]
     );
 
     const [availableDeps, setAvailableDeps] = useState<Package[]>([]);
