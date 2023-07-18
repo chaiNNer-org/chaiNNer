@@ -7,7 +7,6 @@ import {
     Flex,
     HStack,
     Heading,
-    Highlight,
     ListItem,
     Text,
     Tooltip,
@@ -29,6 +28,7 @@ import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accen
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
 import { docsMarkdown } from './docsMarkdown';
+import { Highlighter } from './Highlighter';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
@@ -73,14 +73,7 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     fontWeight="bold"
                     userSelect="text"
                 >
-                    <Highlight
-                        query={[...searchTerms]}
-                        styles={{
-                            backgroundColor: 'yellow.300',
-                        }}
-                    >
-                        {item.label}
-                    </Highlight>
+                    <Highlighter searchTerms={searchTerms}>{item.label}</Highlighter>
                 </Text>
                 {isOptional && (
                     <TypeTag
@@ -235,14 +228,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         size="lg"
                         userSelect="text"
                     >
-                        <Highlight
-                            query={[...searchTerms]}
-                            styles={{
-                                backgroundColor: 'yellow.300',
-                            }}
-                        >
-                            {schema.name}
-                        </Highlight>
+                        <Highlighter searchTerms={searchTerms}>{schema.name}</Highlighter>
                     </Heading>
                 </HStack>
                 <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>
