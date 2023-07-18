@@ -1,6 +1,6 @@
 import { Code, Highlight, Link, Text } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { PropsWithChildren, memo } from 'react';
+import { Fragment, PropsWithChildren, memo } from 'react';
 import { Components } from 'react-markdown';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
@@ -8,15 +8,38 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { SchemaLink } from './SchemaLink';
 
+const recursivelyMarkChildren = (
+    children: React.ReactNode | string[],
+    searchTerms: readonly string[]
+): React.ReactNode | string[] => {
+    if (Array.isArray(children)) {
+        return children.map((child, i) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <Fragment key={i}>{recursivelyMarkChildren(child, searchTerms)}</Fragment>
+        ));
+    }
+
+    if (typeof children === 'string') {
+        return (
+            <Highlight
+                query={[...searchTerms]}
+                styles={{
+                    backgroundColor: 'yellow.300',
+                }}
+            >
+                {children}
+            </Highlight>
+        );
+    }
+
+    return children;
+};
+
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
         p: memo(({ children }: PropsWithChildren<unknown>) => {
             const { nodeDocsSearchState } = useContext(NodeDocumentationContext);
             const { searchTerms } = nodeDocsSearchState;
-
-            const stringChildren = Array.isArray(children)
-                ? (children as string[]).join('')
-                : String(children);
 
             return (
                 <Text
@@ -24,14 +47,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     marginTop={1}
                     userSelect="text"
                 >
-                    <Highlight
-                        query={[...searchTerms]}
-                        styles={{
-                            backgroundColor: 'yellow.300',
-                        }}
-                    >
-                        {stringChildren}
-                    </Highlight>
+                    {recursivelyMarkChildren(children, searchTerms)}
                 </Text>
             );
         }),

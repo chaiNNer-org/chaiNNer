@@ -396,6 +396,7 @@ export const NodeDocs = memo(() => {
                                 <Flex
                                     direction={isLargerThan1200 ? 'row' : 'column'}
                                     gap={4}
+                                    key={nodeSchema.schemaId}
                                 >
                                     <SingleNodeInfo
                                         accentColor={selectedAccentColor}
