@@ -45,6 +45,9 @@ class NvidiaHelper:
     def __del__(self):
         nv.nvmlShutdown()
 
+    def __len__(self):
+        return self.__num_gpus
+
     def list_gpus(self) -> List[str]:
         return [gpu.name for gpu in self.__gpus]
 

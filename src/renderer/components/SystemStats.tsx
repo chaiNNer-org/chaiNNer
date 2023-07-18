@@ -1,70 +1,54 @@
 import { Box, CircularProgress, CircularProgressLabel, HStack, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
-import { useSystemUsage } from '../hooks/useSystemUsage';
+import { useQuery } from 'react-query';
+import { useContext } from 'use-context-selector';
+import { log } from '../../common/log';
+import { BackendContext } from '../contexts/BackendContext';
 
 export const SystemStats = memo(() => {
-    const usage = useSystemUsage(2500);
-    const trackColor = 'var(--bg-700)';
+    const { backend } = useContext(BackendContext);
+
+    const { data } = useQuery({
+        queryKey: 'systemUsage',
+        queryFn: async () => {
+            try {
+                const response = await backend.systemStats();
+                return response;
+            } catch (error) {
+                log.error(error);
+                throw error;
+            }
+        },
+        cacheTime: 0,
+        retry: 25,
+        refetchOnWindowFocus: false,
+        refetchInterval: 2500,
+    });
+
     return (
         <HStack>
-            <Tooltip
-                borderRadius={8}
-                label={`${usage.cpu.toFixed(1)}%`}
-                px={2}
-                py={1}
-            >
-                <Box>
-                    <CircularProgress
-                        capIsRound
-                        color={usage.cpu < 90 ? 'blue.400' : 'red.400'}
-                        size="42px"
-                        trackColor={trackColor}
-                        value={usage.cpu}
+            {data &&
+                data.map((usage) => (
+                    <Tooltip
+                        borderRadius={8}
+                        key={usage.label}
+                        label={`${usage.percent.toFixed(1)}%`}
+                        px={2}
+                        py={1}
                     >
-                        <CircularProgressLabel>CPU</CircularProgressLabel>
-                    </CircularProgress>
-                </Box>
-            </Tooltip>
-
-            <Tooltip
-                borderRadius={8}
-                label={`${usage.ram.toFixed(1)}%`}
-                px={2}
-                py={1}
-            >
-                <Box>
-                    <CircularProgress
-                        capIsRound
-                        color={usage.ram < 90 ? 'blue.400' : 'red.400'}
-                        size="42px"
-                        trackColor={trackColor}
-                        value={usage.ram}
-                    >
-                        <CircularProgressLabel>RAM</CircularProgressLabel>
-                    </CircularProgress>
-                </Box>
-            </Tooltip>
-
-            {usage.vram !== null && (
-                <Tooltip
-                    borderRadius={8}
-                    label={`${usage.vram.toFixed(1)}%`}
-                    px={2}
-                    py={1}
-                >
-                    <Box>
-                        <CircularProgress
-                            capIsRound
-                            color={usage.vram < 90 ? 'blue.400' : 'red.400'}
-                            size="42px"
-                            trackColor={trackColor}
-                            value={usage.vram}
-                        >
-                            <CircularProgressLabel>VRAM</CircularProgressLabel>
-                        </CircularProgress>
-                    </Box>
-                </Tooltip>
-            )}
+                        <Box key={usage.label}>
+                            <CircularProgress
+                                capIsRound
+                                color={usage.percent < 90 ? 'blue.400' : 'red.400'}
+                                size="42px"
+                                trackColor="var(--bg-700)"
+                                value={usage.percent}
+                            >
+                                <CircularProgressLabel>{usage.label}</CircularProgressLabel>
+                            </CircularProgress>
+                        </Box>
+                    </Tooltip>
+                ))}
         </HStack>
     );
 });
