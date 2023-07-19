@@ -84,7 +84,10 @@ const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItem
     const isDropdownInput = item.kind === 'dropdown';
 
     return (
-        <ListItem my={2}>
+        <ListItem
+            mb={4}
+            mt={2}
+        >
             <HStack mb={1}>
                 <Text
                     fontWeight="bold"
@@ -120,7 +123,12 @@ const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItem
                 w="full"
             >
                 {item.description && (
-                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+                    <ReactMarkdown
+                        className="no-child-margin"
+                        components={docsMarkdown}
+                    >
+                        {item.description}
+                    </ReactMarkdown>
                 )}
 
                 {isFileInput && supportedFileTypes.length > 0 && (
