@@ -67,12 +67,12 @@ export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChil
 
     const searchTerms = searchResult.find((s) => s.id === selectedSchemaId)?.terms ?? [];
 
-    const nodeDocsSearchState = {
+    const nodeDocsSearchState = useMemo(() => ({
         searchQuery,
         setSearchQuery,
         searchResult,
         searchTerms,
-    };
+    }), [searchQuery, setSearchQuery, searchResult, searchTerms]);
 
     const contextValue = useMemoObject({
         selectedSchemaId,
