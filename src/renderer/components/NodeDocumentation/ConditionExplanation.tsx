@@ -57,7 +57,8 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
             return (
                 <>
                     <Text
-                        as="em"
+                        as="span"
+                        fontWeight="600"
                         userSelect="text"
                     >
                         {getInputLabel(schema, condition.enum)}
@@ -72,7 +73,8 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
             const prefix = (
                 <>
                     <Text
-                        as="em"
+                        as="span"
+                        fontWeight="600"
                         userSelect="text"
                     >
                         {getInputLabel(schema, condition.input)}
