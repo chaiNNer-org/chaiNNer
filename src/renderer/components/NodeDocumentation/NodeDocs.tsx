@@ -17,34 +17,58 @@ import {
 import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { Input, NodeSchema, Output } from '../../../common/common-types';
+import { Condition, Input, NodeSchema, Output } from '../../../common/common-types';
+import { isTautology } from '../../../common/nodes/condition';
+import { getInputCondition } from '../../../common/nodes/inputCondition';
+import { explain } from '../../../common/types/explain';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutNull } from '../../../common/types/util';
-import { isAutoInput } from '../../../common/util';
+import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { TypeTag } from '../TypeTag';
+import { ConditionExplanation } from './ConditionExplanation';
 import { docsMarkdown } from './docsMarkdown';
+import { DropDownOptions } from './DropDownOptions';
 import { Highlighter } from './Highlighter';
 import { NodeExample } from './NodeExample';
 import { SchemaLink } from './SchemaLink';
 
-const getTypeTooltipText = (item: Input | Output) => {
-    if (item.kind === 'number' || item.kind === 'slider') {
-        const prefix = item.precision === 0 ? 'An integer' : 'A float';
-        return `${prefix} between ${item.min ?? '-infinity'} and ${item.max ?? 'infinity'}`;
-    }
-};
-
-interface InputOutputItemProps {
-    item: Input | Output;
+interface TypeViewProps {
     type: Type;
 }
+const TypeView = memo(({ type }: TypeViewProps) => {
+    const tooltipText = explain(type, { detailed: true });
 
-const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
+    return (
+        <Tooltip
+            borderRadius={8}
+            label={tooltipText && capitalize(tooltipText)}
+            px={2}
+            py={1}
+        >
+            <Code
+                display="inline"
+                userSelect="text"
+                whiteSpace="pre-line"
+            >
+                {prettyPrintType(type)}
+            </Code>
+        </Tooltip>
+    );
+});
+
+interface InputOutputItemProps {
+    schema: NodeSchema;
+    item: Input | Output;
+    type: Type;
+    condition?: Condition;
+}
+
+const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItemProps) => {
     const { nodeDocsSearchState } = useContext(NodeDocumentationContext);
     const { searchTerms } = nodeDocsSearchState;
 
@@ -61,13 +85,13 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
     const isPrimaryInput = isFileInput && item.primaryInput;
 
     const isTextInput = item.kind === 'text';
-
     const isDropdownInput = item.kind === 'dropdown';
 
-    const tooltipText = getTypeTooltipText(item);
-
     return (
-        <ListItem my={2}>
+        <ListItem
+            mb={4}
+            mt={2}
+        >
             <HStack mb={1}>
                 <Text
                     fontWeight="bold"
@@ -103,7 +127,12 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                 w="full"
             >
                 {item.description && (
-                    <ReactMarkdown components={docsMarkdown}>{item.description}</ReactMarkdown>
+                    <ReactMarkdown
+                        className="no-child-margin"
+                        components={docsMarkdown}
+                    >
+                        {item.description}
+                    </ReactMarkdown>
                 )}
 
                 {isFileInput && supportedFileTypes.length > 0 && (
@@ -137,6 +166,24 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                     </Text>
                 )}
 
+                {condition && !isTautology(condition) && (
+                    <Text
+                        fontSize="md"
+                        userSelect="text"
+                    >
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Condition:
+                        </Text>
+                        <ConditionExplanation
+                            condition={condition}
+                            schema={schema}
+                        />
+                    </Text>
+                )}
+
                 {isTextInput && (
                     <Text
                         fontSize="md"
@@ -160,29 +207,27 @@ const InputOutputItem = memo(({ type, item }: InputOutputItemProps) => {
                         fontSize="md"
                         userSelect="text"
                     >
-                        Options:
-                        {item.options.map((o) => (
-                            <TypeTag
-                                fontSize="small"
-                                height="auto"
-                                key={o.value}
-                                mt="-0.2rem"
-                                verticalAlign="middle"
-                            >
-                                {o.option}
-                            </TypeTag>
-                        ))}
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Options:
+                        </Text>
+                        <DropDownOptions options={item.options} />
                     </Text>
                 )}
 
-                <Tooltip
-                    borderRadius={8}
-                    label={tooltipText}
-                    px={2}
-                    py={1}
-                >
-                    <Code userSelect="text">{prettyPrintType(type)}</Code>
-                </Tooltip>
+                {!isDropdownInput && (
+                    <Box whiteSpace="nowrap">
+                        <Text
+                            as="i"
+                            pr={1}
+                        >
+                            Type:
+                        </Text>
+                        <TypeView type={type} />
+                    </Box>
+                )}
             </VStack>
         </ListItem>
     );
@@ -253,8 +298,10 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         {inputs.map((input) => {
                             return (
                                 <InputOutputItem
+                                    condition={getInputCondition(schema, input.id)}
                                     item={input}
                                     key={input.id}
+                                    schema={schema}
                                     type={
                                         functionDefinition?.inputDefaults.get(input.id) ??
                                         NeverType.instance
@@ -288,6 +335,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                                 <InputOutputItem
                                     item={output}
                                     key={output.id}
+                                    schema={schema}
                                     type={
                                         functionDefinition?.outputDefaults.get(output.id) ??
                                         NeverType.instance

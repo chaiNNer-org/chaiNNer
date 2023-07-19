@@ -84,3 +84,59 @@ export const testInputConditionTypeState = (
         (id) => typeState.edges.isInputConnected(nodeId, id)
     );
 };
+
+export const isTautology = (condition: Condition): boolean => {
+    // This is only an approximation, but it should be good enough for our purposes.
+    return (
+        testCondition(condition, {
+            enum: () => false,
+            type: () => false,
+        }) &&
+        testCondition(condition, {
+            enum: () => true,
+            type: () => true,
+        })
+    );
+};
+
+const AND_OR_OTHER = {
+    and: 'or',
+    or: 'and',
+} as const;
+
+export const simplifyCondition = (condition: Condition): Condition => {
+    if (condition.kind === 'not') {
+        const inner = simplifyCondition(condition.condition);
+        if (inner.kind === 'not') {
+            return inner.condition;
+        }
+        if (inner.kind === 'and' || inner.kind === 'or') {
+            return { kind: AND_OR_OTHER[inner.kind], items: inner.items };
+        }
+        return { kind: 'not', condition: inner };
+    }
+
+    if (condition.kind === 'and' || condition.kind === 'or') {
+        const items: Condition[] = [];
+        for (const item of condition.items) {
+            const simplified = simplifyCondition(item);
+            if (simplified.kind === condition.kind) {
+                items.push(...simplified.items);
+            } else if (
+                simplified.kind === AND_OR_OTHER[condition.kind] &&
+                simplified.items.length === 0
+            ) {
+                // we found either a True in an OR or a False in an AND
+                return simplified;
+            } else {
+                items.push(simplified);
+            }
+        }
+        if (items.length === 1) {
+            return items[0];
+        }
+        return { kind: condition.kind, items };
+    }
+
+    return condition;
+};

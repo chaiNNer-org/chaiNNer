@@ -22,6 +22,8 @@ export const assertNever = (value: never): never => {
 };
 export const assertType: <T>(_: T) => void = noop;
 
+export const isReadonlyArray = Array.isArray as (value: unknown) => value is readonly unknown[];
+
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export const findLastIndex = <T>(
@@ -251,6 +253,9 @@ export const joinEnglish = (list: readonly string[], conj: 'and' | 'or' = 'and')
 
     return `${list.slice(0, -1).join(', ')}, ${conj} ${list[list.length - 1]}`;
 };
+
+export const capitalize = (string: string): string =>
+    string.charAt(0).toUpperCase() + string.slice(1);
 
 export const fixRoundingError = (n: number): number => {
     if (!Number.isFinite(n)) return n;
