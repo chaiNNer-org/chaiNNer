@@ -215,8 +215,8 @@ export class Backend {
         return this.fetchJson('/python-info', 'GET');
     }
 
-    systemStats(): Promise<{ label: string; percent: number }[]> {
-        return this.fetchJson('/system-stats', 'GET');
+    systemUsage(): Promise<{ label: string; percent: number }[]> {
+        return this.fetchJson('/system-usage', 'GET');
     }
 
     dependencies(): Promise<Package[]> {

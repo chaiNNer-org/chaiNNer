@@ -407,26 +407,23 @@ class SystemStat:
     percent: float
 
 
-@app.route("/system-stats", methods=["GET"])
-async def system_stats(_request: Request):
+@app.route("/system-usage", methods=["GET"])
+async def system_usage(_request: Request):
     stats_list = []
     cpu_usage = psutil.cpu_percent()
     mem_usage = psutil.virtual_memory().percent
     stats_list.append(SystemStat("CPU", cpu_usage))
     stats_list.append(SystemStat("RAM", mem_usage))
-    if nvidia_is_available:
-        try:
-            nv = get_nvidia_helper()
-            if nv is not None:
-                for i in range(len(nv)):
-                    total, used, _ = nv.get_current_vram_usage(i)
-                    stats_list.append(
-                        SystemStat(
-                            f"VRAM {i}" if len(nv) > 1 else "VRAM", used / total * 100
-                        )
-                    )
-        except:
-            pass
+    nv = get_nvidia_helper()
+    if nv is not None:
+        for i in range(nv.num_gpus):
+            total, used, _ = nv.get_current_vram_usage(i)
+            stats_list.append(
+                SystemStat(
+                    f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
+                    used / total * 100,
+                )
+            )
     return json([asdict(x) for x in stats_list])
 
 

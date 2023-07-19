@@ -12,7 +12,7 @@ export const SystemStats = memo(() => {
         queryKey: 'systemUsage',
         queryFn: async () => {
             try {
-                const response = await backend.systemStats();
+                const response = await backend.systemUsage();
                 return response;
             } catch (error) {
                 log.error(error);
