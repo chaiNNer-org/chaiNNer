@@ -14,17 +14,20 @@ export const NodesList = memo(() => {
     const { schemata, categories } = useContext(BackendContext);
     const schema = schemata.schemata;
 
-    const { searchQuery, setSearchQuery, searchResult } = nodeDocsSearchState;
+    const { searchQuery, setSearchQuery, searchResults } = nodeDocsSearchState;
 
     const scoreMap = useMemo(() => {
         const map = new Map<string, number>();
-        searchResult.forEach((result) => {
+        searchResults.forEach((result) => {
             map.set(String(result.id), result.score);
         });
         return map;
-    }, [searchResult]);
+    }, [searchResults]);
 
-    const matchingSchemaIds = useMemo(() => searchResult.map((s) => String(s.id)), [searchResult]);
+    const matchingSchemaIds = useMemo(
+        () => searchResults.map((s) => String(s.id)),
+        [searchResults]
+    );
     const filteredSchema = useMemo(
         () => schema.filter((s) => !searchQuery || matchingSchemaIds.includes(s.schemaId)),
         [matchingSchemaIds, schema, searchQuery]
