@@ -25,7 +25,7 @@ from chain.optimize import optimize
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
-from gpu import get_nvidia_helper, nvidia_is_available
+from gpu import get_nvidia_helper
 from nodes.group import Group
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
