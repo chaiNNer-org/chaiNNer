@@ -65,14 +65,20 @@ export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChil
         combineWith: 'AND',
     });
 
-    const searchTerms = searchResult.find((s) => s.id === selectedSchemaId)?.terms ?? [];
+    const searchTerms = useMemo(
+        () => searchResult.find((s) => s.id === selectedSchemaId)?.terms ?? [],
+        [searchResult, selectedSchemaId]
+    );
 
-    const nodeDocsSearchState = useMemo(() => ({
-        searchQuery,
-        setSearchQuery,
-        searchResult,
-        searchTerms,
-    }), [searchQuery, setSearchQuery, searchResult, searchTerms]);
+    const nodeDocsSearchState = useMemo(
+        () => ({
+            searchQuery,
+            setSearchQuery,
+            searchResult,
+            searchTerms,
+        }),
+        [searchQuery, setSearchQuery, searchResult, searchTerms]
+    );
 
     const contextValue = useMemoObject({
         selectedSchemaId,
