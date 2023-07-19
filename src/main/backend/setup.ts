@@ -181,7 +181,6 @@ const setupOwnedBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>,
     rootDir: string
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
@@ -226,7 +225,6 @@ export const setupBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    hasNvidia: () => Promise<boolean>,
     rootDir: string,
     noOwnedBackend: boolean
 ): Promise<BackendProcess> => {
@@ -234,7 +232,7 @@ export const setupBackend = async (
 
     const backend = noOwnedBackend
         ? await setupBorrowedBackend(token, 8000)
-        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, hasNvidia, rootDir);
+        : await setupOwnedBackend(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({ totalProgress: 1 });
     return backend;

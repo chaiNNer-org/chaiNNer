@@ -26,7 +26,6 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
 import { getRootDirSync } from '../platform';
 import { settingStorage } from '../setting-storage';
 import { Exit } from './exit';
@@ -67,30 +66,14 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
     });
 };
 
-const getNvidiaGPUs = async () => {
-    const nvidiaSmi = await getNvidiaSmi();
-
-    if (nvidiaSmi) {
-        try {
-            return await getNvidiaGpuNames(nvidiaSmi);
-        } catch (error) {
-            log.error(error);
-        }
-    }
-    return undefined;
-};
-
 const createBackend = async (token: ProgressToken, args: RunArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
-
-    const hasNvidia = getNvidiaGPUs().then((gpus) => gpus !== undefined);
 
     return setupBackend(
         token,
         useSystemPython,
         systemPythonLocation,
-        () => hasNvidia,
         getRootDirSync(),
         args.noBackend
     );
