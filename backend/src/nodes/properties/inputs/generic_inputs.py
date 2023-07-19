@@ -210,17 +210,18 @@ class TextInput(BaseInput):
         self,
         label: str,
         has_handle=True,
-        min_length: int = 1,
+        min_length: int = 0,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
         multiline: bool = False,
         allow_numbers: bool = True,
         default: Union[str, None] = None,
         hide_label: bool = False,
+        allow_empty_string: bool = False,
     ):
         super().__init__(
-            "string",
-            label,
+            input_type="string" if min_length == 0 else 'invStrSet("")',
+            label=label,
             has_handle=has_handle,
             kind="text",
         )
@@ -230,6 +231,12 @@ class TextInput(BaseInput):
         self.default = default
         self.multiline = multiline
         self.hide_label = hide_label
+        self.allow_empty_string = allow_empty_string
+
+        if default is not None:
+            assert default != ""
+            assert min_length < len(default)
+            assert max_length is None or len(default) < max_length
 
         self.associated_type = str
 
@@ -239,8 +246,20 @@ class TextInput(BaseInput):
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
             # stringify integers values
-            return str(int(value))
-        return str(value)
+            value = str(int(value))
+        else:
+            value = str(value)
+
+        # enforce length range
+        if self.max_length is not None and len(value) > self.max_length:
+            value = value[: self.max_length]
+        if len(value) < self.min_length:
+            raise ValueError(
+                f"Text value of input '{self.label}' must be at least {self.min_length} characters long,"
+                f" but found {len(value)} ('{value}')."
+            )
+
+        return value
 
     def toDict(self):
         return {
@@ -251,6 +270,7 @@ class TextInput(BaseInput):
             "multiline": self.multiline,
             "def": self.default,
             "hideLabel": self.hide_label,
+            "allowEmptyString": self.allow_empty_string,
         }
 
 

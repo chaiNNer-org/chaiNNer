@@ -16,7 +16,7 @@ from .. import miscellaneous_group
     icon="MdAutoFixHigh",
     inputs=[
         ImageInput("Image"),
-        TextInput("Kernel String", multiline=True, has_handle=False),
+        TextInput("Kernel String", multiline=True, has_handle=False, min_length=1),
         NumberInput("Padding", minimum=0, default=0),
     ],
     outputs=[

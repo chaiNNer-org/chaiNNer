@@ -22,9 +22,13 @@ class ReplacementMode(Enum):
     description="Replace occurrences of some regex with a replacement text. Either or all occurrences or the first occurrence will be replaced",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0),
-        TextInput("Regex", min_length=0, placeholder=r'E.g. "\b\w+\b"'),
-        TextInput("Replacement Pattern", min_length=0, placeholder=r'E.g. "found {0}"'),
+        TextInput("Text"),
+        TextInput("Regex", placeholder=r'E.g. "\b\w+\b"'),
+        TextInput(
+            "Replacement Pattern",
+            allow_empty_string=True,
+            placeholder=r'E.g. "found {0}"',
+        ),
         EnumInput(
             ReplacementMode,
             label="Replace mode",
