@@ -22,6 +22,8 @@ export const assertNever = (value: never): never => {
 };
 export const assertType: <T>(_: T) => void = noop;
 
+export const isReadonlyArray = Array.isArray as (value: unknown) => value is readonly unknown[];
+
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export const findLastIndex = <T>(
