@@ -5,19 +5,22 @@ import { Components } from 'react-markdown';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
+import { SupportHighlighting } from './HighlightContainer';
 import { SchemaLink } from './SchemaLink';
 
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
         p: ({ children }) => {
             return (
-                <Text
-                    fontSize="md"
-                    marginTop={1}
-                    userSelect="text"
-                >
-                    {children}
-                </Text>
+                <SupportHighlighting>
+                    <Text
+                        fontSize="md"
+                        marginTop={1}
+                        userSelect="text"
+                    >
+                        {children}
+                    </Text>
+                </SupportHighlighting>
             );
         },
         a: ({ children, href }) => {

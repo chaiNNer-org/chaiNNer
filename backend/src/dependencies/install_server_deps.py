@@ -92,6 +92,12 @@ deps: List[DependencyInfo] = [
         "version": "23.2.0",
         "from_file": "chainner_pip-23.2.0-py3-none-any.whl",
     },
+    {
+        "package_name": "psutil",
+        "display_name": "psutil",
+        "version": "5.9.5",
+        "from_file": None,
+    },
 ]
 
 install_dependencies_sync(deps)

@@ -6,9 +6,11 @@ import logging
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
 from json import dumps as stringify
 from typing import Dict, List, Optional, TypedDict, Union
 
+import psutil
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -23,6 +25,7 @@ from chain.optimize import optimize
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
+from gpu import get_nvidia_helper
 from nodes.group import Group
 from nodes.utils.exec_options import (
     JsonExecutionOptions,
@@ -378,9 +381,6 @@ async def list_nvidia_gpus(_request: Request):
     """Lists the available GPUs for NCNN"""
     await nodes_available()
     try:
-        # pylint: disable=import-outside-toplevel
-        from gpu import get_nvidia_helper
-
         nv = get_nvidia_helper()
 
         if nv is None:
@@ -399,6 +399,32 @@ async def python_info(_request: Request):
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     )
     return json({"python": sys.executable, "version": version})
+
+
+@dataclass
+class SystemStat:
+    label: str
+    percent: float
+
+
+@app.route("/system-usage", methods=["GET"])
+async def system_usage(_request: Request):
+    stats_list = []
+    cpu_usage = psutil.cpu_percent()
+    mem_usage = psutil.virtual_memory().percent
+    stats_list.append(SystemStat("CPU", cpu_usage))
+    stats_list.append(SystemStat("RAM", mem_usage))
+    nv = get_nvidia_helper()
+    if nv is not None:
+        for i in range(nv.num_gpus):
+            total, used, _ = nv.get_current_vram_usage(i)
+            stats_list.append(
+                SystemStat(
+                    f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
+                    used / total * 100,
+                )
+            )
+    return json([asdict(x) for x in stats_list])
 
 
 @app.route("/dependencies", methods=["GET"])
