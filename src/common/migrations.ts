@@ -1120,6 +1120,67 @@ const createColor: ModernMigration = (data) => {
     return data;
 };
 
+const emptyStringInput: ModernMigration = (data) => {
+    const getKey = (schemaId: string, inputId: number | string) => `${schemaId}/${inputId}`;
+    const allowEmptyString = new Set([
+        getKey('chainner:utility:regex_replace', 2),
+        getKey('chainner:utility:text_append', 0),
+        getKey('chainner:utility:text_replace', 2),
+        getKey('chainner:utility:text', 0),
+    ]);
+
+    const targetHandles = new Set(data.edges.map((e) => e.targetHandle!));
+
+    const newNodes: N[] = [];
+    const newEdges: E[] = [];
+
+    let emptyStringNodeId: string | undefined;
+
+    data.nodes.forEach((node) => {
+        for (const [inputId, inputValue] of Object.entries(node.data.inputData)) {
+            if (inputValue === '' && !allowEmptyString.has(getKey(node.data.schemaId, inputId))) {
+                delete node.data.inputData[inputId];
+
+                if (targetHandles.has(`${node.id}-${inputId}`)) {
+                    // this input has an edge, so we need to create an empty string node
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+
+                if (emptyStringNodeId === undefined) {
+                    emptyStringNodeId = deriveUniqueId('emptyString');
+                    newNodes.push({
+                        data: {
+                            id: emptyStringNodeId,
+                            schemaId: 'chainner:utility:text' as SchemaId,
+                            inputData: { 0: '' },
+                        },
+                        id: emptyStringNodeId,
+                        position: { x: node.position.x - 280, y: node.position.y - 20 },
+                        type: 'regularNode',
+                        selected: false,
+                    });
+                }
+
+                newEdges.push({
+                    id: deriveUniqueId(`${node.id}-${inputId}-${emptyStringNodeId}`),
+                    source: emptyStringNodeId,
+                    sourceHandle: `${emptyStringNodeId}-0`,
+                    target: node.id,
+                    targetHandle: `${node.id}-${inputId}`,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                });
+            }
+        }
+    });
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1166,6 +1227,7 @@ const migrations = [
     deriveSeed,
     seedInput,
     createColor,
+    emptyStringInput,
 ];
 
 export const currentMigration = migrations.length;
