@@ -283,6 +283,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [refreshDepListTrigger, setRefreshDepListTrigger] = useState(false);
     useAsyncEffect(
         () => ({
+            supplier: async () => (await backend.listNvidiaGpus()).length > 0,
+            successEffect: setHasNvidia,
+        }),
+        [backend]
+    );
+
+    const [availableDeps, setAvailableDeps] = useState<Package[]>([]);
+    useAsyncEffect(
+        () => ({
             supplier: async () => {
                 const res = await backend.dependencies();
                 return res.filter((d) => d.dependencies.length > 0);

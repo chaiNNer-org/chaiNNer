@@ -53,6 +53,7 @@ interface InputBase {
     readonly optional: boolean;
     readonly hasHandle: boolean;
     readonly description?: string;
+    readonly hint: boolean;
 }
 export interface InputOption {
     option: string;
@@ -88,6 +89,7 @@ export interface TextInput extends InputBase {
     readonly maxLength?: number | null;
     readonly placeholder?: string | null;
     readonly def?: string | null;
+    readonly allowEmptyString?: boolean;
     readonly hideLabel: boolean;
 }
 export interface NumberInput extends InputBase {

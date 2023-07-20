@@ -12,7 +12,7 @@ import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 
 interface BackendContextState {
-    port: number;
+    url: string;
     backend: Backend;
     ownsBackend: boolean;
     schemata: SchemaMap;
@@ -36,7 +36,7 @@ export const BackendContext = createContext<Readonly<BackendContextState>>(
 );
 
 interface BackendProviderProps {
-    port: number;
+    url: string;
     schemata: SchemaMap;
     pythonInfo: PythonInfo;
     categories: Category[];
@@ -47,7 +47,7 @@ interface BackendProviderProps {
 
 export const BackendProvider = memo(
     ({
-        port,
+        url,
         schemata,
         pythonInfo,
         categories,
@@ -56,7 +56,7 @@ export const BackendProvider = memo(
         refreshNodes,
         children,
     }: React.PropsWithChildren<BackendProviderProps>) => {
-        const backend = getBackend(port);
+        const backend = getBackend(url);
 
         const [ownsBackend, setOwnsBackend] = useState<boolean>(false);
         const ownsBackendRef = useRef(ownsBackend);
@@ -121,7 +121,7 @@ export const BackendProvider = memo(
         }, [backend, refreshNodes]);
 
         const value = useMemoObject<BackendContextState>({
-            port,
+            url,
             backend,
             ownsBackend,
             schemata,

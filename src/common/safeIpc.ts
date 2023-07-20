@@ -8,7 +8,6 @@ import {
     ipcMain as unsafeIpcMain,
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
-import { Systeminformation } from 'systeminformation';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 import { Progress } from './ui/progress';
@@ -20,15 +19,11 @@ interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
 type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 
 export interface InvokeChannels {
-    'get-nvidia-gpu-name': ChannelInfo<string | null>;
-    'get-nvidia-gpus': ChannelInfo<string[] | null>;
-    'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
     'get-python': ChannelInfo<PythonInfo>;
-    'get-port': ChannelInfo<number>;
+    'get-backend-url': ChannelInfo<string>;
     'get-localstorage-location': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
-    'get-vram-usage': ChannelInfo<number | null>;
     'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<
         Electron.OpenDialogReturnValue,

@@ -64,7 +64,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const { animate, unAnimate, typeStateRef, outputDataActions, getInputHash } =
         useContext(GlobalContext);
-    const { schemata, port, backend, ownsBackend, restartingRef, restart } =
+    const { schemata, url, backend, ownsBackend, restartingRef, restart } =
         useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
@@ -114,7 +114,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [status]);
 
-    const [eventSource, eventSourceStatus] = useBackendEventSource(port);
+    const [eventSource, eventSourceStatus] = useBackendEventSource(url);
 
     useBackendEventSourceListener(eventSource, 'finish', () => setStatus(ExecutionStatus.READY));
 

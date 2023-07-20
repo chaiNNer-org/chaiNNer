@@ -192,3 +192,13 @@ body {
         display: none;
     }
 }
+
+.no-child-margin {
+    & > :first-child {
+        margin-top: 0 !important;
+    }
+
+    & > :last-child {
+        margin-bottom: 0 !important;
+    }
+}

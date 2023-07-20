@@ -26,7 +26,6 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
 import { getRootDirSync } from '../platform';
 import { settingStorage } from '../setting-storage';
 import { Exit } from './exit';
@@ -67,32 +66,16 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
     });
 };
 
-const getNvidiaGPUs = async () => {
-    const nvidiaSmi = await getNvidiaSmi();
-
-    if (nvidiaSmi) {
-        try {
-            return await getNvidiaGpuNames(nvidiaSmi);
-        } catch (error) {
-            log.error(error);
-        }
-    }
-    return undefined;
-};
-
 const createBackend = async (token: ProgressToken, args: RunArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
-
-    const hasNvidia = getNvidiaGPUs().then((gpus) => gpus !== undefined);
 
     return setupBackend(
         token,
         useSystemPython,
         systemPythonLocation,
-        () => hasNvidia,
         getRootDirSync(),
-        args.noBackend
+        args.remoteBackend
     );
 };
 
@@ -126,12 +109,12 @@ interface ReadyBackend {
     eventSource: EventSource;
 }
 const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBackend> => {
-    const backend = getBackend(backendProcess.port);
+    const backend = getBackend(backendProcess.url);
 
     const schemata = new SchemaMap(await getBackendNodes(backend));
 
     // only connect the event source after we first heard back from the backend
-    const eventSource = new EventSource(`http://localhost:${backendProcess.port}/sse`, {
+    const eventSource = new EventSource(`${backendProcess.url}/sse`, {
         withCredentials: true,
     });
 

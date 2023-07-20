@@ -20,7 +20,7 @@ class PaddingAlignment(Enum):
     description="Pads text until it has a certain length.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0),
+        TextInput("Text"),
         NumberInput("Width", unit="chars"),
         TextInput(
             "Padding Character",

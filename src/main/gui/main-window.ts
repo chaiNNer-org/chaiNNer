@@ -1,4 +1,3 @@
-import { ChildProcessWithoutNullStreams } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
 import { t } from 'i18next';
@@ -12,10 +11,8 @@ import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from '../nvidiaSmi';
 import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
-import { getGpuInfo } from '../systemInfo';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
 
@@ -27,7 +24,6 @@ const registerEventHandlerPreSetup = (
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDirSync());
-    ipcMain.handle('get-gpu-info', getGpuInfo);
     ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
     ipcMain.handle('refresh-nodes', () => args.refresh);
 
@@ -156,7 +152,7 @@ const registerEventHandlerPostSetup = (
     backend: BackendProcess
 ) => {
     ipcMain.handle('owns-backend', () => backend.owned);
-    ipcMain.handle('get-port', () => backend.port);
+    ipcMain.handle('get-backend-url', () => backend.url);
     ipcMain.handle('get-python', () => backend.python);
 
     if (backend.owned) {
@@ -230,58 +226,16 @@ const registerEventHandlerPostSetup = (
     });
 };
 
-const checkNvidiaSmi = async () => {
-    const registerEmptyGpuEvents = () => {
-        ipcMain.handle('get-nvidia-gpu-name', () => null);
-        ipcMain.handle('get-nvidia-gpus', () => null);
-        ipcMain.handle('get-vram-usage', () => null);
-    };
-
-    const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
-        const nvidiaGpus = await getNvidiaGpuNames(nvidiaSmi);
-        ipcMain.handle('get-nvidia-gpu-name', () => nvidiaGpus[0].trim());
-        ipcMain.handle('get-nvidia-gpus', () => nvidiaGpus.map((gpu) => gpu.trim()));
-
-        let vramChecker: ChildProcessWithoutNullStreams | undefined;
-        let lastVRam: number | null = null;
-        ipcMain.handle('get-vram-usage', () => {
-            if (!vramChecker) {
-                vramChecker = createNvidiaSmiVRamChecker(nvidiaSmi, 1000, (usage) => {
-                    lastVRam = usage;
-                });
-            }
-
-            return lastVRam;
-        });
-    };
-
-    const nvidiaSmi = await getNvidiaSmi();
-
-    if (nvidiaSmi) {
-        try {
-            await registerNvidiaSmiEvents(nvidiaSmi);
-            return true;
-        } catch (error) {
-            log.error(error);
-        }
-    }
-    registerEmptyGpuEvents();
-    return false;
-};
-
 const createBackend = async (token: ProgressToken, args: OpenArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
-
-    const nvidiaSmiPromise = checkNvidiaSmi();
 
     return setupBackend(
         token,
         useSystemPython,
         systemPythonLocation,
-        () => nvidiaSmiPromise,
         getRootDirSync(),
-        args.noBackend
+        args.remoteBackend
     );
 };
 
@@ -317,7 +271,7 @@ export const createMainWindow = async (args: OpenArguments) => {
         const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
         registerEventHandlerPostSetup(mainWindow, backend);
 
-        const sse = new EventSource(`http://127.0.0.1:${backend.port}/setup-sse`, {
+        const sse = new EventSource(`${backend.url}/setup-sse`, {
             withCredentials: true,
         });
         sse.onopen = () => {

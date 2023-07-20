@@ -26,7 +26,7 @@ class SliceAlignment(Enum):
     description="Creates a slice of a given string of text.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0),
+        TextInput("Text"),
         EnumInput(
             SliceOperation,
             label="Operation",

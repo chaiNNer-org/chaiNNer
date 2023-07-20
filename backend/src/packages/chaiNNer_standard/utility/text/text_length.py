@@ -12,7 +12,7 @@ from .. import text_group
     description="Returns the number characters in a string of text.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0),
+        TextInput("Text"),
     ],
     outputs=[
         NumberOutput("Length", output_type="string::len(Input0)"),

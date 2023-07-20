@@ -22,6 +22,7 @@ from .. import text_group
             min_length=0,
             max_length=3,
             default="-",
+            allow_empty_string=True,
         ),
         TextInput("Text A"),
         TextInput("Text B"),
