@@ -10,9 +10,9 @@ import { log } from '../../common/log';
 export type BackendEventSource = EventSource & { readonly __backend?: never };
 
 export const useBackendEventSource = (
-    port: number
+    url: string
 ): readonly [BackendEventSource | null, EventSourceStatus] => {
-    return useEventSource(`http://localhost:${port}/sse`, true);
+    return useEventSource(`${url}/sse`, true);
 };
 
 export type BackendEventSourceListener<T extends keyof BackendEventMap> = (

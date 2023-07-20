@@ -29,14 +29,12 @@ const LoadingComponent = memo(() => (
     </Box>
 ));
 
-const MainComponent = memo(({ port }: { port: number }) => <Main port={port} />);
-
 export const App = memo(() => {
-    const [port, setPort] = useState<number | null>(null);
+    const [url, setUrl] = useState<string | null>(null);
     const [storageInitialized, setStorageInitialized] = useState(false);
 
     useAsyncEffect(
-        () => ({ supplier: () => ipcRenderer.invoke('get-port'), successEffect: setPort }),
+        () => ({ supplier: () => ipcRenderer.invoke('get-backend-url'), successEffect: setUrl }),
         []
     );
     useAsyncEffect(
@@ -56,11 +54,7 @@ export const App = memo(() => {
             <HotkeysProvider>
                 <ContextMenuProvider>
                     <AlertBoxProvider>
-                        {!port || !storageInitialized ? (
-                            <LoadingComponent />
-                        ) : (
-                            <MainComponent port={port} />
-                        )}
+                        {!url || !storageInitialized ? <LoadingComponent /> : <Main url={url} />}
                     </AlertBoxProvider>
                 </ContextMenuProvider>
             </HotkeysProvider>
