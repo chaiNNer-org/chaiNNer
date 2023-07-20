@@ -37,6 +37,7 @@ import { Version } from '../../common/common-types';
 import { Package, PyPiPackage } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
+import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -278,7 +279,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [usePipDirectly, setUsePipDirectly] = useState(false);
 
-    const [depList, setDepList] = useState<Package[]>([]);
+    const [depList, setDepList] = useState<Package[] | undefined>(undefined);
     const [refreshDepListTrigger, setRefreshDepListTrigger] = useState(false);
     useAsyncEffect(
         () => ({
@@ -319,26 +320,30 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             })
             .finally(() => {
                 setIsRunningShell(false);
-                setRefreshDepListTrigger(!refreshDepListTrigger);
                 setInstallingPackage(null);
                 setUninstallingPackage(null);
                 setProgress(0);
-                restart().catch(log.error);
+                restart()
+                    .catch(log.error)
+                    .then(() => {
+                        setRefreshDepListTrigger(!refreshDepListTrigger);
+                    })
+                    .catch(log.error);
             });
     };
 
     const installPackage = (dep: Package) => {
         setInstallingPackage(dep);
-        // changePackages(() =>
-        //     runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
-        // );
+        changePackages(() =>
+            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     const uninstallPackage = (dep: Package) => {
         setUninstallingPackage(dep);
-        // changePackages(() =>
-        //     runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
-        // );
+        changePackages(() =>
+            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+        );
     };
 
     useEffect(() => {
@@ -352,14 +357,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         depList === undefined || installingPackage !== null || uninstallingPackage !== null;
 
     const availableUpdates = useMemo(() => {
-        return depList.filter(({ dependencies }) =>
-            dependencies.some(({ version, installed }) => {
-                if (!installed) {
-                    return true;
-                }
-                return versionGt(version, installed);
-            })
-        ).length;
+        return (
+            depList?.filter(({ dependencies }) =>
+                dependencies.some(({ version, installed }) => {
+                    if (!installed) {
+                        return true;
+                    }
+                    return versionGt(version, installed);
+                })
+            ).length ?? 0
+        );
     }, [depList]);
 
     const value = useMemoObject<DependencyContextValue>({
