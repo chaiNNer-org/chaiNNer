@@ -38,6 +38,7 @@ export const DropDown = memo(({ value, onChange, reset, isDisabled, options }: D
             disabled={isDisabled}
             draggable={false}
             size="sm"
+            style={{ contain: 'size' }}
             value={selection}
             onChange={handleChange}
         >
