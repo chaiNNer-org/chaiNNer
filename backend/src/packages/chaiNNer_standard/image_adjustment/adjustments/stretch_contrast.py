@@ -30,7 +30,7 @@ class StretchMode(Enum):
 
 @adjustments_group.register(
     schema_id="chainner:image:stretch_contrast",
-    description="Automatically stretches the histogram values in the given image.",
+    description="Automatically stretches the histogram values in the given image. This is similar to auto levels.",
     name="Stretch Contrast",
     icon="ImContrast",
     inputs=[
