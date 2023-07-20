@@ -19,9 +19,9 @@ class ReplacementMode(Enum):
     description="Replace occurrences of some text with a replacement text. Either or all occurrences or the first occurrence will be replaced",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0),
-        TextInput("Old Text", min_length=0),
-        TextInput("Replacement", min_length=0),
+        TextInput("Text"),
+        TextInput("Old Text"),
+        TextInput("Replacement", allow_empty_string=True),
         EnumInput(
             ReplacementMode,
             label="Replace mode",
