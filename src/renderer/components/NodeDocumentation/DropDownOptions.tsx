@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { InputOption } from '../../../common/common-types';
 import { TypeTag } from '../TypeTag';
+import { SupportHighlighting } from './HighlightContainer';
 
 interface DropDownOptionProps {
     option: InputOption;
@@ -14,7 +15,7 @@ const DropDownOption = memo(({ option }: DropDownOptionProps) => {
             mt="-0.2rem"
             verticalAlign="middle"
         >
-            {option.option}
+            <SupportHighlighting>{option.option}</SupportHighlighting>
         </TypeTag>
     );
 });
