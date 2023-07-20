@@ -32,6 +32,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
+import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Package, PyPiPackage } from '../../common/dependencies';
@@ -279,27 +280,27 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [usePipDirectly, setUsePipDirectly] = useState(false);
 
-    const [depList, setDepList] = useState<Package[] | undefined>(undefined);
-    const [refreshDepListTrigger, setRefreshDepListTrigger] = useState(false);
-    useAsyncEffect(
-        () => ({
-            supplier: async () => (await backend.listNvidiaGpus()).length > 0,
-            successEffect: setHasNvidia,
-        }),
-        [backend]
-    );
-
-    const [availableDeps, setAvailableDeps] = useState<Package[]>([]);
-    useAsyncEffect(
-        () => ({
-            supplier: async () => {
-                const res = await backend.dependencies();
-                return res.filter((d) => d.dependencies.length > 0);
-            },
-            successEffect: setDepList,
-        }),
-        [backend, refreshDepListTrigger]
-    );
+    const {
+        data: depList,
+        isLoading,
+        isFetching,
+        refetch,
+    } = useQuery({
+        queryKey: 'dependencies',
+        queryFn: async () => {
+            try {
+                const response = await backend.dependencies();
+                return response.filter((d) => d.dependencies.length > 0);
+            } catch (error) {
+                log.error(error);
+                throw error;
+            }
+        },
+        cacheTime: 0,
+        retry: 25,
+        refetchOnWindowFocus: false,
+        refetchInterval: false,
+    });
 
     const [installingPackage, setInstallingPackage] = useState<Package | null>(null);
     const [uninstallingPackage, setUninstallingPackage] = useState<Package | null>(null);
@@ -335,7 +336,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 restart()
                     .catch(log.error)
                     .then(() => {
-                        setRefreshDepListTrigger(!refreshDepListTrigger);
+                        refetch().catch(log.error);
                     })
                     .catch(log.error);
             });
