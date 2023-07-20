@@ -1,7 +1,7 @@
 import { Center, Input, MenuItem, MenuList, Textarea } from '@chakra-ui/react';
 import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
-import { ChangeEvent, memo, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
@@ -30,7 +30,8 @@ export const TextInput = memo(
         setSize,
         nodeId,
     }: InputProps<'text', string>) => {
-        const { label, multiline, minLength, maxLength, def, placeholder } = input;
+        const { label, multiline, maxLength, def, placeholder, allowEmptyString } = input;
+        const minLength = input.minLength ?? 0;
 
         const [tempText, setTempText] = useState(value ?? '');
 
@@ -44,21 +45,31 @@ export const TextInput = memo(
             if (value === undefined) {
                 if (def != null) {
                     setValue(def);
-                } else if (minLength === 0) {
+                } else if (minLength === 0 && allowEmptyString) {
                     setValue('');
                 }
             }
-        }, [value, def, minLength, setValue]);
+        }, [value, def, minLength, allowEmptyString, setValue]);
+
+        const inputValue = useCallback(
+            (text: string, resetInvalid: boolean): void => {
+                if (maxLength) {
+                    // eslint-disable-next-line no-param-reassign
+                    text = text.slice(0, maxLength);
+                }
+
+                if (text.length >= minLength && (text !== '' || allowEmptyString)) {
+                    setValue(text);
+                } else if (resetInvalid) {
+                    resetValue();
+                }
+            },
+            [minLength, maxLength, allowEmptyString, setValue, resetValue]
+        );
 
         const handleChange = useDebouncedCallback(
             (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                let text = event.target.value;
-                text = maxLength ? text.slice(0, maxLength) : text;
-                if (!minLength || text.length >= minLength) {
-                    setValue(text);
-                } else {
-                    resetValue();
-                }
+                inputValue(event.target.value, true);
             },
             500
         );
@@ -93,12 +104,7 @@ export const TextInput = memo(
                         // replace new lines
                         text = text.replace(/\r?\n|\r/g, multiline ? '\n' : ' ');
                         if (text) {
-                            if (maxLength) {
-                                text = text.slice(0, maxLength);
-                            }
-                            if (!minLength || text.length >= minLength) {
-                                setValue(text);
-                            }
+                            inputValue(text, false);
                         }
                     }}
                 >
