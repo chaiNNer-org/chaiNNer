@@ -115,12 +115,12 @@ export interface ServerError {
  * - If the backend is not reachable, the promise will reject.
  */
 export class Backend {
-    readonly port: number;
+    readonly url: string;
 
     private abortController: AbortController;
 
-    constructor(port: number) {
-        this.port = port;
+    constructor(url: string) {
+        this.url = url;
         this.abortController = new AbortController();
     }
 
@@ -143,10 +143,7 @@ export class Backend {
             };
             options.signal = signal;
         }
-        const resp = await (isRenderer ? fetch : undici.fetch)(
-            `http://127.0.0.1:${this.port}${path}`,
-            options
-        );
+        const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
         return (await resp.json()) as T;
     }
 
@@ -224,24 +221,18 @@ export class Backend {
     }
 }
 
-const backendCache = new Map<number, Backend>();
+const backendCache = new Map<string, Backend>();
 
 /**
  * Returns a cached backend instance.
  *
- * Given the same port, this function guarantees that the same instance is returned.
+ * Given the same URL, this function guarantees that the same instance is returned.
  */
-export const getBackend = (port: number): Backend => {
-    if (!Number.isInteger(port) || port < 0 || port >= 65536) {
-        // all invalid ports should map to the same instance
-        // eslint-disable-next-line no-param-reassign
-        port = NaN;
-    }
-
-    let instance = backendCache.get(port);
+export const getBackend = (url: string): Backend => {
+    let instance = backendCache.get(url);
     if (instance === undefined) {
-        instance = new Backend(port);
-        backendCache.set(port, instance);
+        instance = new Backend(url);
+        backendCache.set(url, instance);
     }
     return instance;
 };

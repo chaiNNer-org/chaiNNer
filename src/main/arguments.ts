@@ -2,7 +2,7 @@ import yargs from 'yargs/yargs';
 import { assertNever } from '../common/util';
 
 interface ArgumentOptions {
-    noBackend: boolean;
+    remoteBackend: string | undefined;
     refresh: boolean;
 }
 export interface OpenArguments extends ArgumentOptions {
@@ -62,12 +62,11 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
             }
         )
         .options({
-            backend: {
-                type: 'boolean',
-                default: true,
+            remoteBackend: {
+                type: 'string',
                 description:
-                    'An internal developer option to use a different backend. Do not use this as this is not a stable option and may change or disappear at any time',
-                hidden: true,
+                    'The URL of a remote backend to use. If provided, chaiNNer will not spawn a backend process and will connect to the backend behind the URL instead. Example: http://127.0.0.1:8000' +
+                    '\n\nDo not use this as this is not a stable option and may change or disappear at any time',
             },
             refresh: {
                 type: 'boolean',
@@ -81,7 +80,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
         .parseSync();
 
     const options: ArgumentOptions = {
-        noBackend: !parsed.backend,
+        remoteBackend: parsed.remoteBackend || undefined,
         refresh: parsed.refresh,
     };
 

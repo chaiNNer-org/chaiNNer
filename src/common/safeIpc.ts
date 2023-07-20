@@ -20,7 +20,7 @@ type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 
 export interface InvokeChannels {
     'get-python': ChannelInfo<PythonInfo>;
-    'get-port': ChannelInfo<number>;
+    'get-backend-url': ChannelInfo<string>;
     'get-localstorage-location': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;

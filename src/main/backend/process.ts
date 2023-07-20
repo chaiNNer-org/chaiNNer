@@ -27,7 +27,7 @@ const getBackendPath = lazy((): string => {
 
 interface BaseBackendProcess {
     readonly owned: boolean;
-    readonly port: number;
+    readonly url: string;
     readonly python: PythonInfo;
 }
 
@@ -39,6 +39,10 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     readonly owned = true;
 
     readonly port: number;
+
+    get url(): string {
+        return `http://127.0.0.1:${this.port}`;
+    }
 
     readonly python: PythonInfo;
 
@@ -175,17 +179,17 @@ export class OwnedBackendProcess implements BaseBackendProcess {
 export class BorrowedBackendProcess implements BaseBackendProcess {
     readonly owned = false;
 
-    readonly port: number;
+    readonly url: string;
 
     readonly python: PythonInfo;
 
-    private constructor(port: number, python: PythonInfo) {
-        this.port = port;
+    private constructor(url: string, python: PythonInfo) {
+        this.url = url;
         this.python = python;
     }
 
-    static async fromPort(port: number): Promise<BorrowedBackendProcess> {
-        const backend = getBackend(port);
+    static async fromUrl(url: string): Promise<BorrowedBackendProcess> {
+        const backend = getBackend(url);
         let python: PythonInfo | undefined;
         // try a few times to get python info, in case backend is still starting up
         const maxTries = 50;
@@ -204,7 +208,7 @@ export class BorrowedBackendProcess implements BaseBackendProcess {
         if (!python) {
             throw new Error('Unable to get python info from backend');
         }
-        return new BorrowedBackendProcess(port, python);
+        return new BorrowedBackendProcess(url, python);
     }
 }
 

@@ -63,10 +63,10 @@ const edgeTypes: EdgeTypes = {
 };
 
 interface MainProps {
-    port: number;
+    url: string;
 }
 
-export const Main = memo(({ port }: MainProps) => {
+export const Main = memo(({ url }: MainProps) => {
     const { t, ready } = useTranslation();
 
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
@@ -93,10 +93,10 @@ export const Main = memo(({ port }: MainProps) => {
     );
 
     const nodesQuery = useQuery({
-        queryKey: ['nodes', port],
+        queryKey: ['nodes', url],
         queryFn: async () => {
             try {
-                const response = await getBackend(port).nodes();
+                const response = await getBackend(url).nodes();
                 if ('status' in response) {
                     throw new Error(`${response.message}\n${response.description}`);
                 }
@@ -247,10 +247,10 @@ export const Main = memo(({ port }: MainProps) => {
                     categories={nodesInfo.categories}
                     categoriesMissingNodes={nodesInfo.categoriesMissingNodes}
                     functionDefinitions={nodesInfo.functionDefinitions}
-                    port={port}
                     pythonInfo={pythonInfo}
                     refreshNodes={refreshNodes}
                     schemata={nodesInfo.schemata}
+                    url={url}
                 >
                     <GlobalProvider reactFlowWrapper={reactFlowWrapper}>
                         <NodeDocumentationProvider>
