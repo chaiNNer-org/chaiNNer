@@ -45,8 +45,8 @@ class StretchMode(Enum):
             ),
         ),
         if_enum_group(1, StretchMode.MANUAL)(
-            SliderInput("Minimum", minimum=0, maximum=255, default=15, precision=1),
-            SliderInput("Maximum", minimum=0, maximum=255, default=240, precision=1),
+            SliderInput("Minimum", minimum=0, maximum=255, default=0, precision=1),
+            SliderInput("Maximum", minimum=0, maximum=255, default=255, precision=1),
         ),
     ],
     outputs=[
