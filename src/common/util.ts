@@ -282,3 +282,5 @@ export const getInputValue = <T extends NonNullable<InputValue>>(
 
 export const isAutoInput = (input: Input): boolean =>
     input.kind === 'generic' && input.optional && !input.hasHandle;
+
+export const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
