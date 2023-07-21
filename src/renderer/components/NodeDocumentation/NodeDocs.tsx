@@ -166,21 +166,10 @@ const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItem
                     )}
 
                     {condition && !isTautology(condition) && (
-                        <Text
-                            fontSize="md"
-                            userSelect="text"
-                        >
-                            <Text
-                                as="i"
-                                pr={1}
-                            >
-                                Condition:
-                            </Text>
-                            <ConditionExplanation
-                                condition={condition}
-                                schema={schema}
-                            />
-                        </Text>
+                        <ConditionExplanation
+                            condition={condition}
+                            schema={schema}
+                        />
                     )}
 
                     {isTextInput && (
