@@ -124,10 +124,11 @@ export const RepresentativeNode = memo(
                                         size="xs"
                                         textAlign="left"
                                         textOverflow="truncate"
+                                        textTransform="uppercase"
                                         verticalAlign="middle"
                                         whiteSpace="nowrap"
                                     >
-                                        {name.toUpperCase()}
+                                        {name}
                                     </Heading>
                                 </Box>
                                 <Spacer />
