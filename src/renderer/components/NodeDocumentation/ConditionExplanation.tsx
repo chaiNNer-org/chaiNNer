@@ -110,20 +110,38 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
             return assertNever(condition);
     }
 };
-const renderCondition = (condition: Condition, options: RenderOptions): JSX.Element => {
+const renderCondition = (
+    condition: Condition,
+    prefix: JSX.Element | undefined,
+    options: RenderOptions
+): JSX.Element => {
     // Since we want to construct a natural language sentence, we can't just recursively render
     // the condition. Instead, we need to do some analysis of the condition to determine how to
     // render it. We also can't support all possible conditions, but that's okay. Most conditions
     // are simple.
 
     if (isPossiblePrimitive(condition)) {
-        return <>{renderPrimitive(condition, options)}.</>;
+        return (
+            <Text
+                fontSize="md"
+                userSelect="text"
+            >
+                {prefix}
+                {renderPrimitive(condition, options)}.
+            </Text>
+        );
     }
 
     return (
         <>
-            {condition.kind === 'and' ? 'All of' : 'At least one of'} the following conditions must
-            be met:
+            <Text
+                fontSize="md"
+                userSelect="text"
+            >
+                {prefix}
+                {condition.kind === 'and' ? 'All of' : 'At least one of'} the following conditions
+                must be met:
+            </Text>
             <UnorderedList
                 alignItems="left"
                 ml={0}
@@ -138,7 +156,7 @@ const renderCondition = (condition: Condition, options: RenderOptions): JSX.Elem
                             key={i}
                             userSelect="text"
                         >
-                            {renderCondition(inner, options)}
+                            {renderCondition(inner, undefined, options)}
                         </ListItem>
                     );
                 })}
@@ -153,5 +171,14 @@ interface CEProps {
 }
 // eslint-disable-next-line react/prop-types
 export const ConditionExplanation = memo(({ condition, schema }: CEProps) => {
-    return renderCondition(simplifyCondition(condition), { schema });
+    return renderCondition(
+        simplifyCondition(condition),
+        <Text
+            as="i"
+            pr={1}
+        >
+            Condition:
+        </Text>,
+        { schema }
+    );
 });
