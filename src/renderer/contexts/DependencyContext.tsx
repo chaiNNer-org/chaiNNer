@@ -291,7 +291,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const {
         data: depList,
-        isLoading,
         isFetching,
         refetch,
     } = useQuery({
