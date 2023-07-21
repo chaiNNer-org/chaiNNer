@@ -280,6 +280,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [usePipDirectly, setUsePipDirectly] = useState(false);
 
+    const [hasNvidia, setHasNvidia] = useState(false);
+    useAsyncEffect(
+        () => ({
+            supplier: async () => (await backend.listNvidiaGpus()).length > 0,
+            successEffect: setHasNvidia,
+        }),
+        [backend]
+    );
+
     const {
         data: depList,
         isLoading,
@@ -437,14 +446,14 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
-                            {/* <Flex w="full">
+                            <Flex w="full">
                                 <Text
                                     flex="1"
                                     textAlign="left"
                                 >
                                     {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
                                 </Text>
-                            </Flex> */}
+                            </Flex>
                             <Flex
                                 align="center"
                                 w="full"
