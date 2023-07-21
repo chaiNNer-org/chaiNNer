@@ -329,14 +329,18 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 appendToOutput(`${String(error)}\n`);
             })
             .finally(() => {
-                setIsRunningShell(false);
-                setInstallingPackage(null);
-                setUninstallingPackage(null);
-                setProgress(0);
                 restart()
                     .catch(log.error)
                     .then(() => {
-                        refetch().catch(log.error);
+                        refetch()
+                            .catch(log.error)
+                            .then(() => {
+                                setIsRunningShell(false);
+                                setInstallingPackage(null);
+                                setUninstallingPackage(null);
+                                setProgress(0);
+                            })
+                            .catch(log.error);
                     })
                     .catch(log.error);
             });
