@@ -7,6 +7,7 @@ import {
     SliderTrack,
     Text,
     Tooltip,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo, useMemo, useState } from 'react';
 import { getTypeAccentColors } from '../../../helpers/accentColors';
@@ -100,11 +101,14 @@ export const StyledSlider = memo(
             ].join(', ');
         }
 
+        const borderColor = useColorModeValue('#E2E8F0', '#4F5765');
+        const textColor = useColorModeValue('black', 'white');
+
         return (
             <Slider
                 defaultValue={scale.toScale(def)}
                 focusThumbOnChange={false}
-                height={style.type === 'label' ? '1.4em' : '1em'}
+                height={style.type === 'label' ? '28px' : '1em'}
                 isDisabled={isDisabled}
                 max={scale.toScale(max)}
                 min={scale.toScale(min)}
@@ -126,29 +130,41 @@ export const StyledSlider = memo(
                     {style.type === 'label' && (
                         <>
                             <Box
-                                color="white"
+                                background="var(--node-bg-color)"
+                                border={`1px solid ${borderColor}`}
+                                borderRadius="md"
                                 cursor="pointer"
-                                left={0}
+                                h="full"
                                 position="absolute"
-                                textAlign="center"
-                                top={0}
                                 userSelect="none"
-                                width="100%"
+                                w="full"
+                                zIndex={0}
+                            />
+                            <Box
+                                alignItems="center"
+                                cursor="pointer"
+                                display="flex"
+                                h="full"
+                                position="absolute"
+                                userSelect="none"
+                                w="full"
                                 zIndex={1}
                             >
                                 <Text
+                                    as="span"
+                                    color={textColor}
                                     cursor="pointer"
                                     fontSize="14px"
                                     lineHeight="1.4em"
-                                    textAlign="center"
+                                    pl={2}
                                     userSelect="none"
+                                    whiteSpace="nowrap"
                                 >
                                     {style.label}
                                 </Text>
                             </Box>
                             <SliderFilledTrack
-                                bg={typeAccentColor}
-                                borderLeftRadius="md"
+                                bg={borderColor}
                                 cursor="pointer"
                             />
                         </>
@@ -174,8 +190,10 @@ export const StyledSlider = memo(
                 >
                     <SliderThumb
                         borderRadius="sm"
+                        cursor="pointer"
                         height="100%"
                         opacity={style.type === 'label' ? 0 : 1}
+                        userSelect={style.type === 'label' ? 'none' : undefined}
                         width="8px"
                         zIndex={3}
                     />
