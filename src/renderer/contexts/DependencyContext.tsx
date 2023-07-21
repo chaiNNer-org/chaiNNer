@@ -289,10 +289,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         [backend]
     );
 
-    const {
-        data: depList,
-        refetch,
-    } = useQuery({
+    const { data: depList, refetch } = useQuery({
         queryKey: 'dependencies',
         queryFn: async () => {
             try {
