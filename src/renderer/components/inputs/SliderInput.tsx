@@ -171,8 +171,6 @@ export const SliderInput = memo(
             if (!filled) {
                 return { type: 'no-fill' };
             }
-            // TODO: Use the new label design
-            // return { type: 'old-label' };
             return { type: 'label', label: input.label };
         }, [input, filled]);
 
