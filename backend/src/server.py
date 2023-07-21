@@ -441,6 +441,7 @@ async def get_dependencies(_request: Request):
                     "name": package.name,
                     "dependencies": pkg_dependencies,
                     "description": package.description,
+                    "settings": [asdict(x) for x in package.settings],
                 }
             )
     return json(all_dependencies)

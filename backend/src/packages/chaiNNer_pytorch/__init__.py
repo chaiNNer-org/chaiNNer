@@ -2,7 +2,7 @@ import sys
 
 from sanic.log import logger
 
-from api import GB, KB, MB, Dependency, add_package
+from api import GB, KB, MB, Dependency, ToggleSetting, add_package
 from gpu import nvidia_is_available
 
 python_version = sys.version_info
@@ -74,6 +74,26 @@ package = add_package(
             size_estimate=36.5 * KB,
         ),
     ],
+)
+
+package.add_setting(
+    ToggleSetting(
+        label="CPU Mode",
+        key="cpu_mode",
+        description="Use CPU for PyTorch instead of GPU. This is much slower and not recommended.",
+        default=False,
+        disabled=not nvidia_is_available,
+    ),
+)
+
+package.add_setting(
+    ToggleSetting(
+        label="FP16 Mode",
+        key="fp16_mode",
+        description="Use FP16 for PyTorch instead of FP32. This makes execution faster, but only for RTX cards.",
+        default=False,
+        disabled=not nvidia_is_available,
+    ),
 )
 
 pytorch_category = package.add_category(

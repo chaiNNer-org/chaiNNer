@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypedDict, TypeVar
 
 from sanic.log import logger
 
@@ -218,6 +218,9 @@ class Package:
     description: str
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
+    settings: List[
+        ToggleSetting | DropdownSetting | NumberSetting | ToggleSettingWithButton
+    ] = field(default_factory=list)
 
     def add_category(
         self,
@@ -243,6 +246,15 @@ class Package:
         dependency: Dependency,
     ):
         self.dependencies.append(dependency)
+
+    def add_setting(
+        self,
+        setting: ToggleSetting
+        | DropdownSetting
+        | NumberSetting
+        | ToggleSettingWithButton,
+    ):
+        self.settings.append(setting)
 
 
 def _iter_py_files(directory: str):
@@ -319,3 +331,43 @@ def add_package(
     where: str, name: str, description: str, dependencies: List[Dependency]
 ) -> Package:
     return registry.add(Package(where, name, description, dependencies))
+
+
+@dataclass
+class ToggleSetting:
+    label: str
+    key: str
+    description: str
+    default: bool = False
+    disabled: bool = False
+
+
+@dataclass
+class DropdownSetting:
+    label: str
+    key: str
+    description: str
+    options: List[str]
+    default: Optional[str] = None
+    disabled: bool = False
+
+
+@dataclass
+class NumberSetting:
+    label: str
+    key: str
+    description: str
+    min: float
+    max: float
+    default: float = 0
+    disabled: bool = False
+
+
+@dataclass
+class ToggleSettingWithButton:
+    label: str
+    key: str
+    description: str
+    button_label: str
+    action: Callable[[], None]
+    disabled: bool = False
