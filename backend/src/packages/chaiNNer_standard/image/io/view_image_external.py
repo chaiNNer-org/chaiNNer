@@ -25,7 +25,7 @@ from .. import io_group
     outputs=[],
     side_effects=True,
 )
-def open_image_node(img: np.ndarray) -> None:
+def view_image_external_node(img: np.ndarray) -> None:
     tempdir = mkdtemp(prefix="chaiNNer-")
     logger.debug(f"Writing image to temp path: {tempdir}")
     im_name = f"{time.time()}.png"

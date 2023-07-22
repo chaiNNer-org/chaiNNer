@@ -30,7 +30,7 @@ SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
     ],
     side_effects=True,
 )
-def ImageSpriteSheetIteratorLoadImageNode(
+def iterator_helper_load_image_node(
     img: np.ndarray, index: int
 ) -> Tuple[np.ndarray, int]:
     return img, index
@@ -46,7 +46,7 @@ def ImageSpriteSheetIteratorLoadImageNode(
     outputs=[],
     side_effects=True,
 )
-def ImageSpriteSheetIteratorAppendImageNode(
+def iterator_helper_append_image_node(
     img: np.ndarray, results: List[np.ndarray]
 ) -> None:
     results.append(img)
@@ -92,7 +92,7 @@ def ImageSpriteSheetIteratorAppendImageNode(
     ],
     side_effects=True,
 )
-async def ImageSpriteSheetIteratorNode(
+async def spritesheet_iterator_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,

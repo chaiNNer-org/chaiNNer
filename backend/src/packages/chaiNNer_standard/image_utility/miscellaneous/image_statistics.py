@@ -35,7 +35,7 @@ from .. import miscellaneous_group
         NumberOutput("Percentile", output_type="0..255"),
     ],
 )
-def image_statistic(
+def image_statistics_node(
     img: np.ndarray,
     percentile: float,
 ) -> Tuple[float, float, float, float]:

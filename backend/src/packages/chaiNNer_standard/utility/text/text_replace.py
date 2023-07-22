@@ -41,7 +41,7 @@ class ReplacementMode(Enum):
         ),
     ],
 )
-def text_replace(text: str, old: str, new: str, mode: ReplacementMode) -> str:
+def text_replace_node(text: str, old: str, new: str, mode: ReplacementMode) -> str:
     if mode == ReplacementMode.REPLACE_ALL:
         return text.replace(old, new)
     else:

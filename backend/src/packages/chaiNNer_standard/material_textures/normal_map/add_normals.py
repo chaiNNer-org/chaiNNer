@@ -42,7 +42,7 @@ from .. import normal_map_group
         ),
     ],
 )
-def normal_addition_node(
+def add_normals_node(
     n1: np.ndarray,
     strength1: int,
     n2: np.ndarray,

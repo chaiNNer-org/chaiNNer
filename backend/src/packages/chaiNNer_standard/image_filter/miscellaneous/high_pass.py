@@ -33,7 +33,7 @@ from .. import miscellaneous_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def high_pass_filter_node(
+def high_pass_node(
     img: np.ndarray,
     radius: float,
     contrast: float,

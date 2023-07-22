@@ -25,5 +25,5 @@ from .. import value_group
         NumberOutput("Number", output_type="Input0"),
     ],
 )
-def number_value_node(number: float) -> float:
+def number_node(number: float) -> float:
     return number

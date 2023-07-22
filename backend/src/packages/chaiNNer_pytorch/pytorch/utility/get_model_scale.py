@@ -15,5 +15,5 @@ from .. import utility_group
     inputs=[ModelInput()],
     outputs=[NumberOutput("Scale", output_type="Input0.scale")],
 )
-def model_dim_node(model: PyTorchModel) -> int:
+def get_model_scale_node(model: PyTorchModel) -> int:
     return model.scale

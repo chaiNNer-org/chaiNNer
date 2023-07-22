@@ -50,7 +50,7 @@ class ReplacementMode(Enum):
         ),
     ],
 )
-def regex_replace(
+def regex_replace_node(
     text: str,
     regex_pattern: str,
     replacement_pattern: str,

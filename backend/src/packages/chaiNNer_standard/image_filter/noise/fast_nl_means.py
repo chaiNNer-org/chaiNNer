@@ -44,7 +44,7 @@ from .. import noise_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def fast_nlmeans_node(
+def fast_nl_means_node(
     img: np.ndarray,
     h: float,
     h_color: float,
