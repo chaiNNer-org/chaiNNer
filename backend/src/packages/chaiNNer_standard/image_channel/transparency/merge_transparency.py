@@ -16,8 +16,8 @@ from . import node_group
     description="Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",
     icon="MdCallMerge",
     inputs=[
-        ImageInput("RGB Channels", allow_colors=True),
-        ImageInput("Alpha Channel", allow_colors=True, channels=1),
+        ImageInput("RGB", allow_colors=True),
+        ImageInput("Alpha", allow_colors=True, channels=1),
     ],
     outputs=[
         ImageOutput(

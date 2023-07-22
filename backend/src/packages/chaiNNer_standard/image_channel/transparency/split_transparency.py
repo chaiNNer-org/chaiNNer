@@ -20,13 +20,13 @@ from . import node_group
     inputs=[ImageInput(channels=[1, 3, 4])],
     outputs=[
         ImageOutput(
-            "RGB Channels",
+            "RGB",
             image_type=navi.Image(size_as="Input0"),
             channels=3,
             assume_normalized=True,
         ),
         ImageOutput(
-            "Alpha Channel",
+            "Alpha",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
