@@ -147,7 +147,7 @@ def upscale(
         )
     ],
 )
-def face_upscale_node(
+def upscale_face_node(
     img: np.ndarray,
     face_model: PyTorchFaceModel,
     background_img: Union[np.ndarray, None],

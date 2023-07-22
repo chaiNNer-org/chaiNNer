@@ -37,7 +37,7 @@ from .. import miscellaneous_group
         )
     ],
 )
-def image_convolve_node(
+def convolve_node(
     img: np.ndarray,
     kernel_in: str,
     padding: int,

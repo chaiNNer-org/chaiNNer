@@ -37,7 +37,7 @@ from .. import blur_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def bilateral_blur_node(
+def surface_blur_node(
     img: np.ndarray,
     diameter: int,
     sigma_color: int,

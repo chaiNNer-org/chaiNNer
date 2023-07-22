@@ -48,7 +48,7 @@ from . import node_group
         ),
     ],
 )
-def separate_rgba(
+def separate_rgba_node(
     img: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     h, w, c = get_h_w_c(img)

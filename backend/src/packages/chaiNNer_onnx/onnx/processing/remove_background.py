@@ -43,7 +43,7 @@ from .. import processing_group
         ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
 )
-def rembg_node(
+def remove_background_node(
     img: np.ndarray,
     model: OnnxRemBg,
     post_process_mask: bool,

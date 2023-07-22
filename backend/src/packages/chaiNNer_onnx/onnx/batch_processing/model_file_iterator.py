@@ -40,7 +40,7 @@ ONNX_ITERATOR_NODE_ID = "chainner:onnx:model_iterator_load"
     node_type="iteratorHelper",
     side_effects=True,
 )
-def ModelFileIteratorLoadModelNode(
+def iterator_helper_load_model_node(
     path: str, root_dir: str, index: int
 ) -> Tuple[OnnxModel, str, str, str, int]:
     model, dirname, basename = load_model_node(path)
@@ -69,7 +69,7 @@ def ModelFileIteratorLoadModelNode(
     node_type="iterator",
     side_effects=True,
 )
-async def ModelFileIteratorNode(directory: str, context: IteratorContext) -> None:
+async def model_file_iterator_node(directory: str, context: IteratorContext) -> None:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     model_path_node_id = context.get_helper(ONNX_ITERATOR_NODE_ID).id

@@ -48,7 +48,7 @@ from . import node_group
     ],
     deprecated=True,
 )
-def merge_rgba_node(
+def merge_channels_node(
     im1: np.ndarray,
     im2: Union[np.ndarray, None],
     im3: Union[np.ndarray, None],

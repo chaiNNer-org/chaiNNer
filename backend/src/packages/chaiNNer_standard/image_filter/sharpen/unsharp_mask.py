@@ -39,7 +39,7 @@ from .. import sharpen_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def sharpen_node(
+def unsharp_mask_node(
     img: np.ndarray,
     radius: float,
     amount: float,

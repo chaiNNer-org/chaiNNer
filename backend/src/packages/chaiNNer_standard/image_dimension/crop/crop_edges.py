@@ -35,7 +35,7 @@ from .. import crop_group
         )
     ],
 )
-def edge_crop_node(
+def crop_edges_node(
     img: np.ndarray, top: int, left: int, right: int, bottom: int
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)

@@ -77,7 +77,7 @@ class Orientation(Enum):
         )
     ],
 )
-def stack_node(
+def stack_images_node(
     im1: np.ndarray,
     im2: np.ndarray | None,
     im3: np.ndarray | None,
