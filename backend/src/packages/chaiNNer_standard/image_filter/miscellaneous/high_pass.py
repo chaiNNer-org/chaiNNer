@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
@@ -20,7 +20,16 @@ from .. import miscellaneous_group
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        NumberInput("Radius", minimum=0, default=3, precision=2, controls_step=1),
+        SliderInput(
+            "Radius",
+            minimum=0,
+            maximum=1000,
+            default=3,
+            precision=1,
+            controls_step=1,
+            slider_step=0.1,
+            scale="log",
+        ),
         SliderInput(
             "Contrast",
             minimum=0,

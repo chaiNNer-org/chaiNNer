@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import blur_group
@@ -16,8 +16,26 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        NumberInput("Radius X", precision=1, controls_step=1),
-        NumberInput("Radius Y", precision=1, controls_step=1),
+        SliderInput(
+            "Radius X",
+            minimum=0,
+            maximum=1000,
+            default=1,
+            precision=1,
+            controls_step=1,
+            slider_step=0.1,
+            scale="log",
+        ),
+        SliderInput(
+            "Radius Y",
+            minimum=0,
+            maximum=1000,
+            default=1,
+            precision=1,
+            controls_step=1,
+            slider_step=0.1,
+            scale="log",
+        ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )

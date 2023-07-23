@@ -5,7 +5,7 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
+from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
@@ -32,17 +32,21 @@ class MorphShape(Enum):
                 MorphShape.CROSS: "Cross",
             },
         ),
-        NumberInput(
+        SliderInput(
             "Radius",
             minimum=0,
+            maximum=1000,
             default=1,
             controls_step=1,
+            scale="log",
         ),
-        NumberInput(
+        SliderInput(
             "Iterations",
             minimum=0,
+            maximum=1000,
             default=1,
             controls_step=1,
+            scale="log",
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
