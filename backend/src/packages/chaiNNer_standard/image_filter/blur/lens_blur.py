@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 from nodes.impl.image_utils import as_3d
-from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import blur_group
@@ -141,11 +141,14 @@ def lens_blur(
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        NumberInput(
+        SliderInput(
             "Radius",
             minimum=0,
+            maximum=1000,
             default=3,
+            precision=0,
             controls_step=1,
+            scale="log",
         ),
         SliderInput(
             "Components",
