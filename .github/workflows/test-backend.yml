@@ -46,6 +46,17 @@ jobs:
               env:
                   TYPE_CHECK_LEVEL: 'error'
 
+    backend-name-check-test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.9'
+            - run: python ./backend/src/run.py --close-after-start
+              env:
+                  NAME_CHECK_LEVEL: 'error'
+
     backend-bootstrap:
         runs-on: ubuntu-latest
         strategy:
