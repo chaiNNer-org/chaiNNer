@@ -117,7 +117,7 @@ export interface SliderInput extends InputBase {
     readonly ends: readonly [string | null, string | null];
     readonly sliderStep: number;
     readonly gradient?: readonly string[] | null;
-    readonly scale: 'linear' | 'log' | 'log-offset';
+    readonly scale: 'linear' | 'log' | 'log-offset' | 'sqrt';
 }
 export interface ColorInput extends InputBase {
     readonly kind: 'color';

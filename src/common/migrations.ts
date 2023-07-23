@@ -1181,6 +1181,28 @@ const emptyStringInput: ModernMigration = (data) => {
     return data;
 };
 
+const surfaceBlurRadius: ModernMigration = (data) => {
+    const toRadius = (diameter: number): number => {
+        diameter = Math.round(diameter);
+        if (diameter <= 0) return 0;
+        if (diameter <= 3) return 1;
+        // d = 2r+1
+        const r = Math.ceil((diameter - 1) / 2);
+        return Math.min(r, 100);
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:bilateral_blur') {
+            const diameter = node.data.inputData[1];
+            if (typeof diameter === 'number') {
+                node.data.inputData[1] = toRadius(diameter);
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1228,6 +1250,7 @@ const migrations = [
     seedInput,
     createColor,
     emptyStringInput,
+    surfaceBlurRadius,
 ];
 
 export const currentMigration = migrations.length;

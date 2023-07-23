@@ -11,7 +11,14 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
-import { LINEAR_SCALE, LogScale, Scale, SliderStyle, StyledSlider } from './elements/StyledSlider';
+import {
+    LINEAR_SCALE,
+    LogScale,
+    PowerScale,
+    Scale,
+    SliderStyle,
+    StyledSlider,
+} from './elements/StyledSlider';
 import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -25,6 +32,8 @@ const parseScale = (
             return new LogScale(input.min, input.precision);
         case 'log-offset':
             return new LogScale(input.min + 0.66, input.precision);
+        case 'sqrt':
+            return new PowerScale(0.5, input.min, input.precision);
         default:
             return assertNever(input.scale);
     }
