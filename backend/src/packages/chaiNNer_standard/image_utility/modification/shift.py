@@ -32,7 +32,7 @@ from .. import modification_group
         )
     ],
 )
-def shift_amount_node(
+def shift_node(
     img: np.ndarray,
     amount_x: int,
     amount_y: int,
