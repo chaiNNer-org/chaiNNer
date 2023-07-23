@@ -145,6 +145,7 @@ export const StyledSlider = memo(
                                 cursor="pointer"
                                 display="flex"
                                 h="full"
+                                p="1px"
                                 position="absolute"
                                 userSelect="none"
                                 w="full"
@@ -156,8 +157,11 @@ export const StyledSlider = memo(
                                     cursor="pointer"
                                     fontSize="14px"
                                     lineHeight="1.4em"
+                                    overflow="hidden"
                                     pl={2}
+                                    textOverflow="ellipsis"
                                     userSelect="none"
+                                    w="full"
                                     whiteSpace="nowrap"
                                 >
                                     {style.label}
