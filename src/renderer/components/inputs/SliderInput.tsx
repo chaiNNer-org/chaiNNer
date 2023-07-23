@@ -76,7 +76,7 @@ export const SliderInput = memo(
             ends,
         } = input;
 
-        const [inputString, setInputString] = useState(String(value));
+        const [inputString, setInputString] = useState(String(value ?? def));
         const [sliderValue, setSliderValue] = useState(value ?? def);
 
         const precisionOutput = useCallback(
