@@ -6,9 +6,10 @@ from typing import List
 import cv2
 import numpy as np
 
+from nodes.groups import optional_list_group
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c, round_half_up
+from nodes.utils.utils import ALPHABET, get_h_w_c, round_half_up
 
 from .. import compositing_group
 
@@ -24,11 +25,17 @@ class Orientation(Enum):
     description="Concatenate multiple images horizontally or vertically.",
     icon="CgMergeVertical",
     inputs=[
-        ImageInput("Image A"),
-        ImageInput("Image B").make_optional(),
-        ImageInput("Image C").make_optional(),
-        ImageInput("Image D").make_optional(),
-        EnumInput(Orientation),
+        EnumInput(Orientation).with_id(4),
+        ImageInput("Image A").with_id(0),
+        ImageInput("Image B").make_optional().with_id(1),
+        optional_list_group(
+            ImageInput("Image C").make_optional().with_id(2),
+            ImageInput("Image D").make_optional().with_id(3),
+            *[
+                ImageInput(f"Image {letter}").make_optional()
+                for letter in ALPHABET[4:14]
+            ],
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -42,9 +49,54 @@ class Orientation(Enum):
                     }
                 }
 
-                let maxWidth = max(Input0.width, getWidth(Input1), getWidth(Input2), getWidth(Input3));
-                let maxHeight = max(Input0.height, getHeight(Input1), getHeight(Input2), getHeight(Input3));
-                let maxChannels = max(Input0.channels, getChannels(Input1), getChannels(Input2), getChannels(Input3));
+                let maxWidth = max(
+                    Input0.width,
+                    getWidth(Input1),
+                    getWidth(Input2),
+                    getWidth(Input3),
+                    getWidth(Input5),
+                    getWidth(Input6),
+                    getWidth(Input7),
+                    getWidth(Input8),
+                    getWidth(Input9),
+                    getWidth(Input10),
+                    getWidth(Input11),
+                    getWidth(Input12),
+                    getWidth(Input13),
+                    getWidth(Input14)
+                );
+                let maxHeight = max(
+                    Input0.height,
+                    getHeight(Input1),
+                    getHeight(Input2),
+                    getHeight(Input3),
+                    getHeight(Input5),
+                    getHeight(Input6),
+                    getHeight(Input7),
+                    getHeight(Input8),
+                    getHeight(Input9),
+                    getHeight(Input10),
+                    getHeight(Input11),
+                    getHeight(Input12),
+                    getHeight(Input13),
+                    getHeight(Input14)
+                );
+                let maxChannels = max(
+                    Input0.channels,
+                    getChannels(Input1),
+                    getChannels(Input2),
+                    getChannels(Input3),
+                    getChannels(Input5),
+                    getChannels(Input6),
+                    getChannels(Input7),
+                    getChannels(Input8),
+                    getChannels(Input9),
+                    getChannels(Input10),
+                    getChannels(Input11),
+                    getChannels(Input12),
+                    getChannels(Input13),
+                    getChannels(Input14)
+                );
 
                 def getAdjustedWidth(img: Image | null) {
                     match img {
@@ -59,8 +111,36 @@ class Orientation(Enum):
                     }
                 }
 
-                let widthSum = getAdjustedWidth(Input0) + getAdjustedWidth(Input1) + getAdjustedWidth(Input2) + getAdjustedWidth(Input3);
-                let heightSum = getAdjustedHeight(Input0) + getAdjustedHeight(Input1) + getAdjustedHeight(Input2) + getAdjustedHeight(Input3);
+                let widthSum =
+                    getAdjustedWidth(Input0)
+                    + getAdjustedWidth(Input1)
+                    + getAdjustedWidth(Input2)
+                    + getAdjustedWidth(Input3)
+                    + getAdjustedWidth(Input5)
+                    + getAdjustedWidth(Input6)
+                    + getAdjustedWidth(Input7)
+                    + getAdjustedWidth(Input8)
+                    + getAdjustedWidth(Input9)
+                    + getAdjustedWidth(Input10)
+                    + getAdjustedWidth(Input11)
+                    + getAdjustedWidth(Input12)
+                    + getAdjustedWidth(Input13)
+                    + getAdjustedWidth(Input14);
+                let heightSum =
+                    getAdjustedHeight(Input0)
+                    + getAdjustedHeight(Input1)
+                    + getAdjustedHeight(Input2)
+                    + getAdjustedHeight(Input3)
+                    + getAdjustedHeight(Input5)
+                    + getAdjustedHeight(Input6)
+                    + getAdjustedHeight(Input7)
+                    + getAdjustedHeight(Input8)
+                    + getAdjustedHeight(Input9)
+                    + getAdjustedHeight(Input10)
+                    + getAdjustedHeight(Input11)
+                    + getAdjustedHeight(Input12)
+                    + getAdjustedHeight(Input13)
+                    + getAdjustedHeight(Input14);
 
                 Image {
                     width: match Input4 {
@@ -78,16 +158,13 @@ class Orientation(Enum):
     ],
 )
 def stack_images_node(
-    im1: np.ndarray,
-    im2: np.ndarray | None,
-    im3: np.ndarray | None,
-    im4: np.ndarray | None,
     orientation: Orientation,
+    image_a: np.ndarray,
+    *other_images: np.ndarray | None,
 ) -> np.ndarray:
-    img = im1
     imgs = []
     max_h, max_w, max_c = 0, 0, 1
-    for img in im1, im2, im3, im4:
+    for img in [image_a, *other_images]:
         if img is not None:
             h, w, c = get_h_w_c(img)
             if c == 1:
@@ -137,7 +214,7 @@ def stack_images_node(
             assert (
                 fixed_imgs[i].dtype == fixed_imgs[0].dtype
             ), "The image types are not the same and could not be auto-fixed"
-        img = cv2.hconcat(fixed_imgs)  # type: ignore
+        return cv2.hconcat(fixed_imgs)  # type: ignore
     elif orientation == Orientation.VERTICAL:
         for i in range(len(fixed_imgs)):
             assert (
@@ -146,8 +223,4 @@ def stack_images_node(
             assert (
                 fixed_imgs[i].dtype == fixed_imgs[0].dtype
             ), "The image types are not the same and could not be auto-fixed"
-        img = cv2.vconcat(fixed_imgs)  # type: ignore
-    else:
-        assert False, f"Invalid orientation '{orientation}'"
-
-    return img
+        return cv2.vconcat(fixed_imgs)  # type: ignore
