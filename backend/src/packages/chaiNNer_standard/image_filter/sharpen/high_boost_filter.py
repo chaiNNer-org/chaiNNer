@@ -44,7 +44,7 @@ class KernelType(Enum):
         ),
         if_enum_group(3, 1)(
             SliderInput(
-                "Contrast Adaptive Bias",
+                "Contrast Bias",
                 minimum=1,
                 maximum=3,
                 default=2,
