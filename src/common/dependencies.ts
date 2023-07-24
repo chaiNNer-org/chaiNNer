@@ -10,7 +10,7 @@ export interface PyPiPackage {
      */
     sizeEstimate: number;
     autoUpdate: boolean;
-    installed: Version | false;
+    installed: Version | null;
 }
 export interface Package {
     name: string;

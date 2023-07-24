@@ -77,7 +77,7 @@ const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
 const FeaturePackage = memo(
-    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion: Version | false }) => {
+    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion: Version | null }) => {
         let color = 'red.500';
         let tagText = 'Missing';
         let versionString: string = pkg.version;

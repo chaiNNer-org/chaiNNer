@@ -439,7 +439,7 @@ async def get_dependencies(_request: Request):
                 **pkg_dep.toDict(),
             }
             if installed_version is None:
-                pkg_dep_item["installed"] = False
+                pkg_dep_item["installed"] = None
             else:
                 pkg_dep_item["installed"] = installed_version
             pkg_dependencies.append(pkg_dep_item)
