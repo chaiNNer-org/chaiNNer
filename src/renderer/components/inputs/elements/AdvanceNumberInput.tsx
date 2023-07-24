@@ -70,17 +70,21 @@ export const AdvancedNumberInput = memo(
         inputHeight,
         noRepeatOnBlur = false,
     }: AdvancedNumberInputProps) => {
+        const getNumericValue = (): number | undefined => {
+            const valAsNumber =
+                precision > 0
+                    ? parseFloat(inputString || String(defaultValue))
+                    : Math.round(parseFloat(inputString || String(defaultValue)));
+
+            if (!Number.isNaN(valAsNumber)) {
+                return Number(clamp(valAsNumber, min, max).toFixed(precision));
+            }
+        };
         const onBlur = noRepeatOnBlur
             ? noop
             : () => {
-                  const valAsNumber =
-                      precision > 0
-                          ? parseFloat(inputString || String(defaultValue))
-                          : Math.round(parseFloat(inputString || String(defaultValue)));
-
-                  if (!Number.isNaN(valAsNumber)) {
-                      const value = Number(clamp(valAsNumber, min, max).toFixed(precision));
-
+                  const value = getNumericValue();
+                  if (value !== undefined) {
                       // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                       setImmediate(() => {
                           setInput(value);
@@ -90,6 +94,15 @@ export const AdvancedNumberInput = memo(
                       });
                   }
               };
+
+        const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter') {
+                const value = getNumericValue();
+                if (value !== undefined) {
+                    setInput(value);
+                }
+            }
+        };
 
         if (small) {
             return (
@@ -132,6 +145,7 @@ export const AdvancedNumberInput = memo(
                             p={1}
                             size={1}
                             w={inputWidth}
+                            onKeyDown={onKeyDown}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />
@@ -179,6 +193,7 @@ export const AdvancedNumberInput = memo(
                         px={unit ? 2 : 4}
                         size={1}
                         w={inputWidth}
+                        onKeyDown={onKeyDown}
                     />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
