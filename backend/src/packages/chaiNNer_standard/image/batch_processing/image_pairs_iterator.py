@@ -45,7 +45,7 @@ PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
     ],
     side_effects=True,
 )
-def ImageFileIteratorLoadImageNodeA(
+def iterator_helper_load_image_node(
     path_a: str, path_b: str, root_dir_a: str, root_dir_b: str, index: int
 ) -> Tuple[np.ndarray, np.ndarray, str, str, str, str, str, str, int]:
     img_a, img_dir_a, basename_a = load_image_node(path_a)
@@ -90,7 +90,7 @@ def ImageFileIteratorLoadImageNodeA(
         "chainner:image:file_iterator",
     ],
 )
-async def PairedImageFileIteratorNode(
+async def image_pairs_iterator_node(
     directory_a: str, directory_b: str, context: IteratorContext
 ) -> None:
     logger.debug(f"Iterating over images in directories: {directory_a}, {directory_b}")

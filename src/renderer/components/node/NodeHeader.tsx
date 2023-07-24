@@ -62,10 +62,11 @@ export const NodeHeader = memo(
                             p={0}
                             size="sm"
                             textAlign="center"
+                            textTransform="uppercase"
                             verticalAlign="middle"
                             whiteSpace="nowrap"
                         >
-                            {name.toUpperCase()}
+                            {name}
                         </Heading>
                     </Center>
                 </HStack>

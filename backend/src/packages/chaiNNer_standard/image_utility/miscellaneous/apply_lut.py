@@ -47,7 +47,7 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
         ImageOutput(image_type=navi.Image(size_as="Input0", channels_as="Input1"))
     ],
 )
-def lut_node(
+def apply_lut_node(
     img: np.ndarray,
     lut: np.ndarray,
 ) -> np.ndarray:

@@ -40,7 +40,7 @@ from .. import compositing_group
         ).with_never_reason("At least one layer must be an image"),
     ],
 )
-def blend_node(
+def blend_images_node(
     base: np.ndarray | Color,
     ov: np.ndarray | Color,
     blend_mode: BlendMode,

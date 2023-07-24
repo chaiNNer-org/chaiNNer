@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from nodes.impl.image_utils import to_uint8
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import blur_group
@@ -17,7 +17,7 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        NumberInput("Radius"),
+        SliderInput("Radius", minimum=0, maximum=1000, default=1, scale="log"),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
@@ -28,7 +28,8 @@ def median_blur_node(
     if radius == 0:
         return img
     else:
-        if radius < 3:
-            return cv2.medianBlur(img, 2 * radius + 1)
-        else:  # cv2 requires uint8 for kernel size (2r+1) > 5
-            return cv2.medianBlur(to_uint8(img, normalized=True), 2 * radius + 1)
+        size = 2 * radius + 1
+        if size <= 5:
+            return cv2.medianBlur(img, size)
+        else:  # cv2 requires uint8 for kernel size > 5
+            return cv2.medianBlur(to_uint8(img, normalized=True), size)

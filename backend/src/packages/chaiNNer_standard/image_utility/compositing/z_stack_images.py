@@ -59,7 +59,7 @@ class Expression(Enum):
         ),
     ],
 )
-def z_stack(
+def z_stack_images_node(
     expression: Expression,
     *inputs: np.ndarray | None,
 ) -> np.ndarray:

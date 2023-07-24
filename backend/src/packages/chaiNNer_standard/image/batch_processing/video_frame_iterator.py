@@ -73,7 +73,7 @@ class Writer:
     ],
     side_effects=True,
 )
-def VideoFrameIteratorFrameLoaderNode(
+def iterator_helper_load_frame_as_image_node(
     img: np.ndarray, idx: int, video_dir: str, video_name: str
 ) -> Tuple[np.ndarray, int, str, str]:
     return img, idx, video_dir, video_name
@@ -113,7 +113,7 @@ def VideoFrameIteratorFrameLoaderNode(
     outputs=[],
     side_effects=True,
 )
-def VideoFrameIteratorFrameWriterNode(
+def iterator_helper_write_output_frame_node(
     img: np.ndarray,
     save_dir: str,
     video_name: str,
@@ -198,7 +198,7 @@ def VideoFrameIteratorFrameWriterNode(
     ],
     side_effects=True,
 )
-async def SimpleVideoFrameIteratorNode(path: str, context: IteratorContext) -> None:
+async def video_frame_iterator_node(path: str, context: IteratorContext) -> None:
     logger.debug(f"{ffmpeg_path=}, {ffprobe_path=}")
     logger.debug(f"Iterating over frames in video file: {path}")
 

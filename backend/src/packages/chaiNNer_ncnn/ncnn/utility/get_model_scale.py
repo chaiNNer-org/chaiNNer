@@ -15,5 +15,5 @@ from .. import utility_group
     inputs=[NcnnModelInput()],
     outputs=[NumberOutput("Scale", output_type="Input0.scale")],
 )
-def model_dim_node(model: NcnnModelWrapper) -> int:
+def get_model_scale_node(model: NcnnModelWrapper) -> int:
     return model.scale

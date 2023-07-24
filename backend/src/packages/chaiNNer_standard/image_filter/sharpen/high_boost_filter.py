@@ -44,7 +44,7 @@ class KernelType(Enum):
         ),
         if_enum_group(3, 1)(
             SliderInput(
-                "Contrast Adaptive Bias",
+                "Contrast Bias",
                 minimum=1,
                 maximum=3,
                 default=2,
@@ -59,7 +59,7 @@ class KernelType(Enum):
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def sharpen_hbf_node(
+def high_boost_filter_node(
     img: np.ndarray,
     kernel_type: KernelType,
     amount: float,

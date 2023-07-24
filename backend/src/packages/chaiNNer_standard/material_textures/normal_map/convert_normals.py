@@ -57,7 +57,7 @@ from .. import normal_map_group
         ),
     ],
 )
-def convert_normal_map_node(
+def convert_normals_node(
     img: np.ndarray,
     from_type: NormalMapType,
     to_type: NormalMapType,

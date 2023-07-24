@@ -62,7 +62,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     side_effects=True,
 )
-def ImageFileIteratorLoadImageNode(
+def iterator_helper_load_image_node(
     path: str, root_dir: str, index: int
 ) -> Tuple[np.ndarray, str, str, str, int]:
     img, img_dir, basename = load_image_node(path)
@@ -106,7 +106,7 @@ def ImageFileIteratorLoadImageNode(
         "chainner:image:load",
     ],
 )
-async def ImageFileIteratorNode(
+async def image_file_iterator_node(
     directory: str,
     use_glob: bool,
     is_recursive: bool,

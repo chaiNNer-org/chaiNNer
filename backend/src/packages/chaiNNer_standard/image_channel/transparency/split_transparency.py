@@ -20,20 +20,20 @@ from . import node_group
     inputs=[ImageInput(channels=[1, 3, 4])],
     outputs=[
         ImageOutput(
-            "RGB Channels",
+            "RGB",
             image_type=navi.Image(size_as="Input0"),
             channels=3,
             assume_normalized=True,
         ),
         ImageOutput(
-            "Alpha Channel",
+            "Alpha",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ),
     ],
 )
-def split_transparency(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def split_transparency_node(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Split a multi-channel image into separate channels"""
 
     img = as_target_channels(img, 4)

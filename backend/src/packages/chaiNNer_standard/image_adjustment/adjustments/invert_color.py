@@ -17,7 +17,7 @@ from .. import adjustments_group
     inputs=[ImageInput()],
     outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],
 )
-def invert_node(img: np.ndarray) -> np.ndarray:
+def invert_color_node(img: np.ndarray) -> np.ndarray:
     c = get_h_w_c(img)[2]
 
     # invert the first 3 channels

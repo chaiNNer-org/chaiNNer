@@ -44,6 +44,7 @@ interface AdvancedNumberInputProps {
 
     onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
     inputWidth?: string;
+    inputHeight?: string;
     noRepeatOnBlur?: boolean;
 }
 
@@ -66,6 +67,7 @@ export const AdvancedNumberInput = memo(
 
         onContextMenu,
         inputWidth,
+        inputHeight,
         noRepeatOnBlur = false,
     }: AdvancedNumberInputProps) => {
         const onBlur = noRepeatOnBlur
@@ -100,6 +102,7 @@ export const AdvancedNumberInput = memo(
                     {unit && (
                         <InputLeftAddon
                             borderLeftRadius="md"
+                            h={inputHeight}
                             px={1}
                             w="fit-content"
                         >
@@ -124,6 +127,7 @@ export const AdvancedNumberInput = memo(
                         <NumberInputField
                             borderLeftRadius={unit ? 0 : 'md'}
                             borderRightRadius="md"
+                            h={inputHeight}
                             m={0}
                             p={1}
                             size={1}

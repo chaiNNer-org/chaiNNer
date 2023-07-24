@@ -28,8 +28,9 @@ export const NodesList = memo(
         const { schemata, categories } = useContext(BackendContext);
 
         const filteredSchema = useMemo(() => {
-            if (!searchScores) return schemata.schemata;
-            return schemata.schemata.filter((s) => searchScores.has(s.schemaId));
+            const filtered = schemata.schemata.filter((s) => !s.deprecated);
+            if (!searchScores) return filtered;
+            return filtered.filter((s) => searchScores.has(s.schemaId));
         }, [schemata.schemata, searchScores]);
 
         const byCategories = useMemo(() => getNodesByCategory(filteredSchema), [filteredSchema]);

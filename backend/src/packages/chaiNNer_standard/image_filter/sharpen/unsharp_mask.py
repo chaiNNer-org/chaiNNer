@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import sharpen_group
@@ -17,7 +17,16 @@ from .. import sharpen_group
     icon="MdBlurOff",
     inputs=[
         ImageInput(),
-        NumberInput("Radius", minimum=0, default=3, precision=1, controls_step=1),
+        SliderInput(
+            "Radius",
+            minimum=0,
+            maximum=1000,
+            default=3,
+            precision=1,
+            controls_step=1,
+            slider_step=0.1,
+            scale="log",
+        ),
         SliderInput(
             "Amount",
             minimum=0,
@@ -39,7 +48,7 @@ from .. import sharpen_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def sharpen_node(
+def unsharp_mask_node(
     img: np.ndarray,
     radius: float,
     amount: float,

@@ -11,7 +11,14 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
-import { LINEAR_SCALE, LogScale, Scale, SliderStyle, StyledSlider } from './elements/StyledSlider';
+import {
+    LINEAR_SCALE,
+    LogScale,
+    PowerScale,
+    Scale,
+    SliderStyle,
+    StyledSlider,
+} from './elements/StyledSlider';
 import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -25,6 +32,8 @@ const parseScale = (
             return new LogScale(input.min, input.precision);
         case 'log-offset':
             return new LogScale(input.min + 0.66, input.precision);
+        case 'sqrt':
+            return new PowerScale(0.5, input.min, input.precision);
         default:
             return assertNever(input.scale);
     }
@@ -49,7 +58,7 @@ const computeInputWidthRem = (
 
     const digits = Math.max(wholeNumberDigitsOf(min), wholeNumberDigitsOf(max)) + precision;
     const sign = min < 0 ? 1 : 0;
-    return 1.75 + (digits + sign) * 0.4;
+    return 1.85 + (digits + sign) * 0.4;
 };
 
 export const SliderInput = memo(
@@ -74,10 +83,9 @@ export const SliderInput = memo(
             hideTrailingZeros,
             noteExpression,
             ends,
-            gradient,
         } = input;
 
-        const [inputString, setInputString] = useState(String(value));
+        const [inputString, setInputString] = useState(String(value ?? def));
         const [sliderValue, setSliderValue] = useState(value ?? def);
 
         const precisionOutput = useCallback(
@@ -166,15 +174,14 @@ export const SliderInput = memo(
 
         const scale = useMemo(() => parseScale(input), [input]);
         const sliderStyle = useMemo((): SliderStyle => {
-            if (gradient) {
-                return { type: 'gradient', gradient };
+            if (input.gradient) {
+                return { type: 'gradient', gradient: input.gradient };
             }
             if (!filled) {
                 return { type: 'no-fill' };
             }
-            // TODO: Use the new label design
-            return { type: 'old-label' };
-        }, [gradient, filled]);
+            return { type: 'label', label: input.label };
+        }, [input, filled]);
 
         const slider = (
             <VStack w="full">
@@ -200,6 +207,7 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
+                        inputHeight={sliderStyle.type === 'label' ? '28px' : undefined}
                         inputString={isConnected ? typeNumberString : inputString}
                         inputWidth={`${inputWidthRem}rem`}
                         isDisabled={isLocked || isConnected}

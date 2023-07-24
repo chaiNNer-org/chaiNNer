@@ -34,7 +34,7 @@ from .. import crop_group
         )
     ],
 )
-def border_crop_node(img: np.ndarray, amount: int) -> np.ndarray:
+def crop_border_node(img: np.ndarray, amount: int) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
 
     assert 2 * amount < h, "Cropped area would result in an image with no height"

@@ -37,7 +37,7 @@ from .. import adjustments_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def adaptive_threshold_node(
+def threshold_adaptive_node(
     img: np.ndarray,
     maxval: float,
     adaptive_method: int,

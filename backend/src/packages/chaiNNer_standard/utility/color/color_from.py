@@ -97,7 +97,7 @@ class ColorType(Enum):
         )
     ],
 )
-def color_from(
+def color_from_node(
     color_type: ColorType,
     gray: float,
     red: float,
