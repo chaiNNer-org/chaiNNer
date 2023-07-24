@@ -1,6 +1,7 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
+import math
 import os
 import re
 from dataclasses import dataclass
@@ -28,7 +29,7 @@ def round_half_up(number: Union[float, int]) -> int:
 
     https://en.wikipedia.org/wiki/Rounding#Rounding_to_the_nearest_integer
     """
-    return int(number + 0.5)
+    return math.floor(number + 0.5)
 
 
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
