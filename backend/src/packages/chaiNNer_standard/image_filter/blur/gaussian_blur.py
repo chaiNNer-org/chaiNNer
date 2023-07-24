@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from nodes.groups import linked_inputs_group
 from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -16,25 +17,27 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Radius X",
-            minimum=0,
-            maximum=1000,
-            default=1,
-            precision=1,
-            controls_step=1,
-            slider_step=0.1,
-            scale="log",
-        ),
-        SliderInput(
-            "Radius Y",
-            minimum=0,
-            maximum=1000,
-            default=1,
-            precision=1,
-            controls_step=1,
-            slider_step=0.1,
-            scale="log",
+        linked_inputs_group(
+            SliderInput(
+                "Radius X",
+                minimum=0,
+                maximum=1000,
+                default=1,
+                precision=1,
+                controls_step=1,
+                slider_step=0.1,
+                scale="log",
+            ),
+            SliderInput(
+                "Radius Y",
+                minimum=0,
+                maximum=1000,
+                default=1,
+                precision=1,
+                controls_step=1,
+                slider_step=0.1,
+                scale="log",
+            ),
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],

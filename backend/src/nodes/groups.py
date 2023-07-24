@@ -198,6 +198,17 @@ def optional_list_group(*inputs: BaseInput | NestedGroup):
     can be used to create a similar effect.
 
     See the Text Append node for an example.
-    ```
     """
     return group("optional-list")(*inputs)
+
+
+def linked_inputs_group(*inputs: BaseInput | NestedGroup):
+    """
+    This group wraps around inputs of the same type. It ensures that all inputs have the same
+    value.
+
+    "The same type" here not only refers to the Navi type of those inputs. All possible values
+    from all inputs must also be valid values for all other inputs. This typically necessitates
+    that the inputs are of the same class and use the same parameters.
+    """
+    return group("linked-inputs")(*inputs)
