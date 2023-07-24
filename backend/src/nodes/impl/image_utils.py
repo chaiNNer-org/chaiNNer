@@ -415,7 +415,7 @@ def fast_gaussian_blur(
         img = cv2.resize(img, (w, h), interpolation=cv2.INTER_LINEAR)
 
     if x_up_sigma != 0 or y_up_sigma != 0:
-        # upscale gaussian blur
+        # post blur to smooth out artifacts
         img = cv2.GaussianBlur(
             img,
             (0, 0),
