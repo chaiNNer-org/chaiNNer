@@ -55,7 +55,7 @@ def high_pass_node(
     if radius == 0 or contrast == 0:
         img = img * 0 + 0.5
     else:
-        img = contrast * (img - fast_gaussian_blur(img, radius)) + 0.5
+        img = contrast * (img - fast_gaussian_blur(img, radius)) + 0.5  # type: ignore
 
     if alpha is not None:
         img = np.dstack((img, alpha))

@@ -64,7 +64,7 @@ def unsharp_mask_node(
     if threshold == 0:
         img = cv2.addWeighted(img, amount + 1, blurred, -amount, 0)
     else:
-        diff = img - blurred
+        diff = img - blurred  # type: ignore
         diff = np.sign(diff) * np.maximum(0, np.abs(diff) - threshold)
         img = img + diff * amount
 
