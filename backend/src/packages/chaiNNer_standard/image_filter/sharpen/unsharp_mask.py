@@ -3,6 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
@@ -57,13 +58,13 @@ def unsharp_mask_node(
     if radius == 0 or amount == 0:
         return img
 
-    blurred = cv2.GaussianBlur(img, (0, 0), radius)
+    blurred = fast_gaussian_blur(img, radius)
 
     threshold /= 100
     if threshold == 0:
         img = cv2.addWeighted(img, amount + 1, blurred, -amount, 0)
     else:
-        diff = img - blurred
+        diff = img - blurred  # type: ignore
         diff = np.sign(diff) * np.maximum(0, np.abs(diff) - threshold)
         img = img + diff * amount
 

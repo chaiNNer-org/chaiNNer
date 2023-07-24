@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 import navi
+from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels
 from nodes.impl.normals.height import HeightSource, get_height_map
 from nodes.properties.inputs import (
@@ -128,12 +129,10 @@ def normal_map_generator_node(
 
     if blur_sharp < 0:
         # blur
-        height = cv2.GaussianBlur(
-            height, (0, 0), sigmaX=-blur_sharp, sigmaY=-blur_sharp
-        )
+        height = fast_gaussian_blur(height, -blur_sharp)
     elif blur_sharp > 0:
         # sharpen
-        blurred = cv2.GaussianBlur(height, (0, 0), sigmaX=blur_sharp, sigmaY=blur_sharp)
+        blurred = fast_gaussian_blur(height, blur_sharp)
         height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
 
     if min_z > 0:
