@@ -9,15 +9,17 @@ from sanic.log import logger
 
 from base_types import InputId, OutputId
 from custom_types import NodeType, RunFn
+from node_check import (
+    NAME_CHECK_LEVEL,
+    TYPE_CHECK_LEVEL,
+    CheckFailedError,
+    CheckLevel,
+    check_naming_conventions,
+    check_schema_types,
+)
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from type_checking import (
-    TypeCheckLevel,
-    TypeMismatchError,
-    get_type_check_level,
-    typeValidateSchema,
-)
 
 KB = 1024**1
 MB = 1024**2
@@ -121,22 +123,35 @@ class NodeGroup:
         if isinstance(see_also, str):
             see_also = [see_also]
 
+        def run_check(level: CheckLevel, run: Callable[[bool], None]):
+            if level == CheckLevel.NONE:
+                return
+
+            try:
+                run(level == CheckLevel.FIX)
+            except CheckFailedError as e:
+                full_error_message = f"Error in {schema_id}: {e}"
+                if level == CheckLevel.ERROR:
+                    # pylint: disable=raise-missing-from
+                    raise CheckFailedError(full_error_message)
+                logger.warning(full_error_message)
+
         def inner_wrapper(wrapped_func: T) -> T:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            TYPE_CHECK_LEVEL = get_type_check_level()
-
-            if TYPE_CHECK_LEVEL != TypeCheckLevel.NONE:
-                try:
-                    typeValidateSchema(wrapped_func, node_type, p_inputs, p_outputs)
-                except TypeMismatchError as e:
-                    full_error_message = f"Error in {schema_id}: {e}"
-                    if TYPE_CHECK_LEVEL == TypeCheckLevel.WARN:
-                        logger.warning(full_error_message)
-                    elif TYPE_CHECK_LEVEL == TypeCheckLevel.ERROR:
-                        # pylint: disable=raise-missing-from
-                        raise TypeMismatchError(full_error_message)
+            run_check(
+                TYPE_CHECK_LEVEL,
+                lambda _: check_schema_types(
+                    wrapped_func, node_type, p_inputs, p_outputs
+                ),
+            )
+            run_check(
+                NAME_CHECK_LEVEL,
+                lambda fix: check_naming_conventions(
+                    wrapped_func, node_type, name, fix
+                ),
+            )
 
             if decorators is not None:
                 for decorator in decorators:
@@ -268,7 +283,7 @@ class PackageRegistry:
 
     def load_nodes(self, current_file: str):
         import_errors: List[ImportError] = []
-        type_errors: List[TypeMismatchError] = []
+        failed_checks: List[CheckFailedError] = []
 
         for package in list(self.packages.values()):
             for file_path in _iter_py_files(os.path.dirname(package.where)):
@@ -285,12 +300,12 @@ class PackageRegistry:
                         logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except ValueError as e:
                         logger.warning(f"Failed to load {module} ({file_path}): {e}")
-                    except TypeMismatchError as e:
+                    except CheckFailedError as e:
                         logger.error(e)
-                        type_errors.append(e)
+                        failed_checks.append(e)
 
-        if len(type_errors) > 0:
-            raise RuntimeError(f"Type errors occurred in {len(type_errors)} node(s)")
+        if len(failed_checks) > 0:
+            raise RuntimeError(f"Checks failed in {len(failed_checks)} node(s)")
 
         logger.info(import_errors)
         self._refresh_nodes()

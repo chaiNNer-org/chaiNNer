@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import inspect
 import os
+import pathlib
 from enum import Enum
 from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
@@ -13,28 +14,42 @@ from nodes.base_output import BaseOutput
 _Ty = NewType("_Ty", object)
 
 
-class TypeMismatchError(Exception):
+class CheckFailedError(Exception):
     pass
 
 
-# Enum for type check level
-class TypeCheckLevel(Enum):
+class CheckLevel(Enum):
     NONE = "none"
     WARN = "warn"
+    FIX = "fix"
     ERROR = "error"
 
+    @staticmethod
+    def parse(s: str) -> CheckLevel:
+        s = s.strip().lower()
+        if s == CheckLevel.NONE.value:
+            return CheckLevel.NONE
+        elif s == CheckLevel.WARN.value:
+            return CheckLevel.WARN
+        elif s == CheckLevel.FIX.value:
+            return CheckLevel.FIX
+        elif s == CheckLevel.ERROR.value:
+            return CheckLevel.ERROR
+        else:
+            raise ValueError(f"Invalid check level: {s}")
 
-# If it's stupid but it works, it's not stupid
-def get_type_check_level() -> TypeCheckLevel:
-    type_check_level = os.environ.get("TYPE_CHECK_LEVEL", TypeCheckLevel.NONE.value)
-    if type_check_level.lower() == TypeCheckLevel.NONE.value:
-        return TypeCheckLevel.NONE
-    elif type_check_level.lower() == TypeCheckLevel.WARN.value:
-        return TypeCheckLevel.WARN
-    elif type_check_level.lower() == TypeCheckLevel.ERROR.value:
-        return TypeCheckLevel.ERROR
-    else:
-        return TypeCheckLevel.NONE
+
+def _get_check_level(name: str, default: CheckLevel) -> CheckLevel:
+    try:
+        s = os.environ.get(name, default.value)
+        return CheckLevel.parse(s)
+    except:
+        return default
+
+
+CHECK_LEVEL = _get_check_level("CHECK_LEVEL", CheckLevel.NONE)
+NAME_CHECK_LEVEL = _get_check_level("NAME_CHECK_LEVEL", CHECK_LEVEL)
+TYPE_CHECK_LEVEL = _get_check_level("TYPE_CHECK_LEVEL", CHECK_LEVEL)
 
 
 class TypeTransformer(ast.NodeTransformer):
@@ -120,7 +135,7 @@ def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
 def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
     if len(outputs) == 0:
         if return_type is not None:  # type: ignore
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Return type should be 'None' because there are no outputs"
             )
     elif len(outputs) == 1:
@@ -128,18 +143,18 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
         if o.associated_type is not None and not is_subset_of(
             return_type, o.associated_type
         ):
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
         if not str(return_type).startswith("typing.Tuple["):
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )
 
         return_args = get_args(return_type)
         if len(return_args) != len(outputs):
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Return type '{return_type}' must have the same number of arguments as there are outputs"
             )
 
@@ -147,12 +162,12 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
             if o.associated_type is not None and not is_subset_of(
                 return_arg, o.associated_type
             ):
-                raise TypeMismatchError(
+                raise CheckFailedError(
                     f"Return type of {o.label} '{return_arg}' must be a subset of '{o.associated_type}'"
                 )
 
 
-def typeValidateSchema(
+def check_schema_types(
     wrapped_func: Callable,
     node_type: NodeType,
     inputs: list[BaseInput],
@@ -173,7 +188,7 @@ def typeValidateSchema(
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
         if not arg in ann:
-            raise TypeMismatchError(f"Missing type annotation for '{arg}'")
+            raise CheckFailedError(f"Missing type annotation for '{arg}'")
 
     if node_type == "iteratorHelper":
         # iterator helpers have inputs that do not describe the arguments of the function, so we can't check them
@@ -184,13 +199,13 @@ def typeValidateSchema(
         context = [*ann.keys()][-1]
         context_type = ann.pop(context)
         if str(context_type) != "<class 'process.IteratorContext'>":
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Last argument of an iterator must be an IteratorContext, not '{context_type}'"
             )
 
     if arg_spec.varargs is not None:
         if not arg_spec.varargs in ann:
-            raise TypeMismatchError(f"Missing type annotation for '{arg_spec.varargs}'")
+            raise CheckFailedError(f"Missing type annotation for '{arg_spec.varargs}'")
         va_type = ann.pop(arg_spec.varargs)
 
         # split inputs by varargs and non-varargs
@@ -203,7 +218,7 @@ def typeValidateSchema(
 
             if associated_type is not None:
                 if not is_subset_of(associated_type, va_type):
-                    raise TypeMismatchError(
+                    raise CheckFailedError(
                         f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
                     )
 
@@ -217,17 +232,62 @@ def typeValidateSchema(
         if total is not None:
             total_type = union_types(total)
             if total_type != va_type:
-                raise TypeMismatchError(
+                raise CheckFailedError(
                     f"Varargs type '{va_type}' should be equal to the union of all arguments '{total_type}'"
                 )
 
     if len(ann) != len(inputs):
-        raise TypeMismatchError(
+        raise CheckFailedError(
             f"Number of inputs and arguments don't match: {len(ann)=} != {len(inputs)=}"
         )
     for (a_name, a_type), i in zip(ann.items(), inputs):
         associated_type = i.associated_type
         if associated_type is not None and a_type != associated_type:
-            raise TypeMismatchError(
+            raise CheckFailedError(
                 f"Expected type of {i.label} ({a_name}) to be '{associated_type}' but found '{a_type}'"
             )
+
+
+def check_naming_conventions(
+    wrapped_func: Callable,
+    node_type: NodeType,
+    name: str,
+    fix: bool,
+):
+    expected_name = (
+        name.lower()
+        .replace(" (iterator)", "")
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("&", "and")
+    )
+
+    if node_type == "iteratorHelper":
+        expected_name = "iterator_helper_" + expected_name
+
+    func_name = wrapped_func.__name__
+    file_path = pathlib.Path(inspect.getfile(wrapped_func))
+    file_name = file_path.stem
+
+    # check function name
+    if func_name != expected_name + "_node":
+        if not fix:
+            raise CheckFailedError(
+                f"Function name is '{func_name}', but it should be '{expected_name}_node'"
+            )
+
+        fixed_code = file_path.read_text(encoding="utf-8").replace(
+            f"def {func_name}(", f"def {expected_name}_node("
+        )
+        file_path.write_text(fixed_code, encoding="utf-8")
+
+    # check file name
+    if node_type != "iteratorHelper" and file_name != expected_name:
+        if not fix:
+            raise CheckFailedError(
+                f"File name is '{file_name}.py', but it should be '{expected_name}.py'"
+            )
+
+        os.rename(file_path, file_path.with_name(expected_name + ".py"))
