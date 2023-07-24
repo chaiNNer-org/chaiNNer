@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import cv2
 import numpy as np
 
+from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
@@ -55,7 +55,7 @@ def high_pass_node(
     if radius == 0 or contrast == 0:
         img = img * 0 + 0.5
     else:
-        img = contrast * (img - cv2.GaussianBlur(img, (0, 0), radius)) + 0.5
+        img = contrast * (img - fast_gaussian_blur(img, radius)) + 0.5
 
     if alpha is not None:
         img = np.dstack((img, alpha))

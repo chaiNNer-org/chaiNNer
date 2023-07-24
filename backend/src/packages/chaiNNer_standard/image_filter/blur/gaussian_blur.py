@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import cv2
 import numpy as np
 
+from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
@@ -46,5 +46,5 @@ def gaussian_blur_node(
 ) -> np.ndarray:
     if sigma_x == 0 and sigma_y == 0:
         return img
-    else:
-        return cv2.GaussianBlur(img, (0, 0), sigmaX=sigma_x, sigmaY=sigma_y)
+
+    return fast_gaussian_blur(img, sigma_x, sigma_y)
