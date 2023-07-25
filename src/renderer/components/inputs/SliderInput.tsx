@@ -29,9 +29,9 @@ const parseScale = (
         case 'linear':
             return LINEAR_SCALE;
         case 'log':
-            return new LogScale(input.min, input.precision);
+            return new LogScale(input.min, input.max, input.precision);
         case 'log-offset':
-            return new LogScale(input.min + 0.66, input.precision);
+            return new LogScale(input.min, input.max, input.precision, 0.66);
         case 'sqrt':
             return new PowerScale(0.5, input.min, input.precision);
         default:
