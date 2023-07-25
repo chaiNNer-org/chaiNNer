@@ -213,6 +213,10 @@ interface SeedGroup extends GroupBase {
     readonly kind: 'seed';
     readonly options: Readonly<Record<string, never>>;
 }
+interface LinkedInputsGroup extends GroupBase {
+    readonly kind: 'linked-inputs';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
@@ -220,7 +224,8 @@ export type Group =
     | OptionalListGroup
     | ConditionalGroup
     | RequiredGroup
-    | SeedGroup;
+    | SeedGroup
+    | LinkedInputsGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;
