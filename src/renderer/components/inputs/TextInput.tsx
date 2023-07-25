@@ -10,6 +10,7 @@ import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { DragHandleSVG } from '../CustomIcons';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
@@ -82,6 +83,7 @@ export const TextInput = memo(
         const displayText = isConnected ? typeText : tempText;
 
         const { t } = useTranslation();
+        const refactor = useInputRefactor(nodeId, input, value, isConnected);
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
@@ -110,6 +112,7 @@ export const TextInput = memo(
                 >
                     {t('inputs.text.paste', 'Paste')}
                 </MenuItem>
+                {refactor}
                 <CopyOverrideIdSection
                     inputId={input.id}
                     nodeId={nodeId}

@@ -9,6 +9,7 @@ import { Input, OfKind } from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import {
@@ -143,6 +144,7 @@ export const SliderInput = memo(
         const filled = !expr;
 
         const { t } = useTranslation();
+        const refactor = useInputRefactor(nodeId, input, value, isConnected);
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
@@ -165,6 +167,7 @@ export const SliderInput = memo(
                 >
                     {t('inputs.number.paste', 'Paste')}
                 </MenuItem>
+                {refactor}
                 <CopyOverrideIdSection
                     inputId={input.id}
                     nodeId={nodeId}
