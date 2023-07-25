@@ -6,6 +6,7 @@ export interface JsonObject {
 export type JsonValue = null | string | number | boolean | JsonObject | JsonValue[];
 
 export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export interface Size {
     width: number;

@@ -38,12 +38,16 @@ import {
 import { withoutNull } from '../../common/types/util';
 import {
     EMPTY_SET,
+    ParsedSourceHandle,
+    ParsedTargetHandle,
     createUniqueId,
     deepCopy,
     deriveUniqueId,
     lazy,
     parseSourceHandle,
     parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
 } from '../../common/util';
 import { VALID, Validity, invalid } from '../../common/Validity';
 import {
@@ -122,6 +126,7 @@ interface Global {
     animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
     createNode: (proto: NodeProto, parentId?: string) => void;
+    createEdge: (from: ParsedSourceHandle, to: ParsedTargetHandle) => void;
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
     setNodeInputSize: (nodeId: string, inputId: InputId, value: Readonly<Size>) => void;
@@ -799,6 +804,17 @@ export const GlobalProvider = memo(
             },
             [changeEdges]
         );
+        const createEdge = useCallback(
+            (from: ParsedSourceHandle, to: ParsedTargetHandle): void => {
+                createConnection({
+                    source: from.nodeId,
+                    sourceHandle: stringifySourceHandle(from),
+                    target: to.nodeId,
+                    targetHandle: stringifyTargetHandle(to),
+                });
+            },
+            [createConnection]
+        );
 
         const releaseNodeFromParent = useCallback(
             (id: string) => {
@@ -1351,6 +1367,7 @@ export const GlobalProvider = memo(
             animate,
             unAnimate,
             createNode,
+            createEdge,
             createConnection,
             setNodeInputValue,
             setNodeInputSize,
