@@ -178,13 +178,16 @@ export const SliderInput = memo(
 
         const scale = useMemo(() => parseScale(input), [input]);
         const sliderStyle = useMemo((): SliderStyle => {
+            let { label } = input;
+            if (input.unit) label += ` (${input.unit})`;
+
             if (input.gradient) {
-                return { type: 'label', label: input.label, gradient: input.gradient };
+                return { type: 'label', label, gradient: input.gradient };
             }
             if (!filled) {
                 return { type: 'no-fill' };
             }
-            return { type: 'label', label: input.label };
+            return { type: 'label', label };
         }, [input, filled]);
 
         const slider = (
@@ -222,7 +225,7 @@ export const SliderInput = memo(
                         precision={precision}
                         setInput={setValue}
                         setInputString={onNumberInputChange}
-                        unit={unit}
+                        unit={sliderStyle.type === 'label' ? undefined : unit}
                         onContextMenu={menu.onContextMenu}
                     />
                 </HStack>
