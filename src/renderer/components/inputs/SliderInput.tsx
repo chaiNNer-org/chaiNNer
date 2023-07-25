@@ -19,6 +19,7 @@ import {
     Scale,
     SliderStyle,
     StyledSlider,
+    getSliderHeight,
 } from './elements/StyledSlider';
 import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -178,7 +179,7 @@ export const SliderInput = memo(
         const scale = useMemo(() => parseScale(input), [input]);
         const sliderStyle = useMemo((): SliderStyle => {
             if (input.gradient) {
-                return { type: 'gradient', gradient: input.gradient };
+                return { type: 'label', label: input.label, gradient: input.gradient };
             }
             if (!filled) {
                 return { type: 'no-fill' };
@@ -210,7 +211,9 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputHeight={sliderStyle.type === 'label' ? '28px' : undefined}
+                        inputHeight={
+                            sliderStyle.type === 'label' ? getSliderHeight(sliderStyle) : undefined
+                        }
                         inputString={isConnected ? typeNumberString : inputString}
                         inputWidth={`${inputWidthRem}rem`}
                         isDisabled={isLocked || isConnected}

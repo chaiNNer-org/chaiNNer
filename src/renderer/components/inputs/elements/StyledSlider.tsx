@@ -84,6 +84,7 @@ interface OldLabelStyle {
 interface LabelStyle {
     readonly type: 'label';
     readonly label: string;
+    readonly gradient?: readonly string[];
 }
 interface GradientStyle {
     readonly type: 'gradient';
@@ -97,6 +98,17 @@ interface AlphaStyle {
     readonly color?: string;
 }
 export type SliderStyle = OldLabelStyle | LabelStyle | GradientStyle | NoFillStyle | AlphaStyle;
+
+const getLinearGradient = (gradient: readonly string[]) => {
+    return `linear-gradient(to right, ${gradient.join(', ')})`;
+};
+
+export const getSliderHeight = (style: SliderStyle) => {
+    if (style.type === 'label') {
+        return style.gradient ? '32px' : '28px';
+    }
+    return '1em';
+};
 
 interface StyledSliderProps {
     style: SliderStyle;
@@ -134,7 +146,7 @@ export const StyledSlider = memo(
 
         let customBackground;
         if (style.type === 'gradient') {
-            customBackground = `linear-gradient(to right, ${style.gradient.join(', ')})`;
+            customBackground = getLinearGradient(style.gradient);
         } else if (style.type === 'alpha') {
             customBackground = [
                 `linear-gradient(to right, transparent, ${style.color || 'black'})`,
@@ -149,7 +161,7 @@ export const StyledSlider = memo(
             <Slider
                 defaultValue={scale.toScale(def)}
                 focusThumbOnChange={false}
-                height={style.type === 'label' ? '28px' : '1em'}
+                height={getSliderHeight(style)}
                 isDisabled={isDisabled}
                 max={scale.toScale(max)}
                 min={scale.toScale(min)}
@@ -181,16 +193,46 @@ export const StyledSlider = memo(
                                 w="full"
                                 zIndex={0}
                             />
+                            {style.gradient && (
+                                <>
+                                    <Box
+                                        background={getLinearGradient(style.gradient)}
+                                        border={`1px solid ${borderColor}`}
+                                        borderBottomRadius="md"
+                                        borderTop="none"
+                                        bottom={0}
+                                        cursor="pointer"
+                                        h="4px"
+                                        left={0}
+                                        p="1px"
+                                        position="absolute"
+                                        right={0}
+                                        userSelect="none"
+                                        zIndex={1}
+                                    />
+                                    <Box
+                                        border={`1px solid ${borderColor}`}
+                                        borderRadius="md"
+                                        cursor="pointer"
+                                        h="full"
+                                        position="absolute"
+                                        userSelect="none"
+                                        w="full"
+                                        zIndex={1}
+                                    />
+                                </>
+                            )}
                             <Box
                                 alignItems="center"
                                 cursor="pointer"
                                 display="flex"
                                 h="full"
                                 p="1px"
+                                pb={style.gradient && '3px'}
                                 position="absolute"
                                 userSelect="none"
                                 w="full"
-                                zIndex={1}
+                                zIndex={2}
                             >
                                 <Text
                                     as="span"
