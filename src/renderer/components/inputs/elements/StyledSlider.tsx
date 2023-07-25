@@ -24,18 +24,21 @@ export class LogScale implements Scale {
 
     public readonly precision: number;
 
-    constructor(min: number, max: number, precision: number) {
+    public readonly offset: number;
+
+    constructor(min: number, max: number, precision: number, offset = 0) {
         this.min = min;
         this.max = max;
         this.precision = precision;
+        this.offset = offset;
     }
 
     toScale(value: number): number {
-        return Math.log1p(value - this.min);
+        return Math.log1p(value - (this.min + this.offset));
     }
 
     fromScale(scaledValue: number): number {
-        let value = Math.expm1(scaledValue) + this.min;
+        let value = Math.expm1(scaledValue) + (this.min + this.offset);
 
         // 2 digits of precision
         if (this.min < value && value < this.max) {
