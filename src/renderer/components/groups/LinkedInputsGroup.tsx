@@ -54,11 +54,12 @@ export const LinkedInputsGroup = memo(
               )} to the same value.`;
 
         const linkButtonWidth = 1.4;
-        const linkButtonHeight = 2;
+        const linkButtonHeight = 1.6;
 
         return (
             <HStack
-                position="relative"
+                alignItems="normal"
+                pr={1}
                 spacing={0}
             >
                 <Box w="full">
@@ -70,28 +71,32 @@ export const LinkedInputsGroup = memo(
                         />
                     ))}
                 </Box>
-                <Box pr={2}>
+                <Box
+                    alignItems="center"
+                    display="flex"
+                    position="relative"
+                >
                     <Box
-                        borderColor="white"
+                        borderColor="white white transparent transparent"
                         borderRadius="0 .5rem 0 0"
                         borderStyle="solid"
                         borderWidth="1px 2px 0 0"
                         bottom={`calc(50% + ${linkButtonHeight / 2}rem)`}
-                        opacity={0.5}
+                        opacity={allConnected ? 0.25 : 0.5}
                         position="absolute"
-                        right={`calc(${linkButtonWidth / 2}rem + 0.5rem - 1px)`}
+                        right={`calc(${linkButtonWidth / 2}rem - 1px)`}
                         top=".5rem"
                         w={2}
                     />
                     <Box
-                        borderColor="white"
+                        borderColor="transparent white white transparent"
                         borderRadius="0 0 .5rem 0"
                         borderStyle="solid"
                         borderWidth="0 2px 1px 0"
                         bottom=".5rem"
-                        opacity={0.5}
+                        opacity={allConnected ? 0.25 : 0.5}
                         position="absolute"
-                        right={`calc(${linkButtonWidth / 2}rem + 0.5rem - 1px)`}
+                        right={`calc(${linkButtonWidth / 2}rem - 1px)`}
                         top={`calc(50% + ${linkButtonHeight / 2}rem)`}
                         w={2}
                     />
@@ -106,7 +111,8 @@ export const LinkedInputsGroup = memo(
                     >
                         <IconButton
                             aria-label={label}
-                            h={`${linkButtonHeight}rem`}
+                            className="nodrag"
+                            h="2rem"
                             icon={
                                 linked ? (
                                     <IoMdLink style={{ transform: 'rotate(90deg)' }} />
@@ -116,8 +122,9 @@ export const LinkedInputsGroup = memo(
                             }
                             isDisabled={isLocked || allConnected}
                             minWidth={0}
+                            ml="-0.25rem"
                             size="md"
-                            variant="outline"
+                            variant="ghost"
                             w={`${linkButtonWidth}rem`}
                             onClick={() => {
                                 if (linked) {
