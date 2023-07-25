@@ -202,7 +202,7 @@ def optional_list_group(*inputs: BaseInput | NestedGroup):
     return group("optional-list")(*inputs)
 
 
-def linked_inputs_group(*inputs: BaseInput | NestedGroup):
+def linked_inputs_group(*inputs: BaseInput):
     """
     This group wraps around inputs of the same type. It ensures that all inputs have the same
     value.
