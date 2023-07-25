@@ -16,6 +16,7 @@ import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
@@ -65,6 +66,8 @@ export const DirectoryInput = memo(
 
         const displayDirectory = isConnected ? getDirectoryPath(inputType) : value;
 
+        const refactor = useInputRefactor(nodeId, input, value, isConnected);
+
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
@@ -98,6 +101,7 @@ export const DirectoryInput = memo(
                 >
                     {t('inputs.directory.copyFullDirectoryPath', 'Copy Full Directory Path')}
                 </MenuItem>
+                {refactor}
                 <CopyOverrideIdSection
                     inputId={input.id}
                     nodeId={nodeId}
