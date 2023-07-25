@@ -43,7 +43,7 @@ export const LinkedInputsGroup = memo(
 
         const allConnected = inputs.every((input) => nodeState.connectedInputs.has(input.id));
 
-        const ttLabel = linked
+        const label = linked
             ? `The values of ${joinEnglish(
                   inputs.map((input) => input.label),
                   'and'
@@ -53,8 +53,14 @@ export const LinkedInputsGroup = memo(
                   'and'
               )} to the same value.`;
 
+        const linkButtonWidth = 1.4;
+        const linkButtonHeight = 2;
+
         return (
-            <HStack spacing={0}>
+            <HStack
+                position="relative"
+                spacing={0}
+            >
                 <Box w="full">
                     {inputs.map((item) => (
                         <ItemRenderer
@@ -65,18 +71,42 @@ export const LinkedInputsGroup = memo(
                     ))}
                 </Box>
                 <Box pr={2}>
+                    <Box
+                        borderColor="white"
+                        borderRadius="0 .5rem 0 0"
+                        borderStyle="solid"
+                        borderWidth="1px 2px 0 0"
+                        bottom={`calc(50% + ${linkButtonHeight / 2}rem)`}
+                        opacity={0.5}
+                        position="absolute"
+                        right={`calc(${linkButtonWidth / 2}rem + 0.5rem - 1px)`}
+                        top=".5rem"
+                        w={2}
+                    />
+                    <Box
+                        borderColor="white"
+                        borderRadius="0 0 .5rem 0"
+                        borderStyle="solid"
+                        borderWidth="0 2px 1px 0"
+                        bottom=".5rem"
+                        opacity={0.5}
+                        position="absolute"
+                        right={`calc(${linkButtonWidth / 2}rem + 0.5rem - 1px)`}
+                        top={`calc(50% + ${linkButtonHeight / 2}rem)`}
+                        w={2}
+                    />
                     <Tooltip
                         closeOnClick
                         closeOnPointerDown
                         hasArrow
                         borderRadius={8}
                         isDisabled={isLocked || allConnected}
-                        label={ttLabel}
+                        label={label}
                         openDelay={2000}
                     >
                         <IconButton
-                            aria-label={ttLabel}
-                            h="2rem"
+                            aria-label={label}
+                            h={`${linkButtonHeight}rem`}
                             icon={
                                 linked ? (
                                     <IoMdLink style={{ transform: 'rotate(90deg)' }} />
@@ -88,7 +118,7 @@ export const LinkedInputsGroup = memo(
                             minWidth={0}
                             size="md"
                             variant="outline"
-                            w="1.4rem"
+                            w={`${linkButtonWidth}rem`}
                             onClick={() => {
                                 if (linked) {
                                     // just unlink
