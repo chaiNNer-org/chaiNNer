@@ -20,10 +20,13 @@ export const LINEAR_SCALE: Scale = { toScale: (n) => n, fromScale: (n) => n };
 export class LogScale implements Scale {
     public readonly min: number;
 
+    public readonly max: number;
+
     public readonly precision: number;
 
-    constructor(min: number, precision: number) {
+    constructor(min: number, max: number, precision: number) {
         this.min = min;
+        this.max = max;
         this.precision = precision;
     }
 
@@ -32,7 +35,20 @@ export class LogScale implements Scale {
     }
 
     fromScale(scaledValue: number): number {
-        const value = Math.expm1(scaledValue) + this.min;
+        let value = Math.expm1(scaledValue) + this.min;
+
+        // 2 digits of precision
+        if (this.min < value && value < this.max) {
+            value = Number(value.toExponential(2));
+            if (value > 0) {
+                // we only want 1 fractional digit for numbers between 2*10^k and 10^(k+1)
+                const k = Math.floor(Math.log10(value));
+                if (value >= 2 * 10 ** k) {
+                    value = Number(value.toExponential(1));
+                }
+            }
+        }
+
         return Number(value.toFixed(this.precision));
     }
 }
