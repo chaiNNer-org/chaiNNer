@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
@@ -50,6 +51,7 @@ export const NumberInput = memo(
         const displayString = isConnected ? typeNumberString : inputString;
 
         const { t } = useTranslation();
+        const refactor = useInputRefactor(nodeId, input, value, isConnected);
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
@@ -77,6 +79,7 @@ export const NumberInput = memo(
                 >
                     {t('inputs.number.paste', 'Paste')}
                 </MenuItem>
+                {refactor}
                 <CopyOverrideIdSection
                     inputId={input.id}
                     nodeId={nodeId}

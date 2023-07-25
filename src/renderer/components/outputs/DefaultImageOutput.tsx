@@ -4,7 +4,7 @@ import { BsEyeFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
-import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
+import { createUniqueId, stringifySourceHandle } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
@@ -12,7 +12,7 @@ import { OutputProps } from './props';
 const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
 export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProps) => {
-    const { selectNode, createNode, createConnection } = useContext(GlobalContext);
+    const { selectNode, createNode, createEdge } = useContext(GlobalContext);
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     return (
@@ -78,15 +78,10 @@ export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProp
                             },
                             containingNode.parentNode
                         );
-                        createConnection({
-                            source: id,
-                            sourceHandle,
-                            target: nodeId,
-                            targetHandle: stringifyTargetHandle({
-                                nodeId,
-                                inputId: 0 as InputId,
-                            }),
-                        });
+                        createEdge(
+                            { nodeId: id, outputId: output.id },
+                            { nodeId, inputId: 0 as InputId }
+                        );
                     }
                 }}
             >
