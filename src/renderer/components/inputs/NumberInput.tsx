@@ -8,7 +8,6 @@ import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -80,10 +79,6 @@ export const NumberInput = memo(
                     {t('inputs.number.paste', 'Paste')}
                 </MenuItem>
                 {refactor}
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
             </MenuList>
         ));
 

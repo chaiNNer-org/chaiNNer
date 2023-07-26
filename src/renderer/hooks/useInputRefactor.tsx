@@ -1,6 +1,8 @@
 import { MenuDivider, MenuItem } from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { useTranslation } from 'react-i18next';
 import { CgArrowsExpandUpLeft } from 'react-icons/cg';
+import { MdContentCopy } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import {
@@ -14,8 +16,10 @@ import {
     PartialBy,
     SchemaId,
 } from '../../common/common-types';
+import { createInputOverrideId } from '../../common/input-override';
 import { createUniqueId } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
+import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 
 const valueNodeMap = {
@@ -35,15 +39,17 @@ export const useInputRefactor = (
     const { createNode, createEdge } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
     const { getNode } = useReactFlow<NodeData, EdgeData>();
+    const { isFake } = useContext(FakeNodeContext);
 
     const inputId = input.id;
-    if (nodeId === undefined || inputId === undefined) {
+    if (isFake || nodeId === undefined || inputId === undefined) {
         return null;
     }
 
-    const refactoringOptions: JSX.Element[] = [];
+    const refactoringOptions: (JSX.Element | 'divider')[] = [];
     const specificInput = input as Input;
 
+    // extract value into node
     if (
         specificInput.hasHandle &&
         ((specificInput.kind === 'text' && !specificInput.multiline) ||
@@ -92,11 +98,41 @@ export const useInputRefactor = (
         );
     }
 
-    if (refactoringOptions.length === 0) return null;
+    // copy override id
+    if (
+        specificInput.kind === 'directory' ||
+        specificInput.kind === 'file' ||
+        specificInput.kind === 'text' ||
+        specificInput.kind === 'number' ||
+        specificInput.kind === 'slider'
+    ) {
+        refactoringOptions.push(
+            'divider',
+            <MenuItem
+                icon={<MdContentCopy />}
+                key="copy override"
+                onClick={() => {
+                    clipboard.writeText(createInputOverrideId(nodeId, inputId));
+                }}
+            >
+                {t('inputs.copyInputOverrideId', 'Copy Input Override Id')}
+            </MenuItem>
+        );
+    }
+
+    // handle dividers
+    const finalOptions = refactoringOptions.filter(
+        (o, i) => o !== 'divider' || (i > 0 && refactoringOptions[i - 1] !== 'divider')
+    );
+
+    if (finalOptions.length === 0) return null;
     return (
         <>
             <MenuDivider />
-            {refactoringOptions}
+            {finalOptions.map((o, i) =>
+                // eslint-disable-next-line react/no-array-index-key
+                o === 'divider' ? <MenuDivider key={`divider ${i}`} /> : o
+            )}
         </>
     );
 };

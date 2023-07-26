@@ -2,7 +2,9 @@ import { Box, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
+import { useContext } from 'use-context-selector';
 import { Validity } from '../../common/Validity';
+import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { noContextMenu } from '../hooks/useContextMenu';
 
 export type HandleType = 'input' | 'output';
@@ -12,7 +14,6 @@ interface HandleElementProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     validity: Validity;
     id: string;
-    useFakeHandles: boolean;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -23,9 +24,9 @@ const HandleElement = memo(
         validity,
         type,
         id,
-        useFakeHandles,
         ...props
     }: React.PropsWithChildren<HandleElementProps>) => {
+        const { isFake } = useContext(FakeNodeContext);
         return (
             <Tooltip
                 hasArrow
@@ -42,7 +43,7 @@ const HandleElement = memo(
                 px={2}
                 py={1}
             >
-                {useFakeHandles ? (
+                {isFake ? (
                     <Box
                         bg="#1a192b"
                         border="1px solid white"
@@ -85,7 +86,6 @@ export interface HandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
     connectedColor: string | undefined;
-    useFakeHandles: boolean;
 }
 
 const getBackground = (colors: readonly string[]): string => {
@@ -102,15 +102,7 @@ const getBackground = (colors: readonly string[]): string => {
 };
 
 export const Handle = memo(
-    ({
-        id,
-        type,
-        validity,
-        isValidConnection,
-        handleColors,
-        connectedColor,
-        useFakeHandles,
-    }: HandleProps) => {
+    ({ id, type, validity, isValidConnection, handleColors, connectedColor }: HandleProps) => {
         const isConnected = !!connectedColor;
 
         const connectedBg = 'var(--connection-color)';
@@ -152,7 +144,6 @@ export const Handle = memo(
                     position: 'relative',
                 }}
                 type={type}
-                useFakeHandles={useFakeHandles}
                 validity={validity}
                 onContextMenu={noContextMenu}
             />
