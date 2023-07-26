@@ -27,6 +27,7 @@ const HandleElement = memo(
         ...props
     }: React.PropsWithChildren<HandleElementProps>) => {
         const { isFake } = useContext(FakeNodeContext);
+
         return (
             <Tooltip
                 hasArrow

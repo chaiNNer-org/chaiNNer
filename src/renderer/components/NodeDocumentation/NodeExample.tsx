@@ -104,7 +104,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
     return (
         <Center
             key={selectedSchema.schemaId}
-            // pointerEvents="none"
+            pointerEvents="none"
         >
             <FakeNodeProvider isFake>
                 <Center
