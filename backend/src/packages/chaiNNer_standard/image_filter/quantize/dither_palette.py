@@ -36,7 +36,8 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
 @quantize_group.register(
     schema_id="chainner:image:palette_dither",
     name="Dither (Palette)",
-    description="Apply one of a variety of dithering algorithms using colors from a given palette. (Only the top row of pixels (y=0) of the palette will be used.)",
+    description="Apply one of a variety of dithering algorithms using colors from a given color palette. (Only the top row of pixels (y=0) of the palette will be used.)",
+    see_also="chainner:image:palette_from_image",
     icon="MdShowChart",
     inputs=[
         ImageInput(),

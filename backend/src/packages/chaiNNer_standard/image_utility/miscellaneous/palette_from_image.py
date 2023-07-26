@@ -33,9 +33,14 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
 @miscellaneous_group.register(
     schema_id="chainner:image:palette_from_image",
     name="Palette from Image",
-    description=(
-        "Use an image to create a palette.  A palette is an image with one row."
-    ),
+    description=[
+        "Use an image to create a color palette.",
+        "The color palette is returned as an image with one row (height=1). All colors of the palette are in the top row of the image.",
+    ],
+    see_also=[
+        "chainner:image:lut",
+        "chainner:image:palette_dither",
+    ],
     icon="MdGradient",
     inputs=[
         ImageInput(),
