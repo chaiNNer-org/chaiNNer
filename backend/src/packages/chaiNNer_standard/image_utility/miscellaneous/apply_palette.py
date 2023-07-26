@@ -33,21 +33,22 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
 
 @miscellaneous_group.register(
     schema_id="chainner:image:lut",
-    name="Apply LUT",
+    name="Apply Palette",
     description=(
-        "Apply a look up table (LUT) to a grayscale image."
-        " Only the top row of pixels (y=0) of the LUT will be used to do the look up."
+        "Apply a color palette to a grayscale image."
+        " Only the top row of pixels (y=0) of the palette will be used to do the look up."
     ),
+    see_also="chainner:image:palette_from_image",
     icon="MdGradient",
     inputs=[
         ImageInput(channels=1),
-        ImageInput("LUT"),
+        ImageInput("Palette"),
     ],
     outputs=[
         ImageOutput(image_type=navi.Image(size_as="Input0", channels_as="Input1"))
     ],
 )
-def apply_lut_node(
+def apply_palette_node(
     img: np.ndarray,
     lut: np.ndarray,
 ) -> np.ndarray:
