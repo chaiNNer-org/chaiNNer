@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.properties.inputs import BoolInput, ImageInput, NumberInput
+from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
@@ -16,13 +16,14 @@ from .. import adjustments_group
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
-        NumberInput(
+        SliderInput(
             "Gamma",
             minimum=0.01,
             maximum=100,
             default=1,
             precision=4,
             controls_step=0.1,
+            scale="log",
         ),
         BoolInput("Invert Gamma", default=False),
     ],
