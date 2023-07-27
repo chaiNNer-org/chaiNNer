@@ -1,7 +1,8 @@
-import { EvaluationError, NonNeverType, StructType, Type, isSameType } from '@chainner/navi';
+import { EvaluationError, NonNeverType, Type, isSameType } from '@chainner/navi';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { log } from '../log';
 import { FunctionDefinition, FunctionInstance } from '../types/function';
+import { nullType } from '../types/util';
 import { EMPTY_MAP } from '../util';
 import { EdgeState } from './EdgeState';
 import type { Edge, Node } from 'reactflow';
@@ -95,7 +96,7 @@ export class TypeState {
                         }
 
                         if (inputValue === undefined && definition.inputNullable.has(id)) {
-                            return new StructType('null');
+                            return nullType;
                         }
 
                         return undefined;

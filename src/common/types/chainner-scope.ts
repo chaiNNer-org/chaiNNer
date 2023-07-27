@@ -6,6 +6,7 @@ import {
     SourceDocument,
     Type,
     globalScope,
+    makeScoped,
     parseDefinitions,
 } from '@chainner/navi';
 import { lazy } from '../util';
@@ -151,12 +152,12 @@ intrinsic def parseColorJson(json: string): Color;
 export const getChainnerScope = lazy((): Scope => {
     const builder = new ScopeBuilder('Chainner scope', globalScope);
 
-    const intrinsic: Record<string, (...args: NeverType[]) => Type> = {
-        formatPattern: formatTextPattern,
-        regexReplace,
-        padStart,
-        padEnd,
-        padCenter,
+    const intrinsic: Record<string, (scope: Scope, ...args: NeverType[]) => Type> = {
+        formatPattern: makeScoped(formatTextPattern),
+        regexReplace: makeScoped(regexReplace),
+        padStart: makeScoped(padStart),
+        padEnd: makeScoped(padEnd),
+        padCenter: makeScoped(padCenter),
         splitFilePath,
         parseColorJson,
     };
@@ -167,7 +168,7 @@ export const getChainnerScope = lazy((): Scope => {
             if (!(d.name in intrinsic)) {
                 throw new Error(`Unable to find definition for intrinsic ${d.name}`);
             }
-            const fn = intrinsic[d.name] as (...args: Type[]) => Type;
+            const fn = intrinsic[d.name] as (scope: Scope, ...args: Type[]) => Type;
             builder.add(IntrinsicFunctionDefinition.from(d, fn));
         } else {
             builder.add(d);
