@@ -84,16 +84,16 @@ from .. import modification_group
                 let p2 = transform(w, h);
                 let p3 = transform(0, h);
 
-                let expandWidth = uint & (
+                let expandWidth = int(1..) & (
                     ceil(max(p0.x, p1.x, p2.x, p3.x))
                     - floor(min(p0.x, p1.x, p2.x, p3.x))
                 );
-                let expandHeight = uint & (
+                let expandHeight = int(1..) & (
                     ceil(max(p0.y, p1.y, p2.y, p3.y))
                     - floor(min(p0.y, p1.y, p2.y, p3.y))
                 );
 
-                struct Size { w: number, h: number }
+                struct Size { w: int(1..), h: int(1..) }
                 let imgSize = Size { w: w, h: h };
                 let transformedSize = match Input3 {
                     RotateSizeChange::Crop => imgSize,

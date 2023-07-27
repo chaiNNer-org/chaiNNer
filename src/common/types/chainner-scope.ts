@@ -31,8 +31,8 @@ struct Audio;
 
 struct ImageFile { path: string }
 struct Image {
-    width: uint,
-    height: uint,
+    width: int(1..),
+    height: int(1..),
     channels: int(1..),
 }
 struct Color { channels: int(1..) }

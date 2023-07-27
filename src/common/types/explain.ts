@@ -88,14 +88,9 @@ const explainStruct = (s: StructType, options: ExplainOptions): string | undefin
         const height = s.fields[1].type;
         const channels = s.fields[2].type;
 
-        if (isInt(width, 0) && isInt(height, 0)) {
+        if (isInt(width, 1) && isInt(height, 1)) {
             if (isInt(channels, 1)) return detailed('an image', 'of any size and any colorspace');
             return detailed(formatChannelNumber(channels, 'image'), 'of any size');
-        }
-        if (isInt(width, 1) && isInt(height, 1)) {
-            if (isInt(channels, 1)) return detailed('an non-empty image', 'of any colorspace');
-            const formatted = formatChannelNumber(channels, 'image');
-            if (formatted) return `${formatted} that isn't empty`;
         }
     }
 

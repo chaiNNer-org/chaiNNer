@@ -76,7 +76,14 @@ class ImageOutput(NumPyOutput):
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
 
-        _, _, c = get_h_w_c(value)
+        h, w, c = get_h_w_c(value)
+
+        if h == 0 or w == 0:
+            raise ValueError(
+                f"The output {self.label} returned an empty image (w={w} h={h})."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+            )
 
         if self.channels is not None and c != self.channels:
             expected = format_image_with_channels([self.channels])
