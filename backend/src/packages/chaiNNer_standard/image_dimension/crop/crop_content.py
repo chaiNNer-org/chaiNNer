@@ -11,7 +11,7 @@ from .. import crop_group
 
 @crop_group.register(
     schema_id="chainner:image:crop_content",
-    name="Crop (Content)",
+    name="Crop Content",
     description=(
         "Crop an image to the boundaries of the visible image content, "
         "removing borders at or below the given opacity threshold."
