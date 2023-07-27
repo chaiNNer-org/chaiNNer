@@ -11,7 +11,6 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import {
     LINEAR_SCALE,
     LogScale,
@@ -169,10 +168,6 @@ export const SliderInput = memo(
                     {t('inputs.number.paste', 'Paste')}
                 </MenuItem>
                 {refactor}
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
             </MenuList>
         ));
 

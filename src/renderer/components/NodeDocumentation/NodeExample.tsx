@@ -17,6 +17,7 @@ import { DisabledStatus } from '../../../common/nodes/disabled';
 import { TypeState } from '../../../common/nodes/TypeState';
 import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
+import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
 import { TypeInfo, testInputConditionTypeInfo } from '../../helpers/nodeState';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
@@ -117,59 +118,60 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
 
     return (
         <Center key={selectedSchema.schemaId}>
-            <Center
-                bg="var(--node-bg-color)"
-                borderColor="var(--node-border-color)"
-                borderRadius="lg"
-                borderWidth="0.5px"
-                boxShadow="lg"
-                minWidth="240px"
-                overflow="hidden"
-                transition="0.15s ease-in-out"
-            >
-                <VStack
-                    spacing={0}
-                    w="full"
+            <FakeNodeProvider isFake>
+                <Center
+                    bg="var(--node-bg-color)"
+                    borderColor="var(--node-border-color)"
+                    borderRadius="lg"
+                    borderWidth="0.5px"
+                    boxShadow="lg"
+                    minWidth="240px"
+                    overflow="hidden"
+                    transition="0.15s ease-in-out"
                 >
                     <VStack
                         spacing={0}
                         w="full"
                     >
-                        <NodeHeader
-                            accentColor={accentColor}
-                            disabledStatus={DisabledStatus.Enabled}
-                            icon={selectedSchema.icon}
-                            name={selectedSchema.name}
-                            parentNode={undefined}
-                            selected={false}
-                        />
-                        <NodeBody
+                        <VStack
+                            spacing={0}
+                            w="full"
+                        >
+                            <NodeHeader
+                                accentColor={accentColor}
+                                disabledStatus={DisabledStatus.Enabled}
+                                icon={selectedSchema.icon}
+                                name={selectedSchema.name}
+                                parentNode={undefined}
+                                selected={false}
+                            />
+                            <NodeBody
+                                animated={false}
+                                nodeState={{
+                                    id: nodeId,
+                                    schemaId: selectedSchema.schemaId,
+                                    schema: selectedSchema,
+                                    inputData,
+                                    setInputValue,
+                                    inputSize,
+                                    setInputSize: setSingleInputSize,
+                                    isLocked: false,
+                                    connectedInputs: EMPTY_SET,
+                                    connectedOutputs: EMPTY_SET,
+                                    type: typeInfo,
+                                    testCondition: (condition: Condition): boolean =>
+                                        testInputConditionTypeInfo(condition, inputData, typeInfo),
+                                }}
+                            />
+                        </VStack>
+                        <NodeFooter
                             animated={false}
-                            nodeState={{
-                                id: nodeId,
-                                schemaId: selectedSchema.schemaId,
-                                schema: selectedSchema,
-                                inputData,
-                                setInputValue,
-                                inputSize,
-                                setInputSize: setSingleInputSize,
-                                isLocked: false,
-                                connectedInputs: EMPTY_SET,
-                                connectedOutputs: EMPTY_SET,
-                                type: typeInfo,
-                                testCondition: (condition: Condition): boolean =>
-                                    testInputConditionTypeInfo(condition, inputData, typeInfo),
-                                useFakeHandles: true,
-                            }}
+                            id={nodeId}
+                            validity={validity}
                         />
                     </VStack>
-                    <NodeFooter
-                        animated={false}
-                        id={nodeId}
-                        validity={validity}
-                    />
-                </VStack>
-            </Center>
+                </Center>
+            </FakeNodeProvider>
         </Center>
     );
 });

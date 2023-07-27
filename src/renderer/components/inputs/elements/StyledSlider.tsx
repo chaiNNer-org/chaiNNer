@@ -254,6 +254,17 @@ export const StyledSlider = memo(
                                 bg={borderColor}
                                 cursor="pointer"
                             />
+                            <SliderFilledTrack
+                                bg="transparent"
+                                borderRight={
+                                    min < value && value < max
+                                        ? `1px solid ${textColor}`
+                                        : undefined
+                                }
+                                cursor="pointer"
+                                opacity={0.5}
+                                zIndex={3}
+                            />
                         </>
                     )}
                     {style.type === 'old-label' && (
