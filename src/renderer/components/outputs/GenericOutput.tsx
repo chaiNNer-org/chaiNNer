@@ -27,6 +27,7 @@ export const GenericOutput = memo(({ output, type }: OutputProps) => {
                 marginInlineEnd="0.5rem"
                 ml={1}
                 textAlign="right"
+                whiteSpace="nowrap"
             >
                 {output.label}
             </Text>
