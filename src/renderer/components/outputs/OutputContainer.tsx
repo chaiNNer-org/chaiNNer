@@ -18,7 +18,6 @@ interface OutputContainerProps {
     type: Type | undefined;
     generic: boolean;
     isConnected: boolean;
-    useFakeHandles: boolean;
 }
 
 export const OutputContainer = memo(
@@ -30,7 +29,6 @@ export const OutputContainer = memo(
         type,
         generic,
         isConnected,
-        useFakeHandles,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
@@ -79,7 +77,6 @@ export const OutputContainer = memo(
                             id={sourceHandle}
                             isValidConnection={isValidConnectionForRf}
                             type="output"
-                            useFakeHandles={useFakeHandles}
                             validity={validity}
                         />
                     </Center>

@@ -12,7 +12,6 @@ import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { DragHandleSVG } from '../CustomIcons';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -113,10 +112,6 @@ export const TextInput = memo(
                     {t('inputs.text.paste', 'Paste')}
                 </MenuItem>
                 {refactor}
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
             </MenuList>
         ));
 

@@ -5,6 +5,7 @@ import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
 import { createUniqueId, stringifySourceHandle } from '../../../common/util';
+import { FakeNodeContext } from '../../contexts/FakeExampleContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
@@ -14,6 +15,7 @@ const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProps) => {
     const { selectNode, createNode, createEdge } = useContext(GlobalContext);
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { isFake } = useContext(FakeNodeContext);
 
     return (
         <Flex
@@ -39,6 +41,8 @@ export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProp
                 transition="0.15s ease-in-out"
                 w="1.75rem"
                 onClick={() => {
+                    if (isFake) return;
+
                     const byId = new Map(getNodes().map((n) => [n.id, n]));
 
                     const sourceHandle = stringifySourceHandle({ nodeId: id, outputId: output.id });

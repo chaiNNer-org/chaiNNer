@@ -18,7 +18,6 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -102,10 +101,6 @@ export const DirectoryInput = memo(
                     {t('inputs.directory.copyFullDirectoryPath', 'Copy Full Directory Path')}
                 </MenuItem>
                 {refactor}
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
             </MenuList>
         ));
 
