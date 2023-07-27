@@ -202,3 +202,7 @@ body {
         margin-bottom: 0 !important;
     }
 }
+
+.chakra-modal__overlay ~ .chakra-portal > .chakra-popover__popper:has(> .chainner-color-selector) {
+    z-index: 10000 !important;
+}
