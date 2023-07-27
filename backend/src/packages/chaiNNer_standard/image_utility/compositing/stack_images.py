@@ -101,13 +101,13 @@ class Orientation(Enum):
                 def getAdjustedWidth(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(i.width * maxHeight / i.height)
+                        _ as i => int(1..) & round(i.width * maxHeight / i.height)
                     }
                 }
                 def getAdjustedHeight(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(i.height * maxWidth / i.width)
+                        _ as i => int(1..) & round(i.height * maxWidth / i.width)
                     }
                 }
 

@@ -84,11 +84,11 @@ from .. import modification_group
                 let p2 = transform(w, h);
                 let p3 = transform(0, h);
 
-                let expandWidth = uint & (
+                let expandWidth = Image.width & (
                     ceil(max(p0.x, p1.x, p2.x, p3.x))
                     - floor(min(p0.x, p1.x, p2.x, p3.x))
                 );
-                let expandHeight = uint & (
+                let expandHeight = Image.height & (
                     ceil(max(p0.y, p1.y, p2.y, p3.y))
                     - floor(min(p0.y, p1.y, p2.y, p3.y))
                 );

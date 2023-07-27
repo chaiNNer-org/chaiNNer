@@ -28,8 +28,8 @@ from . import node_group
             image_type="""
                 let anyImages = bool::or(Input0 == Image, Input1 == Image, Input2 == Image, Input3 == Image);
 
-                def getWidth(i: any) = match i { Image => i.width, _ => uint };
-                def getHeight(i: any) = match i { Image => i.height, _ => uint };
+                def getWidth(i: any) = match i { Image => i.width, _ => Image.width };
+                def getHeight(i: any) = match i { Image => i.height, _ => Image.height };
 
                 let valid = if anyImages { any } else { never };
 
