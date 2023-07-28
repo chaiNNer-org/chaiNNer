@@ -1,4 +1,5 @@
 import {
+    Bounds,
     Expression,
     FieldAccessExpression,
     FunctionCallExpression,
@@ -94,75 +95,11 @@ export interface MatchExpressionJson {
     arms: MatchArmJson[];
 }
 
-const toNumberJson = (number: number): NumberJson => {
-    if (Number.isNaN(number)) return 'NaN';
-    if (number === Infinity) return 'inf';
-    if (number === -Infinity) return '-inf';
-    return number;
-};
 const fromNumberJson = (number: NumberJson): number => {
     if (number === 'NaN') return NaN;
     if (number === 'inf') return Infinity;
     if (number === '-inf') return -Infinity;
     return number;
-};
-
-export const toJson = (e: Expression): ExpressionJson => {
-    switch (e.type) {
-        case 'any':
-            return 'any';
-        case 'never':
-            return 'never';
-        case 'number':
-            return 'number';
-        case 'string':
-            return 'string';
-        case 'interval':
-            return { type: 'interval', min: toNumberJson(e.min), max: toNumberJson(e.max) };
-        case 'int-interval':
-            return { type: 'int-interval', min: toNumberJson(e.min), max: toNumberJson(e.max) };
-        case 'literal':
-            if (e.underlying === 'number') {
-                return { type: 'numeric-literal', value: toNumberJson(e.value) };
-            }
-            return { type: 'string-literal', value: e.value };
-        case 'union':
-            return { type: 'union', items: e.items.map(toJson) };
-        case 'intersection':
-            return { type: 'intersection', items: e.items.map(toJson) };
-        case 'struct':
-            return {
-                type: 'named',
-                name: e.name,
-                fields: Object.fromEntries(e.fields.map((f) => [e.name, toJson(f.type)])),
-            };
-        case 'named':
-            return {
-                type: 'named',
-                name: e.name,
-            };
-        case 'field-access':
-            return { type: 'field-access', of: toJson(e.of), field: e.field };
-        case 'function-call':
-            return { type: 'function-call', name: e.functionName, args: e.args.map(toJson) };
-        case 'match': {
-            return {
-                type: 'match',
-                of: toJson(e.of),
-                arms: e.arms.map((a) => ({
-                    pattern: toJson(a.pattern),
-                    binding: a.binding,
-                    to: toJson(a.to),
-                })),
-            };
-        }
-        case 'scope':
-            throw new Error('Converting scoped expressions to JSON is currently not supported.');
-        case 'inverted-set':
-            throw new Error('Converting scoped expressions to JSON is currently not supported.');
-        default:
-            return assertNever(e);
-    }
 };
 
 export const fromJson = (e: ExpressionJson): Expression => {
@@ -186,7 +123,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'string-literal':
             return new StringLiteralType(e.value);
         case 'interval':
-            return new IntervalType(fromNumberJson(e.min), fromNumberJson(e.max));
+            return new IntervalType(fromNumberJson(e.min), fromNumberJson(e.max), Bounds.Inclusive);
         case 'int-interval':
             return new IntIntervalType(fromNumberJson(e.min), fromNumberJson(e.max));
         case 'union':

@@ -1,8 +1,14 @@
-import { NeverType, Type, isNumericLiteral, isStringLiteral } from '@chainner/navi';
+import {
+    NeverType,
+    Type,
+    isNumericLiteral,
+    isStringLiteral,
+    isStructInstance,
+} from '@chainner/navi';
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getField, isColor, isDirectory, isImage, withoutNull } from '../../common/types/util';
+import { getFields, isColor, isDirectory, isImage, withoutNull } from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -28,68 +34,68 @@ const getTypeText = (type: Type): TagValue[] => {
     if (isStringLiteral(type)) return [{ kind: 'string', value: type.value }];
 
     const tags: TagValue[] = [];
-    if (type.type === 'struct') {
-        if (isImage(type)) {
-            const [width, height, channels] = type.fields;
-            if (isNumericLiteral(width.type) && isNumericLiteral(height.type)) {
-                tags.push({
-                    kind: 'literal',
-                    value: `${width.type.toString()}x${height.type.toString()}`,
-                });
-            }
-            if (isNumericLiteral(channels.type)) {
-                const mode = getColorMode(channels.type.value);
-                if (mode) {
-                    tags.push({ kind: 'literal', value: mode });
-                }
+    if (isImage(type)) {
+        const { width, height, channels } = getFields(type);
+        if (isNumericLiteral(width) && isNumericLiteral(height)) {
+            tags.push({
+                kind: 'literal',
+                value: `${width.toString()}x${height.toString()}`,
+            });
+        }
+        if (isNumericLiteral(channels)) {
+            const mode = getColorMode(channels.value);
+            if (mode) {
+                tags.push({ kind: 'literal', value: mode });
             }
         }
+    }
 
-        if (isColor(type)) {
-            const [channels] = type.fields;
-            if (isNumericLiteral(channels.type)) {
-                const mode = getColorMode(channels.type.value);
-                if (mode) {
-                    tags.push({ kind: 'literal', value: mode });
-                }
+    if (isColor(type)) {
+        const { channels } = getFields(type);
+        if (isNumericLiteral(channels)) {
+            const mode = getColorMode(channels.value);
+            if (mode) {
+                tags.push({ kind: 'literal', value: mode });
             }
         }
+    }
 
-        if (isDirectory(type)) {
-            const [path] = type.fields;
-
-            if (isStringLiteral(path.type)) {
-                tags.push({ kind: 'path', value: path.type.value });
-            }
+    if (isDirectory(type)) {
+        const { path } = getFields(type);
+        if (isStringLiteral(path)) {
+            tags.push({ kind: 'path', value: path.value });
         }
+    }
 
+    if (isStructInstance(type)) {
         if (
-            type.name === 'PyTorchModel' ||
-            type.name === 'NcnnNetwork' ||
-            type.name === 'OnnxModel'
+            type.descriptor.name === 'PyTorchModel' ||
+            type.descriptor.name === 'NcnnNetwork' ||
+            type.descriptor.name === 'OnnxModel'
         ) {
-            const scale = getField(type, 'scale') ?? NeverType.instance;
+            const scale = type.getField('scale') ?? NeverType.instance;
             if (isNumericLiteral(scale)) {
                 tags.push({ kind: 'literal', value: `${scale.toString()}x` });
             }
-            const subType = getField(type, 'subType') ?? NeverType.instance;
+            const subType = type.getField('subType') ?? NeverType.instance;
             if (isStringLiteral(subType)) {
                 tags.push({ kind: 'literal', value: subType.value });
             }
         }
     }
+
     if (type.type === 'union') {
         if (type.items.length === 2) {
             const [color, image] = type.items;
             if (isColor(color) && isImage(image)) {
-                const colorChannels = color.fields[0];
-                const imageChannels = image.fields[2];
+                const colorChannels = getFields(color).channels;
+                const imageChannels = getFields(image).channels;
                 if (
-                    isNumericLiteral(colorChannels.type) &&
-                    isNumericLiteral(imageChannels.type) &&
-                    colorChannels.type.value === imageChannels.type.value
+                    isNumericLiteral(colorChannels) &&
+                    isNumericLiteral(imageChannels) &&
+                    colorChannels.value === imageChannels.value
                 ) {
-                    const mode = getColorMode(colorChannels.type.value);
+                    const mode = getColorMode(colorChannels.value);
                     if (mode) {
                         tags.push({ kind: 'literal', value: mode });
                     }
