@@ -1,9 +1,11 @@
 import { Code, Link, Text } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
+import { shell } from 'electron';
 import { memo } from 'react';
 import { Components } from 'react-markdown';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
+import { log } from '../../../common/log';
 import { BackendContext } from '../../contexts/BackendContext';
 import { SupportHighlighting } from './HighlightContainer';
 import { SchemaLink } from './SchemaLink';
@@ -28,8 +30,14 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                 <Link
                     isExternal
                     href={href}
-                    textColor={interactive && href ? 'blue.500' : 'inherit'}
+                    textColor={interactive && href ? 'var(--link-color)' : 'inherit'}
                     textDecoration={interactive && href ? 'underline' : 'inherit'}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        if (interactive && href) {
+                            shell.openExternal(href).catch(log.error);
+                        }
+                    }}
                 >
                     {children}
                 </Link>
