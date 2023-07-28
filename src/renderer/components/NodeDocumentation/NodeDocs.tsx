@@ -54,7 +54,7 @@ const TypeView = memo(({ type }: TypeViewProps) => {
                 userSelect="text"
                 whiteSpace="pre-line"
             >
-                {prettyPrintType(type)}
+                {prettyPrintType(type, { omitDefaultFields: true })}
             </Code>
         </Tooltip>
     );
