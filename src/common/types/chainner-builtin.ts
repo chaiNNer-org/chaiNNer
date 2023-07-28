@@ -1,21 +1,22 @@
 import {
     Arg,
     Int,
-    IntIntervalType,
     Intrinsic,
     NeverType,
     NumberPrimitive,
     StringLiteralType,
     StringPrimitive,
     StringType,
+    StructInstanceType,
     StructType,
-    StructTypeField,
+    createInstance,
+    getStructDescriptor,
     handleNumberLiterals,
     intersect,
     literal,
     wrapQuaternary,
+    wrapScopedUnary,
     wrapTernary,
-    wrapUnary,
 } from '@chainner/navi';
 import path from 'path';
 import { ColorJson } from '../common-types';
@@ -386,48 +387,46 @@ export const padCenter = wrapTernary<StringPrimitive, Int, StringPrimitive, Stri
     }
 );
 
-export const splitFilePath = wrapUnary<StringPrimitive, StructType>((filePath: StringPrimitive) => {
-    if (filePath.type === 'literal') {
-        const base = path.basename(filePath.value);
-        const ext = path.extname(base);
-        const basename = ext ? base.slice(0, -ext.length) : base;
-        return new StructType('SplitFilePath', [
-            new StructTypeField(
-                'dir',
-                new StructType('Directory', [
-                    new StructTypeField('path', literal(path.dirname(filePath.value))),
-                ])
-            ),
-            new StructTypeField('basename', literal(basename)),
-            new StructTypeField('ext', literal(ext)),
-        ]);
-    }
-    return new StructType('SplitFilePath', [
-        new StructTypeField(
-            'dir',
-            new StructType('Directory', [new StructTypeField('path', StringType.instance)])
-        ),
-        new StructTypeField('basename', StringType.instance),
-        new StructTypeField('ext', StringType.instance),
-    ]);
-});
+export const splitFilePath = wrapScopedUnary(
+    (scope, filePath: StringPrimitive): StructInstanceType => {
+        const splitFilePathDesc = getStructDescriptor(scope, 'SplitFilePath');
+        const directoryDesc = getStructDescriptor(scope, 'Directory');
 
-export const parseColorJson = wrapUnary<StringPrimitive, StructType>((json) => {
-    if (json.type === 'literal') {
-        try {
-            const value = JSON.parse(json.value) as unknown;
-            if (value && typeof value === 'object' && 'kind' in value && 'values' in value) {
-                const color = value as ColorJson;
-                return new StructType('Color', [
-                    new StructTypeField('channels', literal(color.values.length)),
-                ]);
-            }
-        } catch {
-            // noop
+        if (filePath.type === 'literal') {
+            const base = path.basename(filePath.value);
+            const ext = path.extname(base);
+            const basename = ext ? base.slice(0, -ext.length) : base;
+
+            return createInstance(splitFilePathDesc, {
+                dir: createInstance(directoryDesc, {
+                    path: literal(path.dirname(filePath.value)),
+                }),
+                basename: literal(basename),
+                ext: literal(ext),
+            });
         }
-        return NeverType.instance;
+        return createInstance(splitFilePathDesc);
     }
-    return new StructType('Color', [
-        new StructTypeField('channels', new IntIntervalType(1, Infinity)),
-    ]);
-});
+);
+
+export const parseColorJson = wrapScopedUnary(
+    (scope, json: StringPrimitive): Arg<StructInstanceType> => {
+        const colorDesc = getStructDescriptor(scope, 'Color');
+
+        if (json.type === 'literal') {
+            try {
+                const value = JSON.parse(json.value) as unknown;
+                if (value && typeof value === 'object' && 'kind' in value && 'values' in value) {
+                    const color = value as ColorJson;
+                    return createInstance(colorDesc, {
+                        channels: literal(color.values.length),
+                    });
+                }
+            } catch {
+                // noop
+            }
+            return NeverType.instance;
+        }
+        return createInstance(colorDesc);
+    }
+);

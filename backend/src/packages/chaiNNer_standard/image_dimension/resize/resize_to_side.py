@@ -135,25 +135,25 @@ def resize_to_side_conditional(
                     SideSelection::Width => if compareCondition(w) { same } else {
                         Size {
                             width: target,
-                            height: max(int & round((target / w) * h), 1)
+                            height: max(round((target / w) * h), 1)
                         }
                     },
                     SideSelection::Height => if compareCondition(h) { same } else {
                         Size {
-                            width: max(int & round((target / h) * w), 1),
+                            width: max(round((target / h) * w), 1),
                             height: target
                         }
                     },
                     SideSelection::ShorterSide => if compareCondition(min(h, w)) { same } else {
                         Size {
-                            width: max(int & round((target / min(h, w)) * w), 1),
-                            height: max(int & round((target / min(h, w)) * h), 1)
+                            width: max(round((target / min(h, w)) * w), 1),
+                            height: max(round((target / min(h, w)) * h), 1)
                         }
                     },
                     SideSelection::LongerSide => if compareCondition(max(h, w)) { same } else {
                         Size {
-                            width: max(int & round((target / max(h, w)) * w), 1),
-                            height: max(int & round((target / max(h, w)) * h), 1)
+                            width: max(round((target / max(h, w)) * w), 1),
+                            height: max(round((target / max(h, w)) * h), 1)
                         }
                     },
                 };
