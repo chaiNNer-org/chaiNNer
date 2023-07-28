@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
+from typing import Awaitable, Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
 
 from sanic.log import logger
 
@@ -83,6 +83,7 @@ class NodeData:
     side_effects: bool
     deprecated: bool
     default_nodes: List[DefaultNode] | None  # For iterators only
+    features: List[str]
 
     run: RunFn
 
@@ -114,14 +115,20 @@ class NodeGroup:
         default_nodes: List[DefaultNode] | None = None,
         decorators: List[Callable] | None = None,
         see_also: List[str] | str | None = None,
+        features: List[str] | str | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
 
-        if see_also is None:
-            see_also = []
-        if isinstance(see_also, str):
-            see_also = [see_also]
+        def to_list(x: List[str] | str | None) -> List[str]:
+            if x is None:
+                return []
+            if isinstance(x, str):
+                return [x]
+            return x
+
+        see_also = to_list(see_also)
+        features = to_list(features)
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
@@ -170,6 +177,7 @@ class NodeGroup:
                 side_effects=side_effects,
                 deprecated=deprecated,
                 default_nodes=default_nodes,
+                features=features,
                 run=wrapped_func,
             )
 
@@ -227,12 +235,28 @@ class Dependency:
 
 
 @dataclass
+class Feature:
+    id: str
+    name: str
+    description: str
+    check: Callable[[], Awaitable[bool]]
+
+    def toDict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
+
+
+@dataclass
 class Package:
     where: str
     name: str
     description: str
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
+    features: List[Feature] = field(default_factory=list)
 
     def add_category(
         self,
@@ -331,6 +355,18 @@ registry = PackageRegistry()
 
 
 def add_package(
-    where: str, name: str, description: str, dependencies: List[Dependency]
+    where: str,
+    name: str,
+    description: str,
+    dependencies: List[Dependency] | None = None,
+    features: List[Feature] | None = None,
 ) -> Package:
-    return registry.add(Package(where, name, description, dependencies))
+    return registry.add(
+        Package(
+            where,
+            name,
+            description,
+            dependencies=dependencies or [],
+            features=features or [],
+        )
+    )

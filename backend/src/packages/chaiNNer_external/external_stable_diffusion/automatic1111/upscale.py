@@ -5,14 +5,6 @@ from enum import Enum
 import numpy as np
 
 from nodes.groups import Condition, if_enum_group, if_group
-from nodes.impl.external_stable_diffusion import (
-    STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH,
-    decode_base64_image,
-    encode_base64_image,
-    get_upscalers,
-    post,
-    verify_api_connection,
-)
 from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
@@ -24,6 +16,14 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
+from ...web_ui import (
+    STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH,
+    decode_base64_image,
+    encode_base64_image,
+    get_upscalers,
+    post,
+    verify_api_connection,
+)
 from .. import auto1111_group
 
 verify_api_connection()
@@ -129,6 +129,7 @@ UPSCALER_MODE_LABELS = {
         )
     ],
     decorators=[cached],
+    features="webui",
 )
 def upscale_node(
     image: np.ndarray,

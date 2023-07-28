@@ -13,8 +13,8 @@ import requests
 from PIL import Image
 from sanic.log import logger
 
-from ..utils.utils import get_h_w_c
-from .image_utils import normalize, to_uint8
+from nodes.impl.image_utils import normalize, to_uint8
+from nodes.utils.utils import get_h_w_c
 
 STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
 STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
@@ -36,29 +36,9 @@ def _stable_diffusion_url(path):
     return f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}{path}"
 
 
-INFO_MSG = f"""
-If you want to use external stable diffusion nodes, run the Automatic1111 web ui with the --api flag, like so:
-
-./webui.sh --api
-
-To manually set where ChaiNNer looks for the API, use the
-STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_HOST, and STABLE_DIFFUSION_PORT
-environment variables.
-"""
-
-TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
-
-
-class ExternalServiceHTTPError(Exception):
-    pass
-
-
-class ExternalServiceConnectionError(Exception):
-    pass
-
-
-class ExternalServiceTimeout(Exception):
-    pass
+def check_connection() -> bool:
+    _auto_detect_endpoint()
+    return True
 
 
 def _auto_detect_endpoint(timeout=0.5):
@@ -85,6 +65,21 @@ def _auto_detect_endpoint(timeout=0.5):
         raise RuntimeError(INFO_MSG) from last_error
     else:
         raise RuntimeError
+
+
+TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+
+
+class ExternalServiceHTTPError(Exception):
+    pass
+
+
+class ExternalServiceConnectionError(Exception):
+    pass
+
+
+class ExternalServiceTimeout(Exception):
+    pass
 
 
 def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
@@ -128,22 +123,6 @@ def nearest_valid_size(width, height):
 
 
 has_api_connection: Union[bool, None] = None
-
-
-def verify_api_connection():
-    """
-    This function will throw if the stable diffusion API service is unavailable.
-
-    Call this function at import time if you want to make certain node available only when the API is up.
-    """
-    global has_api_connection  # pylint: disable=global-statement
-    if has_api_connection is None:
-        has_api_connection = False
-        _auto_detect_endpoint()
-        has_api_connection = True
-
-    if not has_api_connection:
-        raise ValueError("Cannot connect to stable diffusion API service.")
 
 
 def get_upscalers():
