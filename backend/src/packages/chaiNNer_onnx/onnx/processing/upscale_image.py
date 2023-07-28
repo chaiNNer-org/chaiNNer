@@ -10,7 +10,11 @@ from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.session import get_onnx_session
 from nodes.impl.onnx.utils import get_input_shape, get_output_shape
-from nodes.impl.upscale.auto_split_tiles import TileSize, parse_tile_size_input
+from nodes.impl.upscale.auto_split_tiles import (
+    TILE_SIZE_256,
+    TileSize,
+    parse_tile_size_input,
+)
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import ExactTileSize
 from nodes.properties.inputs import ImageInput, OnnxGenericModelInput, TileSizeDropdown
@@ -50,7 +54,7 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         OnnxGenericModelInput().with_id(0),
-        TileSizeDropdown(estimate=False)
+        TileSizeDropdown(estimate=False, default=TILE_SIZE_256)
         .with_id(2)
         .with_docs(
             "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
