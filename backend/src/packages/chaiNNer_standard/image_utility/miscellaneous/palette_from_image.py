@@ -38,6 +38,7 @@ MAX_COLORS = 4096
     description=[
         "Use an image to create a color palette.",
         "The color palette is returned as an image with one row (height=1). All colors of the palette are in the top row of the image.",
+        f'*Note:* The "{PALETTE_EXTRACTION_METHOD_LABELS[PaletteExtractionMethod.ALL]}" option only supports images with at most {MAX_COLORS} distinct colors. If the image has more colors, an error will occur.',
     ],
     see_also=[
         "chainner:image:lut",
