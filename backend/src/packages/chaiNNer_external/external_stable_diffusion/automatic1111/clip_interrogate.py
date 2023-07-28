@@ -30,7 +30,7 @@ verify_api_connection()
     ],
     decorators=[cached],
 )
-def interrograte_node(image: np.ndarray) -> str:
+def clip_interrogate_node(image: np.ndarray) -> str:
     request_data = {
         "image": encode_base64_image(image),
     }
