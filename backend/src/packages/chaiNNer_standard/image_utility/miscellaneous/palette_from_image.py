@@ -29,6 +29,8 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
     PaletteExtractionMethod.MEDIAN_CUT: "Median cut",
 }
 
+MAX_COLORS = 4096
+
 
 @miscellaneous_group.register(
     schema_id="chainner:image:palette_from_image",
@@ -53,7 +55,9 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
             1,
             (PaletteExtractionMethod.KMEANS, PaletteExtractionMethod.MEDIAN_CUT),
         )(
-            NumberInput("Palette Size", minimum=2, default=8).with_id(2),
+            NumberInput(
+                "Palette Size", minimum=2, maximum=MAX_COLORS, default=8
+            ).with_id(2),
         ),
     ],
     outputs=[
@@ -61,11 +65,16 @@ PALETTE_EXTRACTION_METHOD_LABELS = {
             "Palette",
             image_type=navi.Image(
                 width="""
-                match Input1 {
-                    PaletteExtractionMethod::All => int(1..),
-                    _ => Input2
-                }
-            """,
+                    min(
+                        match Input1 {
+                            PaletteExtractionMethod::All => int(1..),
+                            _ => Input2
+                        },
+                        MAX_COLORS
+                    )
+                """.replace(
+                    "MAX_COLORS", str(MAX_COLORS)
+                ),
                 height=1,
                 channels_as="Input0",
             ),
@@ -78,17 +87,20 @@ def palette_from_image_node(
     palette_size: int,
 ) -> np.ndarray:
     distinct_colors = distinct_colors_palette(img)
+    distinct_count = distinct_colors.shape[1]
 
     if palette_extraction_method == PaletteExtractionMethod.ALL:
+        if distinct_count > MAX_COLORS:
+            raise ValueError(
+                f"Image has {distinct_count} distinct colors, but only palettes with at most {MAX_COLORS} colors are supported."
+            )
         return distinct_colors
 
-    if palette_size > distinct_colors.shape[1]:
-        excess = palette_size - distinct_colors.shape[1]
+    if palette_size >= distinct_count:
+        excess = palette_size - distinct_count
         return np.pad(distinct_colors, [(0, 0), (0, excess), (0, 0)], mode="edge")  # type: ignore
 
     if palette_extraction_method == PaletteExtractionMethod.KMEANS:
         return kmeans_palette(img, palette_size)
     elif palette_extraction_method == PaletteExtractionMethod.MEDIAN_CUT:
-        if palette_size > distinct_colors.shape[1]:
-            return distinct_colors
         return median_cut_palette(img, palette_size)
