@@ -18,7 +18,7 @@ def get_onnx_runtime():
             display_name="ONNX Runtime",
             pypi_name="onnxruntime",
             version="1.15.1",
-            size_estimate=5 * MB,
+            size_estimate=6 * MB,
         )
 
 
