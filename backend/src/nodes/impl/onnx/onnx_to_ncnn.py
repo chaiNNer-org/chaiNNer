@@ -1,7 +1,6 @@
 from typing import Dict, List, Union
 
 import numpy as np
-import onnx
 import onnx.numpy_helper as onph
 from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer,
