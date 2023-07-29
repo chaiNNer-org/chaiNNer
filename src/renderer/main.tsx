@@ -33,11 +33,7 @@ const edgeTypes: EdgeTypes = {
     main: CustomEdge,
 };
 
-interface MainProps {
-    url: string;
-}
-
-export const Main = memo(({ url }: MainProps) => {
+export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
     const { nodesInfo, nodesQuery } = useContext(BackendContext);

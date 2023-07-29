@@ -72,7 +72,7 @@ export const App = memo(() => {
                                 pythonInfo={pythonInfo}
                                 url={url}
                             >
-                                <Main url={url} />
+                                <Main />
                             </BackendProvider>
                         )}
                     </AlertBoxProvider>

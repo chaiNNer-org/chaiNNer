@@ -22,7 +22,7 @@ interface BackendContextState {
     url: string;
     backend: Backend;
     ownsBackend: boolean;
-    schemata: SchemaMap | undefined;
+    schemata: SchemaMap;
     schemaInputs: SchemaInputsMap;
     pythonInfo: PythonInfo;
     /**
@@ -30,13 +30,13 @@ interface BackendContextState {
      *
      * Some categories might be empty.
      */
-    categories: readonly Category[] | undefined;
-    categoriesMissingNodes: readonly string[] | undefined;
-    functionDefinitions: Map<SchemaId, FunctionDefinition> | undefined;
+    categories: readonly Category[];
+    categoriesMissingNodes: readonly string[];
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     scope: Scope;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
     restart: () => Promise<void>;
-    nodesQuery: UseQueryResult<BackendNodesResponse, unknown> | undefined;
+    nodesQuery: UseQueryResult<BackendNodesResponse, unknown>;
     nodesInfo: NodesInfo | undefined;
 }
 
@@ -258,12 +258,13 @@ export const BackendProvider = memo(
             url,
             backend,
             ownsBackend,
-            schemata: nodesInfo?.schemata,
+            schemata: nodesInfo?.schemata ?? new SchemaMap([]),
             schemaInputs,
             pythonInfo,
-            categories: nodesInfo?.categories,
-            categoriesMissingNodes: nodesInfo?.categoriesMissingNodes,
-            functionDefinitions: nodesInfo?.functionDefinitions,
+            categories: nodesInfo?.categories ?? [],
+            categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? [],
+            functionDefinitions:
+                nodesInfo?.functionDefinitions ?? new Map<SchemaId, FunctionDefinition>(),
             scope,
             restartingRef,
             restart,
