@@ -198,13 +198,13 @@ const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: b
         connectionState = 'failed';
     }
 
-    return useMemoObject({
+    return {
         nodesInfo,
         schemaInputs,
         scope,
         refreshNodes,
         connectionState,
-    });
+    };
 };
 
 export const BackendProvider = memo(
