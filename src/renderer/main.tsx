@@ -36,7 +36,7 @@ const edgeTypes: EdgeTypes = {
 export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
-    const { connectionState } = useContext(BackendContext);
+    const { connectionState, schemata } = useContext(BackendContext);
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -66,7 +66,7 @@ export const Main = memo(() => {
 
     if (connectionState === 'failed') return null;
 
-    if (connectionState !== 'connected' || !ready) {
+    if (connectionState === 'connecting' || schemata.schemata.length === 0 || !ready) {
         return (
             <Box
                 h="100vh"
