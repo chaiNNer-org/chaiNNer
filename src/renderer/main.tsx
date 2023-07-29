@@ -36,7 +36,7 @@ const edgeTypes: EdgeTypes = {
 export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
-    const { nodesInfo, nodesQuery } = useContext(BackendContext);
+    const { connectionState } = useContext(BackendContext);
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -64,9 +64,9 @@ export const Main = memo(() => {
         )
     );
 
-    if (nodesQuery.isError) return null;
+    if (connectionState === 'failed') return null;
 
-    if (!nodesInfo || !ready) {
+    if (connectionState !== 'connected' || !ready) {
         return (
             <Box
                 h="100vh"
