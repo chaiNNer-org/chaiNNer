@@ -64,7 +64,7 @@ export const Main = memo(() => {
         )
     );
 
-    if (nodesQuery?.isError) return null;
+    if (nodesQuery.isError) return null;
 
     if (!nodesInfo || !ready) {
         return (
