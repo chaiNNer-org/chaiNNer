@@ -192,7 +192,7 @@ const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: b
     );
 
     let connectionState: 'connecting' | 'connected' | 'failed' = 'connecting';
-    if (nodesQuery.status === 'success') {
+    if (nodesQuery.status === 'success' && nodesInfo !== undefined) {
         connectionState = 'connected';
     } else if (nodesQuery.status === 'error') {
         connectionState = 'failed';
