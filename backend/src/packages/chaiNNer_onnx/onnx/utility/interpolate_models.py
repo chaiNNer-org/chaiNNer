@@ -7,6 +7,7 @@ import numpy as np
 import onnx
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
+from onnx.onnx_pb import TensorProto
 from sanic.log import logger
 
 from nodes.impl.onnx.model import OnnxModel, load_onnx_model
@@ -23,7 +24,7 @@ def perform_interp(
     model_a_weights: RepeatedCompositeFieldContainer,
     model_b_weights: RepeatedCompositeFieldContainer,
     amount: float,
-) -> List[onnx.TensorProto]:
+) -> List[TensorProto]:
     amount_b = amount / 100
     amount_a = 1 - amount_b
 

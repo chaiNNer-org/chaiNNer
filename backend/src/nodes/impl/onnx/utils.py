@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Literal, Tuple
 
-import onnx
 import onnxruntime as ort
+from onnx.onnx_pb import ModelProto
 
 try:
     import onnxoptimizer
@@ -50,7 +50,7 @@ def get_output_shape(
     return parse_onnx_shape(session.get_outputs()[0].shape)
 
 
-def safely_optimize_onnx_model(model_proto: onnx.ModelProto) -> onnx.ModelProto:
+def safely_optimize_onnx_model(model_proto: ModelProto) -> ModelProto:
     """
     Optimizes the model using onnxoptimizer. If onnxoptimizer is not installed, the model is returned as is.
     """
