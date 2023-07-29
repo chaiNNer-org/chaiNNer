@@ -10,7 +10,7 @@ def get_onnx_runtime():
             display_name="ONNX Runtime (GPU)",
             pypi_name="onnxruntime-gpu",
             version="1.15.1",
-            size_estimate=110 * MB,
+            size_estimate=120 * MB,
             import_name="onnxruntime",
         )
     else:
