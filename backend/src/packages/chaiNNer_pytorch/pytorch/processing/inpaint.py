@@ -123,7 +123,7 @@ def inpaint(
     name="Inpaint",
     description=[
         "Inpaint an image with given mask, using a PyTorch inpainting model.",
-        "Masks must be made outside of chaiNNer.",
+        "Masks must typically be made outside of chaiNNer.",
         "Supported models include LaMa and MAT",
     ],
     icon="PyTorch",
