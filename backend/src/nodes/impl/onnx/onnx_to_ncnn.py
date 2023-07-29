@@ -7,6 +7,7 @@ from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer,
     RepeatedScalarFieldContainer,
 )
+from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, NodeProto, TensorProto
 from sanic.log import logger
 
 from ..ncnn.model import (
@@ -41,13 +42,11 @@ ROT = ReductionOpTypes
 
 
 class Onnx2NcnnConverter:
-    def __init__(self, onnx_model: onnx.ModelProto):
-        self.onnx_graph: onnx.GraphProto = onnx_model.graph
-        self.mutable_graph_nodes: List[onnx.NodeProto] = [
-            n for n in self.onnx_graph.node
-        ]
+    def __init__(self, onnx_model: ModelProto):
+        self.onnx_graph: GraphProto = onnx_model.graph
+        self.mutable_graph_nodes: List[NodeProto] = [n for n in self.onnx_graph.node]
         self.node_count: int = len(self.onnx_graph.node)
-        self.weights: Dict[str, onnx.TensorProto] = {
+        self.weights: Dict[str, TensorProto] = {
             initializer.name: initializer for initializer in self.onnx_graph.initializer
         }
 
@@ -59,10 +58,10 @@ class Onnx2NcnnConverter:
     def add_weight(
         layer: NcnnLayer,
         weight_name: str,
-        data: Union[float, int, np.ndarray, onnx.TensorProto],
+        data: Union[float, int, np.ndarray, TensorProto],
         quantize_tag: bytes = b"",
     ) -> int:
-        if isinstance(data, onnx.TensorProto):
+        if isinstance(data, TensorProto):
             data = onph.to_array(data)
 
         return layer.add_weight(weight_name, data, quantize_tag)
@@ -258,10 +257,10 @@ class Onnx2NcnnConverter:
                 node3.op_type = "ShuffleChannel"
                 node3.input[0] = node.input[0]
 
-                attr_group = onnx.AttributeProto(name="group", i=shape[1], type=APT.INT)
+                attr_group = AttributeProto(name="group", i=shape[1], type=APT.INT)
                 node3.attribute.append(attr_group)
 
-                attr_reverse = onnx.AttributeProto(
+                attr_reverse = AttributeProto(
                     name="reverse", i=int(shape.size == 3), type=APT.INT
                 )
                 node3.attribute.append(attr_reverse)
@@ -324,7 +323,7 @@ class Onnx2NcnnConverter:
                 node3.output[0] = node2.output[0]
 
                 node3.ClearField("attribute")
-                attr_axis = onnx.AttributeProto(name="axis", i=1, type=APT.INT)
+                attr_axis = AttributeProto(name="axis", i=1, type=APT.INT)
                 node3.attribute.append(attr_axis)
 
                 reduced_node_count[0] += 1
@@ -429,10 +428,10 @@ class Onnx2NcnnConverter:
                 node4.ClearField("input")
                 node4.input.append(node.input[0])
 
-                attr_alpha = onnx.AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
+                attr_alpha = AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
                 node4.attribute.append(attr_alpha)
 
-                attr_beta = onnx.AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
+                attr_beta = AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
                 node4.attribute.append(attr_beta)
 
                 reduced_node_count[0] += 3
@@ -472,10 +471,10 @@ class Onnx2NcnnConverter:
                 node2.ClearField("input")
                 node2.input.append(node.input[0])
 
-                attr_alpha = onnx.AttributeProto(name="alpha", f=alpha, type=APT.FLOAT)
+                attr_alpha = AttributeProto(name="alpha", f=alpha, type=APT.FLOAT)
                 node2.attribute.append(attr_alpha)
 
-                attr_beta = onnx.AttributeProto(name="beta", f=beta, type=APT.FLOAT)
+                attr_beta = AttributeProto(name="beta", f=beta, type=APT.FLOAT)
                 node2.attribute.append(attr_beta)
 
                 reduced_node_count[0] += 1
@@ -571,10 +570,10 @@ class Onnx2NcnnConverter:
                 node3.ClearField("input")
                 node3.input.append(node.input[0])
 
-                attr_alpha = onnx.AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
+                attr_alpha = AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
                 node3.attribute.append(attr_alpha)
 
-                attr_beta = onnx.AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
+                attr_beta = AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
                 node3.attribute.append(attr_beta)
 
                 reduced_node_count[0] += 2
@@ -710,7 +709,7 @@ class Onnx2NcnnConverter:
                 node4 = self.mutable_graph_nodes[i + 3]
 
                 has_shape_node = node3.op_type == "Shape"
-                node_shape = onnx.NodeProto()
+                node_shape = NodeProto()
                 if has_shape_node:
                     if i + 4 >= self.node_count:
                         continue
@@ -777,7 +776,7 @@ class Onnx2NcnnConverter:
                 node4.ClearField("input")
                 node4.input.append(node.input[0])
 
-                attr_alpha = onnx.AttributeProto(name="eps", f=clip_min, type=APT.FLOAT)
+                attr_alpha = AttributeProto(name="eps", f=clip_min, type=APT.FLOAT)
                 node4.attribute.append(attr_alpha)
 
                 reduced_node_count[0] += 4 if has_shape_node else 3
@@ -898,20 +897,20 @@ class Onnx2NcnnConverter:
                 node5.input.append(affine_scale)
                 node5.input.append(affine_bias)
 
-                attr_groups = onnx.AttributeProto(name="groups", i=groups, type=APT.INT)
+                attr_groups = AttributeProto(name="groups", i=groups, type=APT.INT)
                 node5.attribute.append(attr_groups)
 
-                attr_channels = onnx.AttributeProto(
+                attr_channels = AttributeProto(
                     name="channels", i=channels, type=APT.INT
                 )
                 node5.attribute.append(attr_channels)
 
                 # +eps
                 eps = get_node_attr_f(node2, "epsilon", 0.00001)
-                attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
+                attr_eps = AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
                 node5.attribute.append(attr_eps)
 
-                attr_affine = onnx.AttributeProto(name="affine", i=1, type=APT.INT)
+                attr_affine = AttributeProto(name="affine", i=1, type=APT.INT)
                 node5.attribute.append(attr_affine)
 
                 reduced_node_count[0] += 4
@@ -1057,8 +1056,8 @@ class Onnx2NcnnConverter:
                 self.blob_names.pop(node5.output[0], None)
                 self.blob_names.pop(node6.output[0], None)
 
-                attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
-                attr_affine = onnx.AttributeProto(name="affine", i=affine, type=APT.INT)
+                attr_eps = AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
+                attr_affine = AttributeProto(name="affine", i=affine, type=APT.INT)
                 if affine == 0:
                     node7.op_type = "LayerNorm"
                     node7.ClearField("input")
@@ -1300,7 +1299,7 @@ class Onnx2NcnnConverter:
                 node3.op_type = "PixelShuffle"
                 node3.input[0] = node.input[0]
 
-                attr_group = onnx.AttributeProto(
+                attr_group = AttributeProto(
                     name="scale_factor", i=shape[2], type=APT.INT
                 )
                 node3.attribute.append(attr_group)
@@ -1397,9 +1396,7 @@ class Onnx2NcnnConverter:
                 node3.op_type = "Reorg"
                 node3.input[0] = node.input[0]
 
-                attr_group = onnx.AttributeProto(
-                    name="stride", i=shape[3], type=APT.INT
-                )
+                attr_group = AttributeProto(name="stride", i=shape[3], type=APT.INT)
                 node3.attribute.append(attr_group)
 
                 reduced_node_count[0] += 2
@@ -1934,12 +1931,12 @@ class Onnx2NcnnConverter:
                 node20.input.append(ow)
                 node20.input.append(ob)
 
-                attr_embed_dim = onnx.AttributeProto(
+                attr_embed_dim = AttributeProto(
                     name="embed_dim", i=embed_dim, type=APT.INT
                 )
                 node20.attribute.append(attr_embed_dim)
 
-                attr_num_heads = onnx.AttributeProto(
+                attr_num_heads = AttributeProto(
                     name="num_heads", i=num_heads, type=APT.INT
                 )
                 node20.attribute.append(attr_num_heads)
@@ -2207,12 +2204,12 @@ class Onnx2NcnnConverter:
                 node17.input.append(ow)
                 node17.input.append(ob)
 
-                attr_embed_dim = onnx.AttributeProto(
+                attr_embed_dim = AttributeProto(
                     name="embed_dim", i=embed_dim, type=APT.INT
                 )
                 node17.attribute.append(attr_embed_dim)
 
-                attr_num_heads = onnx.AttributeProto(
+                attr_num_heads = AttributeProto(
                     name="num_heads", i=num_heads, type=APT.INT
                 )
                 node17.attribute.append(attr_num_heads)
@@ -2249,12 +2246,10 @@ class Onnx2NcnnConverter:
                 node.ClearField("input")
                 node.input.append(node_input)
 
-                attr_with_scalar = onnx.AttributeProto(
-                    name="with_scalar", i=1, type=APT.INT
-                )
+                attr_with_scalar = AttributeProto(name="with_scalar", i=1, type=APT.INT)
                 node.attribute.append(attr_with_scalar)
 
-                attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
+                attr_b = AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
         for i in range(self.node_count):
@@ -2280,12 +2275,10 @@ class Onnx2NcnnConverter:
                 node.ClearField("input")
                 node.input.append(node_input)
 
-                attr_with_scalar = onnx.AttributeProto(
-                    name="with_scalar", i=1, type=APT.INT
-                )
+                attr_with_scalar = AttributeProto(name="with_scalar", i=1, type=APT.INT)
                 node.attribute.append(attr_with_scalar)
 
-                attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
+                attr_b = AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
     def convert(self, is_fp16: bool = False, include_mem_data: bool = True):
