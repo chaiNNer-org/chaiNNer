@@ -20,9 +20,12 @@ from .. import normal_map_group
 @normal_map_group.register(
     schema_id="chainner:image:convert_normal_map",
     name="Convert Normals",
-    description="""Convert between different normal map formats. Only the R and G
+    description=[
+        """Convert between different normal map formats. Only the R and G
             channels of the input image will be used. For DirectX and OpenGL, the output normal map
             is guaranteed to be normalized.""",
+        "Also supports converting to and from the Octahedral format used by RTX Remix.",
+    ],
     icon="BsBoxArrowUpRight",
     inputs=[
         ImageInput("Normal Map", channels=[3, 4]),

@@ -22,7 +22,7 @@ class Orientation(Enum):
 @compositing_group.register(
     schema_id="chainner:image:stack",
     name="Stack Images",
-    description="Concatenate multiple images horizontally or vertically.",
+    description="Concatenate (stacks) multiple images horizontally or vertically.",
     icon="CgMergeVertical",
     inputs=[
         EnumInput(Orientation).with_id(4),

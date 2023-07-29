@@ -18,8 +18,11 @@ from .. import utility_group
 @utility_group.register(
     schema_id="chainner:pytorch:convert_to_onnx",
     name="Convert To ONNX",
-    description="""Convert a PyTorch model to ONNX.
-            Note: fp16 conversion will only work if PyTorch fp16 mode is turned on.""",
+    description=[
+        "Convert a PyTorch model to ONNX. Note: fp16 conversion will only work if PyTorch fp16 mode is turned on.",
+        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
+        "Note: Converted models are not guaranteed to work with other programs that support ONNX models. This is for a variety of reasons and cannot be changed.",
+    ],
     icon="ONNX",
     inputs=[
         SrModelInput("PyTorch Model"),

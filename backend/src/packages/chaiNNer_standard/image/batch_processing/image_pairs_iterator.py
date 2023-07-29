@@ -26,7 +26,7 @@ PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 @batch_processing_group.register(
     schema_id=PAIRED_IMAGE_ITERATOR_NODE_ID,
     name="Load Image (Iterator)",
-    description="Loads each image pair from the directories and outputs both images, directories, subdirectories, filenames, and the index.",
+    description="Loads each image pair from the given directories and outputs both images, directories, subdirectories, filenames, and the index.",
     icon="MdSubdirectoryArrowRight",
     node_type="iteratorHelper",
     inputs=[IteratorInput().make_optional()],

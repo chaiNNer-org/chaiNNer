@@ -19,7 +19,10 @@ from .. import io_group
 @io_group.register(
     schema_id="chainner:image:preview",
     name="View Image (external)",
-    description="Open the image in your default image viewer.",
+    description=[
+        "Open the image in your default image viewer.",
+        "This works by saving a temporary file that will be deleted after chaiNNer is closed. It is not recommended to be used when performing batch processing.",
+    ],
     icon="BsEyeFill",
     inputs=[ImageInput()],
     outputs=[],

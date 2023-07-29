@@ -49,6 +49,7 @@ class ReplacementMode(Enum):
             "Either the regex pattern or the replacement pattern is invalid"
         ),
     ],
+    see_also=["chainner:utility:text_replace"],
 )
 def regex_replace_node(
     text: str,

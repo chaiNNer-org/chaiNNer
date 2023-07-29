@@ -22,7 +22,7 @@ class Expression(Enum):
 @compositing_group.register(
     schema_id="chainner:image:z_stack",
     name="Z-Stack Images",
-    description="""Aligns multiple images and evaluates them in relation to each other.""",
+    description="""Aligns multiple images and evaluates them in relation to each other to create a merged image result.""",
     icon="BsLayersHalf",
     inputs=[
         EnumInput(Expression),

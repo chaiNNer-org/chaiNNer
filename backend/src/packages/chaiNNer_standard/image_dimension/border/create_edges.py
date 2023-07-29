@@ -16,7 +16,7 @@ from .. import border_group
 @border_group.register(
     schema_id="chainner:image:create_edges",
     name="Create Edges",
-    description="Creates an edge border around the image.",
+    description="Creates a border around the image with different values per edge.",
     icon="BsBorderOuter",
     inputs=[
         ImageInput(),

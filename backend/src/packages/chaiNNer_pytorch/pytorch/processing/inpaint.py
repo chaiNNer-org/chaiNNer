@@ -121,11 +121,19 @@ def inpaint(
 @processing_group.register(
     schema_id="chainner:pytorch:inpaint",
     name="Inpaint",
-    description="Inpaint an image with given mask.",
+    description=[
+        "Inpaint an image with given mask, using a PyTorch inpainting model.",
+        "Masks must be made outside of chaiNNer.",
+        "Supported models include LaMa and MAT",
+    ],
     icon="PyTorch",
     inputs=[
         ImageInput(channels=3),
-        ImageInput(label="Mask", channels=1),
+        ImageInput(label="Mask", channels=1).with_docs(
+            "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
+            "This must be made outside of chaiNNer.",
+            hint=True,
+        ),
         InpaintModelInput(),
     ],
     outputs=[

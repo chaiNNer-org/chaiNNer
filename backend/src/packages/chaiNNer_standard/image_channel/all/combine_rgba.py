@@ -18,10 +18,18 @@ from . import node_group
     ),
     icon="MdCallMerge",
     inputs=[
-        ImageInput("R Channel", channels=1, allow_colors=True),
-        ImageInput("G Channel", channels=1, allow_colors=True),
-        ImageInput("B Channel", channels=1, allow_colors=True),
-        ImageInput("A Channel", channels=1, allow_colors=True).make_optional(),
+        ImageInput("R Channel", channels=1, allow_colors=True).with_docs(
+            "The red channel."
+        ),
+        ImageInput("G Channel", channels=1, allow_colors=True).with_docs(
+            "The green channel."
+        ),
+        ImageInput("B Channel", channels=1, allow_colors=True).with_docs(
+            "The blue channel."
+        ),
+        ImageInput("A Channel", channels=1, allow_colors=True)
+        .with_docs("The alpha (transparency mask) channel.")
+        .make_optional(),
     ],
     outputs=[
         ImageOutput(

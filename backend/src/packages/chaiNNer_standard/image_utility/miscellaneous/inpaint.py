@@ -21,11 +21,18 @@ class InpaintAlgorithm(Enum):
 @miscellaneous_group.register(
     schema_id="chainner:image:inpaint",
     name="Inpaint",
-    description="Inpaint an image with given mask.",
+    description=[
+        "Inpaint an image with given mask.",
+        "Masks must be made outside of chaiNNer.",
+    ],
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(channels=[1, 3]),
-        ImageInput(label="Mask", channels=1),
+        ImageInput(label="Mask", channels=1).with_docs(
+            "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
+            "This must be made outside of chaiNNer.",
+            hint=True,
+        ),
         EnumInput(
             InpaintAlgorithm,
             option_labels={
