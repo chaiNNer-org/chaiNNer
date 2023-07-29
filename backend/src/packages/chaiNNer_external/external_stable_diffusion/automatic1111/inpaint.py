@@ -122,7 +122,8 @@ class InpaintArea(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
+            image_type="""
+                def nearest_valid(n: number) = floor(n / 8) * 8;
                 Image {
                     width: if Input15==InpaintArea::OnlyMasked {Input0.width} else {nearest_valid(Input10)},
                     height: if Input15==InpaintArea::OnlyMasked {Input0.height} else {nearest_valid(Input11)}
@@ -132,7 +133,7 @@ class InpaintArea(Enum):
     ],
     decorators=[cached],
 )
-def img2img_inpainting_node(
+def inpaint_node(
     image: np.ndarray,
     mask: np.ndarray,
     prompt: Optional[str],

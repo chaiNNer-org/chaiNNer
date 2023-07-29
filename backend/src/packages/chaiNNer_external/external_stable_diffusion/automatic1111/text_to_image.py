@@ -6,13 +6,10 @@ import numpy as np
 
 from nodes.groups import seed_group
 from nodes.impl.external_stable_diffusion import (
-    RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_IMG2IMG_PATH,
-    ResizeMode,
+    STABLE_DIFFUSION_TEXT2IMG_PATH,
     SamplerName,
     decode_base64_image,
-    encode_base64_image,
     nearest_valid_size,
     post,
     verify_api_connection,
@@ -21,7 +18,6 @@ from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
     EnumInput,
-    ImageInput,
     SeedInput,
     SliderInput,
     TextInput,
@@ -36,23 +32,13 @@ verify_api_connection()
 
 
 @auto1111_group.register(
-    schema_id="chainner:external_stable_diffusion:img2img",
-    name="Image to Image",
-    description="Modify an image using Automatic1111",
-    icon="MdChangeCircle",
+    "chainner:external_stable_diffusion:txt2img",
+    name="Text to Image",
+    description="Generate an image using Automatic1111",
+    icon="BsFillImageFill",
     inputs=[
-        ImageInput(),
         TextInput("Prompt", multiline=True).make_optional(),
         TextInput("Negative Prompt", multiline=True).make_optional(),
-        SliderInput(
-            "Denoising Strength",
-            minimum=0,
-            default=0.75,
-            maximum=1,
-            slider_step=0.01,
-            controls_step=0.1,
-            precision=2,
-        ),
         seed_group(SeedInput()),
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
@@ -68,11 +54,6 @@ verify_api_connection()
             controls_step=0.1,
             precision=1,
         ),
-        EnumInput(
-            ResizeMode,
-            default_value=ResizeMode.JUST_RESIZE,
-            option_labels=RESIZE_MODE_LABELS,
-        ).with_id(10),
         SliderInput(
             "Width",
             minimum=64,
@@ -80,7 +61,7 @@ verify_api_connection()
             maximum=2048,
             slider_step=8,
             controls_step=8,
-        ).with_id(8),
+        ).with_id(6),
         SliderInput(
             "Height",
             minimum=64,
@@ -88,31 +69,29 @@ verify_api_connection()
             maximum=2048,
             slider_step=8,
             controls_step=8,
-        ).with_id(9),
+        ).with_id(7),
         BoolInput("Seamless Edges", default=False),
     ],
     outputs=[
         ImageOutput(
-            image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
+            image_type="""
+                def nearest_valid(n: number) = floor(n / 8) * 8;
                 Image {
-                    width: nearest_valid(Input8),
-                    height: nearest_valid(Input9)
+                    width: nearest_valid(Input6),
+                    height: nearest_valid(Input7)
                 }""",
             channels=3,
         ),
     ],
     decorators=[cached],
 )
-def img_to_image_node(
-    image: np.ndarray,
+def text_to_image_node(
     prompt: Optional[str],
     negative_prompt: Optional[str],
-    denoising_strength: float,
     seed: Seed,
     steps: int,
     sampler_name: SamplerName,
     cfg_scale: float,
-    resize_mode: ResizeMode,
     width: int,
     height: int,
     tiling: bool,
@@ -121,20 +100,17 @@ def img_to_image_node(
         width, height
     )  # This cooperates with the "image_type" of the ImageOutput
     request_data = {
-        "init_images": [encode_base64_image(image)],
         "prompt": prompt or "",
         "negative_prompt": negative_prompt or "",
-        "denoising_strength": denoising_strength,
         "seed": seed.to_u32(),
         "steps": steps,
         "sampler_name": sampler_name.value,
         "cfg_scale": cfg_scale,
         "width": width,
         "height": height,
-        "resize_mode": resize_mode.value,
         "tiling": tiling,
     }
-    response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
+    response = post(path=STABLE_DIFFUSION_TEXT2IMG_PATH, json_data=request_data)
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
     assert (w, h) == (

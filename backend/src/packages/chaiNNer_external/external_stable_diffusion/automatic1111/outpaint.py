@@ -144,7 +144,8 @@ class OutpaintingMethod(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type="""def nearest_valid(n: number) = int & ceil(n / 64) * 64;
+            image_type="""
+                def nearest_valid(n: number) = ceil(n / 64) * 64;
                 Image {
                     width: nearest_valid(
                         Input0.width
@@ -162,7 +163,7 @@ class OutpaintingMethod(Enum):
     ],
     decorators=[cached],
 )
-def img_to_img_outpainting_node(
+def outpaint_node(
     image: np.ndarray,
     prompt: Optional[str],
     negative_prompt: Optional[str],
