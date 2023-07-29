@@ -3,7 +3,17 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
+from typing import (
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    NewType,
+    Tuple,
+    TypedDict,
+    TypeVar,
+)
 
 from sanic.log import logger
 
@@ -83,12 +93,13 @@ class NodeData:
     side_effects: bool
     deprecated: bool
     default_nodes: List[DefaultNode] | None  # For iterators only
-    features: List[str]
+    features: List[FeatureId]
 
     run: RunFn
 
 
 T = TypeVar("T", bound=RunFn)
+S = TypeVar("S")
 
 
 @dataclass
@@ -115,17 +126,17 @@ class NodeGroup:
         default_nodes: List[DefaultNode] | None = None,
         decorators: List[Callable] | None = None,
         see_also: List[str] | str | None = None,
-        features: List[str] | str | None = None,
+        features: List[FeatureId] | FeatureId | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
 
-        def to_list(x: List[str] | str | None) -> List[str]:
+        def to_list(x: List[S] | S | None) -> List[S]:
             if x is None:
                 return []
-            if isinstance(x, str):
-                return [x]
-            return x
+            if isinstance(x, list):
+                return x
+            return [x]
 
         see_also = to_list(see_also)
         features = to_list(features)
@@ -234,12 +245,22 @@ class Dependency:
         }
 
 
+FeatureId = NewType("FeatureId", str)
+
+
 @dataclass
 class Feature:
     id: str
     name: str
     description: str
-    check: Callable[[], Awaitable[bool]]
+    behavior: FeatureBehavior | None = None
+
+    def add_behavior(self, check: Callable[[], Awaitable[bool]]) -> FeatureId:
+        if self.behavior is not None:
+            raise ValueError("Behavior already set")
+
+        self.behavior = FeatureBehavior(check=check)
+        return FeatureId(self.id)
 
     def toDict(self):
         return {
@@ -247,6 +268,11 @@ class Feature:
             "name": self.name,
             "description": self.description,
         }
+
+
+@dataclass
+class FeatureBehavior:
+    check: Callable[[], Awaitable[bool]]
 
 
 @dataclass
@@ -282,6 +308,16 @@ class Package:
         dependency: Dependency,
     ):
         self.dependencies.append(dependency)
+
+    def add_feature(
+        self,
+        id: str,  # pylint: disable=redefined-builtin
+        name: str,
+        description: str,
+    ) -> Feature:
+        feature = Feature(id=id, name=name, description=description)
+        self.features.append(feature)
+        return feature
 
 
 def _iter_py_files(directory: str):
@@ -359,7 +395,6 @@ def add_package(
     name: str,
     description: str,
     dependencies: List[Dependency] | None = None,
-    features: List[Feature] | None = None,
 ) -> Package:
     return registry.add(
         Package(
@@ -367,6 +402,5 @@ def add_package(
             name,
             description,
             dependencies=dependencies or [],
-            features=features or [],
         )
     )

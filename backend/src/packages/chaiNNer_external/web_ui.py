@@ -1,28 +1,14 @@
 from __future__ import annotations
 
-import base64
-import io
+import asyncio
 import os
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from enum import Enum
-from hashlib import md5
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional
 
-import cv2
-import numpy as np
 import requests
-from PIL import Image
 from sanic.log import logger
-
-from nodes.impl.image_utils import normalize, to_uint8
-from nodes.utils.utils import get_h_w_c
-
-STABLE_DIFFUSION_PROTOCOL = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
-STABLE_DIFFUSION_HOST = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
-STABLE_DIFFUSION_PORT = os.environ.get("STABLE_DIFFUSION_PORT", None)
-
-STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
-    os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", "600")
-)  # 10 minutes
 
 STABLE_DIFFUSION_TEXT2IMG_PATH = f"/sdapi/v1/txt2img"
 STABLE_DIFFUSION_IMG2IMG_PATH = f"/sdapi/v1/img2img"
@@ -31,43 +17,145 @@ STABLE_DIFFUSION_OPTIONS_PATH = f"/sdapi/v1/options"
 STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = f"/sdapi/v1/extra-single-image"
 STABLE_DIFFUSION_UPSCALERS_PATH = f"/sdapi/v1/upscalers"
 
-
-def _stable_diffusion_url(path):
-    return f"{STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}{path}"
-
-
-def check_connection() -> bool:
-    _auto_detect_endpoint()
-    return True
-
-
-def _auto_detect_endpoint(timeout=0.5):
-    global STABLE_DIFFUSION_PROTOCOL, STABLE_DIFFUSION_PORT  # pylint: disable=global-statement
-
-    protocols = (
-        [STABLE_DIFFUSION_PROTOCOL] if STABLE_DIFFUSION_PROTOCOL else ["http", "https"]
-    )
-    ports = [STABLE_DIFFUSION_PORT] if STABLE_DIFFUSION_PORT else ["7860", "7861"]
-
-    last_error: Optional[Exception] = None
-    for STABLE_DIFFUSION_PROTOCOL in protocols:
-        for STABLE_DIFFUSION_PORT in ports:
-            try:
-                get(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
-                logger.info(
-                    f"Found stable diffusion API at {STABLE_DIFFUSION_PROTOCOL}://{STABLE_DIFFUSION_HOST}:{STABLE_DIFFUSION_PORT}"
-                )
-                return
-            except Exception as error:
-                last_error = error
-
-    if last_error:
-        raise RuntimeError(INFO_MSG) from last_error
-    else:
-        raise RuntimeError
-
-
 TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+
+STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
+    os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", None) or "600"
+)  # 10 minutes
+
+_thread_pool = ThreadPoolExecutor(max_workers=4)
+
+
+@dataclass
+class Api:
+    protocol: str
+    host: str
+    port: str
+
+    @property
+    def base_url(self) -> str:
+        return f"{self.protocol}://{self.host}:{self.port}"
+
+    def get_url(self, path: str) -> str:
+        return f"{self.base_url}{path}"
+
+    def get(self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
+        try:
+            response = requests.get(self.get_url(path), timeout=timeout)
+            if response.status_code != 200:
+                raise ExternalServiceHTTPError(
+                    f"webui GET request to {path} returned status code: {response.status_code}: {response.text}"
+                )
+            return response.json()
+        except requests.ConnectionError as exc:
+            raise ExternalServiceConnectionError(
+                f"webui GET request to {path} connection failed"
+            ) from exc
+        except requests.exceptions.ReadTimeout as exc:
+            raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
+
+    async def get_async(
+        self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT
+    ) -> Dict:
+        def run():
+            return self.get(path, timeout)
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(_thread_pool, run)
+        return result
+
+    def post(self, path: str, json_data: Dict) -> Dict:
+        try:
+            response = requests.post(
+                self.get_url(path),
+                json=json_data,
+                timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
+            )
+            if response.status_code != 200:
+                raise ExternalServiceHTTPError(
+                    f"webui POST request to {path} returned status code: {response.status_code}: {response.text}"
+                )
+            return response.json()
+        except requests.ConnectionError as exc:
+            raise ExternalServiceConnectionError(
+                f"webui POST request to {path} connection failed"
+            ) from exc
+        except requests.exceptions.ReadTimeout as exc:
+            raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
+
+
+@dataclass
+class _ApiConfig:
+    protocol: List[str]
+    host: str
+    port: List[str]
+
+    @staticmethod
+    def from_env():
+        protocol = os.environ.get("STABLE_DIFFUSION_PROTOCOL", None)
+        host = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
+        port = os.environ.get("STABLE_DIFFUSION_PORT", None)
+
+        if protocol:
+            protocol = [protocol]
+        else:
+            protocol = ["http"] if host == "127.0.0.1" else ["https", "http"]
+
+        if port:
+            port = [port]
+        else:
+            port = ["7860", "7861"]
+
+        return _ApiConfig(protocol, host, port)
+
+    def list_apis(self) -> List[Api]:
+        apis: List[Api] = []
+        for protocol in self.protocol:
+            for port in self.port:
+                apis.append(Api(protocol, self.host, port))
+        return apis
+
+
+_CURRENT_API: Optional[Api] = None
+
+
+async def get_verified_api() -> Api:
+    timeout = 1  # seconds
+
+    global _CURRENT_API  # pylint: disable=global-statement
+    if _CURRENT_API is not None:
+        # redo check to see if it's still alive
+        try:
+            await _CURRENT_API.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
+            return _CURRENT_API
+        except:
+            _CURRENT_API = None
+
+    # check all apis in parallel
+    apis = _ApiConfig.from_env().list_apis()
+    assert len(apis) > 0
+    tasks = [
+        api.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout) for api in apis
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # find the first working api
+    for api, result in zip(apis, results):
+        if not isinstance(result, Exception):
+            logger.info(f"Found stable diffusion API at {api.base_url}")
+            _CURRENT_API = api
+            return api
+
+    raise RuntimeError("No stable diffusion API found") from results[0]
+
+
+def get_api() -> Api:
+    return _CURRENT_API or asyncio.run(get_verified_api())
+
+
+async def check_connection() -> bool:
+    await get_verified_api()
+    return True
 
 
 class ExternalServiceHTTPError(Exception):
@@ -82,104 +170,29 @@ class ExternalServiceTimeout(Exception):
     pass
 
 
-def get(path, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
-    try:
-        response = requests.get(_stable_diffusion_url(path), timeout=timeout)
-        if response.status_code != 200:
-            raise ExternalServiceHTTPError(
-                f"webui GET request to {path} returned status code: {response.status_code}: {response.text}"
-            )
-    except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(
-            f"webui GET request to {path} connection failed"
-        ) from exc
-    except requests.exceptions.ReadTimeout as exc:
-        raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
-    return response.json()
+class UpscalerName(Enum):
+    LANCZOS = "Lanczos"
+    NEAREST = "Nearest"
+    LDSR = "LDSR"
+    ESRGAN_4 = "ESRGAN_4x"
+    REAL_ESRGAN_4 = "R-ESRGAN 4x+"
+    REAL_ESRGAN_4_ANIME6B = "R-ESRGAN 4x+ Anime6B"
+    SCUNET_GAN = "ScuNET GAN"
+    SCUNET_PSNR = "ScuNET PSNR"
+    SWIN_IR_4 = "SwinIR 4x"
 
 
-def post(path, json_data: Dict) -> Dict:
-    try:
-        response = requests.post(
-            _stable_diffusion_url(path),
-            json=json_data,
-            timeout=STABLE_DIFFUSION_REQUEST_TIMEOUT,
-        )
-        if response.status_code != 200:
-            raise ExternalServiceHTTPError(
-                f"webui POST request to {path} returned status code: {response.status_code}: {response.text}"
-            )
-    except requests.ConnectionError as exc:
-        raise ExternalServiceConnectionError(
-            f"webui POST request to {path} connection failed"
-        ) from exc
-    except requests.exceptions.ReadTimeout as exc:
-        raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
-    return response.json()
-
-
-def nearest_valid_size(width, height):
-    return (width // 8) * 8, (height // 8) * 8
-
-
-has_api_connection: Union[bool, None] = None
-
-
-def get_upscalers():
-    """
-    get_upscalers is intended to load the list of available upscalers during import time
-    """
-    if not has_api_connection:
-        # Quiet failure - missing API makes it impossible to insantiate the node anyway.
-        return Enum("StableDiffusionUpscaler", {})
-
-    response = get(STABLE_DIFFUSION_UPSCALERS_PATH)
-    upscalers = {}
-    for u in response:
-        if u["name"] == "None":
-            # Leave it out, we don't need no-op in chaiNNer.
-            continue
-
-        # Id requirements are strict, but webui can be customised with arbitrarily-named upscalers.
-        ident = "UPSCALER_" + md5(u["name"].encode("utf-8")).hexdigest().upper()
-        upscalers[ident] = u["name"]
-
-    upscalers_enum = Enum("StableDiffusionUpscaler", upscalers)
-
-    labels = {}
-    for e in upscalers_enum:
-        labels[e] = e.value
-
-    return upscalers_enum, labels
-
-
-def decode_base64_image(image_bytes: Union[bytes, str]) -> np.ndarray:
-    image = Image.open(io.BytesIO(base64.b64decode(image_bytes)))
-    image_nparray = np.array(image)
-    _, _, c = get_h_w_c(image_nparray)
-    if c == 3:
-        image_nparray = cv2.cvtColor(image_nparray, cv2.COLOR_RGB2BGR)
-    elif c == 4:
-        image_nparray = cv2.cvtColor(image_nparray, cv2.COLOR_RGBA2BGRA)
-    return normalize(image_nparray)
-
-
-def encode_base64_image(image_nparray: np.ndarray) -> str:
-    image_nparray = to_uint8(image_nparray)
-    _, _, c = get_h_w_c(image_nparray)
-    if c == 1:
-        # PIL supports grayscale images just fine, so we don't need to do any conversion
-        pass
-    elif c == 3:
-        image_nparray = cv2.cvtColor(image_nparray, cv2.COLOR_BGR2RGB)
-    elif c == 4:
-        image_nparray = cv2.cvtColor(image_nparray, cv2.COLOR_BGRA2RGBA)
-    else:
-        raise RuntimeError
-    with io.BytesIO() as buffer:
-        with Image.fromarray(image_nparray) as image:
-            image.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode("utf-8")
+UPSCALE_NAME_LABELS = {
+    UpscalerName.LANCZOS: "Lanczos",
+    UpscalerName.NEAREST: "Nearest",
+    UpscalerName.LDSR: "LDSR",
+    UpscalerName.ESRGAN_4: "ESRGAN 4x",
+    UpscalerName.REAL_ESRGAN_4: "Real ESRGAN 4x+",
+    UpscalerName.REAL_ESRGAN_4_ANIME6B: "Real ESRGAN 4x+ Anime6B",
+    UpscalerName.SCUNET_GAN: "ScuNET GAN",
+    UpscalerName.SCUNET_PSNR: "ScuNET PSNR",
+    UpscalerName.SWIN_IR_4: "SwinIR 4x",
+}
 
 
 class SamplerName(Enum):

@@ -6,7 +6,9 @@ from nodes.node_cache import cached
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import TextOutput
 
-from ...web_ui import STABLE_DIFFUSION_INTERROGATE_PATH, encode_base64_image, post
+from ...features import web_ui
+from ...util import encode_base64_image
+from ...web_ui import STABLE_DIFFUSION_INTERROGATE_PATH, get_api
 from .. import auto1111_group
 
 
@@ -22,11 +24,13 @@ from .. import auto1111_group
         TextOutput("Text"),
     ],
     decorators=[cached],
-    features="webui",
+    features=web_ui,
 )
 def clip_interrogate_node(image: np.ndarray) -> str:
     request_data = {
         "image": encode_base64_image(image),
     }
-    response = post(path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data
+    )
     return response["caption"]

@@ -18,16 +18,15 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
 from nodes.utils.utils import get_h_w_c
 
+from ...features import web_ui
+from ...util import decode_base64_image, encode_base64_image, nearest_valid_size
 from ...web_ui import (
     RESIZE_MODE_LABELS,
     SAMPLER_NAME_LABELS,
     STABLE_DIFFUSION_IMG2IMG_PATH,
     ResizeMode,
     SamplerName,
-    decode_base64_image,
-    encode_base64_image,
-    nearest_valid_size,
-    post,
+    get_api,
 )
 from .. import auto1111_group
 
@@ -100,7 +99,7 @@ from .. import auto1111_group
         ),
     ],
     decorators=[cached],
-    features="webui",
+    features=web_ui,
 )
 def image_to_image_node(
     image: np.ndarray,
@@ -133,7 +132,9 @@ def image_to_image_node(
         "resize_mode": resize_mode.value,
         "tiling": tiling,
     }
-    response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data
+    )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
     assert (w, h) == (
