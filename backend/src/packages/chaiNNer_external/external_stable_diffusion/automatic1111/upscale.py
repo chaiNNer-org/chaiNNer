@@ -65,8 +65,8 @@ UPSCALER_MODE_LABELS = {
             ).with_id(2),
         ),
         if_enum_group(1, UpscalerMode.SCALE_TO)(
-            NumberInput("Width", controls_step=1, default=512).with_id(3),
-            NumberInput("Height", controls_step=1, default=512).with_id(4),
+            NumberInput("Width", controls_step=1, minimum=1, default=512).with_id(3),
+            NumberInput("Height", controls_step=1, minimum=1, default=512).with_id(4),
             BoolInput("Crop to fit", default=True).with_id(5),
         ),
         EnumInput(
@@ -95,13 +95,13 @@ UPSCALER_MODE_LABELS = {
     outputs=[
         ImageOutput(
             image_type="""
-                def nearest_valid(n: number) = int & floor(n);
+                def nearest_valid(n: number) = max(1, floor(n));
 
                 let in_w = Input0.width;
                 let in_h = Input0.height;
-                let ratio_w = width/in_w;
-                let ratio_h = height/in_h;
-                let larger_ratio = if ratio_w>ratio_h { ratio_w } else { ratio_h };
+                let ratio_w = width / in_w;
+                let ratio_h = height / in_h;
+                let larger_ratio = max(ratio_w, ratio_h);
 
                 let mode = Input1;
                 let factor = Input2;

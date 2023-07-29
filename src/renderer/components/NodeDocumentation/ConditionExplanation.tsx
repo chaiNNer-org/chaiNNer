@@ -101,7 +101,7 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
                         userSelect="text"
                         whiteSpace="pre-line"
                     >
-                        {prettyPrintType(type)}
+                        {prettyPrintType(type, { omitDefaultFields: true })}
                     </Code>
                 </>
             );
