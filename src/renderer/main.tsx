@@ -36,7 +36,7 @@ const edgeTypes: EdgeTypes = {
 export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
-    const { connectionState, schemata } = useContext(BackendContext);
+    const { connectionState } = useContext(BackendContext);
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
