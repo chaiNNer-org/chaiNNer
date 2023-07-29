@@ -255,7 +255,7 @@ class Feature:
     description: str
     behavior: FeatureBehavior | None = None
 
-    def add_behavior(self, check: Callable[[], Awaitable[bool]]) -> FeatureId:
+    def add_behavior(self, check: Callable[[], Awaitable[FeatureState]]) -> FeatureId:
         if self.behavior is not None:
             raise ValueError("Behavior already set")
 
@@ -272,7 +272,21 @@ class Feature:
 
 @dataclass
 class FeatureBehavior:
-    check: Callable[[], Awaitable[bool]]
+    check: Callable[[], Awaitable[FeatureState]]
+
+
+@dataclass(frozen=True)
+class FeatureState:
+    is_enabled: bool
+    details: str | None = None
+
+    @staticmethod
+    def enabled(details: str | None = None) -> "FeatureState":
+        return FeatureState(is_enabled=True, details=details)
+
+    @staticmethod
+    def disabled(details: str | None = None) -> "FeatureState":
+        return FeatureState(is_enabled=False, details=details)
 
 
 @dataclass
@@ -315,6 +329,9 @@ class Package:
         name: str,
         description: str,
     ) -> Feature:
+        if any(f.id == id for f in self.features):
+            raise ValueError(f"Duplicate feature id: {id}")
+
         feature = Feature(id=id, name=name, description=description)
         self.features.append(feature)
         return feature

@@ -137,6 +137,7 @@ async def get_verified_api() -> Api:
     tasks = [
         api.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout) for api in apis
     ]
+    # because good API design just isn't pythonic, asyncio.gather will return List[Any].
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # find the first working api
@@ -151,11 +152,6 @@ async def get_verified_api() -> Api:
 
 def get_api() -> Api:
     return _CURRENT_API or asyncio.run(get_verified_api())
-
-
-async def check_connection() -> bool:
-    await get_verified_api()
-    return True
 
 
 class ExternalServiceHTTPError(Exception):

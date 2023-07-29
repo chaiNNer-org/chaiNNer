@@ -8,7 +8,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Dict, List, Literal, Optional, TypedDict, Union
 
 import psutil
 from sanic import Sanic
@@ -454,6 +454,50 @@ async def get_dependencies(_request: Request):
                 }
             )
     return json(all_dependencies)
+
+
+@app.route("/features")
+async def get_features(_request: Request):
+    await nodes_available()
+
+    features: List[api.Feature] = []
+    for package in api.registry.packages.values():
+        features.extend(package.features)
+
+    # check all features in parallel
+    async def check(feature: api.Feature) -> Union[api.FeatureState, None]:
+        if feature.behavior is None:
+            # no behavior assigned
+            return None
+
+        try:
+            return await feature.behavior.check()
+        except Exception as e:
+            return api.FeatureState.disabled(str(e))
+
+    # because good API design just isn't pythonic, asyncio.gather will return List[Any].
+    results: List[Union[api.FeatureState, None]] = await asyncio.gather(
+        *[check(f) for f in features]
+    )
+
+    features_json = []
+    for feature, state in zip(features, results):
+        state_type: Literal["enable", "disabled", "unavailable"]
+        details: Optional[str] = None
+        if state is None:
+            state_type = "unavailable"
+        else:
+            state_type = "enable" if state.is_enabled else "disabled"
+            details = state.details
+        features_json.append(
+            {
+                "feature": feature.toDict(),
+                "state": state_type,
+                "details": details,
+            }
+        )
+
+    return json(features_json)
 
 
 async def import_packages(
