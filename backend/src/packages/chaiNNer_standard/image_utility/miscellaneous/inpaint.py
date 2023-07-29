@@ -23,7 +23,7 @@ class InpaintAlgorithm(Enum):
     name="Inpaint",
     description=[
         "Inpaint an image with given mask.",
-        "Masks must be made outside of chaiNNer.",
+        "Masks must typically be made outside of chaiNNer.",
     ],
     icon="MdOutlineAutoFixHigh",
     inputs=[
