@@ -23,8 +23,10 @@ from .. import io_group
     name="Load Model",
     description=[
         "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an auto-detected supported model architecture.",
-        "Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.",
-        "Links to the official models can be found in chaiNNer's README, and also alongside community-trained models on [OpenModelDB](https://openmodeldb.info/).",
+        "- For Super-Resolution, we support most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.",
+        "- For Face-Restoration, we support GFPGAN (1.2, 1.3, 1.4), RestoreFormer, and CodeFormer.",
+        "- For Inpainting, we support LaMa and MAT.",
+        "Links to the official models can be found in [chaiNNer's README](https://github.com/chaiNNer-org/chaiNNer#pytorch), and community-trained models on [OpenModelDB](https://openmodeldb.info/).",
     ],
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
