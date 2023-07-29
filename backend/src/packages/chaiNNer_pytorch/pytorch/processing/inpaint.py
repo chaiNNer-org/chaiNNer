@@ -131,7 +131,7 @@ def inpaint(
         ImageInput(channels=3),
         ImageInput(label="Mask", channels=1).with_docs(
             "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
-            "This must be made outside of chaiNNer.",
+            "This must typically be made outside of chaiNNer.",
             hint=True,
         ),
         InpaintModelInput(),
