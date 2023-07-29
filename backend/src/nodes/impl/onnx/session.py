@@ -4,6 +4,8 @@ from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
 
+from system import is_arm_mac
+
 from ...utils.exec_options import ExecutionOptions
 from .model import OnnxModel
 
@@ -11,7 +13,12 @@ from .model import OnnxModel
 def create_inference_session(
     model: OnnxModel, exec_options: ExecutionOptions
 ) -> ort.InferenceSession:
-    if exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
+    if is_arm_mac:
+        providers = [
+            "CoreMLExecutionProvider",
+            "CPUExecutionProvider",
+        ]
+    elif exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
         providers = [
             (
                 "TensorrtExecutionProvider",
