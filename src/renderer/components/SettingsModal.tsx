@@ -400,7 +400,7 @@ const PythonSettings = memo(() => {
             ...(nvidiaGpuList.length > 0
                 ? [
                       {
-                          label: 'CUDA',
+                          label: 'CUDA (GPU)',
                           value: 'CUDAExecutionProvider',
                       },
                   ]
@@ -412,12 +412,12 @@ const PythonSettings = memo(() => {
             ...(hasTensorRt && nvidiaGpuList.length > 0
                 ? [
                       {
-                          label: 'TensorRT',
+                          label: 'TensorRT (GPU)',
                           value: 'TensorrtExecutionProvider',
                       },
                   ]
                 : []),
-            ...(isArmMac ? [{ label: 'CoreML', value: 'CoreMLExecutionProvider' }] : []),
+            ...(isArmMac ? [{ label: 'CoreML (GPU)', value: 'CoreMLExecutionProvider' }] : []),
         ],
         [nvidiaGpuList]
     );
