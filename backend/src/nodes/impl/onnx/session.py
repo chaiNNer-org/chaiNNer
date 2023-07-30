@@ -13,12 +13,7 @@ from .model import OnnxModel
 def create_inference_session(
     model: OnnxModel, exec_options: ExecutionOptions
 ) -> ort.InferenceSession:
-    if is_arm_mac:
-        providers = [
-            "CoreMLExecutionProvider",
-            "CPUExecutionProvider",
-        ]
-    elif exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
+    if exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
         providers = [
             (
                 "TensorrtExecutionProvider",

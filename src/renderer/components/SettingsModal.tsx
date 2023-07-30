@@ -47,7 +47,7 @@ import {
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { getOnnxTensorRtCacheLocation, hasTensorRt } from '../../common/env';
+import { getOnnxTensorRtCacheLocation, hasTensorRt, isArmMac } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
@@ -417,6 +417,7 @@ const PythonSettings = memo(() => {
                       },
                   ]
                 : []),
+            ...(isArmMac ? [{ label: 'CoreML', value: 'CoreMLExecutionProvider' }] : []),
         ],
         [nvidiaGpuList]
     );
