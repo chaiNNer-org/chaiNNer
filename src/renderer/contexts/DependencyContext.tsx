@@ -5,6 +5,7 @@ import {
     AccordionIcon,
     AccordionItem,
     AccordionPanel,
+    Box,
     Button,
     Center,
     Collapse,
@@ -35,7 +36,6 @@ import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
-import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
 import { Package, PyPiName, PyPiPackage } from '../../common/packages';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
@@ -51,11 +51,6 @@ import { SettingsContext } from './SettingsContext';
 export interface DependencyContextValue {
     openDependencyManager: () => void;
     availableUpdates: number;
-}
-
-export interface ExternalIntegrationConnectionStatus {
-    integration: Integration;
-    connected: boolean;
 }
 
 export const DependencyContext = createContext<Readonly<DependencyContextValue>>({
@@ -275,7 +270,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useIsSystemPython } = useContext(SettingsContext);
-    const { backend, pythonInfo, restart, packages } = useContext(BackendContext);
+    const { backend, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
+        useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isSystemPython] = useIsSystemPython;
@@ -404,33 +400,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         availableUpdates,
     });
 
-    const [loadingExtInts, setLoadingExtInts] = useState(true);
-    const [externalIntegrationConnections, setExternalIntegrationConnections] = useState<
-        ExternalIntegrationConnectionStatus[]
-    >([]);
-
-    useAsyncEffect(
-        () => ({
-            supplier: async () => {
-                const connections = await Promise.all(
-                    externalIntegrations.map(async (integration) => {
-                        try {
-                            const connected = await fetch(
-                                `http://${integration.url}:${integration.port}`
-                            );
-                            return { integration, connected: connected.ok };
-                        } catch (e) {
-                            return { integration, connected: false };
-                        }
-                    })
-                );
-                return connections;
-            },
-            successEffect: setExternalIntegrationConnections,
-            finallyEffect: () => setLoadingExtInts(false),
-        }),
-        []
-    );
+    const features = useMemo(() => packages.flatMap((p) => p.features), [packages]);
 
     return (
         <DependencyContext.Provider value={value}>
@@ -615,34 +585,31 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 {/* </Collapse> */}
                             </Center>
                             <Divider w="full" />
-                            {loadingExtInts ? (
-                                <Spinner />
-                            ) : (
-                                <VStack
-                                    textAlign="left"
-                                    w="full"
-                                >
-                                    <Text
-                                        fontWeight="bold"
-                                        w="full"
-                                    >
-                                        External Connections
-                                    </Text>
-                                    {externalIntegrationConnections.map(
-                                        ({ integration, connected }) => (
-                                            <HStack
-                                                key={integration.name}
-                                                w="full"
-                                            >
-                                                <Text>{integration.name}</Text>
-                                                <Text color={connected ? 'green.500' : 'gray.500'}>
-                                                    {connected ? 'Connected' : 'Not Connected'}
+                            <Box w="full">
+                                <Text fontWeight="bold">Features</Text>
+                                <Button onClick={refreshFeatureStates}>Refresh</Button>
+                                {features.map((f) => {
+                                    const state = featureStates.get(f.id);
+
+                                    return (
+                                        <HStack
+                                            key={f.id}
+                                            w="full"
+                                        >
+                                            <Text>{f.name}</Text>
+                                            {state ? (
+                                                <Text
+                                                    color={state.enabled ? 'green.500' : 'gray.500'}
+                                                >
+                                                    {state.enabled ? 'Enabled' : 'Disabled'}
                                                 </Text>
-                                            </HStack>
-                                        )
-                                    )}
-                                </VStack>
-                            )}
+                                            ) : (
+                                                <Text color="gray.500">Unavailable</Text>
+                                            )}
+                                        </HStack>
+                                    );
+                                })}
+                            </Box>
                         </VStack>
                     </ModalBody>
 

@@ -8,7 +8,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import Dict, List, Literal, Optional, Tuple, TypedDict, Union
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
 import psutil
 from sanic import Sanic
@@ -502,19 +502,15 @@ async def get_features(_request: Request):
 
     features_json = []
     for (feature, package), state in zip(features, results):
-        state_type: Literal["enable", "disabled", "unavailable"]
-        details: Optional[str] = None
         if state is None:
-            state_type = "unavailable"
-        else:
-            state_type = "enable" if state.is_enabled else "disabled"
-            details = state.details
+            continue
+
         features_json.append(
             {
                 "packageId": package.id,
                 "featureId": feature.id,
-                "state": state_type,
-                "details": details,
+                "enabled": state.is_enabled,
+                "details": state.details,
             }
         )
 

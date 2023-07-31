@@ -33,6 +33,6 @@ export interface Package {
 export interface FeatureState {
     readonly packageId: PackageId;
     readonly featureId: FeatureId;
-    readonly state: 'unavailable' | 'enabled' | 'disabled';
+    readonly enabled: boolean;
     readonly details?: string | null;
 }

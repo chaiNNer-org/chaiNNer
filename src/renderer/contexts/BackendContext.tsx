@@ -8,7 +8,7 @@ import { Backend, BackendNodesResponse, getBackend } from '../../common/Backend'
 import { Category, PythonInfo, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
-import { Package } from '../../common/packages';
+import { FeatureId, FeatureState, Package } from '../../common/packages';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -37,6 +37,8 @@ interface BackendContextState {
     packages: readonly Package[];
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
+    featureStates: ReadonlyMap<FeatureId, FeatureState>;
+    refreshFeatureStates: () => void;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
@@ -74,7 +76,7 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     };
 };
 
-const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: boolean }) => {
+const useNodes = (backend: Backend, isRestarting: boolean) => {
     const { t } = useTranslation();
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
 
@@ -216,6 +218,44 @@ const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: b
     };
 };
 
+const useFeatureStates = (backend: Backend) => {
+    const [featureStates, setFeatureStates] = useState<readonly FeatureState[]>(EMPTY_ARRAY);
+
+    const featuresQuery = useQuery({
+        queryKey: ['features', backend.url],
+        queryFn: async () => {
+            try {
+                return await backend.features();
+            } catch (error) {
+                log.error(error);
+                throw error;
+            }
+        },
+        retry: true,
+        refetchOnWindowFocus: true,
+        refetchInterval: 60 * 1000, // refetch every minute
+    });
+
+    const { refetch } = featuresQuery;
+    const refreshFeatureStates = useCallback(() => {
+        refetch().catch(log.error);
+    }, [refetch]);
+
+    useEffect(() => {
+        if (featuresQuery.status === 'success') {
+            const rawResponse = featuresQuery.data;
+            setFeatureStates((prev) => {
+                return isDeepEqual(prev, rawResponse) ? prev : rawResponse;
+            });
+        }
+    }, [featuresQuery.status, featuresQuery.data]);
+
+    return {
+        featureStates,
+        refreshFeatureStates,
+    };
+};
+
 export const BackendProvider = memo(
     ({ url, pythonInfo, children }: React.PropsWithChildren<BackendProviderProps>) => {
         const backend = getBackend(url);
@@ -237,10 +277,17 @@ export const BackendProvider = memo(
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
 
-        const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes({
+        const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            isRestarting: restartingRef.current,
-        });
+            restartingRef.current
+        );
+        const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
+        const featureStatesMaps = useMemo((): ReadonlyMap<FeatureId, FeatureState> => {
+            if (featureStates.length === 0) return EMPTY_MAP;
+            return new Map(
+                featureStates.map((featureState) => [featureState.featureId, featureState])
+            );
+        }, [featureStates]);
 
         const restart = useCallback((): Promise<void> => {
             if (!ownsBackendRef.current) {
@@ -274,13 +321,14 @@ export const BackendProvider = memo(
                 restartingRef.current = false;
                 restartPromiseRef.current = undefined;
                 refreshNodes();
+                refreshFeatureStates();
 
                 if (error !== null) {
                     throw error instanceof Error ? error : new Error(String(error));
                 }
             })();
             return restartPromiseRef.current;
-        }, [backend, refreshNodes]);
+        }, [backend, refreshNodes, refreshFeatureStates]);
 
         const value = useMemoObject<BackendContextState>({
             url,
@@ -294,6 +342,8 @@ export const BackendProvider = memo(
             packages: nodesInfo?.packages ?? EMPTY_ARRAY,
             functionDefinitions: nodesInfo?.functionDefinitions ?? EMPTY_MAP,
             scope,
+            featureStates: featureStatesMaps,
+            refreshFeatureStates,
             restartingRef,
             restart,
             connectionState,
