@@ -2,18 +2,9 @@ from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
-from system import is_arm_mac
 
 
 def get_onnx_runtime():
-    if is_arm_mac:
-        return Dependency(
-            display_name="ONNX Runtime (Silicon)",
-            pypi_name="onnxruntime-silicon",
-            version="1.15.0",
-            size_estimate=6.8 * MB,
-            import_name="onnxruntime",
-        )
     if nvidia_is_available:
         return Dependency(
             display_name="ONNX Runtime (GPU)",
