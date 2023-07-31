@@ -17,7 +17,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                 <SupportHighlighting>
                     <Text
                         fontSize="md"
-                        marginTop={1}
+                        marginTop={2}
                         userSelect="text"
                     >
                         {children}
@@ -32,6 +32,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     href={href}
                     textColor={interactive && href ? 'var(--link-color)' : 'inherit'}
                     textDecoration={interactive && href ? 'underline' : 'inherit'}
+                    userSelect="text"
                     onClick={(e) => {
                         e.preventDefault();
                         if (interactive && href) {
@@ -63,6 +64,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     className={className}
+                    userSelect="text"
                 >
                     {children}
                 </Code>

@@ -33,14 +33,24 @@ import {
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
+import { HiOutlineRefresh } from 'react-icons/hi';
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { log } from '../../common/log';
-import { Package, PyPiName, PyPiPackage } from '../../common/packages';
+import {
+    Feature,
+    FeatureId,
+    FeatureState,
+    Package,
+    PyPiName,
+    PyPiPackage,
+} from '../../common/packages';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
+import { docsMarkdown } from '../components/NodeDocumentation/docsMarkdown';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
@@ -264,6 +274,115 @@ const PackageView = memo(
         );
     }
 );
+
+interface FeaturesAccordionProps {
+    features: readonly Feature[];
+    featureStates: ReadonlyMap<FeatureId, FeatureState>;
+}
+const FeaturesAccordion = memo(({ features, featureStates }: FeaturesAccordionProps) => {
+    return (
+        <Accordion
+            allowToggle
+            w="full"
+        >
+            {features.map((f) => {
+                const state = featureStates.get(f.id);
+
+                const stateLabel =
+                    state === undefined ? 'Unavailable' : state.enabled ? 'Enabled' : 'Disabled';
+
+                return (
+                    <AccordionItem
+                        cursor="pointer"
+                        key={f.id}
+                    >
+                        <h2>
+                            <HStack w="full">
+                                <AccordionButton
+                                    cursor="pointer"
+                                    pr={0}
+                                >
+                                    <HStack
+                                        cursor="pointer"
+                                        spacing={1}
+                                        w="full"
+                                    >
+                                        <Text
+                                            cursor="pointer"
+                                            flex="1"
+                                            textAlign="left"
+                                            w="full"
+                                        >
+                                            {f.name}
+                                        </Text>
+                                        <Tooltip
+                                            closeOnClick
+                                            borderRadius={8}
+                                            label={state?.details ?? 'NO DETAILS'}
+                                            px={2}
+                                            py={1}
+                                        >
+                                            <InfoIcon />
+                                        </Tooltip>
+                                        <Text
+                                            color={state?.enabled ? 'green.500' : 'gray.500'}
+                                            cursor="pointer"
+                                            pl={4}
+                                        >
+                                            {stateLabel}
+                                        </Text>
+                                    </HStack>
+                                </AccordionButton>
+                                <AccordionButton
+                                    cursor="pointer"
+                                    w={4}
+                                >
+                                    <Center
+                                        cursor="pointer"
+                                        w="full"
+                                    >
+                                        <AccordionIcon />
+                                    </Center>
+                                </AccordionButton>
+                            </HStack>
+                        </h2>
+                        <AccordionPanel pb={4}>
+                            <ReactMarkdown components={docsMarkdown}>{f.description}</ReactMarkdown>
+                        </AccordionPanel>
+                    </AccordionItem>
+                );
+
+                // return (
+                //     <Box key={f.id}>
+                //         <HStack w="full">
+                //             <Text>{f.name}</Text>
+                //             {state ? (
+                //                 <Text color={state.enabled ? 'green.500' : 'gray.500'}>
+                //                     {state.enabled ? 'Enabled' : 'Disabled'}
+                //                 </Text>
+                //             ) : (
+                //                 <Text color="gray.500">Unavailable</Text>
+                //             )}
+                //         </HStack>
+                //         <Code>
+                //             {JSON.stringify(
+                //                 {
+                //                     ...f,
+                //                     state: {
+                //                         enabled: state?.enabled,
+                //                         details: state?.details,
+                //                     },
+                //                 },
+                //                 undefined,
+                //                 4
+                //             )}
+                //         </Code>
+                //     </Box>
+                // );
+            })}
+        </Accordion>
+    );
+});
 
 export const DependencyProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -586,29 +705,28 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                             </Center>
                             <Divider w="full" />
                             <Box w="full">
-                                <Text fontWeight="bold">Features</Text>
-                                <Button onClick={refreshFeatureStates}>Refresh</Button>
-                                {features.map((f) => {
-                                    const state = featureStates.get(f.id);
-
-                                    return (
-                                        <HStack
-                                            key={f.id}
-                                            w="full"
-                                        >
-                                            <Text>{f.name}</Text>
-                                            {state ? (
-                                                <Text
-                                                    color={state.enabled ? 'green.500' : 'gray.500'}
-                                                >
-                                                    {state.enabled ? 'Enabled' : 'Disabled'}
-                                                </Text>
-                                            ) : (
-                                                <Text color="gray.500">Unavailable</Text>
-                                            )}
-                                        </HStack>
-                                    );
-                                })}
+                                <Flex
+                                    mb={2}
+                                    mt={2}
+                                >
+                                    <Text
+                                        flex="1"
+                                        fontWeight="bold"
+                                    >
+                                        Features
+                                    </Text>
+                                    <Button
+                                        leftIcon={<HiOutlineRefresh />}
+                                        size="sm"
+                                        onClick={refreshFeatureStates}
+                                    >
+                                        Refresh
+                                    </Button>
+                                </Flex>
+                                <FeaturesAccordion
+                                    featureStates={featureStates}
+                                    features={features}
+                                />
                             </Box>
                         </VStack>
                     </ModalBody>
