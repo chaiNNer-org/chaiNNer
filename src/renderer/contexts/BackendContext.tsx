@@ -8,6 +8,7 @@ import { Backend, BackendNodesResponse, getBackend } from '../../common/Backend'
 import { Category, PythonInfo, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
+import { Package } from '../../common/packages';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -33,6 +34,7 @@ interface BackendContextState {
      */
     categories: readonly Category[];
     categoriesMissingNodes: readonly string[];
+    packages: readonly Package[];
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
@@ -49,16 +51,18 @@ interface BackendProviderProps {
     pythonInfo: PythonInfo;
 }
 
+type BackendData = [BackendNodesResponse, Package[]];
 interface NodesInfo {
-    rawResponse: BackendNodesResponse;
+    rawResponse: BackendData;
     schemata: SchemaMap;
     categories: Category[];
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     categoriesMissingNodes: string[];
+    packages: Package[];
 }
 
-const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo => {
-    const { categories, categoriesMissingNodes, nodes } = rawResponse;
+const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
+    const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
 
     return {
         rawResponse,
@@ -66,6 +70,7 @@ const processBackendResponse = (rawResponse: BackendNodesResponse): NodesInfo =>
         categories,
         functionDefinitions: parseFunctionDefinitions(nodes),
         categoriesMissingNodes,
+        packages: rawResponse[1],
     };
 };
 
@@ -93,13 +98,17 @@ const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: b
 
     const nodesQuery = useQuery({
         queryKey: ['nodes', backend.url],
-        queryFn: async () => {
+        queryFn: async (): Promise<BackendData> => {
             try {
-                const response = await backend.nodes();
-                if ('status' in response) {
-                    throw new Error(`${response.message}\n${response.description}`);
-                }
-                return response;
+                return await Promise.all([
+                    backend.nodes().then((response) => {
+                        if ('status' in response) {
+                            throw new Error(`${response.message}\n${response.description}`);
+                        }
+                        return response;
+                    }),
+                    backend.packages(),
+                ]);
             } catch (error) {
                 log.error(error);
                 throw error;
@@ -282,6 +291,7 @@ export const BackendProvider = memo(
             pythonInfo,
             categories: nodesInfo?.categories ?? EMPTY_ARRAY,
             categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? EMPTY_ARRAY,
+            packages: nodesInfo?.packages ?? EMPTY_ARRAY,
             functionDefinitions: nodesInfo?.functionDefinitions ?? EMPTY_MAP,
             scope,
             restartingRef,

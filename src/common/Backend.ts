@@ -9,9 +9,10 @@ import {
     OutputTypes,
     PythonInfo,
     SchemaId,
+    Version,
 } from './common-types';
-import { FeatureState, Package, PyPiName } from './dependencies';
 import { isRenderer } from './env';
+import { FeatureState, Package, PyPiName } from './packages';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -220,7 +221,7 @@ export class Backend {
         return this.fetchJson('/packages', 'GET');
     }
 
-    installedDependencies(): Promise<Partial<Record<PyPiName, string>>> {
+    installedDependencies(): Promise<Partial<Record<PyPiName, Version>>> {
         return this.fetchJson('/installed-dependencies', 'GET');
     }
 

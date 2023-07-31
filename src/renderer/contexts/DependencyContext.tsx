@@ -35,9 +35,9 @@ import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
-import { Package, PyPiPackage } from '../../common/dependencies';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
+import { Package, PyPiName, PyPiPackage } from '../../common/packages';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
@@ -76,7 +76,7 @@ const formatBytes = (bytes: number): string => {
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
-const FeaturePackage = memo(
+const PackageDependencyView = memo(
     ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion: Version | null }) => {
         let color = 'red.500';
         let tagText = 'Missing';
@@ -113,25 +113,28 @@ const FeaturePackage = memo(
     }
 );
 
-const Feature = memo(
+const PackageView = memo(
     ({
-        dep,
+        p,
         isRunningShell,
         progress,
+        installedPyPi,
         onInstall,
         onUninstall,
         onUpdate,
     }: {
-        dep: Package;
+        p: Package;
         isRunningShell: boolean;
         progress?: number;
+        installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
     }) => {
-        const missingPackages = dep.dependencies.filter((d) => !d.installed);
-        const outdatedPackages = dep.dependencies.filter((d) => {
-            return d.installed && versionGt(d.version, d.installed);
+        const missingPackages = p.dependencies.filter((d) => !installedPyPi[d.pypiName]);
+        const outdatedPackages = p.dependencies.filter((d) => {
+            const installed = installedPyPi[d.pypiName];
+            return installed && versionGt(d.version, installed);
         });
 
         return (
@@ -154,14 +157,14 @@ const Feature = memo(
                                         textAlign="left"
                                         w="full"
                                     >
-                                        {dep.name} ({dep.dependencies.length} package
-                                        {dep.dependencies.length === 1 ? '' : 's'})
+                                        {p.name} ({p.dependencies.length} package
+                                        {p.dependencies.length === 1 ? '' : 's'})
                                     </Text>
                                     <Tooltip
                                         closeOnClick
                                         closeOnMouseDown
                                         borderRadius={8}
-                                        label={dep.description}
+                                        label={p.description}
                                         px={2}
                                         py={1}
                                     >
@@ -250,12 +253,12 @@ const Feature = memo(
                 </h2>
                 <AccordionPanel pb={4}>
                     <VStack
-                        key={dep.name}
+                        key={p.name}
                         w="full"
                     >
-                        {dep.dependencies.map((d) => (
-                            <FeaturePackage
-                                installedVersion={d.installed}
+                        {p.dependencies.map((d) => (
+                            <PackageDependencyView
+                                installedVersion={installedPyPi[d.pypiName] ?? null}
                                 key={d.pypiName}
                                 pkg={d}
                             />
@@ -272,7 +275,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useIsSystemPython } = useContext(SettingsContext);
-    const { backend, pythonInfo, restart } = useContext(BackendContext);
+    const { backend, pythonInfo, restart, packages } = useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isSystemPython] = useIsSystemPython;
@@ -289,12 +292,11 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         [backend]
     );
 
-    const { data: depList, refetch } = useQuery({
+    const { data: installedPyPi, refetch: refetchInstalledPyPi } = useQuery({
         queryKey: 'dependencies',
         queryFn: async () => {
             try {
-                const response = await backend.dependencies();
-                return response.filter((d) => d.dependencies.length > 0);
+                return await backend.installedDependencies();
             } catch (error) {
                 log.error(error);
                 throw error;
@@ -336,7 +338,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 restart()
                     .catch(log.error)
                     .then(() => {
-                        refetch()
+                        refetchInstalledPyPi()
                             .catch(log.error)
                             .then(() => {
                                 setIsRunningShell(false);
@@ -350,17 +352,27 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             });
     };
 
-    const installPackage = (dep: Package) => {
-        setInstallingPackage(dep);
+    const installPackage = (p: Package) => {
+        setInstallingPackage(p);
         changePackages(() =>
-            runPipInstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+            runPipInstall(
+                pythonInfo,
+                p.dependencies,
+                usePipDirectly ? undefined : setProgress,
+                onStdio
+            )
         );
     };
 
-    const uninstallPackage = (dep: Package) => {
-        setUninstallingPackage(dep);
+    const uninstallPackage = (p: Package) => {
+        setUninstallingPackage(p);
         changePackages(() =>
-            runPipUninstall(pythonInfo, [dep], usePipDirectly ? undefined : setProgress, onStdio)
+            runPipUninstall(
+                pythonInfo,
+                p.dependencies,
+                usePipDirectly ? undefined : setProgress,
+                onStdio
+            )
         );
     };
 
@@ -372,20 +384,20 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
     const currentlyProcessingDeps =
-        depList === undefined || installingPackage !== null || uninstallingPackage !== null;
+        installedPyPi === undefined || installingPackage !== null || uninstallingPackage !== null;
 
-    const availableUpdates = useMemo(() => {
-        return (
-            depList?.filter(({ dependencies }) =>
-                dependencies.some(({ version, installed }) => {
-                    if (!installed) {
-                        return true;
-                    }
-                    return versionGt(version, installed);
-                })
-            ).length ?? 0
-        );
-    }, [depList]);
+    const availableUpdates = useMemo((): number => {
+        if (!installedPyPi) return 0;
+        return packages.filter(({ dependencies }) =>
+            dependencies.some(({ version, pypiName }) => {
+                const installed = installedPyPi[pypiName];
+                if (!installed) {
+                    return true;
+                }
+                return versionGt(version, installed);
+            })
+        ).length;
+    }, [packages, installedPyPi]);
 
     const value = useMemoObject<DependencyContextValue>({
         openDependencyManager: onOpen,
@@ -494,7 +506,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     </Button>
                                 </HStack>
                             </Flex>
-                            {!depList ? (
+                            {!installedPyPi ? (
                                 <Spinner />
                             ) : (
                                 <Accordion
@@ -502,13 +514,17 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     // allowMultiple={false}
                                     w="full"
                                 >
-                                    {depList.map((dep) => {
-                                        const install = () => installPackage(dep);
+                                    {packages.map((p) => {
+                                        if (p.dependencies.length === 0) {
+                                            return null;
+                                        }
+
+                                        const install = () => installPackage(p);
                                         const uninstall = () => {
                                             showAlert({
                                                 type: AlertType.WARN,
                                                 title: 'Uninstall',
-                                                message: `Are you sure you want to uninstall ${dep.name}?`,
+                                                message: `Are you sure you want to uninstall ${p.name}?`,
                                                 buttons: ['Cancel', 'Uninstall'],
                                                 defaultId: 0,
                                             })
@@ -520,29 +536,30 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                             type: AlertType.WARN,
                                                             title: 'Unsaved Changes',
                                                             message:
-                                                                `You might lose your unsaved changes by uninstalling ${dep.name}.` +
-                                                                `\n\nAre you sure you want to uninstall ${dep.name}?`,
+                                                                `You might lose your unsaved changes by uninstalling ${p.name}.` +
+                                                                `\n\nAre you sure you want to uninstall ${p.name}?`,
                                                             buttons: ['Cancel', 'Uninstall'],
                                                             defaultId: 0,
                                                         });
                                                         if (saveButton === 0) return;
                                                     }
 
-                                                    uninstallPackage(dep);
+                                                    uninstallPackage(p);
                                                 })
                                                 .catch(log.error);
                                         };
 
                                         return (
-                                            <Feature
-                                                dep={dep}
+                                            <PackageView
+                                                installedPyPi={installedPyPi}
                                                 isRunningShell={isRunningShell}
-                                                key={dep.name}
+                                                key={p.name}
+                                                p={p}
                                                 progress={
                                                     !usePipDirectly &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
-                                                        ?.name === dep.name
+                                                        ?.name === p.name
                                                         ? progress
                                                         : undefined
                                                 }
