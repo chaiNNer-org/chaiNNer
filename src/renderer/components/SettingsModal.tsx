@@ -47,7 +47,7 @@ import {
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { getOnnxTensorRtCacheLocation, hasTensorRt } from '../../common/env';
+import { getOnnxTensorRtCacheLocation, hasTensorRt, isArmMac } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
@@ -477,50 +477,52 @@ const PythonSettings = memo(() => {
                                 setIsSystemPython((prev) => !prev);
                             }}
                         />
-                        <SettingsItem
-                            description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
-                            title="System Python location (optional)"
-                        >
-                            <HStack>
-                                <Tooltip
-                                    borderRadius={8}
-                                    label={systemPythonLocation}
-                                    maxW="auto"
-                                    openDelay={500}
-                                    px={2}
-                                    py={0}
-                                >
-                                    <InputGroup>
-                                        <InputLeftElement pointerEvents="none">
-                                            <Icon as={FaPython} />
-                                        </InputLeftElement>
+                        {isSystemPython && (
+                            <SettingsItem
+                                description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
+                                title="System Python location (optional)"
+                            >
+                                <HStack>
+                                    <Tooltip
+                                        borderRadius={8}
+                                        label={systemPythonLocation}
+                                        maxW="auto"
+                                        openDelay={500}
+                                        px={2}
+                                        py={0}
+                                    >
+                                        <InputGroup>
+                                            <InputLeftElement pointerEvents="none">
+                                                <Icon as={FaPython} />
+                                            </InputLeftElement>
 
-                                        <Input
-                                            isReadOnly
-                                            alt="Pick system python location"
-                                            className="nodrag"
-                                            cursor="pointer"
-                                            draggable={false}
-                                            placeholder="Select a file..."
-                                            textOverflow="ellipsis"
-                                            value={
-                                                systemPythonLocation
-                                                    ? path.parse(systemPythonLocation).base
-                                                    : ''
-                                            }
-                                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                                            onClick={onButtonClick}
-                                        />
-                                    </InputGroup>
-                                </Tooltip>
-                                <IconButton
-                                    aria-label="clear"
-                                    icon={<SmallCloseIcon />}
-                                    size="xs"
-                                    onClick={() => setSystemPythonLocation(null)}
-                                />
-                            </HStack>
-                        </SettingsItem>
+                                            <Input
+                                                isReadOnly
+                                                alt="Pick system python location"
+                                                className="nodrag"
+                                                cursor="pointer"
+                                                draggable={false}
+                                                placeholder="Select a file..."
+                                                textOverflow="ellipsis"
+                                                value={
+                                                    systemPythonLocation
+                                                        ? path.parse(systemPythonLocation).base
+                                                        : ''
+                                                }
+                                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                                onClick={onButtonClick}
+                                            />
+                                        </InputGroup>
+                                    </Tooltip>
+                                    <IconButton
+                                        aria-label="clear"
+                                        icon={<SmallCloseIcon />}
+                                        size="xs"
+                                        onClick={() => setSystemPythonLocation(null)}
+                                    />
+                                </HStack>
+                            </SettingsItem>
+                        )}
                     </VStack>
                 </TabPanel>
                 <TabPanel px={0}>
@@ -538,7 +540,11 @@ const PythonSettings = memo(() => {
                         />
 
                         <Toggle
-                            description="Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
+                            description={
+                                isArmMac
+                                    ? 'Runs PyTorch in half-precision (FP16) mode for less RAM usage.'
+                                    : 'Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.'
+                            }
                             title="FP16 mode"
                             value={isFp16}
                             onToggle={() => {
@@ -546,17 +552,23 @@ const PythonSettings = memo(() => {
                             }}
                         />
 
-                        <Dropdown
-                            description="Which GPU to use for PyTorch. Only Nvidia GPUs are supported."
-                            isDisabled={nvidiaGpuList.length === 0}
-                            options={nvidiaGpuList.map((gpu, i) => ({
-                                label: `${i}: ${gpu}`,
-                                value: i,
-                            }))}
-                            title="PyTorch GPU"
-                            value={pytorchGPU}
-                            onChange={setPytorchGPU}
-                        />
+                        {!isArmMac && (
+                            <Dropdown
+                                description="Which GPU to use for PyTorch."
+                                isDisabled={nvidiaGpuList.length === 0}
+                                options={
+                                    nvidiaGpuList.length === 0
+                                        ? [{ label: 'No supported NVIDIA GPU found', value: -1 }]
+                                        : nvidiaGpuList.map((gpu, i) => ({
+                                              label: `${i}: ${gpu}`,
+                                              value: i,
+                                          }))
+                                }
+                                title="PyTorch GPU"
+                                value={pytorchGPU}
+                                onChange={setPytorchGPU}
+                            />
+                        )}
                     </VStack>
                 </TabPanel>
                 <TabPanel px={0}>
@@ -566,11 +578,15 @@ const PythonSettings = memo(() => {
                     >
                         <Dropdown
                             description="Which GPU to use for NCNN."
-                            isDisabled={ncnnGpuList.length === 0}
-                            options={ncnnGpuList.map((gpu, i) => ({
-                                label: `${i}: ${gpu}`,
-                                value: i,
-                            }))}
+                            isDisabled={isArmMac ? true : ncnnGpuList.length === 0}
+                            options={
+                                ncnnGpuList.length === 0
+                                    ? [{ label: 'No supported GPU found', value: -1 }]
+                                    : ncnnGpuList.map((gpu, i) => ({
+                                          label: `${i}: ${gpu}`,
+                                          value: i,
+                                      }))
+                            }
                             title="NCNN GPU"
                             value={ncnnGPU}
                             onChange={setNcnnGPU}
@@ -582,19 +598,26 @@ const PythonSettings = memo(() => {
                         divider={<StackDivider />}
                         w="full"
                     >
-                        <Dropdown
-                            description="Which GPU to use for ONNX."
-                            isDisabled={nvidiaGpuList.length === 0}
-                            options={nvidiaGpuList.map((gpu, i) => ({
-                                label: `${i}: ${gpu}`,
-                                value: i,
-                            }))}
-                            title="ONNX GPU"
-                            value={onnxGPU}
-                            onChange={setOnnxGPU}
-                        />
+                        {!isArmMac && (
+                            <Dropdown
+                                description="Which GPU to use for ONNX."
+                                isDisabled={nvidiaGpuList.length === 0}
+                                options={
+                                    nvidiaGpuList.length === 0
+                                        ? [{ label: 'No supported NVIDIA GPU found', value: -1 }]
+                                        : nvidiaGpuList.map((gpu, i) => ({
+                                              label: `${i}: ${gpu}`,
+                                              value: i,
+                                          }))
+                                }
+                                title="ONNX GPU"
+                                value={onnxGPU}
+                                onChange={setOnnxGPU}
+                            />
+                        )}
                         <Dropdown
                             description="What provider to use for ONNX."
+                            isDisabled={isArmMac}
                             options={onnxExecutionProviders}
                             title="ONNX Execution Provider"
                             value={onnxExecutionProvider}
