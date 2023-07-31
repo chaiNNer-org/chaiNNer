@@ -27,25 +27,31 @@ from . import node_group
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
-        ).with_id(2),
+        )
+        .with_docs("The red channel.")
+        .with_id(2),
         ImageOutput(
             "G Channel",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
-        ).with_id(1),
+        )
+        .with_docs("The green channel.")
+        .with_id(1),
         ImageOutput(
             "B Channel",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
-        ).with_id(0),
+        )
+        .with_docs("The blue channel.")
+        .with_id(0),
         ImageOutput(
             "A Channel",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
-        ),
+        ).with_docs("The alpha (transparency mask) channel."),
     ],
 )
 def separate_rgba_node(

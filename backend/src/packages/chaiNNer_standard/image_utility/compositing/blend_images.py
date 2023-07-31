@@ -17,7 +17,7 @@ from .. import compositing_group
 @compositing_group.register(
     schema_id="chainner:image:blend",
     name="Blend Images",
-    description="""Blends overlay image onto base image using specified mode.""",
+    description="""Blends an overlay image onto a base image using the specified mode.""",
     icon="BsLayersHalf",
     inputs=[
         ImageInput("Base Layer", channels=[1, 3, 4], allow_colors=True),

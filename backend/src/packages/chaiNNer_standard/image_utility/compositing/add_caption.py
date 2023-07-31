@@ -12,7 +12,7 @@ from .. import compositing_group
 @compositing_group.register(
     schema_id="chainner:image:caption",
     name="Add Caption",
-    description="Add a caption to the bottom of an image.",
+    description="Add a caption to the top or bottom of an image.",
     icon="MdVideoLabel",
     inputs=[
         ImageInput(),

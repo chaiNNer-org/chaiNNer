@@ -16,7 +16,7 @@ from .. import correction_group
     schema_id="chainner:image:average_color_fix",
     name="Average Color Fix",
     description="""Correct for upscaling model color shift by matching
-         average color of Input Image to that of a smaller Reference Image.
+         the average color of the Input Image to that of a smaller Reference Image.
          Using significant downscaling increases generalization of averaging effect
          and can reduce artifacts in the output.""",
     icon="MdAutoFixHigh",

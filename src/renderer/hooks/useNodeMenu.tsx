@@ -6,7 +6,7 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import { MenuItem, MenuList } from '@chakra-ui/react';
+import { MenuDivider, MenuItem, MenuList } from '@chakra-ui/react';
 import { BsFillJournalBookmarkFill, BsLayerForward } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
@@ -98,6 +98,7 @@ export const useNodeMenu = (
                     Release
                 </MenuItem>
             )}
+            <MenuDivider />
             <MenuItem
                 icon={<BsFillJournalBookmarkFill />}
                 onClick={() => {

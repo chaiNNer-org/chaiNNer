@@ -48,7 +48,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
 @normal_map_group.register(
     schema_id="chainner:image:normal_generator",
     name="Normal Map Generator",
-    description="""Generate a normal map from a given image.""",
+    description="Generate a normal map from a given image using the specified filtering technique.",
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput("Image", channels=[1, 3, 4]),

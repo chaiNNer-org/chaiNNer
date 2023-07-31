@@ -40,6 +40,7 @@ class ReplacementMode(Enum):
             """,
         ),
     ],
+    see_also=["chainner:utility:regex_replace"],
 )
 def text_replace_node(text: str, old: str, new: str, mode: ReplacementMode) -> str:
     if mode == ReplacementMode.REPLACE_ALL:
