@@ -36,6 +36,7 @@ import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
 import { Package, PyPiPackage } from '../../common/dependencies';
+import { isArmMac } from '../../common/env';
 import { Integration, externalIntegrations } from '../../common/externalIntegrations';
 import { log } from '../../common/log';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
@@ -441,14 +442,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
-                            <Flex w="full">
-                                <Text
-                                    flex="1"
-                                    textAlign="left"
-                                >
-                                    {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
-                                </Text>
-                            </Flex>
+                            {!isArmMac && (
+                                <Flex w="full">
+                                    <Text
+                                        flex="1"
+                                        textAlign="left"
+                                    >
+                                        {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
+                                    </Text>
+                                </Flex>
+                            )}
                             <Flex
                                 align="center"
                                 w="full"
@@ -597,7 +600,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 </Center>
                                 {/* </Collapse> */}
                             </Center>
-                            <Divider w="full" />
+                            {isConsoleOpen && <Divider w="full" />}
                             {loadingExtInts ? (
                                 <Spinner />
                             ) : (

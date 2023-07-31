@@ -28,27 +28,38 @@ export const SystemStats = memo(() => {
     return (
         <HStack>
             {data &&
-                data.map((usage) => (
-                    <Tooltip
-                        borderRadius={8}
-                        key={usage.label}
-                        label={`${usage.percent.toFixed(1)}%`}
-                        px={2}
-                        py={1}
-                    >
-                        <Box key={usage.label}>
-                            <CircularProgress
-                                capIsRound
-                                color={usage.percent < 90 ? 'blue.400' : 'red.400'}
-                                size="42px"
-                                trackColor="var(--bg-700)"
-                                value={usage.percent}
-                            >
-                                <CircularProgressLabel>{usage.label}</CircularProgressLabel>
-                            </CircularProgress>
-                        </Box>
-                    </Tooltip>
-                ))}
+                data.map((usage) => {
+                    let color;
+                    if (usage.percent < 75) {
+                        color = 'green.400';
+                    } else if (usage.percent < 90) {
+                        color = 'yellow.400';
+                    } else {
+                        color = 'red.400';
+                    }
+
+                    return (
+                        <Tooltip
+                            borderRadius={8}
+                            key={usage.label}
+                            label={`${usage.percent.toFixed(1)}%`}
+                            px={2}
+                            py={1}
+                        >
+                            <Box key={usage.label}>
+                                <CircularProgress
+                                    capIsRound
+                                    color={color}
+                                    size="42px"
+                                    trackColor="var(--bg-700)"
+                                    value={usage.percent}
+                                >
+                                    <CircularProgressLabel>{usage.label}</CircularProgressLabel>
+                                </CircularProgress>
+                            </Box>
+                        </Tooltip>
+                    );
+                })}
         </HStack>
     );
 });

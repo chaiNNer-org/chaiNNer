@@ -2,47 +2,24 @@ from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
-from system import is_arm_mac
 
 
 def get_onnx_runtime():
-    if is_arm_mac:
-        return Dependency(
-            display_name="ONNX Runtime (Silicon)",
-            pypi_name="onnxruntime-silicon",
-            version="1.13.1",
-            size_estimate=6 * MB,
-            import_name="onnxruntime",
-        )
-    elif nvidia_is_available:
+    if nvidia_is_available:
         return Dependency(
             display_name="ONNX Runtime (GPU)",
             pypi_name="onnxruntime-gpu",
-            version="1.13.1",
-            size_estimate=110 * MB,
+            version="1.15.1",
+            size_estimate=120 * MB,
             import_name="onnxruntime",
         )
     else:
         return Dependency(
             display_name="ONNX Runtime",
             pypi_name="onnxruntime",
-            version="1.13.1",
-            size_estimate=5 * MB,
+            version="1.15.1",
+            size_estimate=6 * MB,
         )
-
-
-def get_onnx_optimizer():
-    if is_arm_mac:
-        return []
-
-    return [
-        Dependency(
-            display_name="ONNX Optimizer",
-            pypi_name="onnxoptimizer",
-            version="0.3.6",
-            size_estimate=300 * KB,
-        )
-    ]
 
 
 package = add_package(
@@ -53,10 +30,15 @@ package = add_package(
         Dependency(
             display_name="ONNX",
             pypi_name="onnx",
-            version="1.13.0",
+            version="1.14.0",
             size_estimate=12 * MB,
         ),
-        *get_onnx_optimizer(),
+        Dependency(
+            display_name="ONNX Optimizer",
+            pypi_name="onnxoptimizer",
+            version="0.3.13",
+            size_estimate=300 * KB,
+        ),
         get_onnx_runtime(),
         Dependency(
             display_name="Protobuf",
