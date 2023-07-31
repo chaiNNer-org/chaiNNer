@@ -7,6 +7,7 @@ import {
     SliderTrack,
     Text,
     Tooltip,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo, useMemo, useState } from 'react';
 import { getTypeAccentColors } from '../../../helpers/accentColors';
@@ -19,19 +20,60 @@ export const LINEAR_SCALE: Scale = { toScale: (n) => n, fromScale: (n) => n };
 export class LogScale implements Scale {
     public readonly min: number;
 
+    public readonly max: number;
+
     public readonly precision: number;
 
-    constructor(min: number, precision: number) {
+    public readonly offset: number;
+
+    constructor(min: number, max: number, precision: number, offset = 0) {
+        this.min = min;
+        this.max = max;
+        this.precision = precision;
+        this.offset = offset;
+    }
+
+    toScale(value: number): number {
+        return Math.log1p(value - (this.min + this.offset));
+    }
+
+    fromScale(scaledValue: number): number {
+        let value = Math.expm1(scaledValue) + (this.min + this.offset);
+
+        // 2 digits of precision
+        if (this.min < value && value < this.max) {
+            value = Number(value.toExponential(2));
+            if (value > 0) {
+                // we only want 1 fractional digit for numbers between 2*10^k and 10^(k+1)
+                const k = Math.floor(Math.log10(value));
+                if (value >= 2 * 10 ** k) {
+                    value = Number(value.toExponential(1));
+                }
+            }
+        }
+
+        return Number(value.toFixed(this.precision));
+    }
+}
+export class PowerScale implements Scale {
+    public readonly power: number;
+
+    public readonly min: number;
+
+    public readonly precision: number;
+
+    constructor(power: number, min: number, precision: number) {
+        this.power = power;
         this.min = min;
         this.precision = precision;
     }
 
     toScale(value: number): number {
-        return Math.log1p(value - this.min);
+        return (value - this.min) ** this.power;
     }
 
     fromScale(scaledValue: number): number {
-        const value = Math.expm1(scaledValue) + this.min;
+        const value = scaledValue ** (1 / this.power) + this.min;
         return Number(value.toFixed(this.precision));
     }
 }
@@ -42,6 +84,7 @@ interface OldLabelStyle {
 interface LabelStyle {
     readonly type: 'label';
     readonly label: string;
+    readonly gradient?: readonly string[];
 }
 interface GradientStyle {
     readonly type: 'gradient';
@@ -55,6 +98,17 @@ interface AlphaStyle {
     readonly color?: string;
 }
 export type SliderStyle = OldLabelStyle | LabelStyle | GradientStyle | NoFillStyle | AlphaStyle;
+
+const getLinearGradient = (gradient: readonly string[]) => {
+    return `linear-gradient(to right, ${gradient.join(', ')})`;
+};
+
+export const getSliderHeight = (style: SliderStyle) => {
+    if (style.type === 'label') {
+        return style.gradient ? '32px' : '28px';
+    }
+    return '1em';
+};
 
 interface StyledSliderProps {
     style: SliderStyle;
@@ -92,7 +146,7 @@ export const StyledSlider = memo(
 
         let customBackground;
         if (style.type === 'gradient') {
-            customBackground = `linear-gradient(to right, ${style.gradient.join(', ')})`;
+            customBackground = getLinearGradient(style.gradient);
         } else if (style.type === 'alpha') {
             customBackground = [
                 `linear-gradient(to right, transparent, ${style.color || 'black'})`,
@@ -100,11 +154,14 @@ export const StyledSlider = memo(
             ].join(', ');
         }
 
+        const borderColor = useColorModeValue('#E2E8F0', '#4F5765');
+        const textColor = useColorModeValue('black', 'white');
+
         return (
             <Slider
                 defaultValue={scale.toScale(def)}
                 focusThumbOnChange={false}
-                height={style.type === 'label' ? '1.4em' : '1em'}
+                height={getSliderHeight(style)}
                 isDisabled={isDisabled}
                 max={scale.toScale(max)}
                 min={scale.toScale(min)}
@@ -126,30 +183,87 @@ export const StyledSlider = memo(
                     {style.type === 'label' && (
                         <>
                             <Box
-                                color="white"
+                                background="var(--node-bg-color)"
+                                border={`1px solid ${borderColor}`}
+                                borderRadius="md"
                                 cursor="pointer"
-                                left={0}
+                                h="full"
                                 position="absolute"
-                                textAlign="center"
-                                top={0}
                                 userSelect="none"
-                                width="100%"
-                                zIndex={1}
+                                w="full"
+                                zIndex={0}
+                            />
+                            {style.gradient && (
+                                <>
+                                    <Box
+                                        background={getLinearGradient(style.gradient)}
+                                        border={`1px solid ${borderColor}`}
+                                        borderBottomRadius="md"
+                                        borderTop="none"
+                                        bottom={0}
+                                        cursor="pointer"
+                                        h="4px"
+                                        left={0}
+                                        p="1px"
+                                        position="absolute"
+                                        right={0}
+                                        userSelect="none"
+                                        zIndex={1}
+                                    />
+                                    <Box
+                                        border={`1px solid ${borderColor}`}
+                                        borderRadius="md"
+                                        cursor="pointer"
+                                        h="full"
+                                        position="absolute"
+                                        userSelect="none"
+                                        w="full"
+                                        zIndex={1}
+                                    />
+                                </>
+                            )}
+                            <Box
+                                alignItems="center"
+                                cursor="pointer"
+                                display="flex"
+                                h="full"
+                                p="1px"
+                                pb={style.gradient && '3px'}
+                                position="absolute"
+                                userSelect="none"
+                                w="full"
+                                zIndex={2}
                             >
                                 <Text
+                                    as="span"
+                                    color={textColor}
                                     cursor="pointer"
                                     fontSize="14px"
                                     lineHeight="1.4em"
-                                    textAlign="center"
+                                    overflow="hidden"
+                                    pl={2}
+                                    textOverflow="ellipsis"
                                     userSelect="none"
+                                    w="full"
+                                    whiteSpace="nowrap"
                                 >
                                     {style.label}
                                 </Text>
                             </Box>
                             <SliderFilledTrack
-                                bg={typeAccentColor}
-                                borderLeftRadius="md"
+                                bg={borderColor}
                                 cursor="pointer"
+                            />
+                            <SliderFilledTrack
+                                bg="transparent"
+                                borderRight={
+                                    min < value && value < max
+                                        ? `1px solid ${textColor}`
+                                        : undefined
+                                }
+                                cursor="pointer"
+                                opacity={0.5}
+                                zIndex={3}
                             />
                         </>
                     )}
@@ -174,8 +288,10 @@ export const StyledSlider = memo(
                 >
                     <SliderThumb
                         borderRadius="sm"
+                        cursor="pointer"
                         height="100%"
                         opacity={style.type === 'label' ? 0 : 1}
+                        userSelect={style.type === 'label' ? 'none' : undefined}
                         width="8px"
                         zIndex={3}
                     />

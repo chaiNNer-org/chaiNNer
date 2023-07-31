@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput, SliderInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
@@ -17,7 +17,14 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        NumberInput("Diameter", controls_step=1, default=12),
+        SliderInput(
+            "Radius",
+            minimum=0,
+            maximum=100,
+            default=4,
+            controls_step=1,
+            scale="sqrt",
+        ),
         SliderInput(
             "Color Sigma",
             controls_step=1,
@@ -37,16 +44,17 @@ from .. import blur_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def bilateral_blur_node(
+def surface_blur_node(
     img: np.ndarray,
-    diameter: int,
+    radius: int,
     sigma_color: int,
     sigma_space: int,
 ) -> np.ndarray:
-    if diameter == 0 or sigma_color == 0 or sigma_space == 0:
+    if radius == 0 or sigma_color == 0 or sigma_space == 0:
         return img
 
     sigma_color_adjusted = sigma_color / 255
+    diameter = radius * 2 + 1
 
     _, _, c = get_h_w_c(img)
     if c == 4:

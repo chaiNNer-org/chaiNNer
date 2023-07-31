@@ -20,8 +20,8 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -102,6 +102,8 @@ export const FileInput = memo(
             }
         };
 
+        const refactor = useInputRefactor(nodeId, input, filePath, isConnected);
+
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
@@ -146,10 +148,7 @@ export const FileInput = memo(
                 >
                     {t('inputs.file.copyFullFilePath', 'Copy Full File Path')}
                 </MenuItem>
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
+                {refactor}
             </MenuList>
         ));
 

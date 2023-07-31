@@ -26,7 +26,11 @@ except:
 @utility_group.register(
     schema_id="chainner:pytorch:convert_to_ncnn",
     name="Convert To NCNN",
-    description="""Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format.""",
+    description=[
+        "Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format, so the ONNX dependency must also be installed to use this node.",
+        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
+        "Note: Converted models are not guaranteed to work with other programs that support NCNN models. This is for a variety of reasons and cannot be changed.",
+    ],
     icon="NCNN",
     inputs=[
         SrModelInput("PyTorch Model"),

@@ -17,7 +17,7 @@ import {
 import { memo } from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { Condition, Input, NodeSchema, Output } from '../../../common/common-types';
+import { Condition, Input, NodeSchema, Output, TextInput } from '../../../common/common-types';
 import { isTautology } from '../../../common/nodes/condition';
 import { getInputCondition } from '../../../common/nodes/inputCondition';
 import { explain } from '../../../common/types/explain';
@@ -54,11 +54,31 @@ const TypeView = memo(({ type }: TypeViewProps) => {
                 userSelect="text"
                 whiteSpace="pre-line"
             >
-                {prettyPrintType(type)}
+                {prettyPrintType(type, { omitDefaultFields: true })}
             </Code>
         </Tooltip>
     );
 });
+
+const getTextLength = (input: TextInput): string => {
+    const chars = (count: number): string => `${count} ${count === 1 ? 'character' : 'characters'}`;
+
+    const minLength = input.minLength ?? 0;
+    const { maxLength } = input;
+
+    let range;
+    if (maxLength) {
+        if (maxLength === minLength) {
+            range = `exactly ${chars(maxLength)}`;
+        } else {
+            range = `between ${minLength} and ${chars(maxLength)}`;
+        }
+    } else {
+        range = `at least ${chars(minLength)}`;
+    }
+
+    return `A ${input.multiline ? 'multi-line ' : ''}string ${range} long.`;
+};
 
 interface InputOutputItemProps {
     schema: NodeSchema;
@@ -166,38 +186,18 @@ const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItem
                     )}
 
                     {condition && !isTautology(condition) && (
-                        <Text
-                            fontSize="md"
-                            userSelect="text"
-                        >
-                            <Text
-                                as="i"
-                                pr={1}
-                            >
-                                Condition:
-                            </Text>
-                            <ConditionExplanation
-                                condition={condition}
-                                schema={schema}
-                            />
-                        </Text>
+                        <ConditionExplanation
+                            condition={condition}
+                            schema={schema}
+                        />
                     )}
 
-                    {isTextInput && (
+                    {isTextInput && !((item.minLength ?? 0) === 0 && item.maxLength == null) && (
                         <Text
                             fontSize="md"
                             userSelect="text"
                         >
-                            {`A ${item.multiline ? 'multi-line ' : ''}string ${
-                                item.maxLength
-                                    ? `between ${item.minLength ?? 0} and ${item.maxLength}`
-                                    : `at least ${item.minLength ?? 0}`
-                            } character${
-                                (item.maxLength === null || item.maxLength === undefined) &&
-                                item.minLength === 1
-                                    ? ''
-                                    : 's'
-                            } long.`}
+                            {getTextLength(item)}
                         </Text>
                     )}
 

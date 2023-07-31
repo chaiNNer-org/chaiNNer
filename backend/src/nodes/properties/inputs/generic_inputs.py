@@ -474,7 +474,9 @@ def FillColorDropdown() -> DropDownInput:
     )
 
 
-def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
+def TileSizeDropdown(
+    label="Tile Size", estimate=True, default: TileSize | None = None
+) -> DropDownInput:
     options = []
     if estimate:
         options.append({"option": "Auto (estimate)", "value": 0})
@@ -490,6 +492,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
         label=label,
         options=options,
         associated_type=TileSize,
+        default_value=default,
     )
 
 

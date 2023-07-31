@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron-forge start -- --devtools",
     "frontend": "electron-forge start -- --remote-backend=http://127.0.0.1:8000 --devtools",
-    "dev": "concurrently \"cd backend/src && cross-env TYPE_CHECK_LEVEL=warn nodemon ./run.py 8000\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev": "concurrently \"cd backend/src && cross-env CHECK_LEVEL=fix nodemon ./run.py 8000\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "debug": "concurrently \"npm run debug:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "debug:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
     "package": "cross-env NODE_ENV=production electron-forge package",
@@ -104,7 +104,7 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
-    "@chainner/navi": "^0.5.0",
+    "@chainner/navi": "^0.6.0",
     "@chakra-ui/icons": "^2.0.11",
     "@chakra-ui/react": "^2.3.5",
     "@emotion/react": "^11.9.0",
@@ -136,7 +136,7 @@
     "react-dom": "^18.1.0",
     "react-hotkeys-hook": "^3.4.6",
     "react-i18next": "^12.0.0",
-    "react-icons": "^4.7.1",
+    "react-icons": "^4.10.1",
     "react-markdown": "^8.0.3",
     "react-query": "^3.39.3",
     "react-time-ago": "^7.2.1",

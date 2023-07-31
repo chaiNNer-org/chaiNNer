@@ -119,7 +119,7 @@ class SliderInput(NumberInput):
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
         hide_trailing_zeros: bool = False,
         gradient: Union[List[str], None] = None,
-        scale: Literal["linear", "log", "log-offset"] = "linear",
+        scale: Literal["linear", "log", "log-offset", "sqrt"] = "linear",
     ):
         super().__init__(
             label,

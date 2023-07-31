@@ -4,11 +4,28 @@ from sanic.log import logger
 
 from api import GB, KB, MB, Dependency, ToggleSetting, add_package
 from gpu import nvidia_is_available
+from system import is_arm_mac
 
 python_version = sys.version_info
 
 
 def get_pytorch():
+    # 1.13.1 can take advantage of MPS
+    if is_arm_mac:
+        return [
+            Dependency(
+                display_name="PyTorch",
+                pypi_name="torch",
+                version="1.13.1",
+                size_estimate=140 * MB,
+            ),
+            Dependency(
+                display_name="TorchVision",
+                pypi_name="torchvision",
+                version="0.14.1",
+                size_estimate=1.3 * MB,
+            ),
+        ]
     if python_version.minor < 10:
         # <= 3.9
         return [

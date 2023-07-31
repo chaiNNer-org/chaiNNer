@@ -6,6 +6,7 @@ export interface JsonObject {
 export type JsonValue = null | string | number | boolean | JsonObject | JsonValue[];
 
 export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export interface Size {
     width: number;
@@ -117,7 +118,7 @@ export interface SliderInput extends InputBase {
     readonly ends: readonly [string | null, string | null];
     readonly sliderStep: number;
     readonly gradient?: readonly string[] | null;
-    readonly scale: 'linear' | 'log' | 'log-offset';
+    readonly scale: 'linear' | 'log' | 'log-offset' | 'sqrt';
 }
 export interface ColorInput extends InputBase {
     readonly kind: 'color';
@@ -212,6 +213,10 @@ interface SeedGroup extends GroupBase {
     readonly kind: 'seed';
     readonly options: Readonly<Record<string, never>>;
 }
+interface LinkedInputsGroup extends GroupBase {
+    readonly kind: 'linked-inputs';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
@@ -219,7 +224,8 @@ export type Group =
     | OptionalListGroup
     | ConditionalGroup
     | RequiredGroup
-    | SeedGroup;
+    | SeedGroup
+    | LinkedInputsGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;

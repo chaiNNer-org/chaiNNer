@@ -18,5 +18,5 @@ from .. import value_group
         TextOutput("Text", output_type="Input0"),
     ],
 )
-def text_value_node(text: str) -> str:
+def text_node(text: str) -> str:
     return text

@@ -432,7 +432,17 @@ async def get_dependencies(_request: Request):
     await nodes_available()
     all_dependencies = []
     for package in api.registry.packages.values():
-        pkg_dependencies = [x.toDict() for x in package.dependencies]
+        pkg_dependencies = []
+        for pkg_dep in package.dependencies:
+            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
+            pkg_dep_item = {
+                **pkg_dep.toDict(),
+            }
+            if installed_version is None:
+                pkg_dep_item["installed"] = None
+            else:
+                pkg_dep_item["installed"] = installed_version
+            pkg_dependencies.append(pkg_dep_item)
         if package.name == "chaiNNer_standard":
             continue
         else:

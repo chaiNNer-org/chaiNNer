@@ -3,7 +3,8 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.groups import linked_inputs_group
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
@@ -16,8 +17,10 @@ from .. import miscellaneous_group
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(),
-        NumberInput("Size X", default=10, precision=0, minimum=1, controls_step=1),
-        NumberInput("Size Y", default=10, precision=0, minimum=1, controls_step=1),
+        linked_inputs_group(
+            SliderInput("Size X", minimum=1, maximum=1024, default=10, scale="log"),
+            SliderInput("Size Y", minimum=1, maximum=1024, default=10, scale="log"),
+        ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )

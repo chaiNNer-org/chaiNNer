@@ -1,7 +1,5 @@
 import { Type } from '@chainner/navi';
-import { Input, InputKind, OfKind, SchemaId, Size } from '../../../common/common-types';
-
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+import { Input, InputKind, OfKind, PartialBy, SchemaId, Size } from '../../../common/common-types';
 
 export interface InputProps<Kind extends InputKind, Value extends string | number = never> {
     readonly value: Value | undefined;

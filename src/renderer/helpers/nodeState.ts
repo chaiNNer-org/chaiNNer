@@ -71,7 +71,6 @@ export interface NodeState {
     readonly connectedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
     readonly testCondition: (condition: Condition) => boolean;
-    readonly useFakeHandles: boolean;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
@@ -117,6 +116,5 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         connectedOutputs,
         type,
         testCondition,
-        useFakeHandles: false,
     });
 };

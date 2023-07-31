@@ -171,7 +171,7 @@ body {
     }
 }
 
-.chainner-handle:has(+ .with-label) {
+.chainner-handle:has(+ .with-label, + * .with-label) {
     margin-top: 1rem;
 }
 
@@ -201,4 +201,8 @@ body {
     & > :last-child {
         margin-bottom: 0 !important;
     }
+}
+
+.chakra-modal__overlay ~ .chakra-portal > .chakra-popover__popper:has(> .chainner-color-selector) {
+    z-index: 10000 !important;
 }

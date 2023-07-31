@@ -1,16 +1,17 @@
 import {
     IntersectionExpression,
     NamedExpression,
-    StructType,
+    StructInstanceType,
     Type,
     evaluate,
     isDisjointWith,
+    isStructInstance,
 } from '@chainner/navi';
 import { assertNever } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { explain, formatChannelNumber } from './explain';
 import { prettyPrintType } from './pretty';
-import { isColor, isImage } from './util';
+import { getFields, isColor, isImage } from './util';
 
 export type AssignmentErrorTrace = FieldAssignmentError | GeneralAssignmentError;
 export interface GeneralAssignmentError {
@@ -20,8 +21,8 @@ export interface GeneralAssignmentError {
 }
 export interface FieldAssignmentError {
     type: 'Field';
-    assigned: StructType;
-    definition: StructType;
+    assigned: StructInstanceType;
+    definition: StructInstanceType;
     field: string;
     inner: AssignmentErrorTrace;
 }
@@ -36,22 +37,22 @@ export const generateAssignmentErrorTrace = (
     }
 
     if (
-        assigned.type === 'struct' &&
-        definition.type === 'struct' &&
-        assigned.name === definition.name
+        isStructInstance(assigned) &&
+        isStructInstance(definition) &&
+        assigned.descriptor === definition.descriptor
     ) {
         // find the first field that causes the mismatch
         for (let i = 0; i < assigned.fields.length; i += 1) {
             const a = assigned.fields[i];
             const d = definition.fields[i];
 
-            const inner = generateAssignmentErrorTrace(a.type, d.type);
+            const inner = generateAssignmentErrorTrace(a, d);
             if (inner) {
                 return {
                     type: 'Field',
                     assigned,
                     definition,
-                    field: a.name,
+                    field: assigned.descriptor.fields[i].name,
                     inner,
                 };
             }
@@ -69,8 +70,18 @@ const shortTypeNames = (t: Type): Set<string> => {
             return new Set([t.underlying]);
         case 'never':
             return new Set();
-        case 'struct':
-            return new Set([t.name]);
+        case 'struct': {
+            switch (t.type) {
+                case 'instance':
+                    return new Set([t.descriptor.name]);
+                case 'struct':
+                    return new Set([t.toString()]);
+                case 'inverted-set':
+                    return new Set([`not(${[...t.excluded].map((d) => d.name).join(' | ')})`]);
+                default:
+                    return assertNever(t);
+            }
+        }
         case 'union':
             return new Set(t.items.flatMap((i) => [...shortTypeNames(i)]));
         default:
@@ -115,7 +126,7 @@ export const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
             prettyPrintType
         );
         return [
-            `The **${trace.assigned.name}** types are incompatible because **${trace.field}: ${a}** is not connectable with **${trace.field}: ${d}**.`,
+            `The **${trace.assigned.descriptor.name}** types are incompatible because **${trace.field}: ${a}** is not connectable with **${trace.field}: ${d}**.`,
         ];
     }
 
@@ -139,8 +150,8 @@ export const simpleError = (
         );
 
         if (isImage(d)) {
-            const aChannels = assigned.fields[2].type;
-            const dChannels = d.fields[2].type;
+            const aChannels = getFields(assigned).channels;
+            const dChannels = getFields(d).channels;
 
             if (isDisjointWith(aChannels, dChannels)) {
                 const aString = formatChannelNumber(aChannels, 'image');
@@ -163,8 +174,8 @@ export const simpleError = (
         );
 
         if (isColor(d)) {
-            const aChannels = assigned.fields[0].type;
-            const dChannels = d.fields[0].type;
+            const aChannels = getFields(assigned).channels;
+            const dChannels = getFields(d).channels;
 
             if (isDisjointWith(aChannels, dChannels)) {
                 const aString = formatChannelNumber(aChannels, 'color');

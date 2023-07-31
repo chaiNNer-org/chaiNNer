@@ -11,6 +11,7 @@ import {
     NodeSchema,
     NumberInput,
     OfKind,
+    SliderInput,
 } from './common-types';
 import { getChainnerScope } from './types/chainner-scope';
 import { fromJson } from './types/json';
@@ -34,6 +35,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
+    'linked-inputs': readonly [SliderInput, SliderInput, ...SliderInput[]];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -142,6 +144,19 @@ const groupInputsChecks: {
         const [input] = inputs;
 
         if (input.kind !== 'number') return 'Expected the input to be a number input';
+    },
+    'linked-inputs': (inputs) => {
+        if (inputs.length < 2) return 'Expected at least 2 inputs';
+        if (!allInputsOfKind(inputs, 'slider')) return `Expected all inputs to be slider inputs`;
+
+        const [ref] = inputs;
+        for (const i of inputs) {
+            if (i.min !== ref.min) return 'Expected all inputs to have the same min value';
+            if (i.max !== ref.max) return 'Expected all inputs to have the same max value';
+            if (i.precision !== ref.precision)
+                return 'Expected all inputs to have the same precision value';
+            if (i.def !== ref.def) return 'Expected all inputs to have the same default value';
+        }
     },
 };
 

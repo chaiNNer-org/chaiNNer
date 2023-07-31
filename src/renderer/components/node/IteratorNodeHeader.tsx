@@ -74,9 +74,10 @@ export const IteratorNodeHeader = memo(
                                 p={0}
                                 size="sm"
                                 textAlign="center"
+                                textTransform="uppercase"
                                 verticalAlign="middle"
                             >
-                                {name.toUpperCase()}
+                                {name}
                             </Heading>
                         </Center>
                     </HStack>

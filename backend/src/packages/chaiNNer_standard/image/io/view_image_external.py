@@ -19,13 +19,16 @@ from .. import io_group
 @io_group.register(
     schema_id="chainner:image:preview",
     name="View Image (external)",
-    description="Open the image in your default image viewer.",
+    description=[
+        "Open the image in your default image viewer.",
+        "This works by saving a temporary file that will be deleted after chaiNNer is closed. It is not recommended to be used when performing batch processing.",
+    ],
     icon="BsEyeFill",
     inputs=[ImageInput()],
     outputs=[],
     side_effects=True,
 )
-def open_image_node(img: np.ndarray) -> None:
+def view_image_external_node(img: np.ndarray) -> None:
     tempdir = mkdtemp(prefix="chaiNNer-")
     logger.debug(f"Writing image to temp path: {tempdir}")
     im_name = f"{time.time()}.png"

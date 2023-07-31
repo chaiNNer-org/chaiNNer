@@ -15,7 +15,7 @@ from .. import io_group
 @io_group.register(
     schema_id="chainner:ncnn:load_model",
     name="Load Model",
-    description="Load NCNN model (.bin and .param files).",
+    description="Load NCNN model (.bin and .param files). Theoretically supports any NCNN Super-Resolution model that doesn't expect non-standard preprocessing.",
     icon="NCNN",
     inputs=[
         group("ncnn-file-inputs")(

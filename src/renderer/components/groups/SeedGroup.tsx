@@ -1,4 +1,4 @@
-import { IconButton, Tooltip } from '@chakra-ui/react';
+import { Box, IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { SchemaInput } from '../inputs/SchemaInput';
@@ -19,26 +19,31 @@ export const SeedGroup = memo(({ inputs, nodeState }: GroupProps<'seed'>) => {
     return (
         <SchemaInput
             afterInput={
-                <Tooltip
-                    closeOnClick
-                    closeOnPointerDown
-                    hasArrow
-                    borderRadius={8}
-                    label="Random seed"
-                    openDelay={500}
+                <Box
+                    alignSelf="end"
+                    pb={1}
                 >
-                    <IconButton
-                        aria-label="Random Seed"
-                        h="2rem"
-                        icon={<HiOutlineRefresh />}
-                        isDisabled={isLocked || isInputLocked}
-                        minWidth={0}
-                        size="md"
-                        variant="outline"
-                        w="2.4rem"
-                        onClick={setRandom}
-                    />
-                </Tooltip>
+                    <Tooltip
+                        closeOnClick
+                        closeOnPointerDown
+                        hasArrow
+                        borderRadius={8}
+                        label="Random seed"
+                        openDelay={500}
+                    >
+                        <IconButton
+                            aria-label="Random Seed"
+                            h="2rem"
+                            icon={<HiOutlineRefresh />}
+                            isDisabled={isLocked || isInputLocked}
+                            minWidth={0}
+                            size="md"
+                            variant="outline"
+                            w="2.4rem"
+                            onClick={setRandom}
+                        />
+                    </Tooltip>
+                </Box>
             }
             input={input}
             nodeState={nodeState}

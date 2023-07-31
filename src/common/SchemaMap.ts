@@ -24,6 +24,8 @@ export class SchemaMap {
 
     private readonly unique: ReadonlySet<SchemaId>;
 
+    static readonly EMPTY: SchemaMap = new SchemaMap([]);
+
     constructor(schemata: readonly NodeSchema[]) {
         // defensive copy
         this.schemata = [...schemata];

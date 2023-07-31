@@ -48,7 +48,7 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
-    const { id, schema, schemaId, useFakeHandles } = nodeState;
+    const { id, schema, schemaId } = nodeState;
 
     const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
@@ -100,7 +100,6 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                         key={`${id}-${output.id}`}
                         output={output}
                         type={type}
-                        useFakeHandles={useFakeHandles}
                     >
                         <OutputType
                             animated={animated}

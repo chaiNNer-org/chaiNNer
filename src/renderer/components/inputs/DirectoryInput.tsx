@@ -1,4 +1,4 @@
-import { Type } from '@chainner/navi';
+import { Type, isStringLiteral } from '@chainner/navi';
 import {
     Icon,
     Input,
@@ -15,22 +15,18 @@ import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { ipcRenderer } from '../../../common/safeIpc';
+import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { CopyOverrideIdSection } from './elements/CopyOverrideIdSection';
 import { MaybeLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
-    if (
-        type.type === 'struct' &&
-        type.name === 'Directory' &&
-        type.fields.length > 0 &&
-        type.fields[0].name === 'path'
-    ) {
-        const pathType = type.fields[0].type;
-        if (pathType.underlying === 'string' && pathType.type === 'literal') {
-            return pathType.value;
+    if (isDirectory(type)) {
+        const { path } = getFields(type);
+        if (isStringLiteral(path)) {
+            return path.value;
         }
     }
     return undefined;
@@ -65,6 +61,8 @@ export const DirectoryInput = memo(
 
         const displayDirectory = isConnected ? getDirectoryPath(inputType) : value;
 
+        const refactor = useInputRefactor(nodeId, input, value, isConnected);
+
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
@@ -98,10 +96,7 @@ export const DirectoryInput = memo(
                 >
                     {t('inputs.directory.copyFullDirectoryPath', 'Copy Full Directory Path')}
                 </MenuItem>
-                <CopyOverrideIdSection
-                    inputId={input.id}
-                    nodeId={nodeId}
-                />
+                {refactor}
             </MenuList>
         ));
 
