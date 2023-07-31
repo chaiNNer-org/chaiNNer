@@ -21,7 +21,7 @@ external_stable_diffusion_category = package.add_category(
 _FEATURE_DESCRIPTION = f"""
 ChaiNNer can connect to [AUTOMATIC1111's Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) to run Stable Diffusion nodes.
 
-If you want to use the External Stable Diffusion nodes, run the Automatic1111 web WI with the `--api` flag, like so:
+If you want to use the External Stable Diffusion nodes, run the Automatic1111 web UI with the `--api` flag, like so:
 
 ```bash
 ./webui.{"bat" if sys.platform == "win32" else "sh"} --api
