@@ -2,8 +2,8 @@ import sys
 
 from sanic.log import logger
 
-from api import GB, KB, MB, Dependency, ToggleSetting, add_package
-from gpu import nvidia_is_available
+from api import GB, KB, MB, Dependency, DropdownSetting, ToggleSetting, add_package
+from gpu import get_nvidia_helper, nvidia_is_available
 from system import is_arm_mac
 
 python_version = sys.version_info
@@ -99,7 +99,7 @@ package.add_setting(
         key="cpu_mode",
         description="Use CPU for PyTorch instead of GPU. This is much slower and not recommended.",
         default=False,
-        disabled=not nvidia_is_available,
+        # disabled=not nvidia_is_available,
     ),
 )
 
@@ -111,6 +111,20 @@ package.add_setting(
         default=False,
         disabled=not nvidia_is_available,
     ),
+)
+
+nv = get_nvidia_helper()
+gpu_list = nv.list_gpus() if nv is not None else []
+
+package.add_setting(
+    DropdownSetting(
+        label="GPU",
+        key="gpu",
+        description="Which GPU to use for PyTorch. This is only relevant if you have multiple GPUs.",
+        options=gpu_list,
+        default=gpu_list[0] if len(gpu_list) > 0 else None,
+        disabled=not nvidia_is_available,
+    )
 )
 
 pytorch_category = package.add_category(
