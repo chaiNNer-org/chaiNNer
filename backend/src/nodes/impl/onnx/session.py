@@ -4,8 +4,6 @@ from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
 
-from system import is_arm_mac
-
 from ...utils.exec_options import ExecutionOptions
 from .model import OnnxModel
 
