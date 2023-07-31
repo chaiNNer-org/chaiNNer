@@ -222,7 +222,7 @@ Inputs and outputs both allow optional documentation to be added to add more inf
             "Each string passed in will be its own paragraph in the resulting docs page.",
             "And, it supports _markdown_ *formatting*.",
         ),
-        NumberInput.with_docs(
+        NumberInput().with_docs(
             "Confusing inputs can be given a hint flag, which will show a tooltip icon on the input in the node itself.",
             "Use these when you think people would need an explanation about something regardless of if they have looked at the docs modal."
             hint=True,
