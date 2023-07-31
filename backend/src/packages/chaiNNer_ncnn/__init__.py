@@ -5,6 +5,7 @@ from system import is_mac
 
 package = add_package(
     __file__,
+    id="chaiNNer_ncnn",
     name="NCNN",
     description="NCNN uses .bin/.param models to upscale images. NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. Models can be converted from PyTorch to NCNN.",
     dependencies=[

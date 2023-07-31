@@ -10,7 +10,7 @@ import {
     PythonInfo,
     SchemaId,
 } from './common-types';
-import { Package } from './dependencies';
+import { FeatureState, Package, PyPiName } from './dependencies';
 import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
@@ -191,21 +191,21 @@ export class Backend {
      * Clears the cache of the passed in node id
      */
     clearNodeCacheIndividual(id: string): Promise<BackendResult<null>> {
-        return this.fetchJson('/clearcache/individual', 'POST', { id });
+        return this.fetchJson('/clear-cache/individual', 'POST', { id });
     }
 
     /**
      * Gets a list of all NCNN GPU devices and their indexes
      */
     listNcnnGpus(): Promise<string[]> {
-        return this.fetchJson('/listgpus/ncnn', 'GET');
+        return this.fetchJson('/list-gpus/ncnn', 'GET');
     }
 
     /**
      * Gets a list of all Nvidia GPU devices and their indexes
      */
     listNvidiaGpus(): Promise<string[]> {
-        return this.fetchJson('/listgpus/nvidia', 'GET');
+        return this.fetchJson('/list-gpus/nvidia', 'GET');
     }
 
     pythonInfo(): Promise<PythonInfo> {
@@ -216,8 +216,16 @@ export class Backend {
         return this.fetchJson('/system-usage', 'GET');
     }
 
-    dependencies(): Promise<Package[]> {
-        return this.fetchJson('/dependencies', 'GET');
+    packages(): Promise<Package[]> {
+        return this.fetchJson('/packages', 'GET');
+    }
+
+    installedDependencies(): Promise<Partial<Record<PyPiName, string>>> {
+        return this.fetchJson('/installed-dependencies', 'GET');
+    }
+
+    features(): Promise<FeatureState[]> {
+        return this.fetchJson('/features', 'GET');
     }
 }
 

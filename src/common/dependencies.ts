@@ -1,19 +1,38 @@
 import { Version } from './common-types';
 
+export type PyPiName = string & { readonly __pyPiName: never };
+export type PackageId = string & { readonly __packageId: never };
+export type FeatureId = string & { readonly __featureId: never };
+
 export interface PyPiPackage {
-    displayName: string;
-    pypiName: string;
-    version: Version;
-    findLink?: string | null;
+    readonly displayName: string;
+    readonly pypiName: PyPiName;
+    readonly version: Version;
+    readonly findLink?: string | null;
     /**
      * A size estimate (in bytes) for the whl file to download.
      */
-    sizeEstimate: number;
-    autoUpdate: boolean;
-    installed: Version | null;
+    readonly sizeEstimate: number;
+    readonly autoUpdate: boolean;
 }
+
+export interface Feature {
+    readonly id: FeatureId;
+    readonly name: string;
+    readonly description: string;
+}
+
 export interface Package {
-    name: string;
-    dependencies: PyPiPackage[];
-    description?: string;
+    readonly id: PackageId;
+    readonly name: string;
+    readonly description: string;
+    readonly dependencies: readonly PyPiPackage[];
+    readonly features: readonly Feature[];
+}
+
+export interface FeatureState {
+    readonly packageId: PackageId;
+    readonly featureId: FeatureId;
+    readonly state: 'unavailable' | 'enabled' | 'disabled';
+    readonly details?: string | null;
 }

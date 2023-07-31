@@ -292,6 +292,7 @@ class FeatureState:
 @dataclass
 class Package:
     where: str
+    id: str
     name: str
     description: str
     dependencies: List[Dependency] = field(default_factory=list)
@@ -409,15 +410,17 @@ registry = PackageRegistry()
 
 def add_package(
     where: str,
+    id: str,  # pylint: disable=redefined-builtin
     name: str,
     description: str,
     dependencies: List[Dependency] | None = None,
 ) -> Package:
     return registry.add(
         Package(
-            where,
-            name,
-            description,
+            where=where,
+            id=id,
+            name=name,
+            description=description,
             dependencies=dependencies or [],
         )
     )

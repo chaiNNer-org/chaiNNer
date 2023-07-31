@@ -8,7 +8,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import Dict, List, Literal, Optional, TypedDict, Union
+from typing import Dict, List, Literal, Optional, Tuple, TypedDict, Union
 
 import psutil
 from sanic import Sanic
@@ -276,7 +276,7 @@ async def run_individual(request: Request):
         return json({"success": False, "error": str(exception)})
 
 
-@app.route("/clearcache/individual", methods=["POST"])
+@app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
     await nodes_available()
     ctx = AppContext.get(request.app)
@@ -352,7 +352,7 @@ async def kill(request: Request):
         return json(errorResponse("Error killing execution!", exception), status=500)
 
 
-@app.route("/listgpus/ncnn", methods=["GET"])
+@app.route("/list-gpus/ncnn", methods=["GET"])
 async def list_ncnn_gpus(_request: Request):
     """Lists the available GPUs for NCNN"""
     await nodes_available()
@@ -376,7 +376,7 @@ async def list_ncnn_gpus(_request: Request):
             return json([])
 
 
-@app.route("/listgpus/nvidia", methods=["GET"])
+@app.route("/list-gpus/nvidia", methods=["GET"])
 async def list_nvidia_gpus(_request: Request):
     """Lists the available GPUs for NCNN"""
     await nodes_available()
@@ -427,11 +427,15 @@ async def system_usage(_request: Request):
     return json([asdict(x) for x in stats_list])
 
 
-@app.route("/dependencies", methods=["GET"])
-async def get_dependencies(_request: Request):
+@app.route("/packages", methods=["GET"])
+async def get_packages(_request: Request):
     await nodes_available()
-    all_dependencies = []
+
+    packages = []
     for package in api.registry.packages.values():
+        if package.name == "chaiNNer_standard":
+            continue
+
         pkg_dependencies = []
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
@@ -443,26 +447,42 @@ async def get_dependencies(_request: Request):
             else:
                 pkg_dep_item["installed"] = installed_version
             pkg_dependencies.append(pkg_dep_item)
-        if package.name == "chaiNNer_standard":
-            continue
-        else:
-            all_dependencies.append(
-                {
-                    "name": package.name,
-                    "dependencies": pkg_dependencies,
-                    "description": package.description,
-                }
-            )
-    return json(all_dependencies)
+
+        packages.append(
+            {
+                "id": package.id,
+                "name": package.name,
+                "description": package.description,
+                "dependencies": [d.toDict() for d in package.dependencies],
+                "features": [f.toDict() for f in package.features],
+            }
+        )
+
+    return json(packages)
+
+
+@app.route("/installed-dependencies", methods=["GET"])
+async def get_installed_dependencies(_request: Request):
+    await nodes_available()
+
+    installed_deps: Dict[str, str] = {}
+    for package in api.registry.packages.values():
+        for pkg_dep in package.dependencies:
+            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
+            if installed_version is not None:
+                installed_deps[pkg_dep.pypi_name] = installed_version
+
+    return json(installed_deps)
 
 
 @app.route("/features")
 async def get_features(_request: Request):
     await nodes_available()
 
-    features: List[api.Feature] = []
+    features: List[Tuple[api.Feature, api.Package]] = []
     for package in api.registry.packages.values():
-        features.extend(package.features)
+        for feature in package.features:
+            features.append((feature, package))
 
     # check all features in parallel
     async def check(feature: api.Feature) -> Union[api.FeatureState, None]:
@@ -477,11 +497,11 @@ async def get_features(_request: Request):
 
     # because good API design just isn't pythonic, asyncio.gather will return List[Any].
     results: List[Union[api.FeatureState, None]] = await asyncio.gather(
-        *[check(f) for f in features]
+        *[check(f) for f, _ in features]
     )
 
     features_json = []
-    for feature, state in zip(features, results):
+    for (feature, package), state in zip(features, results):
         state_type: Literal["enable", "disabled", "unavailable"]
         details: Optional[str] = None
         if state is None:
@@ -491,7 +511,8 @@ async def get_features(_request: Request):
             details = state.details
         features_json.append(
             {
-                "feature": feature.toDict(),
+                "packageId": package.id,
+                "featureId": feature.id,
                 "state": state_type,
                 "details": details,
             }

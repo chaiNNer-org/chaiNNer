@@ -5,6 +5,7 @@ from system import is_arm_mac, is_windows
 
 package = add_package(
     __file__,
+    id="chaiNNer_standard",
     name="chaiNNer_standard",
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
