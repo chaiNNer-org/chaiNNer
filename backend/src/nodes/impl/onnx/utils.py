@@ -2,13 +2,9 @@ from __future__ import annotations
 
 from typing import Literal, Tuple
 
+import onnxoptimizer
 import onnxruntime as ort
 from onnx.onnx_pb import ModelProto
-
-try:
-    import onnxoptimizer
-except ImportError:
-    onnxoptimizer = None
 
 OnnxInputShape = Literal["BCHW", "BHWC"]
 
@@ -54,8 +50,9 @@ def safely_optimize_onnx_model(model_proto: ModelProto) -> ModelProto:
     """
     Optimizes the model using onnxoptimizer. If onnxoptimizer is not installed, the model is returned as is.
     """
-
-    if onnxoptimizer is not None:
+    try:
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
         model_proto = onnxoptimizer.optimize(model_proto, passes)
+    except:
+        pass
     return model_proto
