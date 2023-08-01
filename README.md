@@ -80,7 +80,7 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - Windows versions 8.1 and below are also not supported.
 
-- Apple M1 laptops are mostly untested, though they should support almost everything. Although, ONNX is unable to be installed as it does not yet have an arm64 build, and NCNN sometimes does not work properly.
+- Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
 
 - Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
@@ -90,7 +90,7 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## GPU Support
 
-For PyTorch inference, only Nvidia GPUs are officially supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only supports Nvidia's CUDA. MacOS users on M1 or later arm devices can also take advantage of PyTorch's MPS mode, which should work with chaiNNer.
+For PyTorch inference, only Nvidia GPUs are officially supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only supports Nvidia's CUDA. MacOS users on Apple Silicon Macs can also take advantage of PyTorch's MPS mode, which should work with chaiNNer.
 
 If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch or ONNX model to NCNN.
 
