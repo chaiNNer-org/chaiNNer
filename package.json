@@ -18,6 +18,8 @@
     "make-win-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform win32",
     "make-mac-arm64-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --arch arm64",
     "make-mac-x64-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --arch x64",
+    "make-mac-all": "npm run make-mac-arm64 && npm run make-mac-x64",
+    "publish-mac": "npm run make-mac-all && npm run publish",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
     "lint": "npm run lint:js && npm run lint:py",
     "lint:js": "eslint . --ext \".js,.jsx,.ts,.tsx\" && stylelint src/**/*.scss",
