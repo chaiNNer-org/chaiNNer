@@ -37,6 +37,7 @@ import { HiOutlineRefresh } from 'react-icons/hi';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
+import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
 import {
     Feature,
@@ -287,8 +288,18 @@ const FeaturesAccordion = memo(({ features, featureStates }: FeaturesAccordionPr
             {features.map((f) => {
                 const state = featureStates.get(f.id);
 
-                const stateLabel =
-                    state === undefined ? 'Unavailable' : state.enabled ? 'Enabled' : 'Disabled';
+                let stateLabel;
+                let stateColor;
+                if (state === undefined) {
+                    stateLabel = 'Unavailable';
+                    stateColor = 'gray.500';
+                } else if (state.enabled) {
+                    stateLabel = 'Enabled';
+                    stateColor = 'green.500';
+                } else {
+                    stateLabel = 'Disabled';
+                    stateColor = 'gray.500';
+                }
 
                 return (
                     <AccordionItem
@@ -324,7 +335,7 @@ const FeaturesAccordion = memo(({ features, featureStates }: FeaturesAccordionPr
                                             <InfoIcon />
                                         </Tooltip>
                                         <Text
-                                            color={state?.enabled ? 'green.500' : 'gray.500'}
+                                            color={stateColor}
                                             cursor="pointer"
                                             pl={4}
                                         >
@@ -350,34 +361,6 @@ const FeaturesAccordion = memo(({ features, featureStates }: FeaturesAccordionPr
                         </AccordionPanel>
                     </AccordionItem>
                 );
-
-                // return (
-                //     <Box key={f.id}>
-                //         <HStack w="full">
-                //             <Text>{f.name}</Text>
-                //             {state ? (
-                //                 <Text color={state.enabled ? 'green.500' : 'gray.500'}>
-                //                     {state.enabled ? 'Enabled' : 'Disabled'}
-                //                 </Text>
-                //             ) : (
-                //                 <Text color="gray.500">Unavailable</Text>
-                //             )}
-                //         </HStack>
-                //         <Code>
-                //             {JSON.stringify(
-                //                 {
-                //                     ...f,
-                //                     state: {
-                //                         enabled: state?.enabled,
-                //                         details: state?.details,
-                //                     },
-                //                 },
-                //                 undefined,
-                //                 4
-                //             )}
-                //         </Code>
-                //     </Box>
-                // );
             })}
         </Accordion>
     );
