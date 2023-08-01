@@ -102,15 +102,7 @@ const useNodes = (backend: Backend, isRestarting: boolean) => {
         queryKey: ['nodes', backend.url],
         queryFn: async (): Promise<BackendData> => {
             try {
-                return await Promise.all([
-                    backend.nodes().then((response) => {
-                        if ('status' in response) {
-                            throw new Error(`${response.message}\n${response.description}`);
-                        }
-                        return response;
-                    }),
-                    backend.packages(),
-                ]);
+                return await Promise.all([backend.nodes(), backend.packages()]);
             } catch (error) {
                 log.error(error);
                 throw error;

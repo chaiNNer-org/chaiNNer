@@ -98,10 +98,38 @@ export interface BackendError {
     error: string;
 }
 
-export interface ServerError {
+export interface ServerErrorJson {
     message: string;
     description: string;
     status: number;
+}
+export class ServerError extends Error {
+    description: string;
+
+    status: number;
+
+    constructor(message: string, description: string, status: number) {
+        super(message);
+        this.message = message;
+        this.description = description;
+        this.status = status;
+    }
+
+    static isJson(json: unknown): json is ServerErrorJson {
+        if (typeof json !== 'object' || json === null) {
+            return false;
+        }
+        const obj = json as Record<string, unknown>;
+        return (
+            typeof obj.message === 'string' &&
+            typeof obj.description === 'string' &&
+            typeof obj.status === 'number'
+        );
+    }
+
+    static fromJson(json: ServerErrorJson): ServerError {
+        return new ServerError(json.message, json.description, json.status);
+    }
 }
 
 /**
@@ -145,13 +173,17 @@ export class Backend {
             options.signal = signal;
         }
         const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
-        return (await resp.json()) as T;
+        const result = (await resp.json()) as T;
+        if (ServerError.isJson(result)) {
+            throw ServerError.fromJson(result);
+        }
+        return result;
     }
 
     /**
      * Gets a list of all nodes as well as the node information
      */
-    nodes(): Promise<BackendNodesResponse | ServerError> {
+    nodes(): Promise<BackendNodesResponse> {
         return this.fetchJson('/nodes', 'GET');
     }
 
