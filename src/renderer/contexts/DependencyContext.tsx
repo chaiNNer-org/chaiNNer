@@ -541,14 +541,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
-                            <Flex w="full">
-                                <Text
-                                    flex="1"
-                                    textAlign="left"
-                                >
-                                    {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
-                                </Text>
-                            </Flex>
+                            {!isArmMac && (
+                                <Flex w="full">
+                                    <Text
+                                        flex="1"
+                                        textAlign="left"
+                                    >
+                                        {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
+                                    </Text>
+                                </Flex>
+                            )}
                             <Flex
                                 align="center"
                                 w="full"
