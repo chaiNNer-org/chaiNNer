@@ -65,7 +65,6 @@ const config = {
             name: '@electron-forge/maker-dmg',
             config: {
                 format: 'ULFO',
-                name: 'chaiNNer',
                 icon: './src/public/icons/mac/icon.icns',
             },
         },
