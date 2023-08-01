@@ -1,8 +1,7 @@
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
+import { Markdown } from '../Markdown';
 import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -20,11 +19,7 @@ export const GenericInput = memo(({ input, definitionType }: InputProps<'generic
                     hasArrow
                     borderRadius={8}
                     label={
-                        hint ? (
-                            <ReactMarkdown components={tooltipDocsMarkdown}>
-                                {description ?? ''}
-                            </ReactMarkdown>
-                        ) : undefined
+                        hint ? <Markdown nonInteractive>{description ?? ''}</Markdown> : undefined
                     }
                     openDelay={500}
                     px={2}

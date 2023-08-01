@@ -34,7 +34,6 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';
-import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Version } from '../../common/common-types';
@@ -50,7 +49,7 @@ import {
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
-import { docsMarkdown } from '../components/NodeDocumentation/docsMarkdown';
+import { Markdown } from '../components/Markdown';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
@@ -347,7 +346,7 @@ const FeaturesAccordion = memo(({ features, featureStates }: FeaturesAccordionPr
                             </HStack>
                         </h2>
                         <AccordionPanel pb={4}>
-                            <ReactMarkdown components={docsMarkdown}>{f.description}</ReactMarkdown>
+                            <Markdown>{f.description}</Markdown>
                         </AccordionPanel>
                     </AccordionItem>
                 );
