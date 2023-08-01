@@ -114,7 +114,7 @@ const useNodes = ({ backend, isRestarting }: { backend: Backend; isRestarting: b
     let nodeQueryError: unknown;
     if (nodesQuery.status === 'error') {
         nodeQueryError = nodesQuery.error;
-    } else if (nodesQuery.failureCount > 0) {
+    } else if (nodesQuery.failureCount > 1) {
         nodeQueryError = 'Failed to fetch backend nodes.';
     }
 
