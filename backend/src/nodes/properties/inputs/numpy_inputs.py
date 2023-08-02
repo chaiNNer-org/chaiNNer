@@ -79,7 +79,7 @@ class ImageInput(BaseInput):
 
         return value
 
-    def get_error_value(self, value: object) -> ErrorValue:
+    def get_error_value(self, value) -> ErrorValue:
         def get_channels(channel: int) -> str:
             if channel == 1:
                 return "Grayscale"
