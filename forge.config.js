@@ -29,7 +29,7 @@ const deletePycFiles = async (directory) => {
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
     packagerConfig: {
-        executableName: 'chainner',
+        executableName: process.platform === "linux" ? "chainner" : "chaiNNer",
         extraResource: './backend/src/',
         icon: './src/public/icons/cross_platform/icon',
     },
