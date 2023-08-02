@@ -126,7 +126,6 @@ async def image_file_iterator_node(
         glob_str = "**/*" if is_recursive else "*"
 
     just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
-    logger.info(just_image_files)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
 
