@@ -79,10 +79,7 @@ class ImageInput(BaseInput):
 
         return value
 
-    def get_error_value(self, value: np.ndarray | Color | None) -> ErrorValue:
-        if value is None:
-            return super().get_error_value(value)
-
+    def get_error_value(self, value: object) -> ErrorValue:
         def get_channels(channel: int) -> str:
             if channel == 1:
                 return "Grayscale"
@@ -97,12 +94,14 @@ class ImageInput(BaseInput):
                 "type": "formatted",
                 "formatString": f"{get_channels(value.channels)} Color",
             }
-        else:
+        elif isinstance(value, np.ndarray):
             h, w, c = get_h_w_c(value)
             return {
                 "type": "formatted",
                 "formatString": f"{get_channels(c)} Image {w}x{h}",
             }
+        else:
+            return super().get_error_value(value)
 
 
 class VideoInput(BaseInput):
