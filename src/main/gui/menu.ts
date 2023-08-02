@@ -135,90 +135,173 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },
-        {
-            label: 'Edit',
-            submenu: [
-                {
-                    label: 'Undo',
-                    accelerator: 'CmdOrCtrl+Z',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('history-undo');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Redo',
-                    accelerator: 'CmdOrCtrl+Y',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('history-redo');
-                    },
-                    enabled,
-                },
-                { type: 'separator' },
-                {
-                    label: 'Cut',
-                    accelerator: 'CmdOrCtrl+X',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('cut');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Copy',
-                    accelerator: 'CmdOrCtrl+C',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('copy');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Paste',
-                    accelerator: 'CmdOrCtrl+V',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('paste');
-                    },
-                    enabled,
-                },
-                { type: 'separator' },
-                {
-                    label: 'Duplicate',
-                    accelerator: 'CmdOrCtrl+D',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('duplicate');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Duplicate with Connections',
-                    accelerator: 'CmdOrCtrl+Shift+D',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('duplicate-with-input-edges');
-                    },
-                    enabled,
-                },
-            ],
-        },
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload', enabled },
-                { role: 'forceReload', enabled },
-                { type: 'separator' },
-                { role: 'resetZoom', enabled },
-                { role: 'zoomIn', enabled },
-                { role: 'zoomOut', enabled },
-                { type: 'separator' },
-                { role: 'togglefullscreen' },
-                ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
-            ],
-        },
+        ...(isMac
+            ? [
+                  { role: 'editMenu' },
+                  {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
+                  {
+                      label: 'Nodes',
+                      submenu: [
+                          {
+                              label: 'Undo',
+                              click: () => {
+                                  mainWindow.webContents.send('history-undo');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Redo',
+                              click: () => {
+                                  mainWindow.webContents.send('history-redo');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Cut',
+                              click: () => {
+                                  mainWindow.webContents.send('cut');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Copy',
+                              click: () => {
+                                  mainWindow.webContents.send('copy');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Paste',
+                              click: () => {
+                                  mainWindow.webContents.send('paste');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Duplicate',
+                              accelerator: 'CmdOrCtrl+D',
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Duplicate with Connections',
+                              accelerator: 'CmdOrCtrl+Shift+D',
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate-with-input-edges');
+                              },
+                              enabled,
+                          },
+                      ],
+                  },
+                  { role: 'windowMenu' },
+              ]
+            : [
+                  {
+                      label: 'Edit',
+                      submenu: [
+                          {
+                              label: 'Undo',
+                              accelerator: 'CmdOrCtrl+Z',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('history-undo');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Redo',
+                              accelerator: 'CmdOrCtrl+Y',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('history-redo');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Cut',
+                              accelerator: 'CmdOrCtrl+X',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('cut');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Copy',
+                              accelerator: 'CmdOrCtrl+C',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('copy');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Paste',
+                              accelerator: 'CmdOrCtrl+V',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('paste');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Duplicate',
+                              accelerator: 'CmdOrCtrl+D',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Duplicate with Connections',
+                              accelerator: 'CmdOrCtrl+Shift+D',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate-with-input-edges');
+                              },
+                              enabled,
+                          },
+                      ],
+                  },
+                  {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
+              ]),
         {
             role: 'help',
             submenu: [
