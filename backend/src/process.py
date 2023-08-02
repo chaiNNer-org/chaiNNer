@@ -123,8 +123,18 @@ async def run_iterator_node(
 ) -> Output:
     assert node.type == "iterator"
 
-    raw_output = await node.run(*enforce_inputs(inputs, node, node_id), context=context)
-    return enforce_output(raw_output, node)
+    enforced_inputs = enforce_inputs(inputs, node, node_id)
+    try:
+        raw_output = await node.run(*enforced_inputs, context=context)
+        return enforce_output(raw_output, node)
+    except Aborted:
+        raise
+    except NodeExecutionError:
+        raise
+    except Exception as e:
+        # collect information to provide good error messages
+        input_dict = collect_input_information(node, enforced_inputs)
+        raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
