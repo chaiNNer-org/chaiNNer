@@ -85,7 +85,7 @@ class Api:
 
 
 @dataclass
-class _ApiConfig:
+class ApiConfig:
     protocol: List[str]
     host: str
     port: List[str]
@@ -106,7 +106,7 @@ class _ApiConfig:
         else:
             port = ["7860", "7861"]
 
-        return _ApiConfig(protocol, host, port)
+        return ApiConfig(protocol, host, port)
 
     def list_apis(self) -> List[Api]:
         apis: List[Api] = []
@@ -119,7 +119,7 @@ class _ApiConfig:
 _CURRENT_API: Optional[Api] = None
 
 
-async def get_verified_api() -> Api:
+async def get_verified_api() -> Api | None:
     timeout = 1  # seconds
 
     global _CURRENT_API  # pylint: disable=global-statement
@@ -132,7 +132,7 @@ async def get_verified_api() -> Api:
             _CURRENT_API = None
 
     # check all apis in parallel
-    apis = _ApiConfig.from_env().list_apis()
+    apis = ApiConfig.from_env().list_apis()
     assert len(apis) > 0
     tasks = [
         api.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout) for api in apis
@@ -147,11 +147,17 @@ async def get_verified_api() -> Api:
             _CURRENT_API = api
             return api
 
-    raise RuntimeError("No stable diffusion API found") from results[0]
+    return None
 
 
 def get_api() -> Api:
-    return _CURRENT_API or asyncio.run(get_verified_api())
+    if _CURRENT_API is not None:
+        return _CURRENT_API
+
+    api = asyncio.run(get_verified_api())
+    if api is None:
+        raise RuntimeError("No stable diffusion API found")
+    return api
 
 
 class ExternalServiceHTTPError(Exception):
