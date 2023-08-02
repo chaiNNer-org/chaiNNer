@@ -139,6 +139,22 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
             ? [
                   { role: 'editMenu' },
                   {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
+                  {
                       label: 'Nodes',
                       submenu: [
                           {
@@ -196,6 +212,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                           },
                       ],
                   },
+                  { role: 'windowMenu' },
               ]
             : [
                   {
@@ -268,21 +285,23 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                           },
                       ],
                   },
+                  {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
               ]),
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload', enabled },
-                { role: 'forceReload', enabled },
-                { type: 'separator' },
-                { role: 'resetZoom', enabled },
-                { role: 'zoomIn', enabled },
-                { role: 'zoomOut', enabled },
-                { type: 'separator' },
-                { role: 'togglefullscreen' },
-                ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
-            ],
-        },
         {
             role: 'help',
             submenu: [
