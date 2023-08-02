@@ -264,22 +264,25 @@ export const BackendProvider = memo(
             restartingRef.current = true;
             restartPromiseRef.current = (async () => {
                 let error;
-                do {
-                    needsNewRestartRef.current = false;
-                    try {
-                        backend.abort();
-                        // eslint-disable-next-line no-await-in-loop
-                        await ipcRenderer.invoke('restart-backend');
-                        error = null;
-                    } catch (e) {
-                        error = e;
-                    }
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                } while (needsNewRestartRef.current);
+                try {
+                    do {
+                        needsNewRestartRef.current = false;
+                        try {
+                            backend.abort();
+                            // eslint-disable-next-line no-await-in-loop
+                            await ipcRenderer.invoke('restart-backend');
+                            error = null;
+                        } catch (e) {
+                            error = e;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    } while (needsNewRestartRef.current);
+                } finally {
+                    // Done. At this point, the backend either restarted or failed trying
+                    restartingRef.current = false;
+                    restartPromiseRef.current = undefined;
+                }
 
-                // Done. At this point, the backend either restarted or failed trying
-                restartingRef.current = false;
-                restartPromiseRef.current = undefined;
                 refreshNodes();
 
                 if (error !== null) {
