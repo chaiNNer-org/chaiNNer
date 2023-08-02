@@ -23,8 +23,40 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
     const openRecent = [...menuData.openRecentRev].reverse();
     const defaultPath = openRecent[0] ? path.dirname(openRecent[0]) : undefined;
 
+    const showAboutDialog = async () => {
+        const response = await dialog.showMessageBox(mainWindow, {
+            title: 'About chaiNNer',
+            message: `chaiNNer ${app.getVersion()}`,
+            detail: `chaiNNer is an open source (GPLv3 licensed) tool created by @joeyballentine, with support from other community members. Support the project by donating to my Ko-Fi via the button below. Also, many thanks to these members specifically: @RunDevelopment and @theflyingzamboni for ongoing development, and @Kim2091 for testing.`,
+            buttons: ['Open Ko-Fi', 'Close'],
+            defaultId: 0,
+            cancelId: 1,
+        });
+
+        if (response.response === 0) {
+            await shell.openExternal(links.kofi);
+        }
+    };
+
     const template = [
-        ...(isMac ? [{ role: 'appMenu' }] : []),
+        ...(isMac
+            ? [
+                  {
+                      role: 'appMenu',
+                      submenu: [
+                          { label: 'About chaiNNer', click: showAboutDialog },
+                          { type: 'separator' },
+                          { role: 'services', submenu: [] },
+                          { type: 'separator' },
+                          { role: 'hide' },
+                          { role: 'hideOthers' },
+                          { role: 'unhide' },
+                          { type: 'separator' },
+                          { role: 'quit' },
+                      ],
+                  },
+              ]
+            : []),
         {
             label: 'File',
             submenu: [
@@ -131,8 +163,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                     enabled,
                 },
-                { type: 'separator' },
-                isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
+                ...(!isMac ? [{ type: 'separator' }, { role: 'quit', enabled }] : []),
             ],
         },
         ...(isMac
@@ -306,6 +337,12 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
             role: 'help',
             submenu: [
                 {
+                    label: "Open chaiNNer's Homepage",
+                    click: async () => {
+                        await shell.openExternal('https://chainner.app');
+                    },
+                },
+                {
                     label: "Open chaiNNer's GitHub page",
                     click: async () => {
                         await shell.openExternal(
@@ -314,26 +351,22 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                 },
                 {
-                    label: 'Open logs folder',
+                    label: "Join chaiNNer's Discord server",
                     click: async () => {
-                        await shell.openPath(getLogsFolder());
+                        await shell.openExternal('https://discord.com/invite/pzvAKPKyHM');
                     },
                 },
                 { type: 'separator' },
+                ...(!isMac ? [{ label: 'About chaiNNer', click: showAboutDialog }] : []),
                 {
-                    label: 'About chaiNNer',
+                    label: 'Release Notes',
                     click: async () => {
-                        const response = await dialog.showMessageBox(mainWindow, {
-                            title: 'About chaiNNer',
-                            message: `chaiNNer ${app.getVersion()}`,
-                            detail: `chaiNNer is an open source (GPLv3 licensed) tool created by @joeyballentine, with support from other community members. Support the project by donating to my Ko-Fi via the button below. Also, many thanks to these members specifically: @RunDevelopment and @theflyingzamboni for ongoing development, and @Kim2091 for testing.`,
-                            buttons: ['Open Ko-Fi', 'Close'],
-                        });
-                        if (response.response === 0) {
-                            await shell.openExternal(links.kofi);
-                        }
+                        await shell.openExternal(
+                            `https://github.com/chaiNNer-org/chaiNNer/releases/tag/v${app.getVersion()}`
+                        );
                     },
                 },
+
                 { type: 'separator' },
                 {
                     label: 'Collect system information',
@@ -363,6 +396,21 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                         mainWindow.webContents.send('show-collected-information', information);
                     },
                     enabled,
+                },
+                {
+                    label: 'Open logs folder',
+                    click: async () => {
+                        await shell.openPath(getLogsFolder());
+                    },
+                },
+                { type: 'separator' },
+                {
+                    label: 'Report a Bug or Feature Request',
+                    click: async () => {
+                        await shell.openExternal(
+                            'https://github.com/chaiNNer-org/chaiNNer/issues/new/choose'
+                        );
+                    },
                 },
             ],
         },
