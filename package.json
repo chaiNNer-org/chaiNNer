@@ -155,5 +155,8 @@
     "uuid": "^8.3.2",
     "wcag-contrast": "^3.0.0",
     "yargs": "^17.5.1"
+  },
+  "optionalDependencies": {
+    "appdmg": "^0.6.6"
   }
 }
