@@ -106,8 +106,6 @@ export const Main = memo(() => {
                                         <Header />
                                         <HStack
                                             h="calc(100vh - 80px)"
-                                            minH="360px"
-                                            minW="720px"
                                             w="full"
                                         >
                                             <NodeSelector />

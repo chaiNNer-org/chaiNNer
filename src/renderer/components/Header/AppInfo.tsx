@@ -6,7 +6,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogOverlay,
-    Box,
     Button,
     HStack,
     Heading,
@@ -84,39 +83,39 @@ export const AppInfo = memo(() => {
 
     return (
         <>
-            <Box w="full">
-                <HStack
-                    ml={0}
-                    mr="auto"
+            <HStack>
+                <Image
+                    boxSize="36px"
+                    draggable={false}
+                    src={logo}
+                />
+                <Heading
+                    display={{ base: 'none', lg: 'inherit' }}
+                    size="md"
                 >
-                    <Image
-                        boxSize="36px"
-                        draggable={false}
-                        src={logo}
-                    />
-                    <Heading size="md">chaiNNer</Heading>
-                    <Tag>Alpha</Tag>
-                    <Tag>{`v${appVersion ?? '#.#.#'}`}</Tag>
-                    {updateVersion && (
-                        <Tooltip
-                            closeOnClick
-                            closeOnMouseDown
-                            borderRadius={8}
-                            label={`Update available (${updateVersion.tag_name})`}
-                            px={2}
-                            py={1}
-                        >
-                            <IconButton
-                                aria-label="Update available"
-                                colorScheme="green"
-                                icon={<DownloadIcon />}
-                                variant="ghost"
-                                onClick={onModalOpen}
-                            />
-                        </Tooltip>
-                    )}
-                </HStack>
-            </Box>
+                    chaiNNer
+                </Heading>
+                <Tag display={{ base: 'none', lg: 'inherit' }}>Alpha</Tag>
+                <Tag>v{appVersion ?? '#.#.#'}</Tag>
+                {updateVersion && (
+                    <Tooltip
+                        closeOnClick
+                        closeOnMouseDown
+                        borderRadius={8}
+                        label={`Update available (${updateVersion.tag_name})`}
+                        px={2}
+                        py={1}
+                    >
+                        <IconButton
+                            aria-label="Update available"
+                            colorScheme="green"
+                            icon={<DownloadIcon />}
+                            variant="ghost"
+                            onClick={onModalOpen}
+                        />
+                    </Tooltip>
+                )}
+            </HStack>
             <Modal
                 isCentered
                 isOpen={isModalOpen}
