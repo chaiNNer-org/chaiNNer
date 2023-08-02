@@ -36,4 +36,9 @@ jobs:
             - name: publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: npm run publish
+              run: |
+                  if [[ ${{ matrix.os }} == 'macos-latest' ]]; then
+                    npm run publish-mac
+                  else
+                    npm run publish
+                  fi
