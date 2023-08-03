@@ -263,6 +263,11 @@ export const createMainWindow = async (args: OpenArguments) => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url).catch(log.error);
+        return { action: 'deny' };
+    });
+
     const progressController = new ProgressController();
     addSplashScreen(progressController);
 
