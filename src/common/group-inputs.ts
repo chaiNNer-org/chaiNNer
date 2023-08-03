@@ -11,7 +11,6 @@ import {
     NodeSchema,
     NumberInput,
     OfKind,
-    SliderInput,
 } from './common-types';
 import { getChainnerScope } from './types/chainner-scope';
 import { fromJson } from './types/json';
@@ -35,7 +34,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
-    'linked-inputs': readonly [SliderInput, SliderInput, ...SliderInput[]];
+    'linked-inputs': readonly [InputItem, InputItem, ...InputItem[]];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -149,12 +148,17 @@ const groupInputsChecks: {
         if (inputs.length < 2) return 'Expected at least 2 inputs';
 
         const [ref] = inputs;
+        if (ref.kind === 'group') return `Expected linked inputs to not contain groups`;
+        if (!allInputsOfKind(inputs, ref.kind))
+            return `Expected all inputs to be ${ref.kind} inputs`;
+
+        type Keys<T> = T extends unknown ? keyof T : never;
+        const ignoreKeys = new Set<Keys<Input>>(['id', 'label', 'description', 'placeholder']);
         for (const i of inputs) {
             for (const [key, value] of Object.entries(i)) {
-                if (!(key in ref)) return `Expected all inputs to be of the same type`;
                 // eslint-disable-next-line no-continue
-                if (key === 'id' || key === 'label' || key === 'description') continue;
-                if (JSON.stringify(value) !== JSON.stringify(ref[key as keyof typeof i]))
+                if (ignoreKeys.has(key as Keys<Input>)) continue;
+                if (JSON.stringify(value) !== JSON.stringify(ref[key as never]))
                     return `Expected all inputs to have the same ${key} value`;
             }
         }
