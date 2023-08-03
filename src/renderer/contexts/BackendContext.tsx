@@ -13,10 +13,17 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Backend, BackendNodesResponse, getBackend } from '../../common/Backend';
-import { Category, PythonInfo, SchemaId } from '../../common/common-types';
+import {
+    Category,
+    Feature,
+    FeatureId,
+    FeatureState,
+    Package,
+    PythonInfo,
+    SchemaId,
+} from '../../common/common-types';
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
-import { FeatureId, FeatureState, Package } from '../../common/packages';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -45,6 +52,7 @@ interface BackendContextState {
     packages: readonly Package[];
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
+    features: ReadonlyMap<FeatureId, Feature>;
     featureStates: ReadonlyMap<FeatureId, FeatureState>;
     refreshFeatureStates: () => void;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
@@ -290,12 +298,20 @@ export const BackendProvider = memo(
             restartingRef
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
+
         const featureStatesMaps = useMemo((): ReadonlyMap<FeatureId, FeatureState> => {
-            if (featureStates.length === 0) return EMPTY_MAP;
             return new Map(
                 featureStates.map((featureState) => [featureState.featureId, featureState])
             );
         }, [featureStates]);
+        const featuresMaps = useMemo((): ReadonlyMap<FeatureId, Feature> => {
+            if (nodesInfo === undefined) return EMPTY_MAP;
+            return new Map(
+                nodesInfo.packages
+                    .flatMap((p) => p.features)
+                    .map((feature) => [feature.id, feature])
+            );
+        }, [nodesInfo]);
 
         const restart = useCallback((): Promise<void> => {
             if (!ownsBackendRef.current) {
@@ -351,6 +367,7 @@ export const BackendProvider = memo(
             categories: nodesInfo?.categories ?? EMPTY_ARRAY,
             categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? EMPTY_ARRAY,
             packages: nodesInfo?.packages ?? EMPTY_ARRAY,
+            features: featuresMaps,
             functionDefinitions: nodesInfo?.functionDefinitions ?? EMPTY_MAP,
             scope,
             featureStates: featureStatesMaps,

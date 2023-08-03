@@ -36,9 +36,6 @@ import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { useQuery } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
-import { Version } from '../../common/common-types';
-import { isArmMac } from '../../common/env';
-import { log } from '../../common/log';
 import {
     Feature,
     FeatureId,
@@ -46,7 +43,10 @@ import {
     Package,
     PyPiName,
     PyPiPackage,
-} from '../../common/packages';
+    Version,
+} from '../../common/common-types';
+import { isArmMac } from '../../common/env';
+import { log } from '../../common/log';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
@@ -258,7 +258,7 @@ const PackageView = memo(
                 </h2>
                 <AccordionPanel pb={4}>
                     <VStack
-                        key={p.name}
+                        key={p.id}
                         w="full"
                     >
                         {p.dependencies.map((d) => (
@@ -626,13 +626,13 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                             <PackageView
                                                 installedPyPi={installedPyPi}
                                                 isRunningShell={isRunningShell}
-                                                key={p.name}
+                                                key={p.id}
                                                 p={p}
                                                 progress={
                                                     !usePipDirectly &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
-                                                        ?.name === p.name
+                                                        ?.id === p.id
                                                         ? progress
                                                         : undefined
                                                 }

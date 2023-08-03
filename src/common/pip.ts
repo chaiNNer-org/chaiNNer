@@ -1,9 +1,8 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
-import { PythonInfo } from './common-types';
+import { PyPiPackage, PythonInfo } from './common-types';
 import { sanitizedEnv } from './env';
 import { log } from './log';
-import { PyPiPackage } from './packages';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
 import { noop } from './util';
 

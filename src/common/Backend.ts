@@ -2,17 +2,19 @@ import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
+    FeatureState,
     InputId,
     InputValue,
     NodeSchema,
     OutputData,
     OutputTypes,
+    Package,
+    PyPiName,
     PythonInfo,
     SchemaId,
     Version,
 } from './common-types';
 import { isRenderer } from './env';
-import { FeatureState, Package, PyPiName } from './packages';
 
 export interface BackendSuccessResponse {
     type: 'success';

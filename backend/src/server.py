@@ -131,6 +131,7 @@ async def nodes(_request: Request):
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
             "defaultNodes": node.default_nodes,
+            "features": node.features,
         }
         node_list.append(node_dict)
 

@@ -5,9 +5,9 @@ import Downloader from 'nodejs-file-downloader';
 import os from 'os';
 import path from 'path';
 import { URL } from 'url';
+import { PyPiPackage } from './common-types';
 import { sanitizedEnv } from './env';
 import { log } from './log';
-import { PyPiPackage } from './packages';
 import { noop } from './util';
 
 export interface OnStdio {
