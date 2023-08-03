@@ -54,7 +54,7 @@ interface BackendContextState {
     scope: Scope;
     features: ReadonlyMap<FeatureId, Feature>;
     featureStates: ReadonlyMap<FeatureId, FeatureState>;
-    refreshFeatureStates: () => void;
+    refreshFeatureStates: () => Promise<void>;
     restartingRef: Readonly<React.MutableRefObject<boolean>>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
@@ -253,8 +253,8 @@ const useFeatureStates = (backend: Backend) => {
     });
 
     const { refetch } = featuresQuery;
-    const refreshFeatureStates = useCallback(() => {
-        refetch().catch(log.error);
+    const refreshFeatureStates = useCallback(async (): Promise<void> => {
+        await refetch().catch(log.error);
     }, [refetch]);
 
     useEffect(() => {
@@ -348,7 +348,7 @@ export const BackendProvider = memo(
                 }
 
                 refreshNodes();
-                refreshFeatureStates();
+                refreshFeatureStates().catch(log.error);
 
                 if (error !== null) {
                     throw error instanceof Error ? error : new Error(String(error));

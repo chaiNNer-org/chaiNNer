@@ -502,6 +502,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     });
 
     const features = useMemo(() => packages.flatMap((p) => p.features), [packages]);
+    const [isRefreshingFeatureStates, setIsRefreshingFeatureStates] = useState(false);
 
     return (
         <DependencyContext.Provider value={value}>
@@ -700,9 +701,31 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         Features
                                     </Text>
                                     <Button
-                                        leftIcon={<HiOutlineRefresh />}
+                                        isDisabled={currentlyProcessingDeps}
+                                        leftIcon={
+                                            isRefreshingFeatureStates ? (
+                                                <Spinner
+                                                    height="1em"
+                                                    size="sm"
+                                                    width="1em"
+                                                />
+                                            ) : (
+                                                <HiOutlineRefresh
+                                                    height="1em"
+                                                    width="1em"
+                                                />
+                                            )
+                                        }
                                         size="sm"
-                                        onClick={refreshFeatureStates}
+                                        onClick={() => {
+                                            if (isRefreshingFeatureStates) return;
+                                            setIsRefreshingFeatureStates(true);
+                                            refreshFeatureStates()
+                                                .finally(() => {
+                                                    setIsRefreshingFeatureStates(false);
+                                                })
+                                                .catch(log.error);
+                                        }}
                                     >
                                         Refresh
                                     </Button>
