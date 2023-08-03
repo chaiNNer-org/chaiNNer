@@ -52,10 +52,6 @@ from response import (
 )
 from server_config import ServerConfig
 
-# enable mps fallback on apple silicon
-if is_arm_mac:
-    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
-
 class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
@@ -103,14 +99,12 @@ runIndividualCounter = ZeroCounter()
 
 setup_task = None
 
-
 async def nodes_available():
     if setup_task is not None:
         await setup_task
 
 
 access_logger.addFilter(SSEFilter())
-
 
 @app.route("/nodes")
 async def nodes(_request: Request):
@@ -545,6 +539,9 @@ async def setup_sse(request: Request):
             await response.send(f"event: {message['event']}\n")
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
+async def apple_silicon_setup():
+    # enable mps fallback on apple silicon
+    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
 
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
@@ -572,6 +569,9 @@ async def setup(sanic_app: Sanic):
         },
         timeout=1,
     )
+
+    if is_arm_mac:
+        await apple_silicon_setup()
 
     await update_progress("Importing nodes...", 0.0, None)
 
