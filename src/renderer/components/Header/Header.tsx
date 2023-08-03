@@ -1,4 +1,4 @@
-import { Box, Center, HStack, SimpleGrid } from '@chakra-ui/react';
+import { Box, Center, HStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import { DependencyManagerButton } from '../DependencyManagerButton';
 import { NodeDocumentationButton } from '../NodeDocumentation/NodeDocumentationModal';
@@ -11,42 +11,29 @@ import { KoFiButton } from './KoFiButton';
 export const Header = memo(() => {
     return (
         <Box
+            alignItems="center"
             bg="var(--header-bg)"
             borderRadius="lg"
-            borderWidth="0px"
+            borderWidth="0"
+            display="flex"
+            gap={4}
             h="56px"
-            w="100%"
+            px={2}
+            w="full"
         >
-            <SimpleGrid
-                columns={3}
-                h="100%"
-                p={2}
-                spacing={1}
-            >
+            <Box>
                 <AppInfo />
-
-                <Center w="full">
-                    <ExecutionButtons />
-                </Center>
-
-                <Box
-                    alignContent="right"
-                    alignItems="right"
-                    w="full"
-                >
-                    <HStack
-                        ml="auto"
-                        mr={0}
-                        width="fit-content"
-                    >
-                        <SystemStats />
-                        <NodeDocumentationButton />
-                        <DependencyManagerButton />
-                        <KoFiButton />
-                        <SettingsButton />
-                    </HStack>
-                </Box>
-            </SimpleGrid>
+            </Box>
+            <Center flexGrow="1">
+                <ExecutionButtons />
+            </Center>
+            <HStack>
+                <SystemStats />
+                <NodeDocumentationButton />
+                <DependencyManagerButton />
+                <KoFiButton />
+                <SettingsButton />
+            </HStack>
         </Box>
     );
 });

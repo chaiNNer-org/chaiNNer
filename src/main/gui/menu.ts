@@ -23,8 +23,40 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
     const openRecent = [...menuData.openRecentRev].reverse();
     const defaultPath = openRecent[0] ? path.dirname(openRecent[0]) : undefined;
 
+    const showAboutDialog = async () => {
+        const response = await dialog.showMessageBox(mainWindow, {
+            title: 'About chaiNNer',
+            message: `chaiNNer ${app.getVersion()}`,
+            detail: `chaiNNer is an open source (GPLv3 licensed) tool created by @joeyballentine, with support from other community members. Support the project by donating to my Ko-Fi via the button below. Also, many thanks to these members specifically: @RunDevelopment and @theflyingzamboni for ongoing development, and @Kim2091 for testing.`,
+            buttons: ['Open Ko-Fi', 'Close'],
+            defaultId: 0,
+            cancelId: 1,
+        });
+
+        if (response.response === 0) {
+            await shell.openExternal(links.kofi);
+        }
+    };
+
     const template = [
-        ...(isMac ? [{ role: 'appMenu' }] : []),
+        ...(isMac
+            ? [
+                  {
+                      role: 'appMenu',
+                      submenu: [
+                          { label: 'About chaiNNer', click: showAboutDialog },
+                          { type: 'separator' },
+                          { role: 'services', submenu: [] },
+                          { type: 'separator' },
+                          { role: 'hide' },
+                          { role: 'hideOthers' },
+                          { role: 'unhide' },
+                          { type: 'separator' },
+                          { role: 'quit' },
+                      ],
+                  },
+              ]
+            : []),
         {
             label: 'File',
             submenu: [
@@ -131,97 +163,185 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                     enabled,
                 },
-                { type: 'separator' },
-                isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
+                ...(!isMac ? [{ type: 'separator' }, { role: 'quit', enabled }] : []),
             ],
         },
-        {
-            label: 'Edit',
-            submenu: [
-                {
-                    label: 'Undo',
-                    accelerator: 'CmdOrCtrl+Z',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('history-undo');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Redo',
-                    accelerator: 'CmdOrCtrl+Y',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('history-redo');
-                    },
-                    enabled,
-                },
-                { type: 'separator' },
-                {
-                    label: 'Cut',
-                    accelerator: 'CmdOrCtrl+X',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('cut');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Copy',
-                    accelerator: 'CmdOrCtrl+C',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('copy');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Paste',
-                    accelerator: 'CmdOrCtrl+V',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('paste');
-                    },
-                    enabled,
-                },
-                { type: 'separator' },
-                {
-                    label: 'Duplicate',
-                    accelerator: 'CmdOrCtrl+D',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('duplicate');
-                    },
-                    enabled,
-                },
-                {
-                    label: 'Duplicate with Connections',
-                    accelerator: 'CmdOrCtrl+Shift+D',
-                    registerAccelerator: false,
-                    click: () => {
-                        mainWindow.webContents.send('duplicate-with-input-edges');
-                    },
-                    enabled,
-                },
-            ],
-        },
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload', enabled },
-                { role: 'forceReload', enabled },
-                { type: 'separator' },
-                { role: 'resetZoom', enabled },
-                { role: 'zoomIn', enabled },
-                { role: 'zoomOut', enabled },
-                { type: 'separator' },
-                { role: 'togglefullscreen' },
-                ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
-            ],
-        },
+        ...(isMac
+            ? [
+                  { role: 'editMenu' },
+                  {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
+                  {
+                      label: 'Nodes',
+                      submenu: [
+                          {
+                              label: 'Undo',
+                              click: () => {
+                                  mainWindow.webContents.send('history-undo');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Redo',
+                              click: () => {
+                                  mainWindow.webContents.send('history-redo');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Cut',
+                              click: () => {
+                                  mainWindow.webContents.send('cut');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Copy',
+                              click: () => {
+                                  mainWindow.webContents.send('copy');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Paste',
+                              click: () => {
+                                  mainWindow.webContents.send('paste');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Duplicate',
+                              accelerator: 'CmdOrCtrl+D',
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Duplicate with Connections',
+                              accelerator: 'CmdOrCtrl+Shift+D',
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate-with-input-edges');
+                              },
+                              enabled,
+                          },
+                      ],
+                  },
+                  { role: 'windowMenu' },
+              ]
+            : [
+                  {
+                      label: 'Edit',
+                      submenu: [
+                          {
+                              label: 'Undo',
+                              accelerator: 'CmdOrCtrl+Z',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('history-undo');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Redo',
+                              accelerator: 'CmdOrCtrl+Y',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('history-redo');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Cut',
+                              accelerator: 'CmdOrCtrl+X',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('cut');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Copy',
+                              accelerator: 'CmdOrCtrl+C',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('copy');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Paste',
+                              accelerator: 'CmdOrCtrl+V',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('paste');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Duplicate',
+                              accelerator: 'CmdOrCtrl+D',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate');
+                              },
+                              enabled,
+                          },
+                          {
+                              label: 'Duplicate with Connections',
+                              accelerator: 'CmdOrCtrl+Shift+D',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('duplicate-with-input-edges');
+                              },
+                              enabled,
+                          },
+                      ],
+                  },
+                  {
+                      label: 'View',
+                      submenu: [
+                          { role: 'reload', enabled },
+                          { role: 'forceReload', enabled },
+                          { type: 'separator' },
+                          { role: 'resetZoom', enabled },
+                          { role: 'zoomIn', enabled },
+                          { role: 'zoomOut', enabled },
+                          { type: 'separator' },
+                          { role: 'togglefullscreen' },
+                          ...(!app.isPackaged
+                              ? [{ type: 'separator' }, { role: 'toggleDevTools' }]
+                              : []),
+                      ],
+                  },
+              ]),
         {
             role: 'help',
             submenu: [
+                {
+                    label: "Open chaiNNer's Homepage",
+                    click: async () => {
+                        await shell.openExternal('https://chainner.app');
+                    },
+                },
                 {
                     label: "Open chaiNNer's GitHub page",
                     click: async () => {
@@ -231,26 +351,22 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     },
                 },
                 {
-                    label: 'Open logs folder',
+                    label: "Join chaiNNer's Discord server",
                     click: async () => {
-                        await shell.openPath(getLogsFolder());
+                        await shell.openExternal('https://discord.com/invite/pzvAKPKyHM');
                     },
                 },
                 { type: 'separator' },
+                ...(!isMac ? [{ label: 'About chaiNNer', click: showAboutDialog }] : []),
                 {
-                    label: 'About chaiNNer',
+                    label: 'Release Notes',
                     click: async () => {
-                        const response = await dialog.showMessageBox(mainWindow, {
-                            title: 'About chaiNNer',
-                            message: `chaiNNer ${app.getVersion()}`,
-                            detail: `chaiNNer is an open source (GPLv3 licensed) tool created by @joeyballentine, with support from other community members. Support the project by donating to my Ko-Fi via the button below. Also, many thanks to these members specifically: @RunDevelopment and @theflyingzamboni for ongoing development, and @Kim2091 for testing.`,
-                            buttons: ['Open Ko-Fi', 'Close'],
-                        });
-                        if (response.response === 0) {
-                            await shell.openExternal(links.kofi);
-                        }
+                        await shell.openExternal(
+                            `https://github.com/chaiNNer-org/chaiNNer/releases/tag/v${app.getVersion()}`
+                        );
                     },
                 },
+
                 { type: 'separator' },
                 {
                     label: 'Collect system information',
@@ -280,6 +396,21 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                         mainWindow.webContents.send('show-collected-information', information);
                     },
                     enabled,
+                },
+                {
+                    label: 'Open logs folder',
+                    click: async () => {
+                        await shell.openPath(getLogsFolder());
+                    },
+                },
+                { type: 'separator' },
+                {
+                    label: 'Report a Bug or Feature Request',
+                    click: async () => {
+                        await shell.openExternal(
+                            'https://github.com/chaiNNer-org/chaiNNer/issues/new/choose'
+                        );
+                    },
                 },
             ],
         },

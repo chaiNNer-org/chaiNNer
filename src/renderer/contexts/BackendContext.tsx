@@ -1,6 +1,14 @@
 import { Scope } from '@chainner/navi';
 import isDeepEqual from 'fast-deep-equal';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    MutableRefObject,
+    memo,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
@@ -14,7 +22,7 @@ import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { FunctionDefinition } from '../../common/types/function';
-import { EMPTY_ARRAY, EMPTY_MAP } from '../../common/util';
+import { EMPTY_ARRAY, EMPTY_MAP, delay } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoObject } from '../hooks/useMemo';
@@ -76,7 +84,9 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     };
 };
 
-const useNodes = (backend: Backend, isRestarting: boolean) => {
+const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boolean>>) => {
+    const isRestarting = restartingRef.current;
+
     const { t } = useTranslation();
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
 
@@ -102,6 +112,12 @@ const useNodes = (backend: Backend, isRestarting: boolean) => {
         queryKey: ['nodes', backend.url],
         queryFn: async (): Promise<BackendData> => {
             try {
+                // spin until we're no longer restarting
+                while (restartingRef.current) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await delay(100);
+                }
+
                 return await Promise.all([backend.nodes(), backend.packages()]);
             } catch (error) {
                 log.error(error);
@@ -117,7 +133,7 @@ const useNodes = (backend: Backend, isRestarting: boolean) => {
     let nodeQueryError: unknown;
     if (nodesQuery.status === 'error') {
         nodeQueryError = nodesQuery.error;
-    } else if (nodesQuery.failureCount > 0) {
+    } else if (nodesQuery.failureCount > 1) {
         nodeQueryError = 'Failed to fetch backend nodes.';
     }
 
@@ -271,7 +287,7 @@ export const BackendProvider = memo(
 
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            restartingRef.current
+            restartingRef
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
         const featureStatesMaps = useMemo((): ReadonlyMap<FeatureId, FeatureState> => {
@@ -296,22 +312,25 @@ export const BackendProvider = memo(
             restartingRef.current = true;
             restartPromiseRef.current = (async () => {
                 let error;
-                do {
-                    needsNewRestartRef.current = false;
-                    try {
-                        backend.abort();
-                        // eslint-disable-next-line no-await-in-loop
-                        await ipcRenderer.invoke('restart-backend');
-                        error = null;
-                    } catch (e) {
-                        error = e;
-                    }
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                } while (needsNewRestartRef.current);
+                try {
+                    do {
+                        needsNewRestartRef.current = false;
+                        try {
+                            backend.abort();
+                            // eslint-disable-next-line no-await-in-loop
+                            await ipcRenderer.invoke('restart-backend');
+                            error = null;
+                        } catch (e) {
+                            error = e;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    } while (needsNewRestartRef.current);
+                } finally {
+                    // Done. At this point, the backend either restarted or failed trying
+                    restartingRef.current = false;
+                    restartPromiseRef.current = undefined;
+                }
 
-                // Done. At this point, the backend either restarted or failed trying
-                restartingRef.current = false;
-                restartPromiseRef.current = undefined;
                 refreshNodes();
                 refreshFeatureStates();
 
