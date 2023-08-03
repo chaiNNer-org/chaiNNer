@@ -3,6 +3,7 @@ import functools
 import gc
 import importlib
 import logging
+import os
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -48,6 +49,7 @@ from response import (
     successResponse,
 )
 from server_config import ServerConfig
+from system import is_arm_mac
 
 
 class AppContext:
@@ -602,6 +604,11 @@ async def setup_sse(request: Request):
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
 
+async def apple_silicon_setup():
+    # enable mps fallback on apple silicon
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
+
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
@@ -628,6 +635,9 @@ async def setup(sanic_app: Sanic):
         },
         timeout=1,
     )
+
+    if is_arm_mac:
+        await apple_silicon_setup()
 
     await update_progress("Importing nodes...", 0.0, None)
 
