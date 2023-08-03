@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog } from 'electron';
+import { app, dialog } from 'electron';
 import electronLog from 'electron-log';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
@@ -67,6 +67,17 @@ export const createGuiApp = (args: OpenArguments) => {
     // Some APIs can only be used after this event occurs.
     app.on('ready', createWindow);
 
+    // This is to make sure that on macOS the app is quit when the window is closed
+    app.on('window-all-closed', () => {
+        if (process.platform === 'darwin') {
+            app.quit();
+        }
+    });
+
+    // TODO: See if this can be fixed in the future. Currently an active app with
+    // no windows doesn't spawn a new window. Due to the windows creation being
+    // lazy. Not using lazy does result in the backend not starting.
+    /**
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
@@ -74,6 +85,7 @@ export const createGuiApp = (args: OpenArguments) => {
             createWindow();
         }
     });
+    * */
 
     // Quit when all windows are closed, except on macOS. There, it's common
     // for applications and their menu bar to stay active until the user quits
