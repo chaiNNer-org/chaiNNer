@@ -16,6 +16,7 @@ class BaseOutput:
         kind: OutputKind = "generic",
         has_handle: bool = True,
         associated_type: Union[Type, None] = None,
+        previewer_schema_id: str | None = None,
     ):
         self.output_type: navi.ExpressionJson = output_type
         self.label: str = label
@@ -23,6 +24,7 @@ class BaseOutput:
         self.never_reason: str | None = None
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
+        self.previewer_schema_id = previewer_schema_id
 
         self.associated_type: Union[Type, None] = associated_type
 
@@ -38,6 +40,7 @@ class BaseOutput:
             "kind": self.kind,
             "hasHandle": self.has_handle,
             "description": self.description,
+            "previewerSchemaId": self.previewer_schema_id,
         }
 
     def with_id(self, output_id: OutputId | int):

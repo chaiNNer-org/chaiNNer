@@ -149,6 +149,7 @@ export interface Output {
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
     readonly description?: string | null;
+    readonly previewerSchemaId?: SchemaId | null;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;

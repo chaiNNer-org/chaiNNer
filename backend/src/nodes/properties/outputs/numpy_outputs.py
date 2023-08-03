@@ -22,6 +22,7 @@ class NumPyOutput(BaseOutput):
         label: str,
         kind: OutputKind = "generic",
         has_handle: bool = True,
+        previewer_schema_id=None,
     ):
         super().__init__(
             output_type,
@@ -29,6 +30,7 @@ class NumPyOutput(BaseOutput):
             kind=kind,
             has_handle=has_handle,
             associated_type=np.ndarray,
+            previewer_schema_id=previewer_schema_id,
         )
 
     def enforce(self, value) -> np.ndarray:
@@ -56,6 +58,7 @@ class ImageOutput(NumPyOutput):
             label,
             kind=kind,
             has_handle=has_handle,
+            previewer_schema_id="chainner:image:view",
         )
 
         self.channels: Optional[int] = channels
