@@ -9,7 +9,6 @@ import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
-import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
@@ -19,7 +18,7 @@ import { TaggedOutput } from '../outputs/TaggedOutput';
 const OutputComponents: Readonly<
     Record<OutputKind, React.MemoExoticComponent<(props: OutputProps) => JSX.Element>>
 > = {
-    image: DefaultImageOutput,
+    image: GenericOutput,
     'large-image': LargeImageOutput,
     tagged: TaggedOutput,
     generic: GenericOutput,
