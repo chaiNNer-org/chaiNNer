@@ -4,6 +4,7 @@ import gc
 import importlib
 import logging
 import sys
+import os
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
@@ -16,6 +17,8 @@ from sanic.log import access_logger, logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
+
+from system import is_arm_mac
 
 import api
 from base_types import NodeId
@@ -49,6 +52,9 @@ from response import (
 )
 from server_config import ServerConfig
 
+# enable mps fallback on apple silicon
+if is_arm_mac:
+    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
 
 class AppContext:
     def __init__(self):
