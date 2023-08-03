@@ -3,8 +3,8 @@ import functools
 import gc
 import importlib
 import logging
-import sys
 import os
+import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
@@ -17,8 +17,6 @@ from sanic.log import access_logger, logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
-
-from system import is_arm_mac
 
 import api
 from base_types import NodeId
@@ -51,6 +49,8 @@ from response import (
     successResponse,
 )
 from server_config import ServerConfig
+from system import is_arm_mac
+
 
 class AppContext:
     def __init__(self):
@@ -99,12 +99,14 @@ runIndividualCounter = ZeroCounter()
 
 setup_task = None
 
+
 async def nodes_available():
     if setup_task is not None:
         await setup_task
 
 
 access_logger.addFilter(SSEFilter())
+
 
 @app.route("/nodes")
 async def nodes(_request: Request):
@@ -539,9 +541,11 @@ async def setup_sse(request: Request):
             await response.send(f"event: {message['event']}\n")
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
+
 async def apple_silicon_setup():
     # enable mps fallback on apple silicon
-    os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
 
 async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
