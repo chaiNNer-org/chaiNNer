@@ -46,6 +46,11 @@ const startApp = () => {
         });
     });
 
+    // quit out of app on macOS once all windows are closed
+    app.once('window-all-closed', () => {
+        app.quit();
+    })
+
     if (args.command === 'open') {
         createGuiApp(args);
     } else {
