@@ -34,7 +34,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
-    'linked-inputs': readonly [InputItem, InputItem, ...InputItem[]];
+    'linked-inputs': readonly [Input, Input, ...Input[]];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
