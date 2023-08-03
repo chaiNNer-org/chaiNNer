@@ -147,15 +147,16 @@ const groupInputsChecks: {
     },
     'linked-inputs': (inputs) => {
         if (inputs.length < 2) return 'Expected at least 2 inputs';
-        if (!allInputsOfKind(inputs, 'slider')) return `Expected all inputs to be slider inputs`;
 
         const [ref] = inputs;
         for (const i of inputs) {
-            if (i.min !== ref.min) return 'Expected all inputs to have the same min value';
-            if (i.max !== ref.max) return 'Expected all inputs to have the same max value';
-            if (i.precision !== ref.precision)
-                return 'Expected all inputs to have the same precision value';
-            if (i.def !== ref.def) return 'Expected all inputs to have the same default value';
+            for (const [key, value] of Object.entries(i)) {
+                if (!(key in ref)) return `Expected all inputs to be of the same type`;
+                // eslint-disable-next-line no-continue
+                if (key === 'id' || key === 'label' || key === 'description') continue;
+                if (JSON.stringify(value) !== JSON.stringify(ref[key as keyof typeof i]))
+                    return `Expected all inputs to have the same ${key} value`;
+            }
         }
     },
 };
