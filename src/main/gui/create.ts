@@ -3,6 +3,7 @@ import electronLog from 'electron-log';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
+import { settingStorage } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
 const mdCodeBlock = (code: string): string => {
@@ -47,7 +48,12 @@ const setupErrorHandling = () => {
 export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
 
-    app.disableHardwareAcceleration();
+    const isEnableHardwareAcceleration =
+        settingStorage.getItem('enable-hardware-acceleration') === 'true';
+
+    if (!isEnableHardwareAcceleration) {
+        app.disableHardwareAcceleration();
+    }
 
     const hasInstanceLock = app.requestSingleInstanceLock();
     if (!hasInstanceLock) {
