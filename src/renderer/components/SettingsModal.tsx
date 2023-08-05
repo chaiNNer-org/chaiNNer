@@ -674,9 +674,12 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useCheckUpdOnStrtUp, useExperimentalFeatures } = useContext(SettingsContext);
+    const { useCheckUpdOnStrtUp, useExperimentalFeatures, useEnableHardwareAcceleration } =
+        useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
     const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
+    const [isEnableHardwareAcceleration, setIsEnableHardwareAcceleration] =
+        useEnableHardwareAcceleration;
 
     return (
         <VStack
@@ -697,6 +700,14 @@ const AdvancedSettings = memo(() => {
                 value={isExperimentalFeatures}
                 onToggle={() => {
                     setIsExperimentalFeatures((prev) => !prev);
+                }}
+            />
+            <Toggle
+                description="Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
+                title="Enable Hardware Acceleration (requires restart)."
+                value={isEnableHardwareAcceleration}
+                onToggle={() => {
+                    setIsEnableHardwareAcceleration((prev) => !prev);
                 }}
             />
         </VStack>

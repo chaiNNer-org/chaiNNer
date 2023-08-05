@@ -29,6 +29,7 @@ interface Settings {
     useIsDarkMode: GetSetState<boolean>;
     useAnimateChain: GetSetState<boolean>;
     useExperimentalFeatures: GetSetState<boolean>;
+    useEnableHardwareAcceleration: GetSetState<boolean>;
     useViewportExportPadding: GetSetState<number>;
 
     // Node Settings
@@ -94,6 +95,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
+    const useEnableHardwareAcceleration = useMemoArray(
+        useLocalStorage('enable-hardware-acceleration', false)
+    );
 
     const contextValue = useMemoObject<Settings>({
         // GPU Stuff
@@ -115,6 +119,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useIsDarkMode,
         useAnimateChain,
         useExperimentalFeatures,
+        useEnableHardwareAcceleration,
         useViewportExportPadding,
 
         // Node
