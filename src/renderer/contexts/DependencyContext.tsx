@@ -5,6 +5,7 @@ import {
     AccordionIcon,
     AccordionItem,
     AccordionPanel,
+    Box,
     Button,
     Center,
     Collapse,
@@ -155,8 +156,47 @@ const Feature = memo(
                                         textAlign="left"
                                         w="full"
                                     >
-                                        {dep.name} ({dep.dependencies.length} package
-                                        {dep.dependencies.length === 1 ? '' : 's'})
+                                        {outdatedPackages.length > 0 ||
+                                        missingPackages.length > 0 ? (
+                                            <>
+                                                {outdatedPackages.length > 0
+                                                    ? `${dep.name} (${
+                                                          outdatedPackages.length
+                                                      } package${
+                                                          outdatedPackages.length === 1 ? '' : 's'
+                                                      } outdated)`
+                                                    : `${dep.name} (${
+                                                          dep.dependencies.length
+                                                      } package${
+                                                          dep.dependencies.length === 1 ? '' : 's'
+                                                      })`}
+                                                {outdatedPackages.length > 0 ||
+                                                missingPackages.length > 0 ? (
+                                                    <Box
+                                                        backgroundColor="transparent"
+                                                        borderRadius={25}
+                                                        borderColor="white"
+                                                        borderWidth={1}
+                                                        color="white"
+                                                        display="inline-block"
+                                                        fontSize="xs"
+                                                        ml={3}
+                                                        px={2}
+                                                    >
+                                                        {formatSizeEstimate([
+                                                            ...missingPackages,
+                                                            ...outdatedPackages,
+                                                        ])}
+                                                    </Box>
+                                                ) : (
+                                                    []
+                                                )}
+                                            </>
+                                        ) : (
+                                            `${dep.name} (${dep.dependencies.length} package${
+                                                dep.dependencies.length === 1 ? '' : 's'
+                                            })`
+                                        )}
                                     </Text>
                                     <Tooltip
                                         closeOnClick
@@ -181,10 +221,12 @@ const Feature = memo(
                                             disabled={isRunningShell}
                                             isLoading={isRunningShell}
                                             leftIcon={<DownloadIcon />}
+                                            maxW="100%"
                                             size="sm"
+                                            width="7em"
                                             onClick={onUpdate}
                                         >
-                                            Update ({formatSizeEstimate(outdatedPackages)})
+                                            Update
                                         </Button>
                                     )}
 
@@ -192,7 +234,9 @@ const Feature = memo(
                                         colorScheme="red"
                                         disabled={isRunningShell}
                                         leftIcon={<DeleteIcon />}
+                                        maxW="100%"
                                         size="sm"
+                                        width="7em"
                                         onClick={onUninstall}
                                     >
                                         Uninstall
@@ -208,15 +252,12 @@ const Feature = memo(
                                         disabled={isRunningShell}
                                         isLoading={isRunningShell}
                                         leftIcon={<DownloadIcon />}
+                                        maxW="100%"
                                         size="sm"
+                                        width="7em"
                                         onClick={onInstall}
                                     >
-                                        Install (
-                                        {formatSizeEstimate([
-                                            ...missingPackages,
-                                            ...outdatedPackages,
-                                        ])}
-                                        )
+                                        Install
                                     </Button>
                                 </HStack>
                             )}
@@ -491,6 +532,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
                                         leftIcon={<BsTerminalFill />}
                                         size="sm"
+                                        width="9.9em"
                                         onClick={() => setIsConsoleOpen(!isConsoleOpen)}
                                     >
                                         {isConsoleOpen ? 'Hide Console' : 'View Console'}
