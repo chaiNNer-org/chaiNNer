@@ -17,6 +17,7 @@ from nodes.properties.outputs import (
     NumberOutput,
     TextOutput,
 )
+from nodes.utils.utils import alphanumeric_sort
 from process import IteratorContext
 
 from .. import batch_processing_group
@@ -42,7 +43,10 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
         flags=flags,
     )
 
-    return list(set(map(lambda f: str(Path(directory) / f), filtered)))
+    return sorted(
+        list(set(map(lambda f: str(Path(directory) / f), filtered))),
+        key=alphanumeric_sort,
+    )
 
 
 @batch_processing_group.register(
