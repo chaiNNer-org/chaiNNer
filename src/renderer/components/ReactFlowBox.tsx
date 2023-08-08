@@ -25,6 +25,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import {
@@ -609,6 +610,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [selectionMenu, setSelectedNodes]
     );
 
+    const multiSelectionKeyCode = useMemo(() => (isMac ? ['Meta'] : ['Control']), []);
+    const deleteKeyCode = useMemo(
+        () => (isMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
+        []
+    );
+
     return (
         <Box
             bg="var(--chain-editor-bg)"
@@ -622,14 +629,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             <ReactFlow
                 connectionLineContainerStyle={{ zIndex: 1000 }}
                 connectionRadius={15}
-                deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
+                deleteKeyCode={deleteKeyCode}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
                 elevateEdgesOnSelect={false}
                 elevateNodesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
-                multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
+                multiSelectionKeyCode={multiSelectionKeyCode}
                 nodeTypes={nodeTypes}
                 nodes={displayNodes}
                 snapGrid={useMemoArray<[number, number]>([snapToGridAmount, snapToGridAmount])}
