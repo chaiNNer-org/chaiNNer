@@ -18,6 +18,7 @@ else:
 
 package = add_package(
     __file__,
+    id="chaiNNer_ncnn",
     name="NCNN",
     description=(
         f"{general} NCNN uses Vulkan for GPU"

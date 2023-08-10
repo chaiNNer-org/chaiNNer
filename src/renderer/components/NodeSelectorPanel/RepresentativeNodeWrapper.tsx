@@ -2,7 +2,6 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Text, Tooltip, useDisclosure } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
-import ReactMarkdown from 'react-markdown';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
@@ -11,7 +10,7 @@ import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContex
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
-import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
+import { Markdown } from '../Markdown';
 import { RepresentativeNode } from './RepresentativeNode';
 
 interface TooltipLabelProps {
@@ -19,12 +18,12 @@ interface TooltipLabelProps {
     description: string;
 }
 const TooltipLabel = memo(({ name, description }: TooltipLabelProps) => {
-    const firstParagraph = description.split('\n')[0];
+    const firstParagraph = description.split('\n\n')[0];
 
     return (
         <>
             {name && <Text fontWeight="bold">{name}</Text>}
-            <ReactMarkdown components={tooltipDocsMarkdown}>{firstParagraph}</ReactMarkdown>
+            <Markdown nonInteractive>{firstParagraph}</Markdown>
         </>
     );
 });

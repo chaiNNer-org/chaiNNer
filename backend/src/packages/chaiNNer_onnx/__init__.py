@@ -38,6 +38,7 @@ def get_onnx_runtime():
 
 package = add_package(
     __file__,
+    id="chaiNNer_onnx",
     name="ONNX",
     description=package_description,
     dependencies=[

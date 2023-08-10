@@ -2,15 +2,18 @@ import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
+    FeatureState,
     InputId,
     InputValue,
     NodeSchema,
     OutputData,
     OutputTypes,
+    Package,
+    PyPiName,
     PythonInfo,
     SchemaId,
+    Version,
 } from './common-types';
-import { Package } from './dependencies';
 import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
@@ -97,10 +100,38 @@ export interface BackendError {
     error: string;
 }
 
-export interface ServerError {
+export interface ServerErrorJson {
     message: string;
     description: string;
     status: number;
+}
+export class ServerError extends Error {
+    description: string;
+
+    status: number;
+
+    constructor(message: string, description: string, status: number) {
+        super(message);
+        this.message = message;
+        this.description = description;
+        this.status = status;
+    }
+
+    static isJson(json: unknown): json is ServerErrorJson {
+        if (typeof json !== 'object' || json === null) {
+            return false;
+        }
+        const obj = json as Record<string, unknown>;
+        return (
+            typeof obj.message === 'string' &&
+            typeof obj.description === 'string' &&
+            typeof obj.status === 'number'
+        );
+    }
+
+    static fromJson(json: ServerErrorJson): ServerError {
+        return new ServerError(json.message, json.description, json.status);
+    }
 }
 
 /**
@@ -144,13 +175,17 @@ export class Backend {
             options.signal = signal;
         }
         const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
-        return (await resp.json()) as T;
+        const result = (await resp.json()) as T;
+        if (ServerError.isJson(result)) {
+            throw ServerError.fromJson(result);
+        }
+        return result;
     }
 
     /**
      * Gets a list of all nodes as well as the node information
      */
-    nodes(): Promise<BackendNodesResponse | ServerError> {
+    nodes(): Promise<BackendNodesResponse> {
         return this.fetchJson('/nodes', 'GET');
     }
 
@@ -191,21 +226,21 @@ export class Backend {
      * Clears the cache of the passed in node id
      */
     clearNodeCacheIndividual(id: string): Promise<BackendResult<null>> {
-        return this.fetchJson('/clearcache/individual', 'POST', { id });
+        return this.fetchJson('/clear-cache/individual', 'POST', { id });
     }
 
     /**
      * Gets a list of all NCNN GPU devices and their indexes
      */
     listNcnnGpus(): Promise<string[]> {
-        return this.fetchJson('/listgpus/ncnn', 'GET');
+        return this.fetchJson('/list-gpus/ncnn', 'GET');
     }
 
     /**
      * Gets a list of all Nvidia GPU devices and their indexes
      */
     listNvidiaGpus(): Promise<string[]> {
-        return this.fetchJson('/listgpus/nvidia', 'GET');
+        return this.fetchJson('/list-gpus/nvidia', 'GET');
     }
 
     pythonInfo(): Promise<PythonInfo> {
@@ -216,8 +251,16 @@ export class Backend {
         return this.fetchJson('/system-usage', 'GET');
     }
 
-    dependencies(): Promise<Package[]> {
-        return this.fetchJson('/dependencies', 'GET');
+    packages(): Promise<Package[]> {
+        return this.fetchJson('/packages', 'GET');
+    }
+
+    installedDependencies(): Promise<Partial<Record<PyPiName, Version>>> {
+        return this.fetchJson('/installed-dependencies', 'GET');
+    }
+
+    features(): Promise<FeatureState[]> {
+        return this.fetchJson('/features', 'GET');
     }
 }
 
