@@ -1,8 +1,9 @@
-import { BrowserWindow, app, dialog } from 'electron';
+import { app, dialog } from 'electron';
 import electronLog from 'electron-log';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
+import { settingStorage } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
 const mdCodeBlock = (code: string): string => {
@@ -47,7 +48,12 @@ const setupErrorHandling = () => {
 export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
 
-    app.disableHardwareAcceleration();
+    const isEnableHardwareAcceleration =
+        settingStorage.getItem('enable-hardware-acceleration') === 'true';
+
+    if (!isEnableHardwareAcceleration) {
+        app.disableHardwareAcceleration();
+    }
 
     const hasInstanceLock = app.requestSingleInstanceLock();
     if (!hasInstanceLock) {
@@ -67,6 +73,10 @@ export const createGuiApp = (args: OpenArguments) => {
     // Some APIs can only be used after this event occurs.
     app.on('ready', createWindow);
 
+    // TODO: See if this can be fixed in the future. Currently an active app with
+    // no windows doesn't spawn a new window. Due to the windows creation being
+    // lazy. Not using lazy does result in the backend not starting.
+    /**
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
@@ -74,6 +84,7 @@ export const createGuiApp = (args: OpenArguments) => {
             createWindow();
         }
     });
+    * */
 
     // Quit when all windows are closed.
     app.on('window-all-closed', () => {

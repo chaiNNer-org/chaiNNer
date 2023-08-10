@@ -121,6 +121,7 @@ interface DropdownProps<T> extends SettingsItemProps {
     value: T;
     options: readonly { label: string; value: T }[];
     onChange: (value: T) => void;
+    small?: boolean;
 }
 
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
@@ -131,6 +132,7 @@ function Dropdown<T>({
     value,
     options,
     onChange,
+    small,
 }: DropdownProps<T>) {
     const index = options.findIndex((o) => o.value === value);
 
@@ -149,7 +151,7 @@ function Dropdown<T>({
         >
             <Select
                 isDisabled={isDisabled}
-                minWidth="350px"
+                minWidth={small ? '171px' : '350px'}
                 value={index === -1 ? 0 : index}
                 onChange={(e) => {
                     const optionIndex = Number(e.target.value);
@@ -171,10 +173,10 @@ function Dropdown<T>({
 }
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useIsDarkMode, useAnimateChain, useViewportExportPadding } =
+    const { useSnapToGrid, useSelectTheme, useAnimateChain, useViewportExportPadding } =
         useContext(SettingsContext);
 
-    const [isDarkMode, setIsDarkMode] = useIsDarkMode;
+    const [isSelectTheme, setSelectTheme] = useSelectTheme;
     const [animateChain, setAnimateChain] = useAnimateChain;
     const [viewportExportPadding, setViewportExportPadding] = useViewportExportPadding;
 
@@ -185,13 +187,17 @@ const AppearanceSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Toggle
-                description="Use dark mode throughout chaiNNer."
-                title="Dark theme"
-                value={isDarkMode}
-                onToggle={() => {
-                    setIsDarkMode((prev) => !prev);
-                }}
+            <Dropdown
+                small
+                description="Choose the Theme for chaiNNers appereance."
+                options={[
+                    { label: 'Dark Mode', value: 'dark' },
+                    { label: 'Light Mode', value: 'light' },
+                    { label: 'System', value: 'system' },
+                ]}
+                title="Select Theme"
+                value={isSelectTheme}
+                onChange={setSelectTheme}
             />
 
             <Toggle
@@ -674,9 +680,12 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useCheckUpdOnStrtUp, useExperimentalFeatures } = useContext(SettingsContext);
+    const { useCheckUpdOnStrtUp, useExperimentalFeatures, useEnableHardwareAcceleration } =
+        useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
     const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
+    const [isEnableHardwareAcceleration, setIsEnableHardwareAcceleration] =
+        useEnableHardwareAcceleration;
 
     return (
         <VStack
@@ -697,6 +706,14 @@ const AdvancedSettings = memo(() => {
                 value={isExperimentalFeatures}
                 onToggle={() => {
                     setIsExperimentalFeatures((prev) => !prev);
+                }}
+            />
+            <Toggle
+                description="Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
+                title="Enable Hardware Acceleration (requires restart)."
+                value={isEnableHardwareAcceleration}
+                onToggle={() => {
+                    setIsEnableHardwareAcceleration((prev) => !prev);
                 }}
             />
         </VStack>
