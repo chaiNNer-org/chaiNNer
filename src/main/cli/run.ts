@@ -88,10 +88,7 @@ const getBackendNodes = async (backend: Backend): Promise<NodeSchema[]> => {
     for (let i = 0; i < maxTries; i += 1) {
         try {
             // eslint-disable-next-line no-await-in-loop
-            const response = await backend.nodes();
-            if ('nodes' in response) {
-                return response.nodes;
-            }
+            return (await backend.nodes()).nodes;
         } catch {
             // ignore error
         }

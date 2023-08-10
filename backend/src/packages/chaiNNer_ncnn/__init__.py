@@ -1,17 +1,35 @@
 from sanic.log import logger
 
 from api import MB, Dependency, add_package
-from system import is_mac
+from system import is_arm_mac, is_mac
+
+general = "NCNN uses .bin/.param models to upscale images."
+recommendation = "It is recommended for AMD users"
+
+if is_arm_mac:
+    inst_hint = general
+elif is_mac:
+    inst_hint = f"{general} {recommendation}."
+else:
+    inst_hint = (
+        f"{general} {recommendation} because it supports both AMD and Nvidia GPUs."
+    )
+
 
 package = add_package(
     __file__,
+    id="chaiNNer_ncnn",
     name="NCNN",
-    description="NCNN uses .bin/.param models to upscale images. NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. Models can be converted from PyTorch to NCNN.",
+    description=(
+        f"{general} NCNN uses Vulkan for GPU"
+        " acceleration, meaning it supports any modern GPU. Models can be converted"
+        " from PyTorch to NCNN."
+    ),
     dependencies=[
         Dependency(
             display_name="NCNN",
             pypi_name="ncnn-vulkan",
-            version="2022.9.12",
+            version="2023.6.18",
             size_estimate=7 * MB if is_mac else 4 * MB,
             auto_update=True,
             import_name="ncnn_vulkan",
@@ -24,8 +42,7 @@ ncnn_category = package.add_category(
     description="Nodes for using the NCNN Neural Network Framework with images.",
     icon="NCNN",
     color="#ED64A6",
-    install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
+    install_hint=inst_hint,
 )
-
 
 logger.debug(f"Loaded package {package.name}")

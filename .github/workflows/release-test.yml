@@ -1,0 +1,38 @@
+name: Release
+
+on:
+    pull_request:
+        branches: ['*']
+        types:
+            - opened
+            - synchronize
+            - closed
+        paths:
+            - '.github/**'
+            - 'package.json'
+            - 'package-lock.json'
+            - 'forge.config.js'
+            - 'webpack*.js'
+    push:
+        branches: [main]
+
+permissions: read-all
+
+jobs:
+    release-test:
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'npm'
+            - run: npm ci
+            - name: publish --dry-run
+              shell: bash
+              run: npm run publish -- --dry-run

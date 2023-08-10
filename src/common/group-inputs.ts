@@ -11,7 +11,6 @@ import {
     NodeSchema,
     NumberInput,
     OfKind,
-    SliderInput,
 } from './common-types';
 import { getChainnerScope } from './types/chainner-scope';
 import { fromJson } from './types/json';
@@ -35,7 +34,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'ncnn-file-inputs': readonly [FileInput, FileInput];
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
-    'linked-inputs': readonly [SliderInput, SliderInput, ...SliderInput[]];
+    'linked-inputs': readonly [Input, Input, ...Input[]];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -147,15 +146,21 @@ const groupInputsChecks: {
     },
     'linked-inputs': (inputs) => {
         if (inputs.length < 2) return 'Expected at least 2 inputs';
-        if (!allInputsOfKind(inputs, 'slider')) return `Expected all inputs to be slider inputs`;
 
         const [ref] = inputs;
+        if (ref.kind === 'group') return `Expected linked inputs to not contain groups`;
+        if (!allInputsOfKind(inputs, ref.kind))
+            return `Expected all inputs to be ${ref.kind} inputs`;
+
+        type Keys<T> = T extends unknown ? keyof T : never;
+        const ignoreKeys = new Set<Keys<Input>>(['id', 'label', 'description', 'placeholder']);
         for (const i of inputs) {
-            if (i.min !== ref.min) return 'Expected all inputs to have the same min value';
-            if (i.max !== ref.max) return 'Expected all inputs to have the same max value';
-            if (i.precision !== ref.precision)
-                return 'Expected all inputs to have the same precision value';
-            if (i.def !== ref.def) return 'Expected all inputs to have the same default value';
+            for (const [key, value] of Object.entries(i)) {
+                // eslint-disable-next-line no-continue
+                if (ignoreKeys.has(key as Keys<Input>)) continue;
+                if (JSON.stringify(value) !== JSON.stringify(ref[key as never]))
+                    return `Expected all inputs to have the same ${key} value`;
+            }
         }
     },
 };

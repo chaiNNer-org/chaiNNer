@@ -1,14 +1,13 @@
 import { Code, Link, Text } from '@chakra-ui/react';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import { shell } from 'electron';
 import { memo } from 'react';
 import { Components } from 'react-markdown';
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
-import { SchemaId } from '../../../common/common-types';
-import { log } from '../../../common/log';
-import { BackendContext } from '../../contexts/BackendContext';
-import { SupportHighlighting } from './HighlightContainer';
-import { SchemaLink } from './SchemaLink';
+import { SchemaId } from '../../common/common-types';
+import { BackendContext } from '../contexts/BackendContext';
+import { SupportHighlighting } from './NodeDocumentation/HighlightContainer';
+import { SchemaLink } from './NodeDocumentation/SchemaLink';
 
 const getDocsMarkdownComponents = (interactive: boolean): Components => {
     return {
@@ -17,7 +16,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                 <SupportHighlighting>
                     <Text
                         fontSize="md"
-                        marginTop={1}
+                        my={2}
                         userSelect="text"
                     >
                         {children}
@@ -32,12 +31,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     href={href}
                     textColor={interactive && href ? 'var(--link-color)' : 'inherit'}
                     textDecoration={interactive && href ? 'underline' : 'inherit'}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        if (interactive && href) {
-                            shell.openExternal(href).catch(log.error);
-                        }
-                    }}
+                    userSelect="text"
                 >
                     {children}
                 </Link>
@@ -63,6 +57,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     className={className}
+                    userSelect="text"
                 >
                     {children}
                 </Code>
@@ -71,5 +66,24 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
     };
 };
 
-export const docsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(true));
-export const tooltipDocsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(false));
+const interactiveDocsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(true));
+const docsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(false));
+
+export interface MarkdownProps {
+    children: string;
+    nonInteractive?: boolean;
+}
+
+export const Markdown = memo(({ children, nonInteractive = false }: MarkdownProps) => {
+    const components = nonInteractive ? docsMarkdown : interactiveDocsMarkdown;
+
+    return (
+        <ReactMarkdown
+            skipHtml
+            className="no-child-margin"
+            components={components}
+        >
+            {children}
+        </ReactMarkdown>
+    );
+});

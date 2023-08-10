@@ -5,7 +5,7 @@ import Downloader from 'nodejs-file-downloader';
 import os from 'os';
 import path from 'path';
 import { URL } from 'url';
-import { PyPiPackage } from './dependencies';
+import { PyPiPackage } from './common-types';
 import { sanitizedEnv } from './env';
 import { log } from './log';
 import { noop } from './util';
