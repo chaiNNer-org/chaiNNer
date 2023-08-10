@@ -4,7 +4,11 @@ from collections import deque
 import numpy as np
 
 from ..image_utils import as_3d
-from .color_distance import nearest_palette_color, nearest_uniform_color
+from .color_distance import (
+    NearestColorFn,
+    create_nearest_palette_color_lookup,
+    nearest_uniform_color,
+)
 from .common import as_dtype, as_float32
 from .hilbert import HilbertCurve
 
@@ -24,7 +28,10 @@ def _error_sum(history: deque, base: float, channels: int):
 
 
 def riemersma_dither(
-    image: np.ndarray, history_length: int, decay_ratio: float, nearest_color_func
+    image: np.ndarray,
+    history_length: int,
+    decay_ratio: float,
+    nearest_color_func: NearestColorFn,
 ) -> np.ndarray:
     image = as_3d(image)
 
@@ -64,10 +71,5 @@ def palette_riemersma_dither(
     decay_ratio: float,
 ) -> np.ndarray:
     palette = as_float32(as_3d(palette))
-
-    cache = []
-
-    def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
-        return nearest_palette_color(pixel, palette, cache=cache)
-
+    nearest_color_func = create_nearest_palette_color_lookup(palette)
     return riemersma_dither(image, history_length, decay_ratio, nearest_color_func)

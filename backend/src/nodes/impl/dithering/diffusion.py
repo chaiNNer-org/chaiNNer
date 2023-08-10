@@ -1,30 +1,37 @@
 import numpy as np
 
 from ..image_utils import as_3d
-from .color_distance import nearest_palette_color, nearest_uniform_color
+from .color_distance import (
+    NearestColorFn,
+    create_nearest_palette_color_lookup,
+    nearest_uniform_color,
+)
 from .common import as_dtype, as_float32
 from .constants import ERROR_DIFFUSION_MAPS, ErrorDiffusionMap
 
 
 def error_diffusion_dither(
-    image: np.ndarray, error_diffusion_map: ErrorDiffusionMap, nearest_color_func
+    image: np.ndarray,
+    error_diffusion_map: ErrorDiffusionMap,
+    nearest_color_func: NearestColorFn,
 ) -> np.ndarray:
     image = as_3d(image)
 
     output_image = as_float32(image).copy()
+    h = output_image.shape[0]
+    w = output_image.shape[1]
     edm = ERROR_DIFFUSION_MAPS[error_diffusion_map]
-    for row in range(output_image.shape[0]):
-        for col in range(output_image.shape[1]):
+    for row in range(h):
+        for col in range(w):
             pixel = np.array(output_image[row, col, :])
-            output_image[row, col, :] = nearest_color_func(pixel)
-            error = pixel - output_image[row, col, :]  # type: ignore
+            nearest = nearest_color_func(pixel)
+            output_image[row, col, :] = nearest
+            error = pixel - nearest
             for (delta_row, delta_col), coefficient in edm.items():
-                if (
-                    row + delta_row >= output_image.shape[0]
-                    or col + delta_col >= output_image.shape[1]
-                ):
-                    continue
-                output_image[row + delta_row, col + delta_col, :] += error * coefficient
+                y = row + delta_row
+                x = col + delta_col
+                if 0 < x < w and 0 < y < h:
+                    output_image[y, x, :] += error * coefficient
     return as_dtype(output_image, image.dtype)
 
 
@@ -43,10 +50,5 @@ def palette_error_diffusion_dither(
     error_diffusion_map: ErrorDiffusionMap,
 ) -> np.ndarray:
     palette = as_float32(as_3d(palette))
-
-    cache = []
-
-    def nearest_color_func(pixel: np.ndarray) -> np.ndarray:
-        return nearest_palette_color(pixel, palette, cache=cache)
-
+    nearest_color_func = create_nearest_palette_color_lookup(palette)
     return error_diffusion_dither(image, error_diffusion_map, nearest_color_func)

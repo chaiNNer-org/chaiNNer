@@ -1,8 +1,15 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Dict
 
 import numpy as np
+from chainner_ext import (
+    DiffusionAlgorithm,
+    uniform_error_diffusion_dither,
+    uniform_ordered_dither,
+    uniform_riemersma_dither,
+)
 
 from nodes.groups import if_enum_group
 from nodes.impl.dithering.color_distance import batch_nearest_uniform_color
@@ -12,13 +19,27 @@ from nodes.impl.dithering.constants import (
     ErrorDiffusionMap,
     ThresholdMap,
 )
-from nodes.impl.dithering.diffusion import uniform_error_diffusion_dither
-from nodes.impl.dithering.ordered import ordered_dither
-from nodes.impl.dithering.riemersma import uniform_riemersma_dither
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import quantize_group
+
+_THRESHOLD_MAP: Dict[ThresholdMap, int] = {
+    ThresholdMap.BAYER_2: 2,
+    ThresholdMap.BAYER_4: 4,
+    ThresholdMap.BAYER_8: 8,
+    ThresholdMap.BAYER_16: 16,
+}
+_ALGORITHM_MAP: Dict[ErrorDiffusionMap, DiffusionAlgorithm] = {
+    ErrorDiffusionMap.FLOYD_STEINBERG: DiffusionAlgorithm.FloydSteinberg,
+    ErrorDiffusionMap.JARVIS_ET_AL: DiffusionAlgorithm.JarvisJudiceNinke,
+    ErrorDiffusionMap.STUCKI: DiffusionAlgorithm.Stucki,
+    ErrorDiffusionMap.ATKINSON: DiffusionAlgorithm.Atkinson,
+    ErrorDiffusionMap.BURKES: DiffusionAlgorithm.Burkes,
+    ErrorDiffusionMap.SIERRA: DiffusionAlgorithm.Sierra,
+    ErrorDiffusionMap.TWO_ROW_SIERRA: DiffusionAlgorithm.TwoRowSierra,
+    ErrorDiffusionMap.SIERRA_LITE: DiffusionAlgorithm.SierraLite,
+}
 
 
 class UniformDitherAlgorithm(Enum):
@@ -84,15 +105,21 @@ def dither_node(
     if dither_algorithm == UniformDitherAlgorithm.NONE:
         return batch_nearest_uniform_color(img, num_colors=num_colors)
     elif dither_algorithm == UniformDitherAlgorithm.ORDERED:
-        return ordered_dither(img, num_colors=num_colors, threshold_map=threshold_map)
+        return uniform_ordered_dither(
+            img,
+            num_colors,
+            _THRESHOLD_MAP[threshold_map],
+        )
     elif dither_algorithm == UniformDitherAlgorithm.DIFFUSION:
         return uniform_error_diffusion_dither(
-            img, num_colors=num_colors, error_diffusion_map=error_diffusion_map
+            img,
+            num_colors,
+            _ALGORITHM_MAP[error_diffusion_map],
         )
     elif dither_algorithm == UniformDitherAlgorithm.RIEMERSMA:
         return uniform_riemersma_dither(
             img,
-            num_colors=num_colors,
-            history_length=history_length,
-            decay_ratio=1 / history_length,
+            num_colors,
+            history_length,
+            1 / history_length,
         )

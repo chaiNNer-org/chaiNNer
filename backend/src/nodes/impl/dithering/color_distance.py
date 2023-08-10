@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable
 
 import cv2
 import numpy as np
@@ -18,48 +18,36 @@ def batch_nearest_uniform_color(image: np.ndarray, num_colors: int) -> np.ndarra
     )
 
 
-def nearest_palette_color(
-    pixel: np.ndarray,
+NearestColorFn = Callable[[np.ndarray], np.ndarray]
+
+
+def create_nearest_palette_color_lookup(
     palette: np.ndarray,
-    cache: Optional[List[cv2.ml.KNearest]],
-) -> np.ndarray:
+) -> NearestColorFn:
     palette = as_3d(palette)
+    palette_size = palette.shape[1]
+    palette_dimensions = palette.shape[2]
 
-    if pixel.shape[0] != palette.shape[2]:
-        raise RuntimeError(
-            "Trying to compare color distance between different numbers of channels."
-        )
+    # Initialize a k-d tree for this palette
+    kdtree = cv2.ml.KNearest_create()
+    kdtree.setAlgorithmType(cv2.ml.KNEAREST_KDTREE)
+    kdtree.train(
+        palette.reshape((-1, palette_dimensions)),
+        cv2.ml.ROW_SAMPLE,
+        np.arange(palette_size),
+    )
 
-    if cache is not None:
-        if not cache:
-            # Initialize a k-d tree for this palette
-            kdtree = cv2.ml.KNearest_create()
-            kdtree.setAlgorithmType(cv2.ml.KNEAREST_KDTREE)
-            kdtree.train(
-                palette.reshape((-1, palette.shape[2])),
-                cv2.ml.ROW_SAMPLE,
-                np.arange(palette.shape[1]),
+    def lookup(pixel: np.ndarray) -> np.ndarray:
+        if pixel.shape[0] != palette_dimensions:
+            raise RuntimeError(
+                "Trying to compare color distance between different numbers of channels."
             )
-            cache.append(kdtree)
-        else:
-            kdtree = cache[0]
 
         _, results, _, _ = kdtree.findNearest(pixel.reshape((1, -1)), 1)
         idx = results[0][0]
         return palette[0, idx, :]
 
-    else:
-        closest = None
-        closest_distance = None
-
-        for idx in range(palette.shape[1]):
-            color = palette[0, idx, :]
-            distance = np.power(pixel - color, 2).mean()  # type: ignore
-            if closest is None or distance < closest_distance:
-                closest = color
-                closest_distance = distance
-
-        return closest  # type: ignore
+    return lookup
 
 
 def batch_nearest_palette_color(
