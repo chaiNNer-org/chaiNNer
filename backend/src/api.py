@@ -300,8 +300,10 @@ class Package:
     categories: List[Category] = field(default_factory=list)
     features: List[Feature] = field(default_factory=list)
     settings: List[
-        ToggleSetting | DropdownSetting | NumberSetting | ToggleSettingWithButton
+        ToggleSetting | DropdownSetting | NumberSetting | CacheSetting
     ] = field(default_factory=list)
+    icon: str | None = "BsQuestionCircleFill"
+    color: str | None = "#777777"
 
     def add_category(
         self,
@@ -330,10 +332,7 @@ class Package:
 
     def add_setting(
         self,
-        setting: ToggleSetting
-        | DropdownSetting
-        | NumberSetting
-        | ToggleSettingWithButton,
+        setting: ToggleSetting | DropdownSetting | NumberSetting | CacheSetting,
     ):
         self.settings.append(setting)
 
@@ -427,6 +426,8 @@ def add_package(
     name: str,
     description: str,
     dependencies: List[Dependency] | None = None,
+    icon: str | None = None,
+    color: str | None = None,
 ) -> Package:
     return registry.add(
         Package(
@@ -435,6 +436,8 @@ def add_package(
             name=name,
             description=description,
             dependencies=dependencies or [],
+            icon=icon,
+            color=color,
         )
     )
 
@@ -446,6 +449,7 @@ class ToggleSetting:
     description: str
     default: bool = False
     disabled: bool = False
+    type: str = "toggle"
 
 
 @dataclass
@@ -456,6 +460,7 @@ class DropdownSetting:
     options: List[str]
     default: Optional[str] = None
     disabled: bool = False
+    type: str = "dropdown"
 
 
 @dataclass
@@ -467,13 +472,14 @@ class NumberSetting:
     max: float
     default: float = 0
     disabled: bool = False
+    type: str = "number"
 
 
 @dataclass
-class ToggleSettingWithButton:
+class CacheSetting:
     label: str
     key: str
     description: str
-    button_label: str
-    action: Callable[[], None]
+    default: bool = False
     disabled: bool = False
+    type: str = "cache"

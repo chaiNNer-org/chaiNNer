@@ -307,12 +307,48 @@ export interface Feature {
     readonly description: string;
 }
 
+export interface ISetting {
+    readonly type: string;
+    readonly label: string;
+    readonly key: string;
+    readonly description: string;
+    readonly default: unknown;
+    readonly disabled: boolean;
+}
+
+export interface ToggleSetting extends ISetting {
+    readonly type: 'toggle';
+    readonly default: boolean;
+}
+
+export interface NumberSetting extends ISetting {
+    readonly type: 'number';
+    readonly min: number;
+    readonly max: number;
+    readonly default: number;
+}
+
+export interface DropdownSetting extends ISetting {
+    readonly type: 'dropdown';
+    readonly options: readonly string[];
+    readonly default: string;
+}
+
+export interface CacheSetting extends ISetting {
+    readonly type: 'cache';
+}
+
+export type Setting = ToggleSetting | NumberSetting | DropdownSetting | CacheSetting;
+
 export interface Package {
     readonly id: PackageId;
     readonly name: string;
+    readonly icon: string;
+    readonly color: string;
     readonly description: string;
     readonly dependencies: readonly PyPiPackage[];
     readonly features: readonly Feature[];
+    readonly settings: readonly Setting[];
 }
 
 export interface FeatureState {

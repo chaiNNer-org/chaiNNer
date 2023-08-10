@@ -35,25 +35,18 @@ import {
 } from '@chakra-ui/react';
 import { readdir, unlink } from 'fs/promises';
 import path from 'path';
-import {
-    PropsWithChildren,
-    ReactNode,
-    memo,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { getOnnxTensorRtCacheLocation, hasTensorRt, isArmMac } from '../../common/env';
+import { Setting } from '../../common/common-types';
+import { getCacheLocation } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { NcnnIcon, OnnxIcon, PyTorchIcon } from './CustomIcons';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { IconFactory } from './CustomIcons';
 
 interface SettingsItemProps {
     title: ReactNode;
@@ -154,22 +147,141 @@ function Dropdown<T>({
                 minWidth={small ? '171px' : '350px'}
                 value={index === -1 ? 0 : index}
                 onChange={(e) => {
-                    const optionIndex = Number(e.target.value);
-                    onChange(options[optionIndex].value);
+                    if (options.length > 0) {
+                        const optionIndex = Number(e.target.value);
+                        onChange(options[optionIndex].value);
+                    }
                 }}
             >
-                {options.map(({ label }, i) => (
-                    <option
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={i}
-                        value={i}
-                    >
-                        {label}
-                    </option>
-                ))}
+                {(options.length === 0 ? [{ label: `No ${String(title)} found.` }] : options).map(
+                    ({ label }, i) => (
+                        <option
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={i}
+                            value={i}
+                        >
+                            {label}
+                        </option>
+                    )
+                )}
             </Select>
         </SettingsItem>
     );
+}
+
+interface CacheSettingProps extends SettingsItemProps {
+    isDisabled?: boolean;
+    value: boolean;
+    onChange: (value: unknown) => void;
+    cacheKey: string;
+}
+
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+function CacheSetting({
+    description,
+    title,
+    isDisabled,
+    value,
+    onChange,
+    cacheKey,
+}: CacheSettingProps) {
+    return (
+        <HStack w="full">
+            <Toggle
+                description={description}
+                isDisabled={isDisabled}
+                title={title}
+                value={value}
+                onToggle={() => {
+                    onChange((prev: boolean) => !prev);
+                }}
+            />
+            <Button
+                isDisabled={isDisabled || !value}
+                onClick={() => {
+                    ipcRenderer
+                        .invoke('get-appdata')
+                        .then(async (appDataPath: string) => {
+                            const cacheLocation = getCacheLocation(appDataPath, cacheKey);
+                            const files = await readdir(cacheLocation);
+                            for (const file of files) {
+                                unlink(path.join(cacheLocation, file)).catch(log.error);
+                            }
+                        })
+                        .catch(log.error);
+                }}
+            >
+                Clear Cache
+            </Button>
+        </HStack>
+    );
+}
+
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+function SettingWrapper({ setting }: { setting: Setting }) {
+    const [value, setValue] = useLocalStorage(setting.key, setting.default);
+    switch (setting.type) {
+        case 'toggle':
+            return (
+                <Toggle
+                    description={setting.description}
+                    isDisabled={setting.disabled}
+                    title={setting.label}
+                    value={Boolean(value)}
+                    onToggle={() => {
+                        setValue((prev: boolean) => !prev);
+                    }}
+                />
+            );
+        case 'dropdown':
+            return (
+                <Dropdown
+                    description={setting.description}
+                    isDisabled={setting.disabled}
+                    options={setting.options.map((option, i) => ({
+                        label: option,
+                        value: String(i),
+                    }))}
+                    title={setting.label}
+                    value={String(value)}
+                    onChange={(v: string) => {
+                        setValue(v);
+                    }}
+                />
+            );
+        case 'number':
+            return (
+                <NumberInput
+                    isDisabled={setting.disabled}
+                    max={setting.max}
+                    min={setting.min}
+                    step={1}
+                    value={String(value)}
+                    onChange={(v) => {
+                        setValue(v);
+                    }}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+            );
+        case 'cache':
+            return (
+                <CacheSetting
+                    cacheKey={setting.key}
+                    description={setting.description}
+                    isDisabled={setting.disabled}
+                    title={setting.label}
+                    value={Boolean(value)}
+                    onChange={setValue}
+                />
+            );
+        default:
+            return null;
+    }
 }
 
 const AppearanceSettings = memo(() => {
@@ -360,72 +472,74 @@ const PythonSettings = memo(() => {
         useOnnxShouldTensorRtCache,
         useOnnxShouldTensorRtFp16,
     } = useContext(SettingsContext);
-    const { backend } = useContext(BackendContext);
+    const { backend, packages } = useContext(BackendContext);
+
+    console.log(packages);
 
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
     const [systemPythonLocation, setSystemPythonLocation] = useSystemPythonLocation;
     const [lastDirectory, setLastDirectory] = useState(systemPythonLocation || '');
 
-    const [isCpu, setIsCpu] = useIsCpu;
-    const [isFp16, setIsFp16] = useIsFp16;
+    // const [isCpu, setIsCpu] = useIsCpu;
+    // const [isFp16, setIsFp16] = useIsFp16;
 
-    const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
-    const [onnxGPU, setOnnxGPU] = useOnnxGPU;
-    const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
-    const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
-    const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
-    const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
+    // const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
+    // const [onnxGPU, setOnnxGPU] = useOnnxGPU;
+    // const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
+    // const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
+    // const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
+    // const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
 
-    const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
-    useAsyncEffect(
-        () => ({
-            supplier: async () => backend.listNvidiaGpus(),
-            successEffect: setNvidiaGpuList,
-        }),
-        [backend]
-    );
+    // const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
+    // useAsyncEffect(
+    //     () => ({
+    //         supplier: async () => backend.listNvidiaGpus(),
+    //         successEffect: setNvidiaGpuList,
+    //     }),
+    //     [backend]
+    // );
 
-    const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
-    const [ncnnGpuList, setNcnnGpuList] = useState<string[]>([]);
-    useAsyncEffect(
-        () => ({
-            supplier: () => backend.listNcnnGpus(),
-            successEffect: setNcnnGpuList,
-        }),
-        [backend]
-    );
+    // const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
+    // const [ncnnGpuList, setNcnnGpuList] = useState<string[]>([]);
+    // useAsyncEffect(
+    //     () => ({
+    //         supplier: () => backend.listNcnnGpus(),
+    //         successEffect: setNcnnGpuList,
+    //     }),
+    //     [backend]
+    // );
 
-    useEffect(() => {
-        if (isCpu && isFp16) {
-            setIsFp16(false);
-        }
-    }, [isCpu, isFp16, setIsFp16]);
+    // useEffect(() => {
+    //     if (isCpu && isFp16) {
+    //         setIsFp16(false);
+    //     }
+    // }, [isCpu, isFp16, setIsFp16]);
 
-    const onnxExecutionProviders = useMemo(
-        () => [
-            ...(nvidiaGpuList.length > 0
-                ? [
-                      {
-                          label: 'CUDA (GPU)',
-                          value: 'CUDAExecutionProvider',
-                      },
-                  ]
-                : []),
-            {
-                label: 'CPU',
-                value: 'CPUExecutionProvider',
-            },
-            ...(hasTensorRt && nvidiaGpuList.length > 0
-                ? [
-                      {
-                          label: 'TensorRT (GPU)',
-                          value: 'TensorrtExecutionProvider',
-                      },
-                  ]
-                : []),
-        ],
-        [nvidiaGpuList]
-    );
+    // const onnxExecutionProviders = useMemo(
+    //     () => [
+    //         ...(nvidiaGpuList.length > 0
+    //             ? [
+    //                   {
+    //                       label: 'CUDA (GPU)',
+    //                       value: 'CUDAExecutionProvider',
+    //                   },
+    //               ]
+    //             : []),
+    //         {
+    //             label: 'CPU',
+    //             value: 'CPUExecutionProvider',
+    //         },
+    //         ...(hasTensorRt && nvidiaGpuList.length > 0
+    //             ? [
+    //                   {
+    //                       label: 'TensorRT (GPU)',
+    //                       value: 'TensorrtExecutionProvider',
+    //                   },
+    //               ]
+    //             : []),
+    //     ],
+    //     [nvidiaGpuList]
+    // );
 
     const onButtonClick = useCallback(async () => {
         const fileDir = systemPythonLocation ? path.dirname(systemPythonLocation) : lastDirectory;
@@ -436,6 +550,8 @@ const PythonSettings = memo(() => {
             setLastDirectory(path.dirname(selectedPath));
         }
     }, [systemPythonLocation, lastDirectory, setSystemPythonLocation]);
+
+    const packagesWithSettings = packages.filter((pkg) => pkg.settings.length);
 
     return (
         <Tabs
@@ -449,24 +565,14 @@ const PythonSettings = memo(() => {
                         <Text cursor="pointer">General</Text>
                     </HStack>
                 </Tab>
-                <Tab>
-                    <HStack cursor="pointer">
-                        <PyTorchIcon />
-                        <Text cursor="pointer">PyTorch</Text>
-                    </HStack>
-                </Tab>
-                <Tab>
-                    <HStack cursor="pointer">
-                        <NcnnIcon />
-                        <Text cursor="pointer">NCNN</Text>
-                    </HStack>
-                </Tab>
-                <Tab>
-                    <HStack cursor="pointer">
-                        <OnnxIcon />
-                        <Text cursor="pointer">ONNX</Text>
-                    </HStack>
-                </Tab>
+                {packagesWithSettings.map((pkg) => (
+                    <Tab key={pkg.name}>
+                        <HStack cursor="pointer">
+                            <IconFactory icon={pkg.icon} />
+                            <Text cursor="pointer">{pkg.name}</Text>
+                        </HStack>
+                    </Tab>
+                ))}
             </TabList>
 
             <TabPanels px={0}>
@@ -531,149 +637,24 @@ const PythonSettings = memo(() => {
                         )}
                     </VStack>
                 </TabPanel>
-                <TabPanel px={0}>
-                    <VStack
-                        divider={<StackDivider />}
-                        w="full"
+                {packagesWithSettings.map((pkg) => (
+                    <TabPanel
+                        key={pkg.name}
+                        px={0}
                     >
-                        <Toggle
-                            description="Use CPU for PyTorch instead of GPU."
-                            title="CPU mode"
-                            value={isCpu}
-                            onToggle={() => {
-                                setIsCpu((prev) => !prev);
-                            }}
-                        />
-
-                        <Toggle
-                            description={
-                                isArmMac
-                                    ? 'Runs PyTorch in half-precision (FP16) mode for less RAM usage.'
-                                    : 'Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.'
-                            }
-                            title="FP16 mode"
-                            value={isFp16}
-                            onToggle={() => {
-                                setIsFp16((prev) => !prev);
-                            }}
-                        />
-
-                        {!isArmMac && (
-                            <Dropdown
-                                description="Which GPU to use for PyTorch."
-                                isDisabled={nvidiaGpuList.length === 0}
-                                options={
-                                    nvidiaGpuList.length === 0
-                                        ? [{ label: 'No supported NVIDIA GPU found', value: -1 }]
-                                        : nvidiaGpuList.map((gpu, i) => ({
-                                              label: `${i}: ${gpu}`,
-                                              value: i,
-                                          }))
-                                }
-                                title="PyTorch GPU"
-                                value={pytorchGPU}
-                                onChange={setPytorchGPU}
-                            />
-                        )}
-                    </VStack>
-                </TabPanel>
-                <TabPanel px={0}>
-                    <VStack
-                        divider={<StackDivider />}
-                        w="full"
-                    >
-                        <Dropdown
-                            description="Which GPU to use for NCNN."
-                            isDisabled={isArmMac ? true : ncnnGpuList.length === 0}
-                            options={
-                                ncnnGpuList.length === 0
-                                    ? [{ label: 'No supported GPU found', value: -1 }]
-                                    : ncnnGpuList.map((gpu, i) => ({
-                                          label: `${i}: ${gpu}`,
-                                          value: i,
-                                      }))
-                            }
-                            title="NCNN GPU"
-                            value={ncnnGPU}
-                            onChange={setNcnnGPU}
-                        />
-                    </VStack>
-                </TabPanel>
-                <TabPanel px={0}>
-                    <VStack
-                        divider={<StackDivider />}
-                        w="full"
-                    >
-                        {!isArmMac && (
-                            <Dropdown
-                                description="Which GPU to use for ONNX."
-                                isDisabled={nvidiaGpuList.length === 0}
-                                options={
-                                    nvidiaGpuList.length === 0
-                                        ? [{ label: 'No supported NVIDIA GPU found', value: -1 }]
-                                        : nvidiaGpuList.map((gpu, i) => ({
-                                              label: `${i}: ${gpu}`,
-                                              value: i,
-                                          }))
-                                }
-                                title="ONNX GPU"
-                                value={onnxGPU}
-                                onChange={setOnnxGPU}
-                            />
-                        )}
-                        <Dropdown
-                            description="What provider to use for ONNX."
-                            isDisabled={isArmMac}
-                            options={onnxExecutionProviders}
-                            title="ONNX Execution Provider"
-                            value={onnxExecutionProvider}
-                            onChange={setOnnxExecutionProvider}
-                        />
-                        {isUsingTensorRt && (
-                            <HStack>
-                                <Toggle
-                                    description="Whether or not to cache the converted TensorRT engines to disk. This can speed up inference times immensely once you have converted once."
-                                    title="Cache TensorRT engines"
-                                    value={onnxShouldTensorRtCache}
-                                    onToggle={() => {
-                                        setOnnxShouldTensorRtCache((prev) => !prev);
-                                    }}
+                        <VStack
+                            divider={<StackDivider />}
+                            w="full"
+                        >
+                            {pkg.settings.map((setting) => (
+                                <SettingWrapper
+                                    key={setting.key}
+                                    setting={setting}
                                 />
-                                <Button
-                                    onClick={() => {
-                                        ipcRenderer
-                                            .invoke('get-appdata')
-                                            .then(async (appDataPath: string) => {
-                                                const onnxTensorRtCacheLocation =
-                                                    getOnnxTensorRtCacheLocation(appDataPath);
-                                                const files = await readdir(
-                                                    onnxTensorRtCacheLocation
-                                                );
-                                                for (const file of files) {
-                                                    unlink(
-                                                        path.join(onnxTensorRtCacheLocation, file)
-                                                    ).catch(log.error);
-                                                }
-                                            })
-                                            .catch(log.error);
-                                    }}
-                                >
-                                    Clear Cache
-                                </Button>
-                            </HStack>
-                        )}
-                        {isUsingTensorRt && (
-                            <Toggle
-                                description="Use FP16 inference with TensorRT."
-                                title="TensorRT FP16 Mode"
-                                value={onnxShouldTensorRtFp16}
-                                onToggle={() => {
-                                    setOnnxShouldTensorRtFp16((prev) => !prev);
-                                }}
-                            />
-                        )}
-                    </VStack>
-                </TabPanel>
+                            ))}
+                        </VStack>
+                    </TabPanel>
+                ))}
             </TabPanels>
         </Tabs>
     );

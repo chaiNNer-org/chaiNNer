@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { BackendExecutionOptions } from '../../common/Backend';
-import { getOnnxTensorRtCacheLocation } from '../../common/env';
-import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
 
 export const useBackendExecutionOptions = (): BackendExecutionOptions => {
@@ -27,14 +24,14 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
     const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
 
     const [onnxTensorRtCachePath, setOnnxTensorRtCachePath] = useState('');
-    useEffect(() => {
-        ipcRenderer.invoke('get-appdata').then(
-            (appData) => {
-                setOnnxTensorRtCachePath(getOnnxTensorRtCacheLocation(appData));
-            },
-            (reason) => log.error(reason)
-        );
-    }, []);
+    // useEffect(() => {
+    //     ipcRenderer.invoke('get-appdata').then(
+    //         (appData) => {
+    //             setOnnxTensorRtCachePath(getOnnxTensorRtCacheLocation(appData));
+    //         },
+    //         (reason) => log.error(reason)
+    //     );
+    // }, []);
 
     const [onnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
 
@@ -46,7 +43,7 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         onnxGPU,
         onnxExecutionProvider,
         onnxShouldTensorRtCache,
-        onnxTensorRtCachePath,
+        // onnxTensorRtCachePath,
         onnxShouldTensorRtFp16,
     };
 };

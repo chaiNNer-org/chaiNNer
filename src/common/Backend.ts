@@ -75,7 +75,7 @@ export interface BackendExecutionOptions {
     onnxGPU: number;
     onnxExecutionProvider: string;
     onnxShouldTensorRtCache: boolean;
-    onnxTensorRtCachePath: string;
+    // onnxTensorRtCachePath: string;
     onnxShouldTensorRtFp16: boolean;
 }
 export interface BackendRunRequest {

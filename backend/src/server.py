@@ -456,6 +456,8 @@ async def get_packages(_request: Request):
                 "id": package.id,
                 "name": package.name,
                 "description": package.description,
+                "icon": package.icon,
+                "color": package.color,
                 "dependencies": [d.toDict() for d in package.dependencies],
                 "features": [f.toDict() for f in package.features],
                 "settings": [asdict(x) for x in package.settings],

@@ -1,6 +1,6 @@
 from sanic.log import logger
 
-from api import MB, Dependency, add_package
+from api import MB, Dependency, DropdownSetting, add_package
 from system import is_arm_mac, is_mac
 
 general = "NCNN uses .bin/.param models to upscale images."
@@ -35,7 +35,30 @@ package = add_package(
             import_name="ncnn_vulkan",
         ),
     ],
+    icon="NCNN",
+    color="#ED64A6",
 )
+
+if not is_arm_mac:
+    gpu_list = []
+    try:
+        from ncnn_vulkan import ncnn
+
+        for i in range(ncnn.get_gpu_count()):
+            gpu_list.append(ncnn.get_gpu_info(i).device_name())
+    except:
+        gpu_list.append("cpu")
+
+    package.add_setting(
+        DropdownSetting(
+            label="NCNN GPU",
+            key="gpu",
+            description="Which GPU to use for NCNN. This is only relevant if you have multiple GPUs.",
+            options=gpu_list,
+            default=gpu_list[0],
+            disabled=len(gpu_list) <= 1,
+        )
+    )
 
 ncnn_category = package.add_category(
     name="NCNN",
