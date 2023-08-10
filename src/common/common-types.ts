@@ -21,6 +21,9 @@ export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };
 export type OutputId = number & { readonly __outputId: never };
 export type GroupId = number & { readonly __groupId: never };
+export type PackageId = string & { readonly __packageId: never };
+export type FeatureId = string & { readonly __featureId: never };
+export type PyPiName = string & { readonly __pyPiName: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
@@ -256,6 +259,7 @@ export interface NodeSchema {
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
+    readonly features: readonly FeatureId[];
 }
 
 export interface DefaultNode {
@@ -283,6 +287,39 @@ export interface EdgeData {
     sourceY?: number;
     targetX?: number;
     targetY?: number;
+}
+
+export interface PyPiPackage {
+    readonly displayName: string;
+    readonly pypiName: PyPiName;
+    readonly version: Version;
+    readonly findLink?: string | null;
+    /**
+     * A size estimate (in bytes) for the whl file to download.
+     */
+    readonly sizeEstimate: number;
+    readonly autoUpdate: boolean;
+}
+
+export interface Feature {
+    readonly id: FeatureId;
+    readonly name: string;
+    readonly description: string;
+}
+
+export interface Package {
+    readonly id: PackageId;
+    readonly name: string;
+    readonly description: string;
+    readonly dependencies: readonly PyPiPackage[];
+    readonly features: readonly Feature[];
+}
+
+export interface FeatureState {
+    readonly packageId: PackageId;
+    readonly featureId: FeatureId;
+    readonly enabled: boolean;
+    readonly details?: string | null;
 }
 
 /**

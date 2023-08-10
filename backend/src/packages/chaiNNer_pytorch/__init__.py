@@ -97,6 +97,7 @@ def get_pytorch():
 
 package = add_package(
     __file__,
+    id="chaiNNer_pytorch",
     name="PyTorch",
     description=package_description,
     dependencies=[

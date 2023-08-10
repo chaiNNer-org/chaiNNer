@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useReactFlow } from 'reactflow';
-import { useContextSelector } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
+import { checkFeatures } from '../../common/nodes/checkFeatures';
 import { checkNodeValidity, checkRequiredInputs } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
-import { VALID, Validity, invalid } from '../../common/Validity';
+import { VALID, Validity, bothValid, invalid } from '../../common/Validity';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 
 const STARTING_VALIDITY: Validity = invalid('Validating nodes...');
@@ -55,5 +57,10 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
             ? guaranteedMissingInputs
             : fullValidity;
 
-    return { validity };
+    const { features, featureStates } = useContext(BackendContext);
+    const featureValidity = useMemo(() => {
+        return checkFeatures(schema.features, features, featureStates);
+    }, [schema, features, featureStates]);
+
+    return { validity: bothValid(featureValidity, validity) };
 };

@@ -4,6 +4,7 @@ import { createContext, useContext, useContextSelector } from 'use-context-selec
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { log } from '../../common/log';
+import { checkFeatures } from '../../common/nodes/checkFeatures';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
@@ -11,6 +12,7 @@ import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { assertNever, delay } from '../../common/util';
+import { bothValid } from '../../common/Validity';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -64,7 +66,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const { animate, unAnimate, typeStateRef, outputDataActions, getInputHash } =
         useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, restartingRef, restart } =
+    const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
         useContext(BackendContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
@@ -258,12 +260,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const functionInstance = typeStateRef.current.functions.get(node.data.id);
             const schema = schemata.get(node.data.schemaId);
             const { category, name } = schema;
-            const validity = checkNodeValidity({
-                inputData: node.data.inputData,
-                connectedInputs: getConnectedInputs(node.id, edges),
-                schema,
-                functionInstance,
-            });
+
+            const validity = bothValid(
+                checkFeatures(schema.features, features, featureStates),
+                checkNodeValidity({
+                    inputData: node.data.inputData,
+                    connectedInputs: getConnectedInputs(node.id, edges),
+                    schema,
+                    functionInstance,
+                })
+            );
             if (validity.isValid) return [];
 
             return [`• ${category}: ${name}: ${validity.reason}`];
@@ -317,6 +323,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         backend,
         options,
         unAnimate,
+        features,
+        featureStates,
     ]);
 
     const resume = useCallback(async () => {
