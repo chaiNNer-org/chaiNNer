@@ -1,7 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
-import { PythonInfo, Version } from './common-types';
-import { Package } from './dependencies';
+import { PyPiPackage, PythonInfo } from './common-types';
 import { sanitizedEnv } from './env';
 import { log } from './log';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
@@ -58,27 +57,11 @@ export const runPip = async (
     });
 };
 
-export type PipList = { [packageName: string]: Version | undefined };
-
-export const runPipList = async (info: PythonInfo, onStdio?: OnStdio): Promise<PipList> => {
-    const output = await runPip(info, ['list', '--format=json'], onStdio);
-
-    interface ListEntry {
-        name: string;
-        version: Version;
-    }
-    const list = JSON.parse(output) as ListEntry[];
-
-    return Object.fromEntries(list.map((e) => [e.name, e.version]));
-};
-
-const getFindLinks = (dependencies: readonly Package[]): string[] => {
+const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
     const links = new Set<string>();
-    for (const d of dependencies) {
-        for (const p of d.dependencies) {
-            if (p.findLink) {
-                links.add(p.findLink);
-            }
+    for (const p of dependencies) {
+        if (p.findLink) {
+            links.add(p.findLink);
         }
     }
     return [...links];
@@ -86,26 +69,22 @@ const getFindLinks = (dependencies: readonly Package[]): string[] => {
 
 export const runPipInstall = async (
     info: PythonInfo,
-    dependencies: readonly Package[],
+    dependencies: readonly PyPiPackage[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
 ): Promise<void> => {
     onProgress?.(0);
     if (onProgress === undefined) {
         // TODO: implement progress via this method (if possible)
-        const deps = dependencies
-            .map((d) => d.dependencies.map((p) => `${p.pypiName}==${p.version}`))
-            .flat();
+        const deps = dependencies.map((p) => `${p.pypiName}==${p.version}`);
         const findLinks = getFindLinks(dependencies).flatMap((l) => ['--extra-index-url', l]);
 
         await runPip(info, ['install', '--upgrade', ...deps, ...findLinks], onStdio);
     } else {
         const { python } = info;
-        for (const dep of dependencies) {
-            for (const pkg of dep.dependencies) {
-                // eslint-disable-next-line no-await-in-loop
-                await pipInstallWithProgress(python, pkg, onProgress, onStdio);
-            }
+        for (const pkg of dependencies) {
+            // eslint-disable-next-line no-await-in-loop
+            await pipInstallWithProgress(python, pkg, onProgress, onStdio);
         }
     }
     onProgress?.(100);
@@ -113,12 +92,12 @@ export const runPipInstall = async (
 
 export const runPipUninstall = async (
     info: PythonInfo,
-    dependencies: readonly Package[],
+    dependencies: readonly PyPiPackage[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
 ): Promise<void> => {
     onProgress?.(10);
-    const deps = dependencies.map((d) => d.dependencies.map((p) => p.pypiName)).flat();
+    const deps = dependencies.map((p) => p.pypiName);
     onProgress?.(25);
     await runPip(info, ['uninstall', '-y', ...deps], onStdio);
     onProgress?.(100);

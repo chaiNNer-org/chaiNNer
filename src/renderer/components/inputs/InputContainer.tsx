@@ -2,7 +2,6 @@ import { Type } from '@chainner/navi';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
@@ -12,7 +11,7 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { Handle } from '../Handle';
-import { tooltipDocsMarkdown } from '../NodeDocumentation/docsMarkdown';
+import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
 
 export interface HandleWrapperProps {
@@ -164,9 +163,7 @@ export const WithLabel = memo(
                         borderRadius={8}
                         label={
                             hint ? (
-                                <ReactMarkdown components={tooltipDocsMarkdown}>
-                                    {description ?? ''}
-                                </ReactMarkdown>
+                                <Markdown nonInteractive>{description ?? ''}</Markdown>
                             ) : undefined
                         }
                         openDelay={500}
