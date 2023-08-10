@@ -45,7 +45,6 @@ import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { IconFactory } from './CustomIcons';
 
 interface SettingsItemProps {
@@ -197,7 +196,7 @@ function CacheSetting({
                 }}
             />
             <Button
-                isDisabled={isDisabled || !value}
+                isDisabled={isDisabled}
                 onClick={() => {
                     ipcRenderer
                         .invoke('get-appdata')
@@ -217,9 +216,20 @@ function CacheSetting({
     );
 }
 
+interface SettingWrapperProps {
+    setting: Setting;
+    settingValue: unknown;
+    setSettingValue: (value: unknown) => void;
+}
+
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
-function SettingWrapper({ setting }: { setting: Setting }) {
-    const [value, setValue] = useLocalStorage(setting.key, setting.default);
+function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapperProps) {
+    useEffect(() => {
+        if (settingValue === undefined) {
+            setSettingValue(setting.default);
+        }
+    }, [setting, settingValue, setSettingValue]);
+
     switch (setting.type) {
         case 'toggle':
             return (
@@ -227,9 +237,9 @@ function SettingWrapper({ setting }: { setting: Setting }) {
                     description={setting.description}
                     isDisabled={setting.disabled}
                     title={setting.label}
-                    value={Boolean(value)}
+                    value={Boolean(settingValue)}
                     onToggle={() => {
-                        setValue((prev: boolean) => !prev);
+                        setSettingValue((prev: boolean) => !prev);
                     }}
                 />
             );
@@ -243,9 +253,9 @@ function SettingWrapper({ setting }: { setting: Setting }) {
                         value: String(i),
                     }))}
                     title={setting.label}
-                    value={String(value)}
+                    value={String(settingValue)}
                     onChange={(v: string) => {
-                        setValue(v);
+                        setSettingValue(v);
                     }}
                 />
             );
@@ -256,9 +266,9 @@ function SettingWrapper({ setting }: { setting: Setting }) {
                     max={setting.max}
                     min={setting.min}
                     step={1}
-                    value={String(value)}
+                    value={String(settingValue)}
                     onChange={(v) => {
-                        setValue(v);
+                        setSettingValue(v);
                     }}
                 >
                     <NumberInputField />
@@ -275,8 +285,8 @@ function SettingWrapper({ setting }: { setting: Setting }) {
                     description={setting.description}
                     isDisabled={setting.disabled}
                     title={setting.label}
-                    value={Boolean(value)}
-                    onChange={setValue}
+                    value={Boolean(settingValue)}
+                    onChange={setSettingValue}
                 />
             );
         default:
@@ -460,86 +470,14 @@ const EnvironmentSettings = memo(() => {
 });
 
 const PythonSettings = memo(() => {
-    const {
-        useIsSystemPython,
-        useSystemPythonLocation,
-        useIsCpu,
-        useIsFp16,
-        usePyTorchGPU,
-        useNcnnGPU,
-        useOnnxGPU,
-        useOnnxExecutionProvider,
-        useOnnxShouldTensorRtCache,
-        useOnnxShouldTensorRtFp16,
-    } = useContext(SettingsContext);
-    const { backend, packages } = useContext(BackendContext);
+    const { useIsSystemPython, useSystemPythonLocation, useBackendSettings } =
+        useContext(SettingsContext);
+    const [backendSettings, setBackendSettings] = useBackendSettings;
 
-    console.log(packages);
-
+    const { packages } = useContext(BackendContext);
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
     const [systemPythonLocation, setSystemPythonLocation] = useSystemPythonLocation;
     const [lastDirectory, setLastDirectory] = useState(systemPythonLocation || '');
-
-    // const [isCpu, setIsCpu] = useIsCpu;
-    // const [isFp16, setIsFp16] = useIsFp16;
-
-    // const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
-    // const [onnxGPU, setOnnxGPU] = useOnnxGPU;
-    // const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
-    // const [onnxShouldTensorRtCache, setOnnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
-    // const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
-    // const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
-
-    // const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
-    // useAsyncEffect(
-    //     () => ({
-    //         supplier: async () => backend.listNvidiaGpus(),
-    //         successEffect: setNvidiaGpuList,
-    //     }),
-    //     [backend]
-    // );
-
-    // const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
-    // const [ncnnGpuList, setNcnnGpuList] = useState<string[]>([]);
-    // useAsyncEffect(
-    //     () => ({
-    //         supplier: () => backend.listNcnnGpus(),
-    //         successEffect: setNcnnGpuList,
-    //     }),
-    //     [backend]
-    // );
-
-    // useEffect(() => {
-    //     if (isCpu && isFp16) {
-    //         setIsFp16(false);
-    //     }
-    // }, [isCpu, isFp16, setIsFp16]);
-
-    // const onnxExecutionProviders = useMemo(
-    //     () => [
-    //         ...(nvidiaGpuList.length > 0
-    //             ? [
-    //                   {
-    //                       label: 'CUDA (GPU)',
-    //                       value: 'CUDAExecutionProvider',
-    //                   },
-    //               ]
-    //             : []),
-    //         {
-    //             label: 'CPU',
-    //             value: 'CPUExecutionProvider',
-    //         },
-    //         ...(hasTensorRt && nvidiaGpuList.length > 0
-    //             ? [
-    //                   {
-    //                       label: 'TensorRT (GPU)',
-    //                       value: 'TensorrtExecutionProvider',
-    //                   },
-    //               ]
-    //             : []),
-    //     ],
-    //     [nvidiaGpuList]
-    // );
 
     const onButtonClick = useCallback(async () => {
         const fileDir = systemPythonLocation ? path.dirname(systemPythonLocation) : lastDirectory;
@@ -646,12 +584,27 @@ const PythonSettings = memo(() => {
                             divider={<StackDivider />}
                             w="full"
                         >
-                            {pkg.settings.map((setting) => (
-                                <SettingWrapper
-                                    key={setting.key}
-                                    setting={setting}
-                                />
-                            ))}
+                            {pkg.settings.map((setting) => {
+                                const packageSettings = backendSettings[pkg.name] ?? {};
+                                const thisSetting =
+                                    packageSettings[setting.key as keyof typeof packageSettings];
+                                return (
+                                    <SettingWrapper
+                                        key={setting.key}
+                                        setSettingValue={(value) => {
+                                            setBackendSettings((prev) => ({
+                                                ...prev,
+                                                [pkg.name]: {
+                                                    ...(prev[pkg.name] ?? {}),
+                                                    [setting.key]: value,
+                                                },
+                                            }));
+                                        }}
+                                        setting={setting}
+                                        settingValue={thisSetting}
+                                    />
+                                );
+                            })}
                         </VStack>
                     </TabPanel>
                 ))}

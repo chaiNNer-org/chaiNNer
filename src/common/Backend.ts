@@ -67,17 +67,7 @@ export interface BackendNodesResponse {
     categories: Category[];
     categoriesMissingNodes: string[];
 }
-export interface BackendExecutionOptions {
-    isCpu: boolean;
-    isFp16: boolean;
-    pytorchGPU: number;
-    ncnnGPU: number;
-    onnxGPU: number;
-    onnxExecutionProvider: string;
-    onnxShouldTensorRtCache: boolean;
-    // onnxTensorRtCachePath: string;
-    onnxShouldTensorRtFp16: boolean;
-}
+export type BackendExecutionOptions = Record<string, unknown>;
 export interface BackendRunRequest {
     data: BackendJsonNode[];
     options: BackendExecutionOptions;
