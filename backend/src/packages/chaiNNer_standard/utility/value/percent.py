@@ -26,5 +26,5 @@ from .. import value_group
         NumberOutput("%", output_type="Input0"),
     ],
 )
-def percent_node(number: float) -> float:
+def percent_node(number: int) -> int:
     return number
