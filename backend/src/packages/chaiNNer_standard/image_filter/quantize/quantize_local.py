@@ -49,7 +49,7 @@ def quantize_image(image, palette):
         ),
         SliderInput("Kernel Radius", minimum=1, maximum=5, default=1),
         SliderInput(
-            "Spacial Weight",
+            "Spatial Weight",
             minimum=0,
             maximum=100,
             precision=1,
@@ -84,7 +84,7 @@ def quantize_local_node(
     img: np.ndarray,
     reference_img: np.ndarray,
     kernel_radius: int,
-    spacial_scale: float,
+    spatial_scale: float,
 ) -> np.ndarray:
     i_h, i_w, i_c = get_h_w_c(img)
     r_h, r_w, r_c = get_h_w_c(reference_img)
@@ -94,10 +94,10 @@ def quantize_local_node(
     assert i_w >= r_w, "Image width must be larger than reference image width"
     assert i_w % r_w == 0, "Image width must be a multiple of reference image width"
 
-    spacial_scale = spacial_scale / 100
-    spacial_scale = spacial_scale * spacial_scale
-    img = add_xy(img, r_w * spacial_scale)
-    reference_img = add_xy(reference_img, r_w * spacial_scale)
+    spatial_scale = spatial_scale / 100
+    spatial_scale = spatial_scale * spatial_scale
+    img = add_xy(img, r_w * spatial_scale)
+    reference_img = add_xy(reference_img, r_w * spatial_scale)
     c = i_c + 2
 
     kernel_size = 2 * kernel_radius + 1
