@@ -3,11 +3,19 @@ from __future__ import annotations
 import numpy as np
 
 import navi
-from nodes.properties.inputs import ImageInput
+from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import quantize_group
+
+
+def add_xy(img: np.ndarray, scale: float) -> np.ndarray:
+    h, w, _ = get_h_w_c(img)
+    x = np.linspace(0, 1, w)
+    y = np.linspace(0, 1, h)
+    xx, yy = np.meshgrid(x, y)
+    return np.dstack((img, xx * scale, yy * scale))
 
 
 def quantize_image(image, palette):
@@ -39,6 +47,16 @@ def quantize_image(image, palette):
             channels=[3, 4],
             image_type=navi.Image(channels_as="Input0"),
         ),
+        SliderInput("Kernel Radius", minimum=1, maximum=5, default=1),
+        SliderInput(
+            "Spacial Weight",
+            minimum=0,
+            maximum=100,
+            precision=1,
+            default=35,
+            unit="%",
+            controls_step=1,
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -65,6 +83,8 @@ def quantize_image(image, palette):
 def quantize_local_node(
     img: np.ndarray,
     reference_img: np.ndarray,
+    kernel_radius: int,
+    spacial_scale: float,
 ) -> np.ndarray:
     i_h, i_w, i_c = get_h_w_c(img)
     r_h, r_w, r_c = get_h_w_c(reference_img)
@@ -74,18 +94,30 @@ def quantize_local_node(
     assert i_w >= r_w, "Image width must be larger than reference image width"
     assert i_w % r_w == 0, "Image width must be a multiple of reference image width"
 
+    spacial_scale = spacial_scale / 100
+    spacial_scale = spacial_scale * spacial_scale
+    img = add_xy(img, r_w * spacial_scale)
+    reference_img = add_xy(reference_img, r_w * spacial_scale)
+    c = i_c + 2
+
+    kernel_size = 2 * kernel_radius + 1
     scale = i_h // r_h
 
-    padded_ref = np.pad(reference_img, ((1, 1), (1, 1), (0, 0)), mode="reflect")
+    padded_ref = np.pad(
+        reference_img,
+        ((kernel_radius, kernel_radius), (kernel_radius, kernel_radius), (0, 0)),
+        mode="reflect",
+    )
 
     result = np.zeros((i_h, i_w, i_c), dtype=np.float32)
 
     for h in range(r_h):
         for w in range(r_w):
-            kernel = padded_ref[h : h + 3, w : w + 3]
-            colors = np.unique(kernel.reshape(-1, i_c), axis=0)
+            kernel = padded_ref[h : h + kernel_size, w : w + kernel_size]
+            colors = np.unique(kernel.reshape(-1, c), axis=0)
             img_section = img[h * scale : (h + 1) * scale, w * scale : (w + 1) * scale]
             quantized_section = quantize_image(img_section, colors)
+            quantized_section = quantized_section[:, :, :i_c]
             result[
                 h * scale : (h + 1) * scale,
                 w * scale : (w + 1) * scale,
