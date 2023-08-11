@@ -23,9 +23,7 @@ import {
     Tooltip,
     useDisclosure,
 } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo, useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
@@ -33,6 +31,7 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
+import { Markdown } from '../Markdown';
 
 export const AppInfo = memo(() => {
     const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
@@ -135,12 +134,7 @@ export const AppInfo = memo(() => {
                     <ModalHeader>Update Changelog</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody bgColor="var(--bg-900)">
-                        <ReactMarkdown
-                            skipHtml
-                            components={ChakraUIRenderer()}
-                        >
-                            {changelog ?? ''}
-                        </ReactMarkdown>
+                        <Markdown>{changelog ?? ''}</Markdown>
                     </ModalBody>
 
                     <ModalFooter>

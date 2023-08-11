@@ -1,11 +1,11 @@
 import { Box, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { Validity } from '../../common/Validity';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { noContextMenu } from '../hooks/useContextMenu';
+import { Markdown } from './Markdown';
 
 export type HandleType = 'input' | 'output';
 
@@ -35,7 +35,9 @@ const HandleElement = memo(
                 display={validity.isValid ? 'none' : 'block'}
                 label={
                     validity.isValid ? undefined : (
-                        <ReactMarkdown>{`Unable to connect: ${validity.reason}`}</ReactMarkdown>
+                        <Markdown
+                            nonInteractive
+                        >{`Unable to connect: ${validity.reason}`}</Markdown>
                     )
                 }
                 mt={1}

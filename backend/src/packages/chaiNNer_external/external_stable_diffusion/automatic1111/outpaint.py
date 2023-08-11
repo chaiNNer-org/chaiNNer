@@ -7,19 +7,6 @@ from typing import Any, Dict, Optional
 import numpy as np
 
 from nodes.groups import if_enum_group, seed_group
-from nodes.impl.external_stable_diffusion import (
-    RESIZE_MODE_LABELS,
-    SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_IMG2IMG_PATH,
-    InpaintingFill,
-    ResizeMode,
-    SamplerName,
-    decode_base64_image,
-    encode_base64_image,
-    nearest_valid_size,
-    post,
-    verify_api_connection,
-)
 from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
@@ -33,9 +20,18 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
 from nodes.utils.utils import get_h_w_c
 
+from ...features import web_ui
+from ...util import decode_base64_image, encode_base64_image, nearest_valid_size
+from ...web_ui import (
+    RESIZE_MODE_LABELS,
+    SAMPLER_NAME_LABELS,
+    STABLE_DIFFUSION_IMG2IMG_PATH,
+    InpaintingFill,
+    ResizeMode,
+    SamplerName,
+    get_api,
+)
 from .. import auto1111_group
-
-verify_api_connection()
 
 
 class OutpaintingMethod(Enum):
@@ -162,6 +158,7 @@ class OutpaintingMethod(Enum):
         ),
     ],
     decorators=[cached],
+    features=web_ui,
 )
 def outpaint_node(
     image: np.ndarray,
@@ -253,7 +250,9 @@ def outpaint_node(
             }
         )
 
-    response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data
+    )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
     assert (w, h) == (

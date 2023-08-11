@@ -5,15 +5,6 @@ from typing import Optional
 import numpy as np
 
 from nodes.groups import seed_group
-from nodes.impl.external_stable_diffusion import (
-    SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_TEXT2IMG_PATH,
-    SamplerName,
-    decode_base64_image,
-    nearest_valid_size,
-    post,
-    verify_api_connection,
-)
 from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
@@ -26,9 +17,15 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
 from nodes.utils.utils import get_h_w_c
 
+from ...features import web_ui
+from ...util import decode_base64_image, nearest_valid_size
+from ...web_ui import (
+    SAMPLER_NAME_LABELS,
+    STABLE_DIFFUSION_TEXT2IMG_PATH,
+    SamplerName,
+    get_api,
+)
 from .. import auto1111_group
-
-verify_api_connection()
 
 
 @auto1111_group.register(
@@ -84,6 +81,7 @@ verify_api_connection()
         ),
     ],
     decorators=[cached],
+    features=web_ui,
 )
 def text_to_image_node(
     prompt: Optional[str],
@@ -96,9 +94,8 @@ def text_to_image_node(
     height: int,
     tiling: bool,
 ) -> np.ndarray:
-    width, height = nearest_valid_size(
-        width, height
-    )  # This cooperates with the "image_type" of the ImageOutput
+    # This cooperates with the "image_type" of the ImageOutput
+    width, height = nearest_valid_size(width, height)
     request_data = {
         "prompt": prompt or "",
         "negative_prompt": negative_prompt or "",
@@ -110,7 +107,9 @@ def text_to_image_node(
         "height": height,
         "tiling": tiling,
     }
-    response = post(path=STABLE_DIFFUSION_TEXT2IMG_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_TEXT2IMG_PATH, json_data=request_data
+    )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
     assert (w, h) == (

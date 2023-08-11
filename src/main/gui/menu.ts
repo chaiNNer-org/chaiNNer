@@ -224,6 +224,36 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                               },
                               enabled,
                           },
+                          {
+                              label: 'Delete',
+                              click: () => {
+                                  mainWindow.webContents.sendInputEvent({
+                                      type: 'keyDown',
+                                      keyCode: 'Backspace',
+                                      modifiers: ['cmd'],
+                                  });
+                                  mainWindow.webContents.sendInputEvent({
+                                      type: 'keyUp',
+                                      keyCode: 'Backspace',
+                                      modifiers: ['cmd'],
+                                  });
+                              },
+                          },
+                          {
+                              label: 'Select All',
+                              click: () => {
+                                  mainWindow.webContents.sendInputEvent({
+                                      type: 'keyDown',
+                                      keyCode: 'a',
+                                      modifiers: ['cmd'],
+                                  });
+                                  mainWindow.webContents.sendInputEvent({
+                                      type: 'keyUp',
+                                      keyCode: 'a',
+                                      modifiers: ['cmd'],
+                                  });
+                              },
+                          },
                           { type: 'separator' },
                           {
                               label: 'Duplicate',

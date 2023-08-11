@@ -15,7 +15,6 @@ import {
     useMediaQuery,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { useContext } from 'use-context-selector';
 import { Condition, Input, NodeSchema, Output, TextInput } from '../../../common/common-types';
 import { isTautology } from '../../../common/nodes/condition';
@@ -28,9 +27,9 @@ import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
+import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
 import { ConditionExplanation } from './ConditionExplanation';
-import { docsMarkdown } from './docsMarkdown';
 import { DropDownOptions } from './DropDownOptions';
 import { NoHighlighting, SupportHighlighting } from './HighlightContainer';
 import { NodeExample } from './NodeExample';
@@ -145,12 +144,7 @@ const InputOutputItem = memo(({ type, item, condition, schema }: InputOutputItem
                 >
                     {item.description && (
                         <NoHighlighting>
-                            <ReactMarkdown
-                                className="no-child-margin"
-                                components={docsMarkdown}
-                            >
-                                {item.description}
-                            </ReactMarkdown>
+                            <Markdown>{item.description}</Markdown>
                         </NoHighlighting>
                     )}
 
@@ -273,7 +267,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         <SupportHighlighting>{schema.name}</SupportHighlighting>
                     </Heading>
                 </HStack>
-                <ReactMarkdown components={docsMarkdown}>{schema.description}</ReactMarkdown>
+                <Markdown>{schema.description}</Markdown>
             </Box>
             <Box position="relative">
                 <Heading
