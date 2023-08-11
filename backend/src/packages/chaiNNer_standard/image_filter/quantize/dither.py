@@ -6,13 +6,14 @@ from typing import Dict
 import numpy as np
 from chainner_ext import (
     DiffusionAlgorithm,
-    uniform_error_diffusion_dither,
-    uniform_ordered_dither,
-    uniform_riemersma_dither,
+    UniformQuantization,
+    error_diffusion_dither,
+    ordered_dither,
+    quantize,
+    riemersma_dither,
 )
 
 from nodes.groups import if_enum_group
-from nodes.impl.dithering.color_distance import batch_nearest_uniform_color
 from nodes.impl.dithering.constants import (
     ERROR_PROPAGATION_MAP_LABELS,
     THRESHOLD_MAP_LABELS,
@@ -63,7 +64,7 @@ UNIFORM_DITHER_ALGORITHM_LABELS = {
     description="Apply one of a variety of dithering algorithms with a uniform (evenly-spaced) palette.",
     icon="MdShowChart",
     inputs=[
-        ImageInput(),
+        ImageInput(channels=[1, 3, 4]),
         NumberInput("Colors per channel", minimum=2, default=8),
         EnumInput(
             UniformDitherAlgorithm,
@@ -102,24 +103,26 @@ def dither_node(
     error_diffusion_map: ErrorDiffusionMap,
     history_length: int,
 ) -> np.ndarray:
+    quant = UniformQuantization(num_colors)
+
     if dither_algorithm == UniformDitherAlgorithm.NONE:
-        return batch_nearest_uniform_color(img, num_colors=num_colors)
+        return quantize(img, quant)
     elif dither_algorithm == UniformDitherAlgorithm.ORDERED:
-        return uniform_ordered_dither(
+        return ordered_dither(
             img,
-            num_colors,
+            quant,
             _THRESHOLD_MAP[threshold_map],
         )
     elif dither_algorithm == UniformDitherAlgorithm.DIFFUSION:
-        return uniform_error_diffusion_dither(
+        return error_diffusion_dither(
             img,
-            num_colors,
+            quant,
             _ALGORITHM_MAP[error_diffusion_map],
         )
     elif dither_algorithm == UniformDitherAlgorithm.RIEMERSMA:
-        return uniform_riemersma_dither(
+        return riemersma_dither(
             img,
-            num_colors,
+            quant,
             history_length,
             1 / history_length,
         )
