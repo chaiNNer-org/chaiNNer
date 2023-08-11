@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import Dict
+
+from chainner_ext import DiffusionAlgorithm
 
 
 class ErrorDiffusionMap(Enum):
@@ -21,6 +24,17 @@ ERROR_PROPAGATION_MAP_LABELS = {
     ErrorDiffusionMap.SIERRA: "Sierra",
     ErrorDiffusionMap.TWO_ROW_SIERRA: "Two Row Sierra",
     ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
+}
+
+DIFFUSION_ALGORITHM_MAP: Dict[ErrorDiffusionMap, DiffusionAlgorithm] = {
+    ErrorDiffusionMap.FLOYD_STEINBERG: DiffusionAlgorithm.FloydSteinberg,
+    ErrorDiffusionMap.JARVIS_ET_AL: DiffusionAlgorithm.JarvisJudiceNinke,
+    ErrorDiffusionMap.STUCKI: DiffusionAlgorithm.Stucki,
+    ErrorDiffusionMap.ATKINSON: DiffusionAlgorithm.Atkinson,
+    ErrorDiffusionMap.BURKES: DiffusionAlgorithm.Burkes,
+    ErrorDiffusionMap.SIERRA: DiffusionAlgorithm.Sierra,
+    ErrorDiffusionMap.TWO_ROW_SIERRA: DiffusionAlgorithm.TwoRowSierra,
+    ErrorDiffusionMap.SIERRA_LITE: DiffusionAlgorithm.SierraLite,
 }
 
 

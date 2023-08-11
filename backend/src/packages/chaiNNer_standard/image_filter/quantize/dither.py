@@ -5,7 +5,6 @@ from typing import Dict
 
 import numpy as np
 from chainner_ext import (
-    DiffusionAlgorithm,
     UniformQuantization,
     error_diffusion_dither,
     ordered_dither,
@@ -15,6 +14,7 @@ from chainner_ext import (
 
 from nodes.groups import if_enum_group
 from nodes.impl.dithering.constants import (
+    DIFFUSION_ALGORITHM_MAP,
     ERROR_PROPAGATION_MAP_LABELS,
     THRESHOLD_MAP_LABELS,
     ErrorDiffusionMap,
@@ -30,16 +30,6 @@ _THRESHOLD_MAP: Dict[ThresholdMap, int] = {
     ThresholdMap.BAYER_4: 4,
     ThresholdMap.BAYER_8: 8,
     ThresholdMap.BAYER_16: 16,
-}
-_ALGORITHM_MAP: Dict[ErrorDiffusionMap, DiffusionAlgorithm] = {
-    ErrorDiffusionMap.FLOYD_STEINBERG: DiffusionAlgorithm.FloydSteinberg,
-    ErrorDiffusionMap.JARVIS_ET_AL: DiffusionAlgorithm.JarvisJudiceNinke,
-    ErrorDiffusionMap.STUCKI: DiffusionAlgorithm.Stucki,
-    ErrorDiffusionMap.ATKINSON: DiffusionAlgorithm.Atkinson,
-    ErrorDiffusionMap.BURKES: DiffusionAlgorithm.Burkes,
-    ErrorDiffusionMap.SIERRA: DiffusionAlgorithm.Sierra,
-    ErrorDiffusionMap.TWO_ROW_SIERRA: DiffusionAlgorithm.TwoRowSierra,
-    ErrorDiffusionMap.SIERRA_LITE: DiffusionAlgorithm.SierraLite,
 }
 
 
@@ -108,17 +98,11 @@ def dither_node(
     if dither_algorithm == UniformDitherAlgorithm.NONE:
         return quantize(img, quant)
     elif dither_algorithm == UniformDitherAlgorithm.ORDERED:
-        return ordered_dither(
-            img,
-            quant,
-            _THRESHOLD_MAP[threshold_map],
-        )
+        map_size = _THRESHOLD_MAP[threshold_map]
+        return ordered_dither(img, quant, map_size)
     elif dither_algorithm == UniformDitherAlgorithm.DIFFUSION:
-        return error_diffusion_dither(
-            img,
-            quant,
-            _ALGORITHM_MAP[error_diffusion_map],
-        )
+        algorithm = DIFFUSION_ALGORITHM_MAP[error_diffusion_map]
+        return error_diffusion_dither(img, quant, algorithm)
     elif dither_algorithm == UniformDitherAlgorithm.RIEMERSMA:
         return riemersma_dither(
             img,
