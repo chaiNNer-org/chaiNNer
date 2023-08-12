@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Literal
 
 import cv2
 import numpy as np
@@ -19,7 +19,7 @@ from nodes.impl.dds.format import (
     to_dxgi,
 )
 from nodes.impl.dds.texconv import save_as_dds
-from nodes.impl.image_utils import cv_save_image, to_uint8
+from nodes.impl.image_utils import cv_save_image, to_uint8, to_uint16
 from nodes.properties.inputs import (
     SUPPORTED_DDS_FORMATS,
     BoolInput,
@@ -87,6 +87,17 @@ class JpegSubsampling(Enum):
     FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
 
 
+class PngColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+
+
+class TiffColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+    F32 = "f32"
+
+
 @io_group.register(
     schema_id="chainner:image:save",
     name="Save Image",
@@ -111,6 +122,17 @@ class JpegSubsampling(Enum):
             default_value=ImageFormat.PNG,
             option_labels=IMAGE_FORMAT_LABELS,
         ).with_id(4),
+        if_enum_group(4, ImageFormat.PNG)(
+            EnumInput(
+                PngColorDepth,
+                "Color Depth",
+                default_value=PngColorDepth.U8,
+                option_labels={
+                    PngColorDepth.U8: "8 Bit (Standard)",
+                    PngColorDepth.U16: "16 Bit",
+                },
+            ).with_id(15),
+        ),
         if_enum_group(4, ImageFormat.WEBP)(
             BoolInput("Lossless", default=False).with_id(14),
         ),
@@ -139,6 +161,18 @@ class JpegSubsampling(Enum):
                 },
             ).with_id(11),
             BoolInput("Progressive", default=False).with_id(12),
+        ),
+        if_enum_group(4, ImageFormat.TIFF)(
+            EnumInput(
+                TiffColorDepth,
+                "Color Depth",
+                default_value=TiffColorDepth.U8,
+                option_labels={
+                    TiffColorDepth.U8: "8 Bit (Standard)",
+                    TiffColorDepth.U16: "16 Bit",
+                    TiffColorDepth.F32: "32 Bit (Floating point)",
+                },
+            ).with_id(16),
         ),
         if_enum_group(4, ImageFormat.DDS)(
             DdsFormatDropdown().with_id(6),
@@ -172,10 +206,12 @@ def save_image_node(
     relative_path: str | None,
     filename: str,
     image_format: ImageFormat,
+    png_color_depth: PngColorDepth,
     webp_lossless: bool,
     quality: int,
     jpeg_chroma_subsampling: JpegSubsampling,
     jpeg_progressive: bool,
+    tiff_color_depth: TiffColorDepth,
     dds_format: DDSFormat,
     dds_bc7_compression: BC7Compression,
     dds_error_metric: DDSErrorMetric,
@@ -191,11 +227,11 @@ def save_image_node(
     # Create directory if it doesn't exist
     os.makedirs(base_directory, exist_ok=True)
 
-    # Put image back in int range
-    img = to_uint8(img, normalized=True)
-
     # DDS files are handled separately
     if image_format == ImageFormat.DDS:
+        # we only support 8bits of precision for DDS
+        img = to_uint8(img, normalized=True)
+
         # remap legacy DX9 formats
         legacy_dds = dds_format in LEGACY_TO_DXGI
 
@@ -215,6 +251,9 @@ def save_image_node(
 
     # Some formats are handled by PIL
     if image_format == ImageFormat.GIF or image_format == ImageFormat.TGA:
+        # we only support 8bits of precision for those formats
+        img = to_uint8(img, normalized=True)
+
         channels = get_h_w_c(img)[2]
         if channels == 1:
             # PIL supports grayscale images just fine, so we don't need to do any conversion
@@ -247,6 +286,25 @@ def save_image_node(
             params = [cv2.IMWRITE_WEBP_QUALITY, 101 if webp_lossless else quality]
         else:
             params = []
+
+        # the bit depth depends on the image format and settings
+        precision: Literal["u8", "u16", "f32"] = "u8"
+        if image_format == ImageFormat.PNG:
+            if png_color_depth == PngColorDepth.U16:
+                precision = "u16"
+        elif image_format == ImageFormat.TIFF:
+            if tiff_color_depth == TiffColorDepth.U16:
+                precision = "u16"
+            elif tiff_color_depth == TiffColorDepth.F32:
+                precision = "f32"
+
+        if precision == "u8":
+            img = to_uint8(img, normalized=True)
+        elif precision == "u16":
+            img = to_uint16(img, normalized=True)
+        elif precision == "f32":
+            # chainner images are always f32
+            pass
 
         cv_save_image(full_path, img, params)
 
