@@ -7,7 +7,6 @@ from nodes.base_input import BaseInput
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
-from .generic_inputs import DropDownInput
 
 FileInputKind = Union[
     Literal["bin"],
@@ -143,48 +142,6 @@ class DirectoryInput(BaseInput):
         if self.must_exist:
             assert os.path.exists(value), f"Directory {value} does not exist"
         return value
-
-
-def ImageExtensionDropdown() -> DropDownInput:
-    """Input for selecting file type from dropdown"""
-    return DropDownInput(
-        input_type="ImageExtension",
-        label="Image Extension",
-        options=[
-            {
-                "option": "PNG",
-                "value": "png",
-            },
-            {
-                "option": "JPG",
-                "value": "jpg",
-            },
-            {
-                "option": "GIF",
-                "value": "gif",
-            },
-            {
-                "option": "TIFF",
-                "value": "tiff",
-            },
-            {
-                "option": "WEBP",
-                "value": "webp",
-            },
-            {
-                "option": "WEBP (Lossless)",
-                "value": "webp-lossless",
-            },
-            {
-                "option": "TGA",
-                "value": "tga",
-            },
-            {
-                "option": "DDS",
-                "value": "dds",
-            },
-        ],
-    )
 
 
 def BinFileInput(primary_input: bool = False) -> FileInput:

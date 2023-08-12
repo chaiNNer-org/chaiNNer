@@ -14,8 +14,14 @@
     /* color palette */
     --gray-50: #f7fafc;
     --gray-100: #{$gray-100};
+    --gray-125: #{color.mix($gray-100, $gray-200, 25%)};
+    --gray-150: #{color.mix($gray-100, $gray-200, 50%)};
+    --gray-175: #{color.mix($gray-100, $gray-200, 75%)};
     --gray-200: #{$gray-200};
+    --gray-250: #{color.mix($gray-200, $gray-300, 50%)};
+    --gray-275: #{color.mix($gray-200, $gray-300, 75%)};
     --gray-300: #{$gray-300};
+    --gray-325: #{color.mix($gray-300, $gray-400, 25%)};
     --gray-400: #{$gray-400};
     --gray-500: #{$gray-500};
     --gray-600: #{$gray-600};
@@ -81,9 +87,9 @@
 
 :root[data-theme='light'] {
     /* backgrounds */
-    --bg-800: var(--gray-200);
-    --bg-700: var(--gray-300);
-    --bg-600: var(--gray-400);
+    --bg-800: var(--gray-50);
+    --bg-700: var(--gray-175);
+    --bg-600: var(--gray-200);
 
     /* font colors */
     --fg-000: black;
@@ -92,40 +98,40 @@
     --link-color: var(--chakra-colors-blue-500);
 
     /* node colors */
-    --node-border-color: var(--gray-100);
-    --node-bg-color: var(--gray-400);
+    --node-border-color: var(--gray-500);
+    --node-bg-color: var(--gray-250);
     --node-icon-color: var(--gray-800);
 
-    --node-valid-bg: var(--gray-300);
+    --node-valid-bg: var(--gray-150);
     --node-valid-fg: var(--gray-900);
     --node-invalid-bg: var(--chakra-colors-red-500);
-    --node-invalid-fg: var(--gray-400);
+    --node-invalid-fg: var(--gray-200);
 
-    --node-disable-bg: var(--gray-300);
+    --node-disable-bg: var(--gray-150);
     --node-disable-fg: var(--gray-500);
 
-    --node-timer-bg: var(--gray-300);
+    --node-timer-bg: var(--gray-150);
     --node-timer-fg: var(--gray-500);
 
     --node-image-preview-bg: var(--node-bg-color);
     --node-image-preview-color: var(--gray-700);
 
-    --node-image-preview-button-bg: var(--gray-400);
-    --node-image-preview-button-bg-hover: var(--gray-500);
+    --node-image-preview-button-bg: var(--gray-300);
+    --node-image-preview-button-bg-hover: var(--gray-400);
     --node-image-preview-button-fg: var(--gray-700);
 
-    --tag-bg: var(--gray-400);
+    --tag-bg: var(--gray-300);
     --tag-fg: var(--gray-700);
 
-    --connection-color: #edf2f7;
-    --chain-hole-color: #edf2f7;
+    --connection-color: var(--gray-50);
+    --chain-hole-color: var(--gray-50);
 
     /* node selector colors */
-    --selector-node-bg: var(--gray-50);
+    --selector-node-bg: var(--gray-150);
     --selector-icon: var(--gray-600);
-    --selector-text-bg: var(--gray-50);
-    --selector-text-bg-hover: var(--gray-100);
+    --selector-text-bg: var(--gray-150);
+    --selector-text-bg-hover: var(--gray-250);
 
     /* specific colors */
-    --window-bg: var(--gray-300);
+    --window-bg: var(--gray-150);
 }
