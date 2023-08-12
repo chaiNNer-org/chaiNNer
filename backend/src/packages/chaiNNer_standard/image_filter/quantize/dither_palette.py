@@ -3,16 +3,20 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
+from chainner_ext import (
+    PaletteQuantization,
+    error_diffusion_dither,
+    quantize,
+    riemersma_dither,
+)
 
 import navi
 from nodes.groups import if_enum_group
-from nodes.impl.dithering.color_distance import batch_nearest_palette_color
 from nodes.impl.dithering.constants import (
+    DIFFUSION_ALGORITHM_MAP,
     ERROR_PROPAGATION_MAP_LABELS,
     ErrorDiffusionMap,
 )
-from nodes.impl.dithering.diffusion import palette_error_diffusion_dither
-from nodes.impl.dithering.riemersma import palette_riemersma_dither
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -40,7 +44,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
     see_also="chainner:image:palette_from_image",
     icon="MdShowChart",
     inputs=[
-        ImageInput(),
+        ImageInput(channels=[1, 3, 4]),
         ImageInput(label="Palette", image_type=navi.Image(channels_as="Input0")),
         EnumInput(
             PaletteDitherAlgorithm,
@@ -75,21 +79,18 @@ def dither_palette_node(
         get_h_w_c(img)[2] == get_h_w_c(palette)[2]
     ), "Image and palette must have the same number of channels."
 
+    palette = palette[:1, ...]
+    quant = PaletteQuantization(palette)
+
     if dither_algorithm == PaletteDitherAlgorithm.NONE:
-        return batch_nearest_palette_color(
-            img,
-            palette=palette,
-        )
+        return quantize(img, quant)
     elif dither_algorithm == PaletteDitherAlgorithm.DIFFUSION:
-        return palette_error_diffusion_dither(
-            img,
-            palette=palette,
-            error_diffusion_map=error_diffusion_map,
-        )
+        algorithm = DIFFUSION_ALGORITHM_MAP[error_diffusion_map]
+        return error_diffusion_dither(img, quant, algorithm)
     elif dither_algorithm == PaletteDitherAlgorithm.RIEMERSMA:
-        return palette_riemersma_dither(
+        return riemersma_dither(
             img,
-            palette,
-            history_length=history_length,
-            decay_ratio=1 / history_length,
+            quant,
+            history_length,
+            1 / history_length,
         )

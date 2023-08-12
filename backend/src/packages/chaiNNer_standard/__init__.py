@@ -71,8 +71,8 @@ package = add_package(
         Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
-            version="0.1.0",
-            size_estimate=1.5 * MB,
+            version="0.2.0",
+            size_estimate=2.0 * MB,
         ),
     ],
 )
