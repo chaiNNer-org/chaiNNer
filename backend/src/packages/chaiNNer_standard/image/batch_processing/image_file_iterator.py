@@ -40,7 +40,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     filtered = glob.globfilter(
         glob.iglob(globexpr, root_dir=directory, flags=flags),
         extension_expr,
-        flags=flags,
+        flags=flags | glob.IGNORECASE,
     )
 
     return sorted(
