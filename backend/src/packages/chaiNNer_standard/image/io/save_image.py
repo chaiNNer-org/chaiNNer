@@ -43,14 +43,11 @@ class ImageFormat(Enum):
     BMP = "bmp"
     TIFF = "tiff"
     WEBP = "webp"
-    WEBP_LOSSLESS = "webp-lossless"
     TGA = "tga"
     DDS = "dds"
 
     @property
     def extension(self) -> str:
-        if self == ImageFormat.WEBP_LOSSLESS:
-            return ImageFormat.WEBP.value
         return self.value
 
 
@@ -61,7 +58,6 @@ IMAGE_FORMAT_LABELS: Dict[ImageFormat, str] = {
     ImageFormat.BMP: "BMP",
     ImageFormat.TIFF: "TIFF",
     ImageFormat.WEBP: "WEBP",
-    ImageFormat.WEBP_LOSSLESS: "WEBP (Lossless)",
     ImageFormat.TGA: "TGA",
     ImageFormat.DDS: "DDS",
 }
@@ -115,14 +111,20 @@ class JpegSubsampling(Enum):
             default_value=ImageFormat.PNG,
             option_labels=IMAGE_FORMAT_LABELS,
         ).with_id(4),
-        if_enum_group(4, [ImageFormat.JPG, ImageFormat.WEBP])(
+        if_enum_group(4, ImageFormat.WEBP)(
+            BoolInput("Lossless", default=False).with_id(14),
+        ),
+        if_group(
+            Condition.enum(4, ImageFormat.JPG)
+            | (Condition.enum(4, ImageFormat.WEBP) & Condition.enum(14, 0))
+        )(
             SliderInput(
                 "Quality",
                 minimum=0,
                 maximum=100,
                 default=95,
                 slider_step=1,
-            ),
+            ).with_id(5),
         ),
         if_enum_group(4, ImageFormat.JPG)(
             EnumInput(
@@ -170,9 +172,10 @@ def save_image_node(
     relative_path: str | None,
     filename: str,
     image_format: ImageFormat,
+    webp_lossless: bool,
     quality: int,
-    chroma_subsampling: JpegSubsampling,
-    progressive: bool,
+    jpeg_chroma_subsampling: JpegSubsampling,
+    jpeg_progressive: bool,
     dds_format: DDSFormat,
     dds_bc7_compression: BC7Compression,
     dds_error_metric: DDSErrorMetric,
@@ -236,14 +239,12 @@ def save_image_node(
                 cv2.IMWRITE_JPEG_QUALITY,
                 quality,
                 cv2.IMWRITE_JPEG_SAMPLING_FACTOR,
-                chroma_subsampling.value,
+                jpeg_chroma_subsampling.value,
                 cv2.IMWRITE_JPEG_PROGRESSIVE,
-                int(progressive),
+                int(jpeg_progressive),
             ]
         elif image_format == ImageFormat.WEBP:
-            params = [cv2.IMWRITE_WEBP_QUALITY, quality]
-        elif image_format == ImageFormat.WEBP_LOSSLESS:
-            params = [cv2.IMWRITE_WEBP_QUALITY, 101]
+            params = [cv2.IMWRITE_WEBP_QUALITY, 101 if webp_lossless else quality]
         else:
             params = []
 

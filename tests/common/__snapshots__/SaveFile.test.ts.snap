@@ -6091,6 +6091,59 @@ exports[`Read save file rnd.chn 1`] = `
 }
 `;
 
+exports[`Read save file save-image-webp-lossless.chn 1`] = `
+{
+  "edges": [],
+  "nodes": [
+    {
+      "data": {
+        "id": "08995baf-c169-4679-8372-4a6e8ee0b920",
+        "inputData": {
+          "10": 0,
+          "11": 2167057,
+          "12": 0,
+          "13": 0,
+          "14": 1,
+          "4": "webp",
+          "5": 27,
+          "6": "BC1_UNORM_SRGB",
+          "7": 0,
+          "8": 0,
+          "9": 0,
+        },
+        "inputSize": {
+          "2": {
+            "height": 80,
+            "width": 240,
+          },
+          "3": {
+            "height": 80,
+            "width": 240,
+          },
+        },
+        "schemaId": "chainner:image:save",
+      },
+      "height": 324,
+      "id": "08995baf-c169-4679-8372-4a6e8ee0b920",
+      "position": {
+        "x": 528,
+        "y": 336,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 240,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file text-pattern.chn 1`] = `
 {
   "edges": [
@@ -12331,6 +12384,62 @@ exports[`Write save file rnd.chn 1`] = `
       "x": 298.9783568154796,
       "y": 184.89290185654272,
       "zoom": 0.6597539553864473,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
+exports[`Write save file save-image-webp-lossless.chn 1`] = `
+{
+  "checksum": "9a7661bb3c5fadcb92936813023dd8de",
+  "content": {
+    "edges": [],
+    "nodes": [
+      {
+        "data": {
+          "id": "08995baf-c169-4679-8372-4a6e8ee0b920",
+          "inputData": {
+            "10": 0,
+            "11": 2167057,
+            "12": 0,
+            "13": 0,
+            "14": 1,
+            "4": "webp",
+            "5": 27,
+            "6": "BC1_UNORM_SRGB",
+            "7": 0,
+            "8": 0,
+            "9": 0,
+          },
+          "inputSize": {
+            "2": {
+              "height": 80,
+              "width": 240,
+            },
+            "3": {
+              "height": 80,
+              "width": 240,
+            },
+          },
+          "schemaId": "chainner:image:save",
+        },
+        "height": 324,
+        "id": "08995baf-c169-4679-8372-4a6e8ee0b920",
+        "position": {
+          "x": 528,
+          "y": 336,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 240,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
     },
   },
   "version": "0.0.0-test",
