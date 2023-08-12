@@ -376,7 +376,7 @@ const PythonSettings = memo(() => {
     const [onnxShouldTensorRtFp16, setOnnxShouldTensorRtFp16] = useOnnxShouldTensorRtFp16;
     const isUsingTensorRt = onnxExecutionProvider === 'TensorrtExecutionProvider';
 
-    const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
+    const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>();
     useAsyncEffect(
         () => ({
             supplier: async () => backend.listNvidiaGpus(),
@@ -386,7 +386,7 @@ const PythonSettings = memo(() => {
     );
 
     const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
-    const [ncnnGpuList, setNcnnGpuList] = useState<string[]>([]);
+    const [ncnnGpuList, setNcnnGpuList] = useState<string[]>();
     useAsyncEffect(
         () => ({
             supplier: () => backend.listNcnnGpus(),
@@ -401,8 +401,9 @@ const PythonSettings = memo(() => {
         }
     }, [isCpu, isFp16, setIsFp16]);
 
-    const onnxExecutionProviders = useMemo(
-        () => [
+    const onnxExecutionProviders = useMemo(() => {
+        if (!nvidiaGpuList) return undefined;
+        return [
             ...(nvidiaGpuList.length > 0
                 ? [
                       {
@@ -423,9 +424,8 @@ const PythonSettings = memo(() => {
                       },
                   ]
                 : []),
-        ],
-        [nvidiaGpuList]
-    );
+        ];
+    }, [nvidiaGpuList]);
 
     const onButtonClick = useCallback(async () => {
         const fileDir = systemPythonLocation ? path.dirname(systemPythonLocation) : lastDirectory;
@@ -558,7 +558,7 @@ const PythonSettings = memo(() => {
                             }}
                         />
 
-                        {!isArmMac && (
+                        {!isArmMac && nvidiaGpuList !== undefined && (
                             <Dropdown
                                 description="Which GPU to use for PyTorch."
                                 isDisabled={nvidiaGpuList.length === 0}
@@ -582,21 +582,23 @@ const PythonSettings = memo(() => {
                         divider={<StackDivider />}
                         w="full"
                     >
-                        <Dropdown
-                            description="Which GPU to use for NCNN."
-                            isDisabled={isArmMac ? true : ncnnGpuList.length === 0}
-                            options={
-                                ncnnGpuList.length === 0
-                                    ? [{ label: 'No supported GPU found', value: -1 }]
-                                    : ncnnGpuList.map((gpu, i) => ({
-                                          label: `${i}: ${gpu}`,
-                                          value: i,
-                                      }))
-                            }
-                            title="NCNN GPU"
-                            value={ncnnGPU}
-                            onChange={setNcnnGPU}
-                        />
+                        {ncnnGpuList !== undefined && (
+                            <Dropdown
+                                description="Which GPU to use for NCNN."
+                                isDisabled={isArmMac ? true : ncnnGpuList.length === 0}
+                                options={
+                                    ncnnGpuList.length === 0
+                                        ? [{ label: 'No supported GPU found', value: -1 }]
+                                        : ncnnGpuList.map((gpu, i) => ({
+                                              label: `${i}: ${gpu}`,
+                                              value: i,
+                                          }))
+                                }
+                                title="NCNN GPU"
+                                value={ncnnGPU}
+                                onChange={setNcnnGPU}
+                            />
+                        )}
                     </VStack>
                 </TabPanel>
                 <TabPanel px={0}>
@@ -604,7 +606,7 @@ const PythonSettings = memo(() => {
                         divider={<StackDivider />}
                         w="full"
                     >
-                        {!isArmMac && (
+                        {!isArmMac && nvidiaGpuList !== undefined && (
                             <Dropdown
                                 description="Which GPU to use for ONNX."
                                 isDisabled={nvidiaGpuList.length === 0}
@@ -621,14 +623,16 @@ const PythonSettings = memo(() => {
                                 onChange={setOnnxGPU}
                             />
                         )}
-                        <Dropdown
-                            description="What provider to use for ONNX."
-                            isDisabled={isArmMac}
-                            options={onnxExecutionProviders}
-                            title="ONNX Execution Provider"
-                            value={onnxExecutionProvider}
-                            onChange={setOnnxExecutionProvider}
-                        />
+                        {onnxExecutionProviders && (
+                            <Dropdown
+                                description="What provider to use for ONNX."
+                                isDisabled={isArmMac}
+                                options={onnxExecutionProviders}
+                                title="ONNX Execution Provider"
+                                value={onnxExecutionProvider}
+                                onChange={setOnnxExecutionProvider}
+                            />
+                        )}
                         {isUsingTensorRt && (
                             <HStack>
                                 <Toggle
