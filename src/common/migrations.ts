@@ -1203,6 +1203,22 @@ const surfaceBlurRadius: ModernMigration = (data) => {
     return data;
 };
 
+const saveImageWebPLossless: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save') {
+            const format = node.data.inputData[4];
+            if (format === 'webp-lossless') {
+                // image format (enum)
+                node.data.inputData[4] = 'webp';
+                // webp lossless (bool)
+                node.data.inputData[14] = 1;
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1251,6 +1267,7 @@ const migrations = [
     createColor,
     emptyStringInput,
     surfaceBlurRadius,
+    saveImageWebPLossless,
 ];
 
 export const currentMigration = migrations.length;

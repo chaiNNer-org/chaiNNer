@@ -6103,8 +6103,8 @@ exports[`Read save file save-image-webp-lossless.chn 1`] = `
           "11": 2167057,
           "12": 0,
           "13": 0,
-          "14": 0,
-          "4": "webp-lossless",
+          "14": 1,
+          "4": "webp",
           "5": 27,
           "6": "BC1_UNORM_SRGB",
           "7": 0,
@@ -12392,7 +12392,7 @@ exports[`Write save file rnd.chn 1`] = `
 
 exports[`Write save file save-image-webp-lossless.chn 1`] = `
 {
-  "checksum": "0194d4899f5d5593b1e996bf19ff74b5",
+  "checksum": "9a7661bb3c5fadcb92936813023dd8de",
   "content": {
     "edges": [],
     "nodes": [
@@ -12404,8 +12404,8 @@ exports[`Write save file save-image-webp-lossless.chn 1`] = `
             "11": 2167057,
             "12": 0,
             "13": 0,
-            "14": 0,
-            "4": "webp-lossless",
+            "14": 1,
+            "4": "webp",
             "5": 27,
             "6": "BC1_UNORM_SRGB",
             "7": 0,
