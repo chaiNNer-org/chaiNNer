@@ -128,8 +128,8 @@ class TiffColorDepth(Enum):
                 "Color Depth",
                 default_value=PngColorDepth.U8,
                 option_labels={
-                    PngColorDepth.U8: "8 Bit (Standard)",
-                    PngColorDepth.U16: "16 Bit",
+                    PngColorDepth.U8: "8 Bits/Channel",
+                    PngColorDepth.U16: "16 Bits/Channel",
                 },
             ).with_id(15),
         ),
@@ -168,9 +168,9 @@ class TiffColorDepth(Enum):
                 "Color Depth",
                 default_value=TiffColorDepth.U8,
                 option_labels={
-                    TiffColorDepth.U8: "8 Bit (Standard)",
-                    TiffColorDepth.U16: "16 Bit",
-                    TiffColorDepth.F32: "32 Bit (Floating point)",
+                    TiffColorDepth.U8: "8 Bits/Channel",
+                    TiffColorDepth.U16: "16 Bits/Channel",
+                    TiffColorDepth.F32: "32 Bits/Channel (Float)",
                 },
             ).with_id(16),
         ),
