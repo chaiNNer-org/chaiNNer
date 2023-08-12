@@ -36,8 +36,8 @@ def quantize_image(image, palette):
 
 
 @quantize_group.register(
-    schema_id="chainner:image:quantize_local",
-    name="Quantize (Local)",
+    schema_id="chainner:image:quantize_to_referece",
+    name="Quantize to Reference",
     description=[
         "Quantize an image using another as a reference. Tries to preserve local color.",
         "The main purpose of this node is to improve the upscaled images of pixel art. Upscaling models are typically not good at preserving color perfectly, and a smoothly upscaled image can look very different from the original.",
@@ -93,7 +93,7 @@ def quantize_image(image, palette):
         )
     ],
 )
-def quantize_local_node(
+def quantize_to_reference_node(
     img: np.ndarray,
     reference_img: np.ndarray,
     kernel_radius: int,
