@@ -684,12 +684,17 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useCheckUpdOnStrtUp, useExperimentalFeatures, useEnableHardwareAcceleration } =
-        useContext(SettingsContext);
+    const {
+        useCheckUpdOnStrtUp,
+        useExperimentalFeatures,
+        useEnableHardwareAcceleration,
+        useAllowMultipleInstances,
+    } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
     const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
     const [isEnableHardwareAcceleration, setIsEnableHardwareAcceleration] =
         useEnableHardwareAcceleration;
+    const [isAllowMultipleInstances, setIsAllowMultipleInstances] = useAllowMultipleInstances;
 
     return (
         <VStack
@@ -706,7 +711,7 @@ const AdvancedSettings = memo(() => {
             />
             <Toggle
                 description="Enable experimental features to try them out before they are finished."
-                title="Enable experimental features."
+                title="Enable experimental features"
                 value={isExperimentalFeatures}
                 onToggle={() => {
                     setIsExperimentalFeatures((prev) => !prev);
@@ -714,10 +719,18 @@ const AdvancedSettings = memo(() => {
             />
             <Toggle
                 description="Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
-                title="Enable Hardware Acceleration (requires restart)."
+                title="Enable Hardware Acceleration (requires restart)"
                 value={isEnableHardwareAcceleration}
                 onToggle={() => {
                     setIsEnableHardwareAcceleration((prev) => !prev);
+                }}
+            />
+            <Toggle
+                description="Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
+                title="Allow multiple concurrent instances"
+                value={isAllowMultipleInstances}
+                onToggle={() => {
+                    setIsAllowMultipleInstances((prev) => !prev);
                 }}
             />
         </VStack>
