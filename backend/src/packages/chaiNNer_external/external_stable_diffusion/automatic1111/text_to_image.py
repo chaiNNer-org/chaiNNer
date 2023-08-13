@@ -40,7 +40,7 @@ from .. import auto1111_group
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
-            default_value=SamplerName.EULER,
+            default=SamplerName.EULER,
             option_labels=SAMPLER_NAME_LABELS,
         ),
         SliderInput(

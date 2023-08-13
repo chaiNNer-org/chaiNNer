@@ -53,7 +53,7 @@ from .. import auto1111_group
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
-            default_value=SamplerName.EULER,
+            default=SamplerName.EULER,
             option_labels=SAMPLER_NAME_LABELS,
         ),
         SliderInput(
@@ -66,7 +66,7 @@ from .. import auto1111_group
         ),
         EnumInput(
             ResizeMode,
-            default_value=ResizeMode.JUST_RESIZE,
+            default=ResizeMode.JUST_RESIZE,
             option_labels=RESIZE_MODE_LABELS,
         ).with_id(10),
         SliderInput(

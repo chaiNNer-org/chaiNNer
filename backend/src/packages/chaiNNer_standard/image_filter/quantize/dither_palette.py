@@ -49,13 +49,13 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
         EnumInput(
             PaletteDitherAlgorithm,
             option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
-            default_value=PaletteDitherAlgorithm.DIFFUSION,
+            default=PaletteDitherAlgorithm.DIFFUSION,
         ).with_id(2),
         if_enum_group(2, PaletteDitherAlgorithm.DIFFUSION)(
             EnumInput(
                 ErrorDiffusionMap,
                 option_labels=ERROR_PROPAGATION_MAP_LABELS,
-                default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
+                default=ErrorDiffusionMap.FLOYD_STEINBERG,
             ).with_id(3),
         ),
         if_enum_group(2, PaletteDitherAlgorithm.RIEMERSMA)(

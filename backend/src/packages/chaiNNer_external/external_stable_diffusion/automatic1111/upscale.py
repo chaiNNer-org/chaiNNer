@@ -47,7 +47,7 @@ UPSCALER_MODE_LABELS = {
         ImageInput(channels=3),
         EnumInput(
             UpscalerMode,
-            default_value=UpscalerMode.SCALE_BY,
+            default=UpscalerMode.SCALE_BY,
             option_labels=UPSCALER_MODE_LABELS,
         ).with_id(1),
         if_enum_group(1, UpscalerMode.SCALE_BY)(

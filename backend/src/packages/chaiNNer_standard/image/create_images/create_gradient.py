@@ -46,7 +46,7 @@ class GradientStyle(Enum):
         ColorInput("Color 1", default=Color.gray(0)).with_id(9),
         ColorInput("Color 2", default=Color.gray(1)).with_id(10),
         BoolInput("Reverse", default=False).with_id(2),
-        EnumInput(GradientStyle, default_value=GradientStyle.HORIZONTAL).with_id(3),
+        EnumInput(GradientStyle, default=GradientStyle.HORIZONTAL).with_id(3),
         if_enum_group(3, GradientStyle.DIAGONAL)(
             SliderInput(
                 "Angle",
