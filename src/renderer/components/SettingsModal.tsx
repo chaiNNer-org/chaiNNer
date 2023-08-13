@@ -171,7 +171,7 @@ function Dropdown<T>({
 interface CacheSettingProps extends SettingsItemProps {
     isDisabled?: boolean;
     value: boolean;
-    onChange: (value: unknown) => void;
+    onChange: (value: boolean) => void;
     cacheKey: string;
 }
 
@@ -192,7 +192,7 @@ function CacheSetting({
                 title={title}
                 value={value}
                 onToggle={() => {
-                    onChange((prev: boolean) => !prev);
+                    onChange(!value);
                 }}
             />
             <Button
@@ -218,8 +218,8 @@ function CacheSetting({
 
 interface SettingWrapperProps {
     setting: Setting;
-    settingValue: unknown;
-    setSettingValue: (value: unknown) => void;
+    settingValue: string | number | boolean | undefined;
+    setSettingValue: (value: string | number | boolean | undefined) => void;
 }
 
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
@@ -239,7 +239,7 @@ function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapp
                     title={setting.label}
                     value={Boolean(settingValue)}
                     onToggle={() => {
-                        setSettingValue((prev: boolean) => !prev);
+                        setSettingValue(!settingValue);
                     }}
                 />
             );
@@ -286,7 +286,9 @@ function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapp
                     isDisabled={setting.disabled}
                     title={setting.label}
                     value={Boolean(settingValue)}
-                    onChange={setSettingValue}
+                    onChange={(v) => {
+                        setSettingValue(v);
+                    }}
                 />
             );
         default:

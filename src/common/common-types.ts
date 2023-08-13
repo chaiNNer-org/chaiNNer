@@ -312,7 +312,7 @@ export interface ISetting {
     readonly label: string;
     readonly key: string;
     readonly description: string;
-    readonly default: unknown;
+    readonly default: string | number | boolean;
     readonly disabled: boolean;
 }
 
