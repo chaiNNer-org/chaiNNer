@@ -76,7 +76,7 @@ def RotateInterpolationInput() -> DropDownInput:
 def BorderInput() -> DropDownInput:
     return EnumInput(
         BorderType,
-        default_value=BorderType.REFLECT_MIRROR,
+        default=BorderType.REFLECT_MIRROR,
         option_labels={
             BorderType.REFLECT_MIRROR: "Reflect (Mirror)",
             BorderType.WRAP: "Wrap (Tile)",

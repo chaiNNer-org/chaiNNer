@@ -88,7 +88,7 @@ def _add_noise(
         seed_group(SeedInput()),
         EnumInput(
             NoiseMethod,
-            default_value=NoiseMethod.SIMPLEX,
+            default=NoiseMethod.SIMPLEX,
             option_labels={key: key.value for key in NoiseMethod},
         ).with_id(3),
         if_enum_group(3, (NoiseMethod.SIMPLEX, NoiseMethod.VALUE))(
@@ -101,7 +101,7 @@ def _add_noise(
             BoolInput("Tile Spherical", default=False).with_id(12),
             EnumInput(
                 FractalMethod,
-                default_value=FractalMethod.NONE,
+                default=FractalMethod.NONE,
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
             if_enum_group(6, FractalMethod.PINK)(

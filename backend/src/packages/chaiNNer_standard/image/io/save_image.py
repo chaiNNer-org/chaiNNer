@@ -119,14 +119,14 @@ class TiffColorDepth(Enum):
         EnumInput(
             ImageFormat,
             "Image Format",
-            default_value=ImageFormat.PNG,
+            default=ImageFormat.PNG,
             option_labels=IMAGE_FORMAT_LABELS,
         ).with_id(4),
         if_enum_group(4, ImageFormat.PNG)(
             EnumInput(
                 PngColorDepth,
                 "Color Depth",
-                default_value=PngColorDepth.U8,
+                default=PngColorDepth.U8,
                 option_labels={
                     PngColorDepth.U8: "8 Bits/Channel",
                     PngColorDepth.U16: "16 Bits/Channel",
@@ -152,7 +152,7 @@ class TiffColorDepth(Enum):
             EnumInput(
                 JpegSubsampling,
                 label="Chroma Subsampling",
-                default_value=JpegSubsampling.FACTOR_422,
+                default=JpegSubsampling.FACTOR_422,
                 option_labels={
                     JpegSubsampling.FACTOR_444: "4:4:4 (Best Quality)",
                     JpegSubsampling.FACTOR_440: "4:4:0",
@@ -166,7 +166,7 @@ class TiffColorDepth(Enum):
             EnumInput(
                 TiffColorDepth,
                 "Color Depth",
-                default_value=TiffColorDepth.U8,
+                default=TiffColorDepth.U8,
                 option_labels={
                     TiffColorDepth.U8: "8 Bits/Channel",
                     TiffColorDepth.U16: "16 Bits/Channel",
@@ -180,7 +180,7 @@ class TiffColorDepth(Enum):
                 EnumInput(
                     BC7Compression,
                     label="BC7 Compression",
-                    default_value=BC7Compression.DEFAULT,
+                    default=BC7Compression.DEFAULT,
                 ).with_id(7),
             ),
             if_enum_group(6, SUPPORTED_BC123_FORMATS)(

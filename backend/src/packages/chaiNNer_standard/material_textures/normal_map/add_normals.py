@@ -26,7 +26,7 @@ from .. import normal_map_group
         EnumInput(
             AdditionMethod,
             label="Method",
-            default_value=AdditionMethod.PARTIAL_DERIVATIVES,
+            default=AdditionMethod.PARTIAL_DERIVATIVES,
         ),
     ],
     outputs=[

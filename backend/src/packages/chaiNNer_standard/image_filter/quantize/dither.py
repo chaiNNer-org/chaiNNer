@@ -59,20 +59,20 @@ UNIFORM_DITHER_ALGORITHM_LABELS = {
         EnumInput(
             UniformDitherAlgorithm,
             option_labels=UNIFORM_DITHER_ALGORITHM_LABELS,
-            default_value=UniformDitherAlgorithm.DIFFUSION,
+            default=UniformDitherAlgorithm.DIFFUSION,
         ).with_id(2),
         if_enum_group(2, UniformDitherAlgorithm.ORDERED)(
             EnumInput(
                 ThresholdMap,
                 option_labels=THRESHOLD_MAP_LABELS,
-                default_value=ThresholdMap.BAYER_16,
+                default=ThresholdMap.BAYER_16,
             ).with_id(3),
         ),
         if_enum_group(2, UniformDitherAlgorithm.DIFFUSION)(
             EnumInput(
                 ErrorDiffusionMap,
                 option_labels=ERROR_PROPAGATION_MAP_LABELS,
-                default_value=ErrorDiffusionMap.FLOYD_STEINBERG,
+                default=ErrorDiffusionMap.FLOYD_STEINBERG,
             ).with_id(4),
         ),
         if_enum_group(2, UniformDitherAlgorithm.RIEMERSMA)(
