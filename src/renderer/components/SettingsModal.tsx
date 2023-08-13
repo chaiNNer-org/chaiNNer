@@ -34,6 +34,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { readdir, unlink } from 'fs/promises';
+import { produce } from 'immer';
 import path from 'path';
 import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
@@ -594,15 +595,12 @@ const PythonSettings = memo(() => {
                                     <SettingWrapper
                                         key={setting.key}
                                         setSettingValue={(value) => {
-                                            setBackendSettings(
-                                                (prev) =>
-                                                    ({
-                                                        ...prev,
-                                                        [pkg.name]: {
-                                                            ...(prev[pkg.name] ?? {}),
-                                                            [setting.key]: value,
-                                                        },
-                                                    } as typeof prev)
+                                            setBackendSettings((prev) =>
+                                                produce(prev, (draftState) => {
+                                                    // eslint-disable-next-line no-param-reassign
+                                                    draftState[pkg.name][setting.key] =
+                                                        value ?? prev[pkg.name][setting.key];
+                                                })
                                             );
                                         }}
                                         setting={setting}
