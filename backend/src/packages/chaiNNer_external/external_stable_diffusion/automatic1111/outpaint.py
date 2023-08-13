@@ -61,7 +61,7 @@ class OutpaintingMethod(Enum):
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
-            default_value=SamplerName.EULER,
+            default=SamplerName.EULER,
             option_labels=SAMPLER_NAME_LABELS,
         ),
         SliderInput(
@@ -74,7 +74,7 @@ class OutpaintingMethod(Enum):
         ),
         EnumInput(
             ResizeMode,
-            default_value=ResizeMode.JUST_RESIZE,
+            default=ResizeMode.JUST_RESIZE,
             option_labels=RESIZE_MODE_LABELS,
         ),
         SliderInput(
@@ -112,10 +112,10 @@ class OutpaintingMethod(Enum):
         BoolInput("Extend Up", default=True).with_id(15),
         BoolInput("Extend Down", default=True).with_id(16),
         EnumInput(
-            OutpaintingMethod, default_value=OutpaintingMethod.POOR_MAN_OUTPAINTING
+            OutpaintingMethod, default=OutpaintingMethod.POOR_MAN_OUTPAINTING
         ).with_id(17),
         if_enum_group(17, OutpaintingMethod.POOR_MAN_OUTPAINTING)(
-            EnumInput(InpaintingFill, default_value=InpaintingFill.FILL),
+            EnumInput(InpaintingFill, default=InpaintingFill.FILL),
         ),
         if_enum_group(17, OutpaintingMethod.OUTPAINTING_MK2)(
             SliderInput(

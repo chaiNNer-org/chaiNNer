@@ -18,7 +18,7 @@ from .. import compositing_group
         ImageInput(),
         TextInput("Caption"),
         NumberInput("Caption Size", minimum=20, default=42, unit="px"),
-        EnumInput(CaptionPosition, default_value=CaptionPosition.BOTTOM),
+        EnumInput(CaptionPosition, default=CaptionPosition.BOTTOM),
     ],
     outputs=[
         ImageOutput(

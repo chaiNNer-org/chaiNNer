@@ -151,7 +151,7 @@ class EnumInput(Generic[T], DropDownInput):
         self,
         enum: Type[T],
         label: str | None = None,
-        default_value: T | None = None,
+        default: T | None = None,
         type_name: str | None = None,
         option_labels: Dict[T, str] | None = None,
         extra_definitions: str | None = None,
@@ -185,7 +185,7 @@ class EnumInput(Generic[T], DropDownInput):
             input_type=type_name,
             label=label,
             options=options,
-            default_value=default_value.value if default_value is not None else None,
+            default_value=default.value if default is not None else None,
         )
 
         self.type_definitions = (
@@ -462,7 +462,7 @@ def FillColorDropdown() -> DropDownInput:
     return EnumInput(
         FillColor,
         label="Negative Space Fill",
-        default_value=FillColor.AUTO,
+        default=FillColor.AUTO,
         extra_definitions="""
             def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
                 match fill {
