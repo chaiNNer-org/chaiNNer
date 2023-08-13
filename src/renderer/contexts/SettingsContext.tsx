@@ -1,14 +1,14 @@
 import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
-import { SchemaId } from '../../common/common-types';
+import { PackageSettings, SchemaId } from '../../common/common-types';
 import { GetSetState, SetState } from '../helpers/types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
 interface Settings {
     // Global Settings
-    useBackendSettings: GetSetState<Record<string, unknown>>;
+    useBackendSettings: GetSetState<PackageSettings>;
     useIsSystemPython: GetSetState<boolean>;
     useSystemPythonLocation: GetSetState<string | null>;
     useCheckUpdOnStrtUp: GetSetState<boolean>;

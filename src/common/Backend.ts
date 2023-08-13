@@ -9,6 +9,7 @@ import {
     OutputData,
     OutputTypes,
     Package,
+    PackageSettings,
     PyPiName,
     PythonInfo,
     SchemaId,
@@ -67,17 +68,16 @@ export interface BackendNodesResponse {
     categories: Category[];
     categoriesMissingNodes: string[];
 }
-export type BackendExecutionOptions = Record<string, unknown>;
 export interface BackendRunRequest {
     data: BackendJsonNode[];
-    options: BackendExecutionOptions;
+    options: PackageSettings;
     sendBroadcastData: boolean;
 }
 export interface BackendRunIndividualRequest {
     id: string;
     inputs: (InputValue | null)[];
     schemaId: SchemaId;
-    options: BackendExecutionOptions;
+    options: PackageSettings;
 }
 
 export type BackendResult<T> = BackendSuccess<T> | BackendError;

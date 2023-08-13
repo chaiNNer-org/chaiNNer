@@ -444,3 +444,9 @@ export interface RgbaColorJson {
     readonly kind: 'rgba';
     readonly values: readonly [r: number, g: number, b: number, a: number];
 }
+
+export interface PackageSettings {
+    [packageName: string]: {
+        [x: string]: string | number | boolean;
+    };
+}

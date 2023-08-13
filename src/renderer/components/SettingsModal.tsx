@@ -594,13 +594,16 @@ const PythonSettings = memo(() => {
                                     <SettingWrapper
                                         key={setting.key}
                                         setSettingValue={(value) => {
-                                            setBackendSettings((prev) => ({
-                                                ...prev,
-                                                [pkg.name]: {
-                                                    ...(prev[pkg.name] ?? {}),
-                                                    [setting.key]: value,
-                                                },
-                                            }));
+                                            setBackendSettings(
+                                                (prev) =>
+                                                    ({
+                                                        ...prev,
+                                                        [pkg.name]: {
+                                                            ...(prev[pkg.name] ?? {}),
+                                                            [setting.key]: value,
+                                                        },
+                                                    } as typeof prev)
+                                            );
                                         }}
                                         setting={setting}
                                         settingValue={thisSetting}

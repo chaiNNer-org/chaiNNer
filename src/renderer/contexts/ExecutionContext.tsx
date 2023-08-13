@@ -18,13 +18,13 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
-import { useBackendExecutionOptions } from '../hooks/useBackendExecutionOptions';
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
+import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
     READY,
@@ -68,11 +68,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         useContext(GlobalContext);
     const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
         useContext(BackendContext);
+    const { useBackendSettings } = useContext(SettingsContext);
+
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
 
-    const options = useBackendExecutionOptions();
+    const [options] = useBackendSettings;
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
