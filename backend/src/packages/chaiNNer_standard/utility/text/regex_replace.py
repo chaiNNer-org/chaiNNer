@@ -32,7 +32,7 @@ class ReplacementMode(Enum):
         EnumInput(
             ReplacementMode,
             label="Replace mode",
-            default_value=ReplacementMode.REPLACE_ALL,
+            default=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[

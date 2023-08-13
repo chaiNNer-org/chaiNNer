@@ -50,7 +50,7 @@ MAX_COLORS = 4096
         EnumInput(
             PaletteExtractionMethod,
             option_labels=PALETTE_EXTRACTION_METHOD_LABELS,
-            default_value=PaletteExtractionMethod.KMEANS,
+            default=PaletteExtractionMethod.KMEANS,
         ).with_id(1),
         if_enum_group(
             1,

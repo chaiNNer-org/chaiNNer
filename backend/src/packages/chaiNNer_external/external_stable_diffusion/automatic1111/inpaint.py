@@ -62,7 +62,7 @@ class InpaintArea(Enum):
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
-            default_value=SamplerName.EULER,
+            default=SamplerName.EULER,
             option_labels=SAMPLER_NAME_LABELS,
         ),
         SliderInput(
@@ -75,7 +75,7 @@ class InpaintArea(Enum):
         ),
         EnumInput(
             ResizeMode,
-            default_value=ResizeMode.JUST_RESIZE,
+            default=ResizeMode.JUST_RESIZE,
             option_labels=RESIZE_MODE_LABELS,
         ),
         SliderInput(
@@ -102,8 +102,8 @@ class InpaintArea(Enum):
             maximum=64,
             unit="px",
         ),
-        EnumInput(InpaintingFill, default_value=InpaintingFill.ORIGINAL),
-        EnumInput(InpaintArea, default_value=InpaintArea.WHOLE_PICTURE),
+        EnumInput(InpaintingFill, default=InpaintingFill.ORIGINAL),
+        EnumInput(InpaintArea, default=InpaintArea.WHOLE_PICTURE),
         if_enum_group(15, InpaintArea.ONLY_MASKED)(
             SliderInput(
                 "Only masked padding",

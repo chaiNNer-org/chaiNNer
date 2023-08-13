@@ -30,7 +30,7 @@ class SliceAlignment(Enum):
         EnumInput(
             SliceOperation,
             label="Operation",
-            default_value=SliceOperation.START,
+            default=SliceOperation.START,
             option_labels={
                 SliceOperation.START: "Start",
                 SliceOperation.START_AND_LENGTH: "Start & Length",
