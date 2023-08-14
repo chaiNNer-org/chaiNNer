@@ -139,7 +139,7 @@ class NodeGroup:
             else:
                 description += (
                     "This node will internally convert input images to 8 bits/channel."
-                    " This is generally only a problem if you intend to save the output as a 16-bit image."
+                    " This is generally only a problem if you intend to save the output with 16 bits/channel or higher."
                 )
 
         def to_list(x: List[S] | S | None) -> List[S]:
