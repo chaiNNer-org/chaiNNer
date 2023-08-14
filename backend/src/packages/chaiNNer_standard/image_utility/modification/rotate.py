@@ -120,6 +120,7 @@ from .. import modification_group
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def rotate_node(
     img: np.ndarray,

@@ -42,6 +42,7 @@ from .. import processing_group
         ),
         ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
+    limited_to_8bpc=True,
 )
 def remove_background_node(
     img: np.ndarray,

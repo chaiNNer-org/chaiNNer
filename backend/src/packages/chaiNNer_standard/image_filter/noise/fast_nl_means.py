@@ -43,6 +43,7 @@ from .. import noise_group
         NumberInput("Search radius", minimum=1, default=10, maximum=30, precision=0),
     ],
     outputs=[ImageOutput(image_type="Input0")],
+    limited_to_8bpc=True,
 )
 def fast_nl_means_node(
     img: np.ndarray,

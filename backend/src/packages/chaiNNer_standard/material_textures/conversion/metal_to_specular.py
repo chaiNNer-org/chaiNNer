@@ -81,6 +81,7 @@ def metal_to_spec(
             channels=1,
         ),
     ],
+    limited_to_8bpc=True,
 )
 def metal_to_specular_node(
     albedo: np.ndarray,

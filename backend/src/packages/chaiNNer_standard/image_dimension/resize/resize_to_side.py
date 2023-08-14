@@ -167,6 +167,7 @@ def resize_to_side_conditional(
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def resize_to_side_node(
     img: np.ndarray,
