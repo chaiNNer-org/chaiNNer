@@ -34,6 +34,10 @@ from .. import adjustments_group
         ThresholdInput(),
     ],
     outputs=[ImageOutput(image_type="Input0")],
+    see_also=[
+        "chainner:image:generate_threshold",
+        "chainner:image:threshold_adaptive",
+    ],
 )
 def threshold_node(
     img: np.ndarray, thresh: float, maxval: float, thresh_type: int
