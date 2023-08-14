@@ -11,7 +11,7 @@ from .. import crop_group
 
 @crop_group.register(
     schema_id="chainner:image:crop_content",
-    name="Crop Content",
+    name="Crop to Content",
     description=(
         "Crop an image to the boundaries of the visible image content, "
         "removing borders at or below the given opacity threshold."
@@ -43,7 +43,7 @@ from .. import crop_group
         )
     ],
 )
-def crop_content_node(img: np.ndarray, thresh_val: float) -> np.ndarray:
+def crop_to_content_node(img: np.ndarray, thresh_val: float) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if c < 4:
         return img
