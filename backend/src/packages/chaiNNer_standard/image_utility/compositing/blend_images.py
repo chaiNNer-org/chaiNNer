@@ -53,18 +53,18 @@ BLEND_OVERLAY_POSITION_LABELS = {
     BlendOverlayPosition.PIXEL_OFFSET: "Offset (pixels)",
 }
 
-BLEND_OVERLAY_X0_Y0_POSITION = {
-    BlendOverlayPosition.TOP_LEFT: [np.array([0, 0]), np.array([0, 0])],
-    BlendOverlayPosition.TOP_CENTERED: [np.array([0.5, 0]), np.array([0, 0])],
-    BlendOverlayPosition.TOP_RIGHT: [np.array([1, 0]), np.array([0, 0])],
-    BlendOverlayPosition.CENTERED_LEFT: [np.array([0, 0.5]), np.array([0, 0])],
-    BlendOverlayPosition.CENTERED: [np.array([0.5, 0.5]), np.array([0, 0])],
-    BlendOverlayPosition.CENTERED_RIGHT: [np.array([1, 0.5]), np.array([0, 0])],
-    BlendOverlayPosition.BOTTOM_LEFT: [np.array([0, 1]), np.array([0, 0])],
-    BlendOverlayPosition.BOTTOM_CENTERED: [np.array([0.5, 1]), np.array([0, 0])],
-    BlendOverlayPosition.BOTTOM_RIGHT: [np.array([1, 1]), np.array([0, 0])],
-    BlendOverlayPosition.PERCENT_OFFSET: [np.array([1, 1]), np.array([0, 0])],
-    BlendOverlayPosition.PIXEL_OFFSET: [np.array([0, 0]), np.array([1, 1])],
+BLEND_OVERLAY_X0_Y0_FACTORS = {
+    BlendOverlayPosition.TOP_LEFT: np.array([0, 0]),
+    BlendOverlayPosition.TOP_CENTERED: np.array([0.5, 0]),
+    BlendOverlayPosition.TOP_RIGHT: np.array([1, 0]),
+    BlendOverlayPosition.CENTERED_LEFT: np.array([0, 0.5]),
+    BlendOverlayPosition.CENTERED: np.array([0.5, 0.5]),
+    BlendOverlayPosition.CENTERED_RIGHT: np.array([1, 0.5]),
+    BlendOverlayPosition.BOTTOM_LEFT: np.array([0, 1]),
+    BlendOverlayPosition.BOTTOM_CENTERED: np.array([0.5, 1]),
+    BlendOverlayPosition.BOTTOM_RIGHT: np.array([1, 1]),
+    BlendOverlayPosition.PERCENT_OFFSET: np.array([1, 1]),
+    BlendOverlayPosition.PIXEL_OFFSET: np.array([0, 0]),
 }
 
 
@@ -82,7 +82,7 @@ BLEND_OVERLAY_X0_Y0_POSITION = {
                 BlendOverlayPosition,
                 label="Overlay position",
                 option_labels=BLEND_OVERLAY_POSITION_LABELS,
-                default_value=BlendOverlayPosition.CENTERED,
+                default=BlendOverlayPosition.CENTERED,
             ),
             if_enum_group(3, (BlendOverlayPosition.PERCENT_OFFSET))(
                 SliderInput(
@@ -122,8 +122,8 @@ BLEND_OVERLAY_X0_Y0_POSITION = {
                     unit="px",
                 ),
             ),
+            BoolInput("Crop to fit base layer", default=False),
         ),
-        BoolInput("Crop to fit base layer", default=False),
     ],
     outputs=[
         ImageOutput(
@@ -224,18 +224,17 @@ def blend_images_node(
     #   (x0, y0): top-left point of the overlay layer
     #   (x1, y1): bottom-right point of the overlay layer
     if overlay_position == BlendOverlayPosition.PERCENT_OFFSET:
-        v = [
+        x0, y0 = [
             round((base_width - overlay_width) * x_percent / 100),
             round((base_height - overlay_height) * y_percent / 100),
         ]
+    elif overlay_position == BlendOverlayPosition.PIXEL_OFFSET:
+        x0, y0 = [x_px, y_px]
     else:
-        v = [base_width - overlay_width, base_height - overlay_height]
-    x0, y0 = np.array(
-        (
-            BLEND_OVERLAY_X0_Y0_POSITION[overlay_position][0] * v
-            + BLEND_OVERLAY_X0_Y0_POSITION[overlay_position][1] * [x_px, y_px]
-        )
-    ).astype("int")
+        x0, y0 = np.array(
+            [base_width - overlay_width, base_height - overlay_height]
+            * BLEND_OVERLAY_X0_Y0_FACTORS[overlay_position]
+        ).astype("int")
     x1, y1 = x0 + overlay_width, y0 + overlay_height
 
     # Add borders to the base layer

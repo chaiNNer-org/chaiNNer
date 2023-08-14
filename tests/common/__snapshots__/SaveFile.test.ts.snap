@@ -1331,7 +1331,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "target": "5235ee89-0e92-4b01-be95-403e454ef624",
       "targetHandle": "5235ee89-0e92-4b01-be95-403e454ef624-0",
       "type": "main",
-      "zIndex": 69,
+      "zIndex": 49,
     },
     {
       "animated": false,
@@ -2177,6 +2177,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "animated": false,
       "data": {},
       "id": "8115436f-6842-4021-aa24-b3ac483e55ca",
+      "selected": false,
       "source": "686d008c-2aa7-562f-a80c-3f7a6895ecd8",
       "sourceHandle": "686d008c-2aa7-562f-a80c-3f7a6895ecd8-0",
       "target": "87587135-be6f-518b-b492-59494619334b",
@@ -2356,6 +2357,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "animated": false,
       "data": {},
       "id": "98e30dc1-d539-4732-99ce-805908421ba3",
+      "selected": false,
       "source": "13dc50ea-1bf5-5098-b3da-8828b7501e56",
       "sourceHandle": "13dc50ea-1bf5-5098-b3da-8828b7501e56-0",
       "target": "8c64bff2-cb4a-588d-87e0-e59fc18148e4",
@@ -2427,6 +2429,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "animated": false,
       "data": {},
       "id": "a4c9fd9e-273d-4368-8542-190381ded718",
+      "selected": false,
       "source": "ab11996e-a157-5d43-b998-8c51e8cc6416",
       "sourceHandle": "ab11996e-a157-5d43-b998-8c51e8cc6416-0",
       "target": "3c248c07-64bb-5957-ba0d-2cb156088f6e",
@@ -3170,6 +3173,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "animated": false,
       "data": {},
       "id": "f2ddd99a-8f15-4b98-9a1f-5712491d8a1a",
+      "selected": false,
       "source": "3adb8c2e-7a40-5290-a87d-0786cf7d82b1",
       "sourceHandle": "3adb8c2e-7a40-5290-a87d-0786cf7d82b1-0",
       "target": "19d03e71-29ca-508c-bc0b-2b82f90443d7",
@@ -3217,6 +3221,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "animated": false,
       "data": {},
       "id": "fa47b3e3-e4e4-4989-9d6f-79d5a0f9788d",
+      "selected": false,
       "source": "6ca66233-f789-5d45-920b-225d5052e5d8",
       "sourceHandle": "6ca66233-f789-5d45-920b-225d5052e5d8-0",
       "target": "472af423-52b1-5bd6-a39d-2846baea7a6a",
@@ -3274,6 +3279,32 @@ exports[`Read save file blend-images.chn 1`] = `
     },
   ],
   "nodes": [
+    {
+      "data": {
+        "id": "02a7471f-2e03-595c-a4b8-d4c1b7c93957",
+        "inputData": {
+          "0": "Use the 512x512.png file from the chaiNNer repository:
+https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.png",
+        },
+        "inputSize": {
+          "0": {
+            "height": 91,
+            "width": 484,
+          },
+        },
+        "schemaId": "chainner:utility:note",
+      },
+      "height": 167,
+      "id": "02a7471f-2e03-595c-a4b8-d4c1b7c93957",
+      "position": {
+        "x": -341.30453115815385,
+        "y": -738.1007734844538,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 502,
+      "zIndex": 50,
+    },
     {
       "data": {
         "id": "0384b95d-0272-5586-abbd-51e5dded4756",
@@ -3739,7 +3770,7 @@ exports[`Read save file blend-images.chn 1`] = `
         },
         "schemaId": "chainner:image:blend",
       },
-      "height": 260,
+      "height": 228,
       "id": "29deceb2-f33f-55ba-aff2-cdfbe2138177",
       "position": {
         "x": 4083.7075611986866,
@@ -4190,7 +4221,7 @@ exports[`Read save file blend-images.chn 1`] = `
         },
         "schemaId": "chainner:image:blend",
       },
-      "height": 260,
+      "height": 228,
       "id": "5184f1c1-ecb0-5278-ba58-cda9a4fda353",
       "position": {
         "x": 4096.890844524943,
@@ -4213,10 +4244,10 @@ exports[`Read save file blend-images.chn 1`] = `
         "x": -198.33097813663642,
         "y": -124.94788896219092,
       },
-      "selected": true,
+      "selected": false,
       "type": "regularNode",
       "width": 240,
-      "zIndex": 70,
+      "zIndex": 50,
     },
     {
       "data": {
@@ -4261,8 +4292,8 @@ exports[`Read save file blend-images.chn 1`] = `
           "3": "pixel_offset",
           "4": 0,
           "5": 0,
-          "6": -132,
-          "7": -345,
+          "6": 0,
+          "7": 0,
           "8": 1,
         },
         "schemaId": "chainner:image:blend",
@@ -5158,8 +5189,8 @@ exports[`Read save file blend-images.chn 1`] = `
         "inputData": {
           "2": 0,
           "3": "percent_offset",
-          "4": 44,
-          "5": 68,
+          "4": 25,
+          "5": 75,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -5236,7 +5267,7 @@ exports[`Read save file blend-images.chn 1`] = `
       "height": 156,
       "id": "a8b16577-db49-5bde-900b-85017c7939a3",
       "position": {
-        "x": 4057.056687580101,
+        "x": 4054.02525444708,
         "y": -326.2634293250004,
       },
       "selected": false,
@@ -6263,9 +6294,9 @@ exports[`Read save file blend-images.chn 1`] = `
   ],
   "tamperedWith": false,
   "viewport": {
-    "x": 408.5781620970994,
-    "y": 751.8751130145254,
-    "zoom": 0.14358729437462972,
+    "x": 627.0961308835855,
+    "y": 799.1874999302173,
+    "zoom": 0.13350779937822557,
   },
 }
 `;
@@ -12449,7 +12480,7 @@ exports[`Write save file big ol test.chn 1`] = `
 
 exports[`Write save file blend-images.chn 1`] = `
 {
-  "checksum": "4d1d66c6d31831b143f2bad473545925",
+  "checksum": "796ef7a7fb7c294327d8e5767fe10d2c",
   "content": {
     "edges": [
       {
@@ -12726,7 +12757,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "target": "5235ee89-0e92-4b01-be95-403e454ef624",
         "targetHandle": "5235ee89-0e92-4b01-be95-403e454ef624-0",
         "type": "main",
-        "zIndex": 69,
+        "zIndex": 49,
       },
       {
         "animated": false,
@@ -13572,6 +13603,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "animated": false,
         "data": {},
         "id": "8115436f-6842-4021-aa24-b3ac483e55ca",
+        "selected": false,
         "source": "686d008c-2aa7-562f-a80c-3f7a6895ecd8",
         "sourceHandle": "686d008c-2aa7-562f-a80c-3f7a6895ecd8-0",
         "target": "87587135-be6f-518b-b492-59494619334b",
@@ -13751,6 +13783,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "animated": false,
         "data": {},
         "id": "98e30dc1-d539-4732-99ce-805908421ba3",
+        "selected": false,
         "source": "13dc50ea-1bf5-5098-b3da-8828b7501e56",
         "sourceHandle": "13dc50ea-1bf5-5098-b3da-8828b7501e56-0",
         "target": "8c64bff2-cb4a-588d-87e0-e59fc18148e4",
@@ -13822,6 +13855,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "animated": false,
         "data": {},
         "id": "a4c9fd9e-273d-4368-8542-190381ded718",
+        "selected": false,
         "source": "ab11996e-a157-5d43-b998-8c51e8cc6416",
         "sourceHandle": "ab11996e-a157-5d43-b998-8c51e8cc6416-0",
         "target": "3c248c07-64bb-5957-ba0d-2cb156088f6e",
@@ -14565,6 +14599,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "animated": false,
         "data": {},
         "id": "f2ddd99a-8f15-4b98-9a1f-5712491d8a1a",
+        "selected": false,
         "source": "3adb8c2e-7a40-5290-a87d-0786cf7d82b1",
         "sourceHandle": "3adb8c2e-7a40-5290-a87d-0786cf7d82b1-0",
         "target": "19d03e71-29ca-508c-bc0b-2b82f90443d7",
@@ -14612,6 +14647,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "animated": false,
         "data": {},
         "id": "fa47b3e3-e4e4-4989-9d6f-79d5a0f9788d",
+        "selected": false,
         "source": "6ca66233-f789-5d45-920b-225d5052e5d8",
         "sourceHandle": "6ca66233-f789-5d45-920b-225d5052e5d8-0",
         "target": "472af423-52b1-5bd6-a39d-2846baea7a6a",
@@ -14669,6 +14705,32 @@ exports[`Write save file blend-images.chn 1`] = `
       },
     ],
     "nodes": [
+      {
+        "data": {
+          "id": "02a7471f-2e03-595c-a4b8-d4c1b7c93957",
+          "inputData": {
+            "0": "Use the 512x512.png file from the chaiNNer repository:
+https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.png",
+          },
+          "inputSize": {
+            "0": {
+              "height": 91,
+              "width": 484,
+            },
+          },
+          "schemaId": "chainner:utility:note",
+        },
+        "height": 167,
+        "id": "02a7471f-2e03-595c-a4b8-d4c1b7c93957",
+        "position": {
+          "x": -341.30453115815385,
+          "y": -738.1007734844538,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 502,
+        "zIndex": 50,
+      },
       {
         "data": {
           "id": "0384b95d-0272-5586-abbd-51e5dded4756",
@@ -15134,7 +15196,7 @@ exports[`Write save file blend-images.chn 1`] = `
           },
           "schemaId": "chainner:image:blend",
         },
-        "height": 260,
+        "height": 228,
         "id": "29deceb2-f33f-55ba-aff2-cdfbe2138177",
         "position": {
           "x": 4083.7075611986866,
@@ -15585,7 +15647,7 @@ exports[`Write save file blend-images.chn 1`] = `
           },
           "schemaId": "chainner:image:blend",
         },
-        "height": 260,
+        "height": 228,
         "id": "5184f1c1-ecb0-5278-ba58-cda9a4fda353",
         "position": {
           "x": 4096.890844524943,
@@ -15608,10 +15670,10 @@ exports[`Write save file blend-images.chn 1`] = `
           "x": -198.33097813663642,
           "y": -124.94788896219092,
         },
-        "selected": true,
+        "selected": false,
         "type": "regularNode",
         "width": 240,
-        "zIndex": 70,
+        "zIndex": 50,
       },
       {
         "data": {
@@ -15656,8 +15718,8 @@ exports[`Write save file blend-images.chn 1`] = `
             "3": "pixel_offset",
             "4": 0,
             "5": 0,
-            "6": -132,
-            "7": -345,
+            "6": 0,
+            "7": 0,
             "8": 1,
           },
           "schemaId": "chainner:image:blend",
@@ -16553,8 +16615,8 @@ exports[`Write save file blend-images.chn 1`] = `
           "inputData": {
             "2": 0,
             "3": "percent_offset",
-            "4": 44,
-            "5": 68,
+            "4": 25,
+            "5": 75,
             "6": 0,
             "7": 0,
             "8": 0,
@@ -16631,7 +16693,7 @@ exports[`Write save file blend-images.chn 1`] = `
         "height": 156,
         "id": "a8b16577-db49-5bde-900b-85017c7939a3",
         "position": {
-          "x": 4057.056687580101,
+          "x": 4054.02525444708,
           "y": -326.2634293250004,
         },
         "selected": false,
@@ -17657,9 +17719,9 @@ exports[`Write save file blend-images.chn 1`] = `
       },
     ],
     "viewport": {
-      "x": 408.5781620970994,
-      "y": 751.8751130145254,
-      "zoom": 0.14358729437462972,
+      "x": 627.0961308835855,
+      "y": 799.1874999302173,
+      "zoom": 0.13350779937822557,
     },
   },
   "version": "0.0.0-test",
