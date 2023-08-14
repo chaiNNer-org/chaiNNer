@@ -1,5 +1,3 @@
-import cv2
-
 import navi
 
 from ...impl.color.convert_data import (
@@ -94,72 +92,6 @@ def BorderInput() -> DropDownInput:
                 }
             }
         """,
-    )
-
-
-def ThresholdInput() -> DropDownInput:
-    """Threshold type option dropdown"""
-    return DropDownInput(
-        input_type="ThresholdType",
-        label="Threshold Type",
-        options=[
-            {
-                "option": "Binary",
-                "value": cv2.THRESH_BINARY,
-            },
-            {
-                "option": "Binary (Inverted)",
-                "value": cv2.THRESH_BINARY_INV,
-            },
-            {
-                "option": "Truncated",
-                "value": cv2.THRESH_TRUNC,
-            },
-            {
-                "option": "To Zero",
-                "value": cv2.THRESH_TOZERO,
-            },
-            {
-                "option": "To Zero (Inverted)",
-                "value": cv2.THRESH_TOZERO_INV,
-            },
-        ],
-    )
-
-
-def AdaptiveThresholdInput() -> DropDownInput:
-    """Adaptive Threshold type option dropdown"""
-    return DropDownInput(
-        input_type="AdaptiveThresholdType",
-        label="Threshold Type",
-        options=[
-            {
-                "option": "Binary",
-                "value": cv2.THRESH_BINARY,
-            },
-            {
-                "option": "Binary (Inverted)",
-                "value": cv2.THRESH_BINARY_INV,
-            },
-        ],
-    )
-
-
-def AdaptiveMethodInput() -> DropDownInput:
-    """Adaptive method border option dropdown"""
-    return DropDownInput(
-        input_type="AdaptiveMethod",
-        label="Adaptive Method",
-        options=[
-            {
-                "option": "Mean - C",
-                "value": cv2.ADAPTIVE_THRESH_MEAN_C,
-            },
-            {
-                "option": "Gaussian - C",
-                "value": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            },
-        ],
     )
 
 
