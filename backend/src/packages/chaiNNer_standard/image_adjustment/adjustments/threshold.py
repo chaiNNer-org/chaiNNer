@@ -61,6 +61,10 @@ _THRESHOLD_TYPE_LABELS: Dict[ThresholdType, str] = {
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
+    see_also=[
+        "chainner:image:generate_threshold",
+        "chainner:image:threshold_adaptive",
+    ],
 )
 def threshold_node(
     img: np.ndarray,
