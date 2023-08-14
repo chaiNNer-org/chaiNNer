@@ -14,6 +14,7 @@ from typing import (
     Tuple,
     TypedDict,
     TypeVar,
+    Union,
 )
 
 from sanic.log import logger
@@ -452,12 +453,15 @@ class ToggleSetting:
     type: str = "toggle"
 
 
+DropdownOption = TypedDict("DropdownOption", {"label": str, "value": str})
+
+
 @dataclass
 class DropdownSetting:
     label: str
     key: str
     description: str
-    options: List[str]
+    options: List[DropdownOption]
     default: Optional[str] = None
     disabled: bool = False
     type: str = "dropdown"

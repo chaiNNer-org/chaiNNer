@@ -330,7 +330,7 @@ export interface NumberSetting extends ISetting {
 
 export interface DropdownSetting extends ISetting {
     readonly type: 'dropdown';
-    readonly options: readonly string[];
+    readonly options: readonly { label: string; value: string }[];
     readonly default: string;
 }
 

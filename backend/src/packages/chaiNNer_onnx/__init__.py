@@ -96,8 +96,8 @@ if not is_arm_mac:
             label="ONNX GPU",
             key="gpu",
             description="Which GPU to use for ONNX. This is only relevant if you have multiple GPUs.",
-            options=gpu_list,
-            default=gpu_list[0],
+            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
+            default="0",
             disabled=not nvidia_is_available or len(gpu_list) <= 1,
         )
     )
@@ -115,7 +115,10 @@ package.add_setting(
         label="ONNX Execution Provider",
         key="execution_provider",
         description="What provider to use for ONNX.",
-        options=execution_providers,
+        options=[
+            {"label": x.replace("ExecutionProvider", ""), "value": x}
+            for x in execution_providers
+        ],
         default=execution_providers[0],
         disabled=is_arm_mac or len(execution_providers) <= 1,
     )

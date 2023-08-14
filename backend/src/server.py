@@ -173,7 +173,9 @@ async def run(request: Request):
         optimize(chain)
 
         logger.info("Running new executor...")
+        logger.info(full_data["options"])
         exec_opts = parse_execution_options(full_data["options"])
+        logger.info(exec_opts)
         set_execution_options(exec_opts)
         logger.debug(f"Using device: {exec_opts.full_device}")
         executor = Executor(

@@ -249,10 +249,7 @@ function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapp
                 <Dropdown
                     description={setting.description}
                     isDisabled={setting.disabled}
-                    options={setting.options.map((option, i) => ({
-                        label: option,
-                        value: String(i),
-                    }))}
+                    options={setting.options}
                     title={setting.label}
                     value={String(settingValue)}
                     onChange={(v: string) => {
