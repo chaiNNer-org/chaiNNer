@@ -47,7 +47,7 @@ export const testInputCondition = (
             const value = getInputValue(c.enum, inputData);
             return Array.isArray(values) ? values.includes(value) : values === value;
         },
-        type: ({ input, condition: type }) => {
+        type: ({ input, condition: type, ifNotConnected }) => {
             const inputType = getInputType(input);
             if (!inputType) return false;
 
@@ -63,7 +63,7 @@ export const testInputCondition = (
             // So we will only show the conditional inputs if the input has been assigned a value.
             if (getInputValue(input, inputData) === undefined && !isConnected(input)) {
                 // the input type is the declaration type
-                return false;
+                return ifNotConnected;
             }
 
             return true;

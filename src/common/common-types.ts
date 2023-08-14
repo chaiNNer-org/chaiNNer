@@ -176,6 +176,7 @@ export interface TypeCondition {
     readonly kind: 'type';
     readonly input: InputId;
     readonly condition: ExpressionJson;
+    readonly ifNotConnected: boolean;
 }
 
 interface GroupBase {

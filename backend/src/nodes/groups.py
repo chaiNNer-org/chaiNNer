@@ -54,6 +54,7 @@ class _TypeConditionJson(TypedDict):
     kind: Literal["type"]
     input: InputId
     condition: navi.ExpressionJson
+    ifNotConnected: bool
 
 
 class Condition:
@@ -116,7 +117,11 @@ class Condition:
         )
 
     @staticmethod
-    def type(input_id: int, condition: navi.ExpressionJson) -> Condition:
+    def type(
+        input_id: int,
+        condition: navi.ExpressionJson,
+        if_not_connected: bool = False,
+    ) -> Condition:
         """
         A condition to check whether a certain input is compatible a certain type.
         Here "compatible" is defined as overlapping.
@@ -126,6 +131,7 @@ class Condition:
                 "kind": "type",
                 "input": InputId(input_id),
                 "condition": condition,
+                "ifNotConnected": if_not_connected,
             }
         )
 
