@@ -35,6 +35,7 @@ from .. import resize_group
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def resize_resolution_node(
     img: np.ndarray,

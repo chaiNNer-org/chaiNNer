@@ -34,6 +34,7 @@ from .. import compositing_group
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def add_caption_node(
     img: np.ndarray, caption: str, size: int, position: CaptionPosition

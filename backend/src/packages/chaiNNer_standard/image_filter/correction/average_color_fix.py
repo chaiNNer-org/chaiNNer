@@ -34,6 +34,7 @@ from .. import correction_group
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
+    limited_to_8bpc=True,
 )
 def average_color_fix_node(
     input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float

@@ -27,6 +27,7 @@ from .. import io_group
     inputs=[ImageInput()],
     outputs=[],
     side_effects=True,
+    limited_to_8bpc="The temporary file is an 8-bit PNG.",
 )
 def view_image_external_node(img: np.ndarray) -> None:
     tempdir = mkdtemp(prefix="chaiNNer-")

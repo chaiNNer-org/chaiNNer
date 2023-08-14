@@ -127,6 +127,7 @@ UPSCALER_MODE_LABELS = {
     ],
     decorators=[cached],
     features=web_ui,
+    limited_to_8bpc=True,
 )
 def upscale_node(
     image: np.ndarray,
