@@ -146,6 +146,7 @@ def upscale(
             channels=3,
         )
     ],
+    limited_to_8bpc=True,
 )
 def upscale_face_node(
     img: np.ndarray,

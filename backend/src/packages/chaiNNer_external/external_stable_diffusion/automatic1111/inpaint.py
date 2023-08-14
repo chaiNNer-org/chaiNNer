@@ -129,6 +129,7 @@ class InpaintArea(Enum):
     ],
     decorators=[cached],
     features=web_ui,
+    limited_to_8bpc=True,
 )
 def inpaint_node(
     image: np.ndarray,

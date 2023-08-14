@@ -100,6 +100,7 @@ from .. import auto1111_group
     ],
     decorators=[cached],
     features=web_ui,
+    limited_to_8bpc=True,
 )
 def image_to_image_node(
     image: np.ndarray,

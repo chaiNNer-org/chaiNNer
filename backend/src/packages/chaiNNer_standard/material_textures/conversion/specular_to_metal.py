@@ -109,6 +109,7 @@ def spec_to_metal(
             channels=1,
         ),
     ],
+    limited_to_8bpc=True,
 )
 def specular_to_metal_node(
     diff: np.ndarray,

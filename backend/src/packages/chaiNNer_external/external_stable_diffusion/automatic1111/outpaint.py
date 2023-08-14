@@ -159,6 +159,7 @@ class OutpaintingMethod(Enum):
     ],
     decorators=[cached],
     features=web_ui,
+    limited_to_8bpc=True,
 )
 def outpaint_node(
     image: np.ndarray,

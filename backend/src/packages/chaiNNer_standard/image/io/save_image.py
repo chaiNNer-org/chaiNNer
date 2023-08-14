@@ -199,6 +199,7 @@ class TiffColorDepth(Enum):
     ],
     outputs=[],
     side_effects=True,
+    limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
 )
 def save_image_node(
     img: np.ndarray,
