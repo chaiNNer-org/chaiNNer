@@ -18,7 +18,7 @@ from .. import io_group
     schema_id="chainner:onnx:load_model",
     name="Load Model",
     description=(
-        """Load ONNX model file (.onnx). Theoretically supports any ONNX model."""
+        """Load ONNX model file (.onnx). Theoretically supports any ONNX Super-Resolution model that doesn't expect non-standard preprocessing. Also supports RemBG background removal models."""
     ),
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],

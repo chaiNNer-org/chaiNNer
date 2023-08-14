@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
+from chainner_ext import Clipboard
 
-from nodes.impl import clipboard
 from nodes.properties.inputs import ClipboardInput
 
 from .. import clipboard_group
@@ -20,11 +18,10 @@ from .. import clipboard_group
     ],
     outputs=[],
     side_effects=True,
+    limited_to_8bpc="The image will be copied to clipboard with 8 bits/channel.",
 )
-def copy_to_clipboard_node(value: Union[str, np.ndarray]) -> None:
+def copy_to_clipboard_node(value: str | np.ndarray) -> None:
     if isinstance(value, np.ndarray):
-        clipboard.copy_image(value)
-    elif isinstance(value, str):  # type: ignore
-        clipboard.copy_text(value)
+        Clipboard.create_instance().write_image(value, "BGR")
     else:
-        raise RuntimeError(f"Unsupported type {type(value)}")
+        Clipboard.create_instance().write_text(value)

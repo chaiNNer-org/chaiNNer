@@ -13,7 +13,10 @@ from .. import text_group
 @text_group.register(
     schema_id="chainner:utility:text_append",
     name="Text Append",
-    description="Append different text together using a separator string.",
+    description=[
+        "Append different text together using a separator string.",
+        "This is the simplest method to join/concatenate text strings together.",
+    ],
     icon="MdTextFields",
     inputs=[
         TextInput(
@@ -51,6 +54,7 @@ from .. import text_group
                 """,
         )
     ],
+    see_also=["chainner:utility:text_pattern"],
 )
 def text_append_node(separator: str, *args: Union[str, None]) -> str:
     inputs: List[Union[str, None]] = [*args]

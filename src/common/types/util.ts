@@ -1,64 +1,60 @@
 import {
-    Expression,
     IntIntervalType,
     NonNeverType,
     NumericLiteralType,
     StringPrimitive,
-    StructExpression,
-    StructExpressionField,
-    StructType,
+    StructDescriptor,
+    StructInstanceType,
     Type,
     UnionType,
+    getStructDescriptor,
+    isStructInstance,
     without,
 } from '@chainner/navi';
+import { getChainnerScope } from './chainner-scope';
 
 export type IntNumberType =
     | NumericLiteralType
     | IntIntervalType
     | UnionType<NumericLiteralType | IntIntervalType>;
 
-export const isImage = (
-    type: Type
-): type is StructType & {
-    readonly name: 'Image';
-    readonly fields: readonly [
-        { readonly name: 'width'; readonly type: IntNumberType },
-        { readonly name: 'height'; readonly type: IntNumberType },
-        { readonly name: 'channels'; readonly type: IntNumberType }
-    ];
-} => {
-    return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
+interface KnownStructDefinitions {
+    Image: {
+        readonly width: IntNumberType;
+        readonly height: IntNumberType;
+        readonly channels: IntNumberType;
+    };
+    Color: {
+        readonly channels: IntNumberType;
+    };
+    Directory: {
+        readonly path: StringPrimitive;
+    };
+}
+interface KnownInstance<N extends keyof KnownStructDefinitions> {
+    readonly descriptor: StructDescriptor & { readonly name: N };
+}
+const createAssertFn = <N extends keyof KnownStructDefinitions>(
+    name: N
+): ((type: Type) => type is StructInstanceType & KnownInstance<N>) => {
+    const fn = (type: Type) => isStructInstance(type) && type.descriptor.name === name;
+    return fn as never;
 };
 
-export const isColor = (
-    type: Type
-): type is StructType & {
-    readonly name: 'Color';
-    readonly fields: readonly [{ readonly name: 'channels'; readonly type: IntNumberType }];
-} => {
-    return type.type === 'struct' && type.name === 'Color' && type.fields.length === 1;
+export const isImage = createAssertFn('Image');
+export const isColor = createAssertFn('Color');
+export const isDirectory = createAssertFn('Directory');
+
+export const getFields = <N extends keyof KnownStructDefinitions>(
+    type: StructInstanceType & KnownInstance<N>
+): KnownStructDefinitions[N] => {
+    const fields: Record<string, NonNeverType> = {};
+    type.descriptor.fields.forEach((field, i) => {
+        fields[field.name] = type.fields[i];
+    });
+    return fields as never;
 };
 
-export const isDirectory = (
-    type: Type
-): type is StructType & {
-    readonly name: 'Directory';
-    readonly fields: readonly [{ readonly name: 'path'; readonly type: StringPrimitive }];
-} => {
-    return type.type === 'struct' && type.name === 'Directory' && type.fields.length === 1;
-};
-
-export const getField = (struct: StructType, field: string): NonNeverType | undefined => {
-    return struct.fields.find((f) => f.name === field)?.type;
-};
-
-const nullType = new StructType('null');
+export const nullType = getStructDescriptor(getChainnerScope(), 'null').default;
 
 export const withoutNull = (type: Type): Type => without(type, nullType);
-
-export const struct = (name: string, fields: Record<string, Expression>): StructExpression => {
-    return new StructExpression(
-        name,
-        Object.entries(fields).map(([n, e]) => new StructExpressionField(n, e))
-    );
-};

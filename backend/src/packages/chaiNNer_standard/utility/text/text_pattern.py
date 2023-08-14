@@ -45,6 +45,7 @@ from .. import text_group
             '\n\nHint: Use "{{" to escape a single "{" inside the pattern.'
         )
     ],
+    see_also=["chainner:utility:text_append"],
 )
 def text_pattern_node(
     pattern: str,

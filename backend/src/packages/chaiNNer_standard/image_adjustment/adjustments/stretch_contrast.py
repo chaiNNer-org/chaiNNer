@@ -19,7 +19,8 @@ def _stretch(img: np.ndarray, range_min: float, range_max: float) -> np.ndarray:
     if range_min == range_max:
         return img * 0
 
-    return (img - range_min) / range_max
+    range_diff = range_max - range_min
+    return (img - range_min) / range_diff
 
 
 class StretchMode(Enum):

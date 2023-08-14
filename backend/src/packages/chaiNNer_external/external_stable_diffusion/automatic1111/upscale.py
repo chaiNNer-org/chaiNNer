@@ -5,14 +5,6 @@ from enum import Enum
 import numpy as np
 
 from nodes.groups import Condition, if_enum_group, if_group
-from nodes.impl.external_stable_diffusion import (
-    STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH,
-    decode_base64_image,
-    encode_base64_image,
-    get_upscalers,
-    post,
-    verify_api_connection,
-)
 from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
@@ -24,10 +16,15 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
+from ...features import web_ui
+from ...util import decode_base64_image, encode_base64_image
+from ...web_ui import (
+    STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH,
+    UPSCALE_NAME_LABELS,
+    UpscalerName,
+    get_api,
+)
 from .. import auto1111_group
-
-verify_api_connection()
-upscaler_enum, upscaler_labels = get_upscalers()
 
 
 class UpscalerMode(Enum):
@@ -50,7 +47,7 @@ UPSCALER_MODE_LABELS = {
         ImageInput(channels=3),
         EnumInput(
             UpscalerMode,
-            default_value=UpscalerMode.SCALE_BY,
+            default=UpscalerMode.SCALE_BY,
             option_labels=UPSCALER_MODE_LABELS,
         ).with_id(1),
         if_enum_group(1, UpscalerMode.SCALE_BY)(
@@ -65,21 +62,21 @@ UPSCALER_MODE_LABELS = {
             ).with_id(2),
         ),
         if_enum_group(1, UpscalerMode.SCALE_TO)(
-            NumberInput("Width", controls_step=1, default=512).with_id(3),
-            NumberInput("Height", controls_step=1, default=512).with_id(4),
+            NumberInput("Width", controls_step=1, minimum=1, default=512).with_id(3),
+            NumberInput("Height", controls_step=1, minimum=1, default=512).with_id(4),
             BoolInput("Crop to fit", default=True).with_id(5),
         ),
         EnumInput(
-            upscaler_enum,
+            UpscalerName,
             label="Upscaler 1",
-            option_labels=upscaler_labels,
+            option_labels=UPSCALE_NAME_LABELS,
         ),
         BoolInput("Use second upscaler", default=False).with_id(7),
         if_group(Condition.bool(7, True))(
             EnumInput(
-                upscaler_enum,
+                UpscalerName,
                 label="Upscaler 2",
-                option_labels=upscaler_labels,
+                option_labels=UPSCALE_NAME_LABELS,
             ),
             SliderInput(
                 "Upscaler 2 visibility",
@@ -95,13 +92,13 @@ UPSCALER_MODE_LABELS = {
     outputs=[
         ImageOutput(
             image_type="""
-                def nearest_valid(n: number) = int & floor(n);
+                def nearest_valid(n: number) = max(1, floor(n));
 
                 let in_w = Input0.width;
                 let in_h = Input0.height;
-                let ratio_w = width/in_w;
-                let ratio_h = height/in_h;
-                let larger_ratio = if ratio_w>ratio_h { ratio_w } else { ratio_h };
+                let ratio_w = width / in_w;
+                let ratio_h = height / in_h;
+                let larger_ratio = max(ratio_w, ratio_h);
 
                 let mode = Input1;
                 let factor = Input2;
@@ -129,6 +126,8 @@ UPSCALER_MODE_LABELS = {
         )
     ],
     decorators=[cached],
+    features=web_ui,
+    limited_to_8bpc=True,
 )
 def upscale_node(
     image: np.ndarray,
@@ -137,9 +136,9 @@ def upscale_node(
     width: int,
     height: int,
     crop: bool,
-    upscaler_1: Enum,
+    upscaler_1: UpscalerName,
     use_second_upscaler: bool,
-    upscaler_2: Enum,
+    upscaler_2: UpscalerName,
     upscaler_2_visibility: float,
 ) -> np.ndarray:
     if mode == UpscalerMode.SCALE_BY:
@@ -168,7 +167,7 @@ def upscale_node(
         "upscale_first": False,
         "image": encode_base64_image(image),
     }
-    response = post(
+    response = get_api().post(
         path=STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH, json_data=request_data
     )
     result = decode_base64_image(response["image"])

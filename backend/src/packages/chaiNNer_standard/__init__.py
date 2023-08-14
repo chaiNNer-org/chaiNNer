@@ -1,10 +1,10 @@
 from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
-from system import is_arm_mac, is_windows
 
 package = add_package(
     __file__,
+    id="chaiNNer_standard",
     name="chaiNNer_standard",
     description="The standard set of nodes for chaiNNer.",
     dependencies=[
@@ -70,31 +70,12 @@ package = add_package(
         Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
-            version="0.1.0",
-            size_estimate=1.5 * MB,
+            version="0.3.0",
+            size_estimate=2.0 * MB,
         ),
     ],
 )
 
-if is_arm_mac:
-    package.add_dependency(
-        Dependency(
-            display_name="Pasteboard",
-            pypi_name="pasteboard",
-            version="0.3.3",
-            size_estimate=19 * KB,
-        )
-    )
-elif is_windows:
-    package.add_dependency(
-        Dependency(
-            display_name="Pywin32",
-            pypi_name="pywin32",
-            version="304",
-            size_estimate=12 * MB,
-            import_name="win32clipboard",
-        )
-    )
 
 image_category = package.add_category(
     name="Image",

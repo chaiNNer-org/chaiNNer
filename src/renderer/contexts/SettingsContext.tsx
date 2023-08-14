@@ -26,10 +26,12 @@ interface Settings {
         setSnapToGridAmount: SetState<number>
     ];
     useStartupTemplate: GetSetState<string>;
-    useIsDarkMode: GetSetState<boolean>;
+    useSelectTheme: GetSetState<string>;
     useAnimateChain: GetSetState<boolean>;
     useExperimentalFeatures: GetSetState<boolean>;
+    useEnableHardwareAcceleration: GetSetState<boolean>;
     useViewportExportPadding: GetSetState<number>;
+    useAllowMultipleInstances: GetSetState<boolean>;
 
     // Node Settings
     useNodeFavorites: GetSetState<readonly SchemaId[]>;
@@ -63,13 +65,13 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup-2', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
-    const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
+    const useSelectTheme = useMemoArray(useLocalStorage('theme', 'dark'));
 
     const { setColorMode } = useColorMode();
-    const [isDarkMode] = useIsDarkMode;
+    const [selectThemeColor] = useSelectTheme;
     useEffect(() => {
-        setColorMode(isDarkMode ? 'dark' : 'light');
-    }, [setColorMode, isDarkMode]);
+        setColorMode(selectThemeColor);
+    }, [setColorMode, selectThemeColor]);
 
     const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
 
@@ -94,6 +96,12 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
+    const useEnableHardwareAcceleration = useMemoArray(
+        useLocalStorage('enable-hardware-acceleration', false)
+    );
+    const useAllowMultipleInstances = useMemoArray(
+        useLocalStorage('allow-multiple-instances', false)
+    );
 
     const contextValue = useMemoObject<Settings>({
         // GPU Stuff
@@ -112,10 +120,12 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useSnapToGrid,
         useCheckUpdOnStrtUp,
         useStartupTemplate,
-        useIsDarkMode,
+        useSelectTheme,
         useAnimateChain,
         useExperimentalFeatures,
+        useEnableHardwareAcceleration,
         useViewportExportPadding,
+        useAllowMultipleInstances,
 
         // Node
         useNodeFavorites,

@@ -1303,12 +1303,12 @@ export const GlobalProvider = memo(
         useIpcRendererListener('copy', copyFn);
         useHotkeys('ctrl+v, cmd+v', pasteFn);
         useIpcRendererListener('paste', pasteFn);
-        useHotkeys('ctrl+d, cmd+d', duplicateFn);
+        useHotkeys('ctrl+d', duplicateFn);
         useIpcRendererListener('duplicate', duplicateFn);
-        useHotkeys('ctrl+shift+d, cmd+shift+d', duplicateWithInputEdgesFn);
+        useHotkeys('ctrl+shift+d', duplicateWithInputEdgesFn);
         useIpcRendererListener('duplicate-with-input-edges', duplicateWithInputEdgesFn);
-        useHotkeys('ctrl+p, cmd+p', exportViewportScreenshot);
-        useHotkeys('ctrl+shift+p, cmd++shift+p', exportViewportScreenshotToClipboard);
+        useHotkeys('ctrl+p', exportViewportScreenshot);
+        useHotkeys('ctrl+shift+p', exportViewportScreenshotToClipboard);
         useIpcRendererListener(
             'export-viewport',
             useCallback(

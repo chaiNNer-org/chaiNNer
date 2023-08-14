@@ -2,19 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.impl.external_stable_diffusion import (
-    STABLE_DIFFUSION_INTERROGATE_PATH,
-    encode_base64_image,
-    post,
-    verify_api_connection,
-)
 from nodes.node_cache import cached
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import TextOutput
 
+from ...features import web_ui
+from ...util import encode_base64_image
+from ...web_ui import STABLE_DIFFUSION_INTERROGATE_PATH, get_api
 from .. import auto1111_group
-
-verify_api_connection()
 
 
 @auto1111_group.register(
@@ -29,10 +24,13 @@ verify_api_connection()
         TextOutput("Text"),
     ],
     decorators=[cached],
+    features=web_ui,
 )
-def interrograte_node(image: np.ndarray) -> str:
+def clip_interrogate_node(image: np.ndarray) -> str:
     request_data = {
         "image": encode_base64_image(image),
     }
-    response = post(path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_INTERROGATE_PATH, json_data=request_data
+    )
     return response["caption"]

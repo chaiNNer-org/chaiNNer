@@ -48,14 +48,14 @@ def normalize(x: np.ndarray, y: np.ndarray):
 @normal_map_group.register(
     schema_id="chainner:image:normal_generator",
     name="Normal Map Generator",
-    description="""Generate a normal map from a given image.""",
+    description="Generate a normal map from a given image using the specified filtering technique.",
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput("Image", channels=[1, 3, 4]),
         EnumInput(
             HeightSource,
             label="Height Source",
-            default_value=HeightSource.AVERAGE_RGB,
+            default=HeightSource.AVERAGE_RGB,
         ),
         SliderInput(
             "Blur/Sharp",
@@ -85,7 +85,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
         EnumInput(
             EdgeFilter,
             label="Filter",
-            default_value=EdgeFilter.SOBEL,
+            default=EdgeFilter.SOBEL,
             option_labels={
                 EdgeFilter.SOBEL: "Sobel (dUdV) (3x3)",
                 EdgeFilter.SOBEL_LIKE_5: "Sobel-like (5x5)",
@@ -100,7 +100,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
         EnumInput(
             AlphaOutput,
             label="Alpha Channel",
-            default_value=AlphaOutput.NONE,
+            default=AlphaOutput.NONE,
             option_labels={AlphaOutput.ONE: "Set to 1"},
         ),
     ],

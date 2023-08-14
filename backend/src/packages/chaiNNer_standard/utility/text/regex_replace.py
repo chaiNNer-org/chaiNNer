@@ -32,7 +32,7 @@ class ReplacementMode(Enum):
         EnumInput(
             ReplacementMode,
             label="Replace mode",
-            default_value=ReplacementMode.REPLACE_ALL,
+            default=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[
@@ -49,6 +49,7 @@ class ReplacementMode(Enum):
             "Either the regex pattern or the replacement pattern is invalid"
         ),
     ],
+    see_also=["chainner:utility:text_replace"],
 )
 def regex_replace_node(
     text: str,

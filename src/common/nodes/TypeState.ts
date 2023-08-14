@@ -1,11 +1,26 @@
-import { EvaluationError, NonNeverType, StructType, Type, isSameType } from '@chainner/navi';
+import { EvaluationError, NonNeverType, Type, isSameType } from '@chainner/navi';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { log } from '../log';
-import { FunctionDefinition, FunctionInstance } from '../types/function';
+import {
+    FunctionDefinition,
+    FunctionInputAssignmentError,
+    FunctionInstance,
+} from '../types/function';
+import { nullType } from '../types/util';
 import { EMPTY_MAP } from '../util';
 import { EdgeState } from './EdgeState';
 import type { Edge, Node } from 'reactflow';
 
+const assignmentErrorEquals = (
+    a: FunctionInputAssignmentError,
+    b: FunctionInputAssignmentError
+): boolean => {
+    return (
+        a.inputId === b.inputId &&
+        isSameType(a.assignedType, b.assignedType) &&
+        isSameType(a.inputType, b.inputType)
+    );
+};
 const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
     if (a.definition !== b.definition) return false;
 
@@ -17,6 +32,11 @@ const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
     for (const [key, value] of a.outputs) {
         const otherValue = b.outputs.get(key);
         if (!otherValue || !isSameType(value, otherValue)) return false;
+    }
+
+    if (a.inputErrors.length !== b.inputErrors.length) return false;
+    for (let i = 0; i < a.inputErrors.length; i += 1) {
+        if (!assignmentErrorEquals(a.inputErrors[i], b.inputErrors[i])) return false;
     }
 
     return true;
@@ -95,7 +115,7 @@ export class TypeState {
                         }
 
                         if (inputValue === undefined && definition.inputNullable.has(id)) {
-                            return new StructType('null');
+                            return nullType;
                         }
 
                         return undefined;

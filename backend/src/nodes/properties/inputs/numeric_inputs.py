@@ -1,3 +1,4 @@
+import math
 from typing import List, Literal, Tuple, Union
 
 import navi
@@ -99,6 +100,10 @@ class NumberInput(BaseInput):
 
     def enforce(self, value):
         assert isinstance(value, (int, float))
+
+        if math.isnan(value):
+            raise ValueError("NaN is not a valid number")
+
         return clampNumber(value, self.precision, self.minimum, self.maximum)
 
 

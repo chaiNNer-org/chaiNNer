@@ -15,6 +15,7 @@ const BLANK_SCHEMA: NodeSchema = {
     schemaId: '' as SchemaId,
     hasSideEffects: false,
     deprecated: false,
+    features: [],
 };
 
 export class SchemaMap {
@@ -23,6 +24,8 @@ export class SchemaMap {
     private readonly lookup: ReadonlyMap<SchemaId, NodeSchema>;
 
     private readonly unique: ReadonlySet<SchemaId>;
+
+    static readonly EMPTY: SchemaMap = new SchemaMap([]);
 
     constructor(schemata: readonly NodeSchema[]) {
         // defensive copy

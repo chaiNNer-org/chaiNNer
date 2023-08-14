@@ -29,6 +29,7 @@ from nodes.properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
+from system import is_mac
 
 from .. import processing_group
 
@@ -73,6 +74,10 @@ def upscale_impl(
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
 
             def estimate_gpu():
+                if is_mac:
+                    # the actual estimate frequently crashes on mac, so we just use 256
+                    return MaxTileSize(256)
+
                 heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
                 return MaxTileSize(
                     estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
@@ -137,6 +142,7 @@ def upscale_impl(
     outputs=[
         ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
     ],
+    limited_to_8bpc=True,
 )
 def upscale_image_node(
     img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize

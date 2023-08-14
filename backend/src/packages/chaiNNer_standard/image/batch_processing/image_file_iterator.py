@@ -17,6 +17,7 @@ from nodes.properties.outputs import (
     NumberOutput,
     TextOutput,
 )
+from nodes.utils.utils import alphanumeric_sort
 from process import IteratorContext
 
 from .. import batch_processing_group
@@ -28,20 +29,24 @@ IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 def extension_filter(lst: List[str]) -> str:
     """generates a mcmatch.glob expression to filter files with specific extensions
     ex. {*,**/*}@(*.png|*.jpg|...)"""
-    return "{*,**/*}@(*" + "|*".join(lst) + ")"
+    return "**/*@(" + "|".join(lst) + ")"
 
 
 def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
-    directory_expr = (Path(directory) / globexpr).as_posix()
-    extension_expr = (Path(directory) / extension_filter(ext_filter)).as_posix()
+    extension_expr = extension_filter(ext_filter)
+
+    flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR
 
     filtered = glob.globfilter(
-        glob.iglob(directory_expr, flags=glob.EXTGLOB | glob.BRACE),
+        glob.iglob(globexpr, root_dir=directory, flags=flags),
         extension_expr,
-        flags=glob.EXTGLOB | glob.BRACE,
+        flags=flags | glob.IGNORECASE,
     )
 
-    return list(map(str, filtered))
+    return sorted(
+        list(set(map(lambda f: str(Path(directory) / f), filtered))),
+        key=alphanumeric_sort,
+    )
 
 
 @batch_processing_group.register(
@@ -89,7 +94,7 @@ def iterator_helper_load_image_node(
             BoolInput("Recursive").with_docs("Iterate recursively over subdirectories.")
         ),
         if_group(Condition.bool(1, True))(
-            TextInput("WCMatch Glob expression", default="{*,**/*}").with_docs(
+            TextInput("WCMatch Glob expression", default="**/*").with_docs(
                 "For information on how to use WCMatch glob expressions, see [here](https://facelessuser.github.io/wcmatch/glob/)."
             ),
         ),
@@ -122,7 +127,7 @@ async def image_file_iterator_node(
     supported_filetypes = get_available_image_formats()
 
     if not use_glob:
-        glob_str = "{*,**/*}" if is_recursive else "*"
+        glob_str = "**/*" if is_recursive else "*"
 
     just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):

@@ -19,7 +19,11 @@ FP_MODE_32 = 0
 @utility_group.register(
     schema_id="chainner:onnx:convert_to_ncnn",
     name="Convert To NCNN",
-    description="""Convert an ONNX model to NCNN.""",
+    description=[
+        "Convert an ONNX model to NCNN.",
+        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
+        "Note: Converted models are not guaranteed to work with other programs that support NCNN models. This is for a variety of reasons and cannot be changed.",
+    ],
     icon="NCNN",
     inputs=[OnnxModelInput("ONNX Model"), OnnxFpDropdown()],
     outputs=[

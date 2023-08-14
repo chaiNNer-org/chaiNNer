@@ -36,6 +36,7 @@ from .. import adjustments_group
         NumberInput("Mean Subtraction"),
     ],
     outputs=[ImageOutput(image_type="Input0")],
+    limited_to_8bpc=True,
 )
 def threshold_adaptive_node(
     img: np.ndarray,

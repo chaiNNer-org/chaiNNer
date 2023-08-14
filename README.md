@@ -3,8 +3,9 @@
 [![GitHub Latest Release](https://img.shields.io/github/v/release/chaiNNer-org/chaiNNer)](https://github.com/chaiNNer-org/chaiNNer/releases/latest)
 [![GitHub Total Downloads](https://img.shields.io/github/downloads/chaiNNer-org/chaiNNer/total)](https://github.com/chaiNNer-org/chaiNNer/releases)
 [![License](https://img.shields.io/github/license/chaiNNer-org/chaiNNer)](./LICENSE)
-[![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)](https://discord.gg/pzvAKPKyHM)
+[![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white&color=5865F2)](https://discord.gg/pzvAKPKyHM)
 [![ko-fi](https://img.shields.io/badge/Ko--fi-Support%20chaiNNer%20-hotpink?logo=kofi&logoColor=white)](https://ko-fi.com/T6T46KTTW)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
 <p align="center">
   <a href="https://github.com/chaiNNer-org/chaiNNer/releases" target="_blank">
@@ -12,11 +13,11 @@
   </a>
 </p>
 
-A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially upscaling done by neural networks) easy, intuitive, and customizable.
+A node-based image processing GUI aimed at making chaining image processing tasks easy and customizable. Born as an AI upscaling application, chaiNNer has grown into an extremely flexible and powerful programmatic image processing application.
 
-No existing upscaling GUI gives you the level of customization of your image processing workflow that chaiNNer does. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
+ChaiNNer gives you a level of customization of your image processing workflow that very few others do. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
 
-chaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
+ChaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
 
 For help, suggestions, or just to hang out, you can join the [chaiNNer Discord server](https://discord.gg/pzvAKPKyHM)
 
@@ -26,13 +27,9 @@ Remember: chaiNNer is still a work in progress and in alpha. While it is slowly 
 
 Download the latest release from the [Github releases page](https://github.com/chaiNNer-org/chaiNNer/releases) and run the installer best suited for your system. Simple as that.
 
-NOTE: The windows installer currently doesn't give any installation success feedback. We're working on fixing that.
-
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
-If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use the integrated Python. If you do wish to use your system Python, make sure the Python version you are using is either 3.8 or 3.9. 3.10 also should work for the most part, but it is not fully supported at this time.
-
-If you are using the provided .zip portable version of chaiNNer, please be aware that the integrated Python it uses is not portable like the rest of it. It is located at `%appdata%/chaiNNer/python` (windows), `.config/chaiNNer/python` (linux), or `Application Support/chaiNNer/python`. We plan on making this truly portable in the future.
+If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.9, but theoretically later versions work as well.
 
 ## How To Use
 
@@ -56,11 +53,11 @@ Once you have a working chain set up in the editor, you can press the green "run
     <img src="docs/assets/screenshot.png" width="540" />
 </p>
 
-Don't forget, there's plenty of non-upscaling tasks you can do with chaiNNer as well!
+Don't forget, there are plenty of non-upscaling tasks you can do with chaiNNer as well!
 
 ### Tips & Tricks
 
-To select multiple nodes, hold down shift and drag around all the nodes you want selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
+To select multiple nodes, hold down shift and drag around all the nodes you want to be selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
 
 To batch upscale, create an Image Iterator node and drag the nodes you want to use into the iterator's editor area. You can expand the iterator by clicking and dragging the bottom right corner outwards (like you would a UI window). Simply wire up a chain in an iterator the same as you would normally, and when you click run it will run on every image in the folder you chose. You also can select an entire existing chain, and drag it into the iterator's editor area to essentially convert the entire thing into an iterable chain.
 
@@ -70,18 +67,20 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
   - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
+- [OpenModelDB Model Database](https://openmodeldb.info/)
+  - A nice collection of Super-Resolution models that have been trained by the community.
 - [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
-  - A very nice collection of mostly ESRGAN models that have been trained for various tasks.
+  - A more outdated collection of mostly ESRGAN models.
 - [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
   - An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
 
 ## Compatibility Notes
 
-- MacOS versions older than 10.15 are not supported at this time. This is due to a major dependency (opencv) not yet having a build for this version. The next release of it should be compatible though, so stay tuned for an update that adds support for that (assuming no more compatibility issues are found).
+- MacOS versions 10.x and below are not supported.
 
-- Windows versions 7 and below are also not supported at this time. You can attempt troubleshooting steps mentioned below in the troubleshooting section, but at this time we do not officially support more Windows versions than Microsoft does.
+- Windows versions 8.1 and below are also not supported.
 
-- Apple M1 laptops are mostly untested, though they should support almost everything. Although, ONNX is unable to be installed as it does not yet have an arm64 build, and NCNN sometimes does not work properly.
+- Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
 
 - Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
@@ -91,7 +90,7 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## GPU Support
 
-For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only support's Nvidia's CUDA. MacOS also does not support CUDA at all, so PyTorch will only work in CPU mode on MacOS.
+For PyTorch inference, only Nvidia GPUs are officially supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only supports Nvidia's CUDA. MacOS users on Apple Silicon Macs can also take advantage of PyTorch's MPS mode, which should work with chaiNNer.
 
 If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch or ONNX model to NCNN.
 
@@ -101,7 +100,7 @@ For Nvidia GPUs, ONNX is also an option to be used. ONNX will use CPU mode on no
 
 ## Model Architecture Support
 
-chaiNNer currently supports a limited amount of neural network architectures. More architectures will be supported in the future.
+ChaiNNer currently supports a limited amount of neural network architectures. More architectures will be supported in the future.
 
 ### Pytorch
 
@@ -130,11 +129,15 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### NCNN
 
-- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
+#### Single Image Super Resolution
+
+- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN (and its variants) and with Waifu2x.
 
 ### ONNX
 
-- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
+#### Single Image Super Resolution
+
+- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN.
 
 #### Background Removal
 
@@ -148,10 +151,6 @@ For troubleshooting information, view the [troubleshooting document](docs/troubl
 ## Building chaiNNer Yourself
 
 I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` (make sure that you have at least npm v7 installed) to install all the nodejs dependencies, and `npm run make` to build the application.
-
-## Planned Features
-
-- Check the Discord server for a list of planned features.
 
 ## FAQ
 

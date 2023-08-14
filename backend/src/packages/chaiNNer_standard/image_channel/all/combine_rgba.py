@@ -18,18 +18,26 @@ from . import node_group
     ),
     icon="MdCallMerge",
     inputs=[
-        ImageInput("R Channel", channels=1, allow_colors=True),
-        ImageInput("G Channel", channels=1, allow_colors=True),
-        ImageInput("B Channel", channels=1, allow_colors=True),
-        ImageInput("A Channel", channels=1, allow_colors=True).make_optional(),
+        ImageInput("R Channel", channels=1, allow_colors=True).with_docs(
+            "The red channel."
+        ),
+        ImageInput("G Channel", channels=1, allow_colors=True).with_docs(
+            "The green channel."
+        ),
+        ImageInput("B Channel", channels=1, allow_colors=True).with_docs(
+            "The blue channel."
+        ),
+        ImageInput("A Channel", channels=1, allow_colors=True)
+        .with_docs("The alpha (transparency mask) channel.")
+        .make_optional(),
     ],
     outputs=[
         ImageOutput(
             image_type="""
                 let anyImages = bool::or(Input0 == Image, Input1 == Image, Input2 == Image, Input3 == Image);
 
-                def getWidth(i: any) = match i { Image => i.width, _ => uint };
-                def getHeight(i: any) = match i { Image => i.height, _ => uint };
+                def getWidth(i: any) = match i { Image => i.width, _ => Image.width };
+                def getHeight(i: any) = match i { Image => i.height, _ => Image.height };
 
                 let valid = if anyImages { any } else { never };
 

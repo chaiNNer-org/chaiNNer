@@ -1,22 +1,12 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Optional
 
 import numpy as np
 
-from nodes.groups import seed_group
-from nodes.impl.external_stable_diffusion import (
-    RESIZE_MODE_LABELS,
-    SAMPLER_NAME_LABELS,
-    STABLE_DIFFUSION_IMG2IMG_PATH,
-    ResizeMode,
-    SamplerName,
-    decode_base64_image,
-    encode_base64_image,
-    nearest_valid_size,
-    post,
-    verify_api_connection,
-)
+import navi
+from nodes.groups import if_enum_group, seed_group
 from nodes.node_cache import cached
 from nodes.properties.inputs import (
     BoolInput,
@@ -30,18 +20,33 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.seed import Seed
 from nodes.utils.utils import get_h_w_c
 
+from ...features import web_ui
+from ...util import decode_base64_image, encode_base64_image, nearest_valid_size
+from ...web_ui import (
+    RESIZE_MODE_LABELS,
+    SAMPLER_NAME_LABELS,
+    STABLE_DIFFUSION_IMG2IMG_PATH,
+    InpaintingFill,
+    ResizeMode,
+    SamplerName,
+    get_api,
+)
 from .. import auto1111_group
 
-verify_api_connection()
+
+class InpaintArea(Enum):
+    WHOLE_PICTURE = "WholePicture"
+    ONLY_MASKED = "OnlyMasked"
 
 
 @auto1111_group.register(
-    schema_id="chainner:external_stable_diffusion:img2img",
-    name="Image to Image",
-    description="Modify an image using Automatic1111",
+    schema_id="chainner:external_stable_diffusion:img2img_inpainting",
+    name="Inpaint",
+    description="Modify a masked part of an image using Automatic1111",
     icon="MdChangeCircle",
     inputs=[
         ImageInput(),
+        ImageInput("Mask", channels=1, image_type=navi.Image(size_as="Input0")),
         TextInput("Prompt", multiline=True).make_optional(),
         TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(
@@ -57,7 +62,7 @@ verify_api_connection()
         SliderInput("Steps", minimum=1, default=20, maximum=150),
         EnumInput(
             SamplerName,
-            default_value=SamplerName.EULER,
+            default=SamplerName.EULER,
             option_labels=SAMPLER_NAME_LABELS,
         ),
         SliderInput(
@@ -70,9 +75,9 @@ verify_api_connection()
         ),
         EnumInput(
             ResizeMode,
-            default_value=ResizeMode.JUST_RESIZE,
+            default=ResizeMode.JUST_RESIZE,
             option_labels=RESIZE_MODE_LABELS,
-        ).with_id(10),
+        ),
         SliderInput(
             "Width",
             minimum=64,
@@ -80,7 +85,7 @@ verify_api_connection()
             maximum=2048,
             slider_step=8,
             controls_step=8,
-        ).with_id(8),
+        ),
         SliderInput(
             "Height",
             minimum=64,
@@ -88,23 +93,47 @@ verify_api_connection()
             maximum=2048,
             slider_step=8,
             controls_step=8,
-        ).with_id(9),
+        ),
         BoolInput("Seamless Edges", default=False),
+        SliderInput(
+            "Mask Blur",
+            minimum=0,
+            default=4,
+            maximum=64,
+            unit="px",
+        ),
+        EnumInput(InpaintingFill, default=InpaintingFill.ORIGINAL),
+        EnumInput(InpaintArea, default=InpaintArea.WHOLE_PICTURE),
+        if_enum_group(15, InpaintArea.ONLY_MASKED)(
+            SliderInput(
+                "Only masked padding",
+                minimum=0,
+                default=32,
+                maximum=256,
+                slider_step=4,
+                controls_step=4,
+                unit="px",
+            ),
+        ),
     ],
     outputs=[
         ImageOutput(
-            image_type="""def nearest_valid(n: number) = int & floor(n / 8) * 8;
+            image_type="""
+                def nearest_valid(n: number) = floor(n / 8) * 8;
                 Image {
-                    width: nearest_valid(Input8),
-                    height: nearest_valid(Input9)
+                    width: if Input15==InpaintArea::OnlyMasked {Input0.width} else {nearest_valid(Input10)},
+                    height: if Input15==InpaintArea::OnlyMasked {Input0.height} else {nearest_valid(Input11)}
                 }""",
             channels=3,
         ),
     ],
     decorators=[cached],
+    features=web_ui,
+    limited_to_8bpc=True,
 )
-def img_to_image_node(
+def inpaint_node(
     image: np.ndarray,
+    mask: np.ndarray,
     prompt: Optional[str],
     negative_prompt: Optional[str],
     denoising_strength: float,
@@ -116,12 +145,21 @@ def img_to_image_node(
     width: int,
     height: int,
     tiling: bool,
+    mask_blur: int,
+    inpainting_fill: InpaintingFill,
+    inpaint_area: InpaintArea,
+    inpaint_full_res_padding: int,
 ) -> np.ndarray:
     width, height = nearest_valid_size(
         width, height
     )  # This cooperates with the "image_type" of the ImageOutput
     request_data = {
         "init_images": [encode_base64_image(image)],
+        "mask": encode_base64_image(mask),
+        "inpainting_fill": inpainting_fill.value,
+        "mask_blur": mask_blur,
+        "inpaint_full_res": inpaint_area == InpaintArea.ONLY_MASKED,
+        "inpaint_full_res_padding": inpaint_full_res_padding,
         "prompt": prompt or "",
         "negative_prompt": negative_prompt or "",
         "denoising_strength": denoising_strength,
@@ -134,11 +172,20 @@ def img_to_image_node(
         "resize_mode": resize_mode.value,
         "tiling": tiling,
     }
-    response = post(path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data)
+    response = get_api().post(
+        path=STABLE_DIFFUSION_IMG2IMG_PATH, json_data=request_data
+    )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
-    assert (w, h) == (
-        width,
-        height,
-    ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+    if inpaint_area == InpaintArea.ONLY_MASKED:
+        in_h, in_w, _ = get_h_w_c(image)
+        assert (w, h) == (
+            in_w,
+            in_h,
+        ), f"Expected the returned image to be {in_w}x{in_h}px but found {w}x{h}px instead "
+    else:
+        assert (w, h) == (
+            width,
+            height,
+        ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
     return result

@@ -12,13 +12,13 @@ from .. import compositing_group
 @compositing_group.register(
     schema_id="chainner:image:caption",
     name="Add Caption",
-    description="Add a caption to the bottom of an image.",
+    description="Add a caption to the top or bottom of an image.",
     icon="MdVideoLabel",
     inputs=[
         ImageInput(),
         TextInput("Caption"),
         NumberInput("Caption Size", minimum=20, default=42, unit="px"),
-        EnumInput(CaptionPosition, default_value=CaptionPosition.BOTTOM),
+        EnumInput(CaptionPosition, default=CaptionPosition.BOTTOM),
     ],
     outputs=[
         ImageOutput(
@@ -34,6 +34,7 @@ from .. import compositing_group
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def add_caption_node(
     img: np.ndarray, caption: str, size: int, position: CaptionPosition

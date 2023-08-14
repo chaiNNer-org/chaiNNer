@@ -42,7 +42,7 @@ Metadata is used to define a contract between a node, the rest of the backend, a
     When choosing a name, make sure that it is descriptive and unique. If you are implementing a node that already exists in another package, make sure to use the same name. E.g. PyTorch and NCNN both have a Load Model node.
 
 -   **Description** \
-    A description of the node. This is currently only used in the node's tooltip in the node selector sidebar.
+    A description of the node. This is currently used in the node's tooltip in the node selector sidebar, as well as the Node Documentation modal. If given an array of strings, only the first string will populate the tooltip, while all strings will populate the modal.
 -   **Icon** \
     The icon of the node. Use the search bar on [React Icons](https://react-icons.github.io/react-icons) for which icons you want to use. Note that we only support icons from the `Bs`, `Cg`, `Md`, and `Im` families.
 -   **Inputs/Outputs** \
@@ -54,7 +54,7 @@ Metadata is used to define a contract between a node, the rest of the backend, a
 
 Nodes must explicitly declare all their inputs and outputs as part of their metadata. This is done using the `inputs` and `outputs` properties. Each argument of the python function has a corresponding input, and the return value of the function has a corresponding output. See [The anatomy of a node](#the-anatomy-of-a-node) for an example.
 
-The main purpose of the explicitly declaring inputs and outputs is to provide more information about the node. E.g. the type information is used to determine which connections are valid, the minimum/maximum information is used to validate user inputs, and placeholder and defaults are used to improve the user experience. They also [make guarantees about input data and enforce conventions](./data-representation.md).
+The main purpose of explicitly declaring inputs and outputs is to provide more information about the node. E.g. the type information is used to determine which connections are valid, the minimum/maximum information is used to validate user inputs, and placeholder and defaults are used to improve the user experience. They also [make guarantees about input data and enforce conventions](./data-representation.md).
 
 The most common classes used to declare inputs are `NumberInput`, `TextInput`, and `ImageInput`. There is also `SliderInput` as an alternative to `NumberInput`. Many more inputs are available.
 
@@ -207,6 +207,25 @@ Let's take a look at the inputs and outputs of the Create Border node. This node
                     channels: Input0.channels,
                 }
             """,
+        )
+    ],
+```
+
+### Documentation
+
+Inputs and outputs both allow optional documentation to be added to add more information about it to the Node Documentation modal. You can add documentation to an input or output using the `.with_docs()` method, like so: 
+
+```python
+    inputs=[
+        ImageInput().with_docs(
+            "An example image input.",
+            "Each string passed in will be its own paragraph in the resulting docs page.",
+            "And, it supports _markdown_ *formatting*.",
+        ),
+        NumberInput().with_docs(
+            "Confusing inputs can be given a hint flag, which will show a tooltip icon on the input in the node itself.",
+            "Use these when you think people would need an explanation about something regardless of if they have looked at the docs modal."
+            hint=True,
         )
     ],
 ```

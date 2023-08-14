@@ -23,14 +23,56 @@ from progress_controller import Aborted, ProgressController, ProgressToken
 Output = List[object]
 
 
-def enforce_inputs(inputs: Iterable[object], node: NodeData) -> List[object]:
-    if node.type == "iteratorHelper":
-        return list(inputs)
+def collect_input_information(
+    node: NodeData,
+    inputs: List[object],
+    enforced: bool = True,
+) -> InputsDict:
+    try:
+        input_dict: InputsDict = {}
 
-    enforced_inputs: List[object] = []
-    for index, value in enumerate(inputs):
-        enforced_inputs.append(node.inputs[index].enforce_(value))
-    return enforced_inputs
+        for value, node_input in zip(inputs, node.inputs):
+            if not enforced:
+                try:
+                    value = node_input.enforce_(value)
+                except Exception as e:
+                    logger.error(
+                        f"Error enforcing input {node_input.label} (id {node_input.id})",
+                        e,
+                    )
+                    # We'll just try using the un-enforced value. Maybe it'll work.
+
+            try:
+                input_dict[node_input.id] = node_input.get_error_value(value)
+            except Exception as e:
+                logger.error(
+                    f"Error getting error value for input {node_input.label} (id {node_input.id})",
+                    e,
+                )
+
+        return input_dict
+    except Exception as outer_e:
+        # this method must not throw
+        logger.error(f"Error collecting input information.", outer_e)
+        return {}
+
+
+def enforce_inputs(
+    inputs: Iterable[object], node: NodeData, node_id: NodeId
+) -> List[object]:
+    inputs = list(inputs)
+
+    if node.type == "iteratorHelper":
+        return inputs
+
+    try:
+        enforced_inputs: List[object] = []
+        for index, value in enumerate(inputs):
+            enforced_inputs.append(node.inputs[index].enforce_(value))
+        return enforced_inputs
+    except Exception as e:
+        input_dict = collect_input_information(node, inputs, enforced=False)
+        raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
 def enforce_output(raw_output: object, node: NodeData) -> Output:
@@ -59,7 +101,7 @@ def enforce_output(raw_output: object, node: NodeData) -> Output:
 def run_node(node: NodeData, inputs: Iterable[object], node_id: NodeId) -> Output:
     assert node.type == "regularNode" or node.type == "iteratorHelper"
 
-    enforced_inputs = enforce_inputs(inputs, node)
+    enforced_inputs = enforce_inputs(inputs, node, node_id)
     try:
         raw_output = node.run(*enforced_inputs)
         return enforce_output(raw_output, node)
@@ -69,29 +111,30 @@ def run_node(node: NodeData, inputs: Iterable[object], node_id: NodeId) -> Outpu
         raise
     except Exception as e:
         # collect information to provide good error messages
-        input_dict: InputsDict = {}
-        for index, node_input in enumerate(node.inputs):
-            try:
-                input_value = enforced_inputs[index]
-                input_dict[node_input.id] = node_input.get_error_value(input_value)
-            except Exception as inner_e:
-                logger.error(
-                    f"Error getting error value for input {node_input.label} (id {node_input.id})",
-                    inner_e,
-                )
-
+        input_dict = collect_input_information(node, enforced_inputs)
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
 async def run_iterator_node(
     node: NodeData,
     inputs: Iterable[object],
+    node_id: NodeId,
     context: IteratorContext,
 ) -> Output:
     assert node.type == "iterator"
 
-    raw_output = await node.run(*enforce_inputs(inputs, node), context=context)
-    return enforce_output(raw_output, node)
+    enforced_inputs = enforce_inputs(inputs, node, node_id)
+    try:
+        raw_output = await node.run(*enforced_inputs, context=context)
+        return enforce_output(raw_output, node)
+    except Aborted:
+        raise
+    except NodeExecutionError:
+        raise
+    except Exception as e:
+        # collect information to provide good error messages
+        input_dict = collect_input_information(node, enforced_inputs)
+        raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
@@ -390,6 +433,7 @@ class Executor:
                     run_iterator_node,
                     node_instance,
                     inputs,
+                    node.id,
                     IteratorContext(self, node.id),
                 )
             )

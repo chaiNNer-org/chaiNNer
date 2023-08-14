@@ -3,13 +3,14 @@ import {
     NumberPrimitive,
     NumericLiteralType,
     StringPrimitive,
-    StructType,
+    StructValueType,
     Type,
     UnionType,
     ValueType,
+    isStructInstance,
 } from '@chainner/navi';
 import { joinEnglish } from '../util';
-import { IntNumberType, isColor, isDirectory, isImage } from './util';
+import { IntNumberType, getFields, isColor, isDirectory, isImage } from './util';
 
 const isInt = (n: Type, min = -Infinity, max = Infinity): n is IntIntervalType => {
     return n.underlying === 'number' && n.type === 'int-interval' && n.min === min && n.max === max;
@@ -77,41 +78,32 @@ const explainString = (s: StringPrimitive): string | undefined => {
     if (s.excluded.size === 1 && s.excluded.has('')) return 'a non-empty string';
 };
 
-const explainStruct = (s: StructType, options: ExplainOptions): string | undefined => {
+const explainStruct = (s: StructValueType, options: ExplainOptions): string | undefined => {
     const detailed = (base: string | undefined, detail: string): string | undefined => {
         if (options.detailed && base) return `${base} ${detail}`;
         return base;
     };
 
     if (isImage(s)) {
-        const width = s.fields[0].type;
-        const height = s.fields[1].type;
-        const channels = s.fields[2].type;
-
-        if (isInt(width, 0) && isInt(height, 0)) {
+        const { width, height, channels } = getFields(s);
+        if (isInt(width, 1) && isInt(height, 1)) {
             if (isInt(channels, 1)) return detailed('an image', 'of any size and any colorspace');
             return detailed(formatChannelNumber(channels, 'image'), 'of any size');
-        }
-        if (isInt(width, 1) && isInt(height, 1)) {
-            if (isInt(channels, 1)) return detailed('an non-empty image', 'of any colorspace');
-            const formatted = formatChannelNumber(channels, 'image');
-            if (formatted) return `${formatted} that isn't empty`;
         }
     }
 
     if (isColor(s)) {
-        const channels = s.fields[0].type;
-
+        const { channels } = getFields(s);
         if (isInt(channels, 1)) return detailed('a color', 'of any colorspace');
         return formatChannelNumber(channels, 'color');
     }
 
     if (isDirectory(s)) {
-        const path = s.fields[0].type;
+        const { path } = getFields(s);
         if (path.type === 'string') return 'a directory path';
     }
 
-    if (s.name === 'Seed') {
+    if (isStructInstance(s) && s.descriptor.name === 'Seed') {
         return 'a seed (for randomness)';
     }
 };

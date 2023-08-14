@@ -47,7 +47,7 @@ TRANSFER_COLOR_ALGORITHM_LABELS = {
             TransferColorAlgorithm,
             label="Algorithm",
             option_labels=TRANSFER_COLOR_ALGORITHM_LABELS,
-            default_value=TransferColorAlgorithm.MEAN_STD,
+            default=TransferColorAlgorithm.MEAN_STD,
         ).with_id(5),
         if_enum_group(5, TransferColorAlgorithm.MEAN_STD)(
             EnumInput(

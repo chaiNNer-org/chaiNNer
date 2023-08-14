@@ -3,7 +3,17 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Iterable, List, Tuple, TypedDict, TypeVar
+from typing import (
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    NewType,
+    Tuple,
+    TypedDict,
+    TypeVar,
+)
 
 from sanic.log import logger
 
@@ -83,11 +93,13 @@ class NodeData:
     side_effects: bool
     deprecated: bool
     default_nodes: List[DefaultNode] | None  # For iterators only
+    features: List[FeatureId]
 
     run: RunFn
 
 
 T = TypeVar("T", bound=RunFn)
+S = TypeVar("S")
 
 
 @dataclass
@@ -114,14 +126,31 @@ class NodeGroup:
         default_nodes: List[DefaultNode] | None = None,
         decorators: List[Callable] | None = None,
         see_also: List[str] | str | None = None,
+        features: List[FeatureId] | FeatureId | None = None,
+        limited_to_8bpc: bool | str = False,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
 
-        if see_also is None:
-            see_also = []
-        if isinstance(see_also, str):
-            see_also = [see_also]
+        if limited_to_8bpc:
+            description += "\n\n#### Limited color depth\n\n"
+            if isinstance(limited_to_8bpc, str):
+                description += f" {limited_to_8bpc}"
+            else:
+                description += (
+                    "This node will internally convert input images to 8 bits/channel."
+                    " This is generally only a problem if you intend to save the output with 16 bits/channel or higher."
+                )
+
+        def to_list(x: List[S] | S | None) -> List[S]:
+            if x is None:
+                return []
+            if isinstance(x, list):
+                return x
+            return [x]
+
+        see_also = to_list(see_also)
+        features = to_list(features)
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
@@ -170,6 +199,7 @@ class NodeGroup:
                 side_effects=side_effects,
                 deprecated=deprecated,
                 default_nodes=default_nodes,
+                features=features,
                 run=wrapped_func,
             )
 
@@ -226,13 +256,59 @@ class Dependency:
         }
 
 
+FeatureId = NewType("FeatureId", str)
+
+
+@dataclass
+class Feature:
+    id: str
+    name: str
+    description: str
+    behavior: FeatureBehavior | None = None
+
+    def add_behavior(self, check: Callable[[], Awaitable[FeatureState]]) -> FeatureId:
+        if self.behavior is not None:
+            raise ValueError("Behavior already set")
+
+        self.behavior = FeatureBehavior(check=check)
+        return FeatureId(self.id)
+
+    def toDict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
+
+
+@dataclass
+class FeatureBehavior:
+    check: Callable[[], Awaitable[FeatureState]]
+
+
+@dataclass(frozen=True)
+class FeatureState:
+    is_enabled: bool
+    details: str | None = None
+
+    @staticmethod
+    def enabled(details: str | None = None) -> "FeatureState":
+        return FeatureState(is_enabled=True, details=details)
+
+    @staticmethod
+    def disabled(details: str | None = None) -> "FeatureState":
+        return FeatureState(is_enabled=False, details=details)
+
+
 @dataclass
 class Package:
     where: str
+    id: str
     name: str
     description: str
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
+    features: List[Feature] = field(default_factory=list)
 
     def add_category(
         self,
@@ -258,6 +334,19 @@ class Package:
         dependency: Dependency,
     ):
         self.dependencies.append(dependency)
+
+    def add_feature(
+        self,
+        id: str,  # pylint: disable=redefined-builtin
+        name: str,
+        description: str,
+    ) -> Feature:
+        if any(f.id == id for f in self.features):
+            raise ValueError(f"Duplicate feature id: {id}")
+
+        feature = Feature(id=id, name=name, description=description)
+        self.features.append(feature)
+        return feature
 
 
 def _iter_py_files(directory: str):
@@ -331,6 +420,18 @@ registry = PackageRegistry()
 
 
 def add_package(
-    where: str, name: str, description: str, dependencies: List[Dependency]
+    where: str,
+    id: str,  # pylint: disable=redefined-builtin
+    name: str,
+    description: str,
+    dependencies: List[Dependency] | None = None,
 ) -> Package:
-    return registry.add(Package(where, name, description, dependencies))
+    return registry.add(
+        Package(
+            where=where,
+            id=id,
+            name=name,
+            description=description,
+            dependencies=dependencies or [],
+        )
+    )

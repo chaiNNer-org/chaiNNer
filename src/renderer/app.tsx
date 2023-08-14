@@ -3,13 +3,15 @@ import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
 import { LocalStorage } from 'node-localstorage';
 import { memo, useState } from 'react';
+import { PythonInfo } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
+import { BackendProvider } from './contexts/BackendContext';
 import { ContextMenuProvider } from './contexts/ContextMenuContext';
 import { HotkeysProvider } from './contexts/HotKeyContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
-import { theme } from './theme';
+import { darktheme } from './theme';
 import './i18n';
 
 TimeAgo.addLocale(en);
@@ -48,13 +50,31 @@ export const App = memo(() => {
         []
     );
 
+    const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
+    useAsyncEffect(
+        () => ({
+            supplier: () => ipcRenderer.invoke('get-python'),
+            successEffect: setPythonInfo,
+        }),
+        []
+    );
+
     return (
-        <ChakraProvider theme={theme}>
-            <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <ChakraProvider theme={darktheme}>
+            <ColorModeScript initialColorMode={darktheme.config.initialColorMode} />
             <HotkeysProvider>
                 <ContextMenuProvider>
                     <AlertBoxProvider>
-                        {!url || !storageInitialized ? <LoadingComponent /> : <Main url={url} />}
+                        {!url || !storageInitialized || !pythonInfo ? (
+                            <LoadingComponent />
+                        ) : (
+                            <BackendProvider
+                                pythonInfo={pythonInfo}
+                                url={url}
+                            >
+                                <Main />
+                            </BackendProvider>
+                        )}
                     </AlertBoxProvider>
                 </ContextMenuProvider>
             </HotkeysProvider>

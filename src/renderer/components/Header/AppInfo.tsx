@@ -6,7 +6,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogOverlay,
-    Box,
     Button,
     HStack,
     Heading,
@@ -24,9 +23,7 @@ import {
     Tooltip,
     useDisclosure,
 } from '@chakra-ui/react';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { memo, useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
@@ -34,6 +31,7 @@ import { ipcRenderer } from '../../../common/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
+import { Markdown } from '../Markdown';
 
 export const AppInfo = memo(() => {
     const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
@@ -84,39 +82,39 @@ export const AppInfo = memo(() => {
 
     return (
         <>
-            <Box w="full">
-                <HStack
-                    ml={0}
-                    mr="auto"
+            <HStack>
+                <Image
+                    boxSize="36px"
+                    draggable={false}
+                    src={logo}
+                />
+                <Heading
+                    display={{ base: 'none', lg: 'inherit' }}
+                    size="md"
                 >
-                    <Image
-                        boxSize="36px"
-                        draggable={false}
-                        src={logo}
-                    />
-                    <Heading size="md">chaiNNer</Heading>
-                    <Tag>Alpha</Tag>
-                    <Tag>{`v${appVersion ?? '#.#.#'}`}</Tag>
-                    {updateVersion && (
-                        <Tooltip
-                            closeOnClick
-                            closeOnMouseDown
-                            borderRadius={8}
-                            label={`Update available (${updateVersion.tag_name})`}
-                            px={2}
-                            py={1}
-                        >
-                            <IconButton
-                                aria-label="Update available"
-                                colorScheme="green"
-                                icon={<DownloadIcon />}
-                                variant="ghost"
-                                onClick={onModalOpen}
-                            />
-                        </Tooltip>
-                    )}
-                </HStack>
-            </Box>
+                    chaiNNer
+                </Heading>
+                <Tag display={{ base: 'none', lg: 'inherit' }}>Alpha</Tag>
+                <Tag>v{appVersion ?? '#.#.#'}</Tag>
+                {updateVersion && (
+                    <Tooltip
+                        closeOnClick
+                        closeOnMouseDown
+                        borderRadius={8}
+                        label={`Update available (${updateVersion.tag_name})`}
+                        px={2}
+                        py={1}
+                    >
+                        <IconButton
+                            aria-label="Update available"
+                            colorScheme="green"
+                            icon={<DownloadIcon />}
+                            variant="ghost"
+                            onClick={onModalOpen}
+                        />
+                    </Tooltip>
+                )}
+            </HStack>
             <Modal
                 isCentered
                 isOpen={isModalOpen}
@@ -136,12 +134,7 @@ export const AppInfo = memo(() => {
                     <ModalHeader>Update Changelog</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody bgColor="var(--bg-900)">
-                        <ReactMarkdown
-                            skipHtml
-                            components={ChakraUIRenderer()}
-                        >
-                            {changelog ?? ''}
-                        </ReactMarkdown>
+                        <Markdown>{changelog ?? ''}</Markdown>
                     </ModalBody>
 
                     <ModalFooter>

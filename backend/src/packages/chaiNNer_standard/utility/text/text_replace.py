@@ -25,7 +25,7 @@ class ReplacementMode(Enum):
         EnumInput(
             ReplacementMode,
             label="Replace mode",
-            default_value=ReplacementMode.REPLACE_ALL,
+            default=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[
@@ -40,6 +40,7 @@ class ReplacementMode(Enum):
             """,
         ),
     ],
+    see_also=["chainner:utility:regex_replace"],
 )
 def text_replace_node(text: str, old: str, new: str, mode: ReplacementMode) -> str:
     if mode == ReplacementMode.REPLACE_ALL:
