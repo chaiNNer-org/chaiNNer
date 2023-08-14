@@ -25,7 +25,7 @@ class CropMode(Enum):
     icon="MdCrop",
     inputs=[
         ImageInput(),
-        EnumInput(CropMode, default_value=CropMode.BORDER).with_id(1),
+        EnumInput(CropMode, default=CropMode.BORDER).with_id(1),
         if_enum_group(1, CropMode.BORDER)(
             NumberInput("Amount", unit="px").with_id(2),
         ),
