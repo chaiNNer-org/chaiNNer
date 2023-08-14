@@ -57,7 +57,7 @@ export const createGuiApp = (args: OpenArguments) => {
 
     const isAllowMultipleInstances = settingStorage.getItem('allow-multiple-instances') === 'true';
 
-    const hasInstanceLock = app.requestSingleInstanceLock() || isAllowMultipleInstances;
+    const hasInstanceLock = isAllowMultipleInstances || app.requestSingleInstanceLock();
     if (!hasInstanceLock) {
         app.quit();
     }
