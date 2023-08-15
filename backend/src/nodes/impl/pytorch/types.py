@@ -8,13 +8,24 @@ from .architecture.LaMa import LaMa
 from .architecture.MAT import MAT
 from .architecture.OmniSR.OmniSR import OmniSR
 from .architecture.RRDB import RRDBNet as ESRGAN
+from .architecture.SCUNet import SCUNet
 from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.Swin2SR import Swin2SR
 from .architecture.SwinIR import SwinIR
 
-PyTorchSRModels = (RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR, Swin2SR, HAT, OmniSR)
+PyTorchSRModels = (
+    RealESRGANv2,
+    SPSR,
+    SwiftSRGAN,
+    ESRGAN,
+    SwinIR,
+    Swin2SR,
+    HAT,
+    OmniSR,
+    SCUNet,
+)
 PyTorchSRModel = Union[
     RealESRGANv2,
     SPSR,
@@ -24,6 +35,7 @@ PyTorchSRModel = Union[
     Swin2SR,
     HAT,
     OmniSR,
+    SCUNet,
 ]
 
 
