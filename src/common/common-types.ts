@@ -101,6 +101,8 @@ export interface NumberInput extends InputBase {
     readonly def: number;
     readonly min?: number | null;
     readonly max?: number | null;
+    readonly step: number | null;
+    readonly width: number;
     readonly precision: number;
     readonly controlsStep: number;
     readonly unit?: string | null;
@@ -332,6 +334,9 @@ export interface NumberSetting extends SettingBase {
     readonly type: 'number';
     readonly min: number;
     readonly max: number;
+    readonly step?: number;
+    readonly width?: number;
+    readonly unit?: string;
     readonly default: number;
 }
 

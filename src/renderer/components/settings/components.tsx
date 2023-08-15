@@ -1,6 +1,8 @@
 import {
     Button,
     HStack,
+    InputGroup,
+    InputRightElement,
     NumberDecrementStepper,
     NumberIncrementStepper,
     NumberInput,
@@ -82,31 +84,38 @@ export const DropdownSetting = memo(({ setting, value, setValue }: SettingsProps
 });
 
 export const NumberSetting = memo(({ setting, value, setValue }: SettingsProps<'number'>) => {
+    const isStepFloatingPoint = setting.step && Number(setting.step) % 1 !== 0;
+    const decimalPlaces = isStepFloatingPoint ? 1 : 0;
+    const formattedValue = isStepFloatingPoint ? value.toFixed(decimalPlaces) : Math.round(value);
+
     return (
         <SettingContainer
             description={setting.description}
             title={setting.label}
         >
-            <NumberInput
-                isDisabled={setting.disabled}
-                max={setting.max}
-                min={setting.min}
-                step={1}
-                value={value}
-                width="171px"
-                onChange={(v) => {
-                    const newValue = parseFloat(v);
-                    if (!Number.isNaN(newValue)) {
-                        setValue(newValue);
-                    }
-                }}
-            >
-                <NumberInputField />
-                <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                </NumberInputStepper>
-            </NumberInput>
+            <InputGroup>
+                <NumberInput
+                    isDisabled={setting.disabled}
+                    max={setting.max}
+                    min={setting.min}
+                    step={setting.step ? setting.step : 1}
+                    value={formattedValue}
+                    width={setting.width ? setting.width : '171'}
+                    onChange={(v) => {
+                        const newValue = parseFloat(v);
+                        if (!Number.isNaN(newValue)) {
+                            setValue(newValue);
+                        }
+                    }}
+                >
+                    <NumberInputField />
+                    <InputRightElement marginRight="1.5rem">{setting.unit}</InputRightElement>
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+            </InputGroup>
         </SettingContainer>
     );
 });
