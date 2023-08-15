@@ -70,18 +70,33 @@ def upscale_impl(
     net = get_ncnn_net(model, exec_options)
     # Try/except block to catch errors
     try:
-        if use_gpu:
-            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
 
-            def estimate_gpu():
+        def estimate():
+            heap_budget = exec_options.ncnn_budget_limit
+            model_size_estimate = model.model.bin_length
+
+            if use_gpu:
                 if is_mac:
                     # the actual estimate frequently crashes on mac, so we just use 256
                     return MaxTileSize(256)
 
-                heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
-                return MaxTileSize(
-                    estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
+                heap_budget = min(
+                    heap_budget, vkdev.get_heap_budget() * 1024 * 1024 * 0.8
                 )
+            else:
+                # Empirically determined
+                model_size_estimate = model_size_estimate * 5 / 3
+                if net.opt.use_winograd_convolution:
+                    model_size_estimate = model_size_estimate * 11 / 5
+                elif net.opt.use_sgemm_convolution:
+                    model_size_estimate = model_size_estimate * 40 / 5
+
+            return MaxTileSize(
+                estimate_tile_size(heap_budget, int(model_size_estimate), img, 4)
+            )
+
+        if use_gpu:
+            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
 
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
@@ -94,16 +109,9 @@ def upscale_impl(
                     output_name=output_name,
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
-                    tiler=parse_tile_size_input(tile_size, estimate_gpu),
+                    tiler=parse_tile_size_input(tile_size, estimate),
                 )
         else:
-
-            def estimate_cpu():
-                # TODO: Improve tile size estimation in CPU mode.
-                raise ValueError(
-                    "Tile size estimation not supported with NCNN CPU inference"
-                )
-
             return ncnn_auto_split(
                 img,
                 net,
@@ -111,7 +119,7 @@ def upscale_impl(
                 output_name=output_name,
                 blob_vkallocator=None,
                 staging_vkallocator=None,
-                tiler=parse_tile_size_input(tile_size, estimate_cpu),
+                tiler=parse_tile_size_input(tile_size, estimate),
             )
     except (RuntimeError, ValueError):
         raise
@@ -125,7 +133,7 @@ def upscale_impl(
     schema_id="chainner:ncnn:upscale_image",
     name="Upscale Image",
     description="Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
-            Select a manual number of tiles if you are having issues with the automatic mode.",
+            Select a manual number of tiles or set a memory budget limit if you are having issues with the automatic mode.",
     icon="NCNN",
     inputs=[
         ImageInput().with_id(1),
@@ -136,7 +144,7 @@ def upscale_impl(
             "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
             "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
             "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
-            "If you are having issues with the automatic mode, you can manually select a tile size. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
+            "If you are having issues with the automatic mode, you can manually select a tile size, or set a memory budget limit. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
         ),
     ],
     outputs=[

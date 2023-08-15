@@ -355,6 +355,7 @@ const PythonSettings = memo(() => {
         useIsFp16,
         usePyTorchGPU,
         useNcnnGPU,
+        useNcnnBudgetLimit,
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
@@ -394,6 +395,8 @@ const PythonSettings = memo(() => {
         }),
         [backend]
     );
+
+    const [ncnnBudgetLimit, setNcnnBudgetLimit] = useNcnnBudgetLimit;
 
     useEffect(() => {
         if (isCpu && isFp16) {
@@ -599,6 +602,28 @@ const PythonSettings = memo(() => {
                                 onChange={setNcnnGPU}
                             />
                         )}
+                        <SettingsItem
+                            description="Maximum memory to use for NCNN inference."
+                            title="NCNN memory budget limit (GiB)"
+                        >
+                            <NumberInput
+                                min={0}
+                                value={ncnnBudgetLimit / 1024 ** 3}
+                                onChange={(number: string) => {
+                                    const value = Number(number);
+
+                                    if (!Number.isNaN(value)) {
+                                        setNcnnBudgetLimit(value * 1024 ** 3);
+                                    }
+                                }}
+                            >
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                        </SettingsItem>
                     </VStack>
                 </TabPanel>
                 <TabPanel px={0}>

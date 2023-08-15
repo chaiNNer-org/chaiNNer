@@ -11,6 +11,7 @@ class ExecutionOptions:
         fp16: bool,
         pytorch_gpu_index: int,
         ncnn_gpu_index: int,
+        ncnn_budget_limit: int,
         onnx_gpu_index: int,
         onnx_execution_provider: str,
         onnx_should_tensorrt_cache: bool,
@@ -21,6 +22,7 @@ class ExecutionOptions:
         self.__fp16 = fp16
         self.__pytorch_gpu_index = pytorch_gpu_index
         self.__ncnn_gpu_index = ncnn_gpu_index
+        self.__ncnn_budget_limit = ncnn_budget_limit
         self.__onnx_gpu_index = onnx_gpu_index
         self.__onnx_execution_provider = onnx_execution_provider
         self.__onnx_should_tensorrt_cache = onnx_should_tensorrt_cache
@@ -34,7 +36,7 @@ class ExecutionOptions:
             os.makedirs(onnx_tensorrt_cache_path)
 
         logger.debug(
-            f"PyTorch execution options: fp16: {fp16}, device: {self.full_device} | NCNN execution options: gpu_index: {ncnn_gpu_index} | ONNX execution options: gpu_index: {onnx_gpu_index}, execution_provider: {onnx_execution_provider}, should_tensorrt_cache: {onnx_should_tensorrt_cache}, tensorrt_cache_path: {onnx_tensorrt_cache_path}, should_tensorrt_fp16: {onnx_should_tensorrt_fp16}"
+            f"PyTorch execution options: fp16: {fp16}, device: {self.full_device} | NCNN execution options: gpu_index: {ncnn_gpu_index}, budget_limit: {ncnn_budget_limit} | ONNX execution options: gpu_index: {onnx_gpu_index}, execution_provider: {onnx_execution_provider}, should_tensorrt_cache: {onnx_should_tensorrt_cache}, tensorrt_cache_path: {onnx_tensorrt_cache_path}, should_tensorrt_fp16: {onnx_should_tensorrt_fp16}"
         )
 
     @property
@@ -54,6 +56,10 @@ class ExecutionOptions:
     @property
     def ncnn_gpu_index(self):
         return self.__ncnn_gpu_index
+
+    @property
+    def ncnn_budget_limit(self):
+        return self.__ncnn_budget_limit
 
     @property
     def onnx_gpu_index(self):
@@ -77,7 +83,7 @@ class ExecutionOptions:
 
 
 __global_exec_options = ExecutionOptions(
-    "cpu", False, 0, 0, 0, "CPUExecutionProvider", False, "", False
+    "cpu", False, 0, 0, 1024**5, 0, "CPUExecutionProvider", False, "", False
 )
 
 
@@ -97,6 +103,7 @@ class JsonExecutionOptions(TypedDict):
     isFp16: bool
     pytorchGPU: int
     ncnnGPU: int
+    ncnnBudgetLimit: int
     onnxGPU: int
     onnxExecutionProvider: str
     onnxShouldTensorRtCache: bool
@@ -110,6 +117,7 @@ def parse_execution_options(json: JsonExecutionOptions) -> ExecutionOptions:
         fp16=json["isFp16"],
         pytorch_gpu_index=json["pytorchGPU"],
         ncnn_gpu_index=json["ncnnGPU"],
+        ncnn_budget_limit=json["ncnnBudgetLimit"],
         onnx_gpu_index=json["onnxGPU"],
         onnx_execution_provider=json["onnxExecutionProvider"],
         onnx_should_tensorrt_cache=json["onnxShouldTensorRtCache"],

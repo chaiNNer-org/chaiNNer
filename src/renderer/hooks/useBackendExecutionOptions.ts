@@ -12,6 +12,7 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         useIsFp16,
         usePyTorchGPU,
         useNcnnGPU,
+        useNcnnBudgetLimit,
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
@@ -22,6 +23,7 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
     const [isFp16] = useIsFp16;
     const [pytorchGPU] = usePyTorchGPU;
     const [ncnnGPU] = useNcnnGPU;
+    const [ncnnBudgetLimit] = useNcnnBudgetLimit;
     const [onnxGPU] = useOnnxGPU;
     const [onnxExecutionProvider] = useOnnxExecutionProvider;
     const [onnxShouldTensorRtCache] = useOnnxShouldTensorRtCache;
@@ -43,6 +45,7 @@ export const useBackendExecutionOptions = (): BackendExecutionOptions => {
         isFp16,
         pytorchGPU,
         ncnnGPU,
+        ncnnBudgetLimit,
         onnxGPU,
         onnxExecutionProvider,
         onnxShouldTensorRtCache,

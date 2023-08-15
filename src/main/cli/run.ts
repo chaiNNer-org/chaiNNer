@@ -133,6 +133,7 @@ const getExecutionOptions = (): BackendExecutionOptions => {
         isFp16: getSetting('is-fp16', false),
         pytorchGPU: getSetting('pytorch-gpu', 0),
         ncnnGPU: getSetting('ncnn-gpu', 0),
+        ncnnBudgetLimit: getSetting('ncnn-budget-limit', 1024 ** 5),
         onnxGPU: getSetting('onnx-gpu', 0),
         onnxExecutionProvider: getSetting('onnx-execution-provider', 'CUDAExecutionProvider'),
         onnxShouldTensorRtCache: getSetting('onnx-should-tensorrt-cache', false),

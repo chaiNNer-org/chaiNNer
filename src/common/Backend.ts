@@ -72,6 +72,7 @@ export interface BackendExecutionOptions {
     isFp16: boolean;
     pytorchGPU: number;
     ncnnGPU: number;
+    ncnnBudgetLimit: number;
     onnxGPU: number;
     onnxExecutionProvider: string;
     onnxShouldTensorRtCache: boolean;

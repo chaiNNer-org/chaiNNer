@@ -12,6 +12,7 @@ interface Settings {
     useIsFp16: GetSetState<boolean>;
     usePyTorchGPU: GetSetState<number>;
     useNcnnGPU: GetSetState<number>;
+    useNcnnBudgetLimit: GetSetState<number>;
     useOnnxGPU: GetSetState<number>;
     useOnnxExecutionProvider: GetSetState<string>;
     useOnnxShouldTensorRtCache: GetSetState<boolean>;
@@ -47,6 +48,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
     const usePyTorchGPU = useMemoArray(useLocalStorage('pytorch-gpu', 0));
     const useNcnnGPU = useMemoArray(useLocalStorage('ncnn-gpu', 0));
+    const useNcnnBudgetLimit = useMemoArray(useLocalStorage('ncnn-budget-limit', 1024 ** 5));
     const useOnnxGPU = useMemoArray(useLocalStorage('onnx-gpu', 0));
     const useOnnxExecutionProvider = useMemoArray(
         useLocalStorage('onnx-execution-provider', 'CUDAExecutionProvider')
@@ -109,6 +111,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useIsFp16,
         usePyTorchGPU,
         useNcnnGPU,
+        useNcnnBudgetLimit,
         useOnnxGPU,
         useOnnxExecutionProvider,
         useOnnxShouldTensorRtCache,
