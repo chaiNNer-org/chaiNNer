@@ -24,6 +24,7 @@ interface Settings {
     useExperimentalFeatures: GetSetState<boolean>;
     useEnableHardwareAcceleration: GetSetState<boolean>;
     useViewportExportPadding: GetSetState<number>;
+    useAllowMultipleInstances: GetSetState<boolean>;
 
     // Node Settings
     useNodeFavorites: GetSetState<readonly SchemaId[]>;
@@ -77,6 +78,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useEnableHardwareAcceleration = useMemoArray(
         useLocalStorage('enable-hardware-acceleration', false)
     );
+    const useAllowMultipleInstances = useMemoArray(
+        useLocalStorage('allow-multiple-instances', false)
+    );
 
     const contextValue = useMemoObject<Settings>({
         // Globals
@@ -91,6 +95,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useExperimentalFeatures,
         useEnableHardwareAcceleration,
         useViewportExportPadding,
+        useAllowMultipleInstances,
 
         // Node
         useNodeFavorites,

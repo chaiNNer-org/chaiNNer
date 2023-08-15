@@ -41,6 +41,7 @@ from .. import resize_group
             assume_normalized=True,
         )
     ],
+    limited_to_8bpc=True,
 )
 def resize_factor_node(
     img: np.ndarray, scale: float, interpolation: InterpolationMethod

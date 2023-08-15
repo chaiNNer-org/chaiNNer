@@ -129,9 +129,20 @@ class NodeGroup:
         decorators: List[Callable] | None = None,
         see_also: List[str] | str | None = None,
         features: List[FeatureId] | FeatureId | None = None,
+        limited_to_8bpc: bool | str = False,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
+
+        if limited_to_8bpc:
+            description += "\n\n#### Limited color depth\n\n"
+            if isinstance(limited_to_8bpc, str):
+                description += f" {limited_to_8bpc}"
+            else:
+                description += (
+                    "This node will internally convert input images to 8 bits/channel."
+                    " This is generally only a problem if you intend to save the output with 16 bits/channel or higher."
+                )
 
         def to_list(x: List[S] | S | None) -> List[S]:
             if x is None:

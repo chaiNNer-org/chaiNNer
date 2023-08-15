@@ -142,6 +142,7 @@ def upscale_impl(
     outputs=[
         ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
     ],
+    limited_to_8bpc=True,
 )
 def upscale_image_node(
     img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize

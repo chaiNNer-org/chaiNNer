@@ -57,6 +57,7 @@ class InpaintAlgorithm(Enum):
             )
         ).with_never_reason("The given image and mask must have the same resolution.")
     ],
+    limited_to_8bpc=True,
 )
 def inpaint_node(
     img: np.ndarray,

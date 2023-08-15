@@ -197,6 +197,7 @@ def iterator_helper_write_output_frame_node(
         },
     ],
     side_effects=True,
+    limited_to_8bpc="The video will be read and written as 8-bit RGB.",
 )
 async def video_frame_iterator_node(path: str, context: IteratorContext) -> None:
     logger.debug(f"{ffmpeg_path=}, {ffprobe_path=}")

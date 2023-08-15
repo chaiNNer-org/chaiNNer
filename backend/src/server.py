@@ -525,24 +525,45 @@ async def get_features(_request: Request):
     return json(features_json)
 
 
+@app.get("/sse")
+async def sse(request: Request):
+    ctx = AppContext.get(request.app)
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await ctx.queue.get()
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
+@app.get("/setup-sse")
+async def setup_sse(request: Request):
+    ctx = AppContext.get(request.app)
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await ctx.setup_queue.get()
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
 async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
 ):
     async def install_deps(dependencies: List[api.Dependency]):
-        try:
-            dep_info: List[DependencyInfo] = [
-                {
-                    "package_name": dep.pypi_name,
-                    "display_name": dep.display_name,
-                    "version": dep.version,
-                    "from_file": None,
-                }
-                for dep in dependencies
-            ]
-            await install_dependencies(dep_info, update_progress_cb, logger)
-        except Exception as ex:
-            logger.error(f"Error installing dependencies: {ex}")
+        dep_info: List[DependencyInfo] = [
+            {
+                "package_name": dep.pypi_name,
+                "display_name": dep.display_name,
+                "version": dep.version,
+                "from_file": None,
+            }
+            for dep in dependencies
+        ]
+        await install_dependencies(dep_info, update_progress_cb, logger)
 
     # Manually import built-in packages to get ordering correct
     # Using importlib here so we don't have to ignore that it isn't used
@@ -572,7 +593,14 @@ async def import_packages(
                 to_install.append(dep)
 
     if len(to_install) > 0:
-        await install_deps(to_install)
+        try:
+            await install_deps(to_install)
+        except Exception as ex:
+            logger.error(f"Error installing dependencies: {ex}")
+            if config.close_after_start:
+                raise ValueError(  # pylint: disable=raise-missing-from
+                    "Error installing dependencies"
+                )
 
     logger.info("Done checking dependencies...")
 
@@ -583,30 +611,6 @@ async def import_packages(
     await update_progress_cb("Loading Nodes...", 1.0, None)
 
     api.registry.load_nodes(__file__)
-
-
-@app.get("/sse")
-async def sse(request: Request):
-    ctx = AppContext.get(request.app)
-    headers = {"Cache-Control": "no-cache"}
-    response = await request.respond(headers=headers, content_type="text/event-stream")
-    while True:
-        message = await ctx.queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
-
-
-@app.get("/setup-sse")
-async def setup_sse(request: Request):
-    ctx = AppContext.get(request.app)
-    headers = {"Cache-Control": "no-cache"}
-    response = await request.respond(headers=headers, content_type="text/event-stream")
-    while True:
-        message = await ctx.setup_queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
 
 
 async def apple_silicon_setup():
@@ -675,7 +679,6 @@ async def close_server(sanic_app: Sanic):
 
     try:
         await nodes_available()
-        exit_code = 0
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
         exit_code = 1
