@@ -11,11 +11,10 @@ from nodes.impl.pytorch.types import PyTorchModel
 from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
-from nodes.utils.exec_options import get_execution_options
 from nodes.utils.unpickler import RestrictedUnpickle
 from nodes.utils.utils import split_file_path
 
-from ... import package as pytorch_package
+from ... import get_pytorch_settings
 from .. import io_group
 
 
@@ -48,8 +47,10 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
-    exec_options = pytorch_package.get_execution_settings()
-    pytorch_device = get_pytorch_device(exec_options)
+    exec_options = get_pytorch_settings()
+    pytorch_device = get_pytorch_device(
+        exec_options.get("cpu_mode", False), exec_options.get("gpu", 0)
+    )
     logger.info(f"Execution options: {exec_options}")
 
     try:

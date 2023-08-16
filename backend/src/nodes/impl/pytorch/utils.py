@@ -6,18 +6,17 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from ...utils.exec_options import PackageExecutionOptions
 from ..image_utils import as_3d
 from ..onnx.np_tensor_utils import MAX_VALUES_BY_DTYPE, np_denorm
 
 
-def get_pytorch_device(pytorch_options: PackageExecutionOptions) -> torch.device:
+def get_pytorch_device(use_cpu: bool = False, gpu_index: int = 0) -> torch.device:
     # CPU override
-    if pytorch_options.get("cpu_mode", False):
+    if use_cpu:
         device = "cpu"
     # Check for Nvidia CUDA
     elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
-        device = "cuda:" + pytorch_options.get("gpu", "0")
+        device = f"cuda:{gpu_index}"
     # Check for Apple MPS
     elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
         device = "mps"

@@ -8,7 +8,7 @@ from sanic.log import logger
 
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
-from nodes.impl.pytorch.utils import to_pytorch_execution_options
+from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
     estimate_tile_size,
@@ -18,9 +18,9 @@ from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import ImageInput, SrModelInput, TileSizeDropdown
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import ExecutionOptions, get_execution_options
 from nodes.utils.utils import get_h_w_c
 
+from ... import PyTorchSettings, get_pytorch_settings
 from .. import processing_group
 
 
@@ -28,18 +28,20 @@ def upscale(
     img: np.ndarray,
     model: PyTorchSRModel,
     tile_size: TileSize,
-    options: ExecutionOptions,
+    options: PyTorchSettings,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
         logger.debug("Upscaling image")
 
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.fp16 and model.supports_fp16
-        device = torch.device(options.full_device)
+        use_fp16 = options.get("fp16_mode", False) and model.supports_fp16
+        device = get_pytorch_device(
+            options.get("cpu_mode", False), options.get("gpu", 0)
+        )
 
         def estimate():
-            if "cuda" in options.full_device:
+            if "cuda" in device.type:
                 mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
@@ -101,7 +103,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
 
-    exec_options = to_pytorch_execution_options(get_execution_options())
+    exec_options = get_pytorch_settings()
 
     logger.debug(f"Upscaling image...")
 

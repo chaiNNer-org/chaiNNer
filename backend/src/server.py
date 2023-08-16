@@ -237,7 +237,6 @@ async def run_individual(request: Request):
         logger.debug(full_data)
         exec_opts = parse_execution_options(full_data["options"])
         set_execution_options(exec_opts)
-        logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
         node_instance = api.registry.get_node(full_data["schemaId"])
 

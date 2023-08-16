@@ -1,5 +1,5 @@
 import sys
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from sanic.log import logger
 
@@ -169,9 +169,14 @@ PyTorchSettings = TypedDict(
     {
         "cpu_mode": bool,
         "fp16_mode": bool,
-        "gpu": str,
+        "gpu": int,
     },
 )
+
+
+def get_pytorch_settings() -> PyTorchSettings:
+    return cast(PyTorchSettings, package.get_execution_settings())
+
 
 pytorch_category = package.add_category(
     name="PyTorch",

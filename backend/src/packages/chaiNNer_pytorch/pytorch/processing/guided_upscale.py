@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-import torch
 
 from nodes.impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
 from nodes.impl.pytorch.pix_transform.pix_transform import Params
@@ -9,9 +8,8 @@ from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.impl.upscale.grayscale import SplitMode
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import get_execution_options
 
-from ... import package as pytorch_package
+from ... import get_pytorch_settings
 from .. import processing_group
 
 
@@ -76,12 +74,15 @@ def guided_upscale_node(
     iterations: float,
     split_mode: SplitMode,
 ) -> np.ndarray:
-    exec_options = pytorch_package.get_execution_settings()
+    exec_options = get_pytorch_settings()
+    pytorch_device = get_pytorch_device(
+        exec_options.get("cpu_mode", False), exec_options.get("gpu", 0)
+    )
 
     return pix_transform_auto_split(
         source=source,
         guide=guide,
-        device=get_pytorch_device(exec_options),
+        device=pytorch_device,
         params=Params(iteration=int(iterations * 1000)),
         split_mode=split_mode,
     )
