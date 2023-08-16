@@ -33,7 +33,7 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import { readdir, unlink } from 'fs/promises';
+import { access, mkdir, readdir, unlink } from 'fs/promises';
 import { produce } from 'immer';
 import path from 'path';
 import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
@@ -193,6 +193,20 @@ function CacheSetting({
                 title={title}
                 value={value}
                 onToggle={() => {
+                    if (!value) {
+                        // Make sure the cache directory exists
+                        ipcRenderer
+                            .invoke('get-appdata')
+                            .then(async (appDataPath: string) => {
+                                const cacheLocation = getCacheLocation(appDataPath, cacheKey);
+                                try {
+                                    await access('somefile');
+                                } catch (error) {
+                                    await mkdir(cacheLocation, { recursive: true });
+                                }
+                            })
+                            .catch(log.error);
+                    }
                     onChange(!value);
                 }}
             />
@@ -585,7 +599,7 @@ const PythonSettings = memo(() => {
                             w="full"
                         >
                             {pkg.settings.map((setting) => {
-                                const packageSettings = backendSettings[pkg.name] ?? {};
+                                const packageSettings = backendSettings[pkg.id] ?? {};
                                 const thisSetting =
                                     packageSettings[setting.key as keyof typeof packageSettings];
                                 return (
@@ -594,9 +608,13 @@ const PythonSettings = memo(() => {
                                         setSettingValue={(value) => {
                                             setBackendSettings((prev) =>
                                                 produce(prev, (draftState) => {
+                                                    if (!draftState[pkg.id]) {
+                                                        // eslint-disable-next-line no-param-reassign
+                                                        draftState[pkg.id] = {};
+                                                    }
                                                     // eslint-disable-next-line no-param-reassign
-                                                    draftState[pkg.name][setting.key] =
-                                                        value ?? prev[pkg.name][setting.key];
+                                                    draftState[pkg.id][setting.key] =
+                                                        value ?? prev[pkg.id][setting.key];
                                                 })
                                             );
                                         }}

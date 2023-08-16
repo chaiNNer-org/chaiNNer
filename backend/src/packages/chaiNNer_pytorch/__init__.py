@@ -1,4 +1,5 @@
 import sys
+from typing import TypedDict
 
 from sanic.log import logger
 
@@ -162,6 +163,15 @@ if not is_arm_mac:
             disabled=len(gpu_list) <= 1,
         )
     )
+
+PyTorchSettings = TypedDict(
+    "pytorch_settings",
+    {
+        "cpu_mode": bool,
+        "fp16_mode": bool,
+        "gpu": str,
+    },
+)
 
 pytorch_category = package.add_category(
     name="PyTorch",

@@ -12,9 +12,10 @@ from typing import (
     NewType,
     Optional,
     Tuple,
+    Type,
     TypedDict,
     TypeVar,
-    Union,
+    cast,
 )
 
 from sanic.log import logger
@@ -32,6 +33,7 @@ from node_check import (
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
+from nodes.utils.exec_options import PackageExecutionOptions, get_execution_options
 
 KB = 1024**1
 MB = 1024**2
@@ -302,6 +304,9 @@ class FeatureState:
         return FeatureState(is_enabled=False, details=details)
 
 
+S = TypeVar("S")
+
+
 @dataclass
 class Package:
     where: str
@@ -360,6 +365,10 @@ class Package:
         feature = Feature(id=id, name=name, description=description)
         self.features.append(feature)
         return feature
+
+    def get_execution_settings(self):
+        # TODO: Do something with package settings to type hint this?
+        return get_execution_options().get_package_settings(self.id)
 
 
 def _iter_py_files(directory: str):

@@ -8,13 +8,14 @@ from sanic.log import logger
 
 from nodes.impl.pytorch.model_loading import load_state_dict
 from nodes.impl.pytorch.types import PyTorchModel
-from nodes.impl.pytorch.utils import to_pytorch_execution_options
+from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.exec_options import get_execution_options
 from nodes.utils.unpickler import RestrictedUnpickle
 from nodes.utils.utils import split_file_path
 
+from ... import package as pytorch_package
 from .. import io_group
 
 
@@ -47,19 +48,21 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
-    exec_options = to_pytorch_execution_options(get_execution_options())
+    exec_options = pytorch_package.get_execution_settings()
+    pytorch_device = get_pytorch_device(exec_options)
+    logger.info(f"Execution options: {exec_options}")
 
     try:
         logger.debug(f"Reading state dict from path: {path}")
 
         if os.path.splitext(path)[1].lower() == ".pt":
             state_dict = torch.jit.load(  # type: ignore
-                path, map_location=torch.device(exec_options.full_device)
+                path, map_location=pytorch_device
             ).state_dict()
         else:
             state_dict = torch.load(
                 path,
-                map_location=torch.device(exec_options.full_device),
+                map_location=pytorch_device,
                 pickle_module=RestrictedUnpickle,  # type: ignore
             )
 
@@ -68,10 +71,10 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model = model.to(torch.device(exec_options.full_device))
+        model = model.to(pytorch_device)
         if not hasattr(model, "supports_fp16"):
             model.supports_fp16 = False  # type: ignore
-        should_use_fp16 = exec_options.fp16 and model.supports_fp16
+        should_use_fp16 = exec_options.get("fp16_mode", False) and model.supports_fp16
         if should_use_fp16:
             model = model.half()
         else:

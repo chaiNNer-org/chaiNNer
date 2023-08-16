@@ -6,18 +6,18 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from ...utils.exec_options import ExecutionOptions
+from ...utils.exec_options import PackageExecutionOptions
 from ..image_utils import as_3d
 from ..onnx.np_tensor_utils import MAX_VALUES_BY_DTYPE, np_denorm
 
 
-def to_pytorch_execution_options(options: ExecutionOptions):
+def get_pytorch_device(pytorch_options: PackageExecutionOptions) -> torch.device:
     # CPU override
-    if options.full_device == "cpu":
+    if pytorch_options.get("cpu_mode", False):
         device = "cpu"
     # Check for Nvidia CUDA
     elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
-        device = "cuda"
+        device = "cuda:" + pytorch_options.get("gpu", "0")
     # Check for Apple MPS
     elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
         device = "mps"
@@ -27,17 +27,7 @@ def to_pytorch_execution_options(options: ExecutionOptions):
     else:
         device = "cpu"
 
-    return ExecutionOptions(
-        device=device,
-        fp16=options.fp16,
-        pytorch_gpu_index=options.pytorch_gpu_index,
-        ncnn_gpu_index=options.ncnn_gpu_index,
-        onnx_gpu_index=options.onnx_gpu_index,
-        onnx_execution_provider=options.onnx_execution_provider,
-        onnx_should_tensorrt_cache=options.onnx_should_tensorrt_cache,
-        onnx_tensorrt_cache_path=options.onnx_tensorrt_cache_path,
-        onnx_should_tensorrt_fp16=options.onnx_should_tensorrt_fp16,
-    )
+    return torch.device(device)
 
 
 def bgr_to_rgb(image: Tensor) -> Tensor:
