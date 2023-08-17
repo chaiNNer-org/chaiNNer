@@ -226,7 +226,7 @@ def save_image_node(
     logger.debug(f"Writing image to path: {full_path}")
 
     # Create directory if it doesn't exist
-    os.makedirs(base_directory, exist_ok=True)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
     # DDS files are handled separately
     if image_format == ImageFormat.DDS:

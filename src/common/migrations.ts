@@ -1219,6 +1219,62 @@ const saveImageWebPLossless: ModernMigration = (data) => {
     return data;
 };
 
+const unifiedCrop: ModernMigration = (data) => {
+    const map = new Map<string, string>();
+    const changeInputId = (nodeId: string, from: number, to: number) => {
+        map.set(`${nodeId}-${from}`, `${nodeId}-${to}`);
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:crop_border') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 0,
+                2: node.data.inputData[1],
+            };
+            changeInputId(node.id, 1, 2);
+        }
+
+        if (node.data.schemaId === 'chainner:image:crop_edges') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 1,
+                3: node.data.inputData[1],
+                4: node.data.inputData[2],
+                5: node.data.inputData[4],
+                6: node.data.inputData[3],
+            };
+            changeInputId(node.id, 1, 3);
+            changeInputId(node.id, 2, 4);
+            changeInputId(node.id, 3, 6);
+            changeInputId(node.id, 4, 5);
+        }
+
+        if (node.data.schemaId === 'chainner:image:crop_offsets') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 2,
+                3: node.data.inputData[1],
+                4: node.data.inputData[2],
+                7: node.data.inputData[3],
+                8: node.data.inputData[4],
+            };
+            changeInputId(node.id, 1, 3);
+            changeInputId(node.id, 2, 4);
+            changeInputId(node.id, 3, 7);
+            changeInputId(node.id, 4, 8);
+        }
+    });
+
+    data.edges.forEach((e) => {
+        if (e.targetHandle) {
+            e.targetHandle = map.get(e.targetHandle) ?? e.targetHandle;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1268,6 +1324,7 @@ const migrations = [
     emptyStringInput,
     surfaceBlurRadius,
     saveImageWebPLossless,
+    unifiedCrop,
 ];
 
 export const currentMigration = migrations.length;

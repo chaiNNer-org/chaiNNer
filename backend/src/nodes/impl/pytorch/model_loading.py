@@ -8,6 +8,7 @@ from .architecture.LaMa import LaMa
 from .architecture.MAT import MAT
 from .architecture.OmniSR.OmniSR import OmniSR
 from .architecture.RRDB import RRDBNet as ESRGAN
+from .architecture.SCUNet import SCUNet
 from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
@@ -84,6 +85,9 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # Omni-SR
     elif "residual_layer.0.residual_layer.0.layer.0.fn.0.weight" in state_dict_keys:
         model = OmniSR(state_dict)
+    # SCUNet
+    elif "m_head.0.weight" in state_dict_keys and "m_tail.0.weight" in state_dict_keys:
+        model = SCUNet(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:

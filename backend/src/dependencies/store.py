@@ -72,7 +72,7 @@ def install_dependencies_sync(
     if len(dependencies_to_install) == 0:
         return
 
-    subprocess.check_call(
+    exit_code = subprocess.check_call(
         [
             python_path,
             "-m",
@@ -83,6 +83,9 @@ def install_dependencies_sync(
             "--no-warn-script-location",
         ]
     )
+    if exit_code != 0:
+        raise ValueError("An error occurred while installing dependencies.")
+
     for dep_info in dependencies_to_install:
         package_name = dep_info["package_name"]
         version = dep_info["version"]
@@ -142,7 +145,7 @@ async def install_dependencies(
         if nextline == b"" and process.poll() is not None:
             break
         line = nextline.decode("utf-8").strip()
-        if logger is not None:
+        if logger is not None and not line.startswith("Progress:"):
             logger.info(line)
         # The Collecting step of pip. It tells us what package is being installed.
         if "Collecting" in line:
@@ -189,7 +192,10 @@ async def install_dependencies(
         elif "Installing collected packages" in line:
             await update_progress_cb(f"Installing collected dependencies...", 0.9, None)
 
-    process.wait()
+    exit_code = process.wait()
+    if exit_code != 0:
+        raise ValueError("An error occurred while installing dependencies.")
+
     await update_progress_cb(f"Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
