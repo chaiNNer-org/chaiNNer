@@ -230,6 +230,8 @@ const createBackend = async (token: ProgressToken, args: OpenArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
 
+    log.info(`chaiNNer Version: ${version}`);
+
     return setupBackend(
         token,
         useSystemPython,
