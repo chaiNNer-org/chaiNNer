@@ -39,6 +39,7 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
         "CodeFormer",
         "LaMa",
         "MAT",
+        "SCUNet",
     ]:
         return []
     else:
