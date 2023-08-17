@@ -23,6 +23,13 @@ class ServerConfig:
     Usage: `--install-builtin-packages`
     """
 
+    error_on_failed_node: bool = False
+    """
+    Errors and exits the server with a non-zero exit code if a node fails to import.
+
+    Usage: `--error-on-failed-node`
+    """
+
     @staticmethod
     def parse_argv() -> "ServerConfig":
         # Remove the first argument, which is the script name.
@@ -44,8 +51,14 @@ class ServerConfig:
             install_builtin_packages = True
             argv.remove("--install-builtin-packages")
 
+        error_on_failed_node = False
+        if "--error-on-failed-node" in argv:
+            error_on_failed_node = True
+            argv.remove("--error-on-failed-node")
+
         return ServerConfig(
             port=port,
             close_after_start=close_after_start,
             install_builtin_packages=install_builtin_packages,
+            error_on_failed_node=error_on_failed_node,
         )
