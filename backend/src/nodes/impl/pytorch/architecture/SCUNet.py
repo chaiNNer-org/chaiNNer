@@ -10,9 +10,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from timm.models.layers import DropPath, trunc_normal_
 
 from nodes.utils.utils import round_half_up
+
+from .timm.drop import DropPath
+from .timm.weight_init import trunc_normal_
 
 
 # Borrowed from https://github.com/cszn/SCUNet/blob/main/models/network_scunet.py
