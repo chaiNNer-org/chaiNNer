@@ -605,7 +605,23 @@ async def import_packages(
 
     await update_progress_cb("Loading Nodes...", 1.0, None)
 
-    api.registry.load_nodes(__file__)
+    load_errors = api.registry.load_nodes(__file__)
+    if len(load_errors) > 0:
+        import_errors: List[api.LoadErrorInfo] = []
+        for e in load_errors:
+            if not isinstance(e.error, ModuleNotFoundError):
+                logger.warning(f"Failed to load {e.module} ({e.file}):")
+                logger.warning(e.error)
+            else:
+                import_errors.append(e)
+
+        if len(import_errors) > 0:
+            logger.warning(f"Failed to import {len(import_errors)} modules:")
+            for e in import_errors:
+                logger.warning(f"{e.error}  ->  {e.module}")
+
+        if config.error_on_failed_node:
+            raise ValueError("Error importing nodes")
 
 
 async def apple_silicon_setup():
