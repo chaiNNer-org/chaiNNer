@@ -473,7 +473,9 @@ class ToggleSetting:
     type: str = "toggle"
 
 
-DropdownOption = TypedDict("DropdownOption", {"label": str, "value": str})
+class DropdownOption(TypedDict):
+    label: str
+    value: str
 
 
 @dataclass
