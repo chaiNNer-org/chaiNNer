@@ -211,3 +211,8 @@ body {
 .chakra-modal__content-container {
     z-index: 6000 !important;
 }
+
+// This moves the toasts behind the greay overlay
+.chakra-modal__overlay {
+    z-index: 5700 !important;
+}
