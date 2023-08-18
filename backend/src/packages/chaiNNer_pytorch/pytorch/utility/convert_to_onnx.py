@@ -8,11 +8,10 @@ import torch
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.architecture.SCUNet import SCUNet
 from nodes.impl.pytorch.types import PyTorchSRModel
-from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
-from ... import get_pytorch_settings
+from ...settings import get_settings
 from .. import utility_group
 
 
@@ -42,13 +41,11 @@ def convert_to_onnx_node(
     ), "SCUNet is not supported for NCNN conversion at this time."
 
     fp16 = bool(is_fp16)
-    exec_options = get_pytorch_settings()
-    device = get_pytorch_device(
-        exec_options.get("cpu_mode", False), exec_options.get("gpu", 0)
-    )
+    exec_options = get_settings()
+    device = exec_options.device
     if fp16:
-        assert exec_options.get(
-            "fp16_mode", False
+        assert (
+            exec_options.use_fp16
         ), "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
     model = model.eval()
@@ -61,9 +58,7 @@ def convert_to_onnx_node(
     dummy_input = torch.rand(1, model.in_nc, 64, 64)
     dummy_input = dummy_input.to(device)
 
-    should_use_fp16 = (
-        exec_options.get("fp16_mode", False) and model.supports_fp16 and fp16
-    )
+    should_use_fp16 = exec_options.use_fp16 and model.supports_fp16 and fp16
     if should_use_fp16:
         model = model.half()
         dummy_input = dummy_input.half()

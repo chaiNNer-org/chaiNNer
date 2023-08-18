@@ -14,18 +14,12 @@ from torchvision.transforms.functional import normalize as tv_normalize
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.types import PyTorchFaceModel
-from nodes.impl.pytorch.utils import (
-    get_pytorch_device,
-    np2tensor,
-    safe_cuda_cache_empty,
-    tensor2np,
-)
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
 
-from ... import PyTorchSettings, get_pytorch_settings
+from ...settings import PyTorchSettings, get_settings
 from .. import restoration_group
 
 
@@ -59,7 +53,7 @@ def upscale(
     # align and warp each face
     face_helper.align_warp_face()
 
-    should_use_fp16 = exec_options.get("fp16_mode", False) and face_model.supports_fp16
+    should_use_fp16 = exec_options.use_fp16 and face_model.supports_fp16
     if should_use_fp16:
         face_model = face_model.half()
     else:
@@ -165,10 +159,8 @@ def upscale_face_node(
     try:
         img = denormalize(img)
 
-        exec_options = get_pytorch_settings()
-        device = get_pytorch_device(
-            exec_options.get("cpu_mode", False), exec_options.get("gpu", 0)
-        )
+        exec_options = get_settings()
+        device = exec_options.device
 
         with torch.no_grad():
             appdata_path = user_data_dir(roaming=True)

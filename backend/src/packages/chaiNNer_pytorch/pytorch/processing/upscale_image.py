@@ -9,7 +9,6 @@ from sanic.log import logger
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
-from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.impl.upscale.auto_split_tiles import (
     NO_TILING,
     TileSize,
@@ -22,7 +21,7 @@ from nodes.properties.inputs import ImageInput, SrModelInput, TileSizeDropdown
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from ... import PyTorchSettings, get_pytorch_settings
+from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
 
 
@@ -37,10 +36,8 @@ def upscale(
         logger.debug("Upscaling image")
 
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.get("fp16_mode", False) and model.supports_fp16
-        device = get_pytorch_device(
-            options.get("cpu_mode", False), options.get("gpu", 0)
-        )
+        use_fp16 = options.use_fp16 and model.supports_fp16
+        device = options.device
 
         def estimate():
             if "cuda" in device.type:
@@ -124,7 +121,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
 
-    exec_options = get_pytorch_settings()
+    exec_options = get_settings()
 
     logger.debug(f"Upscaling image...")
 

@@ -20,7 +20,7 @@ from nodes.properties.inputs.pytorch_inputs import InpaintModelInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from ... import PyTorchSettings, get_pytorch_settings
+from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
 
 
@@ -62,10 +62,8 @@ def inpaint(
 ):
     with torch.no_grad():
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.get("fp16_mode", False) and model.supports_fp16
-        device = get_pytorch_device(
-            options.get("cpu_mode", False), options.get("gpu", 0)
-        )
+        use_fp16 = options.use_fp16 and model.supports_fp16
+        device = options.device
 
         model = model.to(device)
         model = model.half() if use_fp16 else model.float()
@@ -160,6 +158,6 @@ def inpaint_node(
         img.shape[:2] == mask.shape[:2]
     ), "Input image and mask must have the same resolution"
 
-    exec_options = get_pytorch_settings()
+    exec_options = get_settings()
 
     return inpaint(img, mask, model, exec_options)
