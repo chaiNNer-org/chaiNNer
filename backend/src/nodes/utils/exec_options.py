@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, Union
 
 from sanic.log import logger
 
-PackageExecutionOptions = Dict[str, str]
+PackageExecutionOptions = Dict[str, Union[str, bool, int, float]]
 JsonExecutionOptions = Dict[str, PackageExecutionOptions]
 
 

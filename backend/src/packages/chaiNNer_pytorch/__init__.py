@@ -1,9 +1,8 @@
 import sys
-from typing import TypedDict, cast
 
 from sanic.log import logger
 
-from api import GB, KB, MB, Dependency, DropdownSetting, ToggleSetting, add_package
+from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
@@ -119,64 +118,6 @@ package = add_package(
     icon="PyTorch",
     color="#DD6B20",
 )
-
-package.add_setting(
-    ToggleSetting(
-        label="CPU Mode",
-        key="cpu_mode",
-        description="Use CPU for PyTorch instead of GPU. This is much slower and not recommended.",
-        default=False,
-    ),
-)
-
-package.add_setting(
-    ToggleSetting(
-        label="FP16 Mode",
-        key="fp16_mode",
-        description=(
-            "Runs PyTorch in half-precision (FP16) mode for less RAM usage."
-            if is_arm_mac
-            else "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
-        ),
-        default=False,
-    ),
-)
-
-if not is_arm_mac:
-    gpu_list = []
-    try:
-        import torch
-
-        for i in range(torch.cuda.device_count()):
-            device_name = torch.cuda.get_device_properties(i).name
-            gpu_list.append(device_name)
-    except:
-        pass
-
-    package.add_setting(
-        DropdownSetting(
-            label="GPU",
-            key="gpu",
-            description="Which GPU to use for PyTorch. This is only relevant if you have multiple GPUs.",
-            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
-            default="0",
-            disabled=len(gpu_list) <= 1,
-        )
-    )
-
-PyTorchSettings = TypedDict(
-    "pytorch_settings",
-    {
-        "cpu_mode": bool,
-        "fp16_mode": bool,
-        "gpu": int,
-    },
-)
-
-
-def get_pytorch_settings() -> PyTorchSettings:
-    return cast(PyTorchSettings, package.get_execution_settings())
-
 
 pytorch_category = package.add_category(
     name="PyTorch",
