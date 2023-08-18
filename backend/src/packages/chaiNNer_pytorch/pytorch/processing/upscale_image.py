@@ -78,8 +78,10 @@ def upscale(
 @processing_group.register(
     schema_id="chainner:pytorch:upscale_image",
     name="Upscale Image",
-    description="Upscales an image using a PyTorch Super-Resolution model. \
-            Select a manual number of tiles if you are having issues with the automatic mode. ",
+    description=(
+        "Upscales an image using a PyTorch Super-Resolution model. Select a"
+        " manual number of tiles if you are having issues with the automatic mode. "
+    ),
     icon="PyTorch",
     inputs=[
         ImageInput().with_id(1),
@@ -92,17 +94,23 @@ def upscale(
             TileSizeDropdown()
             .with_id(2)
             .with_docs(
-                "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
-                "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
-                "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
-                "If you are having issues with the automatic mode, you can manually select a tile size. Sometimes, a manually selected tile size may be faster than what the automatic mode picks.",
+                "Tiled upscaling is used to allow large images to be upscaled without"
+                " hitting memory limits.",
+                "This works by splitting the image into tiles (with overlap), upscaling"
+                " each tile individually, and seamlessly recombining them.",
+                "Generally it's recommended to use the largest tile size possible for"
+                " best performance (with the ideal scenario being no tiling at all),"
+                " but depending on the model and image size, this may not be possible.",
+                "If you are having issues with the automatic mode, you can manually"
+                " select a tile size. Sometimes, a manually selected tile size may be"
+                " faster than what the automatic mode picks.",
                 hint=True,
             )
         ),
     ],
     outputs=[
         ImageOutput(
-            "Upscaled Image",
+            "Image",
             image_type="""convenientUpscale(Input0, Input1)""",
         )
     ],
@@ -124,7 +132,8 @@ def upscale_image_node(
     scale = model.scale
     h, w, c = get_h_w_c(img)
     logger.debug(
-        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc: {out_nc})"
+        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
+        f" {out_nc})"
     )
 
     return convenient_upscale(
