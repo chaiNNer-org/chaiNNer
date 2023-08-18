@@ -6,6 +6,7 @@ from typing import Tuple
 import torch
 
 from nodes.impl.onnx.model import OnnxGeneric
+from nodes.impl.pytorch.architecture.SCUNet import SCUNet
 from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
@@ -36,6 +37,10 @@ from .. import utility_group
 def convert_to_onnx_node(
     model: PyTorchSRModel, is_fp16: int
 ) -> Tuple[OnnxGeneric, str]:
+    assert not isinstance(
+        model, SCUNet
+    ), "SCUNet is not supported for NCNN conversion at this time."
+
     fp16 = bool(is_fp16)
     exec_options = get_pytorch_settings()
     device = get_pytorch_device(

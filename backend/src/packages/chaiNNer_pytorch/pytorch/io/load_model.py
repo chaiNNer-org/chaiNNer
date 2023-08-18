@@ -22,18 +22,32 @@ from .. import io_group
     schema_id="chainner:pytorch:load_model",
     name="Load Model",
     description=[
-        "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an auto-detected supported model architecture.",
-        "- For Super-Resolution, we support most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR.",
-        "- For Face-Restoration, we support GFPGAN (1.2, 1.3, 1.4), RestoreFormer, and CodeFormer.",
+        (
+            "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an"
+            " auto-detected supported model architecture."
+        ),
+        (
+            "- For Super-Resolution, we support most variations of the RRDB"
+            " architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's"
+            " SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR."
+        ),
+        (
+            "- For Face-Restoration, we support GFPGAN (1.2, 1.3, 1.4), RestoreFormer,"
+            " and CodeFormer."
+        ),
         "- For Inpainting, we support LaMa and MAT.",
-        "Links to the official models can be found in [chaiNNer's README](https://github.com/chaiNNer-org/chaiNNer#pytorch), and community-trained models on [OpenModelDB](https://openmodeldb.info/).",
+        (
+            "Links to the official models can be found in [chaiNNer's"
+            " README](https://github.com/chaiNNer-org/chaiNNer#pytorch), and"
+            " community-trained models on [OpenModelDB](https://openmodeldb.info/)."
+        ),
     ],
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
     outputs=[
         ModelOutput(kind="tagged"),
-        DirectoryOutput("Model Directory", of_input=0).with_id(2),
-        FileNameOutput("Model Name", of_input=0).with_id(1),
+        DirectoryOutput("Directory", of_input=0).with_id(2),
+        FileNameOutput("Name", of_input=0).with_id(1),
     ],
     see_also=[
         "chainner:pytorch:model_file_iterator",
@@ -82,7 +96,8 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
             model = model.float()
     except Exception as e:
         raise ValueError(
-            f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try another."
+            f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try"
+            " another."
         ) from e
 
     dirname, basename, _ = split_file_path(path)

@@ -6,10 +6,12 @@ import numpy as np
 import torch
 from sanic.log import logger
 
+from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.impl.pytorch.utils import get_pytorch_device
 from nodes.impl.upscale.auto_split_tiles import (
+    NO_TILING,
     TileSize,
     estimate_tile_size,
     parse_tile_size_input,
@@ -58,12 +60,17 @@ def upscale(
                 )
             return MaxTileSize()
 
+        # Disable tiling for SCUNet
+        upscale_tile_size = tile_size
+        if model.model_arch == "SCUNet":
+            upscale_tile_size = NO_TILING
+
         img_out = pytorch_auto_split(
             img,
             model=model,
             device=device,
             use_fp16=use_fp16,
-            tiler=parse_tile_size_input(tile_size, estimate),
+            tiler=parse_tile_size_input(upscale_tile_size, estimate),
         )
         logger.debug("Done upscaling")
 
@@ -73,25 +80,39 @@ def upscale(
 @processing_group.register(
     schema_id="chainner:pytorch:upscale_image",
     name="Upscale Image",
-    description="Upscales an image using a PyTorch Super-Resolution model. \
-            Select a manual number of tiles if you are having issues with the automatic mode. ",
+    description=(
+        "Upscales an image using a PyTorch Super-Resolution model. Select a"
+        " manual number of tiles if you are having issues with the automatic mode. "
+    ),
     icon="PyTorch",
     inputs=[
         ImageInput().with_id(1),
         SrModelInput().with_id(0),
-        TileSizeDropdown()
-        .with_id(2)
-        .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
-            "If you are having issues with the automatic mode, you can manually select a tile size. Sometimes, a manually selected tile size may be faster than what the automatic mode picks.",
-            hint=True,
+        if_group(
+            Condition.type(
+                0, 'PyTorchModel { arch: invStrSet("SCUNet") } ', if_not_connected=True
+            )
+        )(
+            TileSizeDropdown()
+            .with_id(2)
+            .with_docs(
+                "Tiled upscaling is used to allow large images to be upscaled without"
+                " hitting memory limits.",
+                "This works by splitting the image into tiles (with overlap), upscaling"
+                " each tile individually, and seamlessly recombining them.",
+                "Generally it's recommended to use the largest tile size possible for"
+                " best performance (with the ideal scenario being no tiling at all),"
+                " but depending on the model and image size, this may not be possible.",
+                "If you are having issues with the automatic mode, you can manually"
+                " select a tile size. Sometimes, a manually selected tile size may be"
+                " faster than what the automatic mode picks.",
+                hint=True,
+            )
         ),
     ],
     outputs=[
         ImageOutput(
-            "Upscaled Image",
+            "Image",
             image_type="""convenientUpscale(Input0, Input1)""",
         )
     ],
@@ -113,7 +134,8 @@ def upscale_image_node(
     scale = model.scale
     h, w, c = get_h_w_c(img)
     logger.debug(
-        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc: {out_nc})"
+        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
+        f" {out_nc})"
     )
 
     return convenient_upscale(
