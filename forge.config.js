@@ -64,8 +64,13 @@ const config = {
         {
             name: '@electron-forge/maker-dmg',
             config: {
-                format: 'ULFO',
+                format: 'ULMO',
+                background: './src/public/dmg-background.png',
                 icon: './src/public/icons/mac/icon.icns',
+                additionalDMGOptions: {
+                    window: { size: { width: 660, height: 500 } },
+                    filesystem: 'APFS',
+                },
             },
         },
         {
