@@ -1128,6 +1128,20 @@ const emptyStringInput: ModernMigration = (data) => {
         getKey('chainner:utility:text_replace', 2),
         getKey('chainner:utility:text', 0),
     ]);
+    const directories = new Set([
+        getKey('chainner:image:save', 1),
+        getKey('chainner:image:file_iterator', 0),
+        getKey('chainner:image:paired_image_file_iterator', 0),
+        getKey('chainner:image:paired_image_file_iterator', 1),
+        getKey('chainner:image:simple_video_frame_iterator_save', 1),
+        getKey('chainner:utility:directory', 0),
+        getKey('chainner:pytorch:save_model', 1),
+        getKey('chainner:pytorch:model_file_iterator', 0),
+        getKey('chainner:ncnn:save_model', 1),
+        getKey('chainner:ncnn:model_file_iterator', 0),
+        getKey('chainner:onnx:save_model', 1),
+        getKey('chainner:onnx:model_file_iterator', 0),
+    ]);
 
     const targetHandles = new Set(data.edges.map((e) => e.targetHandle!));
 
@@ -1138,7 +1152,11 @@ const emptyStringInput: ModernMigration = (data) => {
 
     data.nodes.forEach((node) => {
         for (const [inputId, inputValue] of Object.entries(node.data.inputData)) {
-            if (inputValue === '' && !allowEmptyString.has(getKey(node.data.schemaId, inputId))) {
+            const key = getKey(node.data.schemaId, inputId);
+            if (inputValue === '' && directories.has(key)) {
+                // due to an old bug, directory inputs may have stored the empty string in chains
+                delete node.data.inputData[inputId];
+            } else if (inputValue === '' && !allowEmptyString.has(key)) {
                 delete node.data.inputData[inputId];
 
                 if (targetHandles.has(`${node.id}-${inputId}`)) {
