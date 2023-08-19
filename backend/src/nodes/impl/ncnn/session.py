@@ -16,9 +16,7 @@ from ...utils.exec_options import ExecutionOptions
 from .model import NcnnModelWrapper
 
 
-def create_ncnn_net(
-    model: NcnnModelWrapper, exec_options: ExecutionOptions
-) -> ncnn.Net:
+def create_ncnn_net(model: NcnnModelWrapper, gpu_index: int) -> ncnn.Net:
     net = ncnn.Net()
 
     if model.fp == "fp16":
@@ -33,7 +31,7 @@ def create_ncnn_net(
     if use_gpu:
         # Use vulkan compute
         net.opt.use_vulkan_compute = True
-        net.set_vulkan_device(exec_options.ncnn_gpu_index)
+        net.set_vulkan_device(gpu_index)
 
     # Load model param and bin
     if use_gpu:
@@ -56,9 +54,9 @@ def create_ncnn_net(
 __session_cache: WeakKeyDictionary[NcnnModelWrapper, ncnn.Net] = WeakKeyDictionary()
 
 
-def get_ncnn_net(model: NcnnModelWrapper, exec_options: ExecutionOptions) -> ncnn.Net:
+def get_ncnn_net(model: NcnnModelWrapper, gpu_index: int) -> ncnn.Net:
     cached = __session_cache.get(model)
     if cached is None:
-        cached = create_ncnn_net(model, exec_options)
+        cached = create_ncnn_net(model, gpu_index)
         __session_cache[model] = cached
     return cached

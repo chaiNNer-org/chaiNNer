@@ -12,10 +12,8 @@ from typing import (
     NewType,
     Optional,
     Tuple,
-    Type,
     TypedDict,
     TypeVar,
-    cast,
 )
 
 from sanic.log import logger
@@ -33,7 +31,7 @@ from node_check import (
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.utils.exec_options import PackageExecutionOptions, get_execution_options
+from nodes.utils.exec_options import get_execution_options
 
 KB = 1024**1
 MB = 1024**2
