@@ -12,7 +12,6 @@ except ImportError:
 
     use_gpu = False
 
-from ...utils.exec_options import ExecutionOptions
 from .model import NcnnModelWrapper
 
 
