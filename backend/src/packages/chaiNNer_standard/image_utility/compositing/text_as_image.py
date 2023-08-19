@@ -66,7 +66,7 @@ TEXT_AS_IMAGE_FONTS = {
     },
     TextAsImageFont.OPEN_SANS_REGULAR: {
         "label": "Open Sans",
-        "path": "OpenSans/OpenSans-VariableFont_wdth,wght.ttf",
+        "path": "OpenSans/OpenSans-Regular.ttf",
     },
     TextAsImageFont.OPEN_SANS_BOLD: {
         "label": "Open Sans Bold",
@@ -222,8 +222,7 @@ def text_as_image_node(
 ) -> np.ndarray:
     font_path = os.path.join(
         os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore
-        "fonts",
-        f"{TEXT_AS_IMAGE_FONTS[font_name]['path']}",  # type: ignore
+        f"fonts/{TEXT_AS_IMAGE_FONTS[font_name]['path']}",  # type: ignore
     )
 
     lines = text.split("\n")
