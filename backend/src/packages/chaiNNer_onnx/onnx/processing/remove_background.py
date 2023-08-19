@@ -13,8 +13,8 @@ from nodes.properties.inputs import ImageInput, OnnxRemBgModelInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.inputs.numeric_inputs import NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import get_execution_options
 
+from ...settings import get_settings
 from .. import processing_group
 
 
@@ -55,7 +55,15 @@ def remove_background_node(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Removes background from image"""
 
-    session = get_onnx_session(model, get_execution_options())
+    settings = get_settings()
+    session = get_onnx_session(
+        model,
+        settings.gpu_index,
+        settings.execution_provider,
+        settings.should_tensorrt_cache,
+        settings.tensorrt_fp16_mode,
+        settings.tensorrt_cache_path,
+    )
 
     return remove_bg(
         img,

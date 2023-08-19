@@ -29,5 +29,5 @@ delete env.PYTHONHOME;
 export const sanitizedEnv = env;
 
 export const getCacheLocation = (userDataPath: string, cacheKey: string) => {
-    return path.join(userDataPath, cacheKey);
+    return path.join(userDataPath, '/cache/', cacheKey);
 };

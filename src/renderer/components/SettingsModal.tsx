@@ -40,7 +40,7 @@ import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } 
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { Setting } from '../../common/common-types';
+import { CacheSettingValue, Setting } from '../../common/common-types';
 import { getCacheLocation, isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -171,8 +171,8 @@ function Dropdown<T>({
 
 interface CacheSettingProps extends SettingsItemProps {
     isDisabled?: boolean;
-    value: boolean;
-    onChange: (value: boolean) => void;
+    value?: CacheSettingValue;
+    onChange: (value: CacheSettingValue) => void;
     cacheKey: string;
 }
 
@@ -191,23 +191,31 @@ function CacheSetting({
                 description={description}
                 isDisabled={isDisabled}
                 title={title}
-                value={value}
+                value={value?.enabled ?? false}
                 onToggle={() => {
-                    if (!value) {
+                    if (!value?.enabled) {
                         // Make sure the cache directory exists
                         ipcRenderer
                             .invoke('get-appdata')
                             .then(async (appDataPath: string) => {
                                 const cacheLocation = getCacheLocation(appDataPath, cacheKey);
                                 try {
-                                    await access('somefile');
+                                    await access(cacheLocation);
                                 } catch (error) {
                                     await mkdir(cacheLocation, { recursive: true });
                                 }
+                                onChange({
+                                    enabled: true,
+                                    location: cacheLocation,
+                                });
                             })
                             .catch(log.error);
+                    } else {
+                        onChange({
+                            enabled: false,
+                            location: value.location,
+                        });
                     }
-                    onChange(!value);
                 }}
             />
             <Button
@@ -233,8 +241,8 @@ function CacheSetting({
 
 interface SettingWrapperProps {
     setting: Setting;
-    settingValue: string | number | boolean | undefined;
-    setSettingValue: (value: string | number | boolean | undefined) => void;
+    settingValue: string | number | boolean | undefined | CacheSettingValue;
+    setSettingValue: (value: string | number | boolean | undefined | CacheSettingValue) => void;
 }
 
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
@@ -297,7 +305,7 @@ function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapp
                     description={setting.description}
                     isDisabled={setting.disabled}
                     title={setting.label}
-                    value={Boolean(settingValue)}
+                    value={settingValue as CacheSettingValue}
                     onChange={(v) => {
                         setSettingValue(v);
                     }}

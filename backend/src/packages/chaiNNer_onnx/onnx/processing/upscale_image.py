@@ -19,9 +19,9 @@ from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import ExactTileSize
 from nodes.properties.inputs import ImageInput, OnnxGenericModelInput, TileSizeDropdown
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
 
+from ...settings import get_settings
 from .. import processing_group
 
 
@@ -81,7 +81,15 @@ def upscale_image_node(
     tile_size: TileSize,
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
-    session = get_onnx_session(model, get_execution_options())
+    settings = get_settings()
+    session = get_onnx_session(
+        model,
+        settings.gpu_index,
+        settings.execution_provider,
+        settings.should_tensorrt_cache,
+        settings.tensorrt_fp16_mode,
+        settings.tensorrt_cache_path,
+    )
 
     input_shape, in_nc, req_width, req_height = get_input_shape(session)
     _, out_nc, _, _ = get_output_shape(session)

@@ -503,11 +503,18 @@ class NumberSetting:
     type: str = "number"
 
 
+class CacheDefaultValue(TypedDict):
+    enabled: bool
+    location: str
+
+
 @dataclass
 class CacheSetting:
     label: str
     key: str
     description: str
-    default: bool = False
+    default: CacheDefaultValue = field(
+        default_factory=lambda: CacheDefaultValue(enabled=False, location=""),
+    )
     disabled: bool = False
     type: str = "cache"

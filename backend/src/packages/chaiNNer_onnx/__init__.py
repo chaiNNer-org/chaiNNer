@@ -1,15 +1,7 @@
 from sanic.log import logger
 
-from api import (
-    KB,
-    MB,
-    CacheSetting,
-    Dependency,
-    DropdownSetting,
-    ToggleSetting,
-    add_package,
-)
-from gpu import get_nvidia_helper, nvidia_is_available
+from api import KB, MB, Dependency, add_package
+from gpu import nvidia_is_available
 from system import is_arm_mac
 
 general = "ONNX uses .onnx models to upscale images."
@@ -78,63 +70,6 @@ package = add_package(
     ],
     icon="ONNX",
     color="#63B3ED",
-)
-
-if not is_arm_mac:
-    nv = get_nvidia_helper()
-    gpu_list = nv.list_gpus() if nv is not None else []
-
-    package.add_setting(
-        DropdownSetting(
-            label="ONNX GPU",
-            key="gpu",
-            description="Which GPU to use for ONNX. This is only relevant if you have multiple GPUs.",
-            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
-            default="0",
-            disabled=not nvidia_is_available or len(gpu_list) <= 1,
-        )
-    )
-
-execution_providers = []
-try:
-    import onnxruntime as ort
-
-    execution_providers = ort.get_available_providers()
-except:
-    pass
-
-package.add_setting(
-    DropdownSetting(
-        label="ONNX Execution Provider",
-        key="execution_provider",
-        description="What provider to use for ONNX.",
-        options=[
-            {"label": x.replace("ExecutionProvider", ""), "value": x}
-            for x in execution_providers
-        ],
-        default=execution_providers[0],
-        disabled=is_arm_mac or len(execution_providers) <= 1,
-    )
-)
-
-package.add_setting(
-    CacheSetting(
-        label="ONNX Cache",
-        key="onnx-tensorrt-cache",
-        description="Whether to cache ONNX models. This can speed up subsequent runs.",
-        default=False,
-        disabled=is_arm_mac or "TensorrtExecutionProvider" not in execution_providers,
-    )
-)
-
-package.add_setting(
-    ToggleSetting(
-        label="TensorRT FP16 Mode",
-        key="tensorrt_fp16_mode",
-        description="Runs TensorRT in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.",
-        default=False,
-        disabled=is_arm_mac or "TensorrtExecutionProvider" not in execution_providers,
-    )
 )
 
 
