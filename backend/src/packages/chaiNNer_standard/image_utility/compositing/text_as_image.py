@@ -222,8 +222,8 @@ def text_as_image_node(
 ) -> np.ndarray:
     font_path = os.path.join(
         os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore
-        f"fonts",
-        f"{TEXT_AS_IMAGE_FONTS[font_name]['path']}",
+        "fonts",
+        f"{TEXT_AS_IMAGE_FONTS[font_name]['path']}",  # type: ignore
     )
 
     lines = text.split("\n")
