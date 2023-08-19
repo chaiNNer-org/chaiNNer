@@ -113,7 +113,11 @@ def upscale(
 @restoration_group.register(
     schema_id="chainner:pytorch:upscale_face",
     name="Upscale Face",
-    description="Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN, RestoreFormer, and CodeFormer.",
+    description=(
+        "Uses face-detection to upscales and restore face(s) in an image using a"
+        " PyTorch Face Super-Resolution model. Right now supports GFPGAN,"
+        " RestoreFormer, and CodeFormer."
+    ),
     icon="PyTorch",
     inputs=[
         ImageInput().with_id(1),
@@ -136,7 +140,7 @@ def upscale(
     ],
     outputs=[
         ImageOutput(
-            "Upscaled Image",
+            "Image",
             image_type="""
                 Image {
                     width: Input3 * Input1.width,

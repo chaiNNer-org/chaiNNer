@@ -48,22 +48,30 @@ def upscale(
 
 @processing_group.register(
     schema_id="chainner:onnx:upscale_image",
-    description="Upscales an image using an ONNX Super-Resolution model. \
-            ONNX does not support automatic out-of-memory handling via automatic tiling. \
-            Therefore, you must set a Smart Tiling Mode manually. If you get an out-of-memory error, try picking a setting further down the list.",
+    description=(
+        "Upscales an image using an ONNX Super-Resolution model. ONNX does"
+        " not support automatic out-of-memory handling via automatic tiling."
+        "  Therefore, you must set a Smart Tiling Mode manually. If you get an"
+        " out-of-memory error, try picking a setting further down the list."
+    ),
     inputs=[
         ImageInput().with_id(1),
         OnnxGenericModelInput().with_id(0),
         TileSizeDropdown(estimate=False, default=TILE_SIZE_256)
         .with_id(2)
         .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for best performance, but depending on the model and image size, this may not be possible.",
-            "ONNX upscaling does not support an automatic mode, meaning you may need to manually select a tile size for it to work.",
+            "Tiled upscaling is used to allow large images to be upscaled without"
+            " hitting memory limits.",
+            "This works by splitting the image into tiles (with overlap), upscaling"
+            " each tile individually, and seamlessly recombining them.",
+            "Generally it's recommended to use the largest tile size possible for best"
+            " performance, but depending on the model and image size, this may not be"
+            " possible.",
+            "ONNX upscaling does not support an automatic mode, meaning you may need to"
+            " manually select a tile size for it to work.",
         ),
     ],
-    outputs=[ImageOutput("Upscaled Image")],
+    outputs=[ImageOutput("Image")],
     name="Upscale Image",
     icon="ONNX",
 )

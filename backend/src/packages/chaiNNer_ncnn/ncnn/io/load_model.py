@@ -15,7 +15,10 @@ from .. import io_group
 @io_group.register(
     schema_id="chainner:ncnn:load_model",
     name="Load Model",
-    description="Load NCNN model (.bin and .param files). Theoretically supports any NCNN Super-Resolution model that doesn't expect non-standard preprocessing.",
+    description=(
+        "Load NCNN model (.bin and .param files). Theoretically supports any NCNN"
+        " Super-Resolution model that doesn't expect non-standard preprocessing."
+    ),
     icon="NCNN",
     inputs=[
         group("ncnn-file-inputs")(
@@ -25,8 +28,8 @@ from .. import io_group
     ],
     outputs=[
         NcnnModelOutput(kind="tagged"),
-        DirectoryOutput("Model Directory", of_input=0).with_id(2),
-        FileNameOutput("Model Name", of_input=0).with_id(1),
+        DirectoryOutput("Directory", of_input=0).with_id(2),
+        FileNameOutput("Name", of_input=0).with_id(1),
     ],
     see_also=[
         "chainner:ncnn:model_file_iterator",

@@ -18,14 +18,16 @@ from .. import io_group
     schema_id="chainner:onnx:load_model",
     name="Load Model",
     description=(
-        """Load ONNX model file (.onnx). Theoretically supports any ONNX Super-Resolution model that doesn't expect non-standard preprocessing. Also supports RemBG background removal models."""
+        "Load ONNX model file (.onnx). Theoretically supports any ONNX Super-Resolution"
+        " model that doesn't expect non-standard preprocessing. Also supports RemBG"
+        " background removal models."
     ),
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],
     outputs=[
         OnnxModelOutput(),
-        DirectoryOutput("Model Directory", of_input=0).with_id(2),
-        FileNameOutput("Model Name", of_input=0).with_id(1),
+        DirectoryOutput("Directory", of_input=0).with_id(2),
+        FileNameOutput("Name", of_input=0).with_id(1),
     ],
     see_also=[
         "chainner:onnx:model_file_iterator",
