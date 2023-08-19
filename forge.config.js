@@ -32,6 +32,9 @@ const config = {
         executableName: process.platform === 'linux' ? 'chainner' : 'chaiNNer',
         extraResource: './backend/src/',
         icon: './src/public/icons/cross_platform/icon',
+        appBundleId: 'app.chainner',
+        appCategoryType: 'public.app-category.graphics-design',
+        extendInfo: { LSMinimumSystemVersion: '11.0.0' },
     },
     publishers: [
         {
