@@ -452,7 +452,5 @@ export interface CacheSettingValue {
 }
 
 export interface PackageSettings {
-    [packageName: string]: {
-        [x: string]: string | number | boolean | CacheSettingValue;
-    };
+    [packageName: string]: Record<string, string | number | boolean | CacheSettingValue>;
 }

@@ -1,13 +1,13 @@
 import { app } from 'electron';
 import EventSource from 'eventsource';
+import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
 import {
-    Backend,
-    BackendEventMap,
-    BackendExecutionOptions,
-    getBackend,
-} from '../../common/Backend';
-import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
-import { getOnnxTensorRtCacheLocation } from '../../common/env';
+    EdgeData,
+    NodeData,
+    NodeSchema,
+    PackageSettings,
+    SchemaId,
+} from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { log } from '../../common/log';
@@ -121,7 +121,7 @@ const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBa
     return { backend, schemata, functionDefinitions, eventSource };
 };
 
-const getExecutionOptions = (): BackendExecutionOptions => {
+const getExecutionOptions = (): PackageSettings => {
     const getSetting = <T>(key: string, defaultValue: T): T => {
         const value = settingStorage.getItem(key);
         if (!value) return defaultValue;
@@ -129,15 +129,7 @@ const getExecutionOptions = (): BackendExecutionOptions => {
     };
 
     return {
-        isCpu: getSetting('is-cpu', false),
-        isFp16: getSetting('is-fp16', false),
-        pytorchGPU: getSetting('pytorch-gpu', 0),
-        ncnnGPU: getSetting('ncnn-gpu', 0),
-        onnxGPU: getSetting('onnx-gpu', 0),
-        onnxExecutionProvider: getSetting('onnx-execution-provider', 'CUDAExecutionProvider'),
-        onnxShouldTensorRtCache: getSetting('onnx-should-tensorrt-cache', false),
-        onnxTensorRtCachePath: getOnnxTensorRtCacheLocation(app.getPath('userData')),
-        onnxShouldTensorRtFp16: getSetting('onnx-should-tensorrt-fp16', false),
+        options: getSetting('backend-settings', {}),
     };
 };
 

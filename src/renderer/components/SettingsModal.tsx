@@ -607,15 +607,16 @@ const PythonSettings = memo(() => {
                             w="full"
                         >
                             {pkg.settings.map((setting) => {
+                                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                                 const packageSettings = backendSettings[pkg.id] ?? {};
-                                const thisSetting =
-                                    packageSettings[setting.key as keyof typeof packageSettings];
+                                const thisSetting = packageSettings[setting.key];
                                 return (
                                     <SettingWrapper
                                         key={setting.key}
                                         setSettingValue={(value) => {
                                             setBackendSettings((prev) =>
                                                 produce(prev, (draftState) => {
+                                                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                                                     if (!draftState[pkg.id]) {
                                                         // eslint-disable-next-line no-param-reassign
                                                         draftState[pkg.id] = {};
