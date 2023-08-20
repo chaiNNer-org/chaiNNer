@@ -688,7 +688,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 </Center>
                                 {/* </Collapse> */}
                             </Center>
-                            <Divider w="full" />
+                            {isConsoleOpen && <Divider w="full" />}
                             <Box w="full">
                                 <Flex
                                     mb={2}
