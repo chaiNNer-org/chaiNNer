@@ -117,7 +117,10 @@ def upscale(
             and Condition.type(0, "PyTorchModel { outputChannels: 1 | 3 } ")
         )(
             BoolInput("Separate Alpha", default=False).with_docs(
-                "Normally when dealing with an image with alpha, "
+                "Normally when dealing with an image with alpha, we take the difference between an"
+                " upscale with a black background and an upscale with a white background to get the"
+                " alpha channel. However, under certain circumstances it may be more desirable to"
+                " upscale the alpha channel separately from the RGB channels."
             )
         ),
     ],

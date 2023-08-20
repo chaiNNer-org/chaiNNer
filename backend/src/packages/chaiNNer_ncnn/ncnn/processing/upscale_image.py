@@ -15,6 +15,7 @@ except ImportError:
     use_gpu = False
 from sanic.log import logger
 
+from nodes.groups import Condition, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.ncnn.session import get_ncnn_net
@@ -25,7 +26,12 @@ from nodes.impl.upscale.auto_split_tiles import (
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
-from nodes.properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
+from nodes.properties.inputs import (
+    BoolInput,
+    ImageInput,
+    NcnnModelInput,
+    TileSizeDropdown,
+)
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
@@ -138,6 +144,17 @@ def upscale_impl(
             "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
             "If you are having issues with the automatic mode, you can manually select a tile size. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
         ),
+        if_group(
+            Condition.type(1, "Image { channels: 4 } ")
+            and Condition.type(0, "NcnnNetwork { outputChannels: 1 | 3 } ")
+        )(
+            BoolInput("Separate Alpha", default=False).with_docs(
+                "Normally when dealing with an image with alpha, we take the difference between an"
+                " upscale with a black background and an upscale with a white background to get the"
+                " alpha channel. However, under certain circumstances it may be more desirable to"
+                " upscale the alpha channel separately from the RGB channels."
+            )
+        ),
     ],
     outputs=[
         ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
@@ -145,7 +162,7 @@ def upscale_impl(
     limited_to_8bpc=True,
 )
 def upscale_image_node(
-    img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize
+    img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize, separate_alpha: bool
 ) -> np.ndarray:
     def upscale(i: np.ndarray) -> np.ndarray:
         ic = get_h_w_c(i)[2]
@@ -166,4 +183,9 @@ def upscale_image_node(
             i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
         return i
 
-    return convenient_upscale(img, model.in_nc, model.out_nc, upscale)
+    c = get_h_w_c(img)[2]
+    should_separate_alpha = separate_alpha and c == 4 and model.out_nc < 4
+
+    return convenient_upscale(
+        img, model.in_nc, model.out_nc, upscale, should_separate_alpha
+    )
