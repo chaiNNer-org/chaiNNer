@@ -145,6 +145,7 @@ export const RepresentativeNodeWrapper = memo(
                             <Center
                                 draggable
                                 boxSizing="content-box"
+                                className="grab-cursor"
                                 display="block"
                                 onClick={() => {
                                     setDidSingleClick(true);

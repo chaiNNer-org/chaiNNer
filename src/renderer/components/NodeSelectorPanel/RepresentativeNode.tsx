@@ -58,6 +58,7 @@ export const RepresentativeNode = memo(
                 borderRadius="lg"
                 borderWidth="0px"
                 boxShadow="lg"
+                className="grab-cursor"
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
@@ -75,6 +76,7 @@ export const RepresentativeNode = memo(
                 <Box
                     bg={bgColor}
                     borderRadius="8px 0 0 8px"
+                    className="grab-cursor"
                     h="auto"
                     ml="5px"
                     overflow="hidden"
@@ -83,6 +85,7 @@ export const RepresentativeNode = memo(
                     w="full"
                 >
                     <HStack
+                        className="grab-cursor"
                         overflow="hidden"
                         pl={2}
                         textOverflow="ellipsis"
@@ -91,6 +94,7 @@ export const RepresentativeNode = memo(
                         <Center
                             alignContent="center"
                             alignItems="center"
+                            className="grab-cursor"
                             h={4}
                             py={3}
                             verticalAlign="middle"
@@ -103,10 +107,12 @@ export const RepresentativeNode = memo(
                         </Center>
                         {!collapsed && (
                             <Flex
+                                className="grab-cursor"
                                 overflow="hidden"
                                 w="300px"
                             >
                                 <Box
+                                    className="grab-cursor"
                                     overflow="hidden"
                                     textOverflow="ellipsis"
                                     verticalAlign="middle"
@@ -114,6 +120,7 @@ export const RepresentativeNode = memo(
                                     <Heading
                                         alignContent="center"
                                         as="h5"
+                                        className="grab-cursor"
                                         fontWeight={700}
                                         h="20px"
                                         lineHeight="20px"
@@ -131,7 +138,7 @@ export const RepresentativeNode = memo(
                                         {name}
                                     </Heading>
                                 </Box>
-                                <Spacer />
+                                <Spacer className="grab-cursor" />
                                 <HStack
                                     overflow="hidden"
                                     px={2}
