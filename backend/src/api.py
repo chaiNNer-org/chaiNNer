@@ -362,7 +362,6 @@ class Package:
         return feature
 
     def get_execution_settings(self):
-        # TODO: Do something with package settings to type hint this?
         return get_execution_options().get_package_settings(self.id)
 
 
