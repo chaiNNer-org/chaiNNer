@@ -302,9 +302,6 @@ class FeatureState:
         return FeatureState(is_enabled=False, details=details)
 
 
-S = TypeVar("S")
-
-
 @dataclass
 class Package:
     where: str
