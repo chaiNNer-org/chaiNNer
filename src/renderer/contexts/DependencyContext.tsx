@@ -168,7 +168,13 @@ const PackageView = memo(
                                     <Tooltip
                                         closeOnClick
                                         closeOnMouseDown
+                                        hasArrow
                                         borderRadius={8}
+                                        css={{
+                                            textAlign: 'justify',
+                                            hyphens: 'auto',
+                                            whiteSpace: 'pre-line',
+                                        }}
                                         label={p.description}
                                         px={2}
                                         py={1}
