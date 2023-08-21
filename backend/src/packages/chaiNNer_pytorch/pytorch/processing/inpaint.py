@@ -9,12 +9,7 @@ import torch
 import navi
 from nodes.impl.image_utils import as_3d
 from nodes.impl.pytorch.types import PyTorchInpaintModel
-from nodes.impl.pytorch.utils import (
-    get_pytorch_device,
-    np2tensor,
-    safe_cuda_cache_empty,
-    tensor2np,
-)
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import ImageInput
 from nodes.properties.inputs.pytorch_inputs import InpaintModelInput
 from nodes.properties.outputs import ImageOutput
