@@ -21,9 +21,10 @@ package = add_package(
     id="chaiNNer_ncnn",
     name="NCNN",
     description=(
-        f"{general} NCNN uses Vulkan for GPU"
-        " acceleration, meaning it supports any modern GPU. Models can be converted"
-        " from PyTorch to NCNN."
+        f"{general} Models can be converted from PyTorch to NCNN, which requires ONNX"
+        " to be installed as well.\n\nNCNN utilizes Vulkan for GPU acceleration,"
+        " meaning it supports any modern GPU. However, in some cases GPU upscaling"
+        " may fail, due to NCNN on Vulkan being experimental."
     ),
     dependencies=[
         Dependency(

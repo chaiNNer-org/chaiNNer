@@ -168,7 +168,13 @@ const PackageView = memo(
                                     <Tooltip
                                         closeOnClick
                                         closeOnMouseDown
+                                        hasArrow
                                         borderRadius={8}
+                                        css={{
+                                            textAlign: 'justify',
+                                            hyphens: 'auto',
+                                            whiteSpace: 'pre-line',
+                                        }}
                                         label={p.description}
                                         px={2}
                                         py={1}
@@ -688,7 +694,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 </Center>
                                 {/* </Collapse> */}
                             </Center>
-                            <Divider w="full" />
+                            {isConsoleOpen && <Divider w="full" />}
                             <Box w="full">
                                 <Flex
                                     mb={2}
