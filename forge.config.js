@@ -32,6 +32,9 @@ const config = {
         executableName: process.platform === 'linux' ? 'chainner' : 'chaiNNer',
         extraResource: './backend/src/',
         icon: './src/public/icons/cross_platform/icon',
+        appBundleId: 'app.chainner',
+        appCategoryType: 'public.app-category.graphics-design',
+        extendInfo: { LSMinimumSystemVersion: '11.0.0' },
     },
     publishers: [
         {
@@ -59,7 +62,7 @@ const config = {
         },
         {
             name: '@electron-forge/maker-zip',
-            platforms: ['darwin', 'linux', 'win32'],
+            platforms: ['linux', 'win32'],
         },
         {
             name: '@electron-forge/maker-dmg',
@@ -133,9 +136,6 @@ const config = {
                 switch (process.platform) {
                     case 'win32':
                         zip.addFile('portable', Buffer.alloc(0));
-                        break;
-                    case 'darwin':
-                        zip.addFile('chaiNNer.app/Contents/MacOS/portable', Buffer.alloc(0));
                         break;
                     case 'linux':
                         zip.addFile('chaiNNer-linux-x64/portable', Buffer.alloc(0));

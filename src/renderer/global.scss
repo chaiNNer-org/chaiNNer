@@ -212,7 +212,12 @@ body {
     z-index: 6000 !important;
 }
 
-// This moves the toasts behind the greay overlay
+// This moves the toasts behind the grey overlay
 .chakra-modal__overlay {
     z-index: 5700 !important;
+}
+
+// Tooltips are placed above the modal
+div[data-popper-placement] {
+    z-index: 6500 !important;
 }
