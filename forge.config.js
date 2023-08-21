@@ -30,11 +30,11 @@ const deletePycFiles = async (directory) => {
 const config = {
     packagerConfig: {
         executableName: process.platform === 'linux' ? 'chainner' : 'chaiNNer',
-        extraResource: './backend/src/',
+        extraResource: ['./backend/src/', './src/public/icons/mac/file_chn.icns'],
         icon: './src/public/icons/cross_platform/icon',
         appBundleId: 'app.chainner',
         appCategoryType: 'public.app-category.graphics-design',
-        extendInfo: { LSMinimumSystemVersion: '11.0.0' },
+        extendInfo: './src/public/Info.plist',
     },
     publishers: [
         {
