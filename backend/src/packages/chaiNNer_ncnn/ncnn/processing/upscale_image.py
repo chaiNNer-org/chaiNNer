@@ -146,7 +146,12 @@ def upscale_impl(
         ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
-            and Condition.type(0, "NcnnNetwork { outputChannels: 1 | 3 } ")
+            & (
+                Condition.type(0, "NcnnNetwork { inputChannels: 1, outputChannels: 1 }")
+                | Condition.type(
+                    0, "NcnnNetwork { inputChannels: 3, outputChannels: 3 }"
+                )
+            )
         )(
             BoolInput("Separate Alpha", default=False).with_docs(
                 "Normally when dealing with an image with alpha, we take the difference between an"
