@@ -153,12 +153,10 @@ def upscale_image_node(
         f" {out_nc})"
     )
 
-    should_separate_alpha = separate_alpha and c == 4 and out_nc < 4
-
     return convenient_upscale(
         img,
         in_nc,
         out_nc,
         lambda i: upscale(i, model, tile_size, exec_options),
-        should_separate_alpha,
+        separate_alpha,
     )

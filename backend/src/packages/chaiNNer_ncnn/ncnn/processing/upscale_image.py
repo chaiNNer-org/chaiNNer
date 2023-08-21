@@ -183,9 +183,4 @@ def upscale_image_node(
             i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
         return i
 
-    c = get_h_w_c(img)[2]
-    should_separate_alpha = separate_alpha and c == 4 and model.out_nc < 4
-
-    return convenient_upscale(
-        img, model.in_nc, model.out_nc, upscale, should_separate_alpha
-    )
+    return convenient_upscale(img, model.in_nc, model.out_nc, upscale, separate_alpha)

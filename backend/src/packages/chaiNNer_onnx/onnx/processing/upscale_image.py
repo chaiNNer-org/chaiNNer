@@ -111,12 +111,10 @@ def upscale_image_node(
     h, w, c = get_h_w_c(img)
     logger.debug(f"Image is {h}x{w}x{c}")
 
-    should_separate_alpha = separate_alpha and c == 4
-
     return convenient_upscale(
         img,
         in_nc,
         out_nc,
         lambda i: upscale(i, session, tile_size, change_shape, exact_size),
-        should_separate_alpha,
+        separate_alpha,
     )
