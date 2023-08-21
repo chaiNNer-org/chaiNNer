@@ -308,8 +308,8 @@ export interface Feature {
     readonly description: string;
 }
 
-export interface ISetting {
-    readonly type: string;
+export interface SettingBase {
+    readonly type: Setting['type'];
     readonly label: string;
     readonly key: string;
     readonly description: string;
@@ -317,25 +317,25 @@ export interface ISetting {
     readonly disabled: boolean;
 }
 
-export interface ToggleSetting extends ISetting {
+export interface ToggleSetting extends SettingBase {
     readonly type: 'toggle';
     readonly default: boolean;
 }
 
-export interface NumberSetting extends ISetting {
+export interface NumberSetting extends SettingBase {
     readonly type: 'number';
     readonly min: number;
     readonly max: number;
     readonly default: number;
 }
 
-export interface DropdownSetting extends ISetting {
+export interface DropdownSetting extends SettingBase {
     readonly type: 'dropdown';
     readonly options: readonly { label: string; value: string }[];
     readonly default: string;
 }
 
-export interface CacheSetting extends ISetting {
+export interface CacheSetting extends SettingBase {
     readonly type: 'cache';
 }
 

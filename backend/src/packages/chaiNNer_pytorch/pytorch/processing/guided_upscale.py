@@ -73,13 +73,10 @@ def guided_upscale_node(
     iterations: float,
     split_mode: SplitMode,
 ) -> np.ndarray:
-    exec_options = get_settings()
-    pytorch_device = exec_options.device
-
     return pix_transform_auto_split(
         source=source,
         guide=guide,
-        device=pytorch_device,
+        device=get_settings().device,
         params=Params(iteration=int(iterations * 1000)),
         split_mode=split_mode,
     )

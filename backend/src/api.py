@@ -12,8 +12,10 @@ from typing import (
     NewType,
     Optional,
     Tuple,
+    TypeAlias,
     TypedDict,
     TypeVar,
+    Union,
 )
 
 from sanic.log import logger
@@ -303,6 +305,64 @@ class FeatureState:
 
 
 @dataclass
+class ToggleSetting:
+    label: str
+    key: str
+    description: str
+    default: bool = False
+    disabled: bool = False
+    type: str = "toggle"
+
+
+class DropdownOption(TypedDict):
+    label: str
+    value: str
+
+
+@dataclass
+class DropdownSetting:
+    label: str
+    key: str
+    description: str
+    options: List[DropdownOption]
+    default: Optional[str] = None
+    disabled: bool = False
+    type: str = "dropdown"
+
+
+@dataclass
+class NumberSetting:
+    label: str
+    key: str
+    description: str
+    min: float
+    max: float
+    default: float = 0
+    disabled: bool = False
+    type: str = "number"
+
+
+class CacheDefaultValue(TypedDict):
+    enabled: bool
+    location: str
+
+
+@dataclass
+class CacheSetting:
+    label: str
+    key: str
+    description: str
+    default: CacheDefaultValue = field(
+        default_factory=lambda: CacheDefaultValue(enabled=False, location=""),
+    )
+    disabled: bool = False
+    type: str = "cache"
+
+
+SettingType = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+
+
+@dataclass
 class Package:
     where: str
     id: str
@@ -311,9 +371,7 @@ class Package:
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
     features: List[Feature] = field(default_factory=list)
-    settings: List[
-        ToggleSetting | DropdownSetting | NumberSetting | CacheSetting
-    ] = field(default_factory=list)
+    settings: List[SettingType] = field(default_factory=list)
     icon: str | None = "BsQuestionCircleFill"
     color: str | None = "#777777"
 
@@ -344,7 +402,7 @@ class Package:
 
     def add_setting(
         self,
-        setting: ToggleSetting | DropdownSetting | NumberSetting | CacheSetting,
+        setting: SettingType,
     ):
         self.settings.append(setting)
 
@@ -457,58 +515,3 @@ def add_package(
             color=color,
         )
     )
-
-
-@dataclass
-class ToggleSetting:
-    label: str
-    key: str
-    description: str
-    default: bool = False
-    disabled: bool = False
-    type: str = "toggle"
-
-
-class DropdownOption(TypedDict):
-    label: str
-    value: str
-
-
-@dataclass
-class DropdownSetting:
-    label: str
-    key: str
-    description: str
-    options: List[DropdownOption]
-    default: Optional[str] = None
-    disabled: bool = False
-    type: str = "dropdown"
-
-
-@dataclass
-class NumberSetting:
-    label: str
-    key: str
-    description: str
-    min: float
-    max: float
-    default: float = 0
-    disabled: bool = False
-    type: str = "number"
-
-
-class CacheDefaultValue(TypedDict):
-    enabled: bool
-    location: str
-
-
-@dataclass
-class CacheSetting:
-    label: str
-    key: str
-    description: str
-    default: CacheDefaultValue = field(
-        default_factory=lambda: CacheDefaultValue(enabled=False, location=""),
-    )
-    disabled: bool = False
-    type: str = "cache"
