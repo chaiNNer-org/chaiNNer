@@ -3,6 +3,7 @@ import EventSource from 'eventsource';
 import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version, WindowSize } from '../../common/common-types';
+import { isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
@@ -125,26 +126,39 @@ const registerEventHandlerPreSetup = (
         mainWindow.webContents.send('window-blur');
     });
 
-    // Opening file with chaiNNer
-    if (args.file) {
-        const result = openSaveFile(args.file);
-        ipcMain.handle('get-cli-open', () => result);
+    if (isMac) {
+        // Open file with chaiNNer on macOS
+        app.on('open-file', (event, filePath) => {
+            (async () => {
+                const file = filePath;
+                if (file) {
+                    const result = await openSaveFile(file);
+                    mainWindow.webContents.send('file-open', result);
+                }
+            })().catch(log.error);
+        });
     } else {
-        ipcMain.handle('get-cli-open', () => undefined);
-    }
+        // Opening file with chaiNNer on other platforms
+        if (args.file) {
+            const result = openSaveFile(args.file);
+            ipcMain.handle('get-cli-open', () => result);
+        } else {
+            ipcMain.handle('get-cli-open', () => undefined);
+        }
 
-    app.on('second-instance', (_event, commandLine) => {
-        (async () => {
-            const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
-            if (file) {
-                const result = await openSaveFile(file);
-                mainWindow.webContents.send('file-open', result);
-            }
-            // Focus main window if a second instance was attempted
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
-        })().catch(log.error);
-    });
+        app.on('second-instance', (_event, commandLine) => {
+            (async () => {
+                const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
+                if (file) {
+                    const result = await openSaveFile(file);
+                    mainWindow.webContents.send('file-open', result);
+                }
+                // Focus main window if a second instance was attempted
+                if (mainWindow.isMinimized()) mainWindow.restore();
+                mainWindow.focus();
+            })().catch(log.error);
+        });
+    }
 };
 
 const registerEventHandlerPostSetup = (
