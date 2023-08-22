@@ -367,12 +367,12 @@ class Package:
     id: str
     name: str
     description: str
+    icon: str
+    color: str
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
     features: List[Feature] = field(default_factory=list)
     settings: List[SettingType] = field(default_factory=list)
-    icon: str | None = "BsQuestionCircleFill"
-    color: str | None = "#777777"
 
     def add_category(
         self,
@@ -500,8 +500,8 @@ def add_package(
     name: str,
     description: str,
     dependencies: List[Dependency] | None = None,
-    icon: str | None = None,
-    color: str | None = None,
+    icon: str = "BsQuestionCircleFill",
+    color: str = "#777777",
 ) -> Package:
     return registry.add(
         Package(
@@ -509,8 +509,8 @@ def add_package(
             id=id,
             name=name,
             description=description,
-            dependencies=dependencies or [],
             icon=icon,
             color=color,
+            dependencies=dependencies or [],
         )
     )
