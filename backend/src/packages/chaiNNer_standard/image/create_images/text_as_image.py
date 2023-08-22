@@ -158,7 +158,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
 @create_images_group.register(
     schema_id="chainner:image:text_as_image",
     name="Text As Image",
-    description="Convert a text to an image.",
+    description="Create an image using any text and a chosen font.",
     icon="MdTextFields",
     inputs=[
         TextInput("Text", multiline=True),
