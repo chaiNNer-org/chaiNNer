@@ -13,7 +13,7 @@ from nodes.impl.pil_utils import convert_to_BGRA
 from nodes.properties.inputs import ColorInput, EnumInput, NumberInput, TextInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import compositing_group
+from .. import create_images_group
 
 
 class TextAsImageFont(Enum):
@@ -155,10 +155,10 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
 }
 
 
-@compositing_group.register(
+@create_images_group.register(
     schema_id="chainner:image:text_as_image",
-    name="Text as image",
-    description="Converts a text to an image",
+    name="Text As Image",
+    description="Convert a text to an image.",
     icon="MdTextFields",
     inputs=[
         TextInput("Text", multiline=True),
