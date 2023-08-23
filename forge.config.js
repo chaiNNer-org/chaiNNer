@@ -35,6 +35,13 @@ const config = {
         appBundleId: 'app.chainner',
         appCategoryType: 'public.app-category.graphics-design',
         extendInfo: './src/public/Info.plist',
+        osxSign: {},
+        osxNotarize: {
+            tool: 'notarytool',
+            appleId: process.env.APPLE_ID,
+            appleIdPassword: process.env.APPLE_PASSWORD,
+            teamId: process.env.APPLE_TEAM_ID,
+        },
     },
     publishers: [
         {
