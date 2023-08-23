@@ -196,8 +196,8 @@ const registerEventHandlerPostSetup = (
 
     const handleUnsavedChanges = (
         event: Electron.Event,
-        callback: () => void,
-        restartCallback?: () => void
+        onSave: () => void,
+        onDontSave?: () => void
     ) => {
         const choice = dialog.showMessageBoxSync(mainWindow, {
             type: 'question',
@@ -211,8 +211,8 @@ const registerEventHandlerPostSetup = (
         });
         if (choice === 1) {
             // Don't save
-            if (restartCallback) {
-                restartCallback(); // Restart the application
+            if (onDontSave) {
+                onDontSave(); // Restart the application
             }
         } else if (choice === 2) {
             // Cancel
@@ -220,7 +220,7 @@ const registerEventHandlerPostSetup = (
         } else {
             // Save
             event.preventDefault();
-            callback();
+            onSave();
         }
     };
 
