@@ -302,21 +302,26 @@ export interface PyPiPackage {
     readonly autoUpdate: boolean;
 }
 
-export type SettingKey = string & { readonly __settingKey: never };
-
 export interface Feature {
     readonly id: FeatureId;
     readonly name: string;
     readonly description: string;
 }
 
+export type SettingKey = string & { readonly __settingKey: never };
+export interface CacheInfo {
+    readonly enabled: boolean;
+    readonly location: string;
+}
+export type SettingValue = string | number | boolean | CacheInfo;
+
 interface SettingBase {
     readonly type: Setting['type'];
     readonly key: SettingKey;
     readonly label: string;
     readonly description: string;
-    readonly default: string | number | boolean;
-    readonly disabled: boolean;
+    readonly default: SettingValue;
+    readonly disabled?: boolean;
 }
 
 export interface ToggleSetting extends SettingBase {
@@ -335,10 +340,13 @@ export interface DropdownSetting extends SettingBase {
     readonly type: 'dropdown';
     readonly options: readonly { readonly label: string; readonly value: string }[];
     readonly default: string;
+    readonly small?: boolean;
 }
 
 export interface CacheSetting extends SettingBase {
     readonly type: 'cache';
+    readonly default: CacheInfo;
+    readonly directory: string;
 }
 
 export type Setting = ToggleSetting | NumberSetting | DropdownSetting | CacheSetting;

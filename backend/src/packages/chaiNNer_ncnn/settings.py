@@ -27,7 +27,6 @@ if not is_arm_mac and use_gpu:
                 description="Which GPU to use for NCNN. This is only relevant if you have multiple GPUs.",
                 options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
                 default="0",
-                disabled=len(gpu_list) <= 1,
             )
         )
     except:

@@ -10,7 +10,6 @@ from typing import (
     Iterable,
     List,
     NewType,
-    Optional,
     Tuple,
     TypedDict,
     TypeVar,
@@ -325,7 +324,7 @@ class DropdownSetting:
     key: str
     description: str
     options: List[DropdownOption]
-    default: Optional[str] = None
+    default: str
     disabled: bool = False
     type: str = "dropdown"
 
@@ -352,6 +351,7 @@ class CacheSetting:
     label: str
     key: str
     description: str
+    directory: str
     default: CacheInfo = field(
         default_factory=lambda: CacheInfo(enabled=False, location=""),
     )

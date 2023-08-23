@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass
+from typing import List, cast
 
 import onnxruntime as ort
 from sanic.log import logger
 
 from api import CacheSetting, DropdownSetting, ToggleSetting
-from gpu import get_nvidia_helper, nvidia_is_available
+from gpu import get_nvidia_helper
 from system import is_arm_mac
 
 from . import package
@@ -21,45 +24,57 @@ if not is_arm_mac:
             description="Which GPU to use for ONNX. This is only relevant if you have multiple GPUs.",
             options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
             default="0",
-            disabled=not nvidia_is_available or len(gpu_list) <= 1,
         )
     )
 
 
-execution_providers = ort.get_available_providers()
+def get_providers():
+    providers = cast(List[str], ort.get_available_providers())
 
-package.add_setting(
-    DropdownSetting(
-        label="Execution Provider",
-        key="execution_provider",
-        description="What provider to use for ONNX.",
-        options=[
-            {"label": x.replace("ExecutionProvider", ""), "value": x}
-            for x in execution_providers
-        ],
-        default=execution_providers[0],
-        disabled=is_arm_mac or len(execution_providers) <= 1,
-    )
-)
+    default = providers[0]
+    if "CUDAExecutionProvider" in providers:
+        default = "CUDAExecutionProvider"
+    elif "CPUExecutionProvider" in providers:
+        default = "CPUExecutionProvider"
 
-package.add_setting(
-    CacheSetting(
-        label="Cache TensorRT Engines",
-        key="onnx_tensorrt_cache",
-        description="Whether to cache the converted TensorRT engines. This can significantly speed up subsequent runs.",
-        disabled=is_arm_mac or "TensorrtExecutionProvider" not in execution_providers,
-    )
-)
+    return providers, default
 
-package.add_setting(
-    ToggleSetting(
-        label="Use TensorRT FP16 Mode",
-        key="tensorrt_fp16_mode",
-        description="Runs TensorRT in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.",
-        default=False,
-        disabled=is_arm_mac or "TensorrtExecutionProvider" not in execution_providers,
+
+execution_providers, default_provider = get_providers()
+
+if not is_arm_mac:
+    package.add_setting(
+        DropdownSetting(
+            label="Execution Provider",
+            key="execution_provider",
+            description="What provider to use for ONNX.",
+            options=[
+                {"label": x.replace("ExecutionProvider", ""), "value": x}
+                for x in execution_providers
+            ],
+            default=default_provider,
+        )
     )
-)
+
+    package.add_setting(
+        CacheSetting(
+            label="Cache TensorRT Engines",
+            key="onnx_tensorrt_cache",
+            description="Whether to cache the converted TensorRT engines. This can significantly speed up subsequent runs.",
+            directory="onnx_tensorrt_cache",
+            disabled="TensorrtExecutionProvider" not in execution_providers,
+        )
+    )
+
+    package.add_setting(
+        ToggleSetting(
+            label="Use TensorRT FP16 Mode",
+            key="tensorrt_fp16_mode",
+            description="Runs TensorRT in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.",
+            default=False,
+            disabled="TensorrtExecutionProvider" not in execution_providers,
+        )
+    )
 
 
 @dataclass(frozen=True)
@@ -86,9 +101,7 @@ def get_settings() -> OnnxSettings:
 
     return OnnxSettings(
         gpu_index=settings.get_int("gpu_index", 0),
-        execution_provider=settings.get_str(
-            "execution_provider", execution_providers[0]
-        ),
+        execution_provider=settings.get_str("execution_provider", default_provider),
         tensorrt_cache_path=tensorrt_cache_path,
         tensorrt_fp16_mode=settings.get_bool("tensorrt_fp16_mode", False),
     )

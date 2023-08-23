@@ -7,6 +7,22 @@ from system import is_arm_mac
 
 from . import package
 
+if not is_arm_mac:
+    gpu_list = []
+    for i in range(torch.cuda.device_count()):
+        device_name = torch.cuda.get_device_properties(i).name
+        gpu_list.append(device_name)
+
+    package.add_setting(
+        DropdownSetting(
+            label="GPU",
+            key="gpu_index",
+            description="Which GPU to use for PyTorch. This is only relevant if you have multiple GPUs.",
+            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
+            default="0",
+        )
+    )
+
 package.add_setting(
     ToggleSetting(
         label="Use CPU Mode",
@@ -28,23 +44,6 @@ package.add_setting(
         default=False,
     ),
 )
-
-if not is_arm_mac:
-    gpu_list = []
-    for i in range(torch.cuda.device_count()):
-        device_name = torch.cuda.get_device_properties(i).name
-        gpu_list.append(device_name)
-
-    package.add_setting(
-        DropdownSetting(
-            label="GPU",
-            key="gpu_index",
-            description="Which GPU to use for PyTorch. This is only relevant if you have multiple GPUs.",
-            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
-            default="0",
-            disabled=len(gpu_list) <= 1,
-        )
-    )
 
 
 @dataclass(frozen=True)
