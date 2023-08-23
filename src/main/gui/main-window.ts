@@ -189,9 +189,16 @@ const registerEventHandlerPostSetup = (
         mainWindow.close();
     });
 
-    ipcMain.on('reboot-after-save', () => {
+    const restartChainner = (): void => {
+        if (backend.owned) {
+            backend.tryKill();
+        }
         app.relaunch();
         app.exit();
+    };
+
+    ipcMain.on('reboot-after-save', () => {
+        restartChainner();
     });
 
     const handleUnsavedChanges = (
@@ -225,9 +232,6 @@ const registerEventHandlerPostSetup = (
     };
 
     ipcMain.handle('relaunch-application', (event) => {
-        if (backend.owned) {
-            backend.tryKill();
-        }
         if (hasUnsavedChanges) {
             handleUnsavedChanges(
                 event,
@@ -235,13 +239,11 @@ const registerEventHandlerPostSetup = (
                     mainWindow.webContents.send('save-before-reboot');
                 },
                 () => {
-                    app.relaunch(); // Restart the application
-                    app.exit();
+                    restartChainner();
                 }
             );
         } else {
-            app.relaunch();
-            app.exit();
+            restartChainner();
         }
     });
 
