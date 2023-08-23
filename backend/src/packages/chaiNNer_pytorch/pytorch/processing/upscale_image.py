@@ -18,7 +18,12 @@ from nodes.impl.upscale.auto_split_tiles import (
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
-from nodes.properties.inputs import ImageInput, SrModelInput, TileSizeDropdown
+from nodes.properties.inputs import (
+    BoolInput,
+    ImageInput,
+    SrModelInput,
+    TileSizeDropdown,
+)
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.exec_options import ExecutionOptions, get_execution_options
 from nodes.utils.utils import get_h_w_c
@@ -107,6 +112,27 @@ def upscale(
                 hint=True,
             )
         ),
+        if_group(
+            Condition.type(1, "Image { channels: 4 } ")
+            & (
+                Condition.type(
+                    0, "PyTorchModel { inputChannels: 1, outputChannels: 1 }"
+                )
+                | Condition.type(
+                    0, "PyTorchModel { inputChannels: 3, outputChannels: 3 }"
+                )
+            )
+        )(
+            BoolInput("Separate Alpha", default=False).with_docs(
+                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
+                " the upscaled image to be less noisy and more accurate to the alpha of the original"
+                " image, but the image may suffer from dark borders near transparency edges"
+                " (transition from fully transparent to fully opaque).",
+                "Whether enabling this option will improve the upscaled image depends on the original"
+                " image. We generally recommend this option for images with smooth transitions between"
+                " transparent and opaque regions.",
+            )
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -119,6 +145,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: PyTorchSRModel,
     tile_size: TileSize,
+    separate_alpha: bool,
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
 
@@ -141,4 +168,5 @@ def upscale_image_node(
         in_nc,
         out_nc,
         lambda i: upscale(i, model, tile_size, exec_options),
+        separate_alpha,
     )

@@ -6,6 +6,7 @@ import numpy as np
 import onnxruntime as ort
 from sanic.log import logger
 
+from nodes.groups import Condition, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.session import get_onnx_session
@@ -17,7 +18,12 @@ from nodes.impl.upscale.auto_split_tiles import (
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import ExactTileSize
-from nodes.properties.inputs import ImageInput, OnnxGenericModelInput, TileSizeDropdown
+from nodes.properties.inputs import (
+    BoolInput,
+    ImageInput,
+    OnnxGenericModelInput,
+    TileSizeDropdown,
+)
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
@@ -70,6 +76,17 @@ def upscale(
             "ONNX upscaling does not support an automatic mode, meaning you may need to"
             " manually select a tile size for it to work.",
         ),
+        if_group(Condition.type(1, "Image { channels: 4 } "))(
+            BoolInput("Separate Alpha", default=False).with_docs(
+                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
+                " the upscaled image to be less noisy and more accurate to the alpha of the original"
+                " image, but the image may suffer from dark borders near transparency edges"
+                " (transition from fully transparent to fully opaque).",
+                "Whether enabling this option will improve the upscaled image depends on the original"
+                " image. We generally recommend this option for images with smooth transitions between"
+                " transparent and opaque regions.",
+            )
+        ),
     ],
     outputs=[ImageOutput("Image")],
     name="Upscale Image",
@@ -79,6 +96,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: OnnxModel,
     tile_size: TileSize,
+    separate_alpha: bool,
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
     session = get_onnx_session(model, get_execution_options())
@@ -101,4 +119,5 @@ def upscale_image_node(
         in_nc,
         out_nc,
         lambda i: upscale(i, session, tile_size, change_shape, exact_size),
+        separate_alpha,
     )
