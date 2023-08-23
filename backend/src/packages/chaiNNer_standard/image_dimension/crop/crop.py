@@ -82,12 +82,12 @@ def crop_node(
     img: np.ndarray,
     mode: CropMode,
     amount: int,
-    top: int,
     left: int,
-    bottom: int,
+    top: int,
     right: int,
-    height: int,
+    bottom: int,
     width: int,
+    height: int,
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
 
