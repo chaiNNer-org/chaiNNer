@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, Union
+from typing import Dict
 
 from sanic.log import logger
 
-SettingsJson = Dict[str, Union[str, int, float, bool]]
+SettingsJson = Dict[str, object]
 JsonExecutionOptions = Dict[str, SettingsJson]
 
 
