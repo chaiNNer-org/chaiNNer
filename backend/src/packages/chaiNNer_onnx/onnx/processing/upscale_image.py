@@ -78,10 +78,13 @@ def upscale(
         ),
         if_group(Condition.type(1, "Image { channels: 4 } "))(
             BoolInput("Separate Alpha", default=False).with_docs(
-                "Normally when dealing with an image with alpha, we take the difference between an"
-                " upscale with a black background and an upscale with a white background to get the"
-                " alpha channel. However, under certain circumstances it may be more desirable to"
-                " upscale the alpha channel separately from the RGB channels."
+                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
+                " the upscaled image to be less noisy and more accurate to the alpha of the original"
+                " image, but the image may suffer from dark borders near transparency edges"
+                " (transition from fully transparent to fully opaque).",
+                "Whether enabling this option will improve the upscaled image depends on the original"
+                " image. We generally recommend this option for images with smooth transitions between"
+                " transparent and opaque regions.",
             )
         ),
     ],
