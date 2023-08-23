@@ -125,7 +125,8 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
         >
             <HStack w="full">
                 <Button
-                    isDisabled={setting.disabled}
+                    isDisabled={setting.disabled || !value.enabled}
+                    visibility={value.enabled ? 'visible' : 'hidden'}
                     onClick={() => {
                         locationPromise
                             .then(async (cacheLocation) => {
@@ -139,6 +140,7 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                 >
                     Clear Cache
                 </Button>
+
                 <Switch
                     isChecked={value.enabled}
                     isDisabled={setting.disabled}
