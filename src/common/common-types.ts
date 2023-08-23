@@ -452,11 +452,6 @@ export interface RgbaColorJson {
     readonly values: readonly [r: number, g: number, b: number, a: number];
 }
 
-export interface CacheSettingValue {
-    enabled: boolean;
-    location: string;
-}
-
 export interface PackageSettings {
-    [packageName: string]: Record<string, string | number | boolean | CacheSettingValue>;
+    [packageName: string]: Record<string, SettingValue>;
 }
