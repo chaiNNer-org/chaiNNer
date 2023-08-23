@@ -66,8 +66,7 @@ package.add_setting(
 class OnnxSettings:
     gpu_index: int
     execution_provider: str
-    should_tensorrt_cache: bool
-    tensorrt_cache_path: str
+    tensorrt_cache_path: str | None
     tensorrt_fp16_mode: bool
 
 
@@ -77,10 +76,12 @@ def get_settings() -> OnnxSettings:
     tensorrt_cache_dict = settings.get_cache("onnx_tensorrt_cache")
     logger.info(f"TensorRT cache dict: {tensorrt_cache_dict}")
 
-    should_tensorrt_cache = tensorrt_cache_dict.get("enabled", False)
     tensorrt_cache_path = tensorrt_cache_dict.get("location", "")
+    should_tensorrt_cache = tensorrt_cache_dict.get("enabled", False)
+    if not should_tensorrt_cache or not tensorrt_cache_path:
+        tensorrt_cache_path = None
 
-    if tensorrt_cache_path != "" and not os.path.exists(tensorrt_cache_path):
+    if tensorrt_cache_path and not os.path.exists(tensorrt_cache_path):
         os.makedirs(tensorrt_cache_path)
 
     return OnnxSettings(
@@ -88,7 +89,6 @@ def get_settings() -> OnnxSettings:
         execution_provider=settings.get_str(
             "execution_provider", execution_providers[0]
         ),
-        should_tensorrt_cache=bool(should_tensorrt_cache),
-        tensorrt_cache_path=str(tensorrt_cache_path),
+        tensorrt_cache_path=tensorrt_cache_path,
         tensorrt_fp16_mode=settings.get_bool("tensorrt_fp16_mode", False),
     )

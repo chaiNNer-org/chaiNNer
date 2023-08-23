@@ -86,7 +86,6 @@ def upscale_image_node(
         model,
         settings.gpu_index,
         settings.execution_provider,
-        settings.should_tensorrt_cache,
         settings.tensorrt_fp16_mode,
         settings.tensorrt_cache_path,
     )
