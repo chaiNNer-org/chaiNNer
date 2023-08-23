@@ -44,6 +44,7 @@ import { CacheSettingValue, Setting } from '../../common/common-types';
 import { getCacheLocation, isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
+import { assertNever } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { IconFactory } from './CustomIcons';
@@ -312,7 +313,7 @@ function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapp
                 />
             );
         default:
-            return null;
+            return assertNever(setting);
     }
 }
 

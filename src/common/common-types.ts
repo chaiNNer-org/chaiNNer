@@ -302,16 +302,18 @@ export interface PyPiPackage {
     readonly autoUpdate: boolean;
 }
 
+export type SettingKey = string & { readonly __settingKey: never };
+
 export interface Feature {
     readonly id: FeatureId;
     readonly name: string;
     readonly description: string;
 }
 
-export interface SettingBase {
+interface SettingBase {
     readonly type: Setting['type'];
+    readonly key: SettingKey;
     readonly label: string;
-    readonly key: string;
     readonly description: string;
     readonly default: string | number | boolean;
     readonly disabled: boolean;
@@ -331,7 +333,7 @@ export interface NumberSetting extends SettingBase {
 
 export interface DropdownSetting extends SettingBase {
     readonly type: 'dropdown';
-    readonly options: readonly { label: string; value: string }[];
+    readonly options: readonly { readonly label: string; readonly value: string }[];
     readonly default: string;
 }
 
