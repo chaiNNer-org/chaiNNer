@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from typing import TypedDict, cast
 
 import onnxruntime as ort
 from sanic.log import logger
@@ -63,7 +62,7 @@ package.add_setting(
 )
 
 
-@dataclass
+@dataclass(frozen=True)
 class OnnxSettings:
     gpu_index: int
     execution_provider: str
@@ -72,19 +71,10 @@ class OnnxSettings:
     tensorrt_fp16_mode: bool
 
 
-class TensorrtCacheDict(TypedDict):
-    enabled: bool
-    location: str
-
-
 def get_settings() -> OnnxSettings:
-    raw = package.get_execution_settings()
+    settings = package.get_settings()
 
-    tensorrt_cache_dict = cast(
-        TensorrtCacheDict,
-        raw.get("onnx_tensorrt_cache", {"enabled": False, "location": ""}),
-    )
-
+    tensorrt_cache_dict = settings.get_cache("onnx_tensorrt_cache")
     logger.info(f"TensorRT cache dict: {tensorrt_cache_dict}")
 
     should_tensorrt_cache = tensorrt_cache_dict.get("enabled", False)
@@ -94,9 +84,11 @@ def get_settings() -> OnnxSettings:
         os.makedirs(tensorrt_cache_path)
 
     return OnnxSettings(
-        gpu_index=int(raw.get("gpu_index", 0)),
-        execution_provider=str(raw.get("execution_provider", execution_providers[0])),
+        gpu_index=settings.get_int("gpu_index", 0),
+        execution_provider=settings.get_str(
+            "execution_provider", execution_providers[0]
+        ),
         should_tensorrt_cache=bool(should_tensorrt_cache),
         tensorrt_cache_path=str(tensorrt_cache_path),
-        tensorrt_fp16_mode=bool(raw.get("tensorrt_fp16_mode", False)),
+        tensorrt_fp16_mode=settings.get_bool("tensorrt_fp16_mode", False),
     )

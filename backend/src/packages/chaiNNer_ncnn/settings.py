@@ -34,13 +34,14 @@ if not is_arm_mac and use_gpu:
         pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class NcnnSettings:
     gpu_index: int
 
 
 def get_settings() -> NcnnSettings:
-    raw = package.get_execution_settings()
+    settings = package.get_settings()
+
     return NcnnSettings(
-        gpu_index=int(raw.get("gpu_index", 0)),
+        gpu_index=settings.get_int("gpu_index", 0),
     )

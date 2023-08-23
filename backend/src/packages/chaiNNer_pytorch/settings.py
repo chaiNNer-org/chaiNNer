@@ -47,7 +47,7 @@ if not is_arm_mac:
     )
 
 
-@dataclass
+@dataclass(frozen=True)
 class PyTorchSettings:
     use_cpu: bool
     use_fp16: bool
@@ -74,9 +74,10 @@ class PyTorchSettings:
 
 
 def get_settings() -> PyTorchSettings:
-    raw = package.get_execution_settings()
+    settings = package.get_settings()
+
     return PyTorchSettings(
-        use_cpu=bool(raw.get("use_cpu", False)),
-        use_fp16=bool(raw.get("use_fp16", False)),
-        gpu_index=int(raw.get("gpu_index", 0)),
+        use_cpu=settings.get_bool("use_cpu", False),
+        use_fp16=settings.get_bool("use_fp16", False),
+        gpu_index=settings.get_int("gpu_index", 0),
     )
