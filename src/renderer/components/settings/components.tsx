@@ -125,8 +125,8 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
         >
             <HStack w="full">
                 <Button
-                    isDisabled={setting.disabled || !value.enabled}
-                    visibility={value.enabled ? 'visible' : 'hidden'}
+                    isDisabled={setting.disabled || !value}
+                    visibility={value ? 'visible' : 'hidden'}
                     onClick={() => {
                         locationPromise
                             .then(async (cacheLocation) => {
@@ -142,11 +142,11 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                 </Button>
 
                 <Switch
-                    isChecked={value.enabled}
+                    isChecked={!!value}
                     isDisabled={setting.disabled}
                     size="lg"
                     onChange={() => {
-                        if (!value.enabled) {
+                        if (!value) {
                             // Make sure the cache directory exists
                             locationPromise
                                 .then(async (cacheLocation) => {
@@ -155,17 +155,11 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                                     } catch (error) {
                                         await mkdir(cacheLocation, { recursive: true });
                                     }
-                                    setValue({
-                                        enabled: true,
-                                        location: cacheLocation,
-                                    });
+                                    setValue(cacheLocation);
                                 })
                                 .catch(log.error);
                         } else {
-                            setValue({
-                                enabled: false,
-                                location: value.location,
-                            });
+                            setValue('');
                         }
                     }}
                 />

@@ -309,11 +309,7 @@ export interface Feature {
 }
 
 export type SettingKey = string & { readonly __settingKey: never };
-export interface CacheInfo {
-    readonly enabled: boolean;
-    readonly location: string;
-}
-export type SettingValue = string | number | boolean | CacheInfo;
+export type SettingValue = string | number | boolean;
 
 interface SettingBase {
     readonly type: Setting['type'];
@@ -345,7 +341,7 @@ export interface DropdownSetting extends SettingBase {
 
 export interface CacheSetting extends SettingBase {
     readonly type: 'cache';
-    readonly default: CacheInfo;
+    readonly default: string;
     readonly directory: string;
 }
 

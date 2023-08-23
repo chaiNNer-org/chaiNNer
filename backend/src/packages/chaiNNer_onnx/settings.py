@@ -88,14 +88,8 @@ class OnnxSettings:
 def get_settings() -> OnnxSettings:
     settings = package.get_settings()
 
-    tensorrt_cache_dict = settings.get_cache("onnx_tensorrt_cache")
-    logger.info(f"TensorRT cache dict: {tensorrt_cache_dict}")
-
-    tensorrt_cache_path = tensorrt_cache_dict.get("location", "")
-    should_tensorrt_cache = tensorrt_cache_dict.get("enabled", False)
-    if not should_tensorrt_cache or not tensorrt_cache_path:
-        tensorrt_cache_path = None
-
+    tensorrt_cache_path = settings.get_cache_location("onnx_tensorrt_cache")
+    logger.info(f"TensorRT cache location: {tensorrt_cache_path}")
     if tensorrt_cache_path and not os.path.exists(tensorrt_cache_path):
         os.makedirs(tensorrt_cache_path)
 

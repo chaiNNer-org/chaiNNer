@@ -14,7 +14,6 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
-    cast,
 )
 
 from sanic.log import logger
@@ -341,20 +340,13 @@ class NumberSetting:
     type: str = "number"
 
 
-class CacheInfo(TypedDict):
-    enabled: bool
-    location: str
-
-
 @dataclass
 class CacheSetting:
     label: str
     key: str
     description: str
     directory: str
-    default: CacheInfo = field(
-        default_factory=lambda: CacheInfo(enabled=False, location=""),
-    )
+    default: str = ""
     disabled: bool = False
     type: str = "cache"
 
@@ -384,9 +376,11 @@ class SettingsParser:
             return value
         raise ValueError(f"Invalid str value for {key}: {value}")
 
-    def get_cache(self, key: str) -> CacheInfo:
-        value = self.__settings.get(key, {"enabled": False, "location": ""})
-        return cast(CacheInfo, value)
+    def get_cache_location(self, key: str) -> str | None:
+        value = self.__settings.get(key)
+        if isinstance(value, str) or value is None:
+            return value or None
+        raise ValueError(f"Invalid cache location value for {key}: {value}")
 
 
 @dataclass
