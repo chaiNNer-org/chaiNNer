@@ -25,20 +25,20 @@ else:
 
 
 def get_pytorch():
-    # 1.13.1 can take advantage of MPS
+    # 2.0.1 can take advantage of MPS and solves some issues with black output
     if is_arm_mac:
         return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="1.13.1",
-                size_estimate=140 * MB,
+                version="2.0.1",
+                size_estimate=55.8 * MB,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.14.1",
-                size_estimate=1.3 * MB,
+                version="0.15.2",
+                size_estimate=1.4 * MB,
             ),
         ]
     if python_version.minor < 10:
@@ -105,14 +105,14 @@ package = add_package(
         Dependency(
             display_name="FaceXLib",
             pypi_name="facexlib",
-            version="0.2.5",
-            size_estimate=1.1 * MB,
+            version="0.3.0",
+            size_estimate=59.6 * KB,
         ),
         Dependency(
             display_name="Einops",
             pypi_name="einops",
-            version="0.5.0",
-            size_estimate=36.5 * KB,
+            version="0.6.1",
+            size_estimate=42.2 * KB,
         ),
     ],
 )
