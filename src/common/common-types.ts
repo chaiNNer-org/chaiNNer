@@ -308,13 +308,16 @@ export interface Feature {
     readonly description: string;
 }
 
-export interface SettingBase {
+export type SettingKey = string & { readonly __settingKey: never };
+export type SettingValue = string | number | boolean;
+
+interface SettingBase {
     readonly type: Setting['type'];
+    readonly key: SettingKey;
     readonly label: string;
-    readonly key: string;
     readonly description: string;
-    readonly default: string | number | boolean;
-    readonly disabled: boolean;
+    readonly default: SettingValue;
+    readonly disabled?: boolean;
 }
 
 export interface ToggleSetting extends SettingBase {
@@ -331,12 +334,15 @@ export interface NumberSetting extends SettingBase {
 
 export interface DropdownSetting extends SettingBase {
     readonly type: 'dropdown';
-    readonly options: readonly { label: string; value: string }[];
+    readonly options: readonly { readonly label: string; readonly value: string }[];
     readonly default: string;
+    readonly small?: boolean;
 }
 
 export interface CacheSetting extends SettingBase {
     readonly type: 'cache';
+    readonly default: string;
+    readonly directory: string;
 }
 
 export type Setting = ToggleSetting | NumberSetting | DropdownSetting | CacheSetting;
@@ -446,11 +452,6 @@ export interface RgbaColorJson {
     readonly values: readonly [r: number, g: number, b: number, a: number];
 }
 
-export interface CacheSettingValue {
-    enabled: boolean;
-    location: string;
-}
-
 export interface PackageSettings {
-    [packageName: string]: Record<string, string | number | boolean | CacheSettingValue>;
+    [packageName: string]: Record<string, SettingValue>;
 }

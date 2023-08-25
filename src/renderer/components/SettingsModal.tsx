@@ -1,7 +1,6 @@
 import { LinkIcon, SettingsIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import {
     Button,
-    Flex,
     HStack,
     Icon,
     IconButton,
@@ -15,14 +14,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    NumberDecrementStepper,
-    NumberIncrementStepper,
-    NumberInput,
-    NumberInputField,
-    NumberInputStepper,
-    Select,
     StackDivider,
-    Switch,
     Tab,
     TabList,
     TabPanel,
@@ -33,288 +25,20 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import { access, mkdir, readdir, unlink } from 'fs/promises';
 import { produce } from 'immer';
 import path from 'path';
-import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { CacheSettingValue, Setting } from '../../common/common-types';
-import { getCacheLocation, isMac } from '../../common/env';
-import { log } from '../../common/log';
+import { isMac } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { IconFactory } from './CustomIcons';
-
-interface SettingsItemProps {
-    title: ReactNode;
-    description: ReactNode;
-}
-
-const SettingsItem = memo(
-    ({ title, description, children }: PropsWithChildren<SettingsItemProps>) => {
-        return (
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        {title}
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        {description}
-                    </Text>
-                </VStack>
-                <HStack>{children}</HStack>
-            </Flex>
-        );
-    }
-);
-
-interface ToggleProps extends SettingsItemProps {
-    isDisabled?: boolean;
-    value: boolean;
-    onToggle: () => void;
-}
-
-const Toggle = memo(({ title, description, isDisabled, value, onToggle }: ToggleProps) => {
-    return (
-        <SettingsItem
-            description={description}
-            title={title}
-        >
-            <Switch
-                defaultChecked={value}
-                isChecked={value}
-                isDisabled={isDisabled}
-                size="lg"
-                onChange={onToggle}
-            />
-        </SettingsItem>
-    );
-});
-
-interface DropdownProps<T> extends SettingsItemProps {
-    isDisabled?: boolean;
-    value: T;
-    options: readonly { label: string; value: T }[];
-    onChange: (value: T) => void;
-    small?: boolean;
-}
-
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
-function Dropdown<T>({
-    title,
-    description,
-    isDisabled,
-    value,
-    options,
-    onChange,
-    small,
-}: DropdownProps<T>) {
-    const index = options.findIndex((o) => o.value === value);
-
-    useEffect(() => {
-        if (index === -1 && !isDisabled) {
-            if (options.length > 0) {
-                onChange(options[0].value);
-            }
-        }
-    }, [index, options, onChange, isDisabled]);
-
-    return (
-        <SettingsItem
-            description={description}
-            title={title}
-        >
-            <Select
-                isDisabled={isDisabled}
-                minWidth={small ? '171px' : '350px'}
-                value={index === -1 ? 0 : index}
-                onChange={(e) => {
-                    if (options.length > 0) {
-                        const optionIndex = Number(e.target.value);
-                        onChange(options[optionIndex].value);
-                    }
-                }}
-            >
-                {(options.length === 0 ? [{ label: `No ${String(title)} found.` }] : options).map(
-                    ({ label }, i) => (
-                        <option
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={i}
-                            value={i}
-                        >
-                            {label}
-                        </option>
-                    )
-                )}
-            </Select>
-        </SettingsItem>
-    );
-}
-
-interface CacheSettingProps extends SettingsItemProps {
-    isDisabled?: boolean;
-    value?: CacheSettingValue;
-    onChange: (value: CacheSettingValue) => void;
-    cacheKey: string;
-}
-
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
-function CacheSetting({
-    description,
-    title,
-    isDisabled,
-    value,
-    onChange,
-    cacheKey,
-}: CacheSettingProps) {
-    return (
-        <HStack w="full">
-            <Toggle
-                description={description}
-                isDisabled={isDisabled}
-                title={title}
-                value={value?.enabled ?? false}
-                onToggle={() => {
-                    if (!value?.enabled) {
-                        // Make sure the cache directory exists
-                        ipcRenderer
-                            .invoke('get-appdata')
-                            .then(async (appDataPath: string) => {
-                                const cacheLocation = getCacheLocation(appDataPath, cacheKey);
-                                try {
-                                    await access(cacheLocation);
-                                } catch (error) {
-                                    await mkdir(cacheLocation, { recursive: true });
-                                }
-                                onChange({
-                                    enabled: true,
-                                    location: cacheLocation,
-                                });
-                            })
-                            .catch(log.error);
-                    } else {
-                        onChange({
-                            enabled: false,
-                            location: value.location,
-                        });
-                    }
-                }}
-            />
-            <Button
-                isDisabled={isDisabled}
-                onClick={() => {
-                    ipcRenderer
-                        .invoke('get-appdata')
-                        .then(async (appDataPath: string) => {
-                            const cacheLocation = getCacheLocation(appDataPath, cacheKey);
-                            const files = await readdir(cacheLocation);
-                            for (const file of files) {
-                                unlink(path.join(cacheLocation, file)).catch(log.error);
-                            }
-                        })
-                        .catch(log.error);
-                }}
-            >
-                Clear Cache
-            </Button>
-        </HStack>
-    );
-}
-
-interface SettingWrapperProps {
-    setting: Setting;
-    settingValue: string | number | boolean | undefined | CacheSettingValue;
-    setSettingValue: (value: string | number | boolean | undefined | CacheSettingValue) => void;
-}
-
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
-function SettingWrapper({ setting, settingValue, setSettingValue }: SettingWrapperProps) {
-    useEffect(() => {
-        if (settingValue === undefined) {
-            setSettingValue(setting.default);
-        }
-    }, [setting, settingValue, setSettingValue]);
-
-    switch (setting.type) {
-        case 'toggle':
-            return (
-                <Toggle
-                    description={setting.description}
-                    isDisabled={setting.disabled}
-                    title={setting.label}
-                    value={Boolean(settingValue)}
-                    onToggle={() => {
-                        setSettingValue(!settingValue);
-                    }}
-                />
-            );
-        case 'dropdown':
-            return (
-                <Dropdown
-                    description={setting.description}
-                    isDisabled={setting.disabled}
-                    options={setting.options}
-                    title={setting.label}
-                    value={String(settingValue)}
-                    onChange={(v: string) => {
-                        setSettingValue(v);
-                    }}
-                />
-            );
-        case 'number':
-            return (
-                <NumberInput
-                    isDisabled={setting.disabled}
-                    max={setting.max}
-                    min={setting.min}
-                    step={1}
-                    value={String(settingValue)}
-                    onChange={(v) => {
-                        setSettingValue(v);
-                    }}
-                >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                    </NumberInputStepper>
-                </NumberInput>
-            );
-        case 'cache':
-            return (
-                <CacheSetting
-                    cacheKey={setting.key}
-                    description={setting.description}
-                    isDisabled={setting.disabled}
-                    title={setting.label}
-                    value={settingValue as CacheSettingValue}
-                    onChange={(v) => {
-                        setSettingValue(v);
-                    }}
-                />
-            );
-        default:
-            return null;
-    }
-}
+import { DropdownSetting, NumberSetting, ToggleSetting } from './settings/components';
+import { SettingContainer } from './settings/SettingContainer';
+import { SettingItem } from './settings/SettingItem';
 
 const AppearanceSettings = memo(() => {
     const { useSnapToGrid, useSelectTheme, useAnimateChain, useViewportExportPadding } =
@@ -331,84 +55,60 @@ const AppearanceSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Dropdown
-                small
-                description="Choose the Theme for chaiNNers appereance."
-                options={[
-                    { label: 'Dark Mode', value: 'dark' },
-                    { label: 'Light Mode', value: 'light' },
-                    { label: 'System', value: 'system' },
-                ]}
-                title="Select Theme"
+            <DropdownSetting
+                setValue={setSelectTheme}
+                setting={{
+                    label: 'Select Theme',
+                    description: "Choose the Theme for chaiNNer's appearance.",
+                    options: [
+                        { label: 'Dark Mode', value: 'dark' },
+                        { label: 'Light Mode', value: 'light' },
+                        { label: 'System', value: 'system' },
+                    ],
+                    small: true,
+                }}
                 value={isSelectTheme}
-                onChange={setSelectTheme}
             />
 
-            <Toggle
-                description="Enable animations that show the processing state of the chain."
-                title="Chain animation"
+            <ToggleSetting
+                setValue={setAnimateChain}
+                setting={{
+                    label: 'Chain animation',
+                    description: 'Enable animations that show the processing state of the chain.',
+                }}
                 value={animateChain}
-                onToggle={() => {
-                    setAnimateChain((prev) => !prev);
-                }}
             />
 
-            <Toggle
-                description="Enable node grid snapping."
-                title="Snap to grid"
+            <ToggleSetting
+                setValue={setIsSnapToGrid}
+                setting={{
+                    label: 'Snap to grid',
+                    description: 'Enable node grid snapping.',
+                }}
                 value={isSnapToGrid}
-                onToggle={() => {
-                    setIsSnapToGrid((prev) => !prev);
-                }}
             />
 
-            <SettingsItem
-                description="The amount to snap the grid to."
-                title="Snap to grid amount"
-            >
-                <NumberInput
-                    max={45}
-                    min={1}
-                    value={snapToGridAmount}
-                    onChange={(number: string) => {
-                        const value = Number(number);
+            <NumberSetting
+                setValue={setSnapToGridAmount}
+                setting={{
+                    label: 'Snap to grid amount',
+                    description: 'The amount to snap the grid to.',
+                    max: 45,
+                    min: 1,
+                }}
+                value={snapToGridAmount}
+            />
 
-                        if (!Number.isNaN(value)) {
-                            setSnapToGridAmount(value);
-                        }
-                    }}
-                >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                    </NumberInputStepper>
-                </NumberInput>
-            </SettingsItem>
-
-            <SettingsItem
-                description="The amount of padding for the viewport PNG export."
-                title="Viewport PNG export padding"
-            >
-                <NumberInput
-                    max={100}
-                    min={0}
-                    value={viewportExportPadding}
-                    onChange={(number: string) => {
-                        const value = Number(number);
-
-                        if (!Number.isNaN(value)) {
-                            setViewportExportPadding(value);
-                        }
-                    }}
-                >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                    </NumberInputStepper>
-                </NumberInput>
-            </SettingsItem>
+            <NumberSetting
+                setValue={setViewportExportPadding}
+                setting={{
+                    label: 'Viewport PNG export padding',
+                    description: 'The amount of padding for the viewport PNG export.',
+                    max: 100,
+                    min: 0,
+                }}
+                value={viewportExportPadding}
+            />
         </VStack>
     );
 });
@@ -446,7 +146,7 @@ const EnvironmentSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <SettingsItem
+            <SettingContainer
                 description="Set a chain template to use by default when chaiNNer starts up."
                 title="Startup Template"
             >
@@ -485,7 +185,7 @@ const EnvironmentSettings = memo(() => {
                         onClick={() => setStartupTemplate('')}
                     />
                 </HStack>
-            </SettingsItem>
+            </SettingContainer>
             <Text>Looking for the CPU and FP16 settings? They moved to the Python tab.</Text>
         </VStack>
     );
@@ -541,16 +241,17 @@ const PythonSettings = memo(() => {
                         divider={<StackDivider />}
                         w="full"
                     >
-                        <Toggle
-                            description="Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
-                            title="Use system Python (requires restart)"
-                            value={isSystemPython}
-                            onToggle={() => {
-                                setIsSystemPython((prev) => !prev);
+                        <ToggleSetting
+                            setValue={setIsSystemPython}
+                            setting={{
+                                label: 'Use system Python (requires restart)',
+                                description:
+                                    "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)",
                             }}
+                            value={isSystemPython}
                         />
                         {isSystemPython && (
-                            <SettingsItem
+                            <SettingContainer
                                 description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
                                 title="System Python location (optional)"
                             >
@@ -593,7 +294,7 @@ const PythonSettings = memo(() => {
                                         onClick={() => setSystemPythonLocation(null)}
                                     />
                                 </HStack>
-                            </SettingsItem>
+                            </SettingContainer>
                         )}
                     </VStack>
                 </TabPanel>
@@ -611,9 +312,9 @@ const PythonSettings = memo(() => {
                                 const packageSettings = backendSettings[pkg.id] ?? {};
                                 const thisSetting = packageSettings[setting.key];
                                 return (
-                                    <SettingWrapper
+                                    <SettingItem
                                         key={setting.key}
-                                        setSettingValue={(value) => {
+                                        setValue={(value) => {
                                             setBackendSettings((prev) =>
                                                 produce(prev, (draftState) => {
                                                     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -622,13 +323,12 @@ const PythonSettings = memo(() => {
                                                         draftState[pkg.id] = {};
                                                     }
                                                     // eslint-disable-next-line no-param-reassign
-                                                    draftState[pkg.id][setting.key] =
-                                                        value ?? prev[pkg.id][setting.key];
+                                                    draftState[pkg.id][setting.key] = value;
                                                 })
                                             );
                                         }}
                                         setting={setting}
-                                        settingValue={thisSetting}
+                                        value={thisSetting}
                                     />
                                 );
                             })}
@@ -658,39 +358,42 @@ const AdvancedSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Toggle
-                description="Toggles checking for updates on start-up."
-                title="Check for Update on Start-up"
+            <ToggleSetting
+                setValue={setIsCheckUpdOnStrtUp}
+                setting={{
+                    label: 'Check for Update on Start-up',
+                    description: 'Toggles checking for updates on start-up.',
+                }}
                 value={isCheckUpdOnStrtUp}
-                onToggle={() => {
-                    setIsCheckUpdOnStrtUp((prev) => !prev);
-                }}
             />
-            <Toggle
-                description="Enable experimental features to try them out before they are finished."
-                title="Enable experimental features"
+            <ToggleSetting
+                setValue={setIsExperimentalFeatures}
+                setting={{
+                    label: 'Enable experimental features',
+                    description:
+                        'Enable experimental features to try them out before they are finished.',
+                }}
                 value={isExperimentalFeatures}
-                onToggle={() => {
-                    setIsExperimentalFeatures((prev) => !prev);
-                }}
             />
-            <Toggle
-                description="Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
-                title="Enable Hardware Acceleration (requires restart)"
-                value={isEnableHardwareAcceleration}
-                onToggle={() => {
-                    setIsEnableHardwareAcceleration((prev) => !prev);
+            <ToggleSetting
+                setValue={setIsEnableHardwareAcceleration}
+                setting={{
+                    label: 'Enable Hardware Acceleration (requires restart)',
+                    description:
+                        'Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing.',
                 }}
+                value={isEnableHardwareAcceleration}
             />
             {/* TODO: Not working on macOS ATM. A new window must be created. */}
             {!isMac && (
-                <Toggle
-                    description="Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
-                    title="Allow multiple concurrent instances"
-                    value={isAllowMultipleInstances}
-                    onToggle={() => {
-                        setIsAllowMultipleInstances((prev) => !prev);
+                <ToggleSetting
+                    setValue={setIsAllowMultipleInstances}
+                    setting={{
+                        label: 'Allow multiple concurrent instances',
+                        description:
+                            'Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently.',
                     }}
+                    value={isAllowMultipleInstances}
                 />
             )}
         </VStack>

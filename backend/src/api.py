@@ -10,7 +10,6 @@ from typing import (
     Iterable,
     List,
     NewType,
-    Optional,
     Tuple,
     TypedDict,
     TypeVar,
@@ -32,7 +31,7 @@ from node_check import (
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
-from nodes.utils.exec_options import get_execution_options
+from nodes.utils.exec_options import SettingsJson, get_execution_options
 
 KB = 1024**1
 MB = 1024**2
@@ -324,7 +323,7 @@ class DropdownSetting:
     key: str
     description: str
     options: List[DropdownOption]
-    default: Optional[str] = None
+    default: str
     disabled: bool = False
     type: str = "dropdown"
 
@@ -341,24 +340,47 @@ class NumberSetting:
     type: str = "number"
 
 
-class CacheDefaultValue(TypedDict):
-    enabled: bool
-    location: str
-
-
 @dataclass
 class CacheSetting:
     label: str
     key: str
     description: str
-    default: CacheDefaultValue = field(
-        default_factory=lambda: CacheDefaultValue(enabled=False, location=""),
-    )
+    directory: str
+    default: str = ""
     disabled: bool = False
     type: str = "cache"
 
 
-SettingType = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+
+
+class SettingsParser:
+    def __init__(self, raw: SettingsJson) -> None:
+        self.__settings = raw
+
+    def get_bool(self, key: str, default: bool) -> bool:
+        value = self.__settings.get(key, default)
+        if isinstance(value, bool):
+            return value
+        raise ValueError(f"Invalid bool value for {key}: {value}")
+
+    def get_int(self, key: str, default: int) -> int:
+        value = self.__settings.get(key, default)
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+        raise ValueError(f"Invalid str value for {key}: {value}")
+
+    def get_str(self, key: str, default: str) -> str:
+        value = self.__settings.get(key, default)
+        if isinstance(value, str):
+            return value
+        raise ValueError(f"Invalid str value for {key}: {value}")
+
+    def get_cache_location(self, key: str) -> str | None:
+        value = self.__settings.get(key)
+        if isinstance(value, str) or value is None:
+            return value or None
+        raise ValueError(f"Invalid cache location value for {key}: {value}")
 
 
 @dataclass
@@ -372,7 +394,7 @@ class Package:
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
     features: List[Feature] = field(default_factory=list)
-    settings: List[SettingType] = field(default_factory=list)
+    settings: List[Setting] = field(default_factory=list)
 
     def add_category(
         self,
@@ -393,16 +415,10 @@ class Package:
         self.categories.append(result)
         return result
 
-    def add_dependency(
-        self,
-        dependency: Dependency,
-    ):
+    def add_dependency(self, dependency: Dependency):
         self.dependencies.append(dependency)
 
-    def add_setting(
-        self,
-        setting: SettingType,
-    ):
+    def add_setting(self, setting: Setting):
         self.settings.append(setting)
 
     def add_feature(
@@ -418,8 +434,8 @@ class Package:
         self.features.append(feature)
         return feature
 
-    def get_execution_settings(self):
-        return get_execution_options().get_package_settings(self.id)
+    def get_settings(self) -> SettingsParser:
+        return SettingsParser(get_execution_options().get_package_settings(self.id))
 
 
 def _iter_py_files(directory: str):

@@ -11,7 +11,6 @@ def create_inference_session(
     model: OnnxModel,
     gpu_index: int,
     execution_provider: str,
-    should_tensorrt_cache: bool = False,
     should_tensorrt_fp16: bool = False,
     tensorrt_cache_path: str | None = None,
 ) -> ort.InferenceSession:
@@ -21,7 +20,7 @@ def create_inference_session(
                 "TensorrtExecutionProvider",
                 {
                     "device_id": gpu_index,
-                    "trt_engine_cache_enable": should_tensorrt_cache,
+                    "trt_engine_cache_enable": tensorrt_cache_path is not None,
                     "trt_engine_cache_path": tensorrt_cache_path,
                     "trt_fp16_enable": should_tensorrt_fp16,
                 },
@@ -60,7 +59,6 @@ def get_onnx_session(
     model: OnnxModel,
     gpu_index: int,
     execution_provider: str,
-    should_tensorrt_cache: bool,
     should_tensorrt_fp16: bool,
     tensorrt_cache_path: str | None = None,
 ) -> ort.InferenceSession:
@@ -70,7 +68,6 @@ def get_onnx_session(
             model,
             gpu_index,
             execution_provider,
-            should_tensorrt_cache,
             should_tensorrt_fp16,
             tensorrt_cache_path,
         )

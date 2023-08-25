@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Union
+from typing import Dict
 
 from sanic.log import logger
 
-PackageExecutionOptions = Dict[str, Union[str, bool, int, float]]
-JsonExecutionOptions = Dict[str, PackageExecutionOptions]
+SettingsJson = Dict[str, object]
+JsonExecutionOptions = Dict[str, SettingsJson]
 
 
 class ExecutionOptions:
@@ -17,7 +17,11 @@ class ExecutionOptions:
 
         logger.info(f"Execution options: {self.__settings}")
 
-    def get_package_settings(self, package_id: str) -> PackageExecutionOptions:
+    @staticmethod
+    def parse(json: JsonExecutionOptions) -> ExecutionOptions:
+        return ExecutionOptions(backend_settings=json)
+
+    def get_package_settings(self, package_id: str) -> SettingsJson:
         return self.__settings.get(package_id, {})
 
 
@@ -33,7 +37,3 @@ def set_execution_options(value: ExecutionOptions):
     # pylint: disable=global-statement
     global __global_exec_options
     __global_exec_options = value
-
-
-def parse_execution_options(json: JsonExecutionOptions) -> ExecutionOptions:
-    return ExecutionOptions(backend_settings=json)
