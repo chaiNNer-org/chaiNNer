@@ -19,7 +19,6 @@ import {
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
-import { useHotkeys } from '../hooks/useHotkeys';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -391,59 +390,57 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setIteratorProgress({});
     }, [backend, restart, sendAlert]);
 
-    useHotkeys(
-        'F5',
-        useCallback(() => {
-            switch (status) {
-                case ExecutionStatus.READY:
-                case ExecutionStatus.PAUSED:
-                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                    run();
-                    break;
-                case ExecutionStatus.RUNNING:
-                case ExecutionStatus.KILLING:
-                    break;
-                default:
-                    assertNever(status);
+    // This makes sure keystrokes are executed even if the focus is on an input field
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.code === 'F5') {
+                switch (status) {
+                    case ExecutionStatus.READY:
+                    case ExecutionStatus.PAUSED:
+                        event.preventDefault();
+                        run().catch(log.error);
+                        break;
+                    case ExecutionStatus.RUNNING:
+                    case ExecutionStatus.KILLING:
+                        break;
+                    default:
+                        assertNever(status);
+                }
+            } else if (event.code === 'F6') {
+                switch (status) {
+                    case ExecutionStatus.RUNNING:
+                        event.preventDefault();
+                        pause().catch(log.error);
+                        break;
+                    case ExecutionStatus.READY:
+                    case ExecutionStatus.PAUSED:
+                    case ExecutionStatus.KILLING:
+                        break;
+                    default:
+                        assertNever(status);
+                }
+            } else if (event.code === 'F7') {
+                switch (status) {
+                    case ExecutionStatus.RUNNING:
+                    case ExecutionStatus.PAUSED:
+                        event.preventDefault();
+                        kill().catch(log.error);
+                        break;
+                    case ExecutionStatus.READY:
+                    case ExecutionStatus.KILLING:
+                        break;
+                    default:
+                        assertNever(status);
+                }
             }
-        }, [run, status])
-    );
+        };
 
-    useHotkeys(
-        'F6',
-        useCallback(() => {
-            switch (status) {
-                case ExecutionStatus.RUNNING:
-                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                    pause();
-                    break;
-                case ExecutionStatus.READY:
-                case ExecutionStatus.PAUSED:
-                case ExecutionStatus.KILLING:
-                    break;
-                default:
-                    assertNever(status);
-            }
-        }, [pause, status])
-    );
+        document.addEventListener('keydown', handleKeyPress);
 
-    useHotkeys(
-        'F7',
-        useCallback(() => {
-            switch (status) {
-                case ExecutionStatus.RUNNING:
-                case ExecutionStatus.PAUSED:
-                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                    kill();
-                    break;
-                case ExecutionStatus.READY:
-                case ExecutionStatus.KILLING:
-                    break;
-                default:
-                    assertNever(status);
-            }
-        }, [kill, status])
-    );
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [run, pause, kill, status]);
 
     const statusValue = useMemoObject<ExecutionStatusContextValue>({
         status,

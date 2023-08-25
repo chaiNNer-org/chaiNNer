@@ -522,6 +522,19 @@ export const GlobalProvider = memo(
             }, [performSave])
         );
 
+        useIpcRendererListener(
+            'save-before-reboot',
+            useCallback(() => {
+                performSave(false)
+                    .then((result) => {
+                        if (result === SaveResult.Saved) {
+                            ipcRenderer.send('reboot-after-save');
+                        }
+                    })
+                    .catch(log.error);
+            }, [performSave])
+        );
+
         const setStateFromJSON = useCallback(
             async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
                 if ((await saveUnsavedChanges()) === SaveResult.Canceled) {
