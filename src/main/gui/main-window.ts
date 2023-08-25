@@ -3,6 +3,7 @@ import EventSource from 'eventsource';
 import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version, WindowSize } from '../../common/common-types';
+import { isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
@@ -125,26 +126,39 @@ const registerEventHandlerPreSetup = (
         mainWindow.webContents.send('window-blur');
     });
 
-    // Opening file with chaiNNer
-    if (args.file) {
-        const result = openSaveFile(args.file);
-        ipcMain.handle('get-cli-open', () => result);
+    if (isMac) {
+        // Open file with chaiNNer on macOS
+        app.on('open-file', (event, filePath) => {
+            (async () => {
+                const file = filePath;
+                if (file) {
+                    const result = await openSaveFile(file);
+                    mainWindow.webContents.send('file-open', result);
+                }
+            })().catch(log.error);
+        });
     } else {
-        ipcMain.handle('get-cli-open', () => undefined);
-    }
+        // Opening file with chaiNNer on other platforms
+        if (args.file) {
+            const result = openSaveFile(args.file);
+            ipcMain.handle('get-cli-open', () => result);
+        } else {
+            ipcMain.handle('get-cli-open', () => undefined);
+        }
 
-    app.on('second-instance', (_event, commandLine) => {
-        (async () => {
-            const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
-            if (file) {
-                const result = await openSaveFile(file);
-                mainWindow.webContents.send('file-open', result);
-            }
-            // Focus main window if a second instance was attempted
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
-        })().catch(log.error);
-    });
+        app.on('second-instance', (_event, commandLine) => {
+            (async () => {
+                const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
+                if (file) {
+                    const result = await openSaveFile(file);
+                    mainWindow.webContents.send('file-open', result);
+                }
+                // Focus main window if a second instance was attempted
+                if (mainWindow.isMinimized()) mainWindow.restore();
+                mainWindow.focus();
+            })().catch(log.error);
+        });
+    }
 };
 
 const registerEventHandlerPostSetup = (
@@ -170,14 +184,6 @@ const registerEventHandlerPostSetup = (
         app.on('before-quit', () => backend.tryKill());
     }
 
-    ipcMain.handle('relaunch-application', () => {
-        if (backend.owned) {
-            backend.tryKill();
-        }
-        app.relaunch();
-        app.exit();
-    });
-
     ipcMain.handle('restart-backend', () => {
         if (backend.owned) {
             backend.restart();
@@ -190,10 +196,69 @@ const registerEventHandlerPostSetup = (
     ipcMain.on('update-has-unsaved-changes', (_, value) => {
         hasUnsavedChanges = value;
     });
+
     let forceExit = false;
     ipcMain.on('exit-after-save', () => {
         forceExit = true;
         mainWindow.close();
+    });
+
+    const restartChainner = (): void => {
+        if (backend.owned) {
+            backend.tryKill();
+        }
+        app.relaunch();
+        app.exit();
+    };
+
+    ipcMain.on('reboot-after-save', () => {
+        restartChainner();
+    });
+
+    const handleUnsavedChanges = (
+        event: Electron.Event,
+        onSave: () => void,
+        onDontSave?: () => void
+    ) => {
+        const choice = dialog.showMessageBoxSync(mainWindow, {
+            type: 'question',
+            title: 'Unsaved changes',
+            message: 'The current chain has unsaved changes.',
+            buttons: ['&Save', "Do&n't Save", 'Cancel'],
+            defaultId: 0,
+            cancelId: 2,
+            noLink: true,
+            normalizeAccessKeys: true,
+        });
+        if (choice === 1) {
+            // Don't save
+            if (onDontSave) {
+                onDontSave(); // Restart the application
+            }
+        } else if (choice === 2) {
+            // Cancel
+            event.preventDefault();
+        } else {
+            // Save
+            event.preventDefault();
+            onSave();
+        }
+    };
+
+    ipcMain.handle('relaunch-application', (event) => {
+        if (hasUnsavedChanges) {
+            handleUnsavedChanges(
+                event,
+                () => {
+                    mainWindow.webContents.send('save-before-reboot');
+                },
+                () => {
+                    restartChainner();
+                }
+            );
+        } else {
+            restartChainner();
+        }
     });
 
     mainWindow.on('close', (event) => {
@@ -202,26 +267,9 @@ const registerEventHandlerPostSetup = (
             return;
         }
         if (hasUnsavedChanges) {
-            const choice = dialog.showMessageBoxSync(mainWindow, {
-                type: 'question',
-                title: 'Unsaved changes',
-                message: 'The current chain has unsaved changes.',
-                buttons: ['&Save', "Do&n't Save", 'Cancel'],
-                defaultId: 0,
-                cancelId: 2,
-                noLink: true,
-                normalizeAccessKeys: true,
-            });
-            if (choice === 1) {
-                // Don't save, so do nothing
-            } else if (choice === 2) {
-                // Cancel
-                event.preventDefault();
-            } else {
-                // Save
-                event.preventDefault();
+            handleUnsavedChanges(event, () => {
                 mainWindow.webContents.send('save-before-exit');
-            }
+            });
         }
     });
 };
@@ -229,6 +277,8 @@ const registerEventHandlerPostSetup = (
 const createBackend = async (token: ProgressToken, args: OpenArguments) => {
     const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
     const systemPythonLocation = settingStorage.getItem('system-python-location');
+
+    log.info(`chaiNNer Version: ${version}`);
 
     return setupBackend(
         token,

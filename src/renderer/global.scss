@@ -206,3 +206,18 @@ body {
 .chakra-modal__overlay ~ .chakra-portal > .chakra-popover__popper:has(> .chainner-color-selector) {
     z-index: 10000 !important;
 }
+
+// This raises the modal content container above the toast container (z-index: 5500)
+.chakra-modal__content-container {
+    z-index: 6000 !important;
+}
+
+// This moves the toasts behind the grey overlay
+.chakra-modal__overlay {
+    z-index: 5700 !important;
+}
+
+// Tooltips are placed above the modal
+div[data-popper-placement] {
+    z-index: 6500 !important;
+}

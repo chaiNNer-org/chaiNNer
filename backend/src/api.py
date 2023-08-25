@@ -356,6 +356,13 @@ def _iter_py_files(directory: str):
                 yield os.path.join(root, file)
 
 
+@dataclass
+class LoadErrorInfo:
+    module: str
+    file: str
+    error: Exception
+
+
 class PackageRegistry:
     def __init__(self) -> None:
         self.packages: Dict[str, Package] = {}
@@ -370,8 +377,8 @@ class PackageRegistry:
         self.packages[package.where] = package
         return package
 
-    def load_nodes(self, current_file: str):
-        import_errors: List[ImportError] = []
+    def load_nodes(self, current_file: str) -> List[LoadErrorInfo]:
+        load_error: List[LoadErrorInfo] = []
         failed_checks: List[CheckFailedError] = []
 
         for package in list(self.packages.values()):
@@ -383,23 +390,18 @@ class PackageRegistry:
                     module = module.replace("/", ".").replace("\\", ".")[: -len(".py")]
                     try:
                         importlib.import_module(module, package=None)
-                    except ImportError as e:
-                        import_errors.append(e)
-                    except RuntimeError as e:
-                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
-                    except ValueError as e:
-                        logger.warning(f"Failed to load {module} ({file_path}): {e}")
                     except CheckFailedError as e:
                         logger.error(e)
                         failed_checks.append(e)
+                    except Exception as e:
+                        load_error.append(LoadErrorInfo(module, file_path, e))
 
         if len(failed_checks) > 0:
             raise RuntimeError(f"Checks failed in {len(failed_checks)} node(s)")
 
-        logger.info(import_errors)
         self._refresh_nodes()
 
-        return import_errors
+        return load_error
 
     def _refresh_nodes(self):
         self.nodes = {}

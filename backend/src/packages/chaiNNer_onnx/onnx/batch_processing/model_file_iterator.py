@@ -30,9 +30,9 @@ ONNX_ITERATOR_NODE_ID = "chainner:onnx:model_iterator_load"
     inputs=[IteratorInput().make_optional()],
     outputs=[
         OnnxModelOutput(),
-        DirectoryOutput("Model Directory"),
+        DirectoryOutput("Directory"),
         TextOutput("Subdirectory Path"),
-        TextOutput("Model Name"),
+        TextOutput("Name"),
         NumberOutput("Overall Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each model."
         ),
@@ -54,7 +54,11 @@ def iterator_helper_load_model_node(
 @batch_processing_group.register(
     schema_id="chainner:onnx:model_file_iterator",
     name="Model File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the ONNX model files (.onnx). Supports the same models as `chainner:onnx:load_model`.",
+    description=(
+        "Iterate over all files in a directory and run the provided nodes on just the"
+        " ONNX model files (.onnx). Supports the same models as"
+        " `chainner:onnx:load_model`."
+    ),
     icon="MdLoop",
     inputs=[
         DirectoryInput(),

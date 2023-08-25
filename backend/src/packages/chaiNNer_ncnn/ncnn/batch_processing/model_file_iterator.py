@@ -30,9 +30,9 @@ NCNN_ITERATOR_NODE_ID = "chainner:ncnn:model_iterator_load"
     inputs=[IteratorInput().make_optional()],
     outputs=[
         NcnnModelOutput(),
-        DirectoryOutput("Model Directory"),
+        DirectoryOutput("Directory"),
         TextOutput("Subdirectory Path"),
-        TextOutput("Model Name"),
+        TextOutput("Name"),
         NumberOutput("Overall Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each model."
         ),
@@ -56,7 +56,11 @@ def iterator_helper_load_model_node(
 @batch_processing_group.register(
     schema_id="chainner:ncnn:model_file_iterator",
     name="Model File Iterator",
-    description="Iterate over all files in a directory and run the provided nodes on just the NCNN model files (.param/.bin). Supports the same models as `chainner:ncnn:load_model`.",
+    description=(
+        "Iterate over all files in a directory and run the provided nodes on just the"
+        " NCNN model files (.param/.bin). Supports the same models as"
+        " `chainner:ncnn:load_model`."
+    ),
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
@@ -81,7 +85,8 @@ async def model_file_iterator_node(directory: str, context: IteratorContext) -> 
 
     if len(just_param_files) != len(just_bin_files):
         raise ValueError(
-            "The number of param files and bin files are not the same. Please check your directory."
+            "The number of param files and bin files are not the same. Please check"
+            " your directory."
         )
 
     # Check if the filenames match
@@ -91,7 +96,8 @@ async def model_file_iterator_node(directory: str, context: IteratorContext) -> 
 
         if param_file_name != bin_file_name:
             raise ValueError(
-                f"Param file {param_file_name} does not match bin file {bin_file_name}. Please check your files."
+                f"Param file {param_file_name} does not match bin file {bin_file_name}."
+                " Please check your files."
             )
 
     just_model_files = list(zip(just_param_files, just_bin_files))

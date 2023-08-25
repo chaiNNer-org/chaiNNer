@@ -69,6 +69,8 @@ export interface SendChannels {
     'enable-menu': SendChannelInfo;
     'save-before-exit': SendChannelInfo;
     'exit-after-save': SendChannelInfo;
+    'save-before-reboot': SendChannelInfo;
+    'reboot-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
     'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
 

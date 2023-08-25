@@ -67,13 +67,6 @@ package = add_package(
             version="0.56.3",
             size_estimate=2.5 * MB,
         ),
-        Dependency(
-            display_name="re2",
-            pypi_name="google-re2",
-            version="1.0",
-            size_estimate=275 * KB,
-            import_name="re2",
-        ),
     ],
 )
 

@@ -47,7 +47,7 @@ import {
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { getOnnxTensorRtCacheLocation, hasTensorRt, isArmMac } from '../../common/env';
+import { getOnnxTensorRtCacheLocation, hasTensorRt, isArmMac, isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
@@ -725,14 +725,17 @@ const AdvancedSettings = memo(() => {
                     setIsEnableHardwareAcceleration((prev) => !prev);
                 }}
             />
-            <Toggle
-                description="Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
-                title="Allow multiple concurrent instances"
-                value={isAllowMultipleInstances}
-                onToggle={() => {
-                    setIsAllowMultipleInstances((prev) => !prev);
-                }}
-            />
+            {/* TODO: Not working on macOS ATM. A new window must be created. */}
+            {!isMac && (
+                <Toggle
+                    description="Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
+                    title="Allow multiple concurrent instances"
+                    value={isAllowMultipleInstances}
+                    onToggle={() => {
+                        setIsAllowMultipleInstances((prev) => !prev);
+                    }}
+                />
+            )}
         </VStack>
     );
 });

@@ -10,7 +10,7 @@ from nodes.base_output import BaseOutput, OutputKind
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.pil_utils import InterpolationMethod, resize
 from ...utils.format import format_image_with_channels
-from ...utils.utils import get_h_w_c
+from ...utils.utils import get_h_w_c, round_half_up
 
 
 class NumPyOutput(BaseOutput):
@@ -129,7 +129,7 @@ def preview_encode(
     max_size = target_size * grace
     if w > max_size or h > max_size:
         f = max(w / target_size, h / target_size)
-        t = (int(w / f), int(h / f))
+        t = (max(1, round_half_up(w / f)), max(1, round_half_up(h / f)))
         if c == 4:
             # https://github.com/chaiNNer-org/chaiNNer/issues/1321
             img = resize(img, t, InterpolationMethod.BOX)

@@ -145,7 +145,7 @@ async def install_dependencies(
         if nextline == b"" and process.poll() is not None:
             break
         line = nextline.decode("utf-8").strip()
-        if logger is not None:
+        if logger is not None and not line.startswith("Progress:"):
             logger.info(line)
         # The Collecting step of pip. It tells us what package is being installed.
         if "Collecting" in line:

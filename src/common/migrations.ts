@@ -1128,6 +1128,20 @@ const emptyStringInput: ModernMigration = (data) => {
         getKey('chainner:utility:text_replace', 2),
         getKey('chainner:utility:text', 0),
     ]);
+    const directories = new Set([
+        getKey('chainner:image:save', 1),
+        getKey('chainner:image:file_iterator', 0),
+        getKey('chainner:image:paired_image_file_iterator', 0),
+        getKey('chainner:image:paired_image_file_iterator', 1),
+        getKey('chainner:image:simple_video_frame_iterator_save', 1),
+        getKey('chainner:utility:directory', 0),
+        getKey('chainner:pytorch:save_model', 1),
+        getKey('chainner:pytorch:model_file_iterator', 0),
+        getKey('chainner:ncnn:save_model', 1),
+        getKey('chainner:ncnn:model_file_iterator', 0),
+        getKey('chainner:onnx:save_model', 1),
+        getKey('chainner:onnx:model_file_iterator', 0),
+    ]);
 
     const targetHandles = new Set(data.edges.map((e) => e.targetHandle!));
 
@@ -1138,7 +1152,11 @@ const emptyStringInput: ModernMigration = (data) => {
 
     data.nodes.forEach((node) => {
         for (const [inputId, inputValue] of Object.entries(node.data.inputData)) {
-            if (inputValue === '' && !allowEmptyString.has(getKey(node.data.schemaId, inputId))) {
+            const key = getKey(node.data.schemaId, inputId);
+            if (inputValue === '' && directories.has(key)) {
+                // due to an old bug, directory inputs may have stored the empty string in chains
+                delete node.data.inputData[inputId];
+            } else if (inputValue === '' && !allowEmptyString.has(key)) {
                 delete node.data.inputData[inputId];
 
                 if (targetHandles.has(`${node.id}-${inputId}`)) {
@@ -1219,6 +1237,62 @@ const saveImageWebPLossless: ModernMigration = (data) => {
     return data;
 };
 
+const unifiedCrop: ModernMigration = (data) => {
+    const map = new Map<string, string>();
+    const changeInputId = (nodeId: string, from: number, to: number) => {
+        map.set(`${nodeId}-${from}`, `${nodeId}-${to}`);
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:crop_border') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 0,
+                2: node.data.inputData[1],
+            };
+            changeInputId(node.id, 1, 2);
+        }
+
+        if (node.data.schemaId === 'chainner:image:crop_edges') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 1,
+                3: node.data.inputData[1],
+                4: node.data.inputData[2],
+                5: node.data.inputData[4],
+                6: node.data.inputData[3],
+            };
+            changeInputId(node.id, 1, 3);
+            changeInputId(node.id, 2, 4);
+            changeInputId(node.id, 3, 6);
+            changeInputId(node.id, 4, 5);
+        }
+
+        if (node.data.schemaId === 'chainner:image:crop_offsets') {
+            node.data.schemaId = 'chainner:image:crop' as SchemaId;
+            node.data.inputData = {
+                1: 2,
+                3: node.data.inputData[1],
+                4: node.data.inputData[2],
+                7: node.data.inputData[3],
+                8: node.data.inputData[4],
+            };
+            changeInputId(node.id, 1, 3);
+            changeInputId(node.id, 2, 4);
+            changeInputId(node.id, 3, 7);
+            changeInputId(node.id, 4, 8);
+        }
+    });
+
+    data.edges.forEach((e) => {
+        if (e.targetHandle) {
+            e.targetHandle = map.get(e.targetHandle) ?? e.targetHandle;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1268,6 +1342,7 @@ const migrations = [
     emptyStringInput,
     surfaceBlurRadius,
     saveImageWebPLossless,
+    unifiedCrop,
 ];
 
 export const currentMigration = migrations.length;
