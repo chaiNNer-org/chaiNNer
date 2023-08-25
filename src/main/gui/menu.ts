@@ -38,6 +38,49 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
         }
     };
 
+    const createOpenRecentSubmenu = (
+        recentFiles: readonly string[],
+        window: BrowserWindowWithSafeIpc,
+        isMacPlatform: boolean,
+        isEnabled: boolean
+    ) => {
+        const submenu: MenuItemConstructorOptions[] =
+            recentFiles.length === 0
+                ? [
+                      {
+                          label: isMacPlatform ? 'Clear Menu' : 'No entries',
+                          enabled: false,
+                      },
+                  ]
+                : recentFiles.map((filepath, i) => ({
+                      label: filepath,
+                      accelerator: i <= 9 ? `CmdOrCtrl+${i + 1}` : undefined,
+                      click: async () => {
+                          if (!window.isFocused()) window.show();
+                          window.webContents.send('file-open', await openSaveFile(filepath));
+                      },
+                      enabled: isEnabled,
+                  }));
+
+        if (recentFiles.length !== 0) {
+            submenu.push(
+                { type: 'separator' },
+                {
+                    label: isMacPlatform ? 'Clear Menu' : 'Clear Recently Opened',
+                    click: () => {
+                        window.webContents.send('clear-open-recent');
+                    },
+                    enabled: isEnabled,
+                }
+            );
+        }
+
+        return submenu;
+    };
+    // Usage
+
+    const openRecentSubmenu = createOpenRecentSubmenu(openRecent, mainWindow, isMac, enabled);
+
     const template = [
         ...(isMac
             ? [
@@ -64,6 +107,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     label: 'New',
                     accelerator: 'CmdOrCtrl+N',
                     click: () => {
+                        if (!mainWindow.isFocused()) mainWindow.show();
                         mainWindow.webContents.send('file-new');
                     },
                     enabled,
@@ -89,34 +133,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 },
                 {
                     label: 'Open Recent',
-                    submenu: [
-                        ...(openRecent.length === 0
-                            ? [
-                                  {
-                                      label: 'No entries',
-                                      enabled: false,
-                                  } as MenuItemConstructorOptions,
-                              ]
-                            : openRecent.map<MenuItemConstructorOptions>((filepath, i) => ({
-                                  label: filepath,
-                                  accelerator: i <= 9 ? `CmdOrCtrl+${i + 1}` : undefined,
-                                  click: async () => {
-                                      mainWindow.webContents.send(
-                                          'file-open',
-                                          await openSaveFile(filepath)
-                                      );
-                                  },
-                                  enabled,
-                              }))),
-                        { type: 'separator' },
-                        {
-                            label: 'Clear Recently Opened',
-                            click: () => {
-                                mainWindow.webContents.send('clear-open-recent');
-                            },
-                            enabled,
-                        },
-                    ],
+                    submenu: openRecentSubmenu,
                     enabled,
                 },
                 { type: 'separator' },
@@ -446,6 +463,29 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
         },
     ] as MenuItemConstructorOptions[];
 
+    const dockMenuTemplate: MenuItemConstructorOptions[] = isMac
+        ? [
+              {
+                  label: 'New Chain',
+                  click: () => {
+                      if (!mainWindow.isFocused()) mainWindow.show();
+                      mainWindow.webContents.send('file-new');
+                  },
+                  enabled,
+              },
+              {
+                  label: 'Open Recent',
+                  submenu: openRecentSubmenu,
+                  enabled,
+              },
+          ]
+        : [];
+
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+
+    if (isMac) {
+        const dockMenu = Menu.buildFromTemplate(dockMenuTemplate);
+        app.dock.setMenu(dockMenu);
+    }
 };
