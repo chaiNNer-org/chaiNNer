@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from enum import Enum
 
 import cv2
@@ -247,7 +246,7 @@ def blend_images_node(
         # copyMakeBorder will create black border if base not converted to RGBA first
         base = convert_to_BGRA(base, base_channel_count)
         base = cv2.copyMakeBorder(
-            base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+            base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0  # type: ignore
         )
         assert isinstance(base, np.ndarray)
     else:  # Make sure cached image not being worked on regardless

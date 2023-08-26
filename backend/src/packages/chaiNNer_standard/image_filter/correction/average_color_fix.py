@@ -128,7 +128,7 @@ def average_color_fix_node(
 
     result = input_img + diff
     if alpha_diff is not None:
-        alpha = alpha + alpha_diff
+        alpha = alpha + alpha_diff  # type: ignore
 
     # add alpha back in
     if alpha is not None:
