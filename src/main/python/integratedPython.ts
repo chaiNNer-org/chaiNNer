@@ -2,22 +2,24 @@ import decompress from 'decompress';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import path from 'path';
+import { gt, lt } from 'semver';
 import { PythonInfo } from '../../common/common-types';
 import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
 import { assertNever, checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
 import { checkPythonPaths } from './checkPythonPaths';
+import { getPythonVersion } from './version';
 
 const downloads: Record<SupportedPlatform, string> = {
-    linux: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-unknown-linux-gnu-install_only-20211017T1616.tar.gz',
+    linux: 'https://github.com/indygreg/python-build-standalone/releases/download/20230726/cpython-3.11.4+20230726-x86_64-unknown-linux-gnu-install_only.tar.gz',
     darwin: isArmMac
-        ? 'https://github.com/indygreg/python-build-standalone/releases/download/20220318/cpython-3.9.11+20220318-aarch64-apple-darwin-install_only.tar.gz'
-        : 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-apple-darwin-install_only-20211017T1616.tar.gz',
-    win32: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-pc-windows-msvc-shared-install_only-20211017T1616.tar.gz',
+        ? 'https://github.com/indygreg/python-build-standalone/releases/download/20230726/cpython-3.11.4+20230726-aarch64-apple-darwin-install_only.tar.gz'
+        : 'https://github.com/indygreg/python-build-standalone/releases/download/20230726/cpython-3.11.4+20230726-x86_64-apple-darwin-install_only.tar.gz',
+    win32: 'https://github.com/indygreg/python-build-standalone/releases/download/20230726/cpython-3.11.4+20230726-x86_64-pc-windows-msvc-shared-install_only.tar.gz',
 };
 
-const getExecutableRelativePath = (platform: SupportedPlatform): string => {
+const get39ExecutableRelativePath = (platform: SupportedPlatform): string => {
     switch (platform) {
         case 'win32':
             return '/python/python.exe';
@@ -25,6 +27,19 @@ const getExecutableRelativePath = (platform: SupportedPlatform): string => {
             return '/python/bin/python3.9';
         case 'darwin':
             return '/python/bin/python3.9';
+        default:
+            return assertNever(platform);
+    }
+};
+
+const getExecutableRelativePath = (platform: SupportedPlatform): string => {
+    switch (platform) {
+        case 'win32':
+            return '/python/python.exe';
+        case 'linux':
+            return '/python/bin/python3.11';
+        case 'darwin':
+            return '/python/bin/python3.11';
         default:
             return assertNever(platform);
     }
@@ -61,6 +76,21 @@ export const getIntegratedPython = async (
     onProgress: (percentage: number, stage: 'download' | 'extract') => void
 ): Promise<PythonInfo> => {
     const platform = getPlatform();
+    const legacyPythonPath = path.resolve(
+        path.join(directory, get39ExecutableRelativePath(platform))
+    );
+
+    const legacyPythonBinExists = await checkFileExists(legacyPythonPath);
+
+    if (legacyPythonBinExists) {
+        const confirmLegacyPythonVersion = await getPythonVersion(legacyPythonPath);
+        if (gt(confirmLegacyPythonVersion, '3.9.0') && lt(confirmLegacyPythonVersion, '3.10.0')) {
+            const legacyPythonFolder = path.resolve(path.join(directory, '/python'));
+            // Remove legacy integrated python
+            await fs.rm(legacyPythonFolder, { recursive: true, force: true });
+        }
+    }
+
     const pythonPath = path.resolve(path.join(directory, getExecutableRelativePath(platform)));
 
     const pythonBinExists = await checkFileExists(pythonPath);
