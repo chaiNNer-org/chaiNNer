@@ -11,7 +11,7 @@ package = add_package(
         Dependency(
             display_name="Numpy",
             pypi_name="numpy",
-            version="1.25.2",
+            version="1.24.4",
             size_estimate=15 * MB,
         ),
         Dependency(
