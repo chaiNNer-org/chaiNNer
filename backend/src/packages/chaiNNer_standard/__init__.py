@@ -11,13 +11,13 @@ package = add_package(
         Dependency(
             display_name="Numpy",
             pypi_name="numpy",
-            version="1.23.2",
+            version="1.25.2",
             size_estimate=15 * MB,
         ),
         Dependency(
             display_name="OpenCV",
             pypi_name="opencv-python",
-            version="4.7.0.68",
+            version="4.8.0.76",
             size_estimate=30 * MB,
             import_name="cv2",
         ),
