@@ -107,7 +107,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
         TextInput("Text", multiline=True),
         BoolInput("Bold", default=False),
         BoolInput("Italic", default=False),
-        ColorInput(channels=[1, 3], default=Color.bgr((0, 0, 0))),
+        ColorInput(channels=[3], default=Color.bgr((0, 0, 0))),
         EnumInput(
             TextAsImageAlignment,
             label="Text alignment",
@@ -120,7 +120,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
             maximum=None,
             controls_step=1,
             precision=0,
-            default=100,
+            default=500,
         ),
         NumberInput(
             "Height",
@@ -141,9 +141,9 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
         ImageOutput(
             image_type="""
                 Image {
-                    width: Input5 & uint,
-                    height: Input6 & uint,
-                    channels: Input3.channels
+                    width: Input5,
+                    height: Input6,
+                    channels: 4
                 }
                 """,
             assume_normalized=True,
@@ -186,11 +186,7 @@ def text_as_image_node(
     ink = tuple(ink.astype("uint8"))
 
     # Create a PIL image to add text
-    if color.channels == 1:
-        ink = ink[0]
-        pil_image = Image.new("L", (width, height), 255)
-    else:
-        pil_image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
+    pil_image = Image.new("RGBA", (width, height))
     drawing = ImageDraw.Draw(pil_image)
 
     x_ref = round(np.sum(np.array([width, w_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["x"]))  # type: ignore
@@ -206,7 +202,5 @@ def text_as_image_node(
     )
 
     img = normalize(np.array(pil_image))
-    if color.channels != 1:
-        img = convert_to_BGRA(img, img.shape[2])
 
     return img
