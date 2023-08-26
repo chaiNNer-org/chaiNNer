@@ -9,7 +9,6 @@ import { log } from '../../common/log';
 import { checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
 import { checkPythonPaths } from './checkPythonPaths';
-import { getPythonVersion } from './version';
 
 interface PythonDownload {
     url: string;
@@ -35,19 +34,6 @@ const downloads: Record<SupportedPlatform, PythonDownload> = {
         version: '3.11.4',
         path: 'python/python.exe',
     },
-};
-
-const getExecutableRelativePath = (platform: SupportedPlatform): string => {
-    switch (platform) {
-        case 'win32':
-            return '/python/python.exe';
-        case 'linux':
-            return '/python/bin/python3.11';
-        case 'darwin':
-            return '/python/bin/python3.11';
-        default:
-            return assertNever(platform);
-    }
 };
 
 const extractPython = async (
