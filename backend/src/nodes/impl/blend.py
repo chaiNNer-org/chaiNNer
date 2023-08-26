@@ -222,7 +222,7 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: BlendMode):
         o_rgb = overlay[:, :, :3]
 
         blend_rgb = blender.apply_blend(o_rgb, base, blend_mode)
-        final_rgb = o_a * blend_rgb + (1 - o_a) * base
+        final_rgb = o_a * blend_rgb + (1 - o_a) * base  # type: ignore
         if needs_clipping:
             final_rgb = np.clip(final_rgb, 0, 1)
 

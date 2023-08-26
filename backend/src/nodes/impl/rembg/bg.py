@@ -64,7 +64,7 @@ def alpha_matting_cutout(
     foreground = estimate_foreground_ml(img_normalized, alpha)
     cutout = stack_images(foreground, alpha)
 
-    cutout = np.clip(cutout * 255, 0, 255).astype(np.uint8)
+    cutout = np.clip(cutout * 255, 0, 255).astype(np.uint8)  # type: ignore
     cutout = Image.fromarray(cutout)
 
     return cutout

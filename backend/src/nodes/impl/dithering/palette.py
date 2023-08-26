@@ -7,7 +7,7 @@ from ..image_utils import MAX_VALUES_BY_DTYPE, as_3d
 def _as_float32(image: np.ndarray) -> np.ndarray:
     if image.dtype == np.float32:
         return image
-    max_value = MAX_VALUES_BY_DTYPE[image.dtype]
+    max_value = MAX_VALUES_BY_DTYPE[image.dtype.name]
     return image.astype(np.float32) / max_value
 
 
