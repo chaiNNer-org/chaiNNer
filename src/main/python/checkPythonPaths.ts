@@ -12,6 +12,6 @@ export const checkPythonPaths = async (pythonsToCheck: string[]): Promise<Python
     }
 
     throw new Error(
-        `No Python binaries in [${pythonsToCheck.join(', ')}] found or supported version (3.8+)`
+        `No Python binaries in [${pythonsToCheck.join(', ')}] found or supported version (3.9+)`
     );
 };

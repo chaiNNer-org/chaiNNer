@@ -64,7 +64,7 @@ const getPythonInfo = async (
                     title: 'Python not installed or invalid version',
                     message:
                         'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                        ' Please install Python (3.9+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
                         ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
                     options: [
                         {
@@ -80,7 +80,7 @@ const getPythonInfo = async (
                 title: 'Error checking for valid Python instance',
                 message:
                     'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                    ' Please install Python (3.9+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
                 options: [
                     {
                         title: 'Get Python',

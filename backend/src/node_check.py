@@ -120,7 +120,7 @@ def is_subset_of(a: _Ty, b: _Ty) -> bool:
 
 
 def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
-    """Get the annotations for a function, with support for Python 3.8+"""
+    """Get the annotations for a function, with support for Python 3.9+"""
     ann = getattr(fn, "__annotations__", None)
 
     if ann is None:

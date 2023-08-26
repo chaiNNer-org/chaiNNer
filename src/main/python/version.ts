@@ -7,4 +7,4 @@ export const getPythonVersion = async (python: string) => {
     return parse(version);
 };
 
-export const isSupportedPythonVersion = (version: Version) => versionGte(version, '3.7.0');
+export const isSupportedPythonVersion = (version: Version) => versionGte(version, '3.9.0');
