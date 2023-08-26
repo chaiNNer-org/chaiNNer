@@ -138,7 +138,7 @@ def normal_map_generator_node(
     if min_z > 0:
         height = np.maximum(min_z, height)
     if scale != 0:
-        height = height * scale
+        height = height * scale  # type: ignore
 
     filter_x, filter_y = get_filter_kernels(edge_filter)
 

@@ -153,8 +153,8 @@ def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.
     h, w, _ = get_h_w_c(img)
     translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
     img = cv2.warpAffine(
-        img,
-        translation_matrix,
+        img,  # type: ignore
+        translation_matrix,  # type: ignore
         (w, h),
         borderMode=cv2.BORDER_CONSTANT,
         borderValue=fill_color,
@@ -264,13 +264,13 @@ def create_border(
         value = color.value
 
     return cv2.copyMakeBorder(
-        img,
+        img,  # type: ignore
         top=border.top,
         left=border.left,
         right=border.right,
         bottom=border.bottom,
         borderType=cv_border_type,
-        value=value,
+        value=value,  # type: ignore
     )
 
 
@@ -282,13 +282,13 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     C2 = 0.03**2
 
     kernel = cv2.getGaussianKernel(11, 1.5)
-    window = np.outer(kernel, kernel.transpose())
+    window = np.outer(kernel, kernel.transpose())  # type: ignore
 
     mu1 = cv2.filter2D(img1, -1, window)[5:-5, 5:-5]
     mu2 = cv2.filter2D(img2, -1, window)[5:-5, 5:-5]
-    mu1_sq = mu1**2
-    mu2_sq = mu2**2
-    mu1_mu2 = mu1 * mu2
+    mu1_sq = mu1**2  # type: ignore
+    mu2_sq = mu2**2  # type: ignore
+    mu1_mu2 = mu1 * mu2  # type: ignore
     sigma1_sq = cv2.filter2D(img1**2, -1, window)[5:-5, 5:-5] - mu1_sq
     sigma2_sq = cv2.filter2D(img2**2, -1, window)[5:-5, 5:-5] - mu2_sq
     sigma12 = cv2.filter2D(img1 * img2, -1, window)[5:-5, 5:-5] - mu1_mu2
@@ -319,7 +319,7 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
         except:
             _, buf_img = cv2.imencode(f".{extension}", img, params)
             with open(path, "wb") as outf:
-                outf.write(buf_img)
+                outf.write(buf_img)  # type: ignore
 
 
 def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:

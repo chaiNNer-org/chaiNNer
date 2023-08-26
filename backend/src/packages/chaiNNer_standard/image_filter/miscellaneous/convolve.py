@@ -47,13 +47,13 @@ def convolve_node(
     kernel = np.flipud(np.fliplr(kernel))
 
     img = cv2.copyMakeBorder(
-        img,
+        img,  # type: ignore
         top=padding,
         left=padding,
         right=padding,
         bottom=padding,
         borderType=cv2.BORDER_CONSTANT,
-        value=0,
+        value=0,  # type: ignore
     )
 
     output = cv2.filter2D(img, -1, kernel)

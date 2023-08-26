@@ -29,7 +29,7 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     attempts = 10
     cv2.setRNGSeed(0)
     _, _, center = cv2.kmeans(
-        flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS
+        flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS  # type: ignore
     )
 
     return center.reshape((1, -1, image.shape[2]))
