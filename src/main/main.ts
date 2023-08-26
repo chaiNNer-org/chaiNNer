@@ -29,6 +29,13 @@ const startApp = () => {
 
     app.setPath('userData', getRootDirSync());
 
+    // On macOS, we need to store the file-path when chaiNNer got started via a double
+    // click on a .chn file. This listener gets remove later on.
+    app.on('open-file', (event, filePath) => {
+        event.preventDefault();
+        process.env.STARTUPFILE = filePath;
+    });
+
     app.on('quit', () => {
         log.info('Cleaning up temp folders...');
         const tempDir = os.tmpdir();
