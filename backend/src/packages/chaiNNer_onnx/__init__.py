@@ -45,7 +45,7 @@ package = add_package(
         Dependency(
             display_name="ONNX",
             pypi_name="onnx",
-            version="1.14.0",
+            version="1.14.1",
             size_estimate=12 * MB,
         ),
         Dependency(
@@ -58,13 +58,13 @@ package = add_package(
         Dependency(
             display_name="Protobuf",
             pypi_name="protobuf",
-            version="3.20.2",
+            version="4.24.2",
             size_estimate=500 * KB,
         ),
         Dependency(
             display_name="Numba",
             pypi_name="numba",
-            version="0.56.3",
+            version="0.57.1",
             size_estimate=2.5 * MB,
         ),
     ],
