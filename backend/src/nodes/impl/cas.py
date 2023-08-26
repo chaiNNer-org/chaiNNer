@@ -53,4 +53,4 @@ def cas_mix(
 ) -> np.ndarray:
     mask = create_cas_mask(img, kernel, bias)
     mask = np.dstack((mask,) * get_h_w_c(sharpened)[2])
-    return img * (1 - mask) + sharpened * mask
+    return img * (1 - mask) + sharpened * mask  # type: ignore
