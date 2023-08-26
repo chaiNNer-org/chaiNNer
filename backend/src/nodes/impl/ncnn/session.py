@@ -36,18 +36,13 @@ def create_ncnn_net(
         net.set_vulkan_device(exec_options.ncnn_gpu_index)
 
     # Load model param and bin
+    net.load_param_mem(model.model.write_param())
     if use_gpu:
-        net.load_param_mem(model.model.write_param())
         net.load_model_mem(model.model.bin)
     else:
         with tempfile.TemporaryDirectory() as tmp_model_dir:
-            param_filename = tmp_model_dir + "/ncnn-model.param"
             bin_filename = tmp_model_dir + "/ncnn-model.bin"
-
-            model.model.write_param(param_filename)
             model.model.write_bin(bin_filename)
-
-            net.load_param(param_filename)
             net.load_model(bin_filename)
 
     return net
