@@ -1016,6 +1016,7 @@ class SRFormer(nn.Module):
 
         self.model_arch = "SRFormer"
         self.sub_type = "SR"
+        self.state = state_dict
 
         state_keys = list(state_dict.keys())
 
