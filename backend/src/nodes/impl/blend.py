@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -68,6 +68,9 @@ def blend_mode_normalized(blend_mode: BlendMode) -> bool:
     return __normalized.get(blend_mode, False)
 
 
+NumericalNDarray = np.ndarray[Any, np.dtype[np.number]]
+
+
 class ImageBlender:
     """Class for compositing images using different blending modes."""
 
@@ -99,85 +102,101 @@ class ImageBlender:
         }
 
     def apply_blend(
-        self, a: np.ndarray, b: np.ndarray, blend_mode: BlendMode
-    ) -> np.ndarray:
+        self, a: NumericalNDarray, b: NumericalNDarray, blend_mode: BlendMode
+    ) -> NumericalNDarray:
         return self.modes[blend_mode](a, b)
 
-    def __normal(self, a: np.ndarray, _: np.ndarray) -> np.ndarray:
+    def __normal(self, a: NumericalNDarray, _: NumericalNDarray) -> NumericalNDarray:
         return a
 
-    def __multiply(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __multiply(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return a * b
 
-    def __darken(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __darken(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.minimum(a, b)
 
-    def __lighten(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __lighten(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.maximum(a, b)
 
-    def __add(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __add(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return a + b
 
-    def __color_burn(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __color_burn(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return np.where(
             a == 0, 0, np.maximum(0, (1 - ((1 - b) / np.maximum(0.0001, a))))
         )
 
-    def __color_dodge(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __color_dodge(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return np.where(a == 1, 1, np.minimum(1, b / np.maximum(0.0001, (1 - a))))
 
-    def __reflect(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __reflect(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.where(a == 1, 1, np.minimum(1, b * b / np.maximum(0.0001, 1 - a)))
 
-    def __glow(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __glow(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.where(b == 1, 1, np.minimum(1, a * a / np.maximum(0.0001, 1 - b)))
 
-    def __overlay(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __overlay(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.where(b < 0.5, 2 * b * a, 1 - 2 * (1 - b) * (1 - a))
 
-    def __difference(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return cv2.absdiff(a, b)
+    def __difference(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
+        return np.asarray(cv2.absdiff(a, b))
 
-    def __negation(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __negation(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return np.subtract(1, cv2.absdiff(1 - b, a))
 
-    def __screen(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __screen(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return a + b - (a * b)
 
-    def __xor(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __xor(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return normalize(
             np.bitwise_xor(to_uint8(a, normalized=True), to_uint8(b, normalized=True))
         )
 
-    def __subtract(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __subtract(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return b - a
 
-    def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __divide(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return b / np.maximum(0.0001, a)
 
-    def __exclusion(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __exclusion(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         return a * (1 - b) + b * (1 - a)
 
-    def __soft_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __soft_light(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         l = 2 * b * a + np.square(b) * (1 - 2 * a)
         h = np.sqrt(b) * (2 * a - 1) + 2 * b * (1 - a)
         return np.where(a <= 0.5, l, h)
 
-    def __hard_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __hard_light(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return np.where(a <= 0.5, 2 * a * b, 1 - 2 * (1 - a) * (1 - b))
 
-    def __vivid_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __vivid_light(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return np.where(a <= 0.5, self.__color_burn(a, b), self.__color_dodge(a, b))
 
-    def __linear_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __linear_light(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return b + 2 * a - 1
 
-    def __pin_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __pin_light(self, a: NumericalNDarray, b: NumericalNDarray) -> NumericalNDarray:
         x = 2 * a
         y = x - 1
         return np.where(b < y, y, np.where(b > x, x, b))
 
-    def __linear_burn(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def __linear_burn(
+        self, a: NumericalNDarray, b: NumericalNDarray
+    ) -> NumericalNDarray:
         return a + b - 1
 
 
