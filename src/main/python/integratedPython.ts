@@ -2,7 +2,7 @@ import decompress from 'decompress';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import path from 'path';
-import { eq } from 'semver';
+import semver from 'semver';
 import { PythonInfo } from '../../common/common-types';
 import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
@@ -74,13 +74,14 @@ export const getIntegratedPython = async (
 
     if (pythonBinExists) {
         const pythonInfo = await checkPythonPaths([pythonPath]);
-        if (eq(pythonInfo.version, version)) {
+        if (semver.eq(pythonInfo.version, version)) {
             return pythonInfo;
         }
-        // Invalid version, remove legacy integrated python
-        const legacyPythonFolder = path.resolve(path.join(directory, '/python'));
-        await fs.rm(legacyPythonFolder, { recursive: true, force: true });
     }
+
+    // Invalid version, remove legacy integrated python
+    const legacyPythonFolder = path.resolve(path.join(directory, '/python'));
+    await fs.rm(legacyPythonFolder, { recursive: true, force: true });
 
     log.info(`Integrated Python not found at ${pythonPath}`);
 
