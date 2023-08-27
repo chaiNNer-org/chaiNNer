@@ -1,15 +1,18 @@
+# pylint: skip-file
 import math
+import re
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
-from basicsr.utils.registry import ARCH_REGISTRY
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from timm.models.layers import DropPath, trunc_normal_
 from torch import Tensor
 from torch.nn import functional as F
+
+from .timm.drop import DropPath
+from .timm.weight_init import trunc_normal_
 
 
 def img2windows(img, H_sp, W_sp):
@@ -891,7 +894,6 @@ class UpsampleOneStep(nn.Sequential):
         return flops
 
 
-@ARCH_REGISTRY.register()
 class DAT(nn.Module):
     """Dual Aggregation Transformer
     Args:
@@ -938,6 +940,117 @@ class DAT(nn.Module):
         img_range = 1.0
         resi_connection = "1conv"
         upsampler = "pixelshuffle"
+
+        self.model_arch = "DAT"
+        self.sub_type = "SR"
+        self.state = state_dict
+
+        state_keys = state_dict.keys()
+        if "conv_before_upsample.0.weight" in state_keys:
+            if "conv_up1.weight" in state_keys:
+                upsampler = "nearest+conv"
+            else:
+                upsampler = "pixelshuffle"
+                supports_fp16 = False
+        elif "upsample.0.weight" in state_keys:
+            upsampler = "pixelshuffledirect"
+        else:
+            upsampler = ""
+
+        num_feat = (
+            state_dict.get("conv_before_upsample.0.weight", None).shape[1]
+            if state_dict.get("conv_before_upsample.weight", None)
+            else 64
+        )
+
+        num_in_ch = state_dict["conv_first.weight"].shape[1]
+        in_chans = num_in_ch
+        if "conv_last.weight" in state_keys:
+            num_out_ch = state_dict["conv_last.weight"].shape[0]
+        else:
+            num_out_ch = num_in_ch
+
+        upscale = 1
+        if upsampler == "nearest+conv":
+            upsample_keys = [
+                x for x in state_keys if "conv_up" in x and "bias" not in x
+            ]
+
+            for upsample_key in upsample_keys:
+                upscale *= 2
+        elif upsampler == "pixelshuffle":
+            upsample_keys = [
+                x
+                for x in state_keys
+                if "upsample" in x and "conv" not in x and "bias" not in x
+            ]
+            for upsample_key in upsample_keys:
+                shape = state_dict[upsample_key].shape[0]
+                upscale *= math.sqrt(shape // num_feat)
+            upscale = int(upscale)
+        elif upsampler == "pixelshuffledirect":
+            upscale = int(
+                math.sqrt(state_dict["upsample.0.bias"].shape[0] // num_out_ch)
+            )
+
+        max_layer_num = 0
+        max_block_num = 0
+        for key in state_keys:
+            result = re.match(r"layers.(\d*).blocks.(\d*).norm1.weight", key)
+            if result:
+                layer_num, block_num = result.groups()
+                max_layer_num = max(max_layer_num, int(layer_num))
+                max_block_num = max(max_block_num, int(block_num))
+
+        depth = [max_block_num + 1 for _ in range(max_layer_num + 1)]
+
+        if "layers.0.blocks.1.attn.temperature" in state_keys:
+            num_heads_num = state_dict["layers.0.blocks.1.attn.temperature"].shape[0]
+            num_heads = [num_heads_num for _ in range(max_layer_num + 1)]
+        else:
+            num_heads = depth
+
+        embed_dim = state_dict["conv_first.weight"].shape[0]
+        expansion_factor = float(
+            state_dict["layers.0.blocks.0.ffn.fc1.weight"].shape[0] / embed_dim
+        )
+
+        # TODO: could actually count the layers, but this should do
+        if "layers.0.conv.4.weight" in state_keys:
+            resi_connection = "3conv"
+        else:
+            resi_connection = "1conv"
+
+        if "layers.0.blocks.2.attn.attn_mask_0" in state_keys:
+            attn_mask_0_x, attn_mask_0_y, attn_mask_0_z = state_dict[
+                "layers.0.blocks.2.attn.attn_mask_0"
+            ].shape
+
+            img_size = int(math.sqrt(attn_mask_0_x * attn_mask_0_y))
+            # TODO: We are assuming a constant 8 here, but it could be different.
+            # As far as I can tell, it is not possible to detect both values as they are both used for the resulting number
+            spit_size_x = 8
+            split_size_y = attn_mask_0_z // spit_size_x
+
+            split_size = [spit_size_x, split_size_y]
+
+        self.in_nc = num_in_ch
+        self.out_nc = num_out_ch
+        self.num_feat = num_feat
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.depth = depth
+        self.scale = upscale
+        self.upsampler = upsampler
+        self.img_size = img_size
+        self.img_range = img_range
+        self.expansion_factor = expansion_factor
+        self.resi_connection = resi_connection
+        self.split_size = split_size
+
+        self.supports_fp16 = False  # Too much weirdness to support this at the moment
+        self.supports_bfp16 = True
+        self.min_size_restriction = 16
 
         num_in_ch = in_chans
         num_out_ch = in_chans
@@ -1066,32 +1179,3 @@ class DAT(nn.Module):
 
         x = x / self.img_range + self.mean
         return x
-
-
-if __name__ == "__main__":
-    upscale = 1
-    height = 64
-    width = 64
-    model = (
-        DAT(
-            upscale=2,
-            in_chans=3,
-            img_size=64,
-            img_range=1.0,
-            depth=[6, 6, 6, 6, 6, 6],
-            embed_dim=180,
-            num_heads=[6, 6, 6, 6, 6, 6],
-            expansion_factor=2,
-            resi_connection="1conv",
-            split_size=[8, 16],
-        )
-        .cuda()
-        .eval()
-    )
-
-    print(height, width)
-
-    x = torch.randn((1, 3, height, width)).cuda()
-    x = model(x)
-
-    print(x.shape)
