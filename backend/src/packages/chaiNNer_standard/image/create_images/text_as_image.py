@@ -8,8 +8,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from nodes.impl.color.color import Color
-from nodes.impl.image_utils import normalize
-from nodes.impl.pil_utils import convert_to_BGRA
+from nodes.impl.image_utils import normalize, to_uint8
 from nodes.properties.inputs import (
     BoolInput,
     ColorInput,
@@ -145,7 +144,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
                     height: Input6,
                 }
                 """,
-            channels: 4,
+            channels=4,
             assume_normalized=True,
         )
     ],
@@ -182,7 +181,7 @@ def text_as_image_node(
     h_text *= line_count
 
     # Text color
-    ink = tuple(to_uint8(color.value))
+    ink = tuple(to_uint8(np.array(color.value)))
 
     # Create a PIL image to add text
     pil_image = Image.new("RGBA", (width, height))
