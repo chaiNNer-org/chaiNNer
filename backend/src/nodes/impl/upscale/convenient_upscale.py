@@ -20,11 +20,20 @@ def with_black_and_white_backgrounds(img: np.ndarray) -> Tuple[np.ndarray, np.nd
     return black, white
 
 
+def denoise_and_flatten_alpha(img: np.ndarray) -> np.ndarray:
+    alpha_min = np.min(img, axis=2)
+    alpha_max = np.max(img, axis=2)
+    alpha_mean = np.mean(img, axis=2)
+    alpha = alpha_max * alpha_mean + alpha_min * (1 - alpha_mean)
+    return alpha
+
+
 def convenient_upscale(
     img: np.ndarray,
     model_in_nc: int,
     model_out_nc: int,
     upscale: ImageOp,
+    separate_alpha: bool = False,
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
@@ -56,23 +65,30 @@ def convenient_upscale(
             unique_alpha = np.full(rgb.shape[:-1], unique[0], np.float32)
             return np.dstack((rgb, unique_alpha))
 
-        # Transparency hack (white/black background difference alpha)
-        black, white = with_black_and_white_backgrounds(img)
-        black_up = as_target_channels(
-            upscale(as_target_channels(black, model_in_nc, True)), 3, True
-        )
-        white_up = as_target_channels(
-            upscale(as_target_channels(white, model_in_nc, True)), 3, True
-        )
+        if separate_alpha:
+            # Upscale the RGB channels and alpha channel separately
+            rgb = as_target_channels(
+                upscale(as_target_channels(img[:, :, :3], model_in_nc, True)), 3, True
+            )
+            alpha = denoise_and_flatten_alpha(
+                upscale(as_target_channels(img[:, :, 3], model_in_nc, True))
+            )
+            return np.dstack((rgb, alpha))
+        else:
+            # Transparency hack (white/black background difference alpha)
+            black, white = with_black_and_white_backgrounds(img)
+            black_up = as_target_channels(
+                upscale(as_target_channels(black, model_in_nc, True)), 3, True
+            )
+            white_up = as_target_channels(
+                upscale(as_target_channels(white, model_in_nc, True)), 3, True
+            )
 
-        # Interpolate between the alpha values to get a more defined alpha
-        alpha_candidates = 1 - (white_up - black_up)  #  type: ignore
-        alpha_min = np.min(alpha_candidates, axis=2)
-        alpha_max = np.max(alpha_candidates, axis=2)
-        alpha_mean = np.mean(alpha_candidates, axis=2)
-        alpha = alpha_max * alpha_mean + alpha_min * (1 - alpha_mean)
+            # Interpolate between the alpha values to get a more defined alpha
+            alpha_candidates = 1 - (white_up - black_up)  #  type: ignore
+            alpha = denoise_and_flatten_alpha(alpha_candidates)
 
-        return np.dstack((black_up, alpha))
+            return np.dstack((black_up, alpha))
 
     return as_target_channels(
         upscale(as_target_channels(img, model_in_nc, True)), in_img_c, True

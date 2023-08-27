@@ -184,14 +184,6 @@ const registerEventHandlerPostSetup = (
         app.on('before-quit', () => backend.tryKill());
     }
 
-    ipcMain.handle('relaunch-application', () => {
-        if (backend.owned) {
-            backend.tryKill();
-        }
-        app.relaunch();
-        app.exit();
-    });
-
     ipcMain.handle('restart-backend', () => {
         if (backend.owned) {
             backend.restart();
@@ -204,10 +196,69 @@ const registerEventHandlerPostSetup = (
     ipcMain.on('update-has-unsaved-changes', (_, value) => {
         hasUnsavedChanges = value;
     });
+
     let forceExit = false;
     ipcMain.on('exit-after-save', () => {
         forceExit = true;
         mainWindow.close();
+    });
+
+    const restartChainner = (): void => {
+        if (backend.owned) {
+            backend.tryKill();
+        }
+        app.relaunch();
+        app.exit();
+    };
+
+    ipcMain.on('reboot-after-save', () => {
+        restartChainner();
+    });
+
+    const handleUnsavedChanges = (
+        event: Electron.Event,
+        onSave: () => void,
+        onDontSave?: () => void
+    ) => {
+        const choice = dialog.showMessageBoxSync(mainWindow, {
+            type: 'question',
+            title: 'Unsaved changes',
+            message: 'The current chain has unsaved changes.',
+            buttons: ['&Save', "Do&n't Save", 'Cancel'],
+            defaultId: 0,
+            cancelId: 2,
+            noLink: true,
+            normalizeAccessKeys: true,
+        });
+        if (choice === 1) {
+            // Don't save
+            if (onDontSave) {
+                onDontSave(); // Restart the application
+            }
+        } else if (choice === 2) {
+            // Cancel
+            event.preventDefault();
+        } else {
+            // Save
+            event.preventDefault();
+            onSave();
+        }
+    };
+
+    ipcMain.handle('relaunch-application', (event) => {
+        if (hasUnsavedChanges) {
+            handleUnsavedChanges(
+                event,
+                () => {
+                    mainWindow.webContents.send('save-before-reboot');
+                },
+                () => {
+                    restartChainner();
+                }
+            );
+        } else {
+            restartChainner();
+        }
     });
 
     mainWindow.on('close', (event) => {
@@ -216,26 +267,9 @@ const registerEventHandlerPostSetup = (
             return;
         }
         if (hasUnsavedChanges) {
-            const choice = dialog.showMessageBoxSync(mainWindow, {
-                type: 'question',
-                title: 'Unsaved changes',
-                message: 'The current chain has unsaved changes.',
-                buttons: ['&Save', "Do&n't Save", 'Cancel'],
-                defaultId: 0,
-                cancelId: 2,
-                noLink: true,
-                normalizeAccessKeys: true,
-            });
-            if (choice === 1) {
-                // Don't save, so do nothing
-            } else if (choice === 2) {
-                // Cancel
-                event.preventDefault();
-            } else {
-                // Save
-                event.preventDefault();
+            handleUnsavedChanges(event, () => {
                 mainWindow.webContents.send('save-before-exit');
-            }
+            });
         }
     });
 };
