@@ -1027,12 +1027,12 @@ class DAT(nn.Module):
             ].shape
 
             img_size = int(math.sqrt(attn_mask_0_x * attn_mask_0_y))
-            # TODO: We are assuming a constant 8 here, but it could be different.
-            # As far as I can tell, it is not possible to detect both values as they are both used for the resulting number
-            spit_size_x = 8
-            split_size_y = attn_mask_0_z // spit_size_x
 
-            split_size = [spit_size_x, split_size_y]
+        if "layers.0.blocks.0.attn.attns.0.rpe_biases" in state_keys:
+            split_sizes = (
+                state_dict["layers.0.blocks.0.attn.attns.0.rpe_biases"][-1] + 1
+            )
+            split_size = [int(x) for x in split_sizes]
 
         self.in_nc = num_in_ch
         self.out_nc = num_out_ch
