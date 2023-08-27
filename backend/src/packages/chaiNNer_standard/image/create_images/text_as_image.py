@@ -182,8 +182,7 @@ def text_as_image_node(
     h_text *= line_count
 
     # Text color
-    ink = 255 * np.array(color.value)
-    ink = tuple(ink.astype("uint8"))
+    ink = tuple(to_uint8(color.value))
 
     # Create a PIL image to add text
     pil_image = Image.new("RGBA", (width, height))
