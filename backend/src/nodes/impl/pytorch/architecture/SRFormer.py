@@ -1137,6 +1137,7 @@ class SRFormer(nn.Module):
         self.upsampler = upsampler
         self.img_size = img_size
         self.img_range = img_range
+        self.resi_connection = resi_connection
 
         self.supports_fp16 = False  # Too much weirdness to support this at the moment
         self.supports_bfp16 = True

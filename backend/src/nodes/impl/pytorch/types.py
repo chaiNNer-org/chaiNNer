@@ -1,5 +1,6 @@
 from typing import Union
 
+from .architecture.DAT import DAT
 from .architecture.face.codeformer import CodeFormer
 from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.face.restoreformer_arch import RestoreFormer
@@ -27,6 +28,7 @@ PyTorchSRModels = (
     OmniSR,
     SCUNet,
     SRFormer,
+    DAT,
 )
 PyTorchSRModel = Union[
     RealESRGANv2,
@@ -39,6 +41,7 @@ PyTorchSRModel = Union[
     OmniSR,
     SCUNet,
     SRFormer,
+    DAT,
 ]
 
 

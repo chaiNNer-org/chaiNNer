@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
+from nodes.impl.pytorch.architecture.DAT import DAT
 from nodes.impl.pytorch.architecture.HAT import HAT
 from nodes.impl.pytorch.architecture.OmniSR.OmniSR import OmniSR
 from nodes.impl.pytorch.architecture.SCUNet import SCUNet
@@ -76,6 +77,10 @@ def convert_to_ncnn_node(
     assert not isinstance(
         model, SRFormer
     ), "SRFormer is not supported for NCNN conversion at this time."
+
+    assert not isinstance(
+        model, DAT
+    ), "DAT is not supported for NCNN conversion at this time."
 
     # Intermediate conversion to ONNX is always fp32
     onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]

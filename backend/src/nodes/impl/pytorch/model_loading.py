@@ -1,5 +1,6 @@
 from sanic.log import logger
 
+from .architecture.DAT import DAT
 from .architecture.face.codeformer import CodeFormer
 from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.face.restoreformer_arch import RestoreFormer
@@ -95,6 +96,9 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # SCUNet
     elif "m_head.0.weight" in state_dict_keys and "m_tail.0.weight" in state_dict_keys:
         model = SCUNet(state_dict)
+    # DAT
+    elif "layers.0.blocks.2.attn.attn_mask_0" in state_dict_keys:
+        model = DAT(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
