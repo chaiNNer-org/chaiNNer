@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any, Union
 
 import cv2
 import numpy as np
@@ -138,10 +139,10 @@ class ImageBlender:
         return cv2.absdiff(a, b)
 
     def __negation(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return 1 - cv2.absdiff(1 - b, a)  # type: ignore
+        return np.subtract(1, cv2.absdiff(1 - b, a))
 
     def __screen(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return a + b - (a * b)  # type: ignore
+        return a + b - (a * b)
 
     def __xor(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return normalize(
@@ -149,7 +150,7 @@ class ImageBlender:
         )
 
     def __subtract(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return b - a  # type: ignore
+        return b - a
 
     def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return b / np.maximum(0.0001, a)
