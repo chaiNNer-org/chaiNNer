@@ -14,6 +14,7 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
         "SwinIR" in value.model_arch
         or "Swin2SR" in value.model_arch
         or "HAT" in value.model_arch
+        or "SRFormer" in value.model_arch
     ):
         head_length = len(value.depths)  # type: ignore
         if head_length <= 4:
