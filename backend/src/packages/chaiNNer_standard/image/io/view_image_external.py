@@ -43,6 +43,6 @@ def view_image_external_node(img: np.ndarray) -> None:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", temp_save_dir))
         elif platform.system() == "Windows":  # Windows
-            os.startfile(temp_save_dir)  # type: ignore
+            os.startfile(temp_save_dir)
         else:  # linux variants
             subprocess.call(("xdg-open", temp_save_dir))

@@ -151,10 +151,12 @@ def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.
     fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
-    translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
+    translation_matrix = np.asfarray(
+        [[1, 0, amount_x], [0, 1, amount_y]], dtype=np.float32
+    )
     img = cv2.warpAffine(
-        img,  # type: ignore
-        translation_matrix,  # type: ignore
+        img,
+        translation_matrix,
         (w, h),
         borderMode=cv2.BORDER_CONSTANT,
         borderValue=fill_color,
@@ -237,18 +239,18 @@ def create_border(
 
     _, _, c = get_h_w_c(img)
     if c == 4 and border_type == BorderType.BLACK:
-        value = (0, 0, 0, 1)
+        value = (0.0, 0.0, 0.0, 1.0)
     else:
-        value = 0
+        value = (0.0,)
 
     cv_border_type: int = border_type.value
     if border_type == BorderType.TRANSPARENT:
         cv_border_type = cv2.BORDER_CONSTANT
-        value = 0
+        value = (0.0,)
         img = as_target_channels(img, 4)
     elif border_type == BorderType.WHITE:
         cv_border_type = cv2.BORDER_CONSTANT
-        value = (1,) * c
+        value = (1.0,) * c
     elif border_type == BorderType.CUSTOM_COLOR:
         assert (
             color is not None
@@ -264,17 +266,20 @@ def create_border(
         value = color.value
 
     return cv2.copyMakeBorder(
-        img,  # type: ignore
+        img,
         top=border.top,
         left=border.left,
         right=border.right,
         bottom=border.bottom,
         borderType=cv_border_type,
-        value=value,  # type: ignore
+        value=value,
     )
 
 
-def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
+def calculate_ssim(
+    img1: np.ndarray,
+    img2: np.ndarray,
+) -> float:
     """Calculates mean localized Structural Similarity Index (SSIM)
     between two images."""
 
@@ -286,9 +291,9 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
 
     mu1 = cv2.filter2D(img1, -1, window)[5:-5, 5:-5]
     mu2 = cv2.filter2D(img2, -1, window)[5:-5, 5:-5]
-    mu1_sq = mu1**2  # type: ignore
-    mu2_sq = mu2**2  # type: ignore
-    mu1_mu2 = mu1 * mu2  # type: ignore
+    mu1_sq = np.power(mu1, 2)
+    mu2_sq = np.power(mu2, 2)
+    mu1_mu2 = np.multiply(mu1, mu2)
     sigma1_sq = cv2.filter2D(img1**2, -1, window)[5:-5, 5:-5] - mu1_sq
     sigma2_sq = cv2.filter2D(img2**2, -1, window)[5:-5, 5:-5] - mu2_sq
     sigma12 = cv2.filter2D(img1 * img2, -1, window)[5:-5, 5:-5] - mu1_mu2
