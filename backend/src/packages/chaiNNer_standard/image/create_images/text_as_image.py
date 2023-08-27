@@ -143,9 +143,9 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
                 Image {
                     width: Input5,
                     height: Input6,
-                    channels: 4
                 }
                 """,
+            channels: 4,
             assume_normalized=True,
         )
     ],
