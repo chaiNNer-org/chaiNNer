@@ -1,3 +1,4 @@
+# pylint: skip-file
 # model: SRFormer
 # SRFormer: Permuted Self-Attention for Single Image Super-Resolution
 
