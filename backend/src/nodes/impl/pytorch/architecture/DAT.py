@@ -1135,6 +1135,7 @@ class DAT(nn.Module):
             )
 
         self.apply(self._init_weights)
+        self.load_state_dict(state_dict, strict=True)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
