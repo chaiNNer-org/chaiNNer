@@ -29,7 +29,7 @@ from .. import io_group
         (
             "- For Super-Resolution, we support most variations of the RRDB"
             " architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's"
-            " SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, and Omni-SR."
+            " SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, Omni-SR, and SRFormer."
         ),
         (
             "- For Face-Restoration, we support GFPGAN (1.2, 1.3, 1.4), RestoreFormer,"
