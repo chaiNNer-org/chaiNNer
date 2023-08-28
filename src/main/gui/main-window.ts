@@ -349,6 +349,7 @@ export const createMainWindow = async (args: OpenArguments) => {
             }
         });
 
+        let opened = false;
         sse.addEventListener('backend-ready', () => {
             progressController.submitProgress({
                 totalProgress: 1,
@@ -365,9 +366,12 @@ export const createMainWindow = async (args: OpenArguments) => {
                 return;
             }
 
-            mainWindow.show();
-            if (lastWindowSize?.maximized) {
-                mainWindow.maximize();
+            if (!opened) {
+                mainWindow.show();
+                if (lastWindowSize?.maximized) {
+                    mainWindow.maximize();
+                }
+                opened = true;
             }
         });
 
