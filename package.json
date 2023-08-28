@@ -125,6 +125,7 @@
     "framer-motion": "^6.3.6",
     "html-to-image": "^1.10.8",
     "i18next": "^22.0.5",
+    "immer": "^10.0.2",
     "javascript-time-ago": "^2.5.9",
     "minisearch": "^6.1.0",
     "node-localstorage": "^2.2.1",

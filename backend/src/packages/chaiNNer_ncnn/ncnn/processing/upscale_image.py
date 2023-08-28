@@ -33,10 +33,10 @@ from nodes.properties.inputs import (
     TileSizeDropdown,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import get_execution_options
 from nodes.utils.utils import get_h_w_c
 from system import is_mac
 
+from ...settings import get_settings
 from .. import processing_group
 
 
@@ -72,12 +72,12 @@ def upscale_impl(
     output_name: str,
     tile_size: TileSize,
 ):
-    exec_options = get_execution_options()
-    net = get_ncnn_net(model, exec_options)
+    settings = get_settings()
+    net = get_ncnn_net(model, settings.gpu_index)
     # Try/except block to catch errors
     try:
         if use_gpu:
-            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
+            vkdev = ncnn.get_gpu_device(settings.gpu_index)
 
             def estimate_gpu():
                 if is_mac:

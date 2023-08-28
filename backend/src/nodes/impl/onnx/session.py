@@ -4,44 +4,47 @@ from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
 
-from ...utils.exec_options import ExecutionOptions
 from .model import OnnxModel
 
 
 def create_inference_session(
-    model: OnnxModel, exec_options: ExecutionOptions
+    model: OnnxModel,
+    gpu_index: int,
+    execution_provider: str,
+    should_tensorrt_fp16: bool = False,
+    tensorrt_cache_path: str | None = None,
 ) -> ort.InferenceSession:
-    if exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
+    if execution_provider == "TensorrtExecutionProvider":
         providers = [
             (
                 "TensorrtExecutionProvider",
                 {
-                    "device_id": exec_options.onnx_gpu_index,
-                    "trt_engine_cache_enable": exec_options.onnx_should_tensorrt_cache,
-                    "trt_engine_cache_path": exec_options.onnx_tensorrt_cache_path,
-                    "trt_fp16_enable": exec_options.onnx_should_tensorrt_fp16,
+                    "device_id": gpu_index,
+                    "trt_engine_cache_enable": tensorrt_cache_path is not None,
+                    "trt_engine_cache_path": tensorrt_cache_path,
+                    "trt_fp16_enable": should_tensorrt_fp16,
                 },
             ),
             (
                 "CUDAExecutionProvider",
                 {
-                    "device_id": exec_options.onnx_gpu_index,
+                    "device_id": gpu_index,
                 },
             ),
             "CPUExecutionProvider",
         ]
-    elif exec_options.onnx_execution_provider == "CUDAExecutionProvider":
+    elif execution_provider == "CUDAExecutionProvider":
         providers = [
             (
                 "CUDAExecutionProvider",
                 {
-                    "device_id": exec_options.onnx_gpu_index,
+                    "device_id": gpu_index,
                 },
             ),
             "CPUExecutionProvider",
         ]
     else:
-        providers = [exec_options.onnx_execution_provider, "CPUExecutionProvider"]
+        providers = [execution_provider, "CPUExecutionProvider"]
 
     session = ort.InferenceSession(model.bytes, providers=providers)
     return session
@@ -53,10 +56,20 @@ __session_cache: WeakKeyDictionary[
 
 
 def get_onnx_session(
-    model: OnnxModel, exec_options: ExecutionOptions
+    model: OnnxModel,
+    gpu_index: int,
+    execution_provider: str,
+    should_tensorrt_fp16: bool,
+    tensorrt_cache_path: str | None = None,
 ) -> ort.InferenceSession:
     cached = __session_cache.get(model)
     if cached is None:
-        cached = create_inference_session(model, exec_options)
+        cached = create_inference_session(
+            model,
+            gpu_index,
+            execution_provider,
+            should_tensorrt_fp16,
+            tensorrt_cache_path,
+        )
         __session_cache[model] = cached
     return cached

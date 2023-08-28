@@ -29,8 +29,8 @@ from events import EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
 from nodes.group import Group
 from nodes.utils.exec_options import (
+    ExecutionOptions,
     JsonExecutionOptions,
-    parse_execution_options,
     set_execution_options,
 )
 from process import (
@@ -173,9 +173,8 @@ async def run(request: Request):
         optimize(chain)
 
         logger.info("Running new executor...")
-        exec_opts = parse_execution_options(full_data["options"])
+        exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
-        logger.debug(f"Using device: {exec_opts.full_device}")
         executor = Executor(
             chain,
             inputs,
@@ -236,9 +235,8 @@ async def run_individual(request: Request):
         if ctx.cache.get(node_id, None) is not None:
             del ctx.cache[node_id]
         logger.debug(full_data)
-        exec_opts = parse_execution_options(full_data["options"])
+        exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
-        logger.debug(f"Using device: {exec_opts.full_device}")
         # Create node based on given category/name information
         node_instance = api.registry.get_node(full_data["schemaId"])
 
@@ -456,8 +454,11 @@ async def get_packages(_request: Request):
                 "id": package.id,
                 "name": package.name,
                 "description": package.description,
+                "icon": package.icon,
+                "color": package.color,
                 "dependencies": [d.toDict() for d in package.dependencies],
                 "features": [f.toDict() for f in package.features],
+                "settings": [asdict(x) for x in package.settings],
             }
         )
 

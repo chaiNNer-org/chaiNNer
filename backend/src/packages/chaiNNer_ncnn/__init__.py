@@ -36,6 +36,8 @@ package = add_package(
             import_name="ncnn_vulkan",
         ),
     ],
+    icon="NCNN",
+    color="#ED64A6",
 )
 
 ncnn_category = package.add_category(

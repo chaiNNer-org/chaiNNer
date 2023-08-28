@@ -6,8 +6,8 @@ import { delay, mapInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
+import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
-import { useBackendExecutionOptions } from './useBackendExecutionOptions';
 
 /**
  * Runs the given node as soon as it should.
@@ -21,8 +21,9 @@ export const useRunNode = (
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
+    const { useBackendSettings } = useContext(SettingsContext);
 
-    const options = useBackendExecutionOptions();
+    const [options] = useBackendSettings;
 
     const [reloadCounter, setReloadCounter] = useState(0);
     const reload = useCallback(() => setReloadCounter((c) => c + 1), []);

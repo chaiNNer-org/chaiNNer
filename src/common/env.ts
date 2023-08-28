@@ -28,6 +28,6 @@ const env = { ...process.env };
 delete env.PYTHONHOME;
 export const sanitizedEnv = env;
 
-export const getOnnxTensorRtCacheLocation = (userDataPath: string) => {
-    return path.join(userDataPath, 'onnx-tensorrt-cache');
+export const getCacheLocation = (userDataPath: string, cacheKey: string) => {
+    return path.join(userDataPath, '/cache/', cacheKey);
 };

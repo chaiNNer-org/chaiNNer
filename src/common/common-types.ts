@@ -308,12 +308,54 @@ export interface Feature {
     readonly description: string;
 }
 
+export type SettingKey = string & { readonly __settingKey: never };
+export type SettingValue = string | number | boolean;
+
+interface SettingBase {
+    readonly type: Setting['type'];
+    readonly key: SettingKey;
+    readonly label: string;
+    readonly description: string;
+    readonly default: SettingValue;
+    readonly disabled?: boolean;
+}
+
+export interface ToggleSetting extends SettingBase {
+    readonly type: 'toggle';
+    readonly default: boolean;
+}
+
+export interface NumberSetting extends SettingBase {
+    readonly type: 'number';
+    readonly min: number;
+    readonly max: number;
+    readonly default: number;
+}
+
+export interface DropdownSetting extends SettingBase {
+    readonly type: 'dropdown';
+    readonly options: readonly { readonly label: string; readonly value: string }[];
+    readonly default: string;
+    readonly small?: boolean;
+}
+
+export interface CacheSetting extends SettingBase {
+    readonly type: 'cache';
+    readonly default: string;
+    readonly directory: string;
+}
+
+export type Setting = ToggleSetting | NumberSetting | DropdownSetting | CacheSetting;
+
 export interface Package {
     readonly id: PackageId;
     readonly name: string;
+    readonly icon: string;
+    readonly color: string;
     readonly description: string;
     readonly dependencies: readonly PyPiPackage[];
     readonly features: readonly Feature[];
+    readonly settings: readonly Setting[];
 }
 
 export interface FeatureState {
@@ -408,4 +450,8 @@ export interface RgbColorJson {
 export interface RgbaColorJson {
     readonly kind: 'rgba';
     readonly values: readonly [r: number, g: number, b: number, a: number];
+}
+
+export interface PackageSettings {
+    [packageName: string]: Record<string, SettingValue>;
 }
