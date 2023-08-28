@@ -141,7 +141,7 @@ class ImageBlender:
         return np.subtract(1, cv2.absdiff(1 - b, a))
 
     def __screen(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return a + b - (a * b)
+        return a + b - (a * b)  # type: ignore
 
     def __xor(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return normalize(
