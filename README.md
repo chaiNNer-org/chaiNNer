@@ -84,8 +84,6 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
-- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
-
 - To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
 
 ## GPU Support
@@ -115,6 +113,8 @@ ChaiNNer currently supports a limited amount of neural network architectures. Mo
 - [Swin2SR](https://github.com/mv-lab/swin2sr) | [Models](https://github.com/mv-lab/swin2sr/releases/tag/v0.0.1)
 - [HAT](https://github.com/XPixelGroup/HAT) | [Models](https://drive.google.com/drive/folders/1HpmReFfoUqUbnAOQ7rvOeNU3uf_m69w0)
 - [Omni-SR](https://github.com/Francis0625/Omni-SR) | [Models](https://github.com/Francis0625/Omni-SR#preparation)
+- [SRFormer](https://github.com/HVision-NKU/SRFormer) | [Models](https://github.com/HVision-NKU/SRFormer#pretrain-models)
+- [DAT](https://github.com/zhengchen1999/DAT) | [Models](https://github.com/zhengchen1999/DAT#testing)
 
 #### Face Restoration
 

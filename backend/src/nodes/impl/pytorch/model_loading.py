@@ -1,5 +1,6 @@
 from sanic.log import logger
 
+from .architecture.DAT import DAT
 from .architecture.face.codeformer import CodeFormer
 from .architecture.face.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.face.restoreformer_arch import RestoreFormer
@@ -10,6 +11,7 @@ from .architecture.OmniSR.OmniSR import OmniSR
 from .architecture.RRDB import RRDBNet as ESRGAN
 from .architecture.SCUNet import SCUNet
 from .architecture.SPSR import SPSRNet as SPSR
+from .architecture.SRFormer import SRFormer
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.Swin2SR import Swin2SR
@@ -34,7 +36,6 @@ def load_state_dict(state_dict) -> PyTorchModel:
         state_dict = state_dict["params"]
 
     state_dict_keys = list(state_dict.keys())
-
     # SRVGGNet Real-ESRGAN (v2)
     if "body.0.weight" in state_dict_keys and "body.1.weight" in state_dict_keys:
         model = RealESRGANv2(state_dict)
@@ -47,12 +48,19 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
-    # HAT -- be sure it is above swinir
-    elif "layers.0.residual_group.blocks.0.conv_block.cab.0.weight" in state_dict_keys:
-        model = HAT(state_dict)
-    # SwinIR
+    # SwinIR, Swin2SR, SRFormer, HAT
     elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict_keys:
-        if "patch_embed.proj.weight" in state_dict_keys:
+        if (
+            "layers.0.residual_group.blocks.0.attn.aligned_relative_position_index"
+            in state_dict_keys
+        ):
+            model = SRFormer(state_dict)
+        elif (
+            "layers.0.residual_group.blocks.0.conv_block.cab.0.weight"
+            in state_dict_keys
+        ):
+            model = HAT(state_dict)
+        elif "patch_embed.proj.weight" in state_dict_keys:
             model = Swin2SR(state_dict)
         else:
             model = SwinIR(state_dict)
@@ -88,6 +96,9 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # SCUNet
     elif "m_head.0.weight" in state_dict_keys and "m_tail.0.weight" in state_dict_keys:
         model = SCUNet(state_dict)
+    # DAT
+    elif "layers.0.blocks.2.attn.attn_mask_0" in state_dict_keys:
+        model = DAT(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
