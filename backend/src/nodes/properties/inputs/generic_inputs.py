@@ -413,20 +413,118 @@ def IteratorInput():
     return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
 
 
-def VideoTypeDropdown() -> DropDownInput:
-    """Video Type option dropdown"""
+class VideoContainer(Enum):
+    MKV = "mkv"
+    MP4 = "mp4"
+    AVI = "avi"
+    WEBM = "webm"
+    GIF = "gif"
+    NONE = "none"
+
+
+VIDEO_CONTAINERS = {
+    VideoContainer.MKV: "mkv",
+    VideoContainer.MP4: "mp4",
+    VideoContainer.AVI: "avi",
+    VideoContainer.WEBM: "WebM",
+    VideoContainer.GIF: "GIF",
+    VideoContainer.NONE: "None",
+}
+
+
+VIDEO_NONE_CONTAINERS: List[VideoContainer] = [VideoContainer.NONE, VideoContainer.GIF]
+
+
+def VideoNoneContainerDropdown() -> DropDownInput:
     return DropDownInput(
-        input_type="VideoType",
-        label="Video Type",
+        input_type="VideoContainer",
+        label="Container",
         options=[
-            {"option": "MP4", "value": "mp4"},
-            {"option": "MKV", "value": "mkv"},
-            {"option": "MKV (FFV1)", "value": "mkv-ffv1"},
-            {"option": "WEBM", "value": "webm"},
-            {"option": "AVI", "value": "avi"},
-            {"option": "GIF", "value": "gif"},
-            {"option": "None", "value": "none"},
+            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
+            for vc in VIDEO_NONE_CONTAINERS
         ],
+        associated_type=VideoContainer,
+    )
+
+
+VIDEO_FFV1_CONTAINERS: List[VideoContainer] = [VideoContainer.MKV, VideoContainer.AVI]
+
+
+def VideoFfv1ContainerDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="VideoContainer",
+        label="Container",
+        options=[
+            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
+            for vc in VIDEO_FFV1_CONTAINERS
+        ],
+        associated_type=VideoContainer,
+    )
+
+
+VIDEO_VP9_CONTAINERS: List[VideoContainer] = [VideoContainer.WEBM, VideoContainer.MKV]
+
+
+def VideoVp9ContainerDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="VideoContainer",
+        label="Container",
+        options=[
+            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
+            for vc in VIDEO_VP9_CONTAINERS
+        ],
+        associated_type=VideoContainer,
+    )
+
+
+VIDEO_H264_H265_HEVC_CONTAINERS: List[VideoContainer] = [
+    VideoContainer.MKV,
+    VideoContainer.MP4,
+    VideoContainer.AVI,
+]
+
+
+def VideoH264H265HevcContainerDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="VideoContainer",
+        label="Container",
+        options=[
+            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
+            for vc in VIDEO_H264_H265_HEVC_CONTAINERS
+        ],
+        associated_type=VideoContainer,
+    )
+
+
+class VideoEncoder(Enum):
+    H264 = "libx264"
+    H265 = "libx265"
+    HEVC = "hevc"
+    VP9 = "libvpx-vp9"
+    FFV1 = "ffv1"
+    NONE = "none"
+
+
+VIDEO_ENCODER_LABELS = {
+    VideoEncoder.H264: "H264",
+    VideoEncoder.H265: "H265",
+    VideoEncoder.HEVC: "HEVC",
+    VideoEncoder.VP9: "VP9",
+    VideoEncoder.FFV1: "FFV1",
+    VideoEncoder.NONE: "None",
+}
+
+
+def VideoEncoderDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="VideoEncoder",
+        label="Encoder",
+        options=[
+            {"option": label, "value": vc.value}
+            for vc, label in VIDEO_ENCODER_LABELS.items()
+        ],
+        default_value=VideoEncoder.H264.value,
+        associated_type=VideoEncoder,
     )
 
 

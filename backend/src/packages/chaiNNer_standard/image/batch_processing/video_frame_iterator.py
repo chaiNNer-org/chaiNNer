@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from enum import Enum
 from subprocess import Popen
 from typing import Tuple
 
@@ -10,6 +11,7 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
+from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
     BoolInput,
@@ -18,9 +20,15 @@ from nodes.properties.inputs import (
     IteratorInput,
     SliderInput,
     TextInput,
+    VideoContainer,
+    VideoEncoder,
+    VideoEncoderDropdown,
+    VideoFfv1ContainerDropdown,
     VideoFileInput,
+    VideoH264H265HevcContainerDropdown,
+    VideoNoneContainerDropdown,
     VideoPresetDropdown,
-    VideoTypeDropdown,
+    VideoVp9ContainerDropdown,
 )
 from nodes.properties.outputs import (
     DirectoryOutput,
@@ -39,13 +47,13 @@ VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save
 ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
 ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
-codec_map = {
-    "mp4": "libx264",
-    "avi": "libx264",
-    "mkv": "libx264",
-    "mkv-ffv1": "ffv1",
-    "webm": "libvpx-vp9",
-    "gif": "gif",
+PARAMETERS: dict[VideoEncoder, list] = {
+    VideoEncoder.H264: ["preset", "crf"],
+    VideoEncoder.H265: ["preset", "crf"],
+    VideoEncoder.HEVC: ["preset", "crf"],
+    VideoEncoder.VP9: ["crf"],
+    VideoEncoder.FFV1: [],
+    VideoEncoder.NONE: [],
 }
 
 
@@ -79,6 +87,10 @@ def iterator_helper_load_frame_as_image_node(
     return img, idx, video_dir, video_name
 
 
+def all_except(items, item):
+    return Enum(items.__name__, [(i.name, i.value) for i in items if i != item])
+
+
 @batch_processing_group.register(
     schema_id=VIDEO_ITERATOR_OUTPUT_NODE_ID,
     name="Write Output Frame",
@@ -89,25 +101,64 @@ def iterator_helper_load_frame_as_image_node(
         ImageInput("Frame", channels=3),
         DirectoryInput("Output Video Directory", has_handle=True),
         TextInput("Output Video Name"),
-        VideoTypeDropdown(),
-        VideoPresetDropdown().with_docs(
-            "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
+        VideoEncoderDropdown().with_docs("Encoder").with_id(3),
+        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC))(
+            VideoH264H265HevcContainerDropdown().with_docs("Container").with_id(4)
         ),
-        SliderInput(
-            "Quality (CRF)",
-            precision=0,
-            controls_step=1,
-            slider_step=1,
-            minimum=0,
-            maximum=51,
-            default=23,
-            ends=("Best", "Worst"),
-        ).with_docs(
-            "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
+        if_enum_group(3, VideoEncoder.FFV1)(
+            VideoFfv1ContainerDropdown().with_docs("Container").with_id(5)
         ),
-        BoolInput("Copy Audio", default=True).with_docs(
-            "Due to the complexity of the way we use FFMPEG, copying the audio is done in a separate pass after the video is written.",
-            "This isn't ideal, and sometimes fails. If it isn't working for you, use FFMPEG to mux the audio externally.",
+        if_enum_group(3, VideoEncoder.VP9)(
+            VideoVp9ContainerDropdown().with_docs("Container").with_id(6)
+        ),
+        if_enum_group(3, VideoEncoder.NONE)(
+            VideoNoneContainerDropdown().with_docs("Container").with_id(7)
+        ),
+        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC))(
+            VideoPresetDropdown()
+            .with_docs(
+                "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
+            )
+            .with_id(8),
+        ),
+        if_enum_group(
+            3,
+            (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC, VideoEncoder.VP9),
+        )(
+            SliderInput(
+                "Quality (CRF)",
+                precision=0,
+                controls_step=1,
+                slider_step=1,
+                minimum=0,
+                maximum=51,
+                default=23,
+                ends=("Best", "Worst"),
+            )
+            .with_docs(
+                "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
+            )
+            .with_id(9),
+        ),
+        if_enum_group(3, all_except(VideoEncoder, VideoEncoder.NONE))(
+            BoolInput("Copy Audio", default=True)
+            .with_docs(
+                "Due to the complexity of the way we use FFMPEG, copying the audio is done in a separate pass after the video is written.",
+                "This isn't ideal, and sometimes fails. If it isn't working for you, use FFMPEG to mux the audio externally.",
+            )
+            .with_id(10),
+            BoolInput("Additional parameters", default=False)
+            .with_docs("Allow user to add FFmpeg parameters")
+            .with_id(11),
+            if_group(Condition.bool(11, True))(
+                TextInput(
+                    "Additional parameters",
+                    multiline=True,
+                    hide_label=True,
+                    allow_empty_string=True,
+                    has_handle=False,
+                ).make_optional()
+            ),
         ),
     ],
     outputs=[],
@@ -117,29 +168,82 @@ def iterator_helper_write_output_frame_node(
     img: np.ndarray,
     save_dir: str,
     video_name: str,
-    video_type: str,
+    video_encoder: str,
+    h264_h265_hevc_container: str,
+    ffv1_container: str,
+    vp9_container: str,
+    none_container: str,
     video_preset: str,
     crf: int,
     copy_audio: bool,
+    advanced: bool,
+    additional_parameters: str,
     writer: Writer,
     fps: float,
 ) -> None:
-    if video_type == "none":
+    encoder = VideoEncoder(video_encoder)
+    container = VideoContainer(none_container)
+
+    if encoder == VideoEncoder.NONE and container == VideoContainer.NONE:
+        # Do not ouptut video
         return
 
-    h, w, _ = get_h_w_c(img)
+    # Determine video container
+    if encoder in [VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC]:
+        container = VideoContainer(h264_h265_hevc_container)
+    elif encoder == VideoEncoder.FFV1:
+        container = VideoContainer(ffv1_container)
+    elif encoder == VideoEncoder.VP9:
+        container = VideoContainer(vp9_container)
 
-    if codec_map[video_type] == "libx264":
+    h, w, _ = get_h_w_c(img)
+    extension = container.value
+    video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
+
+    # Common output settings
+    output_params = dict(
+        filename=video_save_path,
+        pix_fmt="yuv420p",
+        r=fps,
+        movflags="faststart",
+    )
+
+    # Append parameters
+    if encoder != VideoEncoder.NONE:
+        output_params["vcodec"] = encoder.value
+
+    parameters = PARAMETERS[encoder]
+    if "preset" in parameters:
+        output_params["preset"] = video_preset
+    if "crf" in parameters:
+        output_params["crf"] = crf
+
+    # Verify some parameters
+    if encoder in [
+        VideoEncoder.H264,
+        VideoEncoder.H265,
+        VideoEncoder.HEVC,
+    ]:
         assert (
             h % 2 == 0 and w % 2 == 0
-        ), f'The codec "libx264" used for video type "{video_type}" requires an even-number frame resolution.'
+        ), f'The "{encoder.value}" encoder requires an even-number frame resolution.'
 
+    # Append additional parameters
+    if advanced:
+        additional_parameters = " " + additional_parameters.replace("\n", " ")
+        additional_parameters_array = additional_parameters.split(" -")[1:]
+        non_overridable_params = ["filename", "vcodec", "crf", "preset"]
+        for parameter in additional_parameters_array:
+            try:
+                key, value = parameter.split(" ")
+                if key not in non_overridable_params:
+                    output_params[key] = value
+            except:
+                raise ValueError(f"Invalid or unsupported parameter: -{parameter}")
+
+    # Create the writer and run process
     if writer.out is None:
         try:
-            extension = video_type
-            if video_type == "mkv-ffv1":
-                extension = "mkv"
-            video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
             writer.out = (
                 ffmpeg.input(
                     "pipe:",
@@ -148,15 +252,7 @@ def iterator_helper_write_output_frame_node(
                     s=f"{w}x{h}",
                     r=fps,
                 )
-                .output(
-                    video_save_path,
-                    pix_fmt="yuv420p",
-                    r=fps,
-                    crf=crf,
-                    preset=video_preset if video_preset != "none" else None,
-                    vcodec=codec_map[video_type],
-                    movflags="faststart",
-                )
+                .output(**output_params)
                 .overwrite_output()
                 .run_async(pipe_stdin=True, cmd=ffmpeg_path)
             )

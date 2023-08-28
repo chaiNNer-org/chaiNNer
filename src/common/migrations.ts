@@ -1293,6 +1293,48 @@ const unifiedCrop: ModernMigration = (data) => {
     return data;
 };
 
+const writeOutputFrame: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:simple_video_frame_iterator_save') {
+            const old = { ...node.data.inputData };
+            node.data.inputData[8] = old[4];
+            node.data.inputData[9] = old[5];
+            node.data.inputData[10] = old[6];
+            node.data.inputData[13] = old[7];
+            node.data.inputData[14] = old[8];
+
+            const mapping: Partial<Record<string, [string, string, string, string, string]>> = {
+                mp4: ['libx264', 'mp4', 'mkv', 'webm', 'none'],
+                avi: ['libx264', 'avi', 'mkv', 'webm', 'none'],
+                mkv: ['libx264', 'mkv', 'mkv', 'webm', 'none'],
+                'mkv-ffv1': ['ffv1', 'mkv', 'mkv', 'webm', 'none'],
+                webm: ['libvpx-vp9', 'mkv', 'mkv', 'webm', 'none'],
+                gif: ['none', 'mkv', 'mkv', 'webm', 'gif'],
+                none: ['none', 'mkv', 'mkv', 'webm', 'none'],
+            };
+            const videoType = node.data.inputData[3];
+            const [
+                videoEncoder,
+                h264H265HevcContainer,
+                ffv1Container,
+                vp9Container,
+                noneContainer,
+            ] = mapping[videoType as string] ?? ['none', 'mkv', 'mkv', 'webm', 'none'];
+            node.data.inputData[3] = videoEncoder;
+            node.data.inputData[4] = h264H265HevcContainer;
+            node.data.inputData[5] = ffv1Container;
+            node.data.inputData[6] = vp9Container;
+            node.data.inputData[7] = noneContainer;
+
+            // Additional parameters
+            node.data.inputData[11] = 0;
+            node.data.inputData[12] = '';
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1343,6 +1385,7 @@ const migrations = [
     surfaceBlurRadius,
     saveImageWebPLossless,
     unifiedCrop,
+    writeOutputFrame,
 ];
 
 export const currentMigration = migrations.length;
