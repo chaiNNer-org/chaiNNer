@@ -120,7 +120,7 @@ def lens_blur(
             final_2 = cv2.filter2D(inter_real, -1, component_imag_t)
             final_3 = cv2.filter2D(inter_imag, -1, component_real_t)
             final_4 = cv2.filter2D(inter_imag, -1, component_imag_t)
-            final = final_1 - final_4 + 1j * (final_2 + final_3)
+            final = final_1 - final_4 + 1j * (final_2 + final_3)  # type: ignore
             channels.append(final)
         component_image = np.stack(
             [weighted_sum(channel, component_params) for channel in channels]

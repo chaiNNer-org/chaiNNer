@@ -214,7 +214,7 @@ def stack_images_node(
             assert (
                 fixed_imgs[i].dtype == fixed_imgs[0].dtype
             ), "The image types are not the same and could not be auto-fixed"
-        return cv2.hconcat(fixed_imgs)  # type: ignore
+        return cv2.hconcat(fixed_imgs)
     elif orientation == Orientation.VERTICAL:
         for i in range(len(fixed_imgs)):
             assert (
@@ -223,4 +223,4 @@ def stack_images_node(
             assert (
                 fixed_imgs[i].dtype == fixed_imgs[0].dtype
             ), "The image types are not the same and could not be auto-fixed"
-        return cv2.vconcat(fixed_imgs)  # type: ignore
+        return cv2.vconcat(fixed_imgs)

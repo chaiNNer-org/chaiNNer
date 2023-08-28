@@ -139,7 +139,7 @@ def preview_encode(
     image_format = "png" if c > 3 or lossless else "jpg"
 
     _, encoded_img = cv2.imencode(f".{image_format}", to_uint8(img, normalized=True))  # type: ignore
-    base64_img = base64.b64encode(encoded_img).decode("utf8")
+    base64_img = base64.b64encode(encoded_img).decode("utf8")  # type: ignore
 
     return f"data:image/{image_format};base64,{base64_img}", img
 
