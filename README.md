@@ -84,8 +84,6 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
-- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
-
 - To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
 
 ## GPU Support
