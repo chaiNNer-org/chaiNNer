@@ -95,14 +95,14 @@ def hue_and_saturation_node(
 
     # Adjust hue
     if hue != 0:
-        h += hue
+        h += hue  # type: ignore
         h[h >= 360] -= 360  # Wrap positive overflow
         h[h < 0] += 360  # Wrap negative overflow
 
     # Adjust saturation
     if saturation != 0:
         saturation = 1 + saturation
-        s = np.clip(s * saturation, 0, 1)
+        s = np.clip(s * saturation, 0, 1)  # type: ignore
 
     img = cv2.cvtColor(cv2.merge([h, l, s]), cv2.COLOR_HLS2BGR)
 

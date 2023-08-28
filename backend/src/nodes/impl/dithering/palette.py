@@ -7,7 +7,7 @@ from ..image_utils import MAX_VALUES_BY_DTYPE, as_3d
 def _as_float32(image: np.ndarray) -> np.ndarray:
     if image.dtype == np.float32:
         return image
-    max_value = MAX_VALUES_BY_DTYPE[image.dtype]
+    max_value = MAX_VALUES_BY_DTYPE[image.dtype.name]
     return image.astype(np.float32) / max_value
 
 
@@ -29,7 +29,7 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     attempts = 10
     cv2.setRNGSeed(0)
     _, _, center = cv2.kmeans(
-        flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS
+        flat_image, num_colors, None, criteria, attempts, cv2.KMEANS_PP_CENTERS  # type: ignore
     )
 
     return center.reshape((1, -1, image.shape[2]))

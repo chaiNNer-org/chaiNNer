@@ -34,14 +34,14 @@ def distance_transform_node(img: np.ndarray, spread: int) -> np.ndarray:
         distanceType=cv2.DIST_L2,
         maskSize=5,
         dst=black_dist,
-        dstType=cv2.CV_32F,
+        dstType=cv2.CV_32F,  # type: ignore
     )
     cv2.distanceTransform(
         src=255 - img,
         distanceType=cv2.DIST_L2,
         maskSize=5,
         dst=white_dist,
-        dstType=cv2.CV_32F,
+        dstType=cv2.CV_32F,  # type: ignore
     )
 
     img1 = img.ravel()

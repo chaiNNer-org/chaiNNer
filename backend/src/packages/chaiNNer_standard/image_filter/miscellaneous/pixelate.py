@@ -50,7 +50,7 @@ def pixelate_node(
         )
     )
 
-    average_colors = np.mean(np.mean(blocks, axis=1), axis=2)
+    average_colors = np.mean(np.mean(blocks, axis=1), axis=2)  # type: ignore
 
     repeated_colors = np.repeat(
         np.repeat(average_colors, block_sizes[0], axis=1), block_sizes[1], axis=0

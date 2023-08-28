@@ -14,6 +14,7 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
         "SwinIR" in value.model_arch
         or "Swin2SR" in value.model_arch
         or "HAT" in value.model_arch
+        or "SRFormer" in value.model_arch
     ):
         head_length = len(value.depths)  # type: ignore
         if head_length <= 4:
@@ -26,6 +27,23 @@ def _get_sizes(value: PyTorchModel) -> List[str]:
             size_tag,
             f"s{value.img_size}w{value.window_size}",
             f"{value.num_feat}nf",
+            f"{value.embed_dim}dim",
+            f"{value.resi_connection}",
+        ]
+    elif "DAT" in value.model_arch:
+        head_length = len(value.depth)  # type: ignore
+        if head_length <= 4:
+            size_tag = "small"
+        elif head_length < 9:
+            size_tag = "medium"
+        else:
+            size_tag = "large"
+        return [
+            size_tag,
+            f"s{value.img_size}|{value.split_size[0]}x{value.split_size[1]}",  # type: ignore
+            f"{value.num_feat}nf",
+            f"{value.embed_dim}dim",
+            f"{value.resi_connection}",
         ]
     elif "OmniSR" in value.model_arch:
         return [

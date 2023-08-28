@@ -25,58 +25,30 @@ else:
 
 
 def get_pytorch():
-    # 1.13.1 can take advantage of MPS
     if is_arm_mac:
         return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="1.13.1",
-                size_estimate=140 * MB,
+                version="2.0.1",
+                size_estimate=55.8 * MB,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.14.1",
+                version="0.15.2",
                 size_estimate=1.3 * MB,
             ),
         ]
-    if python_version.minor < 10:
-        # <= 3.9
-        return [
-            Dependency(
-                display_name="PyTorch",
-                pypi_name="torch",
-                version="1.10.2+cu113" if nvidia_is_available else "1.10.2",
-                size_estimate=2 * GB if nvidia_is_available else 140 * MB,
-                extra_index_url=(
-                    "https://download.pytorch.org/whl/cu113"
-                    if nvidia_is_available
-                    else None
-                ),
-            ),
-            Dependency(
-                display_name="TorchVision",
-                pypi_name="torchvision",
-                version="0.11.3+cu113" if nvidia_is_available else "0.11.3",
-                size_estimate=2 * MB if nvidia_is_available else 800 * KB,
-                extra_index_url=(
-                    "https://download.pytorch.org/whl/cu113"
-                    if nvidia_is_available
-                    else None
-                ),
-            ),
-        ]
     else:
-        # >= 3.10
         return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="1.12.1+cu116" if nvidia_is_available else "1.12.1",
+                version="2.0.1+cu118" if nvidia_is_available else "2.0.1",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url=(
-                    "https://download.pytorch.org/whl/cu116"
+                    "https://download.pytorch.org/whl/cu118"
                     if nvidia_is_available
                     else None
                 ),
@@ -84,10 +56,10 @@ def get_pytorch():
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.13.1+cu116" if nvidia_is_available else "0.13.1",
+                version="0.15.2+cu118" if nvidia_is_available else "0.15.2",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url=(
-                    "https://download.pytorch.org/whl/cu116"
+                    "https://download.pytorch.org/whl/cu118"
                     if nvidia_is_available
                     else None
                 ),
@@ -105,14 +77,14 @@ package = add_package(
         Dependency(
             display_name="FaceXLib",
             pypi_name="facexlib",
-            version="0.2.5",
-            size_estimate=1.1 * MB,
+            version="0.3.0",
+            size_estimate=59.6 * KB,
         ),
         Dependency(
             display_name="Einops",
             pypi_name="einops",
-            version="0.5.0",
-            size_estimate=36.5 * KB,
+            version="0.6.1",
+            size_estimate=42.2 * KB,
         ),
     ],
 )

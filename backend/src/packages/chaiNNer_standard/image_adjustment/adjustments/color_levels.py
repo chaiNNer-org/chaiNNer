@@ -105,10 +105,8 @@ def color_levels_node(
             in_black_all[i], in_white_all[i], in_gamma_all[i] = 0, 1, 1
             out_black_all[i], out_white_all[i] = 0, 1
 
-    img = (img - in_black_all) / (in_white_all - in_black_all)  # type: ignore
+    img = (img - in_black_all) / (in_white_all - in_black_all)
     img = np.clip(img, 0, 1)
-    img = (img ** (1 / in_gamma_all)) * (
-        out_white_all - out_black_all  # type: ignore
-    ) + out_black_all
+    img = (img ** (1 / in_gamma_all)) * (out_white_all - out_black_all) + out_black_all
 
     return img
