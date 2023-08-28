@@ -15,16 +15,16 @@ from ..utils.utils import Padding, get_h_w_c, split_file_path
 from .color.color import Color
 
 MAX_VALUES_BY_DTYPE = {
-    np.dtype("int8"): 127,
-    np.dtype("uint8"): 255,
-    np.dtype("int16"): 32767,
-    np.dtype("uint16"): 65535,
-    np.dtype("int32"): 2147483647,
-    np.dtype("uint32"): 4294967295,
-    np.dtype("int64"): 9223372036854775807,
-    np.dtype("uint64"): 18446744073709551615,
-    np.dtype("float32"): 1.0,
-    np.dtype("float64"): 1.0,
+    np.dtype("int8").name: 127,
+    np.dtype("uint8").name: 255,
+    np.dtype("int16").name: 32767,
+    np.dtype("uint16").name: 65535,
+    np.dtype("int32").name: 2147483647,
+    np.dtype("uint32").name: 4294967295,
+    np.dtype("int64").name: 9223372036854775807,
+    np.dtype("uint64").name: 18446744073709551615,
+    np.dtype("float32").name: 1.0,
+    np.dtype("float64").name: 1.0,
 }
 
 
@@ -151,7 +151,9 @@ def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.
     fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
-    translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
+    translation_matrix = np.asfarray(
+        [[1, 0, amount_x], [0, 1, amount_y]], dtype=np.float32
+    )
     img = cv2.warpAffine(
         img,
         translation_matrix,
@@ -237,18 +239,18 @@ def create_border(
 
     _, _, c = get_h_w_c(img)
     if c == 4 and border_type == BorderType.BLACK:
-        value = (0, 0, 0, 1)
+        value = (0.0, 0.0, 0.0, 1.0)
     else:
-        value = 0
+        value = (0.0,)
 
     cv_border_type: int = border_type.value
     if border_type == BorderType.TRANSPARENT:
         cv_border_type = cv2.BORDER_CONSTANT
-        value = 0
+        value = (0.0,)
         img = as_target_channels(img, 4)
     elif border_type == BorderType.WHITE:
         cv_border_type = cv2.BORDER_CONSTANT
-        value = (1,) * c
+        value = (1.0,) * c
     elif border_type == BorderType.CUSTOM_COLOR:
         assert (
             color is not None
@@ -274,7 +276,10 @@ def create_border(
     )
 
 
-def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
+def calculate_ssim(
+    img1: np.ndarray,
+    img2: np.ndarray,
+) -> float:
     """Calculates mean localized Structural Similarity Index (SSIM)
     between two images."""
 
@@ -282,13 +287,13 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
     C2 = 0.03**2
 
     kernel = cv2.getGaussianKernel(11, 1.5)
-    window = np.outer(kernel, kernel.transpose())
+    window = np.outer(kernel, kernel.transpose())  # type: ignore
 
     mu1 = cv2.filter2D(img1, -1, window)[5:-5, 5:-5]
     mu2 = cv2.filter2D(img2, -1, window)[5:-5, 5:-5]
-    mu1_sq = mu1**2
-    mu2_sq = mu2**2
-    mu1_mu2 = mu1 * mu2
+    mu1_sq = np.power(mu1, 2)
+    mu2_sq = np.power(mu2, 2)
+    mu1_mu2 = np.multiply(mu1, mu2)
     sigma1_sq = cv2.filter2D(img1**2, -1, window)[5:-5, 5:-5] - mu1_sq
     sigma2_sq = cv2.filter2D(img2**2, -1, window)[5:-5, 5:-5] - mu2_sq
     sigma12 = cv2.filter2D(img1 * img2, -1, window)[5:-5, 5:-5] - mu1_mu2
@@ -319,7 +324,7 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
         except:
             _, buf_img = cv2.imencode(f".{extension}", img, params)
             with open(path, "wb") as outf:
-                outf.write(buf_img)
+                outf.write(buf_img)  # type: ignore
 
 
 def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:

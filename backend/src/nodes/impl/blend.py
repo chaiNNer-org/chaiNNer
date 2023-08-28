@@ -135,10 +135,10 @@ class ImageBlender:
         return np.where(b < 0.5, 2 * b * a, 1 - 2 * (1 - b) * (1 - a))
 
     def __difference(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return cv2.absdiff(a, b)
+        return np.asarray(cv2.absdiff(a, b))
 
     def __negation(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return 1 - cv2.absdiff(1 - b, a)
+        return 1 - cv2.absdiff(1 - b, a)  # type: ignore
 
     def __screen(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return a + b - (a * b)  # type: ignore
@@ -149,7 +149,7 @@ class ImageBlender:
         )
 
     def __subtract(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return b - a  # type: ignore
+        return b - a
 
     def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return b / np.maximum(0.0001, a)
@@ -222,7 +222,7 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: BlendMode):
         o_rgb = overlay[:, :, :3]
 
         blend_rgb = blender.apply_blend(o_rgb, base, blend_mode)
-        final_rgb = o_a * blend_rgb + (1 - o_a) * base
+        final_rgb = o_a * blend_rgb + (1 - o_a) * base  # type: ignore
         if needs_clipping:
             final_rgb = np.clip(final_rgb, 0, 1)
 

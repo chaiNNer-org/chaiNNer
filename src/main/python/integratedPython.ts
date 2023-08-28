@@ -2,32 +2,38 @@ import decompress from 'decompress';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import path from 'path';
+import semver from 'semver';
 import { PythonInfo } from '../../common/common-types';
 import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
-import { assertNever, checkFileExists } from '../../common/util';
+import { checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
 import { checkPythonPaths } from './checkPythonPaths';
 
-const downloads: Record<SupportedPlatform, string> = {
-    linux: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-unknown-linux-gnu-install_only-20211017T1616.tar.gz',
-    darwin: isArmMac
-        ? 'https://github.com/indygreg/python-build-standalone/releases/download/20220318/cpython-3.9.11+20220318-aarch64-apple-darwin-install_only.tar.gz'
-        : 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-apple-darwin-install_only-20211017T1616.tar.gz',
-    win32: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-pc-windows-msvc-shared-install_only-20211017T1616.tar.gz',
-};
+interface PythonDownload {
+    url: string;
+    version: string;
+    path: string;
+}
 
-const getExecutableRelativePath = (platform: SupportedPlatform): string => {
-    switch (platform) {
-        case 'win32':
-            return '/python/python.exe';
-        case 'linux':
-            return '/python/bin/python3.9';
-        case 'darwin':
-            return '/python/bin/python3.9';
-        default:
-            return assertNever(platform);
-    }
+const downloads: Record<SupportedPlatform, PythonDownload> = {
+    linux: {
+        url: 'https://github.com/indygreg/python-build-standalone/releases/download/20230826/cpython-3.11.5+20230826-x86_64-unknown-linux-gnu-install_only.tar.gz',
+        version: '3.11.5',
+        path: 'python/bin/python3.11',
+    },
+    darwin: {
+        url: isArmMac
+            ? 'https://github.com/indygreg/python-build-standalone/releases/download/20230826/cpython-3.11.5+20230826-aarch64-apple-darwin-install_only.tar.gz'
+            : 'https://github.com/indygreg/python-build-standalone/releases/download/20230826/cpython-3.11.5+20230826-x86_64-apple-darwin-install_only.tar.gz',
+        version: '3.11.5',
+        path: 'python/bin/python3.11',
+    },
+    win32: {
+        url: 'https://github.com/indygreg/python-build-standalone/releases/download/20230826/cpython-3.11.5+20230826-x86_64-pc-windows-msvc-shared-install_only.tar.gz',
+        version: '3.11.5',
+        path: 'python/python.exe',
+    },
 };
 
 const extractPython = async (
@@ -61,40 +67,50 @@ export const getIntegratedPython = async (
     onProgress: (percentage: number, stage: 'download' | 'extract') => void
 ): Promise<PythonInfo> => {
     const platform = getPlatform();
-    const pythonPath = path.resolve(path.join(directory, getExecutableRelativePath(platform)));
+    const { url, version, path: relativePath } = downloads[platform];
 
+    const pythonPath = path.resolve(path.join(directory, relativePath));
     const pythonBinExists = await checkFileExists(pythonPath);
 
-    if (!pythonBinExists) {
-        log.info(`Integrated Python not found at ${pythonPath}`);
+    if (pythonBinExists) {
+        const pythonInfo = await checkPythonPaths([pythonPath]);
+        if (semver.eq(pythonInfo.version, version)) {
+            return pythonInfo;
+        }
+    }
 
-        const tarName = 'python.tar.gz';
-        const tarPath = path.join(directory, tarName);
+    // Invalid version, remove legacy integrated python
+    const legacyPythonFolder = path.resolve(path.join(directory, '/python'));
+    await fs.rm(legacyPythonFolder, { recursive: true, force: true });
 
-        log.info('Downloading integrated Python...');
-        onProgress(0, 'download');
-        await new Downloader({
-            url: downloads[platform],
-            directory,
-            fileName: tarName,
-            cloneFiles: false,
-            onProgress: (percentage) => onProgress(Number(percentage), 'download'),
-        }).download();
+    log.info(`Integrated Python not found at ${pythonPath}`);
 
-        log.info('Extracting integrated Python...');
-        onProgress(0, 'extract');
-        await extractPython(directory, tarPath, (percentage) => onProgress(percentage, 'extract'));
+    const tarName = 'python.tar.gz';
+    const tarPath = path.join(directory, tarName);
 
-        log.info('Removing downloaded files...');
-        await fs.rm(tarPath);
+    log.info('Downloading integrated Python...');
+    onProgress(0, 'download');
+    await new Downloader({
+        url,
+        directory,
+        fileName: tarName,
+        cloneFiles: false,
+        onProgress: (percentage) => onProgress(Number(percentage), 'download'),
+    }).download();
 
-        if (platform === 'linux' || platform === 'darwin') {
-            log.info('Granting permissions for integrated python...');
-            try {
-                await fs.chmod(pythonPath, 0o7777);
-            } catch (error) {
-                log.warn(error);
-            }
+    log.info('Extracting integrated Python...');
+    onProgress(0, 'extract');
+    await extractPython(directory, tarPath, (percentage) => onProgress(percentage, 'extract'));
+
+    log.info('Removing downloaded files...');
+    await fs.rm(tarPath);
+
+    if (platform === 'linux' || platform === 'darwin') {
+        log.info('Granting permissions for integrated python...');
+        try {
+            await fs.chmod(pythonPath, 0o7777);
+        } catch (error) {
+            log.warn(error);
         }
     }
 
