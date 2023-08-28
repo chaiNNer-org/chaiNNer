@@ -29,7 +29,7 @@ Download the latest release from the [Github releases page](https://github.com/c
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
-If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.11, but we try to support 3.8-3.11.
+If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.11, but we try to support 3.8, 3.9, and 3.10 as well.
 
 ## How To Use
 
