@@ -138,7 +138,7 @@ class ImageBlender:
         return np.asarray(cv2.absdiff(a, b))
 
     def __negation(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return 1 - cv2.absdiff(1 - b, a))  # type: ignore
+        return 1 - cv2.absdiff(1 - b, a)  # type: ignore
 
     def __screen(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return a + b - (a * b)  # type: ignore
