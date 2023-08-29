@@ -35,4 +35,4 @@ jobs:
             - run: npm ci
             - name: publish --dry-run
               shell: bash
-              run: npm run publish -- --dry-run
+              run: npm run publish -- --dry-run --no-sign
