@@ -35,7 +35,7 @@ const config = {
         appBundleId: 'app.chainner',
         appCategoryType: 'public.app-category.graphics-design',
         extendInfo: './src/public/Info.plist',
-        ...(process.argv.includes('--dry-run')
+        ...(process.argv.includes('--dry-run') || process.argv.includes('--no-sign')
             ? {}
             : {
                   osxSign: {},
