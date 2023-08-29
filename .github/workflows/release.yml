@@ -60,5 +60,7 @@ jobs:
                   if [[ "${{ matrix.os }}" != "macos-latest" ]]; then
                       npm run publish
                   else
-                      npm run publish -- --arch=universal
+                      # doesn't work with signing ATM
+                      # npm run publish -- --arch=universal
+                      npm run publish
                   fi
