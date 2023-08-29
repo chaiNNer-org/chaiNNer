@@ -119,7 +119,7 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                         </Center>
                     ),
                 }}
-                lockAspectRatio={maxSize.width / maxSize.height}
+                // lockAspectRatio={maxSize.width / maxSize.height}
                 maxHeight={maxSize.height}
                 maxWidth={maxSize.width}
                 minHeight={IMAGE_PREVIEW_SIZE}
@@ -145,24 +145,15 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                 // }}
             >
                 <Center
-                    // h={`${IMAGE_PREVIEW_SIZE}px`}
-                    // overflow="hidden"
-                    // w={`${IMAGE_PREVIEW_SIZE}px`}
                     h="full"
-                    maxH={`${maxSize.height}px`}
-                    maxW={`${maxSize.height}px`}
                     w="full"
                 >
                     <Box
-                        maxH={`${maxSize.height}px`}
-                        maxW={`${maxSize.height}px`}
-                        zIndex="99"
                         display={stale ? 'block' : 'none'}
-                        // h={`${IMAGE_PREVIEW_SIZE}px`}
-                        marginRight={`-${IMAGE_PREVIEW_SIZE}px`}
                         h="full"
-                        // w={`${IMAGE_PREVIEW_SIZE}px`}
+                        marginRight={`-${IMAGE_PREVIEW_SIZE}px`}
                         w="full"
+                        zIndex="99"
                     >
                         <HStack
                             alignContent="center"
@@ -193,21 +184,19 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                     </Box>
                     <Center
                         bgColor={imgBgColor}
-                        maxW={`${maxSize.height}px`}
+                        borderRadius="md"
+                        h="full"
                         minH={`${IMAGE_PREVIEW_SIZE}px`}
                         minW={`${IMAGE_PREVIEW_SIZE}px`}
-                        w="full"
-                        borderRadius="md"
-                        // h={`${IMAGE_PREVIEW_SIZE}px`}
-                        maxH={`${maxSize.height}px`}
                         overflow="hidden"
-                        // w={`${IMAGE_PREVIEW_SIZE}px`}
-                        h="full"
+                        w="full"
                     >
                         {last && pickedImage ? (
                             <Center
-                            // maxH={`${IMAGE_PREVIEW_SIZE}px`}
-                            // maxW={`${IMAGE_PREVIEW_SIZE}px`}
+                                // maxH={`${IMAGE_PREVIEW_SIZE}px`}
+                                // maxW={`${IMAGE_PREVIEW_SIZE}px`}
+                                h="full"
+                                w="full"
                             >
                                 <Image
                                     alt="Image preview failed to load, probably unsupported file type."
@@ -218,8 +207,8 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                                             : ''
                                     }
                                     draggable={false}
-                                    // maxH={`${IMAGE_PREVIEW_SIZE}px`}
-                                    // maxW={`${IMAGE_PREVIEW_SIZE}px`}
+                                    maxH="full"
+                                    maxW="full"
                                     src={pickedImage.url}
                                     sx={{
                                         imageRendering:
