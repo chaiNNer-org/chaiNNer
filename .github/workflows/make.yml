@@ -1,42 +1,68 @@
 name: Test build release
 
 on:
-  pull_request:
-    branches: ['*']
-    types:
-      - opened
-      - synchronize
-      - closed
-  push:
-    branches: [main]
+    pull_request:
+        branches: ['*']
+        types:
+            - opened
+            - synchronize
+            - closed
+    push:
+        branches: [main]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 jobs:
-  test-build-release:
-    # commit the word "build" to the commit message to enable this job
-    if: contains(github.event.head_commit.message, 'build')
-    runs-on: ${{ matrix.os }}
+    test-build-release:
+        # commit the word "build" to the commit message to enable this job
+        if: contains(github.event.head_commit.message, 'build')
+        runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
 
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-            node-version: 16
-            cache: 'npm'
-      - run: npm ci
-      - name: Install necessary FlatPak tools
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          sudo apt update && sudo apt install flatpak flatpak-builder elfutils
-      - name: Build release
-        run: npm run make
-      - uses: actions/upload-artifact@v3
-        with:
-          name: debug-build-${{ matrix.os }}
-          path: out/make
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'npm'
+            - run: npm ci
+            - name: Install necessary FlatPak tools
+              if: ${{ matrix.os == 'ubuntu-latest' }}
+              run: |
+                  sudo apt update && sudo apt install flatpak flatpak-builder elfutils
+            - name: macOS certificate
+              if: matrix.os == 'macos-latest'
+              env:
+                  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+              run: |
+                  KEY_CHAIN=build.keychain
+                  CERTIFICATE_P12=certificate.p12
+                  echo $APPLE_CERTIFICATE | base64 --decode > $CERTIFICATE_P12
+                  security create-keychain -p actions $KEY_CHAIN
+                  security default-keychain -s $KEY_CHAIN
+                  security unlock-keychain -p actions $KEY_CHAIN
+                  security import $CERTIFICATE_P12 -k $KEY_CHAIN -P $APPLE_CERTIFICATE_PASSWORD -T /usr/bin/codesign;
+                  security set-key-partition-list -S apple-tool:,apple: -s -k actions $KEY_CHAIN
+                  rm -fr *.p12
+            - name: Build release
+              env:
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+              shell: bash
+              run: |
+                  npm ci
+                  if [[ "${{ matrix.os }}" != "macos-latest" ]]; then
+                      npm run make
+                  else
+                      npm run make -- --arch=universal
+                  fi
+            - uses: actions/upload-artifact@v3
+              with:
+                  name: debug-build-${{ matrix.os }}
+                  path: out/make
