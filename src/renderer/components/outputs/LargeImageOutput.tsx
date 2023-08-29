@@ -2,9 +2,10 @@
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
@@ -53,6 +54,28 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
 
     const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
+    const [maxSize, setMaxSize] = useState<Size>({
+        width: IMAGE_PREVIEW_SIZE,
+        height: IMAGE_PREVIEW_SIZE,
+    });
+
+    useEffect(() => {
+        if (pickedImage) {
+            const img = new window.Image();
+            img.src = pickedImage.url;
+            img.onload = () => {
+                setMaxSize({
+                    width: img.width,
+                    height: img.height,
+                });
+                resizeRef?.updateSize({
+                    width: IMAGE_PREVIEW_SIZE,
+                    height: IMAGE_PREVIEW_SIZE,
+                });
+            };
+        }
+    }, [pickedImage]);
+
     return (
         <Center
             h="full"
@@ -63,7 +86,10 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
         >
             <Resizable
                 className="nodrag"
-                // defaultSize={iteratorSize ?? defaultIteratorSize}
+                defaultSize={{
+                    width: IMAGE_PREVIEW_SIZE,
+                    height: IMAGE_PREVIEW_SIZE,
+                }}
                 enable={{
                     top: false,
                     right: true,
@@ -93,6 +119,9 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                         </Center>
                     ),
                 }}
+                lockAspectRatio={maxSize.width / maxSize.height}
+                maxHeight={maxSize.height}
+                maxWidth={maxSize.width}
                 minHeight={IMAGE_PREVIEW_SIZE}
                 minWidth={IMAGE_PREVIEW_SIZE}
                 ref={(r) => {
@@ -120,9 +149,13 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                     // overflow="hidden"
                     // w={`${IMAGE_PREVIEW_SIZE}px`}
                     h="full"
+                    maxH={`${maxSize.height}px`}
+                    maxW={`${maxSize.height}px`}
                     w="full"
                 >
                     <Box
+                        maxH={`${maxSize.height}px`}
+                        maxW={`${maxSize.height}px`}
                         zIndex="99"
                         display={stale ? 'block' : 'none'}
                         // h={`${IMAGE_PREVIEW_SIZE}px`}
@@ -160,13 +193,13 @@ export const LargeImageOutput = memo(({ output, useOutputData, animated }: Outpu
                     </Box>
                     <Center
                         bgColor={imgBgColor}
+                        maxW={`${maxSize.height}px`}
+                        minH={`${IMAGE_PREVIEW_SIZE}px`}
+                        minW={`${IMAGE_PREVIEW_SIZE}px`}
+                        w="full"
                         borderRadius="md"
                         // h={`${IMAGE_PREVIEW_SIZE}px`}
-                        // maxH={`${IMAGE_PREVIEW_SIZE}px`}
-                        // maxW={`${IMAGE_PREVIEW_SIZE}px`}
-                        // minH={`${IMAGE_PREVIEW_SIZE}px`}
-                        // minW={`${IMAGE_PREVIEW_SIZE}px`}
-                        w="full"
+                        maxH={`${maxSize.height}px`}
                         overflow="hidden"
                         // w={`${IMAGE_PREVIEW_SIZE}px`}
                         h="full"
