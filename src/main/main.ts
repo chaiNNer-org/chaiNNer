@@ -33,7 +33,7 @@ const startApp = () => {
     // click on a .chn file. This listener gets remove later on.
     app.on('open-file', (event, filePath) => {
         event.preventDefault();
-        process.env.STARTUPFILE = filePath;
+        globalThis.startupFile = filePath;
     });
 
     app.on('quit', () => {

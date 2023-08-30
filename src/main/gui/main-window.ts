@@ -127,11 +127,11 @@ const registerEventHandlerPreSetup = (
     });
 
     if (isMac) {
-        if (process.env.STARTUPFILE) {
+        if (globalThis.startupFile) {
             // Open file with chaiNNer on other platforms
-            const result = openSaveFile(process.env.STARTUPFILE);
+            const result = openSaveFile(globalThis.startupFile);
             ipcMain.handle('get-cli-open', () => result);
-            delete process.env.STARTUPFILE;
+            globalThis.startupFile = null;
         } else {
             ipcMain.handle('get-cli-open', () => undefined);
         }
