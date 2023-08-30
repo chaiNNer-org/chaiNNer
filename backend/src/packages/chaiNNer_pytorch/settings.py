@@ -78,5 +78,5 @@ def get_settings() -> PyTorchSettings:
     return PyTorchSettings(
         use_cpu=settings.get_bool("use_cpu", False),
         use_fp16=settings.get_bool("use_fp16", False),
-        gpu_index=settings.get_int("gpu_index", 0, True),
+        gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
     )
