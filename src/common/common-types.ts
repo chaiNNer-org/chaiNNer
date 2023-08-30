@@ -241,6 +241,7 @@ export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
+export type OutputSize = Readonly<Record<OutputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 export type GroupState = Readonly<Record<GroupId, unknown>>;
@@ -278,6 +279,7 @@ export interface NodeData {
     readonly inputData: InputData;
     readonly groupState?: GroupState;
     readonly inputSize?: InputSize;
+    readonly outputSize?: OutputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: Readonly<IteratorSize>;
     readonly minWidth?: number;

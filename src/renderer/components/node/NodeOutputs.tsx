@@ -1,7 +1,7 @@
 import { NeverType, Type, evaluate } from '@chainner/navi';
 import { memo, useCallback, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { OutputId, OutputKind } from '../../../common/common-types';
+import { OutputId, OutputKind, Size } from '../../../common/common-types';
 import { log } from '../../../common/log';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { ExpressionJson, fromJson } from '../../../common/types/json';
@@ -48,7 +48,7 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
-    const { id, schema, schemaId } = nodeState;
+    const { id, schema, schemaId, outputSize, setOutputSize } = nodeState;
 
     const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
@@ -90,6 +90,8 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                 const definitionType = functions?.get(output.id) ?? NeverType.instance;
                 const type = nodeState.type.instance?.outputs.get(output.id);
 
+                const size = outputSize?.[output.id];
+
                 const OutputType = OutputComponents[output.kind];
                 return (
                     <OutputContainer
@@ -107,6 +109,10 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                             id={id}
                             output={output}
                             schema={nodeState.schema}
+                            setSize={(newSize: Readonly<Size>) => {
+                                setOutputSize(output.id, newSize);
+                            }}
+                            size={size}
                             type={type ?? NeverType.instance}
                             useOutputData={useOutputData}
                         />

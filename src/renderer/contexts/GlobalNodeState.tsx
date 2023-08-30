@@ -130,6 +130,7 @@ interface Global {
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
     setNodeInputSize: (nodeId: string, inputId: InputId, value: Readonly<Size>) => void;
+    setNodeOutputSize: (nodeId: string, outputId: OutputId, value: Readonly<Size>) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -989,6 +990,25 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeOutputSize = useCallback(
+            (nodeId: string, outputId: OutputId, size: Readonly<Size>): void => {
+                modifyNode(nodeId, (old) => {
+                    const newOutputSize: Record<string, Readonly<Size>> = {
+                        ...old.data.inputSize,
+                        [outputId]: size,
+                    };
+                    Object.entries(newOutputSize).forEach(([key, value]) => {
+                        newOutputSize[key] = {
+                            ...value,
+                            width: size.width,
+                        };
+                    });
+                    return withNewData(old, 'outputSize', newOutputSize);
+                });
+            },
+            [modifyNode]
+        );
+
         const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
         const animate = useCallback(
             (nodes: Iterable<string>, animateEdges = true): void => {
@@ -1384,6 +1404,7 @@ export const GlobalProvider = memo(
             createConnection,
             setNodeInputValue,
             setNodeInputSize,
+            setNodeOutputSize,
             toggleNodeLock,
             clearNodes,
             removeNodesById,

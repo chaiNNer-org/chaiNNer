@@ -9,6 +9,7 @@ import {
     NodeData,
     NodeSchema,
     OutputId,
+    OutputSize,
     SchemaId,
     Size,
 } from '../../common/common-types';
@@ -66,6 +67,8 @@ export interface NodeState {
     readonly setInputValue: (inputId: InputId, value: InputValue) => void;
     readonly inputSize: InputSize | undefined;
     readonly setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
+    readonly outputSize: OutputSize | undefined;
+    readonly setOutputSize: (inputId: OutputId, size: Readonly<Size>) => void;
     readonly isLocked: boolean;
     readonly connectedInputs: ReadonlySet<InputId>;
     readonly connectedOutputs: ReadonlySet<OutputId>;
@@ -74,12 +77,13 @@ export interface NodeState {
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
-    const { setNodeInputValue, setNodeInputSize } = useContext(GlobalContext);
+    const { setNodeInputValue, setNodeInputSize, setNodeOutputSize } = useContext(GlobalContext);
 
-    const { id, inputData, inputSize, isLocked, schemaId } = data;
+    const { id, inputData, inputSize, outputSize, isLocked, schemaId } = data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
     const setInputSize = useMemo(() => setNodeInputSize.bind(null, id), [id, setNodeInputSize]);
+    const setOutputSize = useMemo(() => setNodeOutputSize.bind(null, id), [id, setNodeOutputSize]);
 
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
@@ -111,6 +115,8 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         setInputValue,
         inputSize,
         setInputSize,
+        outputSize,
+        setOutputSize,
         isLocked: isLocked ?? false,
         connectedInputs,
         connectedOutputs,
