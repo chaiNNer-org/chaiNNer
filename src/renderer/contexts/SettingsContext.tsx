@@ -1,21 +1,14 @@
 import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
-import { SchemaId } from '../../common/common-types';
+import { PackageSettings, SchemaId } from '../../common/common-types';
 import { GetSetState, SetState } from '../helpers/types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
 interface Settings {
-    // Global settings
-    useIsCpu: GetSetState<boolean>;
-    useIsFp16: GetSetState<boolean>;
-    usePyTorchGPU: GetSetState<number>;
-    useNcnnGPU: GetSetState<number>;
-    useOnnxGPU: GetSetState<number>;
-    useOnnxExecutionProvider: GetSetState<string>;
-    useOnnxShouldTensorRtCache: GetSetState<boolean>;
-    useOnnxShouldTensorRtFp16: GetSetState<boolean>;
+    // Global Settings
+    useBackendSettings: GetSetState<PackageSettings>;
     useIsSystemPython: GetSetState<boolean>;
     useSystemPythonLocation: GetSetState<string | null>;
     useCheckUpdOnStrtUp: GetSetState<boolean>;
@@ -42,21 +35,7 @@ interface Settings {
 export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
 
 export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
-    // Global Settings
-    const useIsCpu = useMemoArray(useLocalStorage('is-cpu', false));
-    const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
-    const usePyTorchGPU = useMemoArray(useLocalStorage('pytorch-gpu', 0));
-    const useNcnnGPU = useMemoArray(useLocalStorage('ncnn-gpu', 0));
-    const useOnnxGPU = useMemoArray(useLocalStorage('onnx-gpu', 0));
-    const useOnnxExecutionProvider = useMemoArray(
-        useLocalStorage('onnx-execution-provider', 'CUDAExecutionProvider')
-    );
-    const useOnnxShouldTensorRtCache = useMemoArray(
-        useLocalStorage('onnx-should-tensorrt-cache', false)
-    );
-    const useOnnxShouldTensorRtFp16 = useMemoArray(
-        useLocalStorage('onnx-should-tensorrt-fp16', false)
-    );
+    const useBackendSettings = useMemoArray(useLocalStorage('backend-settings', {}));
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
     const useSystemPythonLocation = useMemoArray(
@@ -104,17 +83,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const contextValue = useMemoObject<Settings>({
-        // GPU Stuff
-        useIsCpu,
-        useIsFp16,
-        usePyTorchGPU,
-        useNcnnGPU,
-        useOnnxGPU,
-        useOnnxExecutionProvider,
-        useOnnxShouldTensorRtCache,
-        useOnnxShouldTensorRtFp16,
-
         // Globals
+        useBackendSettings,
         useIsSystemPython,
         useSystemPythonLocation,
         useSnapToGrid,

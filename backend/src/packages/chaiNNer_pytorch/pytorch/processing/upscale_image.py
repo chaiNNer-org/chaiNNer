@@ -9,7 +9,6 @@ from sanic.log import logger
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
-from nodes.impl.pytorch.utils import to_pytorch_execution_options
 from nodes.impl.upscale.auto_split_tiles import (
     NO_TILING,
     TileSize,
@@ -25,9 +24,9 @@ from nodes.properties.inputs import (
     TileSizeDropdown,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.exec_options import ExecutionOptions, get_execution_options
 from nodes.utils.utils import get_h_w_c
 
+from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
 
 
@@ -35,18 +34,18 @@ def upscale(
     img: np.ndarray,
     model: PyTorchSRModel,
     tile_size: TileSize,
-    options: ExecutionOptions,
+    options: PyTorchSettings,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
         logger.debug("Upscaling image")
 
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.fp16 and model.supports_fp16
-        device = torch.device(options.full_device)
+        use_fp16 = options.use_fp16 and model.supports_fp16
+        device = options.device
 
         def estimate():
-            if "cuda" in options.full_device:
+            if "cuda" in device.type:
                 mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
@@ -149,7 +148,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
 
-    exec_options = to_pytorch_execution_options(get_execution_options())
+    exec_options = get_settings()
 
     logger.debug(f"Upscaling image...")
 

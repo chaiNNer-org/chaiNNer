@@ -30,11 +30,35 @@ jobs:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
               with:
-                  node-version: 16
+                  node-version: 18
                   cache: 'npm'
             - run: npm ci
+            - name: macOS certificate
+              if: matrix.os == 'macos-latest'
+              env:
+                  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+              run: |
+                  KEY_CHAIN=build.keychain
+                  CERTIFICATE_P12=certificate.p12
+                  echo $APPLE_CERTIFICATE | base64 --decode > $CERTIFICATE_P12
+                  security create-keychain -p actions $KEY_CHAIN
+                  security default-keychain -s $KEY_CHAIN
+                  security unlock-keychain -p actions $KEY_CHAIN
+                  security import $CERTIFICATE_P12 -k $KEY_CHAIN -P $APPLE_CERTIFICATE_PASSWORD -T /usr/bin/codesign;
+                  security set-key-partition-list -S apple-tool:,apple: -s -k actions $KEY_CHAIN
+                  rm -fr *.p12
             - name: publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
               shell: bash
-              run: npm run publish
+              run: |
+                  npm ci
+                  if [[ "${{ matrix.os }}" != "macos-latest" ]]; then
+                      npm run publish
+                  else
+                      npm run publish -- --arch=universal
+                  fi

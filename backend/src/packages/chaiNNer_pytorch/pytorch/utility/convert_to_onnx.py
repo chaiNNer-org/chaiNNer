@@ -8,11 +8,10 @@ import torch
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.architecture.SCUNet import SCUNet
 from nodes.impl.pytorch.types import PyTorchSRModel
-from nodes.impl.pytorch.utils import to_pytorch_execution_options
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
-from nodes.utils.exec_options import get_execution_options
 
+from ...settings import get_settings
 from .. import utility_group
 
 
@@ -42,23 +41,24 @@ def convert_to_onnx_node(
     ), "SCUNet is not supported for NCNN conversion at this time."
 
     fp16 = bool(is_fp16)
-    exec_options = to_pytorch_execution_options(get_execution_options())
+    exec_options = get_settings()
+    device = exec_options.device
     if fp16:
         assert (
-            exec_options.fp16
+            exec_options.use_fp16
         ), "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
     model = model.eval()
-    model = model.to(torch.device(exec_options.full_device))
+    model = model.to(device)
     # https://github.com/onnx/onnx/issues/654
     dynamic_axes = {
         "input": {0: "batch_size", 2: "height", 3: "width"},
         "output": {0: "batch_size", 2: "height", 3: "width"},
     }
     dummy_input = torch.rand(1, model.in_nc, 64, 64)
-    dummy_input = dummy_input.to(torch.device(exec_options.full_device))
+    dummy_input = dummy_input.to(device)
 
-    should_use_fp16 = exec_options.fp16 and model.supports_fp16 and fp16
+    should_use_fp16 = exec_options.use_fp16 and model.supports_fp16 and fp16
     if should_use_fp16:
         model = model.half()
         dummy_input = dummy_input.half()

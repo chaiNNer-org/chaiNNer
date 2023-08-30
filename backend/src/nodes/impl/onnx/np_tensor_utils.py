@@ -62,7 +62,7 @@ def np2nptensor(
     #     ]  # BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
     if change_range:
         dtype = img.dtype
-        maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
+        maxval = MAX_VALUES_BY_DTYPE.get(dtype.name, 1.0)
         t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
     # "HWC to CHW" and "numpy to tensor"
@@ -137,7 +137,7 @@ def nptensor2np(
         img_np = np_denorm(img_np)  # denormalize if needed
     if change_range:
         img_np = np.clip(
-            data_range * img_np, 0, data_range
+            data_range * img_np, 0, data_range  # type: ignore
         ).round()  # np.clip to the data_range
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32

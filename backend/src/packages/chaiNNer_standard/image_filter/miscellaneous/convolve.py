@@ -53,7 +53,7 @@ def convolve_node(
         right=padding,
         bottom=padding,
         borderType=cv2.BORDER_CONSTANT,
-        value=0,
+        value=(0.0,),
     )
 
     output = cv2.filter2D(img, -1, kernel)

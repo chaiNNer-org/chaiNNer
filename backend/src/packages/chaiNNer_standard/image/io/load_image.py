@@ -54,7 +54,7 @@ def _read_cv(path: str) -> np.ndarray | None:
                 f'Error reading image image from path "{path}". Image may be corrupt.'
             ) from e
 
-    if img is None:
+    if img is None:  # type: ignore
         raise RuntimeError(
             f'Error reading image image from path "{path}". Image may be corrupt.'
         )

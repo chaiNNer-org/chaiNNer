@@ -6,38 +6,8 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from ...utils.exec_options import ExecutionOptions
 from ..image_utils import as_3d
 from ..onnx.np_tensor_utils import MAX_VALUES_BY_DTYPE, np_denorm
-
-
-def to_pytorch_execution_options(options: ExecutionOptions):
-    # CPU override
-    if options.full_device == "cpu":
-        device = "cpu"
-    # Check for Nvidia CUDA
-    elif torch.cuda.is_available() and torch.cuda.device_count() > 0:
-        device = "cuda"
-    # Check for Apple MPS
-    elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_built() and torch.backends.mps.is_available():  # type: ignore -- older pytorch versions dont support this technically
-        device = "mps"
-    # Check for DirectML
-    elif hasattr(torch, "dml") and torch.dml.is_available():  # type: ignore
-        device = "dml"
-    else:
-        device = "cpu"
-
-    return ExecutionOptions(
-        device=device,
-        fp16=options.fp16,
-        pytorch_gpu_index=options.pytorch_gpu_index,
-        ncnn_gpu_index=options.ncnn_gpu_index,
-        onnx_gpu_index=options.onnx_gpu_index,
-        onnx_execution_provider=options.onnx_execution_provider,
-        onnx_should_tensorrt_cache=options.onnx_should_tensorrt_cache,
-        onnx_tensorrt_cache_path=options.onnx_tensorrt_cache_path,
-        onnx_should_tensorrt_fp16=options.onnx_should_tensorrt_fp16,
-    )
 
 
 def bgr_to_rgb(image: Tensor) -> Tensor:
@@ -91,7 +61,7 @@ def np2tensor(
     #     ]  # BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
     if change_range:
         dtype = img.dtype
-        maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
+        maxval = MAX_VALUES_BY_DTYPE.get(dtype.name, 1.0)
         t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
     # "HWC to CHW" and "numpy to tensor"

@@ -29,7 +29,7 @@ Download the latest release from the [Github releases page](https://github.com/c
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
-If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.9, but theoretically later versions work as well.
+If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.11, but we try to support 3.8, 3.9, and 3.10 as well.
 
 ## How To Use
 
@@ -83,8 +83,6 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 - Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
 
 - Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
-
-- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
 
 - To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
 

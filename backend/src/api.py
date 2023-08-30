@@ -13,6 +13,7 @@ from typing import (
     Tuple,
     TypedDict,
     TypeVar,
+    Union,
 )
 
 from sanic.log import logger
@@ -30,6 +31,7 @@ from node_check import (
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
+from nodes.utils.exec_options import SettingsJson, get_execution_options
 
 KB = 1024**1
 MB = 1024**2
@@ -301,14 +303,98 @@ class FeatureState:
 
 
 @dataclass
+class ToggleSetting:
+    label: str
+    key: str
+    description: str
+    default: bool = False
+    disabled: bool = False
+    type: str = "toggle"
+
+
+class DropdownOption(TypedDict):
+    label: str
+    value: str
+
+
+@dataclass
+class DropdownSetting:
+    label: str
+    key: str
+    description: str
+    options: List[DropdownOption]
+    default: str
+    disabled: bool = False
+    type: str = "dropdown"
+
+
+@dataclass
+class NumberSetting:
+    label: str
+    key: str
+    description: str
+    min: float
+    max: float
+    default: float = 0
+    disabled: bool = False
+    type: str = "number"
+
+
+@dataclass
+class CacheSetting:
+    label: str
+    key: str
+    description: str
+    directory: str
+    default: str = ""
+    disabled: bool = False
+    type: str = "cache"
+
+
+Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+
+
+class SettingsParser:
+    def __init__(self, raw: SettingsJson) -> None:
+        self.__settings = raw
+
+    def get_bool(self, key: str, default: bool) -> bool:
+        value = self.__settings.get(key, default)
+        if isinstance(value, bool):
+            return value
+        raise ValueError(f"Invalid bool value for {key}: {value}")
+
+    def get_int(self, key: str, default: int) -> int:
+        value = self.__settings.get(key, default)
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+        raise ValueError(f"Invalid str value for {key}: {value}")
+
+    def get_str(self, key: str, default: str) -> str:
+        value = self.__settings.get(key, default)
+        if isinstance(value, str):
+            return value
+        raise ValueError(f"Invalid str value for {key}: {value}")
+
+    def get_cache_location(self, key: str) -> str | None:
+        value = self.__settings.get(key)
+        if isinstance(value, str) or value is None:
+            return value or None
+        raise ValueError(f"Invalid cache location value for {key}: {value}")
+
+
+@dataclass
 class Package:
     where: str
     id: str
     name: str
     description: str
+    icon: str
+    color: str
     dependencies: List[Dependency] = field(default_factory=list)
     categories: List[Category] = field(default_factory=list)
     features: List[Feature] = field(default_factory=list)
+    settings: List[Setting] = field(default_factory=list)
 
     def add_category(
         self,
@@ -329,11 +415,11 @@ class Package:
         self.categories.append(result)
         return result
 
-    def add_dependency(
-        self,
-        dependency: Dependency,
-    ):
+    def add_dependency(self, dependency: Dependency):
         self.dependencies.append(dependency)
+
+    def add_setting(self, setting: Setting):
+        self.settings.append(setting)
 
     def add_feature(
         self,
@@ -347,6 +433,9 @@ class Package:
         feature = Feature(id=id, name=name, description=description)
         self.features.append(feature)
         return feature
+
+    def get_settings(self) -> SettingsParser:
+        return SettingsParser(get_execution_options().get_package_settings(self.id))
 
 
 def _iter_py_files(directory: str):
@@ -427,6 +516,8 @@ def add_package(
     name: str,
     description: str,
     dependencies: List[Dependency] | None = None,
+    icon: str = "BsQuestionCircleFill",
+    color: str = "#777777",
 ) -> Package:
     return registry.add(
         Package(
@@ -434,6 +525,8 @@ def add_package(
             id=id,
             name=name,
             description=description,
+            icon=icon,
+            color=color,
             dependencies=dependencies or [],
         )
     )

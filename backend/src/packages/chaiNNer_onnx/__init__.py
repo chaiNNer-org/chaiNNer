@@ -68,7 +68,10 @@ package = add_package(
             size_estimate=2.5 * MB,
         ),
     ],
+    icon="ONNX",
+    color="#63B3ED",
 )
+
 
 onnx_category = package.add_category(
     name="ONNX",

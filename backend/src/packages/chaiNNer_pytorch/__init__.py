@@ -87,6 +87,8 @@ package = add_package(
             size_estimate=42.2 * KB,
         ),
     ],
+    icon="PyTorch",
+    color="#DD6B20",
 )
 
 pytorch_category = package.add_category(
