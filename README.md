@@ -31,6 +31,8 @@ You don't even need to have Python installed, as chaiNNer will download an isola
 
 If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.11, but we try to support 3.8, 3.9, and 3.10 as well.
 
+If you'd like to test the latest changes and tweaks, try out our [Nightly builds](https://github.com/chaiNNer-org/chaiNNer-nightly)
+
 ## How To Use
 
 ### Basic Usage
