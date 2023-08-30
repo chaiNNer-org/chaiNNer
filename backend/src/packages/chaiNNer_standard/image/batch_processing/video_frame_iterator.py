@@ -268,7 +268,7 @@ def iterator_helper_write_output_frame_node(
     # Append additional parameters
     global_params = list()
     if advanced:
-        additional_parameters = " " + additional_parameters.replace("\n", " ")
+        additional_parameters = " " + " ".join(additional_parameters.split())
         additional_parameters_array = additional_parameters.split(" -")[1:]
         non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
         for parameter in additional_parameters_array:
