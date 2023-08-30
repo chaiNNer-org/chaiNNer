@@ -94,7 +94,7 @@ def get_settings() -> OnnxSettings:
         os.makedirs(tensorrt_cache_path)
 
     return OnnxSettings(
-        gpu_index=settings.get_int("gpu_index", 0, True),
+        gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
         execution_provider=settings.get_str("execution_provider", default_provider),
         tensorrt_cache_path=tensorrt_cache_path,
         tensorrt_fp16_mode=settings.get_bool("tensorrt_fp16_mode", False),
