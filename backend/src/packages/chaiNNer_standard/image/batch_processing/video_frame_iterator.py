@@ -25,7 +25,8 @@ from nodes.properties.inputs import (
     VideoEncoderDropdown,
     VideoFfv1ContainerDropdown,
     VideoFileInput,
-    VideoH264H265HevcContainerDropdown,
+    VideoH264ContainerDropdown,
+    VideoH265ContainerDropdown,
     VideoNoneContainerDropdown,
     VideoPresetDropdown,
     VideoVp9ContainerDropdown,
@@ -50,7 +51,6 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 PARAMETERS: dict[VideoEncoder, list] = {
     VideoEncoder.H264: ["preset", "crf"],
     VideoEncoder.H265: ["preset", "crf"],
-    VideoEncoder.HEVC: ["preset", "crf"],
     VideoEncoder.VP9: ["crf"],
     VideoEncoder.FFV1: [],
     VideoEncoder.NONE: [],
@@ -102,28 +102,31 @@ def all_except(items, item):
         DirectoryInput("Output Video Directory", has_handle=True),
         TextInput("Output Video Name"),
         VideoEncoderDropdown().with_docs("Encoder").with_id(3),
-        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC))(
-            VideoH264H265HevcContainerDropdown().with_docs("Container").with_id(4)
+        if_enum_group(3, VideoEncoder.H264)(
+            VideoH264ContainerDropdown().with_docs("Container").with_id(4)
+        ),
+        if_enum_group(3, (VideoEncoder.H265))(
+            VideoH265ContainerDropdown().with_docs("Container").with_id(5)
         ),
         if_enum_group(3, VideoEncoder.FFV1)(
-            VideoFfv1ContainerDropdown().with_docs("Container").with_id(5)
+            VideoFfv1ContainerDropdown().with_docs("Container").with_id(6)
         ),
         if_enum_group(3, VideoEncoder.VP9)(
-            VideoVp9ContainerDropdown().with_docs("Container").with_id(6)
+            VideoVp9ContainerDropdown().with_docs("Container").with_id(7)
         ),
         if_enum_group(3, VideoEncoder.NONE)(
-            VideoNoneContainerDropdown().with_docs("Container").with_id(7)
+            VideoNoneContainerDropdown().with_docs("Container").with_id(8)
         ),
-        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC))(
+        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
             VideoPresetDropdown()
             .with_docs(
                 "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
             )
-            .with_id(8),
+            .with_id(9),
         ),
         if_enum_group(
             3,
-            (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC, VideoEncoder.VP9),
+            (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9),
         )(
             SliderInput(
                 "Quality (CRF)",
@@ -138,7 +141,7 @@ def all_except(items, item):
             .with_docs(
                 "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
             )
-            .with_id(9),
+            .with_id(10),
         ),
         if_enum_group(3, all_except(VideoEncoder, VideoEncoder.NONE))(
             BoolInput("Copy Audio", default=True)
@@ -146,11 +149,11 @@ def all_except(items, item):
                 "Due to the complexity of the way we use FFMPEG, copying the audio is done in a separate pass after the video is written.",
                 "This isn't ideal, and sometimes fails. If it isn't working for you, use FFMPEG to mux the audio externally.",
             )
-            .with_id(10),
+            .with_id(11),
             BoolInput("Additional parameters", default=False)
             .with_docs("Allow user to add FFmpeg parameters")
-            .with_id(11),
-            if_group(Condition.bool(11, True))(
+            .with_id(12),
+            if_group(Condition.bool(12, True))(
                 TextInput(
                     "Additional parameters",
                     multiline=True,
@@ -169,7 +172,8 @@ def iterator_helper_write_output_frame_node(
     save_dir: str,
     video_name: str,
     video_encoder: str,
-    h264_h265_hevc_container: str,
+    h264_container: str,
+    h265_container: str,
     ffv1_container: str,
     vp9_container: str,
     none_container: str,
@@ -189,8 +193,10 @@ def iterator_helper_write_output_frame_node(
         return
 
     # Determine video container
-    if encoder in [VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.HEVC]:
-        container = VideoContainer(h264_h265_hevc_container)
+    if encoder == VideoEncoder.H264:
+        container = VideoContainer(h264_container)
+    elif encoder == VideoEncoder.H265:
+        container = VideoContainer(h265_container)
     elif encoder == VideoEncoder.FFV1:
         container = VideoContainer(ffv1_container)
     elif encoder == VideoEncoder.VP9:
@@ -219,27 +225,32 @@ def iterator_helper_write_output_frame_node(
         output_params["crf"] = crf
 
     # Verify some parameters
-    if encoder in [
-        VideoEncoder.H264,
-        VideoEncoder.H265,
-        VideoEncoder.HEVC,
-    ]:
+    if encoder in [VideoEncoder.H264, VideoEncoder.H265]:
         assert (
             h % 2 == 0 and w % 2 == 0
         ), f'The "{encoder.value}" encoder requires an even-number frame resolution.'
 
     # Append additional parameters
+    global_params = list()
     if advanced:
         additional_parameters = " " + additional_parameters.replace("\n", " ")
         additional_parameters_array = additional_parameters.split(" -")[1:]
-        non_overridable_params = ["filename", "vcodec", "crf", "preset"]
+        non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
         for parameter in additional_parameters_array:
+            key, value = parameter, None
             try:
                 key, value = parameter.split(" ")
-                if key not in non_overridable_params:
-                    output_params[key] = value
             except:
-                raise ValueError(f"Invalid or unsupported parameter: -{parameter}")
+                pass
+
+            if value is not None:
+                for nop in non_overridable_params:
+                    if not key.startswith(nop):
+                        output_params[key] = value
+                    else:
+                        raise ValueError(f"Duplicate parameter: -{parameter}")
+            else:
+                global_params.append(f"-{parameter}")
 
     # Create the writer and run process
     if writer.out is None:
@@ -254,6 +265,7 @@ def iterator_helper_write_output_frame_node(
                 )
                 .output(**output_params)
                 .overwrite_output()
+                .global_args(*global_params)
                 .run_async(pipe_stdin=True, cmd=ffmpeg_path)
             )
             writer.copy_audio = copy_audio
