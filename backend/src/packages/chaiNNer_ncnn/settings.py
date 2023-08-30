@@ -42,5 +42,5 @@ def get_settings() -> NcnnSettings:
     settings = package.get_settings()
 
     return NcnnSettings(
-        gpu_index=settings.get_int("gpu_index", 0),
+        gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
     )
