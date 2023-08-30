@@ -126,7 +126,27 @@ const registerEventHandlerPreSetup = (
         mainWindow.webContents.send('window-blur');
     });
 
-    if (!isMac) {
+    if (isMac) {
+        if (process.env.STARTUPFILE) {
+            // Open file with chaiNNer on other platforms
+            const result = openSaveFile(process.env.STARTUPFILE);
+            ipcMain.handle('get-cli-open', () => result);
+            delete process.env.STARTUPFILE;
+        } else {
+            ipcMain.handle('get-cli-open', () => undefined);
+        }
+        // We remove the event we created in main.ts earlier on
+        app.removeAllListeners('open-file');
+
+        // We register this event again to handle file-opening during runtime.
+        app.on('open-file', (event, filePath) => {
+            event.preventDefault();
+            (async () => {
+                const result = await openSaveFile(filePath);
+                mainWindow.webContents.send('file-open', result);
+            })().catch(log.error);
+        });
+    } else {
         if (args.file) {
             // Open file with chaiNNer on other platforms
             const result = openSaveFile(args.file);
@@ -366,28 +386,6 @@ export const createMainWindow = async (args: OpenArguments) => {
 
         if (mainWindow.isDestroyed()) {
             return;
-        }
-
-        if (isMac) {
-            if (process.env.STARTUPFILE) {
-                // Open file with chaiNNer on other platforms
-                const result = openSaveFile(process.env.STARTUPFILE);
-                ipcMain.handle('get-cli-open', () => result);
-                delete process.env.STARTUPFILE;
-            } else {
-                ipcMain.handle('get-cli-open', () => undefined);
-            }
-            // We remove the event we created in main.ts earlier on
-            app.removeAllListeners('open-file');
-
-            // We register this event again to handle file-opening during runtime.
-            app.on('open-file', (event, filePath) => {
-                event.preventDefault();
-                (async () => {
-                    const result = await openSaveFile(filePath);
-                    mainWindow.webContents.send('file-open', result);
-                })().catch(log.error);
-            });
         }
 
         // and load the index.html of the app.
