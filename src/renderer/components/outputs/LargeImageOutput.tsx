@@ -20,24 +20,14 @@ interface PreviewImage {
     url: string;
 }
 interface LargeImageBroadcastData {
-    previews: PreviewImage[];
+    preview: PreviewImage;
     width: number;
     height: number;
     channels: number;
 }
 
-const pickImage = (previews: PreviewImage[], realSize: number) => {
-    const found = previews
-        .sort((a, b) => a.size - b.size)
-        .find((preview) => {
-            return preview.size >= realSize;
-        });
-    return found ?? previews[previews.length - 1];
-};
-
 export const LargeImageOutput = memo(
     ({ output, useOutputData, animated, size, setSize }: OutputProps) => {
-        console.log('🚀 ~ file: LargeImageOutput.tsx:40 ~ size:', size);
         const { t } = useTranslation();
 
         const dpr = useDevicePixelRatio();
@@ -49,7 +39,7 @@ export const LargeImageOutput = memo(
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';
 
-        const pickedImage = last ? last.previews[last.previews.length - 1] : null; // last ? pickImage(last.previews, realSize) : null;
+        const previewImage = last?.preview;
 
         const { useSnapToGrid } = useContext(SettingsContext);
         const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
@@ -62,9 +52,9 @@ export const LargeImageOutput = memo(
         });
 
         useEffect(() => {
-            if (pickedImage) {
+            if (previewImage) {
                 const img = new window.Image();
-                img.src = pickedImage.url;
+                img.src = previewImage.url;
                 img.onload = () => {
                     setMaxSize({
                         width: img.width,
@@ -81,7 +71,7 @@ export const LargeImageOutput = memo(
                 };
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [pickedImage, resizeRef]);
+        }, [previewImage, resizeRef]);
 
         const firstRender = useRef(false);
         useEffect(() => {
@@ -220,7 +210,7 @@ export const LargeImageOutput = memo(
                             overflow="hidden"
                             w="full"
                         >
-                            {last && pickedImage ? (
+                            {last && previewImage ? (
                                 <Center
                                     // maxH={`${IMAGE_PREVIEW_SIZE}px`}
                                     // maxW={`${IMAGE_PREVIEW_SIZE}px`}
@@ -240,12 +230,12 @@ export const LargeImageOutput = memo(
                                         draggable={false}
                                         maxH="full"
                                         maxW="full"
-                                        src={pickedImage.url}
+                                        src={previewImage.url}
                                         sx={{
                                             imageRendering:
                                                 zoom > 1 &&
                                                 realSize > IMAGE_PREVIEW_SIZE &&
-                                                pickedImage.size < realSize
+                                                previewImage.size < realSize
                                                     ? 'pixelated'
                                                     : 'auto',
                                         }}

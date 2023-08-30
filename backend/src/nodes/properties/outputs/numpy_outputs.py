@@ -166,37 +166,19 @@ class LargeImageOutput(ImageOutput):
         h, w, c = get_h_w_c(img)
         image_size = max(h, w)
 
-        preview_sizes = [2048, 1024, 512, 256]
         preview_size_grace = 1.2
 
-        start_index = len(preview_sizes) - 1
-        for i, size in enumerate(preview_sizes):
-            if size <= image_size and image_size <= size * preview_size_grace:
-                # this preview size will perfectly fit the image
-                start_index = i
-                break
-            if image_size > size:
-                # the image size is larger than the preview size, so try to pick the previous size
-                start_index = max(0, i - 1)
-                break
-
-        previews = []
-
-        # Encode for multiple scales. Use the preceding scale to save time encoding the smaller sizes.
         last_encoded = img
-        for size in preview_sizes[start_index:]:
-            largest_preview = size == preview_sizes[start_index]
-            url, last_encoded = preview_encode(
-                last_encoded,
-                target_size=size,
-                grace=preview_size_grace,
-                lossless=largest_preview,
-            )
-            le_h, le_w, _ = get_h_w_c(last_encoded)
-            previews.insert(0, {"size": max(le_h, le_w), "url": url})
+        url, last_encoded = preview_encode(
+            last_encoded,
+            target_size=min(image_size, 2048),
+            grace=preview_size_grace,
+            lossless=True,
+        )
+        le_h, le_w, _ = get_h_w_c(last_encoded)
 
         return {
-            "previews": previews,
+            "preview": {"size": max(le_h, le_w), "url": url},
             "height": h,
             "width": w,
             "channels": c,
