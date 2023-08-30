@@ -60,9 +60,7 @@ jobs:
                   if [[ "${{ matrix.os }}" != "macos-latest" ]]; then
                       npm run make
                   else
-                      # doesn't work with signing ATM
-                      # npm run make -- --arch=universal
-                      npm run make
+                      npm run make -- --arch=universal
                   fi
             - uses: actions/upload-artifact@v3
               with:
