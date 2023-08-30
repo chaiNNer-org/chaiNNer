@@ -212,8 +212,6 @@ export const LargeImageOutput = memo(
                         >
                             {last && previewImage ? (
                                 <Center
-                                    // maxH={`${IMAGE_PREVIEW_SIZE}px`}
-                                    // maxW={`${IMAGE_PREVIEW_SIZE}px`}
                                     h="full"
                                     maxH="full"
                                     maxW="full"

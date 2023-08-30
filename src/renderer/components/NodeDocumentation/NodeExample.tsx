@@ -10,6 +10,8 @@ import {
     InputValue,
     NodeData,
     NodeSchema,
+    OutputId,
+    OutputSize,
     Size,
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
@@ -75,6 +77,14 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
             setInputSize((prev) => ({ ...prev, [inputId]: size }));
         },
         [setInputSize]
+    );
+
+    const [outputSize, setOutputSize] = useStateForSchema<OutputSize>(selectedSchema, EMPTY_OBJECT);
+    const setSingleOutputSize = useCallback(
+        (outputId: OutputId, size: Readonly<Size>): void => {
+            setOutputSize((prev) => ({ ...prev, [outputId]: size }));
+        },
+        [setOutputSize]
     );
 
     const nodeIdPrefix = 'FakeId ';
@@ -155,6 +165,8 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     setInputValue,
                                     inputSize,
                                     setInputSize: setSingleInputSize,
+                                    outputSize,
+                                    setOutputSize: setSingleOutputSize,
                                     isLocked: false,
                                     connectedInputs: EMPTY_SET,
                                     connectedOutputs: EMPTY_SET,
