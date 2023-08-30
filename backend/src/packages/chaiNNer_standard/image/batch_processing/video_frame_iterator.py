@@ -16,6 +16,7 @@ from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
+    EnumInput,
     ImageInput,
     IteratorInput,
     SliderInput,
@@ -57,11 +58,32 @@ PARAMETERS: dict[VideoEncoder, list] = {
 }
 
 
+class AudioSettings(Enum):
+    AUTO = "auto"
+    COPY = "copy"
+    TRANSCODE = "transcode"
+    NONE = "none"
+
+
+class AudioReducedSettings(Enum):
+    AUTO = AudioSettings.AUTO.value
+    TRANSCODE = AudioSettings.TRANSCODE.value
+    NONE = AudioSettings.NONE.value
+
+
+AUDIO_SETTINGS_DOC = """The first audio stream can be discarded, copied or transcoded at 320 kb/s.
+Some audio formats are not supported by selected container, thus copying the audio may fail.
+Some players may not output the audio stream if its format is not supported.
+If it isn't working for you, verify compatibility or use FFMPEG to mux the audio externally."""
+
+
 @dataclass
 class Writer:
     out: Popen | None = None
-    copy_audio: bool = False
     video_save_path: str | None = None
+    container: VideoContainer = VideoContainer.NONE
+    video_encoder: VideoEncoder = VideoEncoder.NONE
+    audio_settings: AudioSettings = AudioSettings.AUTO
 
 
 @batch_processing_group.register(
@@ -85,10 +107,6 @@ def iterator_helper_load_frame_as_image_node(
     img: np.ndarray, idx: int, video_dir: str, video_name: str
 ) -> Tuple[np.ndarray, int, str, str]:
     return img, idx, video_dir, video_name
-
-
-def all_except(items, item):
-    return Enum(items.__name__, [(i.name, i.value) for i in items if i != item])
 
 
 @batch_processing_group.register(
@@ -143,17 +161,33 @@ def all_except(items, item):
             )
             .with_id(10),
         ),
-        if_enum_group(3, all_except(VideoEncoder, VideoEncoder.NONE))(
-            BoolInput("Copy Audio", default=True)
-            .with_docs(
-                "Due to the complexity of the way we use FFMPEG, copying the audio is done in a separate pass after the video is written.",
-                "This isn't ideal, and sometimes fails. If it isn't working for you, use FFMPEG to mux the audio externally.",
-            )
-            .with_id(11),
+        if_group(~Condition.enum(3, VideoEncoder.NONE))(
+            if_group(
+                ~Condition.enum(7, VideoContainer.WEBM)
+                | ~Condition.enum(3, VideoEncoder.VP9)
+            )(
+                EnumInput(label="Audio", enum=AudioSettings, default=AudioSettings.AUTO)
+                .with_docs(AUDIO_SETTINGS_DOC)
+                .with_id(11)
+            ),
+            if_group(
+                Condition.enum(7, VideoContainer.WEBM)
+                & Condition.enum(3, VideoEncoder.VP9)
+            )(
+                EnumInput(
+                    label="Audio",
+                    enum=AudioReducedSettings,
+                    default=AudioReducedSettings.AUTO,
+                )
+                .with_docs(AUDIO_SETTINGS_DOC)
+                .with_id(12)
+            ),
             BoolInput("Additional parameters", default=False)
-            .with_docs("Allow user to add FFmpeg parameters")
-            .with_id(12),
-            if_group(Condition.bool(12, True))(
+            .with_docs(
+                "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
+            )
+            .with_id(13),
+            if_group(Condition.bool(13, True))(
                 TextInput(
                     "Additional parameters",
                     multiline=True,
@@ -179,7 +213,8 @@ def iterator_helper_write_output_frame_node(
     none_container: str,
     video_preset: str,
     crf: int,
-    copy_audio: bool,
+    audio_settings: AudioSettings,
+    audio_reduced_settings: AudioReducedSettings,
     advanced: bool,
     additional_parameters: str,
     writer: Writer,
@@ -252,6 +287,13 @@ def iterator_helper_write_output_frame_node(
             else:
                 global_params.append(f"-{parameter}")
 
+    # Modify audio settings if needed
+    audio_settings = AudioSettings(audio_settings)
+    if container == VideoContainer.GIF:
+        audio_settings = AudioSettings.NONE
+    elif container == VideoContainer.WEBM:
+        audio_settings = AudioSettings(audio_reduced_settings)
+
     # Create the writer and run process
     if writer.out is None:
         try:
@@ -268,8 +310,11 @@ def iterator_helper_write_output_frame_node(
                 .global_args(*global_params)
                 .run_async(pipe_stdin=True, cmd=ffmpeg_path)
             )
-            writer.copy_audio = copy_audio
             writer.video_save_path = video_save_path
+            writer.container = container
+            writer.video_encoder = encoder
+            writer.audio_settings = audio_settings
+
             logger.debug(writer.out)
         except Exception as e:
             logger.warning(f"Failed to open video writer: {e}")
@@ -384,26 +429,51 @@ async def video_frame_iterator_node(path: str, context: IteratorContext) -> None
             writer.out.stdin.close()
         writer.out.wait()
 
-    if writer.copy_audio and writer.video_save_path is not None:
-        out_path = writer.video_save_path
-        base, ext = os.path.splitext(out_path)
-        if "gif" not in ext.lower():
-            full_out_path = f"{base}_audio{ext}"
-            audio_stream = ffmpeg.input(path).audio
+    audio_stream = ffmpeg.input(path).audio
+    if (
+        writer.video_save_path is not None
+        and audio_stream is not None
+        and writer.container != VideoContainer.NONE
+        and writer.video_encoder != VideoEncoder.NONE
+        and writer.audio_settings != AudioSettings.NONE
+    ):
+        video_path = writer.video_save_path
+        base, ext = os.path.splitext(video_path)
+        audio_video_path = f"{base}_av{ext}"
+
+        # Default and auto -> copy
+        output_params = dict(
+            vcodec="copy",
+            acodec="copy",
+        )
+        if writer.container == VideoContainer.WEBM:
+            if writer.audio_settings in [AudioSettings.TRANSCODE, AudioSettings.AUTO]:
+                output_params["acodec"] = "libopus"
+                output_params["b:a"] = "320k"
+            else:
+                audio_stream = None
+        elif writer.audio_settings == AudioSettings.TRANSCODE:
+            output_params["acodec"] = "aac"
+            output_params["b:a"] = "320k"
+
+        try:
+            video_stream = ffmpeg.input(video_path)
+            output_video = ffmpeg.output(
+                audio_stream,
+                video_stream,
+                audio_video_path,
+                **output_params,
+            ).overwrite_output()
+            ffmpeg.run(output_video)
+            # delete original, rename new
+            os.remove(video_path)
+            os.rename(audio_video_path, video_path)
+        except:
+            logger.warning(
+                f"Failed to copy audio to video, input file probably contains "
+                f"no audio or ausio stream is supported by this container. Ignoring audio settings."
+            )
             try:
-                if audio_stream is not None:
-                    video_stream = ffmpeg.input(out_path)
-                    output_video = ffmpeg.output(
-                        audio_stream,
-                        video_stream,
-                        full_out_path,
-                        vcodec="copy",
-                    ).overwrite_output()
-                    ffmpeg.run(output_video)
-                    # delete original, rename new
-                    os.remove(out_path)
-                    os.rename(full_out_path, out_path)
+                os.remove(audio_video_path)
             except:
-                logger.warning(
-                    f"Failed to copy audio to video, input file probably contains no audio. Ignoring audio copy."
-                )
+                pass

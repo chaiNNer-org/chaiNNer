@@ -1297,12 +1297,15 @@ const writeOutputFrame: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         if (node.data.schemaId === 'chainner:image:simple_video_frame_iterator_save') {
             const old = { ...node.data.inputData };
+            // Video_preset, crf
             node.data.inputData[9] = old[4];
             node.data.inputData[10] = old[5];
-            node.data.inputData[11] = old[6];
+            // Audio
+            const copyAudio = Boolean(old[6]);
+            // Writer, fps
             node.data.inputData[14] = old[7];
             node.data.inputData[15] = old[8];
-
+            // Video type to encoder/container
             const mapping: Partial<
                 Record<string, [string, string, string, string, string, string]>
             > = {
@@ -1329,10 +1332,19 @@ const writeOutputFrame: ModernMigration = (data) => {
             node.data.inputData[5] = ffv1Container;
             node.data.inputData[6] = vp9Container;
             node.data.inputData[7] = noneContainer;
-
+            // Audio settings
+            node.data.inputData[11] = 'none';
+            node.data.inputData[12] = 'none';
+            if (copyAudio) {
+                node.data.inputData[11] = 'copy';
+                node.data.inputData[12] = 'copy';
+                if (vp9Container === 'webm' && videoEncoder === 'libvpx-vp9') {
+                    node.data.inputData[12] = 'transcode';
+                }
+            }
             // Additional parameters
-            node.data.inputData[12] = 0;
-            node.data.inputData[13] = '';
+            node.data.inputData[13] = 0;
+            node.data.inputData[14] = '';
         }
     });
 
