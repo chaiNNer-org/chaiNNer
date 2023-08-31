@@ -21,6 +21,7 @@ permissions: read-all
 jobs:
     release-test:
         runs-on: ${{ matrix.os }}
+        timeout-minutes: 30
 
         strategy:
             matrix:
