@@ -458,6 +458,10 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -469,6 +473,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           },
         },
         "isDisabled": false,
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:image:save",
       },
@@ -490,12 +495,16 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputData": {
           "0": "Generate Normal Maps",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:note",
       },
@@ -575,6 +584,11 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": "_",
           "2": "diffuse",
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -589,6 +603,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:text_append",
       },
@@ -619,6 +634,10 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -630,6 +649,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           },
         },
         "isDisabled": false,
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:image:save",
       },
@@ -673,12 +693,16 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputData": {
           "0": "Output Diffuse Maps",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:note",
       },
@@ -743,6 +767,11 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": "_",
           "2": "rough",
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -757,6 +786,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:text_append",
       },
@@ -798,6 +828,11 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": "_",
           "2": "normal",
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -812,6 +847,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:text_append",
       },
@@ -884,6 +920,10 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -894,6 +934,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:image:save",
       },
@@ -986,6 +1027,10 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -997,6 +1042,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           },
         },
         "isDisabled": false,
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:image:save",
       },
@@ -1040,12 +1086,16 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputData": {
           "0": "Generate Rough and Metallic maps",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:note",
       },
@@ -1068,6 +1118,11 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": "_",
           "2": "emissive",
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -1082,6 +1137,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:text_append",
       },
@@ -1122,12 +1178,16 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputData": {
           "0": "This handles emissives by grabbing fulbright edges.  WIP",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:note",
       },
@@ -1181,6 +1241,10 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -1192,6 +1256,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           },
         },
         "isDisabled": false,
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:image:save",
       },
@@ -1214,6 +1279,11 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": "_",
           "2": "metal",
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -1228,6 +1298,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
         "schemaId": "chainner:utility:text_append",
       },
@@ -4541,12 +4612,16 @@ exports[`Read save file blend-images.chn 1`] = `
           "0": "Use the 512x512.png file from the chaiNNer repository:
 https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.png",
         },
+        "inputHeight": {
+          "0": 91,
+        },
         "inputSize": {
           "0": {
             "height": 91,
             "width": 484,
           },
         },
+        "nodeWidth": 484,
         "schemaId": "chainner:utility:note",
       },
       "height": 167,
@@ -4849,12 +4924,16 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputData": {
           "0": "position",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -6511,12 +6590,16 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputData": {
           "0": "Color",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -6667,12 +6750,16 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputData": {
           "0": "the overlay is outside the base, returns the base image",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -7010,12 +7097,16 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputData": {
           "0": "overlay > base",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -7183,12 +7274,16 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputData": {
           "0": "overlay < base",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -10514,12 +10609,16 @@ exports[`Read save file crop.chn 1`] = `
         "inputData": {
           "0": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/1024x1024.png",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 501,
           },
         },
+        "nodeWidth": 501,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -10718,6 +10817,11 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
       "data": {
         "id": "060fb03a-6409-44e0-9f50-5c475312476c",
         "inputData": {},
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -10732,6 +10836,7 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:text_pattern",
       },
       "height": 300,
@@ -10760,6 +10865,10 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -10770,6 +10879,7 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:save",
       },
       "height": 324,
@@ -10790,6 +10900,11 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
           "2": "",
           "3": 0,
         },
+        "inputHeight": {
+          "0": 80,
+          "1": 80,
+          "2": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
@@ -10804,6 +10919,7 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:text_replace",
       },
       "height": 332,
@@ -10821,12 +10937,16 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
       "data": {
         "id": "f9744ae4-cc85-46e5-8528-a1d5c5cbbdfa",
         "inputData": {},
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:utility:text_length",
       },
       "height": 164,
@@ -13940,12 +14060,16 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
           "0": "scunet_color_real_psnr.pth
 ",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 243,
           },
         },
+        "nodeWidth": 243,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -14003,12 +14127,16 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
           "0": "scunet_color_real_gan.pth
 ",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 243,
           },
         },
+        "nodeWidth": 243,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -14051,12 +14179,16 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
 https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/256x256.png
 ",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 838,
           },
         },
+        "nodeWidth": 838,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -14377,6 +14509,10 @@ exports[`Read save file save-image-webp-lossless.chn 1`] = `
           "8": 0,
           "9": 0,
         },
+        "inputHeight": {
+          "2": 80,
+          "3": 80,
+        },
         "inputSize": {
           "2": {
             "height": 80,
@@ -14387,6 +14523,7 @@ exports[`Read save file save-image-webp-lossless.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:save",
       },
       "height": 324,
@@ -15076,12 +15213,16 @@ exports[`Read save file text-as-image.chn 1`] = `
         "inputData": {
           "0": "Position",
         },
+        "inputHeight": {
+          "0": 82,
+        },
         "inputSize": {
           "0": {
             "height": 82,
             "width": 2050,
           },
         },
+        "nodeWidth": 2050,
         "schemaId": "chainner:utility:note",
       },
       "height": 158,
@@ -15110,12 +15251,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15161,12 +15306,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15220,12 +15369,16 @@ consectetur adipiscing...",
         "inputData": {
           "0": "Size",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 897,
           },
         },
+        "nodeWidth": 897,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -15254,12 +15407,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15374,12 +15531,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "top_right",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15408,12 +15569,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "centered_right",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15459,12 +15624,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 86,
+        },
         "inputSize": {
           "0": {
             "height": 86,
             "width": 241,
           },
         },
+        "nodeWidth": 241,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 538,
@@ -15484,12 +15653,16 @@ consectetur adipiscing...",
         "inputData": {
           "0": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/1024x1024.png",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 501,
           },
         },
+        "nodeWidth": 501,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -15628,12 +15801,16 @@ consectetur adipiscing...",
           "6": 400,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15759,12 +15936,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15818,12 +15999,16 @@ consectetur adipiscing ...",
         "inputData": {
           "0": "Font style",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 1267,
           },
         },
+        "nodeWidth": 1267,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -15869,12 +16054,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "bottom_left",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15937,12 +16126,16 @@ for chaiNNer.",
           "6": 200,
           "7": "bottom_centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -15988,12 +16181,16 @@ for chaiNNer.",
           "6": 400,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16039,12 +16236,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "top_left",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16128,12 +16329,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16267,12 +16472,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "bottom_right",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16301,12 +16510,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16377,12 +16590,16 @@ for chaiNNer.",
           "6": 600,
           "7": "bottom_right",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16411,12 +16628,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "bottom_centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16462,12 +16683,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16487,12 +16712,16 @@ consectetur adipiscing...",
         "inputData": {
           "0": "Alignment",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 556,
           },
         },
+        "nodeWidth": 556,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -16538,12 +16767,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16572,12 +16805,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "centered_left",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16606,12 +16843,16 @@ consectetur adipiscing...",
           "6": 800,
           "7": "centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16678,12 +16919,16 @@ consectetur adipiscing ...",
           "6": 800,
           "7": "top_centered",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
       "height": 532,
@@ -16966,7 +17211,7 @@ exports[`Read save file utilities.chn 1`] = `
 
 exports[`Write save file DiffusePBR.chn 1`] = `
 {
-  "checksum": "d045e33b0dba630c77a7a88ea2be717f",
+  "checksum": "b1ca2b695c675b8806d88eaead8034c4",
   "content": {
     "edges": [
       {
@@ -17424,17 +17669,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
           "isDisabled": false,
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:image:save",
         },
@@ -17456,12 +17696,10 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "inputData": {
             "0": "Generate Normal Maps",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:note",
         },
@@ -17541,20 +17779,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "0": "_",
             "2": "diffuse",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:text_append",
         },
@@ -17585,17 +17815,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
           "isDisabled": false,
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:image:save",
         },
@@ -17639,12 +17864,10 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "inputData": {
             "0": "Output Diffuse Maps",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:note",
         },
@@ -17709,20 +17932,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "0": "_",
             "2": "rough",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:text_append",
         },
@@ -17764,20 +17979,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "0": "_",
             "2": "normal",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:text_append",
         },
@@ -17850,16 +18057,11 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:image:save",
         },
@@ -17952,17 +18154,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
           "isDisabled": false,
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:image:save",
         },
@@ -18006,12 +18203,10 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "inputData": {
             "0": "Generate Rough and Metallic maps",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:note",
         },
@@ -18034,20 +18229,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "0": "_",
             "2": "emissive",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:text_append",
         },
@@ -18088,12 +18275,10 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "inputData": {
             "0": "This handles emissives by grabbing fulbright edges.  WIP",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:note",
         },
@@ -18147,17 +18332,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
           "isDisabled": false,
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:image:save",
         },
@@ -18180,20 +18360,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
             "0": "_",
             "2": "metal",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "07edc29c-ef5f-42a9-8d3b-b13353fcf506",
           "schemaId": "chainner:utility:text_append",
         },
@@ -19089,7 +19261,7 @@ exports[`Write save file big ol test.chn 1`] = `
 
 exports[`Write save file blend-images.chn 1`] = `
 {
-  "checksum": "796ef7a7fb7c294327d8e5767fe10d2c",
+  "checksum": "cba0e6e5204c66387f4d13cb7b096f96",
   "content": {
     "edges": [
       {
@@ -21321,12 +21493,10 @@ exports[`Write save file blend-images.chn 1`] = `
             "0": "Use the 512x512.png file from the chaiNNer repository:
 https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.png",
           },
-          "inputSize": {
-            "0": {
-              "height": 91,
-              "width": 484,
-            },
+          "inputHeight": {
+            "0": 91,
           },
+          "nodeWidth": 484,
           "schemaId": "chainner:utility:note",
         },
         "height": 167,
@@ -21629,12 +21799,10 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "inputData": {
             "0": "position",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -23291,12 +23459,10 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "inputData": {
             "0": "Color",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -23447,12 +23613,10 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "inputData": {
             "0": "the overlay is outside the base, returns the base image",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -23790,12 +23954,10 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "inputData": {
             "0": "overlay > base",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -23963,12 +24125,10 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "inputData": {
             "0": "overlay < base",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -26044,7 +26204,7 @@ exports[`Write save file create-edges.chn 1`] = `
 
 exports[`Write save file crop.chn 1`] = `
 {
-  "checksum": "ccfc9d13557f52c316936a54e34b7423",
+  "checksum": "0b4c5e70912043d2a798afee6d2d1d67",
   "content": {
     "edges": [
       {
@@ -27319,12 +27479,10 @@ exports[`Write save file crop.chn 1`] = `
           "inputData": {
             "0": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/1024x1024.png",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 501,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 501,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -27490,7 +27648,7 @@ exports[`Write save file crop-content.chn 1`] = `
 
 exports[`Write save file empty-string-input-test.chn 1`] = `
 {
-  "checksum": "c2e512c99a9ce7edc85570a078b63fd1",
+  "checksum": "9fc1cd576d9862d4f65808a68d3bacb5",
   "content": {
     "edges": [
       {
@@ -27529,20 +27687,12 @@ exports[`Write save file empty-string-input-test.chn 1`] = `
         "data": {
           "id": "060fb03a-6409-44e0-9f50-5c475312476c",
           "inputData": {},
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:text_pattern",
         },
         "height": 300,
@@ -27571,16 +27721,11 @@ exports[`Write save file empty-string-input-test.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:save",
         },
         "height": 324,
@@ -27601,20 +27746,12 @@ exports[`Write save file empty-string-input-test.chn 1`] = `
             "2": "",
             "3": 0,
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
-            "1": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
+            "1": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:text_replace",
         },
         "height": 332,
@@ -27632,12 +27769,10 @@ exports[`Write save file empty-string-input-test.chn 1`] = `
         "data": {
           "id": "f9744ae4-cc85-46e5-8528-a1d5c5cbbdfa",
           "inputData": {},
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:utility:text_length",
         },
         "height": 164,
@@ -30613,7 +30748,7 @@ exports[`Write save file pytorch.chn 1`] = `
 
 exports[`Write save file pytorch-scunet.chn 1`] = `
 {
-  "checksum": "9d801de3470988431127bd39c72414c0",
+  "checksum": "f23825fcf916837cf2d0c6db5da8dfee",
   "content": {
     "edges": [
       {
@@ -30805,12 +30940,10 @@ exports[`Write save file pytorch-scunet.chn 1`] = `
             "0": "scunet_color_real_psnr.pth
 ",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 243,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 243,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -30868,12 +31001,10 @@ exports[`Write save file pytorch-scunet.chn 1`] = `
             "0": "scunet_color_real_gan.pth
 ",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 243,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 243,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -30916,12 +31047,10 @@ exports[`Write save file pytorch-scunet.chn 1`] = `
 https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/256x256.png
 ",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 838,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 838,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -31230,7 +31359,7 @@ exports[`Write save file rnd.chn 1`] = `
 
 exports[`Write save file save-image-webp-lossless.chn 1`] = `
 {
-  "checksum": "9a7661bb3c5fadcb92936813023dd8de",
+  "checksum": "49d5d7792305459a0cfdcc842b0ba1fe",
   "content": {
     "edges": [],
     "nodes": [
@@ -31250,16 +31379,11 @@ exports[`Write save file save-image-webp-lossless.chn 1`] = `
             "8": 0,
             "9": 0,
           },
-          "inputSize": {
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
-            "3": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "2": 80,
+            "3": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:save",
         },
         "height": 324,
@@ -31286,7 +31410,7 @@ exports[`Write save file save-image-webp-lossless.chn 1`] = `
 
 exports[`Write save file text-as-image.chn 1`] = `
 {
-  "checksum": "d510bd41aa8813825decaa2374b27051",
+  "checksum": "c30c4407031fec60a968934637888440",
   "content": {
     "edges": [
       {
@@ -31952,12 +32076,10 @@ exports[`Write save file text-as-image.chn 1`] = `
           "inputData": {
             "0": "Position",
           },
-          "inputSize": {
-            "0": {
-              "height": 82,
-              "width": 2050,
-            },
+          "inputHeight": {
+            "0": 82,
           },
+          "nodeWidth": 2050,
           "schemaId": "chainner:utility:note",
         },
         "height": 158,
@@ -31986,12 +32108,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32037,12 +32157,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32096,12 +32214,10 @@ consectetur adipiscing...",
           "inputData": {
             "0": "Size",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 897,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 897,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -32130,12 +32246,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32250,12 +32364,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "top_right",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32284,12 +32396,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "centered_right",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32335,12 +32445,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 86,
-              "width": 241,
-            },
+          "inputHeight": {
+            "0": 86,
           },
+          "nodeWidth": 241,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 538,
@@ -32360,12 +32468,10 @@ consectetur adipiscing...",
           "inputData": {
             "0": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/1024x1024.png",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 501,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 501,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -32504,12 +32610,10 @@ consectetur adipiscing...",
             "6": 400,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32635,12 +32739,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32694,12 +32796,10 @@ consectetur adipiscing ...",
           "inputData": {
             "0": "Font style",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 1267,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 1267,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -32745,12 +32845,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "bottom_left",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32813,12 +32911,10 @@ for chaiNNer.",
             "6": 200,
             "7": "bottom_centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32864,12 +32960,10 @@ for chaiNNer.",
             "6": 400,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -32915,12 +33009,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "top_left",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33004,12 +33096,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33143,12 +33233,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "bottom_right",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33177,12 +33265,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33253,12 +33339,10 @@ for chaiNNer.",
             "6": 600,
             "7": "bottom_right",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33287,12 +33371,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "bottom_centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33338,12 +33420,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33363,12 +33443,10 @@ consectetur adipiscing...",
           "inputData": {
             "0": "Alignment",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 556,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 556,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -33414,12 +33492,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33448,12 +33524,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "centered_left",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33482,12 +33556,10 @@ consectetur adipiscing...",
             "6": 800,
             "7": "centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,
@@ -33554,12 +33626,10 @@ consectetur adipiscing ...",
             "6": 800,
             "7": "top_centered",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 240,
           "schemaId": "chainner:image:text_as_image",
         },
         "height": 532,

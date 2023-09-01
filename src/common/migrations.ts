@@ -1293,6 +1293,33 @@ const unifiedCrop: ModernMigration = (data) => {
     return data;
 };
 
+const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        let maxWidth = 0;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (node.data.inputSize) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const inputSize = node.data.inputSize as Record<
+                InputId,
+                { height: number; width: number }
+            >;
+            if (!node.data.inputHeight) {
+                node.data.inputHeight = {};
+            }
+            for (const [inputId, { width, height }] of Object.entries(inputSize)) {
+                maxWidth = Math.max(maxWidth, width);
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                node.data.inputHeight[inputId as unknown as InputId] = height;
+            }
+            node.data.nodeWidth = maxWidth;
+        }
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1343,6 +1370,7 @@ const migrations = [
     surfaceBlurRadius,
     saveImageWebPLossless,
     unifiedCrop,
+    separateNodeWidthAndInputHeight,
 ];
 
 export const currentMigration = migrations.length;
