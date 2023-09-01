@@ -8,7 +8,7 @@ on:
             - synchronize
             - closed
     push:
-        branches: [main]
+        branches: [main, check-mac-building-on-old-version]
 
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
