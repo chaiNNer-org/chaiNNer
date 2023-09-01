@@ -17,8 +17,6 @@ import { InputProps } from './props';
 
 const DEFAULT_SIZE = { width: 240, height: 80 };
 
-const FORCE_BUILD = false;
-
 export const TextInput = memo(
     ({
         value,
