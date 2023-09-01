@@ -1312,7 +1312,7 @@ const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
                 maxWidth = Math.max(maxWidth, width);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                node.data.inputHeight[inputId as unknown as InputId] = height;
+                node.data.inputHeight[inputId as InputId] = height;
             }
             node.data.nodeWidth = maxWidth;
         }
