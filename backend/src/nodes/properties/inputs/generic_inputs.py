@@ -531,8 +531,8 @@ class VideoEncoder(Enum):
 
 
 VIDEO_ENCODER_LABELS = {
-    VideoEncoder.H264: "H264",
-    VideoEncoder.H265: "H265",
+    VideoEncoder.H264: "H.264 (AVC)",
+    VideoEncoder.H265: "H.265 (HEVC)",
     VideoEncoder.VP9: "VP9",
     VideoEncoder.FFV1: "FFV1",
     VideoEncoder.NONE: "None",
