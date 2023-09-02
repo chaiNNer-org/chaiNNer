@@ -84,6 +84,14 @@ const config = {
                 additionalDMGOptions: {
                     window: { size: { width: 660, height: 500 } },
                     filesystem: 'APFS',
+                    ...(process.argv.includes('--dry-run') || process.argv.includes('--no-sign')
+                        ? {}
+                        : {
+                              'code-sign': {
+                                  'signing-identity': process.env.APPLE_SIGNING_ID,
+                                  identifier: 'app.chainner',
+                              },
+                          }),
                 },
             },
         },
