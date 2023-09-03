@@ -3,14 +3,13 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import {
     Condition,
     InputData,
+    InputHeight,
     InputId,
-    InputSize,
     InputValue,
     NodeData,
     NodeSchema,
     OutputId,
     SchemaId,
-    Size,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { testInputCondition } from '../../common/nodes/condition';
@@ -64,8 +63,10 @@ export interface NodeState {
     readonly schema: NodeSchema;
     readonly inputData: InputData;
     readonly setInputValue: (inputId: InputId, value: InputValue) => void;
-    readonly inputSize: InputSize | undefined;
-    readonly setInputSize: (inputId: InputId, size: Readonly<Size>) => void;
+    readonly inputHeight: InputHeight | undefined;
+    readonly setInputHeight: (inputId: InputId, height: number) => void;
+    readonly nodeWidth: number | undefined;
+    readonly setWidth: (width: number) => void;
     readonly isLocked: boolean;
     readonly connectedInputs: ReadonlySet<InputId>;
     readonly connectedOutputs: ReadonlySet<OutputId>;
@@ -74,12 +75,17 @@ export interface NodeState {
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
-    const { setNodeInputValue, setNodeInputSize } = useContext(GlobalContext);
+    const { setNodeInputValue, setNodeInputHeight, setNodeWidth } = useContext(GlobalContext);
 
-    const { id, inputData, inputSize, isLocked, schemaId } = data;
+    const { id, inputData, inputHeight, isLocked, schemaId, nodeWidth } = data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
-    const setInputSize = useMemo(() => setNodeInputSize.bind(null, id), [id, setNodeInputSize]);
+    const setInputHeight = useMemo(
+        () => setNodeInputHeight.bind(null, id),
+        [id, setNodeInputHeight]
+    );
+
+    const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
 
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
@@ -109,8 +115,10 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         schema,
         inputData,
         setInputValue,
-        inputSize,
-        setInputSize,
+        inputHeight,
+        setInputHeight,
+        nodeWidth,
+        setWidth,
         isLocked: isLocked ?? false,
         connectedInputs,
         connectedOutputs,

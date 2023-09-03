@@ -75,6 +75,21 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
                     'An internal developer option to use a different backend. Do not use this as this is not a stable option and may change or disappear at any time',
                 hidden: true,
             },
+            // These are never used by chaiNNer, they just let the arguments through the arg parser so chromium can parse them.
+            // Since they aren't used, the defaults don't matter
+            'ozone-platform-hint': {
+                type: 'string',
+                default: '',
+                description:
+                    "On Linux, set to 'auto' to use Wayland if it's available, and X otherwise",
+                hidden: true,
+            },
+            'enable-features': {
+                type: 'string',
+                default: '',
+                description: 'Enable chromium features',
+                hidden: true,
+            },
         })
         .parserConfiguration({ 'unknown-options-as-args': true })
         .parseSync();

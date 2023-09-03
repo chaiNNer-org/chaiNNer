@@ -240,7 +240,7 @@ export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> 
 export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
-export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
+export type InputHeight = Readonly<Record<InputId, number>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 export type GroupState = Readonly<Record<GroupId, unknown>>;
@@ -277,7 +277,8 @@ export interface NodeData {
     readonly isLocked?: boolean;
     readonly inputData: InputData;
     readonly groupState?: GroupState;
-    readonly inputSize?: InputSize;
+    readonly inputHeight?: InputHeight;
+    readonly nodeWidth?: number;
     readonly invalid?: boolean;
     readonly iteratorSize?: Readonly<IteratorSize>;
     readonly minWidth?: number;
