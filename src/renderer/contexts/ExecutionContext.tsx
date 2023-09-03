@@ -175,22 +175,25 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
-    const updateIteratorProgress = useCallback<
-        BackendEventSourceListener<'iterator-progress-update'>
+    const updateIteratorProgress = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'iterator-progress-update'>>
     >(
-        (data) => {
-            if (data) {
-                const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
+        useCallback(
+            (data) => {
+                if (data) {
+                    const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
 
-                if (runningNodes && status === ExecutionStatus.RUNNING) {
-                    animate(runningNodes);
-                } else if (status !== ExecutionStatus.RUNNING) {
-                    unAnimate();
+                    if (runningNodes && status === ExecutionStatus.RUNNING) {
+                        animate(runningNodes);
+                    } else if (status !== ExecutionStatus.RUNNING) {
+                        unAnimate();
+                    }
+                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
                 }
-                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
-            }
-        },
-        [animate, setIteratorProgressImpl, status, unAnimate]
+            },
+            [animate, setIteratorProgressImpl, status, unAnimate]
+        ),
+        100
     );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
