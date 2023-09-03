@@ -3,14 +3,11 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const makerOptions = {
-    name: 'chaiNNer',
     categories: ['Graphics'],
-    description: 'A flowchart based image processing GUI',
     genericName: 'Image Processing GUI',
     homepage: 'https://chainner.app',
     icon: './src/public/icons/cross_platform/icon.png',
     mimeType: ['application/json'],
-    productName: 'chaiNNer',
     productDescription:
         'A node-based image processing GUI aimed at making chaining image processing tasks easy and customizable. Born as an AI upscaling application, chaiNNer has grown into an extremely flexible and powerful programmatic image processing application.\n\nChaiNNer gives you a level of customization of your image processing workflow that very few others do. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.',
 };
@@ -112,7 +109,7 @@ const config = {
         {
             name: '@electron-forge/maker-rpm',
             config: {
-                options: { ...makerOptions, compressionLevel: 9, license: 'GPLv3' },
+                options: { ...makerOptions, compressionLevel: 9 },
             },
         },
     ],
