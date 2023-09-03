@@ -2,6 +2,16 @@ const AdmZip = require('adm-zip');
 const fs = require('fs/promises');
 const path = require('path');
 
+const makerOptions = {
+    categories: ['Graphics'],
+    genericName: 'Image Processing GUI',
+    homepage: 'https://chainner.app',
+    icon: './src/public/icons/cross_platform/icon.png',
+    mimeType: ['application/json'],
+    productDescription:
+        'A node-based image processing GUI aimed at making chaining image processing tasks easy and customizable. Born as an AI upscaling application, chaiNNer has grown into an extremely flexible and powerful programmatic image processing application.\n\nChaiNNer gives you a level of customization of your image processing workflow that very few others do. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.',
+};
+
 const deletePycFiles = async (directory) => {
     try {
         const files = await fs.readdir(directory, { withFileTypes: true });
@@ -84,25 +94,30 @@ const config = {
                 additionalDMGOptions: {
                     window: { size: { width: 660, height: 500 } },
                     filesystem: 'APFS',
+                    ...(process.argv.includes('--dry-run') || process.argv.includes('--no-sign')
+                        ? {}
+                        : {
+                              'code-sign': {
+                                  'signing-identity': process.env.APPLE_SIGNING_ID,
+                                  identifier: 'app.chainner',
+                              },
+                          }),
                 },
             },
         },
         {
             name: '@electron-forge/maker-deb',
             config: {
-                name: 'chainner',
                 options: {
-                    icon: './src/public/icons/cross_platform/icon.png',
+                    ...makerOptions,
+                    section: 'graphics',
                 },
             },
         },
         {
             name: '@electron-forge/maker-rpm',
             config: {
-                name: 'chainner',
-                options: {
-                    icon: './src/public/icons/cross_platform/icon.png',
-                },
+                options: { ...makerOptions, compressionLevel: 9 },
             },
         },
     ],
