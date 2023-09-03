@@ -22,7 +22,7 @@ jobs:
 
         strategy:
             matrix:
-                os: [macos-latest, ubuntu-latest, windows-latest]
+                os: [macos-13, ubuntu-latest, windows-latest]
 
         steps:
             - uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
               run: |
                   sudo apt update && sudo apt install flatpak flatpak-builder elfutils
             - name: macOS certificate
-              if: matrix.os == 'macos-latest'
+              if: matrix.os == 'macos-13'
               env:
                   APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
                   APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -59,7 +59,7 @@ jobs:
               shell: bash
               run: |
                   npm ci
-                  if [[ "${{ matrix.os }}" != "macos-latest" ]]; then
+                  if [[ "${{ matrix.os }}" != "macos-13" ]]; then
                       npm run make
                   else
                       npm run make -- --arch=universal
