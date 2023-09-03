@@ -1293,7 +1293,6 @@ const unifiedCrop: ModernMigration = (data) => {
     return data;
 };
 
-
 const writeOutputFrame: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         if (node.data.schemaId === 'chainner:image:simple_video_frame_iterator_save') {
@@ -1351,7 +1350,6 @@ const writeOutputFrame: ModernMigration = (data) => {
 
     return data;
 };
-
 
 const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
     data.nodes.forEach((node) => {

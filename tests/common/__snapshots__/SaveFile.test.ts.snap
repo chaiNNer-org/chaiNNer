@@ -17599,6 +17599,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17609,6 +17613,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "013a370e-a477-5029-a247-ff141877b700",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -17745,6 +17750,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17755,6 +17764,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "25347b74-985c-5f22-a049-25f10feb1845",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -17789,6 +17799,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17799,6 +17813,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "82fc9b04-c1e5-579b-843b-6d25cac99e41",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -17833,6 +17848,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17843,6 +17862,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "95753fb3-8aee-5ca3-9187-b8a39d8f3857",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -17903,6 +17923,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17913,6 +17937,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "53d387b7-0535-546c-aae8-33f3f380ec12",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -17973,6 +17998,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -17983,6 +18012,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "a12b17e6-8b6c-59cd-9d73-722c903deb57",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18036,6 +18066,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18046,6 +18080,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "496d99b7-2521-5840-8617-dcd119c810bf",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18119,12 +18154,16 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": "H264",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 2481,
           },
         },
+        "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -18202,6 +18241,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18212,6 +18255,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "c496baa6-3144-541c-8a2a-ccb502be1cca",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18246,6 +18290,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18256,6 +18304,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "78b2c53f-b250-58c1-b9d0-0d1216982e81",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18341,12 +18390,16 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": "FFv1",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 2481,
           },
         },
+        "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -18623,6 +18676,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18633,6 +18690,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "01dd1aca-58c7-56be-b6f4-195b12f24d77",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18654,12 +18712,16 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": "GIF / None",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 2481,
           },
         },
+        "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -18692,6 +18754,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18702,6 +18768,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "c7055b72-a55c-5f7d-84f8-cbf44f246336",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18736,6 +18803,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18746,6 +18817,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "384f0f11-cce9-53a1-9431-deacf0f42357",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18780,6 +18852,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -18790,6 +18866,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "fcd566d4-84b8-5166-9bb0-febcd82f70be",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -18837,12 +18914,16 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": "VP9",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 2481,
           },
         },
+        "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -19010,6 +19091,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19020,6 +19105,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "efe40a14-e8a0-5930-a204-a4888ce4e539",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19054,6 +19140,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19064,6 +19154,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "cd999493-2070-469a-b918-557a36bcc595",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19098,6 +19189,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19108,6 +19203,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "b4e19d23-8b31-543d-aa44-121133e65122",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19142,6 +19238,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19152,6 +19252,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "6671153b-786b-527f-bf58-3bb7d9e25a19",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19218,12 +19319,16 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": "H265",
         },
+        "inputHeight": {
+          "0": 80,
+        },
         "inputSize": {
           "0": {
             "height": 80,
             "width": 2481,
           },
         },
+        "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
       "height": 156,
@@ -19256,6 +19361,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "gif",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19266,6 +19375,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "0084afa8-f236-54d7-a9fb-60e3aad8f083",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19300,6 +19410,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19310,6 +19424,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "3396041d-6888-5780-af28-887fa6c3bff2",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19382,6 +19497,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19392,6 +19511,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "503c6409-2186-5601-a3b8-9599a23c4341",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19471,6 +19591,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19481,6 +19605,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "5d453d0f-1d93-5a7c-9fd4-66f8e4b6f783",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19560,6 +19685,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19570,6 +19699,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "b606e603-8f45-5a24-93e4-7d1f80442c09",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -19604,6 +19734,10 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
           "8": "none",
           "9": "ultrafast",
         },
+        "inputHeight": {
+          "14": 80,
+          "2": 80,
+        },
         "inputSize": {
           "14": {
             "height": 80,
@@ -19614,6 +19748,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
             "width": 240,
           },
         },
+        "nodeWidth": 240,
         "parentNode": "def9f182-5f4c-5643-ba5e-3828ff93f001",
         "schemaId": "chainner:image:simple_video_frame_iterator_save",
       },
@@ -36394,7 +36529,7 @@ exports[`Write save file utilities.chn 1`] = `
 
 exports[`Write save file video-frame-iterator.chn 1`] = `
 {
-  "checksum": "78b88aec11618580af5358fdeb329654",
+  "checksum": "7b11b3b413d074767876c711f6ed0c6c",
   "content": {
     "edges": [
       {
@@ -36784,16 +36919,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "013a370e-a477-5029-a247-ff141877b700",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -36930,16 +37060,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "25347b74-985c-5f22-a049-25f10feb1845",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -36974,16 +37099,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "82fc9b04-c1e5-579b-843b-6d25cac99e41",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37018,16 +37138,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "95753fb3-8aee-5ca3-9187-b8a39d8f3857",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37088,16 +37203,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "53d387b7-0535-546c-aae8-33f3f380ec12",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37158,16 +37268,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "a12b17e6-8b6c-59cd-9d73-722c903deb57",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37221,16 +37326,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "496d99b7-2521-5840-8617-dcd119c810bf",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37304,12 +37404,10 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "inputData": {
             "0": "H264",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 2481,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 2481,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -37387,16 +37485,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "c496baa6-3144-541c-8a2a-ccb502be1cca",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37431,16 +37524,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "78b2c53f-b250-58c1-b9d0-0d1216982e81",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37526,12 +37614,10 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "inputData": {
             "0": "FFv1",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 2481,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 2481,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -37808,16 +37894,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "01dd1aca-58c7-56be-b6f4-195b12f24d77",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37839,12 +37920,10 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "inputData": {
             "0": "GIF / None",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 2481,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 2481,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -37877,16 +37956,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "c7055b72-a55c-5f7d-84f8-cbf44f246336",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37921,16 +37995,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "384f0f11-cce9-53a1-9431-deacf0f42357",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -37965,16 +38034,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "fcd566d4-84b8-5166-9bb0-febcd82f70be",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38022,12 +38086,10 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "inputData": {
             "0": "VP9",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 2481,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 2481,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -38195,16 +38257,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "efe40a14-e8a0-5930-a204-a4888ce4e539",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38239,16 +38296,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "cd999493-2070-469a-b918-557a36bcc595",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38283,16 +38335,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "b4e19d23-8b31-543d-aa44-121133e65122",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38327,16 +38374,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "6671153b-786b-527f-bf58-3bb7d9e25a19",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38403,12 +38445,10 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "inputData": {
             "0": "H265",
           },
-          "inputSize": {
-            "0": {
-              "height": 80,
-              "width": 2481,
-            },
+          "inputHeight": {
+            "0": 80,
           },
+          "nodeWidth": 2481,
           "schemaId": "chainner:utility:note",
         },
         "height": 156,
@@ -38441,16 +38481,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "gif",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "0084afa8-f236-54d7-a9fb-60e3aad8f083",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38485,16 +38520,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "3396041d-6888-5780-af28-887fa6c3bff2",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38567,16 +38597,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "503c6409-2186-5601-a3b8-9599a23c4341",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38656,16 +38681,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "5d453d0f-1d93-5a7c-9fd4-66f8e4b6f783",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38745,16 +38765,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "b606e603-8f45-5a24-93e4-7d1f80442c09",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
@@ -38789,16 +38804,11 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
             "8": "none",
             "9": "ultrafast",
           },
-          "inputSize": {
-            "14": {
-              "height": 80,
-              "width": 240,
-            },
-            "2": {
-              "height": 80,
-              "width": 240,
-            },
+          "inputHeight": {
+            "14": 80,
+            "2": 80,
           },
+          "nodeWidth": 240,
           "parentNode": "def9f182-5f4c-5643-ba5e-3828ff93f001",
           "schemaId": "chainner:image:simple_video_frame_iterator_save",
         },
