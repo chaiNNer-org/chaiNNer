@@ -28,9 +28,7 @@
     "test": "npm run test:js && npm run test:py",
     "postinstall": "patch-package"
   },
-  "keywords": [
-
-  ],
+  "keywords": [],
   "author": {
     "name": "chaiNNer-org",
     "email": "34788790+joeyballentine@users.noreply.github.com"
