@@ -1,9 +1,10 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
+  "appId": "app.chainner",
   "desktopName": "chainner.desktop",
   "version": "0.19.4",
-  "description": "A flowchart based image processing GUI",
+  "description": "A flowchart-based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start -- --devtools",
@@ -27,7 +28,9 @@
     "test": "npm run test:js && npm run test:py",
     "postinstall": "patch-package"
   },
-  "keywords": [],
+  "keywords": [
+
+  ],
   "author": {
     "name": "chaiNNer-org",
     "email": "34788790+joeyballentine@users.noreply.github.com"
