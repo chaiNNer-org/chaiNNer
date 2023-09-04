@@ -1,9 +1,10 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
+  "appId": "app.chainner",
   "desktopName": "chainner.desktop",
   "version": "0.19.4",
-  "description": "A flowchart based image processing GUI",
+  "description": "A flowchart-based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start -- --devtools",

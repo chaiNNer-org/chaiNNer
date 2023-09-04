@@ -1,6 +1,7 @@
 const AdmZip = require('adm-zip');
 const fs = require('fs/promises');
 const path = require('path');
+const packageJson = require('./package.json');
 
 const makerOptions = {
     categories: ['Graphics'],
@@ -39,10 +40,10 @@ const deletePycFiles = async (directory) => {
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
     packagerConfig: {
-        executableName: process.platform === 'linux' ? 'chainner' : 'chaiNNer',
+        executableName: process.platform === 'linux' ? packageJson.name : packageJson.productName,
         extraResource: ['./backend/src/', './src/public/icons/mac/file_chn.icns'],
-        icon: './src/public/icons/cross_platform/icon',
-        appBundleId: 'app.chainner',
+        icon: makerOptions.icon,
+        appBundleId: packageJson.appId,
         appCategoryType: 'public.app-category.graphics-design',
         extendInfo: './src/public/Info.plist',
         ...(process.argv.includes('--dry-run') || process.argv.includes('--no-sign')
@@ -62,8 +63,8 @@ const config = {
             name: '@electron-forge/publisher-github',
             config: {
                 repository: {
-                    owner: 'chaiNNer-org',
-                    name: 'chaiNNer',
+                    owner: packageJson.author.name,
+                    name: packageJson.productName,
                 },
             },
             draft: true,
@@ -74,7 +75,7 @@ const config = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
-                name: 'chainner',
+                name: packageJson.appId,
                 iconUrl:
                     'https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico',
                 setupIcon: './src/public/icons/win/icon.ico',
@@ -99,7 +100,7 @@ const config = {
                         : {
                               'code-sign': {
                                   'signing-identity': process.env.APPLE_SIGNING_ID,
-                                  identifier: 'app.chainner',
+                                  identifier: packageJson.appId,
                               },
                           }),
                 },
