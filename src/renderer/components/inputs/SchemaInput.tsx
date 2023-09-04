@@ -48,8 +48,10 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         id: nodeId,
         inputData,
         setInputValue,
-        inputSize,
-        setInputSize,
+        inputHeight,
+        setInputHeight,
+        nodeWidth,
+        setWidth,
         isLocked,
         connectedInputs,
         type,
@@ -73,12 +75,16 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         setInputValue(inputId, undefined);
     }, [inputId, setInputValue]);
 
-    const size = inputSize?.[inputId];
+    const size =
+        inputHeight?.[inputId] && nodeWidth
+            ? { height: inputHeight[inputId], width: nodeWidth }
+            : undefined;
     const setSize = useCallback(
         (newSize: Readonly<Size>) => {
-            setInputSize(inputId, newSize);
+            setInputHeight(inputId, newSize.height);
+            setWidth(newSize.width);
         },
-        [inputId, setInputSize]
+        [inputId, setInputHeight, setWidth]
     );
 
     const inputType = type.instance?.inputs.get(inputId) ?? NeverType.instance;

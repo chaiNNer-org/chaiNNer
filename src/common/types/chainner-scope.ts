@@ -98,8 +98,9 @@ struct DdsMipMaps;
 struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct TileSize;
+struct VideoEncoder;
+struct VideoContainer;
 struct VideoPreset;
-struct VideoType;
 
 enum FpMode { fp32, fp16 }
 

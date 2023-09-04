@@ -364,8 +364,10 @@ class SettingsParser:
             return value
         raise ValueError(f"Invalid bool value for {key}: {value}")
 
-    def get_int(self, key: str, default: int) -> int:
+    def get_int(self, key: str, default: int, parse_str: bool = False) -> int:
         value = self.__settings.get(key, default)
+        if parse_str and isinstance(value, str):
+            return int(value)
         if isinstance(value, int) and not isinstance(value, bool):
             return value
         raise ValueError(f"Invalid str value for {key}: {value}")

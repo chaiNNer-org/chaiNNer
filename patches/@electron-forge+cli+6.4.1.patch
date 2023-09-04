@@ -1,0 +1,13 @@
+diff --git a/node_modules/@electron-forge/cli/dist/electron-forge-package.js b/node_modules/@electron-forge/cli/dist/electron-forge-package.js
+index d6b99fa..8d49efc 100644
+--- a/node_modules/@electron-forge/cli/dist/electron-forge-package.js
++++ b/node_modules/@electron-forge/cli/dist/electron-forge-package.js
+@@ -24,7 +24,7 @@ const working_dir_1 = __importDefault(require("./util/working-dir"));
+     (0, get_1.initializeProxy)();
+     const packageOpts = {
+         dir,
+-        interactive: true,
++        interactive: false,
+     };
+     if (commander_1.default.arch)
+         packageOpts.arch = commander_1.default.arch;

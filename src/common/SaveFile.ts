@@ -76,7 +76,8 @@ export class SaveFile {
                     data: {
                         schemaId: n.data.schemaId,
                         inputData: n.data.inputData,
-                        inputSize: n.data.inputSize,
+                        inputHeight: n.data.inputHeight,
+                        nodeWidth: n.data.nodeWidth,
                         id: n.data.id,
                         iteratorSize: n.data.iteratorSize,
                         isDisabled: n.data.isDisabled,

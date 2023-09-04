@@ -127,19 +127,28 @@ const registerEventHandlerPreSetup = (
     });
 
     if (isMac) {
-        // Open file with chaiNNer on macOS
+        if (globalThis.startupFile) {
+            // Open file with chaiNNer on other platforms
+            const result = openSaveFile(globalThis.startupFile);
+            ipcMain.handle('get-cli-open', () => result);
+            globalThis.startupFile = null;
+        } else {
+            ipcMain.handle('get-cli-open', () => undefined);
+        }
+        // We remove the event we created in main.ts earlier on
+        app.removeAllListeners('open-file');
+
+        // We register this event again to handle file-opening during runtime.
         app.on('open-file', (event, filePath) => {
+            event.preventDefault();
             (async () => {
-                const file = filePath;
-                if (file) {
-                    const result = await openSaveFile(file);
-                    mainWindow.webContents.send('file-open', result);
-                }
+                const result = await openSaveFile(filePath);
+                mainWindow.webContents.send('file-open', result);
             })().catch(log.error);
         });
     } else {
-        // Opening file with chaiNNer on other platforms
         if (args.file) {
+            // Open file with chaiNNer on other platforms
             const result = openSaveFile(args.file);
             ipcMain.handle('get-cli-open', () => result);
         } else {

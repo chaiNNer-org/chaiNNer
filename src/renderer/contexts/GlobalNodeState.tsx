@@ -129,8 +129,9 @@ interface Global {
     createEdge: (from: ParsedSourceHandle, to: ParsedTargetHandle) => void;
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
-    setNodeInputSize: (nodeId: string, inputId: InputId, value: Readonly<Size>) => void;
-    setNodeOutputSize: (nodeId: string, outputId: OutputId, value: Readonly<Size>) => void;
+    setNodeInputHeight: (nodeId: string, inputId: InputId, value: number) => void;
+    setNodeOutputHeight: (nodeId: string, outputId: OutputId, value: number) => void;
+    setNodeWidth: (nodeId: string, value: number) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -971,39 +972,36 @@ export const GlobalProvider = memo(
             [modifyNode, addInputDataChanges]
         );
 
-        const setNodeInputSize = useCallback(
-            (nodeId: string, inputId: InputId, size: Readonly<Size>): void => {
+        const setNodeInputHeight = useCallback(
+            (nodeId: string, inputId: InputId, height: number): void => {
                 modifyNode(nodeId, (old) => {
-                    const newInputSize: Record<string, Readonly<Size>> = {
-                        ...old.data.inputSize,
-                        [inputId]: size,
+                    const newInputHeight: Record<string, number> = {
+                        ...old.data.inputHeight,
+                        [inputId]: height,
                     };
-                    Object.entries(newInputSize).forEach(([key, value]) => {
-                        newInputSize[key] = {
-                            ...value,
-                            width: size.width,
-                        };
-                    });
-                    return withNewData(old, 'inputSize', newInputSize);
+                    return withNewData(old, 'inputHeight', newInputHeight);
                 });
             },
             [modifyNode]
         );
 
-        const setNodeOutputSize = useCallback(
-            (nodeId: string, outputId: OutputId, size: Readonly<Size>): void => {
+        const setNodeOutputHeight = useCallback(
+            (nodeId: string, outputId: OutputId, height: number): void => {
                 modifyNode(nodeId, (old) => {
-                    const newOutputSize: Record<string, Readonly<Size>> = {
-                        ...old.data.inputSize,
-                        [outputId]: size,
+                    const newOutputHeight: Record<string, number> = {
+                        ...old.data.outputHeight,
+                        [outputId]: height,
                     };
-                    Object.entries(newOutputSize).forEach(([key, value]) => {
-                        newOutputSize[key] = {
-                            ...value,
-                            width: size.width,
-                        };
-                    });
-                    return withNewData(old, 'outputSize', newOutputSize);
+                    return withNewData(old, 'outputHeight', newOutputHeight);
+                });
+            },
+            [modifyNode]
+        );
+
+        const setNodeWidth = useCallback(
+            (nodeId: string, width: number): void => {
+                modifyNode(nodeId, (old) => {
+                    return withNewData(old, 'nodeWidth', width);
                 });
             },
             [modifyNode]
@@ -1403,8 +1401,9 @@ export const GlobalProvider = memo(
             createEdge,
             createConnection,
             setNodeInputValue,
-            setNodeInputSize,
-            setNodeOutputSize,
+            setNodeInputHeight,
+            setNodeOutputHeight,
+            setNodeWidth,
             toggleNodeLock,
             clearNodes,
             removeNodesById,

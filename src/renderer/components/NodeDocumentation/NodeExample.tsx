@@ -5,14 +5,13 @@ import { useContext } from 'use-context-selector';
 import {
     Condition,
     InputData,
+    InputHeight,
     InputId,
-    InputSize,
     InputValue,
     NodeData,
     NodeSchema,
+    OutputHeight,
     OutputId,
-    OutputSize,
-    Size,
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
 import { DisabledStatus } from '../../../common/nodes/disabled';
@@ -71,20 +70,37 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         [setInputData]
     );
 
-    const [inputSize, setInputSize] = useStateForSchema<InputSize>(selectedSchema, EMPTY_OBJECT);
-    const setSingleInputSize = useCallback(
-        (inputId: InputId, size: Readonly<Size>): void => {
-            setInputSize((prev) => ({ ...prev, [inputId]: size }));
+    const [inputHeight, setInputHeight] = useStateForSchema<InputHeight>(
+        selectedSchema,
+        EMPTY_OBJECT
+    );
+    const setSingleInputHeight = useCallback(
+        (inputId: InputId, height: number): void => {
+            setInputHeight((prev) => ({ ...prev, [inputId]: height }));
         },
-        [setInputSize]
+        [setInputHeight]
     );
 
-    const [outputSize, setOutputSize] = useStateForSchema<OutputSize>(selectedSchema, EMPTY_OBJECT);
-    const setSingleOutputSize = useCallback(
-        (outputId: OutputId, size: Readonly<Size>): void => {
-            setOutputSize((prev) => ({ ...prev, [outputId]: size }));
+    const [nodeWidth, setNodeWidth] = useStateForSchema<number | undefined>(
+        selectedSchema,
+        undefined
+    );
+    const setWidth = useCallback(
+        (width: number): void => {
+            setNodeWidth((prev) => (prev === undefined ? width : Math.max(prev, width)));
         },
-        [setOutputSize]
+        [setNodeWidth]
+    );
+
+    const [outputHeight, setOutputHeight] = useStateForSchema<OutputHeight>(
+        selectedSchema,
+        EMPTY_OBJECT
+    );
+    const setSingleOutputHeight = useCallback(
+        (outputId: OutputId, height: number): void => {
+            setOutputHeight((prev) => ({ ...prev, [outputId]: height }));
+        },
+        [setOutputHeight]
     );
 
     const nodeIdPrefix = 'FakeId ';
@@ -163,10 +179,12 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     schema: selectedSchema,
                                     inputData,
                                     setInputValue,
-                                    inputSize,
-                                    setInputSize: setSingleInputSize,
-                                    outputSize,
-                                    setOutputSize: setSingleOutputSize,
+                                    inputHeight,
+                                    nodeWidth,
+                                    outputHeight,
+                                    setOutputHeight: setSingleOutputHeight,
+                                    setWidth,
+                                    setInputHeight: setSingleInputHeight,
                                     isLocked: false,
                                     connectedInputs: EMPTY_SET,
                                     connectedOutputs: EMPTY_SET,

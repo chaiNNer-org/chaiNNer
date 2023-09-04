@@ -48,7 +48,7 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
-    const { id, schema, schemaId, outputSize, setOutputSize } = nodeState;
+    const { id, schema, schemaId, outputHeight, setOutputHeight, nodeWidth, setWidth } = nodeState;
 
     const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
@@ -90,7 +90,14 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                 const definitionType = functions?.get(output.id) ?? NeverType.instance;
                 const type = nodeState.type.instance?.outputs.get(output.id);
 
-                const size = outputSize?.[output.id];
+                const size =
+                    outputHeight?.[output.id] && nodeWidth
+                        ? { height: outputHeight[output.id], width: nodeWidth }
+                        : undefined;
+                const setSize = (newSize: Readonly<Size>) => {
+                    setOutputHeight(output.id, newSize.height);
+                    setWidth(newSize.width);
+                };
 
                 const OutputType = OutputComponents[output.kind];
                 return (
@@ -109,9 +116,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                             id={id}
                             output={output}
                             schema={nodeState.schema}
-                            setSize={(newSize: Readonly<Size>) => {
-                                setOutputSize(output.id, newSize);
-                            }}
+                            setSize={setSize}
                             size={size}
                             type={type ?? NeverType.instance}
                             useOutputData={useOutputData}
