@@ -223,7 +223,7 @@ const PythonSettings = memo(() => {
                     draftState[pkg] = {};
                 }
                 // eslint-disable-next-line no-param-reassign
-                draftState.general[key] = value;
+                draftState[pkg][key] = value;
             })
         );
 
