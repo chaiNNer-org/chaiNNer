@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { log } from '../../common/log';
@@ -175,8 +176,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
-    const updateIteratorProgress = useBatchedCallback<
-        Parameters<BackendEventSourceListener<'iterator-progress-update'>>
+    const updateIteratorProgress = useThrottledCallback<
+        BackendEventSourceListener<'iterator-progress-update'>
     >(
         useCallback(
             (data) => {
@@ -193,7 +194,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             },
             [animate, setIteratorProgressImpl, status, unAnimate]
         ),
-        100
+        100,
+        { trailing: true }
     );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
