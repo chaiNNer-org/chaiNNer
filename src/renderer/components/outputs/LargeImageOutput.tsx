@@ -1,11 +1,10 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
-import { Resizable } from 're-resizable';
+import { Resizable, Size } from 're-resizable';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
@@ -55,6 +54,19 @@ export const LargeImageOutput = memo(
 
         const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
+        const firstRender = useRef(false);
+        useEffect(() => {
+            if (!firstRender.current) {
+                if (size) {
+                    resizeRef?.updateSize({
+                        width: size.width,
+                        height: size.height,
+                    });
+                    firstRender.current = true;
+                }
+            }
+        }, [resizeRef, size]);
+
         const [maxSize, setMaxSize] = useState<Size>({
             width: IMAGE_PREVIEW_SIZE,
             height: IMAGE_PREVIEW_SIZE,
@@ -70,44 +82,9 @@ export const LargeImageOutput = memo(
                         width: img.width,
                         height: img.height,
                     });
-                    resizeRef?.updateSize({
-                        width: Math.min(img.width, size?.width ?? IMAGE_PREVIEW_SIZE),
-                        height: Math.min(img.height, size?.height ?? IMAGE_PREVIEW_SIZE),
-                    });
-                    setSize({
-                        width: Math.min(img.width, size?.width ?? IMAGE_PREVIEW_SIZE),
-                        height: Math.min(img.height, size?.height ?? IMAGE_PREVIEW_SIZE),
-                    });
                 };
-            } else {
-                setMaxSize({
-                    width: IMAGE_PREVIEW_SIZE,
-                    height: IMAGE_PREVIEW_SIZE,
-                });
-                resizeRef?.updateSize({
-                    width: IMAGE_PREVIEW_SIZE,
-                    height: IMAGE_PREVIEW_SIZE,
-                });
-                setSize({
-                    width: IMAGE_PREVIEW_SIZE,
-                    height: IMAGE_PREVIEW_SIZE,
-                });
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [previewImage, resizeRef]);
-
-        const firstRender = useRef(false);
-        useEffect(() => {
-            if (!firstRender.current) {
-                if (size) {
-                    resizeRef?.updateSize({
-                        width: size.width,
-                        height: size.height,
-                    });
-                    firstRender.current = true;
-                }
-            }
-        }, [resizeRef, size]);
+        }, [last?.previews, previewImage, resizeRef]);
 
         return (
             <Center
@@ -152,9 +129,8 @@ export const LargeImageOutput = memo(
                             </Center>
                         ),
                     }}
-                    // lockAspectRatio={maxSize.width / maxSize.height}
-                    maxHeight={maxSize.height}
-                    maxWidth={maxSize.width}
+                    maxHeight={1024}
+                    maxWidth={1024}
                     minHeight={IMAGE_PREVIEW_SIZE}
                     minWidth={IMAGE_PREVIEW_SIZE}
                     ref={(r) => {
@@ -168,11 +144,10 @@ export const LargeImageOutput = memo(
                         if (baseWidth < IMAGE_PREVIEW_SIZE) baseWidth = IMAGE_PREVIEW_SIZE;
                         if (baseHeight < IMAGE_PREVIEW_SIZE) baseHeight = IMAGE_PREVIEW_SIZE;
 
-                        const newSize = {
+                        setSize({
                             width: baseWidth + d.width,
                             height: baseHeight + d.height,
-                        };
-                        setSize(newSize);
+                        });
                     }}
                 >
                     <Center
@@ -230,9 +205,11 @@ export const LargeImageOutput = memo(
                         >
                             {last && previewImage ? (
                                 <Center
+                                    display="flex"
                                     h="full"
                                     maxH="full"
                                     maxW="full"
+                                    // objectFit="contain"
                                     w="full"
                                 >
                                     <Image
@@ -244,7 +221,7 @@ export const LargeImageOutput = memo(
                                                 : ''
                                         }
                                         draggable={false}
-                                        h={maxSize.height < IMAGE_PREVIEW_SIZE ? 'auto' : 'full'}
+                                        h={`${maxSize.height}px`}
                                         maxH="full"
                                         maxW="full"
                                         objectFit="contain"
@@ -257,7 +234,7 @@ export const LargeImageOutput = memo(
                                                     ? 'pixelated'
                                                     : 'auto',
                                         }}
-                                        w={maxSize.width < IMAGE_PREVIEW_SIZE ? 'auto' : 'full'}
+                                        w={`${maxSize.width}px`}
                                     />
                                 </Center>
                             ) : animated ? (
