@@ -22,7 +22,7 @@ from .. import io_group
     name="Load Model",
     description=[
         (
-            "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an"
+            "Load PyTorch state dict (.pth), TorchScript (.pt), or Checkpoint (.ckpt) files into an"
             " auto-detected supported model architecture."
         ),
         (
