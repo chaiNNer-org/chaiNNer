@@ -5,6 +5,7 @@ import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
@@ -48,6 +49,7 @@ interface RepresentativeNodeWrapperProps {
 export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
+        const { featureStates } = useContext(BackendContext);
         const reactFlowInstance = useReactFlow();
         const { openNodeDocumentation } = useContext(NodeDocumentationContext);
 
@@ -110,6 +112,20 @@ export const RepresentativeNodeWrapper = memo(
             });
         }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper]);
 
+        const featureDetails = node.features.map((feature) => {
+            const featureState = featureStates.get(feature);
+            return { isEnabled: featureState?.enabled, details: featureState?.details };
+        });
+
+        const isDisabled = featureDetails.some((feature) => !feature.isEnabled);
+
+        const disabledReason = isDisabled
+            ? featureDetails
+                  .filter((feature) => !feature.isEnabled)
+                  .map((feature) => feature.details)
+                  .join('\n')
+            : '';
+
         return (
             <Box
                 my={1.5}
@@ -133,7 +149,7 @@ export const RepresentativeNodeWrapper = memo(
                             borderRadius={8}
                             label={
                                 <TooltipLabel
-                                    description={node.description}
+                                    description={isDisabled ? disabledReason : node.description}
                                     name={collapsed ? node.name : undefined}
                                 />
                             }
@@ -143,23 +159,32 @@ export const RepresentativeNodeWrapper = memo(
                             py={1}
                         >
                             <Center
-                                draggable
                                 boxSizing="content-box"
                                 display="block"
+                                draggable={!isDisabled}
+                                opacity={isDisabled ? 0.5 : 1}
                                 onClick={() => {
-                                    setDidSingleClick(true);
+                                    if (!isDisabled) {
+                                        setDidSingleClick(true);
+                                    }
                                 }}
                                 onDoubleClick={() => {
-                                    setDidSingleClick(false);
-                                    createNodeFromSelector();
+                                    if (!isDisabled) {
+                                        setDidSingleClick(false);
+                                        createNodeFromSelector();
+                                    }
                                 }}
                                 onDragEnd={() => {
-                                    setHoveredNode(undefined);
+                                    if (!isDisabled) {
+                                        setHoveredNode(undefined);
+                                    }
                                 }}
                                 onDragStart={(event) => {
-                                    setDidSingleClick(false);
-                                    onDragStart(event, node);
-                                    setHoveredNode(undefined);
+                                    if (!isDisabled) {
+                                        setDidSingleClick(false);
+                                        onDragStart(event, node);
+                                        setHoveredNode(undefined);
+                                    }
                                 }}
                             >
                                 <RepresentativeNode
