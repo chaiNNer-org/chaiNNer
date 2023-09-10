@@ -130,6 +130,7 @@ interface Global {
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
     setNodeInputHeight: (nodeId: string, inputId: InputId, value: number) => void;
+    setNodeOutputHeight: (nodeId: string, outputId: OutputId, value: number) => void;
     setNodeWidth: (nodeId: string, value: number) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
@@ -984,6 +985,19 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeOutputHeight = useCallback(
+            (nodeId: string, outputId: OutputId, height: number): void => {
+                modifyNode(nodeId, (old) => {
+                    const newOutputHeight: Record<string, number> = {
+                        ...old.data.outputHeight,
+                        [outputId]: height,
+                    };
+                    return withNewData(old, 'outputHeight', newOutputHeight);
+                });
+            },
+            [modifyNode]
+        );
+
         const setNodeWidth = useCallback(
             (nodeId: string, width: number): void => {
                 modifyNode(nodeId, (old) => {
@@ -1388,6 +1402,7 @@ export const GlobalProvider = memo(
             createConnection,
             setNodeInputValue,
             setNodeInputHeight,
+            setNodeOutputHeight,
             setNodeWidth,
             toggleNodeLock,
             clearNodes,

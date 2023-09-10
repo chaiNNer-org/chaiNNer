@@ -10,6 +10,8 @@ import {
     InputValue,
     NodeData,
     NodeSchema,
+    OutputHeight,
+    OutputId,
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
 import { DisabledStatus } from '../../../common/nodes/disabled';
@@ -90,6 +92,17 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         [setNodeWidth]
     );
 
+    const [outputHeight, setOutputHeight] = useStateForSchema<OutputHeight>(
+        selectedSchema,
+        EMPTY_OBJECT
+    );
+    const setSingleOutputHeight = useCallback(
+        (outputId: OutputId, height: number): void => {
+            setOutputHeight((prev) => ({ ...prev, [outputId]: height }));
+        },
+        [setOutputHeight]
+    );
+
     const nodeIdPrefix = 'FakeId ';
     const suffixLength = 36 - nodeIdPrefix.length;
     const nodeId =
@@ -168,6 +181,8 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     setInputValue,
                                     inputHeight,
                                     nodeWidth,
+                                    outputHeight,
+                                    setOutputHeight: setSingleOutputHeight,
                                     setWidth,
                                     setInputHeight: setSingleInputHeight,
                                     isLocked: false,

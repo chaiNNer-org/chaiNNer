@@ -8,6 +8,7 @@ import {
     InputValue,
     NodeData,
     NodeSchema,
+    OutputHeight,
     OutputId,
     SchemaId,
 } from '../../common/common-types';
@@ -65,6 +66,8 @@ export interface NodeState {
     readonly setInputValue: (inputId: InputId, value: InputValue) => void;
     readonly inputHeight: InputHeight | undefined;
     readonly setInputHeight: (inputId: InputId, height: number) => void;
+    readonly outputHeight: OutputHeight | undefined;
+    readonly setOutputHeight: (inputId: OutputId, size: number) => void;
     readonly nodeWidth: number | undefined;
     readonly setWidth: (width: number) => void;
     readonly isLocked: boolean;
@@ -75,14 +78,20 @@ export interface NodeState {
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
-    const { setNodeInputValue, setNodeInputHeight, setNodeWidth } = useContext(GlobalContext);
+    const { setNodeInputValue, setNodeInputHeight, setNodeOutputHeight, setNodeWidth } =
+        useContext(GlobalContext);
 
-    const { id, inputData, inputHeight, isLocked, schemaId, nodeWidth } = data;
+    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth } = data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
+
     const setInputHeight = useMemo(
         () => setNodeInputHeight.bind(null, id),
         [id, setNodeInputHeight]
+    );
+    const setOutputHeight = useMemo(
+        () => setNodeOutputHeight.bind(null, id),
+        [id, setNodeOutputHeight]
     );
 
     const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
@@ -117,6 +126,8 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         setInputValue,
         inputHeight,
         setInputHeight,
+        outputHeight,
+        setOutputHeight,
         nodeWidth,
         setWidth,
         isLocked: isLocked ?? false,
