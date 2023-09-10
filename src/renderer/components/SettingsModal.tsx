@@ -187,7 +187,6 @@ const EnvironmentSettings = memo(() => {
                     />
                 </HStack>
             </SettingContainer>
-            <Text>Looking for the CPU and FP16 settings? They moved to the Python tab.</Text>
         </VStack>
     );
 });
