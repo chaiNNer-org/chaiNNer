@@ -106,8 +106,8 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
 _decoders: List[Tuple[str, _Decoder]] = [
     ("pil-jpeg", _for_ext([".jpg", ".jpeg"], _read_pil)),
     ("cv", _read_cv),
-    ("pil", _read_pil),
     ("texconv-dds", _read_dds),
+    ("pil", _read_pil),
 ]
 
 valid_formats = get_available_image_formats()

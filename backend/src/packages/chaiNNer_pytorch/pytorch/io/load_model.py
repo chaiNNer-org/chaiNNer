@@ -22,7 +22,7 @@ from .. import io_group
     name="Load Model",
     description=[
         (
-            "Load PyTorch state dict (.pth) or TorchScript (.pt) file into an"
+            "Load PyTorch state dict (.pth), TorchScript (.pt), or Checkpoint (.ckpt) files into an"
             " auto-detected supported model architecture."
         ),
         (
@@ -65,16 +65,36 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
 
     try:
         logger.debug(f"Reading state dict from path: {path}")
+        extension = os.path.splitext(path)[1].lower()
 
-        if os.path.splitext(path)[1].lower() == ".pt":
+        if extension == ".pt":
             state_dict = torch.jit.load(  # type: ignore
                 path, map_location=pytorch_device
             ).state_dict()
-        else:
+        elif extension == ".pth":
             state_dict = torch.load(
                 path,
                 map_location=pytorch_device,
                 pickle_module=RestrictedUnpickle,  # type: ignore
+            )
+        elif extension == ".ckpt":
+            checkpoint = torch.load(
+                path,
+                map_location=pytorch_device,
+                pickle_module=RestrictedUnpickle,  # type: ignore
+            )
+            if "state_dict" in checkpoint:
+                state_dict = {}
+                for i, j in checkpoint["state_dict"].items():
+                    if "netG." in i:
+                        key = i.replace("netG.", "")
+                        state_dict[key] = j
+            else:
+                # Assume it's a state dict, might as well
+                state_dict = checkpoint
+        else:
+            raise ValueError(
+                f"Unsupported model file extension {extension}. Please try a supported model type."
             )
 
         model = load_state_dict(state_dict)

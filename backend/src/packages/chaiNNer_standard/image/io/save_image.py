@@ -14,6 +14,7 @@ from nodes.impl.dds.format import (
     BC7_FORMATS,
     BC123_FORMATS,
     LEGACY_TO_DXGI,
+    PREFER_DX9,
     WITH_ALPHA,
     DDSFormat,
     to_dxgi,
@@ -234,7 +235,7 @@ def save_image_node(
         img = to_uint8(img, normalized=True)
 
         # remap legacy DX9 formats
-        legacy_dds = dds_format in LEGACY_TO_DXGI
+        legacy_dds = dds_format in LEGACY_TO_DXGI or dds_format in PREFER_DX9
 
         save_as_dds(
             full_path,

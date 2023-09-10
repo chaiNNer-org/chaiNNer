@@ -1,9 +1,10 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
+  "appId": "app.chainner",
   "desktopName": "chainner.desktop",
   "version": "0.19.4",
-  "description": "A flowchart based image processing GUI",
+  "description": "A flowchart-based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start -- --devtools",
@@ -73,7 +74,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^7.0.3",
     "css-loader": "^6.7.1",
-    "electron": "^25.3.2",
+    "electron": "^25.5.0",
     "electron-installer-common": "^0.10.3",
     "eslint": "^8.16.0",
     "eslint-config-airbnb": "^19.0.4",

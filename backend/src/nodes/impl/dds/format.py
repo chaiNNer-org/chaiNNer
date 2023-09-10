@@ -224,6 +224,11 @@ BC123_FORMATS: Set[DDSFormat] = {
     "DXT5",
 }
 
+PREFER_DX9: Set[DDSFormat] = {
+    "R8G8B8A8_UNORM",
+    "B8G8R8A8_UNORM",
+}
+
 
 def to_dxgi(f: DDSFormat) -> DxgiFormat:
     if f in LEGACY_TO_DXGI:

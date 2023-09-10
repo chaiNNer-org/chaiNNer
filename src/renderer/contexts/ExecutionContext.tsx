@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { log } from '../../common/log';
@@ -175,22 +176,26 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
-    const updateIteratorProgress = useCallback<
+    const updateIteratorProgress = useThrottledCallback<
         BackendEventSourceListener<'iterator-progress-update'>
     >(
-        (data) => {
-            if (data) {
-                const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
+        useCallback(
+            (data) => {
+                if (data) {
+                    const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
 
-                if (runningNodes && status === ExecutionStatus.RUNNING) {
-                    animate(runningNodes);
-                } else if (status !== ExecutionStatus.RUNNING) {
-                    unAnimate();
+                    if (runningNodes && status === ExecutionStatus.RUNNING) {
+                        animate(runningNodes);
+                    } else if (status !== ExecutionStatus.RUNNING) {
+                        unAnimate();
+                    }
+                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
                 }
-                setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
-            }
-        },
-        [animate, setIteratorProgressImpl, status, unAnimate]
+            },
+            [animate, setIteratorProgressImpl, status, unAnimate]
+        ),
+        100,
+        { trailing: true }
     );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 

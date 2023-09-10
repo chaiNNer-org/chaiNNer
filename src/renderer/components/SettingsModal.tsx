@@ -31,6 +31,7 @@ import { memo, useCallback, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
+import { SettingKey, SettingValue } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
@@ -186,7 +187,6 @@ const EnvironmentSettings = memo(() => {
                     />
                 </HStack>
             </SettingContainer>
-            <Text>Looking for the CPU and FP16 settings? They moved to the Python tab.</Text>
         </VStack>
     );
 });
@@ -212,6 +212,23 @@ const PythonSettings = memo(() => {
     }, [systemPythonLocation, lastDirectory, setSystemPythonLocation]);
 
     const packagesWithSettings = packages.filter((pkg) => pkg.settings.length);
+
+    const setBackendPackageSetting = (pkg: string, key: SettingKey, value: SettingValue) =>
+        setBackendSettings((prev) =>
+            produce(prev, (draftState) => {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                if (!draftState[pkg]) {
+                    // eslint-disable-next-line no-param-reassign
+                    draftState[pkg] = {};
+                }
+                // eslint-disable-next-line no-param-reassign
+                draftState[pkg][key] = value;
+            })
+        );
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const setGeneralBackendSetting = (key: SettingKey, value: SettingValue) =>
+        setBackendPackageSetting('general', key, value);
 
     return (
         <Tabs
@@ -315,17 +332,7 @@ const PythonSettings = memo(() => {
                                     <SettingItem
                                         key={setting.key}
                                         setValue={(value) => {
-                                            setBackendSettings((prev) =>
-                                                produce(prev, (draftState) => {
-                                                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                                                    if (!draftState[pkg.id]) {
-                                                        // eslint-disable-next-line no-param-reassign
-                                                        draftState[pkg.id] = {};
-                                                    }
-                                                    // eslint-disable-next-line no-param-reassign
-                                                    draftState[pkg.id][setting.key] = value;
-                                                })
-                                            );
+                                            setBackendPackageSetting(pkg.id, setting.key, value);
                                         }}
                                         setting={setting}
                                         value={thisSetting}

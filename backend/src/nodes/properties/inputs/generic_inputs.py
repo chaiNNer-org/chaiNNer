@@ -619,17 +619,22 @@ def TileSizeDropdown(
 
 
 SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
-    ("BC1_UNORM_SRGB", "BC1 (sRGB, DX 10+)"),
-    ("BC1_UNORM", "BC1 (Linear, DX 10+)"),
-    ("BC3_UNORM_SRGB", "BC3 (sRGB, DX 10+)"),
-    ("BC3_UNORM", "BC3 (Linear, DX 10+)"),
-    ("BC4_UNORM", "BC4 (DX 10+)"),
-    ("BC5_UNORM", "BC5 (DX 10+)"),
-    ("BC7_UNORM_SRGB", "BC7 (sRGB, DX 11+)"),
-    ("BC7_UNORM", "BC7 (Linear, DX 11+)"),
-    ("DXT1", "DXT1 (Legacy)"),
-    ("DXT3", "DXT3 (Legacy)"),
-    ("DXT5", "DXT5 (Legacy)"),
+    ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
+    ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
+    ("BC3_UNORM_SRGB", "BC3 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC3_UNORM", "BC3 (8bpp, Linear, 8-bit Alpha)"),
+    ("BC4_UNORM", "BC4 (4bpp, Grayscale)"),
+    ("BC5_UNORM", "BC5 (8bpp, Unsigned, 2-channel normal)"),
+    ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
+    ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
+    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha, Legacy)"),
+    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha, Legacy)"),
+    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha, Legacy)"),
+    ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
 ]
 
 
