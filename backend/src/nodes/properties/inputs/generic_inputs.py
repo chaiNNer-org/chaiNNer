@@ -631,6 +631,10 @@ SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
     ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha, Legacy)"),
     ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha, Legacy)"),
     ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha, Legacy)"),
+    ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
 ]
 
 
