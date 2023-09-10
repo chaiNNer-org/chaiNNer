@@ -5,6 +5,7 @@ import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
@@ -16,14 +17,21 @@ import { RepresentativeNode } from './RepresentativeNode';
 interface TooltipLabelProps {
     name?: string;
     description: string;
+    unavailableReason?: string;
 }
-const TooltipLabel = memo(({ name, description }: TooltipLabelProps) => {
+const TooltipLabel = memo(({ name, description, unavailableReason }: TooltipLabelProps) => {
     const firstParagraph = description.split('\n\n')[0];
+
+    let text = firstParagraph;
+
+    if (unavailableReason) {
+        text += `\n\nThis node is currently unavailable because a feature is not enabled. Reason(s):\n\n${unavailableReason}`;
+    }
 
     return (
         <>
             {name && <Text fontWeight="bold">{name}</Text>}
-            <Markdown nonInteractive>{firstParagraph}</Markdown>
+            <Markdown nonInteractive>{text}</Markdown>
         </>
     );
 });
@@ -48,6 +56,7 @@ interface RepresentativeNodeWrapperProps {
 export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
+        const { featureStates } = useContext(BackendContext);
         const reactFlowInstance = useReactFlow();
         const { openNodeDocumentation } = useContext(NodeDocumentationContext);
 
@@ -110,6 +119,20 @@ export const RepresentativeNodeWrapper = memo(
             });
         }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper]);
 
+        const featureDetails = node.features.map((feature) => {
+            const featureState = featureStates.get(feature);
+            return { isEnabled: featureState?.enabled, details: featureState?.details };
+        });
+
+        const isDisabled = featureDetails.some((feature) => !feature.isEnabled);
+
+        const unavailableReason = isDisabled
+            ? featureDetails
+                  .filter((feature) => !feature.isEnabled)
+                  .map((feature) => feature.details)
+                  .join('\n')
+            : undefined;
+
         return (
             <Box
                 my={1.5}
@@ -135,6 +158,7 @@ export const RepresentativeNodeWrapper = memo(
                                 <TooltipLabel
                                     description={node.description}
                                     name={collapsed ? node.name : undefined}
+                                    unavailableReason={unavailableReason}
                                 />
                             }
                             openDelay={500}
@@ -146,6 +170,7 @@ export const RepresentativeNodeWrapper = memo(
                                 draggable
                                 boxSizing="content-box"
                                 display="block"
+                                opacity={isDisabled ? 0.5 : 1}
                                 onClick={() => {
                                     setDidSingleClick(true);
                                 }}
