@@ -17,6 +17,18 @@ from ...settings import get_settings
 from .. import io_group
 
 
+def parse_ckpt_state_dict(checkpoint: dict):
+    state_dict = {}
+    for i, j in checkpoint.items():
+        if "netG." in i:
+            key = i.replace("netG.", "")
+            state_dict[key] = j
+        elif "module." in i:
+            key = i.replace("module.", "")
+            state_dict[key] = j
+    return state_dict
+
+
 @io_group.register(
     schema_id="chainner:pytorch:load_model",
     name="Load Model",
@@ -84,14 +96,8 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
                 pickle_module=RestrictedUnpickle,  # type: ignore
             )
             if "state_dict" in checkpoint:
-                state_dict = {}
-                for i, j in checkpoint["state_dict"].items():
-                    if "netG." in i:
-                        key = i.replace("netG.", "")
-                        state_dict[key] = j
-            else:
-                # Assume it's a state dict, might as well
-                state_dict = checkpoint
+                checkpoint = checkpoint["state_dict"]
+            state_dict = parse_ckpt_state_dict(checkpoint)
         else:
             raise ValueError(
                 f"Unsupported model file extension {extension}. Please try a supported model type."
