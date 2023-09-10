@@ -976,7 +976,7 @@ class SwinIR(nn.Module):
         self.depths = depths
         self.window_size = window_size
         self.mlp_ratio = mlp_ratio
-        self.scale = upscale // self.start_unshuffle
+        self.scale = upscale
         self.upsampler = upsampler
         self.img_size = img_size
         self.img_range = img_range
@@ -1169,6 +1169,8 @@ class SwinIR(nn.Module):
         x = (x - self.mean) * self.img_range
 
         if self.start_unshuffle > 1:
+            up = torch.nn.Upsample(scale_factor=self.start_unshuffle, mode="bicubic")
+            x = up(x)
             x = torch.nn.functional.pixel_unshuffle(x, self.start_unshuffle)
 
         if self.upsampler == "pixelshuffle":
