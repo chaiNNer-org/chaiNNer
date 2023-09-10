@@ -17,14 +17,21 @@ import { RepresentativeNode } from './RepresentativeNode';
 interface TooltipLabelProps {
     name?: string;
     description: string;
+    unavailableReason?: string;
 }
-const TooltipLabel = memo(({ name, description }: TooltipLabelProps) => {
+const TooltipLabel = memo(({ name, description, unavailableReason }: TooltipLabelProps) => {
     const firstParagraph = description.split('\n\n')[0];
+
+    let text = firstParagraph;
+
+    if (unavailableReason) {
+        text += `\n\nThis node is currently unavailable because a feature is not enabled. Reason(s):\n\n${unavailableReason}`;
+    }
 
     return (
         <>
             {name && <Text fontWeight="bold">{name}</Text>}
-            <Markdown nonInteractive>{firstParagraph}</Markdown>
+            <Markdown nonInteractive>{text}</Markdown>
         </>
     );
 });
@@ -119,12 +126,12 @@ export const RepresentativeNodeWrapper = memo(
 
         const isDisabled = featureDetails.some((feature) => !feature.isEnabled);
 
-        const disabledReason = isDisabled
+        const unavailableReason = isDisabled
             ? featureDetails
                   .filter((feature) => !feature.isEnabled)
                   .map((feature) => feature.details)
                   .join('\n')
-            : '';
+            : undefined;
 
         return (
             <Box
@@ -149,8 +156,9 @@ export const RepresentativeNodeWrapper = memo(
                             borderRadius={8}
                             label={
                                 <TooltipLabel
-                                    description={isDisabled ? disabledReason : node.description}
+                                    description={node.description}
                                     name={collapsed ? node.name : undefined}
+                                    unavailableReason={unavailableReason}
                                 />
                             }
                             openDelay={500}
@@ -159,32 +167,24 @@ export const RepresentativeNodeWrapper = memo(
                             py={1}
                         >
                             <Center
+                                draggable
                                 boxSizing="content-box"
                                 display="block"
-                                draggable={!isDisabled}
                                 opacity={isDisabled ? 0.5 : 1}
                                 onClick={() => {
-                                    if (!isDisabled) {
-                                        setDidSingleClick(true);
-                                    }
+                                    setDidSingleClick(true);
                                 }}
                                 onDoubleClick={() => {
-                                    if (!isDisabled) {
-                                        setDidSingleClick(false);
-                                        createNodeFromSelector();
-                                    }
+                                    setDidSingleClick(false);
+                                    createNodeFromSelector();
                                 }}
                                 onDragEnd={() => {
-                                    if (!isDisabled) {
-                                        setHoveredNode(undefined);
-                                    }
+                                    setHoveredNode(undefined);
                                 }}
                                 onDragStart={(event) => {
-                                    if (!isDisabled) {
-                                        setDidSingleClick(false);
-                                        onDragStart(event, node);
-                                        setHoveredNode(undefined);
-                                    }
+                                    setDidSingleClick(false);
+                                    onDragStart(event, node);
+                                    setHoveredNode(undefined);
                                 }}
                             >
                                 <RepresentativeNode
