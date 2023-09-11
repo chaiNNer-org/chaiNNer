@@ -15,17 +15,6 @@ except nv.NVMLError as e:
 except Exception as e:
     logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
 
-FP16_ABILITY_MAP = {
-    nv.NVML_DEVICE_ARCH_KEPLER: False,
-    nv.NVML_DEVICE_ARCH_MAXWELL: False,
-    nv.NVML_DEVICE_ARCH_PASCAL: False,
-    nv.NVML_DEVICE_ARCH_VOLTA: True,
-    nv.NVML_DEVICE_ARCH_TURING: True,
-    nv.NVML_DEVICE_ARCH_AMPERE: True,
-    nv.NVML_DEVICE_ARCH_ADA: True,
-    nv.NVML_DEVICE_ARCH_HOPPER: True,
-}
-
 
 @dataclass
 class _GPU:
@@ -34,6 +23,30 @@ class _GPU:
     index: int
     handle: int
     arch: int
+
+
+FP16_ARCH_ABILITY_MAP = {
+    nv.NVML_DEVICE_ARCH_KEPLER: False,
+    nv.NVML_DEVICE_ARCH_MAXWELL: False,
+    nv.NVML_DEVICE_ARCH_PASCAL: False,
+    nv.NVML_DEVICE_ARCH_VOLTA: True,
+    nv.NVML_DEVICE_ARCH_TURING: True,
+    nv.NVML_DEVICE_ARCH_AMPERE: True,
+    nv.NVML_DEVICE_ARCH_ADA: True,
+    nv.NVML_DEVICE_ARCH_HOPPER: True,
+    nv.NVML_DEVICE_ARCH_UNKNOWN: False,
+}
+
+
+def can_gpu_fp16(gpu: _GPU):
+    # This generation also contains the GTX 1600 cards, which do not support FP16.
+    if gpu.arch == nv.NVML_DEVICE_ARCH_TURING:
+        # There may be a more robust way to check this, but for now I think this will do.
+        return "RTX" in gpu.name
+    if gpu.arch not in FP16_ARCH_ABILITY_MAP and gpu.arch > nv.NVML_DEVICE_ARCH_HOPPER:
+        # Future proofing. We can be reasonably sure that future architectures will support FP16.
+        return True
+    return FP16_ARCH_ABILITY_MAP[gpu.arch]
 
 
 class NvidiaHelper:
@@ -72,9 +85,9 @@ class NvidiaHelper:
 
     def get_can_fp16(self, gpu_index: Union[int, None] = None) -> bool:
         if gpu_index is None:
-            return all(FP16_ABILITY_MAP[gpu.arch] for gpu in self.__gpus)
-        arch = self.__gpus[gpu_index].arch
-        return FP16_ABILITY_MAP[arch]
+            return all(can_gpu_fp16(gpu) for gpu in self.__gpus)
+        gpu = self.__gpus[gpu_index]
+        return can_gpu_fp16(gpu)
 
 
 _cachedNvidiaHelper = None
