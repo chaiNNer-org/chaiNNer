@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pynvml as nv
 from sanic.log import logger
@@ -70,7 +70,7 @@ class NvidiaHelper:
 
         return info.total, info.used, info.free
 
-    def get_can_fp16(self, gpu_index: int | None = None) -> bool:
+    def get_can_fp16(self, gpu_index: Union[int, None] = None) -> bool:
         if gpu_index is None:
             return all(FP16_ABILITY_MAP[gpu.arch] for gpu in self.__gpus)
         arch = self.__gpus[gpu_index].arch
