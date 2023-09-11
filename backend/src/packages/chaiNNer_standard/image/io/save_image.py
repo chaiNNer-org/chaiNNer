@@ -197,6 +197,7 @@ class TiffColorDepth(Enum):
                 BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
             ),
         ),
+        BoolInput("Overwrite Files", default=False),
     ],
     outputs=[],
     side_effects=True,
@@ -220,10 +221,16 @@ def save_image_node(
     dds_dithering: bool,
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
+    overwrite_files: bool,
 ) -> None:
     """Write an image to the specified path and return write status"""
 
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
+
+    if os.path.exists(full_path) and not overwrite_files:
+        logger.debug(f"File already exists at path: {full_path}, skipping.")
+        return
+
     logger.debug(f"Writing image to path: {full_path}")
 
     # Create directory if it doesn't exist

@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 
 from nodes.impl.pytorch.types import PyTorchModel
-from nodes.properties.inputs import DirectoryInput, ModelInput, TextInput
+from nodes.properties.inputs import BoolInput, DirectoryInput, ModelInput, TextInput
 
 from .. import io_group
 
@@ -23,12 +23,18 @@ from .. import io_group
         ModelInput(),
         DirectoryInput(has_handle=True),
         TextInput("Model Name"),
+        BoolInput("Overwrite Files", default=False),
     ],
     outputs=[],
     side_effects=True,
 )
-def save_model_node(model: PyTorchModel, directory: str, name: str) -> None:
+def save_model_node(
+    model: PyTorchModel, directory: str, name: str, overwrite_files: bool
+) -> None:
     full_file = f"{name}.pth"
     full_path = os.path.join(directory, full_file)
-    logger.debug(f"Writing model to path: {full_path}")
-    torch.save(model.state, full_path)
+    if overwrite_files or not os.path.exists(full_path):
+        logger.debug(f"Writing model to path: {full_path}")
+        torch.save(model.state, full_path)
+    else:
+        logger.debug(f"File already exists at path: {full_path}, skipping.")

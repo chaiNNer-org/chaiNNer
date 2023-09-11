@@ -5,7 +5,7 @@ import os
 from sanic.log import logger
 
 from nodes.impl.onnx.model import OnnxModel
-from nodes.properties.inputs import DirectoryInput, OnnxModelInput, TextInput
+from nodes.properties.inputs import BoolInput, DirectoryInput, OnnxModelInput, TextInput
 
 from .. import io_group
 
@@ -19,12 +19,18 @@ from .. import io_group
         OnnxModelInput(),
         DirectoryInput(has_handle=True),
         TextInput("Model Name"),
+        BoolInput("Overwrite Files", default=False),
     ],
     outputs=[],
     side_effects=True,
 )
-def save_model_node(model: OnnxModel, directory: str, model_name: str) -> None:
+def save_model_node(
+    model: OnnxModel, directory: str, model_name: str, overwrite_files: bool
+) -> None:
     full_path = f"{os.path.join(directory, model_name)}.onnx"
-    logger.debug(f"Writing file to path: {full_path}")
-    with open(full_path, "wb") as f:
-        f.write(model.bytes)
+    if overwrite_files or not os.path.exists(full_path):
+        logger.debug(f"Writing file to path: {full_path}")
+        with open(full_path, "wb") as f:
+            f.write(model.bytes)
+    else:
+        logger.debug(f"File already exists at path: {full_path}, skipping.")
