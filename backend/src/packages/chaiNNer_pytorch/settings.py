@@ -3,9 +3,12 @@ from dataclasses import dataclass
 import torch
 
 from api import DropdownSetting, ToggleSetting
+from gpu import get_nvidia_helper
 from system import is_arm_mac
 
 from . import package
+
+nv = get_nvidia_helper()
 
 if not is_arm_mac:
     gpu_list = []
@@ -32,6 +35,10 @@ package.add_setting(
     ),
 )
 
+should_fp16 = False
+if nv is not None:
+    should_fp16 = nv.get_can_fp16()
+
 package.add_setting(
     ToggleSetting(
         label="Use FP16 Mode",
@@ -41,7 +48,7 @@ package.add_setting(
             if is_arm_mac
             else "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
         ),
-        default=False,
+        default=should_fp16 or is_arm_mac,
     ),
 )
 

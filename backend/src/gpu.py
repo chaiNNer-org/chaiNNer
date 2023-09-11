@@ -15,6 +15,17 @@ except nv.NVMLError as e:
 except Exception as e:
     logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
 
+FP16_ABILITY_MAP = {
+    nv.NVML_DEVICE_ARCH_KEPLER: False,
+    nv.NVML_DEVICE_ARCH_MAXWELL: False,
+    nv.NVML_DEVICE_ARCH_PASCAL: False,
+    nv.NVML_DEVICE_ARCH_VOLTA: True,
+    nv.NVML_DEVICE_ARCH_TURING: True,
+    nv.NVML_DEVICE_ARCH_AMPERE: True,
+    nv.NVML_DEVICE_ARCH_ADA: True,
+    nv.NVML_DEVICE_ARCH_HOPPER: True,
+}
+
 
 @dataclass
 class _GPU:
@@ -22,6 +33,7 @@ class _GPU:
     uuid: str
     index: int
     handle: int
+    arch: int
 
 
 class NvidiaHelper:
@@ -39,6 +51,7 @@ class NvidiaHelper:
                     uuid=nv.nvmlDeviceGetUUID(handle),
                     index=i,
                     handle=handle,
+                    arch=nv.nvmlDeviceGetArchitecture(handle),
                 )
             )
 
@@ -56,6 +69,12 @@ class NvidiaHelper:
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index].handle)
 
         return info.total, info.used, info.free
+
+    def get_can_fp16(self, gpu_index: int | None = None) -> bool:
+        if gpu_index is None:
+            return all(FP16_ABILITY_MAP[gpu.arch] for gpu in self.__gpus)
+        arch = self.__gpus[gpu_index].arch
+        return FP16_ABILITY_MAP[arch]
 
 
 _cachedNvidiaHelper = None
