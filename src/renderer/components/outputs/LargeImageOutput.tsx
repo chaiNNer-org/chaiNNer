@@ -157,7 +157,8 @@ export const LargeImageOutput = memo(
                         <Box
                             display={stale ? 'block' : 'none'}
                             h="full"
-                            marginRight={`-${IMAGE_PREVIEW_SIZE}px`}
+                            pointerEvents="none"
+                            position="absolute"
                             w="full"
                             zIndex="99"
                         >
@@ -168,6 +169,7 @@ export const LargeImageOutput = memo(
                                 borderRadius="md"
                                 margin={2}
                                 opacity={0.75}
+                                position="absolute"
                                 px={2}
                                 py={1}
                                 spacing={1}
