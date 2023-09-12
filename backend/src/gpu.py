@@ -43,10 +43,8 @@ def can_gpu_fp16(gpu: _GPU):
     if gpu.arch == nv.NVML_DEVICE_ARCH_TURING:
         # There may be a more robust way to check this, but for now I think this will do.
         return "RTX" in gpu.name
-    if gpu.arch not in FP16_ARCH_ABILITY_MAP and gpu.arch > nv.NVML_DEVICE_ARCH_HOPPER:
-        # Future proofing. We can be reasonably sure that future architectures will support FP16.
-        return True
-    return FP16_ARCH_ABILITY_MAP[gpu.arch]
+    # Future proofing. We can be reasonably sure that future architectures will support FP16.
+    return FP16_ARCH_ABILITY_MAP.get(gpu.arch, gpu.arch > nv.NVML_DEVICE_ARCH_HOPPER)
 
 
 class NvidiaHelper:
