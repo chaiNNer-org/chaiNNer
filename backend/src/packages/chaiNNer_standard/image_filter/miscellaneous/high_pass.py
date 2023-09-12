@@ -5,6 +5,7 @@ import numpy as np
 from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
 
 from .. import miscellaneous_group
 
@@ -47,8 +48,9 @@ def high_pass_node(
     radius: float,
     contrast: float,
 ) -> np.ndarray:
+    _, _, c = get_h_w_c(img)
     alpha = None
-    if img.shape[2] > 3:
+    if c > 3:
         alpha = img[:, :, 3]
         img = img[:, :, :3]
 
