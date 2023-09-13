@@ -37,7 +37,7 @@ package.add_setting(
 
 should_fp16 = False
 if nv is not None:
-    should_fp16 = nv.supports_fp16
+    should_fp16 = nv.supports_fp16()
 else:
     should_fp16 = is_arm_mac
 

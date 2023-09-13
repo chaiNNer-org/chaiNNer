@@ -69,7 +69,7 @@ if not is_arm_mac:
 
     should_fp16 = False
     if nv is not None:
-        should_fp16 = nv.supports_fp16
+        should_fp16 = nv.supports_fp16()
 
     package.add_setting(
         ToggleSetting(

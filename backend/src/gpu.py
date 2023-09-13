@@ -81,7 +81,6 @@ class NvidiaHelper:
 
         return info.total, info.used, info.free
 
-    @property
     def supports_fp16(self, gpu_index: Union[int, None] = None) -> bool:
         if gpu_index is None:
             return all(supports_fp16(gpu) for gpu in self.__gpus)
