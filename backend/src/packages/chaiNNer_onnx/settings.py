@@ -13,8 +13,9 @@ from system import is_arm_mac
 
 from . import package
 
+nv = get_nvidia_helper()
+
 if not is_arm_mac:
-    nv = get_nvidia_helper()
     gpu_list = nv.list_gpus() if nv is not None else []
 
     package.add_setting(
@@ -66,12 +67,16 @@ if not is_arm_mac:
         )
     )
 
+    should_fp16 = False
+    if nv is not None:
+        should_fp16 = nv.supports_fp16()
+
     package.add_setting(
         ToggleSetting(
             label="Use TensorRT FP16 Mode",
             key="tensorrt_fp16_mode",
             description="Runs TensorRT in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.",
-            default=False,
+            default=should_fp16,
             disabled="TensorrtExecutionProvider" not in execution_providers,
         )
     )

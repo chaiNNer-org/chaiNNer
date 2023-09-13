@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pynvml as nv
 from sanic.log import logger
@@ -22,6 +22,29 @@ class _GPU:
     uuid: str
     index: int
     handle: int
+    arch: int
+
+
+FP16_ARCH_ABILITY_MAP = {
+    nv.NVML_DEVICE_ARCH_KEPLER: False,
+    nv.NVML_DEVICE_ARCH_MAXWELL: False,
+    nv.NVML_DEVICE_ARCH_PASCAL: False,
+    nv.NVML_DEVICE_ARCH_VOLTA: True,
+    nv.NVML_DEVICE_ARCH_TURING: True,
+    nv.NVML_DEVICE_ARCH_AMPERE: True,
+    nv.NVML_DEVICE_ARCH_ADA: True,
+    nv.NVML_DEVICE_ARCH_HOPPER: True,
+    nv.NVML_DEVICE_ARCH_UNKNOWN: False,
+}
+
+
+def supports_fp16(gpu: _GPU):
+    # This generation also contains the GTX 1600 cards, which do not support FP16.
+    if gpu.arch == nv.NVML_DEVICE_ARCH_TURING:
+        # There may be a more robust way to check this, but for now I think this will do.
+        return "RTX" in gpu.name
+    # Future proofing. We can be reasonably sure that future architectures will support FP16.
+    return FP16_ARCH_ABILITY_MAP.get(gpu.arch, gpu.arch > nv.NVML_DEVICE_ARCH_HOPPER)
 
 
 class NvidiaHelper:
@@ -39,6 +62,7 @@ class NvidiaHelper:
                     uuid=nv.nvmlDeviceGetUUID(handle),
                     index=i,
                     handle=handle,
+                    arch=nv.nvmlDeviceGetArchitecture(handle),
                 )
             )
 
@@ -56,6 +80,12 @@ class NvidiaHelper:
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index].handle)
 
         return info.total, info.used, info.free
+
+    def supports_fp16(self, gpu_index: Union[int, None] = None) -> bool:
+        if gpu_index is None:
+            return all(supports_fp16(gpu) for gpu in self.__gpus)
+        gpu = self.__gpus[gpu_index]
+        return supports_fp16(gpu)
 
 
 _cachedNvidiaHelper = None
