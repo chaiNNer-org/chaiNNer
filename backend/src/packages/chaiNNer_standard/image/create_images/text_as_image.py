@@ -7,6 +7,7 @@ from enum import Enum
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from nodes.impl.caption import get_font_size
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import normalize, to_uint8
 from nodes.properties.inputs import (
@@ -170,14 +171,14 @@ def text_as_image_node(
 
     # Use a text as reference to get max size
     font = ImageFont.truetype(font_path, size=100)
-    w_ref, h_ref = font.getsize(max_line)[0], font.getsize("[§]")[1]
+    w_ref, h_ref = get_font_size(font, max_line)[0], get_font_size(font, "[§]")[1]
 
     # Calculate font size to fill the specified image size
     w = int(width * 100.0 / w_ref)
     h = int(height * 100.0 / (h_ref * line_count))
     font_size = min(w, h)
     font = ImageFont.truetype(font_path, size=font_size)
-    w_text, h_text = font.getsize(max_line)
+    w_text, h_text = get_font_size(font, max_line)
     h_text *= line_count
 
     # Text color
