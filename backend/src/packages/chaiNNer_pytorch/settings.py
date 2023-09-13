@@ -37,7 +37,9 @@ package.add_setting(
 
 should_fp16 = False
 if nv is not None:
-    should_fp16 = nv.get_can_fp16()
+    should_fp16 = nv.supports_fp16
+else:
+    should_fp16 = is_arm_mac
 
 package.add_setting(
     ToggleSetting(
@@ -48,7 +50,7 @@ package.add_setting(
             if is_arm_mac
             else "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
         ),
-        default=should_fp16 or is_arm_mac,
+        default=should_fp16,
     ),
 )
 

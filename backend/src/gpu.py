@@ -38,7 +38,7 @@ FP16_ARCH_ABILITY_MAP = {
 }
 
 
-def can_gpu_fp16(gpu: _GPU):
+def supports_fp16(gpu: _GPU):
     # This generation also contains the GTX 1600 cards, which do not support FP16.
     if gpu.arch == nv.NVML_DEVICE_ARCH_TURING:
         # There may be a more robust way to check this, but for now I think this will do.
@@ -81,11 +81,12 @@ class NvidiaHelper:
 
         return info.total, info.used, info.free
 
-    def get_can_fp16(self, gpu_index: Union[int, None] = None) -> bool:
+    @property
+    def supports_fp16(self, gpu_index: Union[int, None] = None) -> bool:
         if gpu_index is None:
-            return all(can_gpu_fp16(gpu) for gpu in self.__gpus)
+            return all(supports_fp16(gpu) for gpu in self.__gpus)
         gpu = self.__gpus[gpu_index]
-        return can_gpu_fp16(gpu)
+        return supports_fp16(gpu)
 
 
 _cachedNvidiaHelper = None
