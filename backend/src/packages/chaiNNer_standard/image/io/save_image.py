@@ -188,13 +188,24 @@ class TiffColorDepth(Enum):
                 EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
                 BoolInput("Dithering", default=False).with_id(8),
             ),
-            DdsMipMapsDropdown().with_id(10),
+            DdsMipMapsDropdown()
+            .with_id(10)
+            .with_docs(
+                "Whether [mipmaps](https://en.wikipedia.org/wiki/Mipmap) will be generated."
+                " Mipmaps vastly improve the quality of the image when it is viewed at a smaller size, but they also increase the file size by 33%."
+            ),
             if_group(
                 Condition.enum(6, SUPPORTED_WITH_ALPHA)
                 & Condition.enum(10, 0)
                 & Condition.type(0, "Image { channels: 4 }")
             )(
-                BoolInput("Separate Alpha for Mip Maps", default=False).with_id(13),
+                BoolInput("Separate Alpha for MipMaps", default=False)
+                .with_id(13)
+                .with_docs(
+                    "Enable this option when the alpha channel of an image is **not** transparency.",
+                    "The normal method for downscaling images with an alpha channel will remove the color information of transparent pixels (setting them to black). This is a problem if the alpha channel isn't transparency. E.g. games commonly store extra material information in the alpha channel of normal maps. Downscaling color and alpha separately fixes this problem.",
+                    "Note: Do not enable this option if the alpha channel is transparency. Otherwise, dark artifacts may appear around transparency edges.",
+                ),
             ),
         ),
     ],
