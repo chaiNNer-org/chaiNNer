@@ -18,9 +18,7 @@ class CaptionPosition(Enum):
     TOP = "top"
 
 
-def get_font_size(
-    font: ImageFont.ImageFont | ImageFont.FreeTypeFont, text: str
-) -> Tuple[int, int]:
+def get_font_size(font: ImageFont.FreeTypeFont, text: str) -> Tuple[int, int]:
     """Get font [width, height] of the given text"""
     # (left, top, right, bottom)
     caption_bb = font.getbbox(text)
