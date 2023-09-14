@@ -227,6 +227,11 @@ BC123_FORMATS: Set[DDSFormat] = {
 PREFER_DX9: Set[DDSFormat] = {
     "R8G8B8A8_UNORM",
     "B8G8R8A8_UNORM",
+    "B5G5R5A1_UNORM",
+    "B5G6R5_UNORM",
+    "B8G8R8X8_UNORM",
+    "R8G8_UNORM",
+    "R8_UNORM",
 }
 
 

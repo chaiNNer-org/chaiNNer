@@ -635,6 +635,12 @@ SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
     ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
     ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
     ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
+    ("B5G5R5A1_UNORM", "BGRA (16bpp, Linear, 1-bit Alpha)"),
+    ("B5G6R5_UNORM", "BGR (16bpp, Linear)"),
+    ("B8G8R8X8_UNORM_SRGB", "BGRX (32bpp, sRGB)"),
+    ("B8G8R8X8_UNORM", "BGRX (32bpp, Linear)"),
+    ("R8G8_UNORM", "RG (16bpp, Linear)"),
+    ("R8_UNORM", "R (8bpp, Linear)"),
 ]
 
 
