@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
 import sys
 from enum import Enum
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -13,6 +16,15 @@ from .image_utils import normalize, to_uint8
 class CaptionPosition(Enum):
     BOTTOM = "bottom"
     TOP = "top"
+
+
+def get_font_size(font: ImageFont.FreeTypeFont, text: str) -> Tuple[int, int]:
+    """Get font [width, height] of the given text"""
+    # (left, top, right, bottom)
+    caption_bb = font.getbbox(text)
+    font_width = caption_bb[2] - caption_bb[0]
+    font_height = caption_bb[3] - caption_bb[1]
+    return font_width, font_height
 
 
 def add_caption(
@@ -44,7 +56,7 @@ def add_caption(
         text_y = round(size / 2)
     font_color = (255,) * c
 
-    fw, _ = font.getsize(caption)
+    fw, _ = get_font_size(font, caption)
     # scale font size to fit image
     if fw > w:
         font = ImageFont.truetype(font_path, round(fontsize * w / fw))
