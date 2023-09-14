@@ -95,7 +95,6 @@ export const LargeImageOutput = memo(
                 w="full"
             >
                 <Resizable
-                    className="nodrag"
                     defaultSize={{
                         width: size?.width ?? IMAGE_PREVIEW_SIZE,
                         height: size?.height ?? IMAGE_PREVIEW_SIZE,
@@ -116,6 +115,7 @@ export const LargeImageOutput = memo(
                     handleComponent={{
                         bottomRight: (
                             <Center
+                                className="nodrag"
                                 cursor="nwse-resize"
                                 h="full"
                                 ml={-1}
@@ -211,7 +211,6 @@ export const LargeImageOutput = memo(
                                     h="full"
                                     maxH="full"
                                     maxW="full"
-                                    // objectFit="contain"
                                     w="full"
                                 >
                                     <Image
