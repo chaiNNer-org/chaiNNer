@@ -101,8 +101,8 @@ export const LargeImageOutput = memo(
                     }}
                     enable={{
                         top: false,
-                        right: true,
-                        bottom: true,
+                        right: false,
+                        bottom: false,
                         left: false,
                         topRight: false,
                         bottomRight: true,
