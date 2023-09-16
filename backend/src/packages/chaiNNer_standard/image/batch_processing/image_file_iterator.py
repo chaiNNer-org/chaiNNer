@@ -10,7 +10,13 @@ from wcmatch import glob
 
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.properties.inputs import BoolInput, DirectoryInput, IteratorInput, TextInput
+from nodes.properties.inputs import (
+    BoolInput,
+    DirectoryInput,
+    IteratorInput,
+    NumberInput,
+    TextInput,
+)
 from nodes.properties.outputs import (
     DirectoryOutput,
     ImageOutput,
@@ -98,6 +104,12 @@ def iterator_helper_load_image_node(
                 "For information on how to use WCMatch glob expressions, see [here](https://facelessuser.github.io/wcmatch/glob/)."
             ),
         ),
+        BoolInput("Use limit", default=False),
+        if_group(Condition.bool(4, True))(
+            NumberInput("Limit", default=10).with_docs(
+                "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
+            )
+        ),
     ],
     outputs=[],
     default_nodes=[
@@ -116,6 +128,8 @@ async def image_file_iterator_node(
     use_glob: bool,
     is_recursive: bool,
     glob_str: str,
+    use_limit: bool,
+    limit: int,
     context: IteratorContext,
 ) -> None:
     logger.debug(
@@ -132,6 +146,9 @@ async def image_file_iterator_node(
     just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
+
+    if use_limit:
+        just_image_files = just_image_files[:limit]
 
     def before(filepath: str, index: int):
         context.inputs.set_values(img_path_node_id, [filepath, directory, index])
