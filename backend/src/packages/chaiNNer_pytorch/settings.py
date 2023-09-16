@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import torch
+from sanic.log import logger
 
 from api import DropdownSetting, ToggleSetting
 from gpu import get_nvidia_helper
@@ -20,7 +21,10 @@ if not is_arm_mac:
         DropdownSetting(
             label="GPU",
             key="gpu_index",
-            description="Which GPU to use for PyTorch. This is only relevant if you have multiple GPUs.",
+            description=(
+                "Which GPU to use for PyTorch. This is only relevant if you have"
+                " multiple GPUs."
+            ),
             options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
             default="0",
         )
@@ -30,7 +34,10 @@ package.add_setting(
     ToggleSetting(
         label="Use CPU Mode",
         key="use_cpu",
-        description="Use CPU for PyTorch instead of GPU. This is much slower and not recommended.",
+        description=(
+            "Use CPU for PyTorch instead of GPU. This is much slower and not"
+            " recommended."
+        ),
         default=False,
     ),
 )
@@ -46,9 +53,14 @@ package.add_setting(
         label="Use FP16 Mode",
         key="use_fp16",
         description=(
-            "Runs PyTorch in half-precision (FP16) mode for less RAM usage."
+            "Runs PyTorch in half-precision (FP16) mode for reduced RAM usage but falls"
+            " back to full-precision (FP32) mode when CPU mode is selected."
             if is_arm_mac
-            else "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
+            else (
+                "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX"
+                " GPUs also get a speedup. It falls back to full-precision (FP32)"
+                " mode when CPU mode is selected."
+            )
         ),
         default=should_fp16,
     ),
@@ -60,6 +72,12 @@ class PyTorchSettings:
     use_cpu: bool
     use_fp16: bool
     gpu_index: int
+
+    # PyTorch 2.0 does not support FP16 when using CPU
+    def __post_init__(self):
+        if self.use_cpu and self.use_fp16:
+            object.__setattr__(self, "use_fp16", False)
+            logger.info("Falling back to FP32 mode.")
 
     @property
     def device(self) -> torch.device:
