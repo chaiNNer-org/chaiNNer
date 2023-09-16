@@ -19,6 +19,7 @@ from nodes.properties.inputs import (
     EnumInput,
     ImageInput,
     IteratorInput,
+    NumberInput,
     SliderInput,
     TextInput,
     VideoContainer,
@@ -338,6 +339,13 @@ def iterator_helper_write_output_frame_node(
     node_type="iterator",
     inputs=[
         VideoFileInput(primary_input=True),
+        BoolInput("Use limit", default=False),
+        if_group(Condition.bool(1, True))(
+            NumberInput("Limit", default=10).with_docs(
+                "Limit the number of frames to iterate over. This can be useful for testing the iterator without having to iterate over all frames of the video."
+                " Will not copy audio if limit is used."
+            )
+        ),
     ],
     outputs=[],
     default_nodes=[
@@ -352,7 +360,9 @@ def iterator_helper_write_output_frame_node(
     side_effects=True,
     limited_to_8bpc="The video will be read and written as 8-bit RGB.",
 )
-async def video_frame_iterator_node(path: str, context: IteratorContext) -> None:
+async def video_frame_iterator_node(
+    path: str, use_limit: bool, limit: int, context: IteratorContext
+) -> None:
     logger.debug(f"{ffmpeg_path=}, {ffprobe_path=}")
     logger.debug(f"Iterating over frames in video file: {path}")
 
@@ -420,7 +430,15 @@ async def video_frame_iterator_node(path: str, context: IteratorContext) -> None
             input_node_id, [in_frame, index, video_dir, video_name]
         )
 
-    await context.run_while(frame_count, before, fail_fast=True)
+    if use_limit:
+
+        def limit_before(index: int, _unused: int):
+            return before(index)
+
+        frame_count = min(frame_count, limit)
+        await context.run(range(frame_count), limit_before)
+    else:
+        await context.run_while(frame_count, before, fail_fast=True)
 
     ffmpeg_reader.stdout.close()
     ffmpeg_reader.wait()
@@ -431,7 +449,8 @@ async def video_frame_iterator_node(path: str, context: IteratorContext) -> None
 
     audio_stream = ffmpeg.input(path).audio
     if (
-        writer.video_save_path is not None
+        not use_limit
+        and writer.video_save_path is not None
         and audio_stream is not None
         and writer.container != VideoContainer.NONE
         and writer.video_encoder != VideoEncoder.NONE
