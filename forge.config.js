@@ -75,7 +75,7 @@ const config = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
-                name: packageJson.appId,
+                name: packageJson.productName,
                 iconUrl:
                     'https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico',
                 setupIcon: './src/public/icons/win/icon.ico',
