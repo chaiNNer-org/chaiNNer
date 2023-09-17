@@ -520,7 +520,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 returnFocusOnClose={false}
                 scrollBehavior="inside"
                 size="xl"
-                onClose={onClose}
+                onClose={currentlyProcessingDeps ? noop : onClose}
             >
                 <ModalOverlay />
                 <ModalContent
