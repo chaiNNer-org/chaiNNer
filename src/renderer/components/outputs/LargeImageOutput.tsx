@@ -48,9 +48,11 @@ export const LargeImageOutput = memo(
     ({ output, useOutputData, animated, size = DEFAULT_SIZE, setSize }: OutputProps) => {
         const { t } = useTranslation();
 
+        const [currentSize, setCurrentSize] = useState<Size>();
+
         const dpr = useDevicePixelRatio();
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-        const realWidth = size.width * zoom * dpr;
+        const realWidth = (currentSize ?? size).width * zoom * dpr;
 
         const { last, stale } = useOutputData<LargeImageBroadcastData>(output.id);
 
@@ -74,8 +76,6 @@ export const LargeImageOutput = memo(
                 firstRender.current = true;
             }
         }, [resizeRef, size]);
-
-        const [currentSize, setCurrentSize] = useState<Size>();
 
         const imageStyle = useMemo((): CSSProperties | undefined => {
             if (!last) return undefined;
