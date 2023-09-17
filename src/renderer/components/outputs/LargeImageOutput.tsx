@@ -31,17 +31,10 @@ interface LargeImageBroadcastData {
     readonly channels: number;
 }
 
-const getLargestPreview = (previews: readonly PreviewImage[]): PreviewImage => {
-    // we assume that previews are sorted by size in descending order
-    return previews[0];
-};
 const pickImage = (previews: readonly PreviewImage[], realWidth: number): PreviewImage => {
-    const found = [...previews]
-        .sort((a, b) => a.width - b.width)
-        .find((preview) => {
-            return preview.width >= realWidth;
-        });
-    return found ?? getLargestPreview(previews);
+    const sorted = [...previews].sort((a, b) => a.width - b.width);
+    const found = sorted.find((preview) => preview.width >= realWidth);
+    return found ?? sorted[sorted.length - 1];
 };
 
 export const LargeImageOutput = memo(
