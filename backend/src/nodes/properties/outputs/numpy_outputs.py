@@ -193,7 +193,7 @@ class LargeImageOutput(ImageOutput):
                 lossless=largest_preview,
             )
             le_h, le_w, _ = get_h_w_c(last_encoded)
-            previews.insert(0, {"size": max(le_h, le_w), "url": url})
+            previews.append({"width": le_w, "height": le_h, "url": url})
 
         return {
             "previews": previews,
