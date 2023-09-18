@@ -1,10 +1,11 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
-import { Resizable, Size } from 're-resizable';
-import { memo, useEffect, useRef, useState } from 'react';
+import { Resizable } from 're-resizable';
+import { CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
@@ -13,41 +14,45 @@ import { DragHandleSVG } from '../CustomIcons';
 import { OutputProps } from './props';
 
 const IMAGE_PREVIEW_SIZE = 216;
+const DEFAULT_SIZE: Readonly<Size> = {
+    width: IMAGE_PREVIEW_SIZE,
+    height: IMAGE_PREVIEW_SIZE,
+};
 
 interface PreviewImage {
-    size: number;
-    url: string;
+    readonly width: number;
+    readonly height: number;
+    readonly url: string;
 }
 interface LargeImageBroadcastData {
-    previews: PreviewImage[];
-    width: number;
-    height: number;
-    channels: number;
+    readonly previews: readonly PreviewImage[];
+    readonly width: number;
+    readonly height: number;
+    readonly channels: number;
 }
 
-const pickImage = (previews: PreviewImage[], realSize: number) => {
-    const found = previews
-        .sort((a, b) => a.size - b.size)
-        .find((preview) => {
-            return preview.size >= realSize;
-        });
-    return found ?? previews[previews.length - 1];
+const pickImage = (previews: readonly PreviewImage[], realWidth: number): PreviewImage => {
+    const sorted = [...previews].sort((a, b) => a.width - b.width);
+    const found = sorted.find((preview) => preview.width >= realWidth);
+    return found ?? sorted[sorted.length - 1];
 };
 
 export const LargeImageOutput = memo(
-    ({ output, useOutputData, animated, size, setSize }: OutputProps) => {
+    ({ output, useOutputData, animated, size = DEFAULT_SIZE, setSize }: OutputProps) => {
         const { t } = useTranslation();
+
+        const [currentSize, setCurrentSize] = useState<Size>();
 
         const dpr = useDevicePixelRatio();
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-        const realSize = (size?.width ?? IMAGE_PREVIEW_SIZE) * zoom * dpr;
+        const realWidth = (currentSize ?? size).width * zoom * dpr;
 
         const { last, stale } = useOutputData<LargeImageBroadcastData>(output.id);
 
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';
 
-        const previewImage = last ? pickImage(last.previews, realSize) : null;
+        const previewImage = last ? pickImage(last.previews, realWidth) : null;
 
         const { useSnapToGrid } = useContext(SettingsContext);
         const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
@@ -57,34 +62,25 @@ export const LargeImageOutput = memo(
         const firstRender = useRef(false);
         useEffect(() => {
             if (!firstRender.current) {
-                if (size) {
-                    resizeRef?.updateSize({
-                        width: size.width,
-                        height: size.height,
-                    });
-                    firstRender.current = true;
-                }
+                resizeRef?.updateSize({
+                    width: size.width,
+                    height: size.height,
+                });
+                firstRender.current = true;
             }
         }, [resizeRef, size]);
 
-        const [maxSize, setMaxSize] = useState<Size>({
-            width: IMAGE_PREVIEW_SIZE,
-            height: IMAGE_PREVIEW_SIZE,
-        });
-
-        useEffect(() => {
-            if (last?.previews) {
-                const biggestImage = last.previews[last.previews.length - 1];
-                const img = new window.Image();
-                img.src = biggestImage.url;
-                img.onload = () => {
-                    setMaxSize({
-                        width: img.width,
-                        height: img.height,
-                    });
-                };
-            }
-        }, [last?.previews, previewImage, resizeRef]);
+        const imageStyle = useMemo((): CSSProperties | undefined => {
+            if (!last) return undefined;
+            const s = currentSize ?? size;
+            const sizeRatio = s.width / s.height;
+            const imageRatio = last.width / last.height;
+            return {
+                aspectRatio: `${last.width} / ${last.height}`,
+                width: sizeRatio < imageRatio ? `min(${last.width}px, 100%)` : undefined,
+                height: sizeRatio < imageRatio ? undefined : `min(${last.height}px, 100%)`,
+            };
+        }, [currentSize, size, last]);
 
         return (
             <Center
@@ -95,10 +91,8 @@ export const LargeImageOutput = memo(
                 w="full"
             >
                 <Resizable
-                    defaultSize={{
-                        width: size?.width ?? IMAGE_PREVIEW_SIZE,
-                        height: size?.height ?? IMAGE_PREVIEW_SIZE,
-                    }}
+                    className="nodrag"
+                    defaultSize={size}
                     enable={{
                         top: false,
                         right: false,
@@ -137,9 +131,15 @@ export const LargeImageOutput = memo(
                         setResizeRef(r);
                     }}
                     scale={zoom}
+                    onResize={(e, direction, ref, d) => {
+                        setCurrentSize({
+                            width: size.width + d.width,
+                            height: size.height + d.height,
+                        });
+                    }}
                     onResizeStop={(e, direction, ref, d) => {
-                        let baseWidth = size?.width ?? IMAGE_PREVIEW_SIZE;
-                        let baseHeight = size?.height ?? IMAGE_PREVIEW_SIZE;
+                        let baseWidth = size.width;
+                        let baseHeight = size.height;
 
                         if (baseWidth < IMAGE_PREVIEW_SIZE) baseWidth = IMAGE_PREVIEW_SIZE;
                         if (baseHeight < IMAGE_PREVIEW_SIZE) baseHeight = IMAGE_PREVIEW_SIZE;
@@ -148,6 +148,7 @@ export const LargeImageOutput = memo(
                             width: baseWidth + d.width,
                             height: baseHeight + d.height,
                         });
+                        setCurrentSize(undefined);
                     }}
                 >
                     <Center
@@ -196,12 +197,8 @@ export const LargeImageOutput = memo(
                             h="full"
                             maxH="full"
                             maxW="full"
-                            minH={`${
-                                animated ? size?.height ?? IMAGE_PREVIEW_SIZE : IMAGE_PREVIEW_SIZE
-                            }px`}
-                            minW={`${
-                                animated ? size?.width ?? IMAGE_PREVIEW_SIZE : IMAGE_PREVIEW_SIZE
-                            }px`}
+                            minH={`${animated ? size.height : IMAGE_PREVIEW_SIZE}px`}
+                            minW={`${animated ? size.width : IMAGE_PREVIEW_SIZE}px`}
                             overflow="hidden"
                             w="full"
                         >
@@ -222,20 +219,16 @@ export const LargeImageOutput = memo(
                                                 : ''
                                         }
                                         draggable={false}
-                                        h={`${maxSize.height}px`}
-                                        maxH="full"
-                                        maxW="full"
-                                        objectFit="contain"
                                         src={previewImage.url}
+                                        style={imageStyle}
                                         sx={{
                                             imageRendering:
                                                 zoom > 1 &&
-                                                realSize > IMAGE_PREVIEW_SIZE &&
-                                                previewImage.size < realSize
+                                                realWidth > IMAGE_PREVIEW_SIZE &&
+                                                previewImage.width < realWidth
                                                     ? 'pixelated'
                                                     : 'auto',
                                         }}
-                                        w={`${maxSize.width}px`}
                                     />
                                 </Center>
                             ) : animated ? (
