@@ -6,8 +6,14 @@ from typing import List, Tuple
 import numpy as np
 from sanic.log import logger
 
+from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.properties.inputs import DirectoryInput, IteratorInput
+from nodes.properties.inputs import (
+    BoolInput,
+    DirectoryInput,
+    IteratorInput,
+    NumberInput,
+)
 from nodes.properties.outputs import (
     DirectoryOutput,
     ImageOutput,
@@ -77,6 +83,12 @@ def iterator_helper_load_image_node(
     inputs=[
         DirectoryInput("Directory A"),
         DirectoryInput("Directory B"),
+        BoolInput("Use limit", default=False),
+        if_group(Condition.bool(2, True))(
+            NumberInput("Limit", default=10).with_docs(
+                "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
+            )
+        ),
     ],
     outputs=[],
     default_nodes=[
@@ -91,7 +103,11 @@ def iterator_helper_load_image_node(
     ],
 )
 async def image_pairs_iterator_node(
-    directory_a: str, directory_b: str, context: IteratorContext
+    directory_a: str,
+    directory_b: str,
+    use_limit: bool,
+    limit: int,
+    context: IteratorContext,
 ) -> None:
     logger.debug(f"Iterating over images in directories: {directory_a}, {directory_b}")
 
@@ -111,6 +127,10 @@ async def image_pairs_iterator_node(
         f"Directory A: {directory_a} has {len(just_image_files_a)} images. "
         f"Directory B: {directory_b} has {len(just_image_files_b)} images."
     )
+
+    if use_limit:
+        just_image_files_a = just_image_files_a[:limit]
+        just_image_files_b = just_image_files_b[:limit]
 
     def before(filepaths: Tuple[str, str], index: int):
         a, b = filepaths
