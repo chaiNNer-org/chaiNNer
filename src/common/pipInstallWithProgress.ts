@@ -58,7 +58,7 @@ const downloadWheelAndInstall = async (
                 onStdout('Installing package from whl...\n');
                 const installProcess = spawn(
                     pythonPath,
-                    ['-m', 'pip', 'install', path.join(tempDir, fileName)],
+                    ['-m', 'pip', 'install', path.join(tempDir, fileName), '--no-cache-dir'],
                     { env: sanitizedEnv }
                 );
                 installProcess.stdout.on('data', (data) => {
@@ -93,6 +93,7 @@ export const pipInstallWithProgress = async (
             '--upgrade',
             `${pkg.pypiName}==${pkg.version}`,
             '--disable-pip-version-check',
+            '--no-cache-dir',
         ];
         if (pkg.findLink) {
             args = [...args, '--extra-index-url', pkg.findLink];
