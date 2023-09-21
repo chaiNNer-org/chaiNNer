@@ -2,6 +2,7 @@ import { Box, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
+import { NodeType } from '../../common/common-types';
 import { Validity } from '../../common/Validity';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { noContextMenu } from '../hooks/useContextMenu';
@@ -14,6 +15,7 @@ interface HandleElementProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     validity: Validity;
     id: string;
+    nodeType: NodeType;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -24,9 +26,12 @@ const HandleElement = memo(
         validity,
         type,
         id,
+        nodeType,
         ...props
     }: React.PropsWithChildren<HandleElementProps>) => {
         const { isFake } = useContext(FakeNodeContext);
+
+        const isIterator = nodeType === 'newIterator';
 
         return (
             <Tooltip
@@ -50,7 +55,7 @@ const HandleElement = memo(
                     <Box
                         bg="#1a192b"
                         border="1px solid white"
-                        borderRadius="100%"
+                        borderRadius={isIterator ? '25%' : '100%'}
                         className={`${type}-handle react-flow__handle react-flow__handle-${
                             type === 'input' ? 'left' : 'right'
                         }`}
@@ -69,6 +74,9 @@ const HandleElement = memo(
                         type={type === 'input' ? 'target' : 'source'}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
+                        style={{
+                            borderRadius: isIterator ? '25%' : '100%',
+                        }}
                     >
                         {children}
                     </RFHandle>
@@ -89,6 +97,7 @@ export interface HandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
     connectedColor: string | undefined;
+    nodeType: NodeType;
 }
 
 const getBackground = (colors: readonly string[]): string => {
@@ -105,7 +114,15 @@ const getBackground = (colors: readonly string[]): string => {
 };
 
 export const Handle = memo(
-    ({ id, type, validity, isValidConnection, handleColors, connectedColor }: HandleProps) => {
+    ({
+        id,
+        type,
+        validity,
+        isValidConnection,
+        handleColors,
+        connectedColor,
+        nodeType,
+    }: HandleProps) => {
         const isConnected = !!connectedColor;
 
         const connectedBg = 'var(--connection-color)';
@@ -134,6 +151,7 @@ export const Handle = memo(
                 className={`${type}-handle`}
                 id={id}
                 isValidConnection={isValidConnection}
+                nodeType={nodeType}
                 sx={{
                     width: '16px',
                     height: '16px',

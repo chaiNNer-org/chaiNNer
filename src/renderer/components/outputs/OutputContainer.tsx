@@ -3,7 +3,7 @@ import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { Output } from '../../../common/common-types';
+import { NodeType, Output } from '../../../common/common-types';
 import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -18,6 +18,7 @@ interface OutputContainerProps {
     type: Type | undefined;
     generic: boolean;
     isConnected: boolean;
+    nodeType: NodeType;
 }
 
 export const OutputContainer = memo(
@@ -29,6 +30,7 @@ export const OutputContainer = memo(
         type,
         generic,
         isConnected,
+        nodeType,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
@@ -76,6 +78,7 @@ export const OutputContainer = memo(
                             handleColors={handleColors}
                             id={sourceHandle}
                             isValidConnection={isValidConnectionForRf}
+                            nodeType={nodeType}
                             type="output"
                             validity={validity}
                         />

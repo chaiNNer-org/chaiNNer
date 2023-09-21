@@ -107,6 +107,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                         id={id}
                         isConnected={nodeState.connectedOutputs.has(output.id)}
                         key={`${id}-${output.id}`}
+                        nodeType={schema.nodeType}
                         output={output}
                         type={type}
                     >
