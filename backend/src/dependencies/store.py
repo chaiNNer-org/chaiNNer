@@ -81,6 +81,7 @@ def install_dependencies_sync(
             *[pin(dep_info) for dep_info in dependencies_to_install],
             "--disable-pip-version-check",
             "--no-warn-script-location",
+            "--no-cache-dir",
         ]
     )
     if exit_code != 0:
@@ -135,6 +136,7 @@ async def install_dependencies(
             "--disable-chainner_pip-version-check",
             "--no-warn-script-location",
             "--progress-bar=json",
+            "--no-cache-dir",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
