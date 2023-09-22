@@ -12,12 +12,12 @@ except ImportError:
 
     use_gpu = False
 
+from packages.chaiNNer_ncnn.settings import NcnnSettings
+
 from .model import NcnnModelWrapper
 
 
-def create_ncnn_net(
-    model: NcnnModelWrapper, gpu_index: int, winograd: bool, sgemm: bool
-) -> ncnn.Net:
+def create_ncnn_net(model: NcnnModelWrapper, settings: NcnnSettings) -> ncnn.Net:
     net = ncnn.Net()
 
     if model.fp == "fp16":
@@ -32,11 +32,11 @@ def create_ncnn_net(
     if use_gpu:
         # Use vulkan compute
         net.opt.use_vulkan_compute = True
-        net.set_vulkan_device(gpu_index)
+        net.set_vulkan_device(settings.gpu_index)
     else:
         # Configure Winograd/SGEMM optimizations
-        net.opt.use_winograd_convolution = winograd
-        net.opt.use_sgemm_convolution = sgemm
+        net.opt.use_winograd_convolution = settings.winograd
+        net.opt.use_sgemm_convolution = settings.sgemm
 
     # Load model param and bin
     net.load_param_mem(model.model.write_param())
@@ -54,13 +54,9 @@ def create_ncnn_net(
 __session_cache: WeakKeyDictionary[NcnnModelWrapper, ncnn.Net] = WeakKeyDictionary()
 
 
-def get_ncnn_net(
-    model: NcnnModelWrapper, gpu_index: int, winograd: bool, sgemm: bool
-) -> ncnn.Net:
+def get_ncnn_net(model: NcnnModelWrapper, settings: NcnnSettings) -> ncnn.Net:
     cached = __session_cache.get(model)
     if cached is None:
-        cached = create_ncnn_net(
-            model, gpu_index=gpu_index, winograd=winograd, sgemm=sgemm
-        )
+        cached = create_ncnn_net(model, settings=settings)
         __session_cache[model] = cached
     return cached

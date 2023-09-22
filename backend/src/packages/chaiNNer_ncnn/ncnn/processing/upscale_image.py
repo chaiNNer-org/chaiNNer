@@ -73,12 +73,7 @@ def upscale_impl(
     tile_size: TileSize,
 ):
     settings = get_settings()
-    net = get_ncnn_net(
-        model,
-        gpu_index=settings.gpu_index,
-        winograd=settings.winograd,
-        sgemm=settings.sgemm,
-    )
+    net = get_ncnn_net(model, settings=settings)
     # Try/except block to catch errors
     try:
         if use_gpu:
