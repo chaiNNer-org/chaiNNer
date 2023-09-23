@@ -44,7 +44,22 @@ class IteratorNode:
         return self.__node
 
 
-Node = Union[FunctionNode, IteratorNode]
+class NewIteratorNode:
+    def __init__(self, node_id: NodeId, schema_id: str):
+        self.id: NodeId = node_id
+        self.schema_id: str = schema_id
+        self.parent: None = None
+        self.__node = None
+
+    def get_node(self) -> NodeData:
+        if self.__node is None:
+            node = registry.get_node(self.schema_id)
+            assert node.type == "newIterator", "Invalid iterator node"
+            self.__node = node
+        return self.__node
+
+
+Node = Union[FunctionNode, IteratorNode, NewIteratorNode]
 
 
 class EdgeSource:

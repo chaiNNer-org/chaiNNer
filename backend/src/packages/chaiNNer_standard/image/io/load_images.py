@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
+from api import Iterator
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import (
     get_available_image_formats,
@@ -134,33 +135,41 @@ valid_formats = get_available_image_formats()
 )
 def load_images_node(
     directory: str,
-) -> Iterable[Tuple[np.ndarray, str, str]]:
+) -> Iterator[Tuple[np.ndarray, str, str]]:
     """Reads an image from the specified path and return it as a numpy array"""
 
-    for root, _, files in os.walk(directory):
-        for file in files:
-            path = os.path.join(root, file)
-            logger.debug(f"Reading image from path: {path}")
+    length = 0
+    for _, _, files in os.walk(directory):
+        for _ in files:
+            length += 1
 
-            dirname, basename, _ = split_file_path(path)
+    def iterator():
+        for root, _, files in os.walk(directory):
+            for file in files:
+                path = os.path.join(root, file)
+                logger.debug(f"Reading image from path: {path}")
 
-            img = None
-            error = None
-            for name, decoder in _decoders:
-                try:
-                    img = decoder(path)
-                except Exception as e:
-                    error = e
-                    logger.warning(f"Decoder {name} failed")
+                dirname, basename, _ = split_file_path(path)
 
-                if img is not None:
-                    break
+                img = None
+                error = None
+                for name, decoder in _decoders:
+                    try:
+                        img = decoder(path)
+                    except Exception as e:
+                        error = e
+                        logger.warning(f"Decoder {name} failed")
 
-            if img is None:
-                if error is not None:
-                    raise error
-                raise RuntimeError(
-                    f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
-                )
+                    if img is not None:
+                        break
 
-            yield img, dirname, basename
+                if img is None:
+                    if error is not None:
+                        raise error
+                    raise RuntimeError(
+                        f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
+                    )
+
+                yield img, dirname, basename
+
+    return Iterator(iter_supplier=iterator, expected_length=length)

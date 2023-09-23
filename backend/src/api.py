@@ -7,6 +7,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Generic,
     Iterable,
     List,
     NewType,
@@ -532,3 +533,16 @@ def add_package(
             dependencies=dependencies or [],
         )
     )
+
+
+I = TypeVar("I")
+
+
+@dataclass
+class Iterator(Generic[I]):
+    iter_supplier: Callable[[], Iterable[I]]
+    expected_length: int
+
+    @staticmethod
+    def from_list(l: list[I]):
+        Iterator(lambda: l, len(l))
