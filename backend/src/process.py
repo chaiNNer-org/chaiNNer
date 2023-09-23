@@ -482,7 +482,7 @@ class Executor:
             # output = next(output_gen)
 
             await self.progress.suspend()
-            await self.__broadcast_data(node_instance, node.id, execution_time, output)  # type: ignore
+            # await self.__broadcast_data(node_instance, node.id, execution_time, output)  # type: ignore
 
         else:
             output, execution_time = await self.loop.run_in_executor(
@@ -650,7 +650,8 @@ class Executor:
             )
             combined_subchain = flat_upstream_nodes.union(downstream_nodes).pop()
 
-            assert self.chain.nodes[iterator_node].get_node().type == "newIterator"
+            node_instance = self.chain.nodes[iterator_node].get_node()
+            assert node_instance.type == "newIterator"
 
             self.cache.set(iterator_node, None, CacheStrategy(0))  # type: ignore
 
@@ -659,10 +660,14 @@ class Executor:
             assert isinstance(iter_result, Iterator)
 
             for values in iter_result.iter_supplier():
-                self.cache.set(iterator_node, None, CacheStrategy(0))  # type: ignore
-                print(f"values: {values}")
+                self.cache.delete(iterator_node)
+                self.cache.clear()
+                # print(f"values: {values}")
                 enforced_values = enforce_output(
                     values, self.chain.nodes[iterator_node].get_node()
+                )
+                await self.__broadcast_data(
+                    node_instance, iterator_node, 0, enforced_values
                 )
                 # Set the cache to the value of the generator, so that downstream nodes will pull from that
                 self.cache.set(iterator_node, enforced_values, CacheStrategy(9999999))  # type: ignore
