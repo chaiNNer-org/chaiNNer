@@ -4,7 +4,6 @@ import os
 from typing import List, Tuple
 
 import numpy as np
-from sanic.log import logger
 
 from api import Iterator
 from nodes.groups import Condition, if_group
@@ -26,7 +25,7 @@ from ..io.load_image import load_image_node
     schema_id="chainner:image:load_image_pairs",
     name="Load Image Pairs",
     description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already processed content.",
-    icon="BsFillImageFill",
+    icon="BsImages",
     inputs=[
         DirectoryInput("Directory A"),
         DirectoryInput("Directory B"),

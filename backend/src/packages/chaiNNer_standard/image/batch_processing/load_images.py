@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
-from sanic.log import logger
 from wcmatch import glob
 
 from api import Iterator
@@ -54,7 +53,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
         "Iterate over all files in a directory/folder (batch processing) and run the provided nodes on just the image files. Supports the same file types as `chainner:image:load`.",
         "Optionally, you can toggle whether to iterate recursively (subdirectories) or use a glob expression to filter the files.",
     ],
-    icon="BsFillImageFill",
+    icon="BsImages",
     inputs=[
         DirectoryInput("Directory"),
         BoolInput("Use WCMatch glob expression", default=False),
@@ -106,7 +105,6 @@ def load_images_node(
 
     def iterator():
         for idx, path in enumerate(just_image_files):
-            logger.info(f"Loading image {idx+1}/{length} ({path})")
             img, img_dir, basename = load_image_node(path)
             # Get relative path from root directory passed by Iterator directory input
             rel_path = os.path.relpath(img_dir, directory)
