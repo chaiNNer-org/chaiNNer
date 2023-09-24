@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import List, Tuple
 
@@ -13,9 +14,9 @@ from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput, TextInput
 from nodes.properties.outputs import (
     DirectoryOutput,
-    FileNameOutput,
     ImageOutput,
     NumberOutput,
+    TextOutput,
 )
 from nodes.utils.utils import alphanumeric_sort
 
@@ -74,8 +75,9 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     outputs=[
         ImageOutput(),
-        DirectoryOutput("Directory", of_input=0),
-        FileNameOutput("Name", of_input=0),
+        DirectoryOutput("Image Directory"),
+        TextOutput("Subdirectory Path"),
+        TextOutput("Name"),
         NumberOutput("Index"),
     ],
     node_type="newIterator",
@@ -87,7 +89,7 @@ def load_images_node(
     glob_str: str,
     use_limit: bool,
     limit: int,
-) -> Iterator[Tuple[np.ndarray, str, str, int]]:
+) -> Iterator[Tuple[np.ndarray, str, str, str, int]]:
     supported_filetypes = get_available_image_formats()
 
     if not use_glob:
@@ -105,7 +107,9 @@ def load_images_node(
     def iterator():
         for idx, path in enumerate(just_image_files):
             logger.info(f"Loading image {idx+1}/{length} ({path})")
-            img, dirname, basename = load_image_node(path)
-            yield img, dirname, basename, idx
+            img, img_dir, basename = load_image_node(path)
+            # Get relative path from root directory passed by Iterator directory input
+            rel_path = os.path.relpath(img_dir, directory)
+            yield img, directory, rel_path, basename, idx
 
     return Iterator(iter_supplier=iterator, expected_length=length)
