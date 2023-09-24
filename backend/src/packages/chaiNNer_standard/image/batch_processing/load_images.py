@@ -19,8 +19,8 @@ from nodes.properties.outputs import (
 )
 from nodes.utils.utils import alphanumeric_sort
 
-from .. import io_group
-from .load_image import load_image_node
+from .. import batch_processing_group
+from ..io.load_image import load_image_node
 
 
 def extension_filter(lst: List[str]) -> str:
@@ -46,7 +46,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     )
 
 
-@io_group.register(
+@batch_processing_group.register(
     schema_id="chainner:image:load_images",
     name="Load Images",
     description=[
