@@ -638,17 +638,7 @@ class Executor:
             flat_upstream_nodes = set()
             for x in upstream_nodes:
                 flat_upstream_nodes.update(x)
-
-            print(
-                f"downstream_nodes: {[self.chain.nodes[x].schema_id for x in downstream_nodes]}"
-            )
-            print(
-                f"output_nodes: {[self.chain.nodes[x].schema_id for x in output_nodes]}"
-            )
-            print(
-                f"flat_upstream_nodes: {[self.chain.nodes[x].schema_id for x in flat_upstream_nodes]}"
-            )
-            combined_subchain = flat_upstream_nodes.union(downstream_nodes).pop()
+            # combined_subchain = flat_upstream_nodes.union(downstream_nodes)
 
             node_instance = self.chain.nodes[iterator_node].get_node()
             assert node_instance.type == "newIterator"
@@ -670,7 +660,7 @@ class Executor:
                     node_instance, iterator_node, 0, enforced_values
                 )
                 # Set the cache to the value of the generator, so that downstream nodes will pull from that
-                self.cache.set(iterator_node, enforced_values, CacheStrategy(9999999))  # type: ignore
+                self.cache.set(iterator_node, enforced_values, CacheStrategy(9999999))
                 # Run each of the output nodes through processing
                 for output_node in output_nodes:
                     await self.progress.suspend()
