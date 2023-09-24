@@ -154,7 +154,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     };
 
     const startingNode = isStartingNode(schema);
-    const reload = useRunNode(data, validity.isValid && startingNode);
+    const isNewIterator = schema.nodeType === 'newIterator';
+    const reload = useRunNode(data, validity.isValid && startingNode && !isNewIterator);
     const filesToWatch = useMemo(() => {
         if (!startingNode) return EMPTY_ARRAY;
 

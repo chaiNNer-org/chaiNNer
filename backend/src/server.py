@@ -257,10 +257,10 @@ async def run_individual(request: Request):
         # Broadcast the output from the individual run
         node_outputs = node_instance.outputs
         if len(node_outputs) > 0:
-            if isinstance(output, api.Iterator):
-                for item in iter(output.iter_supplier()):
-                    output = item
-                    break
+            # if isinstance(output, api.Iterator):
+            #     for item in iter(output.iter_supplier()):
+            #         output = item
+            #         break
             assert not isinstance(output, api.Iterator)
             data, types = compute_broadcast(output, node_outputs)
             await ctx.queue.put(
