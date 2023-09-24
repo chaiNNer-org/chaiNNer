@@ -628,17 +628,19 @@ class Executor:
     async def __process_nodes(self, nodes: List[NodeId]):
         await self.progress.suspend()
 
+        iterator_node_set = set()
+        chain_output_nodes = self.__get_output_nodes()
+
         for iterator_node in nodes:
             # Get all downstream nodes of the iterator
             downstream_nodes = self.__get_downstream_nodes(iterator_node)
-            output_nodes = [
-                x for x in self.__get_output_nodes() if x in downstream_nodes
-            ]
+            output_nodes = [x for x in chain_output_nodes if x in downstream_nodes]
             upstream_nodes = [self.__get_upstream_nodes(x) for x in output_nodes]
             flat_upstream_nodes = set()
             for x in upstream_nodes:
                 flat_upstream_nodes.update(x)
-            # combined_subchain = flat_upstream_nodes.union(downstream_nodes)
+            combined_subchain = flat_upstream_nodes.union(downstream_nodes)
+            iterator_node_set = iterator_node_set.union(combined_subchain)
 
             node_instance = self.chain.nodes[iterator_node].get_node()
             assert node_instance.type == "newIterator"
@@ -650,9 +652,8 @@ class Executor:
             assert isinstance(iter_result, Iterator)
 
             for values in iter_result.iter_supplier():
-                self.cache.delete(iterator_node)
+                # self.cache.delete(iterator_node)
                 self.cache.clear()
-                # print(f"values: {values}")
                 enforced_values = enforce_output(
                     values, self.chain.nodes[iterator_node].get_node()
                 )
@@ -668,13 +669,27 @@ class Executor:
 
                 logger.debug(self.cache.keys())
 
-                # await all broadcasts
-                tasks = self.__broadcast_tasks
-                self.__broadcast_tasks = []
-                for task in tasks:
-                    await task
+        without_iterator_lineage = [
+            x for x in self.chain.nodes.values() if x not in iterator_node_set
+        ]
 
-            # raise Exception("stop")
+        self.cache.clear()
+
+        if len(without_iterator_lineage) > 0:
+            non_iterator_output_nodes = [
+                x for x in chain_output_nodes if x not in iterator_node_set
+            ]
+            for output_node in non_iterator_output_nodes:
+                await self.progress.suspend()
+                await self.process(output_node)
+
+        logger.debug(self.cache.keys())
+
+        # await all broadcasts
+        tasks = self.__broadcast_tasks
+        self.__broadcast_tasks = []
+        for task in tasks:
+            await task
 
     async def run(self):
         logger.debug(f"Running executor {self.execution_id}")

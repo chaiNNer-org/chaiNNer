@@ -4,13 +4,18 @@ import os
 from typing import Tuple
 
 import numpy as np
-from load_image import load_image_node
 
 from api import Iterator
 from nodes.properties.inputs import DirectoryInput
-from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
+from nodes.properties.outputs import (
+    DirectoryOutput,
+    FileNameOutput,
+    LargeImageOutput,
+    NumberOutput,
+)
 
 from .. import io_group
+from .load_image import load_image_node
 
 
 @io_group.register(
@@ -29,14 +34,13 @@ from .. import io_group
         ),
         DirectoryOutput("Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
+        NumberOutput("Index"),
     ],
     node_type="newIterator",
 )
 def load_images_node(
     directory: str,
-) -> Iterator[Tuple[np.ndarray, str, str]]:
-    """Reads an image from the specified path and return it as a numpy array"""
-
+) -> Iterator[Tuple[np.ndarray, str, str, int]]:
     length = 0
     for _, _, files in os.walk(directory):
         for _ in files:
@@ -44,8 +48,9 @@ def load_images_node(
 
     def iterator():
         for root, _, files in os.walk(directory):
-            for file in files:
+            for idx, file in enumerate(files):
                 path = os.path.join(root, file)
-                yield load_image_node(path)
+                img, dirname, basename = load_image_node(path)
+                yield img, dirname, basename, idx
 
     return Iterator(iter_supplier=iterator, expected_length=length)
