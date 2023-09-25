@@ -945,38 +945,52 @@ export const GlobalProvider = memo(
                     return invalid('Cannot connect two iterators.');
                 }
 
-                const checkIteratorLineage = (node: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(node, nodes, edges);
-                    const targetParents = getIncomers(node, nodes, edges);
-                    if (!targetChildren.length && !targetParents.length) {
-                        return false;
+                // Connections cannot be made if:
+                // - The source has iterator lineage AND the target has iterator lineage
+                // Connects CAN be made if:
+                // - the source has iterator lineage AND the target does not
+                // - the target has iterator lineage AND the source does not
+                // - neither the source nor the target have iterator lineage
+                // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
+
+                const gatherDownstreamChainNodeTypes = (node: Node<NodeData>): Set<string> => {
+                    const outgoers = getOutgoers(node, nodes, edges);
+                    const types = new Set<string>([node.type ?? '']);
+                    for (const child of outgoers) {
+                        const childTypes = gatherDownstreamChainNodeTypes(child);
+                        for (const type of childTypes) {
+                            types.add(type);
+                        }
                     }
-
-                    const downstream = targetChildren.some((childNode) => {
-                        if (childNode.type === 'newIterator') {
-                            return true;
-                        }
-                        return checkIteratorLineage(childNode);
-                    });
-
-                    const upstream = targetParents.some((parentNode) => {
-                        if (parentNode.type === 'newIterator') {
-                            return true;
-                        }
-                        return checkIteratorLineage(parentNode);
-                    });
-
-                    return downstream || upstream;
+                    return types;
                 };
 
-                const newIteratorLock =
-                    (sourceNode.type === 'newIterator' && !checkIteratorLineage(targetNode)) ||
-                    (targetNode.type === 'newIterator' && !checkIteratorLineage(sourceNode));
+                const gatherUpstreamChainNodeTypes = (node: Node<NodeData>): Set<string> => {
+                    const incomers = getIncomers(node, nodes, edges);
+                    const types = new Set<string>([node.type ?? '']);
+                    for (const parent of incomers) {
+                        const parentTypes = gatherUpstreamChainNodeTypes(parent);
+                        for (const type of parentTypes) {
+                            types.add(type);
+                        }
+                    }
+                    return types;
+                };
 
-                if (!newIteratorLock) {
-                    return invalid(
-                        'Cannot create a connection to nodes that connect to iterators.'
-                    );
+                const gatherTargetChainNodeTypes = (node: Node<NodeData>): Set<string> => {
+                    const downstreamNodeTypes = gatherDownstreamChainNodeTypes(node);
+                    const upstreamNodeTypes = gatherUpstreamChainNodeTypes(node);
+                    return new Set([...downstreamNodeTypes, ...upstreamNodeTypes]);
+                };
+
+                const sourceNodeTypes = gatherTargetChainNodeTypes(sourceNode);
+                const targetNodeTypes = gatherTargetChainNodeTypes(targetNode);
+
+                const sourceHasIteratorLineage = sourceNodeTypes.has('newIterator');
+                const targetHasIteratorLineage = targetNodeTypes.has('newIterator');
+
+                if (sourceHasIteratorLineage && targetHasIteratorLineage) {
+                    return invalid('Cannot connect two nodes with iterator lineage.');
                 }
 
                 return VALID;

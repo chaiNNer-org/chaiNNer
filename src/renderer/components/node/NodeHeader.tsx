@@ -102,14 +102,14 @@ export const NodeHeader = memo(
                                 position="relative"
                             >
                                 <Text
+                                    fontSize="sm"
                                     fontWeight="medium"
-                                    size="sm"
                                 >{`${Number(index)}/${Number(total)} (${Number(
                                     percent * 100
-                                ).toFixed(1)}%)`}</Text>
+                                ).toFixed(0)}%)`}</Text>
                                 <Text
+                                    fontSize="sm"
                                     fontWeight="medium"
-                                    size="sm"
                                 >
                                     ETA:{' '}
                                     {percent === 1 ? (
