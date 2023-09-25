@@ -13,6 +13,7 @@ import {
 } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
+import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
@@ -63,8 +64,11 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
     const { categories } = useContext(BackendContext);
+    const { getNodeProgress } = useContext(ExecutionContext);
 
     const { id, inputData, parentNode } = data;
+    const nodeProgress = getNodeProgress(id);
+
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     const { getEdge } = useReactFlow();
@@ -212,6 +216,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         disabledStatus={disabled.status}
                         icon={schema.icon}
                         name={schema.name}
+                        nodeProgress={nodeProgress}
                         parentNode={parentNode}
                         selected={selected}
                     />

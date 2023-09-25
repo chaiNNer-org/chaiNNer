@@ -651,23 +651,39 @@ class Executor:
 
             assert isinstance(iter_result, Iterator)
 
-            for values in iter_result.iter_supplier():
+            num_outgoers = len(self.chain.edges_from(iterator_node))
+
+            last_time = time.time()
+            times: List[float] = []
+            for index, values in enumerate(iter_result.iter_supplier()):
                 # self.cache.delete(iterator_node)
                 self.cache.clear()
                 enforced_values = enforce_output(
                     values, self.chain.nodes[iterator_node].get_node()
                 )
+
+                after_time = time.time()
+                execution_time = after_time - last_time
+                times.append(execution_time)
                 await self.__broadcast_data(
-                    node_instance, iterator_node, 0, enforced_values
+                    node_instance, iterator_node, execution_time, enforced_values
                 )
+                await self.__update_progress(
+                    iterator_node, times, index, iter_result.expected_length
+                )
+                last_time = after_time
+
                 # Set the cache to the value of the generator, so that downstream nodes will pull from that
-                self.cache.set(iterator_node, enforced_values, CacheStrategy(9999999))
+                self.cache.set(
+                    iterator_node, enforced_values, CacheStrategy(num_outgoers)
+                )
                 # Run each of the output nodes through processing
                 for output_node in output_nodes:
                     await self.progress.suspend()
                     await self.process(output_node)
 
                 logger.debug(self.cache.keys())
+            await self.__finish_progress(iterator_node, iter_result.expected_length)
 
         without_iterator_lineage = [
             x for x in self.chain.nodes.values() if x not in iterator_node_set
@@ -701,6 +717,41 @@ class Executor:
     async def run_iteration(self, sub: SubChain):
         logger.debug(f"Running executor {self.execution_id}")
         await self.__process_nodes(self.__get_iterator_output_nodes(sub))
+
+    def __get_eta(self, times: List[float], index: int, total: int) -> float:
+        if len(times) == 0:
+            return 0
+        return (sum(times) / len(times)) * (total - index)
+
+    async def __update_progress(
+        self, node_id: NodeId, times: List[float], index: int, length: int
+    ):
+        await self.queue.put(
+            {
+                "event": "node-progress-update",
+                "data": {
+                    "percent": index / length,
+                    "index": index,
+                    "total": length,
+                    "eta": self.__get_eta(times, index, length),
+                    "nodeId": node_id,
+                },
+            }
+        )
+
+    async def __finish_progress(self, node_id: NodeId, length: int):
+        await self.queue.put(
+            {
+                "event": "node-progress-update",
+                "data": {
+                    "percent": 1,
+                    "index": length,
+                    "total": length,
+                    "eta": 0,
+                    "nodeId": node_id,
+                },
+            }
+        )
 
     def resume(self):
         logger.debug(f"Resuming executor {self.execution_id}")

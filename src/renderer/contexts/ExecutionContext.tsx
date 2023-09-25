@@ -45,12 +45,20 @@ export interface IteratorProgress {
     total?: number;
 }
 
+export interface NodeProgress {
+    percent?: number;
+    eta?: number;
+    index?: number;
+    total?: number;
+}
+
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
     getIteratorProgress: (iteratorId: string) => IteratorProgress;
+    getNodeProgress: (nodeId: string) => NodeProgress | undefined;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -86,6 +94,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         Record<string, IteratorProgress | undefined>
     >({});
 
+    const [nodeProgress, setNodeProgress] = useState<Record<string, NodeProgress | undefined>>({});
+
     const setIteratorProgressImpl = useCallback(
         (iteratorId: string, progress: IteratorProgress) => {
             setIteratorProgress((prev) => ({
@@ -101,6 +111,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             return iteratorProgress[iteratorId] ?? {};
         },
         [iteratorProgress]
+    );
+
+    const setNodeProgressImpl = useCallback(
+        (nodeId: string, progress: NodeProgress) => {
+            setNodeProgress((prev) => ({
+                ...prev,
+                [nodeId]: progress,
+            }));
+        },
+        [setNodeProgress]
+    );
+
+    const getNodeProgress = useCallback(
+        (nodeId: string) => {
+            return nodeProgress[nodeId];
+        },
+        [nodeProgress]
     );
 
     useEffect(() => {
@@ -198,6 +225,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         { trailing: true }
     );
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
+
+    const updateNodeProgress = useThrottledCallback<
+        BackendEventSourceListener<'node-progress-update'>
+    >(
+        useCallback(
+            (data) => {
+                if (data) {
+                    const { percent, index, total, eta, nodeId } = data;
+                    setNodeProgressImpl(nodeId, { percent, eta, index, total });
+                }
+            },
+            [setNodeProgressImpl]
+        ),
+        100,
+        { trailing: true }
+    );
+    useBackendEventSourceListener(eventSource, 'node-progress-update', updateNodeProgress);
 
     useEffect(() => {
         if (ownsBackend && !restartingRef.current && eventSourceStatus === 'error') {
@@ -458,6 +502,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         kill,
         status,
         getIteratorProgress,
+        getNodeProgress,
     });
 
     return (

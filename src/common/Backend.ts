@@ -298,6 +298,13 @@ export interface BackendEventMap {
         iteratorId: string;
         running?: string[] | null;
     };
+    'node-progress-update': {
+        nodeId: string;
+        percent: number;
+        index: number;
+        total: number;
+        eta: number;
+    };
     'backend-status': {
         message: string;
         progress: number;

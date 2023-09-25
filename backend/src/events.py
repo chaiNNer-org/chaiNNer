@@ -42,6 +42,14 @@ class IteratorProgressUpdateData(TypedDict):
     running: Optional[List[NodeId]]
 
 
+class NodeProgressUpdateData(TypedDict):
+    percent: float
+    index: int
+    total: int
+    eta: float
+    nodeId: NodeId
+
+
 class BackendStatusData(TypedDict):
     message: str
     progress: float
@@ -68,6 +76,11 @@ class IteratorProgressUpdateEvent(TypedDict):
     data: IteratorProgressUpdateData
 
 
+class NodeProgressUpdateEvent(TypedDict):
+    event: Literal["node-progress-update"]
+    data: NodeProgressUpdateData
+
+
 class BackendStatusEvent(TypedDict):
     event: Literal["backend-status"]
     data: BackendStatusData
@@ -83,6 +96,7 @@ Event = Union[
     ExecutionErrorEvent,
     NodeFinishEvent,
     IteratorProgressUpdateEvent,
+    NodeProgressUpdateEvent,
     BackendStatusEvent,
     BackendStateEvent,
 ]
