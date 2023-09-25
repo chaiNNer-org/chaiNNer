@@ -916,8 +916,11 @@ export const GlobalProvider = memo(
                     );
                 }
 
+                const nodes = getNodes();
+                const edges = getEdges();
+
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
+                    const targetChildren = getOutgoers(parentNode, nodes, edges);
                     if (!targetChildren.length) {
                         return false;
                     }
@@ -942,34 +945,33 @@ export const GlobalProvider = memo(
                     return invalid('Cannot connect two iterators.');
                 }
 
-                const checkIteratorLineageDownstream = (node: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(node, getNodes(), getEdges());
-                    if (!targetChildren.length) {
+                const checkIteratorLineage = (node: Node<NodeData>): boolean => {
+                    const targetChildren = getOutgoers(node, nodes, edges);
+                    const targetParents = getIncomers(node, nodes, edges);
+                    if (!targetChildren.length && !targetParents.length) {
                         return false;
                     }
-                    return targetChildren.some((childNode) => {
+
+                    const downstream = targetChildren.some((childNode) => {
                         if (childNode.type === 'newIterator') {
                             return true;
                         }
-                        return checkIteratorLineageDownstream(childNode);
+                        return checkIteratorLineage(childNode);
                     });
-                };
-                const checkIteratorLineageUpstream = (node: Node<NodeData>): boolean => {
-                    const targetParents = getIncomers(node, getNodes(), getEdges());
-                    if (!targetParents.length) {
-                        return false;
-                    }
-                    return targetParents.some((parentNode) => {
+
+                    const upstream = targetParents.some((parentNode) => {
                         if (parentNode.type === 'newIterator') {
                             return true;
                         }
-                        return checkIteratorLineageUpstream(parentNode);
+                        return checkIteratorLineage(parentNode);
                     });
+
+                    return downstream || upstream;
                 };
 
                 const newIteratorLock =
-                    !checkIteratorLineageDownstream(targetNode) &&
-                    !checkIteratorLineageUpstream(sourceNode);
+                    (sourceNode.type === 'newIterator' && !checkIteratorLineage(targetNode)) ||
+                    (targetNode.type === 'newIterator' && !checkIteratorLineage(sourceNode));
 
                 if (!newIteratorLock) {
                     return invalid(
