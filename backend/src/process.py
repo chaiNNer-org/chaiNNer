@@ -653,8 +653,10 @@ class Executor:
 
             num_outgoers = len(self.chain.edges_from(iterator_node))
 
-            last_time = time.time()
+            start_time = time.time()
+            last_time = start_time
             times: List[float] = []
+            enforced_values = None
             for index, values in enumerate(iter_result.iter_supplier()):
                 # self.cache.delete(iterator_node)
                 self.cache.clear()
@@ -683,6 +685,12 @@ class Executor:
                     await self.process(output_node)
 
                 logger.debug(self.cache.keys())
+            end_time = time.time()
+            execution_time = end_time - start_time
+            if enforced_values is not None:
+                await self.__broadcast_data(
+                    node_instance, iterator_node, execution_time, enforced_values
+                )
             await self.__finish_progress(iterator_node, iter_result.expected_length)
 
         without_iterator_lineage = [

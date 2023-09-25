@@ -36,6 +36,8 @@ export const NodeHeader = memo(
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
+
+        const progColor = interpolateColor(accentColor, bgColor, 0.5);
         return (
             <VStack
                 spacing={0}
@@ -127,13 +129,12 @@ export const NodeHeader = memo(
                             </HStack>
                         </Center>
                         <Box
-                            bgColor="gray.500"
+                            bgColor="var(--node-bg-color)"
                             h={6}
                             w="full"
                         >
                             <Box
-                                bgColor={accentColor}
-                                // h="full"
+                                bgColor={progColor}
                                 h={6}
                                 transition="all 0.15s ease-in-out"
                                 w={`${percent * 100}%`}
