@@ -7,6 +7,7 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
+    getIncomers,
     getOutgoers,
     useReactFlow,
     useViewport,
@@ -935,6 +936,45 @@ export const GlobalProvider = memo(
 
                 if (!iteratorLock) {
                     return invalid('Cannot create a connection to/from an iterator in this way.');
+                }
+
+                if (sourceNode.type === 'newIterator' && targetNode.type === 'newIterator') {
+                    return invalid('Cannot connect two iterators.');
+                }
+
+                const checkIteratorLineageDownstream = (node: Node<NodeData>): boolean => {
+                    const targetChildren = getOutgoers(node, getNodes(), getEdges());
+                    if (!targetChildren.length) {
+                        return false;
+                    }
+                    return targetChildren.some((childNode) => {
+                        if (childNode.type === 'newIterator') {
+                            return true;
+                        }
+                        return checkIteratorLineageDownstream(childNode);
+                    });
+                };
+                const checkIteratorLineageUpstream = (node: Node<NodeData>): boolean => {
+                    const targetParents = getIncomers(node, getNodes(), getEdges());
+                    if (!targetParents.length) {
+                        return false;
+                    }
+                    return targetParents.some((parentNode) => {
+                        if (parentNode.type === 'newIterator') {
+                            return true;
+                        }
+                        return checkIteratorLineageUpstream(parentNode);
+                    });
+                };
+
+                const newIteratorLock =
+                    !checkIteratorLineageDownstream(targetNode) &&
+                    !checkIteratorLineageUpstream(sourceNode);
+
+                if (!newIteratorLock) {
+                    return invalid(
+                        'Cannot create a connection to nodes that connect to iterators.'
+                    );
                 }
 
                 return VALID;
