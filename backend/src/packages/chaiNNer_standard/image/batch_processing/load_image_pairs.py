@@ -45,7 +45,7 @@ from ..io.load_image import load_image_node
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
         TextOutput("Image Name B"),
-        NumberOutput("Overall Index", output_type="uint").with_docs(
+        NumberOutput("Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each image."
         ),
     ],
