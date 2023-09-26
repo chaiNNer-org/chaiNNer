@@ -39,8 +39,8 @@ from ..io.load_image import load_image_node
     outputs=[
         ImageOutput("Image A"),
         ImageOutput("Image B"),
-        DirectoryOutput("Image Directory A"),
-        DirectoryOutput("Image Directory B"),
+        DirectoryOutput("Directory A"),
+        DirectoryOutput("Directory B"),
         TextOutput("Subdirectory Path A"),
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
