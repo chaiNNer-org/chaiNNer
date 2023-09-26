@@ -55,7 +55,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     icon="BsImages",
     inputs=[
-        DirectoryInput("Directory"),
+        DirectoryInput(),
         BoolInput("Use WCMatch glob expression", default=False),
         if_group(Condition.bool(1, False))(
             BoolInput("Recursive").with_docs("Iterate recursively over subdirectories.")

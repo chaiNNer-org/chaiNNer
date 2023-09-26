@@ -6,10 +6,14 @@ from typing import List, Tuple
 from sanic.log import logger
 
 from api import Iterator
-from nodes.impl.pytorch.types import PyTorchModel
+from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput
-from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
-from nodes.properties.outputs.pytorch_outputs import ModelOutput
+from nodes.properties.outputs import (
+    DirectoryOutput,
+    NumberOutput,
+    OnnxModelOutput,
+    TextOutput,
+)
 from nodes.utils.utils import list_all_files_sorted
 
 from .. import batch_processing_group
@@ -17,19 +21,19 @@ from ..io.load_model import load_model_node
 
 
 @batch_processing_group.register(
-    schema_id="chainner:pytorch:load_models",
+    schema_id="chainner:onnx:load_models",
     name="Load Models",
     description=(
         "Iterate over all files in a directory and run the provided nodes on just the"
-        " PyTorch model files (.pth). Supports the same models as"
-        " `chainner:pytorch:load_model`."
+        " ONNX model files (.onnx). Supports the same models as"
+        " `chainner:onnx:load_model`."
     ),
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
     ],
     outputs=[
-        ModelOutput(),
+        OnnxModelOutput(),
         DirectoryOutput("Directory"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
@@ -41,10 +45,10 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-) -> Iterator[Tuple[PyTorchModel, str, str, str, int]]:
+) -> Iterator[Tuple[OnnxModel, str, str, str, int]]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    supported_filetypes = [".pt", ".pth", ".ckpt"]
+    supported_filetypes = [".onnx"]
 
     just_model_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
 

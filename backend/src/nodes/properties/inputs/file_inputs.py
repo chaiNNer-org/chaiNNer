@@ -112,7 +112,7 @@ class DirectoryInput(BaseInput):
 
     def __init__(
         self,
-        label: str = "Base Directory",
+        label: str = "Directory",
         has_handle: bool = False,
         must_exist: bool = True,
         hide_label: bool = False,
