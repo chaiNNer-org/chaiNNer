@@ -39,7 +39,16 @@ from .. import batch_processing_group
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
     ],
-    outputs=[ImageOutput()],
+    outputs=[
+        ImageOutput(
+            image_type="""
+            Image {
+                height: max(Input0.height * Input1, 1),
+                width: max(Input0.width * Input2, 1),
+                channels: Input0.channels,
+            }"""
+        )
+    ],
     node_type="collector",
 )
 def spritesheet_collector_node(
