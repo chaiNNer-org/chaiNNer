@@ -56,8 +56,9 @@ class NumberInput(BaseInput):
         kind: InputKind = "number",
         hide_trailing_zeros: bool = True,
         hide_label: bool = False,
+        has_handle: bool = True,
     ):
-        super().__init__("number", label, kind=kind, has_handle=True)
+        super().__init__("number", label, kind=kind, has_handle=has_handle)
         self.precision = precision
         # controls_step is for increment/decrement arrows.
         self.controls_step: Union[float, int] = (
@@ -93,6 +94,7 @@ class NumberInput(BaseInput):
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
             "hideLabel": self.hide_label,
+            "hasHandle": self.has_handle,
         }
 
     def make_optional(self):

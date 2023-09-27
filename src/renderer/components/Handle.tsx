@@ -32,6 +32,10 @@ const HandleElement = memo(
         const { isFake } = useContext(FakeNodeContext);
 
         const isIterator = nodeType === 'newIterator';
+        const isCollector = nodeType === 'collector';
+
+        const aquaredHandle =
+            (isIterator && type === 'output') || (isCollector && type === 'input');
 
         return (
             <Tooltip
@@ -55,7 +59,7 @@ const HandleElement = memo(
                     <Box
                         bg="#1a192b"
                         border="1px solid white"
-                        borderRadius={isIterator ? '25%' : '100%'}
+                        borderRadius={aquaredHandle ? '25%' : '100%'}
                         className={`${type}-handle react-flow__handle react-flow__handle-${
                             type === 'input' ? 'left' : 'right'
                         }`}
@@ -75,7 +79,7 @@ const HandleElement = memo(
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         style={{
-                            borderRadius: isIterator ? '25%' : '100%',
+                            borderRadius: aquaredHandle ? '25%' : '100%',
                         }}
                     >
                         {children}

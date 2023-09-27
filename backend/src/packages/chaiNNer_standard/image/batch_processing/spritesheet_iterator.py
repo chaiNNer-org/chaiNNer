@@ -15,7 +15,7 @@ from .. import batch_processing_group
     name="Spritesheet Iterator",
     description=[
         "Iterate over sub-images in a single image spritesheet.",
-        "This iterator splits the image into tiles that it then runs your iterator chain on, and then recombines the tiles into a single image.",
+        "This iterator splits the image into an iterable sequence of tiles.",
     ],
     icon="MdLoop",
     inputs=[

@@ -546,3 +546,13 @@ class Iterator(Generic[I]):
     @staticmethod
     def from_list(l: list[I]):
         Iterator(lambda: l, len(l))
+
+
+N = TypeVar("N")
+R = TypeVar("R")
+
+
+@dataclass
+class Collector(Generic[N, R]):
+    on_iterate: Callable[[N], None]
+    on_complete: Callable[[], R]

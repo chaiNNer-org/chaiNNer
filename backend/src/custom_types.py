@@ -4,6 +4,8 @@ from typing import Any, Awaitable, Callable, Literal, Union
 
 RunFn = Callable[..., Any]
 
-NodeType = Literal["regularNode", "iterator", "iteratorHelper", "newIterator"]
+NodeType = Literal[
+    "regularNode", "iterator", "iteratorHelper", "newIterator", "collector"
+]
 
 UpdateProgressFn = Callable[[str, float, Union[float, None]], Awaitable[None]]
