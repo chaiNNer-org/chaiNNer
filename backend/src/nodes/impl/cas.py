@@ -35,7 +35,7 @@ def create_cas_mask(img: np.ndarray, kernel, bias: float = 2) -> np.ndarray:
 
     l = _luminance(img)
     min_l = cv2.erode(l, kernel)
-    max_l = cv2.dilate(l, kernel, dst=l)
+    max_l = cv2.dilate(l, kernel)
     min_d = np.minimum(1.0 - max_l, min_l, out=min_l)  # type: ignore
     max_l += 1e-8  # type: ignore
     min_d /= max_l
@@ -52,5 +52,7 @@ def cas_mix(
     bias: float = 2,
 ) -> np.ndarray:
     mask = create_cas_mask(img, kernel, bias)
-    mask = np.dstack((mask,) * get_h_w_c(sharpened)[2])
+    _, _, c = get_h_w_c(sharpened)
+    if c > 1:
+        mask = np.dstack((mask,) * c)
     return img * (1 - mask) + sharpened * mask  # type: ignore

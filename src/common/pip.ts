@@ -79,7 +79,11 @@ export const runPipInstall = async (
         const deps = dependencies.map((p) => `${p.pypiName}==${p.version}`);
         const findLinks = getFindLinks(dependencies).flatMap((l) => ['--extra-index-url', l]);
 
-        await runPip(info, ['install', '--upgrade', ...deps, ...findLinks], onStdio);
+        await runPip(
+            info,
+            ['install', '--upgrade', ...deps, ...findLinks, '--no-cache-dir'],
+            onStdio
+        );
     } else {
         const { python } = info;
         for (const pkg of dependencies) {

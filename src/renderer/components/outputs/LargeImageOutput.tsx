@@ -91,7 +91,6 @@ export const LargeImageOutput = memo(
                 w="full"
             >
                 <Resizable
-                    className="nodrag"
                     defaultSize={size}
                     enable={{
                         top: false,
