@@ -101,6 +101,7 @@ struct TileSize;
 struct VideoEncoder;
 struct VideoContainer;
 struct VideoPreset;
+struct AudioStream;
 
 enum FpMode { fp32, fp16 }
 

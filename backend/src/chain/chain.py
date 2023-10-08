@@ -50,6 +50,7 @@ class NewIteratorNode:
         self.schema_id: str = schema_id
         self.parent: None = None
         self.__node = None
+        self.is_helper: bool = False
 
     def get_node(self) -> NodeData:
         if self.__node is None:
@@ -65,6 +66,7 @@ class CollectorNode:
         self.schema_id: str = schema_id
         self.parent: None = None
         self.__node = None
+        self.is_helper: bool = False
 
     def get_node(self) -> NodeData:
         if self.__node is None:
@@ -72,6 +74,9 @@ class CollectorNode:
             assert node.type == "collector", "Invalid iterator node"
             self.__node = node
         return self.__node
+
+    def has_side_effects(self) -> bool:
+        return self.get_node().side_effects
 
 
 Node = Union[FunctionNode, IteratorNode, NewIteratorNode, CollectorNode]

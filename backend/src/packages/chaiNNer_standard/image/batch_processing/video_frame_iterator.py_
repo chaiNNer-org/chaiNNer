@@ -490,7 +490,7 @@ async def video_frame_iterator_node(
         except:
             logger.warning(
                 f"Failed to copy audio to video, input file probably contains "
-                f"no audio or ausio stream is supported by this container. Ignoring audio settings."
+                f"no audio or audio stream is supported by this container. Ignoring audio settings."
             )
             try:
                 os.remove(audio_video_path)
