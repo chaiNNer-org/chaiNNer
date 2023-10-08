@@ -51,13 +51,11 @@ class AudioSettings(Enum):
     AUTO = "auto"
     COPY = "copy"
     TRANSCODE = "transcode"
-    NONE = "none"
 
 
 class AudioReducedSettings(Enum):
     AUTO = AudioSettings.AUTO.value
     TRANSCODE = AudioSettings.TRANSCODE.value
-    NONE = AudioSettings.NONE.value
 
 
 AUDIO_SETTINGS_DOC = """The first audio stream can be discarded, copied or transcoded at 320 kb/s.
@@ -161,7 +159,7 @@ class Writer:
             ).make_optional()
         ),
         NumberInput("FPS", default=30, minimum=1, controls_step=1, has_handle=True),
-        AudioStreamInput(),
+        AudioStreamInput().make_optional(),
     ],
     outputs=[],
     node_type="collector",
@@ -266,7 +264,7 @@ def write_video_node(
     # Modify audio settings if needed
     audio_settings = AudioSettings(audio_settings)
     if container == VideoContainer.GIF:
-        audio_settings = AudioSettings.NONE
+        audio = None
     elif container == VideoContainer.WEBM:
         audio_settings = AudioSettings(audio_reduced_settings)
 
@@ -342,11 +340,7 @@ def write_video_node(
                 writer.out.stdin.close()
             writer.out.wait()
 
-        if (
-            writer.video_save_path is not None
-            and audio_stream is not None
-            and writer.audio_settings != AudioSettings.NONE
-        ):
+        if writer.video_save_path is not None and audio_stream is not None:
             video_path = writer.video_save_path
             base, ext = os.path.splitext(video_path)
             audio_video_path = f"{base}_av{ext}"
