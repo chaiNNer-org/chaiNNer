@@ -953,44 +953,61 @@ export const GlobalProvider = memo(
                 // - neither the source nor the target have iterator lineage
                 // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
 
-                const gatherDownstreamChainNodeTypes = (node: Node<NodeData>): Set<string> => {
+                const gatherDownstreamIteratorNodes = (node: Node<NodeData>) => {
                     const outgoers = getOutgoers(node, nodes, edges);
-                    const types = new Set<string>([node.type ?? '']);
+                    const results = new Set<string>();
                     for (const child of outgoers) {
-                        const childTypes = gatherDownstreamChainNodeTypes(child);
-                        for (const type of childTypes) {
-                            types.add(type);
+                        if (child.type === 'newIterator') {
+                            results.add(child.id);
+                        }
+                        for (const other of gatherDownstreamIteratorNodes(child)) {
+                            results.add(other);
                         }
                     }
-                    return types;
+                    return results;
                 };
 
-                const gatherUpstreamChainNodeTypes = (node: Node<NodeData>): Set<string> => {
+                const gatherUpstreamIteratorNodes = (node: Node<NodeData>) => {
                     const incomers = getIncomers(node, nodes, edges);
-                    const types = new Set<string>([node.type ?? '']);
+                    const results = new Set<string>();
                     for (const parent of incomers) {
-                        const parentTypes = gatherUpstreamChainNodeTypes(parent);
-                        for (const type of parentTypes) {
-                            types.add(type);
+                        if (parent.type === 'newIterator') {
+                            results.add(parent.id);
+                        }
+                        for (const other of gatherUpstreamIteratorNodes(parent)) {
+                            results.add(other);
                         }
                     }
-                    return types;
+                    return results;
                 };
 
-                const gatherTargetChainNodeTypes = (node: Node<NodeData>): Set<string> => {
-                    const downstreamNodeTypes = gatherDownstreamChainNodeTypes(node);
-                    const upstreamNodeTypes = gatherUpstreamChainNodeTypes(node);
-                    return new Set([...downstreamNodeTypes, ...upstreamNodeTypes]);
-                };
+                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(sourceNode);
+                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(sourceNode);
 
-                const sourceNodeTypes = gatherTargetChainNodeTypes(sourceNode);
-                const targetNodeTypes = gatherTargetChainNodeTypes(targetNode);
+                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(targetNode);
+                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(targetNode);
 
-                const sourceHasIteratorLineage = sourceNodeTypes.has('newIterator');
-                const targetHasIteratorLineage = targetNodeTypes.has('newIterator');
+                const sourceHasIteratorLineage =
+                    sourceDownstreamIterNodes.size > 0 ||
+                    sourceUpstreamIterNodes.size > 0 ||
+                    sourceNode.type === 'newIterator';
+                const targetHasIteratorLineage =
+                    targetDownstreamIterNodes.size > 0 ||
+                    targetUpstreamIterNodes.size > 0 ||
+                    targetNode.type === 'newIterator';
 
-                if (sourceHasIteratorLineage && targetHasIteratorLineage) {
-                    return invalid('Cannot connect two nodes with iterator lineage.');
+                const sourceAndTargetShareSameLineage =
+                    sourceDownstreamIterNodes.has(targetNode.id) ||
+                    sourceUpstreamIterNodes.has(targetNode.id) ||
+                    targetDownstreamIterNodes.has(sourceNode.id) ||
+                    targetUpstreamIterNodes.has(sourceNode.id);
+
+                if (
+                    sourceHasIteratorLineage &&
+                    targetHasIteratorLineage &&
+                    !sourceAndTargetShareSameLineage
+                ) {
+                    return invalid('Cannot connect two nodes with unrelated iterator lineage.');
                 }
 
                 return VALID;
