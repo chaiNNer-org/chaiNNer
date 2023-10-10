@@ -1407,6 +1407,7 @@ const oldToNewIterators: ModernMigration = (data) => {
         // Create the new iterator node
         const newIterator: N = {
             data: {
+                ...node.data,
                 id: node.id,
                 schemaId: newSchemaId as SchemaId,
                 inputData: { ...iteratorInputs },
@@ -1440,7 +1441,6 @@ const oldToNewIterators: ModernMigration = (data) => {
     };
 
     data.nodes.forEach((node) => {
-        console.log(node.data.schemaId);
         switch (node.data.schemaId) {
             case 'chainner:image:file_iterator': {
                 standardIteratorMigration(
@@ -1496,12 +1496,10 @@ const oldToNewIterators: ModernMigration = (data) => {
 
                 if (appendHelper) {
                     const appendHelperInputs = appendHelper.data.inputData;
-                    const appendHelperEdges = data.edges.filter(
-                        (e) => e.source === appendHelper.id
-                    );
 
                     const newCollector: N = {
                         data: {
+                            ...node.data,
                             id: appendHelper.id,
                             schemaId: 'chainner:image:spritesheet_collector' as SchemaId,
                             inputData: { ...appendHelperInputs },
@@ -1518,15 +1516,132 @@ const oldToNewIterators: ModernMigration = (data) => {
                     newNodes.push(newCollector);
                     nodesToDelete.add(appendHelper.id);
 
-                    appendHelperEdges.forEach((e) => {
-                        e.sourceHandle = e.sourceHandle?.replace(e.source, newCollector.id);
-                        e.source = newCollector.id;
-                    });
-
                     // Copy the rows and columns from the iterator to the collector
                     newCollector.data.inputData[1] = node.data.inputData[1];
                     newCollector.data.inputData[2] = node.data.inputData[2];
                 }
+
+                break;
+            }
+            case 'chainner:image:video_frame_iterator': {
+                const subNodes = nodesByParentNodes.get(node.id);
+                const loadHelper = subNodes?.find(
+                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_load'
+                );
+                const saveHelper = subNodes?.find(
+                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_save'
+                );
+
+                const iteratorInputs = node.data.inputData;
+                const iteratorEdges = data.edges.filter((e) => e.source === node.id);
+                const loadHelperEdges = data.edges.filter((e) => e.source === loadHelper?.id);
+                const saveHelperEdges = data.edges.filter((e) => e.target === saveHelper?.id);
+
+                // Create the new iterator node
+                const newIterator: N = {
+                    data: {
+                        ...node.data,
+                        id: node.id,
+                        schemaId: 'chainner:image:load_video' as SchemaId,
+                        inputData: { ...iteratorInputs },
+                    },
+                    id: node.id,
+                    position: node.position,
+                    type: 'newIterator',
+                    selected: false,
+                };
+
+                newNodes.push(newIterator);
+
+                // Fix positions
+                subNodes?.forEach((n) => {
+                    n.position.x += node.position.x;
+                    n.position.y += node.position.y;
+                });
+
+                // Attach all edges to correct new spots
+                iteratorEdges.forEach((e) => {
+                    e.sourceHandle = e.sourceHandle?.replace(e.source, newIterator.id);
+                    e.source = newIterator.id;
+                });
+                loadHelperEdges.forEach((e) => {
+                    e.sourceHandle = e.sourceHandle?.replace(e.source, newIterator.id);
+                    e.source = newIterator.id;
+                });
+
+                if (saveHelper) {
+                    const isSetToNone =
+                        String(saveHelper.data.inputData[3]).toLowerCase() === 'none';
+                    if (!isSetToNone) {
+                        const newSaveInputData = { ...saveHelper.data.inputData };
+
+                        newSaveInputData[8] = saveHelper.data.inputData[9];
+                        newSaveInputData[9] = saveHelper.data.inputData[10];
+                        newSaveInputData[10] = saveHelper.data.inputData[11];
+                        newSaveInputData[11] = saveHelper.data.inputData[12];
+                        newSaveInputData[12] = saveHelper.data.inputData[13];
+                        newSaveInputData[13] = saveHelper.data.inputData[14];
+
+                        const newCollector: N = {
+                            data: {
+                                ...node.data,
+                                id: saveHelper.id,
+                                schemaId: 'chainner:image:write_video' as SchemaId,
+                                inputData: newSaveInputData,
+                            },
+                            id: saveHelper.id,
+                            position: {
+                                x: saveHelper.position.x,
+                                y: saveHelper.position.y,
+                            },
+                            type: 'collector',
+                            selected: false,
+                        };
+
+                        newNodes.push(newCollector);
+                        nodesToDelete.add(saveHelper.id);
+
+                        // Connect FPS and audio
+                        const fpsEdge = {
+                            id: deriveUniqueId(`${saveHelper.id}-fps`),
+                            source: newIterator.id,
+                            sourceHandle: `${newIterator.id}-4`,
+                            target: saveHelper.id,
+                            targetHandle: `${saveHelper.id}-14`,
+                            type: 'main',
+                            animated: false,
+                            data: {},
+                        };
+                        newEdges.push(fpsEdge);
+
+                        log.info({ newSaveInputData, inputData: saveHelper.data.inputData });
+
+                        if (
+                            !(
+                                newSaveInputData[10] === 'none' ||
+                                (String(newSaveInputData[3]).toLowerCase() === 'libvpx-vp9' &&
+                                    String(newSaveInputData[7]).toLowerCase() === 'webm' &&
+                                    newSaveInputData[11] === 'none')
+                            )
+                        ) {
+                            const audioEdge = {
+                                id: deriveUniqueId(`${saveHelper.id}-audio`),
+                                source: newIterator.id,
+                                sourceHandle: `${newIterator.id}-5`,
+                                target: saveHelper.id,
+                                targetHandle: `${saveHelper.id}-15`,
+                                type: 'main',
+                                animated: false,
+                                data: {},
+                            };
+                            newEdges.push(audioEdge);
+                        }
+                    }
+                }
+
+                nodesToDelete.add(node.id);
+                if (loadHelper?.id) nodesToDelete.add(loadHelper.id);
+                if (saveHelper?.id) nodesToDelete.add(saveHelper.id);
 
                 break;
             }
