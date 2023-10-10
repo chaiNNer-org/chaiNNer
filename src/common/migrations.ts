@@ -1379,6 +1379,183 @@ const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
     return data;
 };
 
+const oldToNewIterators: ModernMigration = (data) => {
+    const newNodes: N[] = [];
+    const newEdges: E[] = [];
+
+    const nodesByParentNodes = new Map<string, N[]>();
+
+    data.nodes.forEach((node) => {
+        if (node.parentNode) {
+            if (!nodesByParentNodes.has(node.parentNode)) {
+                nodesByParentNodes.set(node.parentNode, []);
+            }
+            nodesByParentNodes.get(node.parentNode)?.push(node);
+        }
+    });
+
+    const nodesToDelete = new Set<string>();
+
+    const standardIteratorMigration = (node: N, helperSchemaId: string, newSchemaId: string) => {
+        const subNodes = nodesByParentNodes.get(node.id);
+        const helper = subNodes?.find((n) => n.data.schemaId === helperSchemaId);
+
+        const iteratorInputs = node.data.inputData;
+        const iteratorEdges = data.edges.filter((e) => e.source === node.id);
+        const helperEdges = data.edges.filter((e) => e.source === helper?.id);
+
+        // Create the new iterator node
+        const newIterator: N = {
+            data: {
+                id: node.id,
+                schemaId: newSchemaId as SchemaId,
+                inputData: { ...iteratorInputs },
+            },
+            id: node.id,
+            position: node.position,
+            type: 'newIterator',
+            selected: false,
+        };
+
+        newNodes.push(newIterator);
+
+        // Fix positions
+        subNodes?.forEach((n) => {
+            n.position.x += node.position.x;
+            n.position.y += node.position.y;
+        });
+
+        // Attach all edges to correct new spots
+        iteratorEdges.forEach((e) => {
+            e.sourceHandle = e.sourceHandle?.replace(e.source, newIterator.id);
+            e.source = newIterator.id;
+        });
+        helperEdges.forEach((e) => {
+            e.sourceHandle = e.sourceHandle?.replace(e.source, newIterator.id);
+            e.source = newIterator.id;
+        });
+
+        nodesToDelete.add(node.id);
+        if (helper?.id) nodesToDelete.add(helper.id);
+    };
+
+    data.nodes.forEach((node) => {
+        console.log(node.data.schemaId);
+        switch (node.data.schemaId) {
+            case 'chainner:image:file_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:image:file_iterator_load',
+                    'chainner:image:load_images'
+                );
+                break;
+            }
+            case 'chainner:image:paired_image_file_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:image:paired_file_iterator_load',
+                    'chainner:image:load_image_pairs'
+                );
+                break;
+            }
+            case 'chainner:pytorch:model_file_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:pytorch:model_iterator_load',
+                    'chainner:pytorch:load_models'
+                );
+                break;
+            }
+            case 'chainner:ncnn:model_file_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:ncnn:model_iterator_load',
+                    'chainner:ncnn:load_models'
+                );
+                break;
+            }
+            case 'chainner:onnx:model_file_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:onnx:model_iterator_load',
+                    'chainner:onnx:load_models'
+                );
+                break;
+            }
+            case 'chainner:image:spritesheet_iterator': {
+                standardIteratorMigration(
+                    node,
+                    'chainner:image:spritesheet_iterator_load',
+                    'chainner:image:spritesheet_iterator'
+                );
+
+                const subNodes = nodesByParentNodes.get(node.id);
+                const appendHelper = subNodes?.find(
+                    (n) => n.data.schemaId === 'chainner:image:spritesheet_iterator_save'
+                );
+
+                if (appendHelper) {
+                    const appendHelperInputs = appendHelper.data.inputData;
+                    const appendHelperEdges = data.edges.filter(
+                        (e) => e.source === appendHelper.id
+                    );
+
+                    const newCollector: N = {
+                        data: {
+                            id: appendHelper.id,
+                            schemaId: 'chainner:image:spritesheet_collector' as SchemaId,
+                            inputData: { ...appendHelperInputs },
+                        },
+                        id: appendHelper.id,
+                        position: {
+                            x: appendHelper.position.x,
+                            y: appendHelper.position.y,
+                        },
+                        type: 'collector',
+                        selected: false,
+                    };
+
+                    newNodes.push(newCollector);
+                    nodesToDelete.add(appendHelper.id);
+
+                    appendHelperEdges.forEach((e) => {
+                        e.sourceHandle = e.sourceHandle?.replace(e.source, newCollector.id);
+                        e.source = newCollector.id;
+                    });
+
+                    // Copy the rows and columns from the iterator to the collector
+                    newCollector.data.inputData[1] = node.data.inputData[1];
+                    newCollector.data.inputData[2] = node.data.inputData[2];
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
+    });
+
+    data.nodes = data.nodes
+        .filter((n) => !nodesToDelete.has(n.id))
+        .filter((n) => n.type !== 'iterator' && n.type !== 'iteratorHelper');
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    // Remove all parentNode attributes
+    data.nodes = data.nodes.map((node) => {
+        const newNode = { ...node };
+        if (newNode.parentNode) {
+            delete newNode.parentNode;
+        }
+        if (newNode.data.parentNode) {
+            delete newNode.data.parentNode;
+        }
+        return newNode;
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1431,6 +1608,7 @@ const migrations = [
     unifiedCrop,
     writeOutputFrame,
     separateNodeWidthAndInputHeight,
+    oldToNewIterators,
 ];
 
 export const currentMigration = migrations.length;
