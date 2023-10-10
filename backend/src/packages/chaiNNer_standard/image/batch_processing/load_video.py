@@ -111,9 +111,8 @@ def load_video_node(
     audio_stream = ffmpeg.input(path).audio
 
     def iterator():
-        index = -1
+        index = 0
         while True:
-            index += 1
             if use_limit and index >= limit:
                 break
             in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
@@ -123,5 +122,6 @@ def load_video_node(
             in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
             in_frame = cv2.cvtColor(in_frame, cv2.COLOR_RGB2BGR)
             yield in_frame, index, video_dir, video_name, fps, audio_stream
+            index += 1
 
     return Iterator(iter_supplier=iterator, expected_length=frame_count)
