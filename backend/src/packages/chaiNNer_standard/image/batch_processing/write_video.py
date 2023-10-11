@@ -125,30 +125,6 @@ class Writer:
             )
             .with_id(9),
         ),
-        if_group(
-            (
-                ~Condition.enum(7, VideoContainer.WEBM)
-                | ~Condition.enum(3, VideoEncoder.VP9)
-            )
-            & Condition.bool(14, True)
-        )(
-            EnumInput(label="Audio", enum=AudioSettings, default=AudioSettings.AUTO)
-            .with_docs(AUDIO_SETTINGS_DOC)
-            .with_id(10)
-        ),
-        if_group(
-            Condition.enum(7, VideoContainer.WEBM)
-            & Condition.enum(3, VideoEncoder.VP9)
-            & Condition.bool(14, True)
-        )(
-            EnumInput(
-                label="Audio",
-                enum=AudioReducedSettings,
-                default=AudioReducedSettings.AUTO,
-            )
-            .with_docs(AUDIO_SETTINGS_DOC)
-            .with_id(11)
-        ),
         BoolInput("Additional parameters", default=False)
         .with_docs(
             "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
@@ -169,6 +145,30 @@ class Writer:
             "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=2
         ).with_id(14),
         AudioStreamInput().make_optional().with_id(15),
+        if_group(
+            (
+                ~Condition.enum(7, VideoContainer.WEBM)
+                | ~Condition.enum(3, VideoEncoder.VP9)
+            )
+            & Condition.type(15, "AudioStream")
+        )(
+            EnumInput(label="Audio", enum=AudioSettings, default=AudioSettings.AUTO)
+            .with_docs(AUDIO_SETTINGS_DOC)
+            .with_id(10)
+        ),
+        if_group(
+            Condition.enum(7, VideoContainer.WEBM)
+            & Condition.enum(3, VideoEncoder.VP9)
+            & Condition.type(15, "AudioStream")
+        )(
+            EnumInput(
+                label="Audio",
+                enum=AudioReducedSettings,
+                default=AudioReducedSettings.AUTO,
+            )
+            .with_docs(AUDIO_SETTINGS_DOC)
+            .with_id(11)
+        ),
     ],
     outputs=[],
     node_type="collector",
@@ -185,12 +185,12 @@ def write_video_node(
     vp9_container: VideoContainer,
     video_preset: str,
     crf: int,
-    audio_settings: AudioSettings,
-    audio_reduced_settings: AudioReducedSettings,
     advanced: bool,
     additional_parameters: Optional[str],
     fps: float,
     audio: Any,
+    audio_settings: AudioSettings,
+    audio_reduced_settings: AudioReducedSettings,
 ) -> Collector[
     Tuple[
         np.ndarray,
@@ -203,12 +203,12 @@ def write_video_node(
         VideoContainer,  # vp9_container
         str,  # video_preset
         int,
-        AudioSettings,
-        AudioReducedSettings,
         bool,
         str,
         float,
         Any,
+        AudioSettings,
+        AudioReducedSettings,
     ],
     None,
 ]:
@@ -293,12 +293,12 @@ def write_video_node(
             VideoContainer,  # vp9_container
             str,  # video_preset
             int,
-            AudioSettings,
-            AudioReducedSettings,
             bool,
             str,
             float,
             Any,
+            AudioSettings,
+            AudioReducedSettings,
         ],
     ):
         img = inputs[0]
