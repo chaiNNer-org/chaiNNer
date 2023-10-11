@@ -133,8 +133,13 @@ def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
 
 
 def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
+    if str(return_type).startswith("api.Iterator["):
+        return_type = get_args(return_type)[0]
+    elif str(return_type).startswith("api.Collector["):
+        return_type = get_args(return_type)[1]
+
     if len(outputs) == 0:
-        if return_type is not None:  # type: ignore
+        if return_type is not None and return_type is not type(None):  # type: ignore
             raise CheckFailedError(
                 f"Return type should be 'None' because there are no outputs"
             )
@@ -147,7 +152,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
-        if not str(return_type).startswith("typing.Tuple["):
+        if not (str(return_type).startswith("typing.Tuple[")):
             raise CheckFailedError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )

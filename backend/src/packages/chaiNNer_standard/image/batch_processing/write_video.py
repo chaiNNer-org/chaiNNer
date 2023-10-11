@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from subprocess import Popen
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 import cv2
 import ffmpeg
@@ -126,15 +126,20 @@ class Writer:
             .with_id(9),
         ),
         if_group(
-            ~Condition.enum(7, VideoContainer.WEBM)
-            | ~Condition.enum(3, VideoEncoder.VP9)
+            (
+                ~Condition.enum(7, VideoContainer.WEBM)
+                | ~Condition.enum(3, VideoEncoder.VP9)
+            )
+            & Condition.bool(14, True)
         )(
             EnumInput(label="Audio", enum=AudioSettings, default=AudioSettings.AUTO)
             .with_docs(AUDIO_SETTINGS_DOC)
             .with_id(10)
         ),
         if_group(
-            Condition.enum(7, VideoContainer.WEBM) & Condition.enum(3, VideoEncoder.VP9)
+            Condition.enum(7, VideoContainer.WEBM)
+            & Condition.enum(3, VideoEncoder.VP9)
+            & Condition.bool(14, True)
         )(
             EnumInput(
                 label="Audio",
@@ -156,10 +161,14 @@ class Writer:
                 hide_label=True,
                 allow_empty_string=True,
                 has_handle=False,
-            ).make_optional()
+            )
+            .make_optional()
+            .with_id(13)
         ),
-        NumberInput("FPS", default=30, minimum=1, controls_step=1, has_handle=True),
-        AudioStreamInput().make_optional(),
+        NumberInput(
+            "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=2
+        ).with_id(14),
+        AudioStreamInput().make_optional().with_id(15),
     ],
     outputs=[],
     node_type="collector",
@@ -169,17 +178,17 @@ def write_video_node(
     _frames: np.ndarray,
     save_dir: str,
     video_name: str,
-    video_encoder: str,
-    h264_container: str,
-    h265_container: str,
-    ffv1_container: str,
-    vp9_container: str,
+    video_encoder: VideoEncoder,
+    h264_container: VideoContainer,
+    h265_container: VideoContainer,
+    ffv1_container: VideoContainer,
+    vp9_container: VideoContainer,
     video_preset: str,
     crf: int,
     audio_settings: AudioSettings,
     audio_reduced_settings: AudioReducedSettings,
     advanced: bool,
-    additional_parameters: str,
+    additional_parameters: Optional[str],
     fps: float,
     audio: Any,
 ) -> Collector[
@@ -187,12 +196,12 @@ def write_video_node(
         np.ndarray,
         str,
         str,
-        str,
-        str,
-        str,
-        str,
-        str,
-        str,
+        VideoEncoder,  # encoder
+        VideoContainer,  # h264_container
+        VideoContainer,  # h265_container
+        VideoContainer,  # ffv1_container
+        VideoContainer,  # vp9_container
+        str,  # video_preset
         int,
         AudioSettings,
         AudioReducedSettings,
@@ -241,7 +250,7 @@ def write_video_node(
 
     # Append additional parameters
     global_params = list()
-    if advanced:
+    if advanced and additional_parameters is not None:
         additional_parameters = " " + " ".join(additional_parameters.split())
         additional_parameters_array = additional_parameters.split(" -")[1:]
         non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
@@ -277,12 +286,12 @@ def write_video_node(
             np.ndarray,
             str,
             str,
-            str,
-            str,
-            str,
-            str,
-            str,
-            str,
+            VideoEncoder,  # encoder
+            VideoContainer,  # h264_container
+            VideoContainer,  # h265_container
+            VideoContainer,  # ffv1_container
+            VideoContainer,  # vp9_container
+            str,  # video_preset
             int,
             AudioSettings,
             AudioReducedSettings,
