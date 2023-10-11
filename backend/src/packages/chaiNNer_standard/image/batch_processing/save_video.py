@@ -74,8 +74,8 @@ class Writer:
 
 
 @batch_processing_group.register(
-    schema_id="chainner:image:write_video",
-    name="Write Video",
+    schema_id="chainner:image:save_video",
+    name="Save Video",
     description=[
         "Combines an iterable sequence into a video, which it saves to a file.",
         "Uses FFMPEG to write video files.",
@@ -174,7 +174,7 @@ class Writer:
     node_type="collector",
     side_effects=True,
 )
-def write_video_node(
+def save_video_node(
     _frames: np.ndarray,
     save_dir: str,
     video_name: str,

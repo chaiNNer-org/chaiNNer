@@ -1586,7 +1586,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                             data: {
                                 ...node.data,
                                 id: saveHelper.id,
-                                schemaId: 'chainner:image:write_video' as SchemaId,
+                                schemaId: 'chainner:image:save_video' as SchemaId,
                                 inputData: newSaveInputData,
                             },
                             id: saveHelper.id,
