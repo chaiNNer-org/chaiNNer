@@ -34,7 +34,7 @@ const HandleElement = memo(
         const isIterator = nodeType === 'newIterator';
         const isCollector = nodeType === 'collector';
 
-        const aquaredHandle =
+        const squaredHandle =
             (isIterator && type === 'output') || (isCollector && type === 'input');
 
         return (
@@ -59,7 +59,7 @@ const HandleElement = memo(
                     <Box
                         bg="#1a192b"
                         border="1px solid white"
-                        borderRadius={aquaredHandle ? '25%' : '100%'}
+                        borderRadius={squaredHandle ? '25%' : '100%'}
                         className={`${type}-handle react-flow__handle react-flow__handle-${
                             type === 'input' ? 'left' : 'right'
                         }`}
@@ -79,7 +79,7 @@ const HandleElement = memo(
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         style={{
-                            borderRadius: aquaredHandle ? '25%' : '100%',
+                            borderRadius: squaredHandle ? '25%' : '100%',
                         }}
                     >
                         {children}
