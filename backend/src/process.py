@@ -4,7 +4,6 @@ import asyncio
 import functools
 import gc
 import time
-import types
 import uuid
 from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
