@@ -142,8 +142,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             ipcRenderer.send('stop-sleep-blocker');
             setPercentComplete(undefined);
             setIteratorProgress({});
+            unAnimate();
         }
-    }, [status]);
+    }, [status, unAnimate]);
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(url);
 
