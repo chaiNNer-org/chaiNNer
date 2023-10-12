@@ -40,7 +40,7 @@ export const RepresentativeNode = memo(
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(schemaId);
 
-        const isIterator = nodeType === 'iterator';
+        const isIterator = nodeType === 'newIterator' || nodeType === 'collector';
         let bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 100%)`;
         if (isIterator) {
             bgGradient = `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`;
