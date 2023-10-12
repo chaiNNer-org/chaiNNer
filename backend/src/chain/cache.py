@@ -118,7 +118,7 @@ class OutputCache(Generic[T]):
         if node_id in self.__counted:
             del self.__counted[node_id]
 
-    def deleteAll(self, node_ids: Iterable[NodeId]):
+    def delete_many(self, node_ids: Iterable[NodeId]):
         for node_id in node_ids:
             self.delete(node_id)
 

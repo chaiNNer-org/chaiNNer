@@ -738,7 +738,7 @@ class Executor:
             for index, values in enumerate(iter_result.iter_supplier()):
                 await self.queue.put(self.__create_node_start(iterator_node))
 
-                self.cache.deleteAll(downstream_nodes)
+                self.cache.delete_many(downstream_nodes)
                 enforced_values = enforce_output(
                     values, self.chain.nodes[iterator_node].get_node()
                 )
