@@ -84,7 +84,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [options] = useBackendSettings;
 
-    const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
 

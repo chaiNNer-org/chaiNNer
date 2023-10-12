@@ -1601,6 +1601,11 @@ const oldToNewIterators: ModernMigration = (data) => {
                         newNodes.push(newCollector);
                         nodesToDelete.add(saveHelper.id);
 
+                        saveHelperEdges.forEach((e) => {
+                            e.targetHandle = e.targetHandle?.replace(e.target, newCollector.id);
+                            e.target = newCollector.id;
+                        });
+
                         // Connect FPS and audio
                         const fpsEdge = {
                             id: deriveUniqueId(`${saveHelper.id}-fps`),
@@ -1613,8 +1618,6 @@ const oldToNewIterators: ModernMigration = (data) => {
                             data: {},
                         };
                         newEdges.push(fpsEdge);
-
-                        log.info({ newSaveInputData, inputData: saveHelper.data.inputData });
 
                         if (
                             !(

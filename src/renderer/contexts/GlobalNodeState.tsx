@@ -56,6 +56,10 @@ import {
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
 import {
+    gatherDownstreamIteratorNodes,
+    gatherUpstreamIteratorNodes,
+} from '../helpers/nodeGathering';
+import {
     PngDataUrl,
     saveDataUrlAsFile,
     takeScreenshot,
@@ -73,10 +77,6 @@ import {
     withNewDataMap,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
-import {
-    gatherDownstreamIteratorNodes,
-    gatherUpstreamIteratorNodes,
-} from '../helpers/nodeGathering';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     ChangeCounter,
