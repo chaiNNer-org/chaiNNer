@@ -261,13 +261,11 @@ export const runChainInCli = async (args: RunArguments) => {
         }
     });
     const finishedFreeNodes = new Set<string>();
-    addEventListener(eventSource, 'node-finish', ({ finished }) => {
+    addEventListener(eventSource, 'node-finish', ({ nodeId }) => {
         let didAdd = false;
-        for (const id of finished) {
-            if (freeNodes.has(id) && !finishedFreeNodes.has(id)) {
-                finishedFreeNodes.add(id);
-                didAdd = true;
-            }
+        if (freeNodes.has(nodeId) && !finishedFreeNodes.has(nodeId)) {
+            finishedFreeNodes.add(nodeId);
+            didAdd = true;
         }
         if (didAdd) {
             log.info(`Executed ${finishedFreeNodes.size}/${freeNodes.size} nodes`);
