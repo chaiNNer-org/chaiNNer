@@ -12,10 +12,11 @@ import {
     Text,
 } from '@chakra-ui/react';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { Node, OnConnectStartParams, useReactFlow } from 'reactflow';
+import { Edge, Node, OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
     Category,
+    EdgeData,
     InputId,
     NodeData,
     NodeSchema,
@@ -41,6 +42,10 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
+import {
+    gatherDownstreamIteratorNodes,
+    gatherUpstreamIteratorNodes,
+} from '../helpers/validationHelpers';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
@@ -266,7 +271,9 @@ const getConnectionTarget = (
     schema: NodeSchema,
     typeState: TypeState,
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
-    getNode: (id: string) => Node<NodeData> | undefined
+    getNode: (id: string) => Node<NodeData> | undefined,
+    nodes: Node<NodeData>[],
+    edges: Edge<EdgeData>[]
 ): ConnectionTarget | undefined => {
     if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
         return { type: 'none' };
@@ -288,6 +295,21 @@ const getConnectionTarget = (
 
             const input = getFirstPossibleInput(targetFn, sourceType);
             if (input === undefined) {
+                return undefined;
+            }
+
+            // Check for existing iterator lineage
+            const downstreamIters = gatherDownstreamIteratorNodes(
+                getNode(connectingFrom.nodeId)!,
+                nodes,
+                edges
+            );
+            const upstreamIters = gatherUpstreamIteratorNodes(
+                getNode(connectingFrom.nodeId)!,
+                nodes,
+                edges
+            );
+            if (downstreamIters.size > 0 || upstreamIters.size > 0) {
                 return undefined;
             }
 
@@ -355,7 +377,7 @@ export const usePaneNodeSearchMenu = (
     const [, setGlobalConnectingFrom] = useConnectingFrom;
     const [stoppedOnIterator, setStoppedOnIterator] = useState<string | null>(null);
 
-    const { getNode, project } = useReactFlow();
+    const { getNode, project, getNodes, getEdges } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
@@ -368,14 +390,24 @@ export const usePaneNodeSearchMenu = (
                     schema,
                     typeState,
                     functionDefinitions,
-                    getNode
+                    getNode,
+                    getNodes(),
+                    getEdges()
                 );
                 if (!target) return [];
 
                 return [[schema, target] as const];
             })
         );
-    }, [connectingFrom, schemata, typeState, functionDefinitions, getNode]);
+    }, [
+        schemata.schemata,
+        connectingFrom,
+        typeState,
+        functionDefinitions,
+        getNode,
+        getNodes,
+        getEdges,
+    ]);
     const matchingSchemata = useMemo(() => [...matchingTargets.keys()], [matchingTargets]);
 
     const onSchemaSelect = useCallback(

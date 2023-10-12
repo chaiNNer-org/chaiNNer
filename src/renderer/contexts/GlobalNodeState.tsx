@@ -7,7 +7,6 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
-    getIncomers,
     getOutgoers,
     useReactFlow,
     useViewport,
@@ -74,6 +73,10 @@ import {
     withNewDataMap,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
+import {
+    gatherDownstreamIteratorNodes,
+    gatherUpstreamIteratorNodes,
+} from '../helpers/validationHelpers';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     ChangeCounter,
@@ -953,39 +956,27 @@ export const GlobalProvider = memo(
                 // - neither the source nor the target have iterator lineage
                 // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
 
-                const gatherDownstreamIteratorNodes = (node: Node<NodeData>) => {
-                    const outgoers = getOutgoers(node, nodes, edges);
-                    const results = new Set<string>();
-                    for (const child of outgoers) {
-                        if (child.type === 'newIterator') {
-                            results.add(child.id);
-                        }
-                        for (const other of gatherDownstreamIteratorNodes(child)) {
-                            results.add(other);
-                        }
-                    }
-                    return results;
-                };
+                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(
+                    sourceNode,
+                    nodes,
+                    edges
+                );
+                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(
+                    sourceNode,
+                    nodes,
+                    edges
+                );
 
-                const gatherUpstreamIteratorNodes = (node: Node<NodeData>) => {
-                    const incomers = getIncomers(node, nodes, edges);
-                    const results = new Set<string>();
-                    for (const parent of incomers) {
-                        if (parent.type === 'newIterator') {
-                            results.add(parent.id);
-                        }
-                        for (const other of gatherUpstreamIteratorNodes(parent)) {
-                            results.add(other);
-                        }
-                    }
-                    return results;
-                };
-
-                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(sourceNode);
-                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(sourceNode);
-
-                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(targetNode);
-                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(targetNode);
+                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(
+                    targetNode,
+                    nodes,
+                    edges
+                );
+                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(
+                    targetNode,
+                    nodes,
+                    edges
+                );
 
                 const sourceHasIteratorLineage =
                     sourceDownstreamIterNodes.size > 0 ||
