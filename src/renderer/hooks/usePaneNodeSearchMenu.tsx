@@ -278,6 +278,7 @@ const getConnectionTarget = (
     if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
         return { type: 'none' };
     }
+    const sourceNode = getNode(connectingFrom.nodeId);
     switch (connectingFrom.handleType) {
         case 'source': {
             const { outputId } = parseSourceHandle(connectingFrom.handleId);
@@ -309,14 +310,17 @@ const getConnectionTarget = (
                 nodes,
                 edges
             );
-            if (downstreamIters.size > 0 || upstreamIters.size > 0) {
+            const hasIteratorLineage =
+                downstreamIters.size > 0 ||
+                upstreamIters.size > 0 ||
+                sourceNode?.type === 'newIterator';
+            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
                 return undefined;
             }
 
             return { type: 'source', input };
         }
         case 'target': {
-            const sourceNode = getNode(connectingFrom.nodeId);
             if (!sourceNode) {
                 return undefined;
             }
@@ -337,6 +341,17 @@ const getConnectionTarget = (
 
             const output = getFirstPossibleOutput(targetFn, sourceFn, inputId);
             if (output === undefined) {
+                return undefined;
+            }
+
+            // Check for existing iterator lineage
+            const downstreamIters = gatherDownstreamIteratorNodes(sourceNode, nodes, edges);
+            const upstreamIters = gatherUpstreamIteratorNodes(sourceNode, nodes, edges);
+            const hasIteratorLineage =
+                downstreamIters.size > 0 ||
+                upstreamIters.size > 0 ||
+                sourceNode.type === 'newIterator';
+            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
                 return undefined;
             }
 
