@@ -25,12 +25,15 @@ class ExecutionErrorData(TypedDict):
 
 
 class NodeFinishData(TypedDict):
-    finished: List[NodeId]
     nodeId: NodeId
     executionTime: Optional[float]
     data: Optional[Dict[OutputId, object]]
     types: Optional[Dict[OutputId, object]]
     progressPercent: Optional[float]
+
+
+class NodeStartData(TypedDict):
+    nodeId: NodeId
 
 
 class IteratorProgressUpdateData(TypedDict):
@@ -71,6 +74,11 @@ class NodeFinishEvent(TypedDict):
     data: NodeFinishData
 
 
+class NodeStartEvent(TypedDict):
+    event: Literal["node-start"]
+    data: NodeStartData
+
+
 class IteratorProgressUpdateEvent(TypedDict):
     event: Literal["iterator-progress-update"]
     data: IteratorProgressUpdateData
@@ -95,6 +103,7 @@ Event = Union[
     FinishEvent,
     ExecutionErrorEvent,
     NodeFinishEvent,
+    NodeStartEvent,
     IteratorProgressUpdateEvent,
     NodeProgressUpdateEvent,
     BackendStatusEvent,

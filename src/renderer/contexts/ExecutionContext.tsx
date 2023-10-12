@@ -84,7 +84,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [options] = useBackendSettings;
 
-    const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
 
@@ -147,7 +147,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(url);
 
-    useBackendEventSourceListener(eventSource, 'finish', () => setStatus(ExecutionStatus.READY));
+    useBackendEventSourceListener(eventSource, 'finish', () => {
+        setStatus(ExecutionStatus.READY);
+        unAnimate();
+    });
 
     useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
         if (data) {
@@ -170,8 +173,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         useCallback(
             (eventData) => {
                 if (eventData) {
-                    const { finished, nodeId, executionTime, data, types, progressPercent } =
-                        eventData;
+                    const { nodeId, executionTime, data, types, progressPercent } = eventData;
 
                     // TODO: This is incorrect. The inputs of the node might have changed since
                     // the chain started running. However, sending the then current input hashes
@@ -194,7 +196,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         }
                     }
 
-                    unAnimate([nodeId, ...finished]);
+                    unAnimate([nodeId]);
                 }
             },
             [unAnimate, outputDataActions, getInputHash]
@@ -202,6 +204,22 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         500
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
+
+    const updateNodeStart = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'node-start'>>
+    >(
+        useCallback(
+            (eventData) => {
+                if (eventData && status === ExecutionStatus.RUNNING) {
+                    const { nodeId } = eventData;
+                    animate([nodeId]);
+                }
+            },
+            [status, animate]
+        ),
+        500
+    );
+    useBackendEventSourceListener(eventSource, 'node-start', updateNodeStart);
 
     const updateIteratorProgress = useThrottledCallback<
         BackendEventSourceListener<'iterator-progress-update'>

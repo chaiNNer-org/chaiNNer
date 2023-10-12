@@ -41,11 +41,11 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import {
     gatherDownstreamIteratorNodes,
     gatherUpstreamIteratorNodes,
-} from '../helpers/validationHelpers';
+} from '../helpers/nodeGathering';
+import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';

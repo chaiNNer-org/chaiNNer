@@ -449,6 +449,8 @@ class Executor:
         logger.debug(f"node: {node}")
         logger.debug(f"Running node {node.id}")
 
+        await self.queue.put(self.__create_node_start(node.id))
+
         await self.progress.suspend()
 
         inputs = []
@@ -557,7 +559,6 @@ class Executor:
                 {
                     "event": "node-finish",
                     "data": {
-                        "finished": finished,
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,
@@ -581,7 +582,6 @@ class Executor:
                 {
                     "event": "node-finish",
                     "data": {
-                        "finished": finished,
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": None,
@@ -602,12 +602,19 @@ class Executor:
         return {
             "event": "node-finish",
             "data": {
-                "finished": finished,
                 "nodeId": node_id,
                 "executionTime": None,
                 "data": None,
                 "types": None,
                 "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
+            },
+        }
+
+    def __create_node_start(self, node_id: NodeId) -> Event:
+        return {
+            "event": "node-start",
+            "data": {
+                "nodeId": node_id,
             },
         }
 
@@ -730,6 +737,7 @@ class Executor:
             times: List[float] = []
             enforced_values = None
             for index, values in enumerate(iter_result.iter_supplier()):
+                await self.queue.put(self.__create_node_start(iterator_node))
                 # self.cache.delete(iterator_node)
                 self.cache.clear()
                 enforced_values = enforce_output(

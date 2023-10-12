@@ -36,3 +36,35 @@ export const gatherUpstreamIteratorNodes = (
     }
     return results;
 };
+
+export const gatherDownstreamNodes = (
+    node: Node<NodeData>,
+    nodes: Node<NodeData>[],
+    edges: Edge<EdgeData>[]
+) => {
+    const outgoers = getOutgoers(node, nodes, edges);
+    const results = new Set<string>();
+    for (const child of outgoers) {
+        results.add(child.id);
+        for (const other of gatherDownstreamNodes(child, nodes, edges)) {
+            results.add(other);
+        }
+    }
+    return results;
+};
+
+export const gatherUpstreamNodes = (
+    node: Node<NodeData>,
+    nodes: Node<NodeData>[],
+    edges: Edge<EdgeData>[]
+) => {
+    const incomers = getIncomers(node, nodes, edges);
+    const results = new Set<string>();
+    for (const parent of incomers) {
+        results.add(parent.id);
+        for (const other of gatherUpstreamNodes(parent, nodes, edges)) {
+            results.add(other);
+        }
+    }
+    return results;
+};

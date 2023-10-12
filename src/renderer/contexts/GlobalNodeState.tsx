@@ -76,7 +76,7 @@ import { GetSetState, SetState } from '../helpers/types';
 import {
     gatherDownstreamIteratorNodes,
     gatherUpstreamIteratorNodes,
-} from '../helpers/validationHelpers';
+} from '../helpers/nodeGathering';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     ChangeCounter,
