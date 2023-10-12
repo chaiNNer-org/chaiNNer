@@ -59,6 +59,9 @@ class NewIteratorNode:
             self.__node = node
         return self.__node
 
+    def has_side_effects(self) -> bool:
+        return self.get_node().side_effects
+
 
 class CollectorNode:
     def __init__(self, node_id: NodeId, schema_id: str):
