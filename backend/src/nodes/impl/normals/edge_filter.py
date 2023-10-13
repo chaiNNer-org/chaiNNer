@@ -145,8 +145,6 @@ def create_gauss_kernel(parameters: List[Tuple[float, float]]) -> np.ndarray:
                 s / len(x_offsets) * -np.sign(x)
             )
 
-    print(kernel)
-
     return kernel
 
 
