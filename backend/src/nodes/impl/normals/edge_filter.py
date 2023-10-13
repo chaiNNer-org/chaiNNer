@@ -104,7 +104,7 @@ def create_gauss_kernel(parameters: List[Tuple[float, float]]) -> np.ndarray:
     # has a nice article about this, so look it up if you want to know more:
     # https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function
     #
-    # We will one scaled gauss function for each parameter scaled by its weight.
+    # We will use one scaled gauss function for each parameter scaled by its weight.
     # All gauss function will then be added together. This means that the total
     # volume will be the sum of all weights.
 
