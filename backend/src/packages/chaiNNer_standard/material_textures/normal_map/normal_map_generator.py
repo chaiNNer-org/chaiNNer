@@ -135,6 +135,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(8),
             SliderInput(
                 "Scale 2",
@@ -144,6 +145,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(9),
             SliderInput(
                 "Scale 3",
@@ -153,6 +155,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(10),
             SliderInput(
                 "Scale 4",
@@ -162,6 +165,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(11),
             SliderInput(
                 "Scale 5",
@@ -171,6 +175,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(12),
             SliderInput(
                 "Scale 6",
@@ -180,6 +185,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(13),
             SliderInput(
                 "Scale 7",
@@ -189,6 +195,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(14),
             SliderInput(
                 "Scale 8",
@@ -198,6 +205,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 precision=3,
                 controls_step=0.1,
                 scale="log-offset",
+                has_handle=False,
             ).with_id(15),
         ),
         NormalChannelInvertInput()

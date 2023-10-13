@@ -56,8 +56,9 @@ class NumberInput(BaseInput):
         kind: InputKind = "number",
         hide_trailing_zeros: bool = True,
         hide_label: bool = False,
+        has_handle: bool = True,
     ):
-        super().__init__("number", label, kind=kind, has_handle=True)
+        super().__init__("number", label, kind=kind, has_handle=has_handle)
         self.precision = precision
         # controls_step is for increment/decrement arrows.
         self.controls_step: Union[float, int] = (
@@ -125,6 +126,7 @@ class SliderInput(NumberInput):
         hide_trailing_zeros: bool = False,
         gradient: Union[List[str], None] = None,
         scale: Literal["linear", "log", "log-offset", "sqrt"] = "linear",
+        has_handle: bool = True,
     ):
         super().__init__(
             label,
@@ -137,6 +139,7 @@ class SliderInput(NumberInput):
             note_expression=note_expression,
             kind="slider",
             hide_trailing_zeros=hide_trailing_zeros,
+            has_handle=has_handle,
         )
         self.ends = ends
         self.slider_step = (
