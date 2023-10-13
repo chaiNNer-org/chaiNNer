@@ -124,4 +124,4 @@ def load_video_node(
             yield in_frame, index, video_dir, video_name, fps, audio_stream
             index += 1
 
-    return Iterator(iter_supplier=iterator, expected_length=frame_count)
+    return Iterator.from_iter(iter_supplier=iterator, expected_length=frame_count)

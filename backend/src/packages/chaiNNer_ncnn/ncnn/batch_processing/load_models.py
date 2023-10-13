@@ -48,17 +48,23 @@ def load_models_node(
 ) -> Iterator[Tuple[NcnnModelWrapper, str, str, str, int]]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    just_param_files: List[str] = list_all_files_sorted(directory, [".param"])
-    just_bin_files: List[str] = list_all_files_sorted(directory, [".bin"])
+    def load_model(filepath_pairs: Tuple[str, str], index: int):
+        model, dirname, basename = load_model_node(filepath_pairs[0], filepath_pairs[1])
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path = os.path.relpath(dirname, directory)
+        return model, directory, rel_path, basename, index
 
-    if len(just_param_files) != len(just_bin_files):
+    param_files: List[str] = list_all_files_sorted(directory, [".param"])
+    bin_files: List[str] = list_all_files_sorted(directory, [".bin"])
+
+    if len(param_files) != len(bin_files):
         raise ValueError(
             "The number of param files and bin files are not the same. Please check"
             " your directory."
         )
 
     # Check if the filenames match
-    for param_file, bin_file in zip(just_param_files, just_bin_files):
+    for param_file, bin_file in zip(param_files, bin_files):
         param_file_name, _ = os.path.splitext(param_file)
         bin_file_name, _ = os.path.splitext(bin_file)
 
@@ -68,17 +74,6 @@ def load_models_node(
                 " Please check your files."
             )
 
-    just_model_files = list(zip(just_param_files, just_bin_files))
+    model_files = list(zip(param_files, bin_files))
 
-    length = len(just_model_files)
-
-    def iterator():
-        for idx, filepath_pairs in enumerate(just_model_files):
-            model, dirname, basename = load_model_node(
-                filepath_pairs[0], filepath_pairs[1]
-            )
-            # Get relative path from root directory passed by Iterator directory input
-            rel_path = os.path.relpath(dirname, directory)
-            yield model, directory, rel_path, basename, idx
-
-    return Iterator(iter_supplier=iterator, expected_length=length)
+    return Iterator.from_list(model_files, load_model)
