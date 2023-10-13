@@ -377,6 +377,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     type: AlertType.ERROR,
                     message: `An unexpected error occurred: ${String(err)}`,
                 });
+                setTimeout(() => {
+                    unAnimate();
+                }, 1000);
             }
         } finally {
             unAnimate();
