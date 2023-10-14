@@ -460,9 +460,6 @@ class Executor:
                 processed_input = await self.process(node_input.id)
                 assert not isinstance(processed_input, Iterator)
                 assert not isinstance(processed_input, Collector)
-                # if isinstance(processed_input, Iterator):
-                #     processed_input = next(processed_input.iterator_supplier())
-                # Grab the right index from the output
                 inputs.append(processed_input[node_input.index])
             # Otherwise, just use the given input (number, string, etc)
             else:
@@ -494,25 +491,14 @@ class Executor:
                 ),
             )
             assert isinstance(output, Iterator)
-            # output = next(output_gen)
 
             await self.progress.suspend()
-            # await self.__broadcast_data(node_instance, node.id, execution_time, output)  # type: ignore
         elif node_instance.type == "collector":
             collector_node = self.collector_cache[node.id]
             collector_node.on_iterate(inputs)
-            # output, execution_time = await self.loop.run_in_executor(
-            #     self.pool,
-            #     timed_supplier(
-            #         functools.partial(run_node, node_instance, inputs, node.id)
-            #     ),
-            # )
-            # assert isinstance(output, Collector)
-            # output = output_gen
             output = None
 
             await self.progress.suspend()
-            # await self.__broadcast_data(node_instance, node.id, execution_time, output)  # type: ignore
         else:
             output, execution_time = await self.loop.run_in_executor(
                 self.pool,
