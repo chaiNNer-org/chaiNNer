@@ -621,12 +621,7 @@ class Executor:
         output_nodes: List[NodeId] = []
         for node in self.chain.nodes.values():
             # we assume that iterator node always have side effects
-            side_effects = (
-                isinstance(node, IteratorNode)
-                or isinstance(node, NewIteratorNode)
-                or isinstance(node, CollectorNode)
-                or node.has_side_effects()
-            )
+            side_effects = isinstance(node, IteratorNode) or node.has_side_effects()
             if node.parent is None and side_effects:
                 output_nodes.append(node.id)
         return output_nodes
