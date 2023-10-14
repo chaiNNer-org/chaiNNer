@@ -30,13 +30,13 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.0.1",
+                version="2.1.0",
                 size_estimate=55.8 * MB,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.15.2",
+                version="0.16.0",
                 size_estimate=1.3 * MB,
             ),
         ]
@@ -45,10 +45,10 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.0.1+cu118" if nvidia_is_available else "2.0.1",
+                version="2.1.0+cu121" if nvidia_is_available else "2.1.0",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url=(
-                    "https://download.pytorch.org/whl/cu118"
+                    "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
                     else None
                 ),
@@ -56,10 +56,10 @@ def get_pytorch():
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.15.2+cu118" if nvidia_is_available else "0.15.2",
+                version="0.16.0+cu121" if nvidia_is_available else "0.16.0",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url=(
-                    "https://download.pytorch.org/whl/cu118"
+                    "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
                     else None
                 ),
