@@ -950,7 +950,7 @@ export const GlobalProvider = memo(
 
                 // Connections cannot be made if:
                 // - The source has iterator lineage AND the target has iterator lineage
-                // Connects CAN be made if:
+                // Connections CAN be made if:
                 // - the source has iterator lineage AND the target does not
                 // - the target has iterator lineage AND the source does not
                 // - neither the source nor the target have iterator lineage
