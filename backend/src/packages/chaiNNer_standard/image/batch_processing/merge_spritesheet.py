@@ -12,12 +12,12 @@ from .. import batch_processing_group
 
 
 @batch_processing_group.register(
-    schema_id="chainner:image:spritesheet_collector",
-    name="Spritesheet Collector",
+    schema_id="chainner:image:merge_spritesheet",
+    name="Merge Spritesheet",
     description=[
         "Combines an iterable sequence into a single image spritesheet.",
     ],
-    icon="MdLoop",
+    icon="BsGrid3X3",
     inputs=[
         ImageInput("Image Sequence"),
         NumberInput(
@@ -51,7 +51,7 @@ from .. import batch_processing_group
     ],
     node_type="collector",
 )
-def spritesheet_collector_node(
+def merge_spritesheet_node(
     _tile: np.ndarray,
     rows: int,
     columns: int,

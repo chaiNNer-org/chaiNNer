@@ -34,7 +34,7 @@ from nodes.properties.inputs.generic_inputs import AudioStreamInput
 from nodes.properties.inputs.numeric_inputs import NumberInput
 from nodes.utils.utils import get_h_w_c
 
-from .. import batch_processing_group
+from .. import video_frames_group
 
 ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
 ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
@@ -73,7 +73,7 @@ class Writer:
     audio_settings: AudioSettings = AudioSettings.AUTO
 
 
-@batch_processing_group.register(
+@video_frames_group.register(
     schema_id="chainner:image:save_video",
     name="Save Video",
     description=[

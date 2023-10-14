@@ -1486,7 +1486,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:image:spritesheet_iterator_load',
-                    'chainner:image:spritesheet_iterator'
+                    'chainner:image:split_spritesheet'
                 );
 
                 const subNodes = nodesByParentNodes.get(node.id);
@@ -1501,7 +1501,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                         data: {
                             ...node.data,
                             id: appendHelper.id,
-                            schemaId: 'chainner:image:spritesheet_collector' as SchemaId,
+                            schemaId: 'chainner:image:merge_spritesheet' as SchemaId,
                             inputData: { ...appendHelperInputs },
                         },
                         id: appendHelper.id,

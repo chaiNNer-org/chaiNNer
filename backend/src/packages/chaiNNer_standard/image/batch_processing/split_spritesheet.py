@@ -13,13 +13,13 @@ from .. import batch_processing_group
 
 
 @batch_processing_group.register(
-    schema_id="chainner:image:spritesheet_iterator",
-    name="Spritesheet Iterator",
+    schema_id="chainner:image:split_spritesheet",
+    name="Split Spritesheet",
     description=[
         "Iterate over sub-images in a single image spritesheet.",
         "This iterator splits the image into an iterable sequence of tiles.",
     ],
-    icon="MdLoop",
+    icon="BsFillGrid3X3GapFill",
     inputs=[
         ImageInput("Spritesheet"),
         NumberInput(
@@ -54,7 +54,7 @@ from .. import batch_processing_group
     ],
     node_type="newIterator",
 )
-def spritesheet_iterator_node(
+def split_spritesheet_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,

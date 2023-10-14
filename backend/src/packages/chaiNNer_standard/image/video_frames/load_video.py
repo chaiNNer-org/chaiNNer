@@ -19,13 +19,13 @@ from nodes.properties.outputs import (
 )
 from nodes.utils.utils import split_file_path
 
-from .. import batch_processing_group
+from .. import video_frames_group
 
 ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
 ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
 
-@batch_processing_group.register(
+@video_frames_group.register(
     schema_id="chainner:image:load_video",
     name="Load Video",
     description=[
