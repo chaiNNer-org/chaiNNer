@@ -19,29 +19,12 @@ class FunctionNode:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
-        self.parent: Union[NodeId, None] = None
-        self.is_helper: bool = False
 
     def get_node(self) -> NodeData:
         return registry.get_node(self.schema_id)
 
     def has_side_effects(self) -> bool:
         return self.get_node().side_effects
-
-
-class IteratorNode:
-    def __init__(self, node_id: NodeId, schema_id: str):
-        self.id: NodeId = node_id
-        self.schema_id: str = schema_id
-        self.parent: None = None
-        self.__node = None
-
-    def get_node(self) -> NodeData:
-        if self.__node is None:
-            node = registry.get_node(self.schema_id)
-            assert node.type == "iterator", "Invalid iterator node"
-            self.__node = node
-        return self.__node
 
 
 class NewIteratorNode:
@@ -82,7 +65,7 @@ class CollectorNode:
         return self.get_node().side_effects
 
 
-Node = Union[FunctionNode, IteratorNode, NewIteratorNode, CollectorNode]
+Node = Union[FunctionNode, NewIteratorNode, CollectorNode]
 
 
 class EdgeSource:
@@ -137,19 +120,3 @@ class Chain:
             self.__edges_by_target[e.target.id].remove(e)
         for e in self.__edges_by_target.pop(node_id, []):
             self.__edges_by_source[e.source.id].remove(e)
-
-        if isinstance(node, IteratorNode):
-            # remove all child nodes
-            for n in list(self.nodes.values()):
-                if n.parent == node_id:
-                    self.remove_node(n.id)
-
-
-class SubChain:
-    def __init__(self, chain: Chain, iterator_id: NodeId):
-        self.nodes: Dict[NodeId, FunctionNode] = {}
-        self.iterator_id = iterator_id
-
-        for node in chain.nodes.values():
-            if node.parent is not None and node.parent == iterator_id:
-                self.nodes[node.id] = node

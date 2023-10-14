@@ -72,21 +72,18 @@ export const useInputRefactor = (
                         inputIndex = schema.inputs.findIndex((i) => i.id === inputId);
                     }
 
-                    createNode(
-                        {
-                            id: valueNodeId,
-                            position: {
-                                x: (containingNode?.position.x ?? 0) - 300,
-                                y: (containingNode?.position.y ?? 0) - 30 + inputIndex * 50,
-                            },
-                            data: {
-                                schemaId: valueNodeMap[specificInput.kind],
-                                inputData: { [0 as InputId]: value },
-                            },
-                            nodeType: 'regularNode',
+                    createNode({
+                        id: valueNodeId,
+                        position: {
+                            x: (containingNode?.position.x ?? 0) - 300,
+                            y: (containingNode?.position.y ?? 0) - 30 + inputIndex * 50,
                         },
-                        containingNode?.parentNode
-                    );
+                        data: {
+                            schemaId: valueNodeMap[specificInput.kind],
+                            inputData: { [0 as InputId]: value },
+                        },
+                        nodeType: 'regularNode',
+                    });
                     createEdge(
                         { nodeId: valueNodeId, outputId: 0 as OutputId },
                         { nodeId, inputId }

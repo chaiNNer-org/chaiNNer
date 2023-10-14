@@ -174,15 +174,11 @@ class NodeGroup:
 
             run_check(
                 TYPE_CHECK_LEVEL,
-                lambda _: check_schema_types(
-                    wrapped_func, node_type, p_inputs, p_outputs
-                ),
+                lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
             )
             run_check(
                 NAME_CHECK_LEVEL,
-                lambda fix: check_naming_conventions(
-                    wrapped_func, node_type, name, fix
-                ),
+                lambda fix: check_naming_conventions(wrapped_func, name, fix),
             )
 
             if decorators is not None:

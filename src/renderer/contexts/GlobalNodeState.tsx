@@ -18,7 +18,6 @@ import {
     InputId,
     InputKind,
     InputValue,
-    IteratorSize,
     Mutable,
     NodeData,
     OutputId,
@@ -41,7 +40,6 @@ import {
     ParsedSourceHandle,
     ParsedTargetHandle,
     createUniqueId,
-    deepCopy,
     deriveUniqueId,
     lazy,
     parseSourceHandle,
@@ -71,10 +69,8 @@ import {
     copyNodes,
     createNode as createNodeImpl,
     defaultIteratorSize,
-    expandSelection,
     setSelected,
     withNewData,
-    withNewDataMap,
 } from '../helpers/reactFlowUtil';
 import { GetSetState, SetState } from '../helpers/types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -109,7 +105,6 @@ interface GlobalVolatile {
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
-    hoveredNode: string | undefined;
     collidingEdge: string | undefined;
     collidingNode: string | undefined;
     isAnimated: (nodeId: string) => boolean;
@@ -129,7 +124,7 @@ interface Global {
     selectNode: (nodeId: string) => void;
     animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
-    createNode: (proto: NodeProto, parentId?: string) => void;
+    createNode: (proto: NodeProto) => void;
     createEdge: (from: ParsedSourceHandle, to: ParsedTargetHandle) => void;
     createConnection: (connection: Connection) => void;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
@@ -141,14 +136,7 @@ interface Global {
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
     clearNodes: (ids: readonly string[]) => void;
-    setIteratorSize: (id: string, size: IteratorSize) => void;
-    updateIteratorBounds: (
-        id: string,
-        iteratorSize: IteratorSize | null,
-        dimensions?: Size
-    ) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
-    setHoveredNode: (value: string | undefined) => void;
     setCollidingEdge: (value: string | undefined) => void;
     setCollidingNode: (value: string | undefined) => void;
     setZoom: SetState<number>;
@@ -156,7 +144,6 @@ interface Global {
     exportViewportScreenshotToClipboard: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
-    releaseNodeFromParent: (id: string) => void;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
@@ -339,14 +326,6 @@ export const GlobalProvider = memo(
             },
             [setSavePathInternal, pushOpenPath]
         );
-
-        const hoveredNodeRef = useRef<string>();
-        // eslint-disable-next-line react/hook-use-state
-        const [hoveredNode, setHoveredNodeImpl] = useState<string | undefined>();
-        const setHoveredNode = useCallback((value: string | undefined) => {
-            hoveredNodeRef.current = value;
-            setHoveredNodeImpl(value);
-        }, []);
 
         const [collidingEdge, setCollidingEdge] = useState<string | undefined>();
         const [collidingNode, setCollidingNode] = useState<string | undefined>();
@@ -748,20 +727,15 @@ export const GlobalProvider = memo(
 
                 const filteredIds = ids.filter((id) => {
                     const node = getNode(id);
-                    return !(!node || node.type === 'iteratorHelper');
+                    return !!node;
                 });
-                const toRemove = new Set([
-                    ...filteredIds,
-                    ...getNodes()
-                        .filter((n) => n.parentNode && filteredIds.includes(n.parentNode))
-                        .map((n) => n.id),
-                ]);
+                const toRemove = new Set(filteredIds);
                 changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
                 changeEdges((edges) =>
                     edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
                 );
             },
-            [changeNodes, changeEdges, getNode, getNodes]
+            [changeNodes, changeEdges, getNode]
         );
 
         const removeEdgeById = useCallback(
@@ -786,14 +760,12 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (proto: NodeProto, parentId?: string): void => {
+            (proto: NodeProto): void => {
                 changeNodes((nodes) => {
-                    const searchId = parentId ?? hoveredNodeRef.current;
-                    const parent = searchId ? nodes.find((n) => n.id === searchId) : undefined;
-                    const newNodes = createNodeImpl(proto, schemata, parent, true);
+                    const newNode = createNodeImpl(proto, schemata, true);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
-                        ...newNodes,
+                        newNode,
                     ];
                 });
             },
@@ -823,6 +795,7 @@ export const GlobalProvider = memo(
             },
             [changeEdges]
         );
+
         const createEdge = useCallback(
             (from: ParsedSourceHandle, to: ParsedTargetHandle): void => {
                 createConnection({
@@ -833,40 +806,6 @@ export const GlobalProvider = memo(
                 });
             },
             [createConnection]
-        );
-
-        const releaseNodeFromParent = useCallback(
-            (id: string) => {
-                const nodes = getNodes();
-                const edges = getEdges();
-                const node = nodes.find((n) => n.id === id);
-                let newNodes = nodes;
-                if (node && node.parentNode) {
-                    const parentNode = nodes.find((n) => n.id === node.parentNode);
-                    if (parentNode) {
-                        const newNode: Node<Mutable<NodeData>> = deepCopy(node);
-                        delete newNode.parentNode;
-                        delete newNode.data.parentNode;
-                        delete newNode.extent;
-                        delete newNode.positionAbsolute;
-                        newNode.position = {
-                            x: parentNode.position.x - 100,
-                            y: parentNode.position.y - 100,
-                        };
-                        newNodes = [...nodes.filter((n) => n.id !== node.id), newNode];
-                    }
-                }
-                changeNodes(newNodes);
-                const sourceEdges = edges.filter((e) => e.target === id);
-                const filteredEdges = edges.filter((e) => {
-                    const invalidSources = nodes
-                        .filter((n) => n.parentNode && sourceEdges.some((ed) => ed.source === n.id))
-                        .map((n) => n.id);
-                    return !invalidSources.includes(e.source);
-                });
-                changeEdges(filteredEdges);
-            },
-            [changeNodes, changeEdges, getNodes, getEdges]
         );
 
         const isValidConnection = useCallback(
@@ -922,8 +861,8 @@ export const GlobalProvider = memo(
                 const nodes = getNodes();
                 const edges = getEdges();
 
-                const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(parentNode, nodes, edges);
+                const checkTargetChildren = (startNode: Node<NodeData>): boolean => {
+                    const targetChildren = getOutgoers(startNode, nodes, edges);
                     if (!targetChildren.length) {
                         return false;
                     }
@@ -936,13 +875,6 @@ export const GlobalProvider = memo(
                 };
                 const isLoop = checkTargetChildren(targetNode);
                 if (isLoop) return invalid('Connection would create an infinite loop.');
-
-                const iteratorLock =
-                    !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
-
-                if (!iteratorLock) {
-                    return invalid('Cannot create a connection to/from an iterator in this way.');
-                }
 
                 if (sourceNode.type === 'newIterator' && targetNode.type === 'newIterator') {
                     return invalid('Cannot connect two iterators.');
@@ -1190,76 +1122,9 @@ export const GlobalProvider = memo(
             [connectedInputsMap]
         );
 
-        const setIteratorSize = useCallback(
-            (id: string, size: IteratorSize) => {
-                modifyNode(id, (old) => {
-                    return withNewData(old, 'iteratorSize', size);
-                });
-            },
-            [modifyNode]
-        );
-
-        // TODO: this can probably be cleaned up but its good enough for now
-        const updateIteratorBounds = useCallback(
-            (id: string, iteratorSize: IteratorSize | null, dimensions?: Size) => {
-                changeNodes((nodes) => {
-                    const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
-                    const iteratorNode = nodes.find((n) => n.id === id);
-                    if (iteratorNode && nodesToUpdate.length > 0) {
-                        const { width, height, offsetTop, offsetLeft } =
-                            iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
-                        let minWidth = 256;
-                        let minHeight = 256;
-                        nodesToUpdate.forEach((n) => {
-                            minWidth = Math.max(n.width ?? dimensions?.width ?? minWidth, minWidth);
-                            minHeight = Math.max(
-                                n.height ?? dimensions?.height ?? minHeight,
-                                minHeight
-                            );
-                        });
-                        const newNodes = nodesToUpdate.map((n) => {
-                            const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
-                            const hBound =
-                                height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
-                            const newNode: Node<NodeData> = {
-                                ...n,
-                                extent: [
-                                    [offsetLeft, offsetTop],
-                                    [wBound, hBound],
-                                ],
-                                position: {
-                                    x: Math.min(Math.max(n.position.x, offsetLeft), wBound),
-                                    y: Math.min(Math.max(n.position.y, offsetTop), hBound),
-                                },
-                            };
-                            return newNode;
-                        });
-
-                        return [
-                            withNewDataMap(iteratorNode, {
-                                minWidth,
-                                minHeight,
-                                iteratorSize: {
-                                    offsetTop,
-                                    offsetLeft,
-                                    width: Math.max(width, minWidth),
-                                    height: Math.max(height, minHeight),
-                                },
-                            }),
-                            ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
-                            ...newNodes,
-                        ];
-                    }
-
-                    return nodes;
-                });
-            },
-            [changeNodes]
-        );
-
         const duplicateNodes = useCallback(
             (ids: readonly string[], withInputEdges = false) => {
-                const nodesToCopy = expandSelection(getNodes(), ids);
+                const nodesToCopy = new Set(ids);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>
@@ -1268,7 +1133,6 @@ export const GlobalProvider = memo(
                 changeNodes((nodes) => {
                     const newNodes = copyNodes(
                         nodes.filter((n) => nodesToCopy.has(n.id)),
-                        deriveId,
                         deriveId
                     );
                     const derivedIds = ids.map((id) => deriveId(id));
@@ -1311,7 +1175,7 @@ export const GlobalProvider = memo(
                     return [...setSelected(edges, false), ...newEdge];
                 });
             },
-            [getNodes, changeNodes, changeEdges]
+            [changeNodes, changeEdges]
         );
 
         const clearNodes = useCallback(
@@ -1456,7 +1320,6 @@ export const GlobalProvider = memo(
             effectivelyDisabledNodes,
             isValidConnection,
             zoom,
-            hoveredNode,
             collidingEdge,
             collidingNode,
             isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
@@ -1489,9 +1352,6 @@ export const GlobalProvider = memo(
             removeNodesById,
             removeEdgeById,
             duplicateNodes,
-            updateIteratorBounds,
-            setIteratorSize,
-            setHoveredNode,
             setCollidingEdge,
             setCollidingNode,
             setNodeDisabled,
@@ -1500,7 +1360,6 @@ export const GlobalProvider = memo(
             exportViewportScreenshotToClipboard,
             setManualOutputType,
             typeStateRef,
-            releaseNodeFromParent,
             outputDataActions,
             getInputHash,
             hasRelevantUnsavedChangesRef,

@@ -222,29 +222,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
     useBackendEventSourceListener(eventSource, 'node-start', updateNodeStart);
 
-    const updateIteratorProgress = useThrottledCallback<
-        BackendEventSourceListener<'iterator-progress-update'>
-    >(
-        useCallback(
-            (data) => {
-                if (data) {
-                    const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
-
-                    if (runningNodes && status === ExecutionStatus.RUNNING) {
-                        animate(runningNodes);
-                    } else if (status !== ExecutionStatus.RUNNING) {
-                        unAnimate();
-                    }
-                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
-                }
-            },
-            [animate, setIteratorProgressImpl, status, unAnimate]
-        ),
-        100,
-        { trailing: true }
-    );
-    useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
-
     const updateNodeProgress = useThrottledCallback<
         BackendEventSourceListener<'node-progress-update'>
     >(

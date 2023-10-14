@@ -8,7 +8,6 @@ import ReactFlow, {
     BackgroundVariant,
     ControlButton,
     Controls,
-    CoordinateExtent,
     Edge,
     EdgeTypes,
     Node,
@@ -42,127 +41,12 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
-import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
-
-const STARTING_Z_INDEX = 50;
-/**
- * We want the nodes and edges to form the following layers:
- *
- * - Iterator node 1
- * - Nodes inside iterator 1
- * - Iterator node 2
- * - Nodes inside iterator 2
- * - ...
- * - Related iterator node 1
- * - Related nodes inside iterator 1
- * - Related iterator node 2
- * - Related nodes inside iterator 2
- * - ...
- * - Free nodes
- * - Selected nodes
- *   - Same relative order as not-selected nodes
- *
- * Note that child nodes of selected iterator nodes are implicitly selected as well.
- *
- * Related iterator nodes are the parent nodes of a currently selected child node.
- * Related nodes inside iterators are the sibling nodes of a currently selected child node.
- *
- * The zIndex of an edge will be `max(source, target) - 1`. Note that `-1` doesn't mean
- * "the layer below", but "in between this layer and the below layer".
- * The only exception is when the edge is selected but neither its not its target are selected.
- * In this case, the edge will to be in the highest selected layer.
- */
-const updateZIndexes = (
-    nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[]
-): void => {
-    const selectedIterators = new Set<string>();
-    const relatedIterators = new Set<string>();
-    /** Maps each iterator id to the relative position of the iterator in the node array */
-    const iteratorIndexMap = new Map<string, number>();
-    const byId = new Map<string, Node<NodeData>>();
-
-    // go through all nodes to collect some information
-    for (const n of nodes) {
-        byId.set(n.id, n);
-
-        if (n.type === 'iterator') {
-            iteratorIndexMap.set(n.id, iteratorIndexMap.size);
-            if (n.selected) {
-                selectedIterators.add(n.id);
-                relatedIterators.delete(n.id);
-            }
-        } else if (n.parentNode) {
-            if (n.selected && !selectedIterators.has(n.parentNode)) {
-                relatedIterators.add(n.parentNode);
-            }
-        }
-    }
-
-    const getIteratorZIndex = (id: string): number => {
-        const iterIndex = iteratorIndexMap.get(id) ?? 0;
-        return STARTING_Z_INDEX + iterIndex * 4;
-    };
-
-    const iteratorsRange = iteratorIndexMap.size * 4;
-
-    const FREE_NODES_INDEX = STARTING_Z_INDEX + iteratorsRange * 2;
-    const RELATED_ADD = iteratorsRange;
-    const SELECTED_ADD = iteratorsRange * 2 + 20;
-    const MIN_SELECTED_INDEX = STARTING_Z_INDEX + SELECTED_ADD;
-
-    // set the zIndex of all nodes
-    for (const n of nodes) {
-        if (n.type === 'iterator') {
-            // Iterator
-
-            let zIndex = getIteratorZIndex(n.id);
-            if (n.selected) {
-                zIndex += SELECTED_ADD;
-            } else if (relatedIterators.has(n.id)) {
-                zIndex += RELATED_ADD;
-            }
-            n.zIndex = zIndex;
-        } else if (n.parentNode) {
-            // Iterator child node
-
-            let zIndex = getIteratorZIndex(n.parentNode) + 2;
-            if (n.selected || selectedIterators.has(n.parentNode)) {
-                zIndex += SELECTED_ADD;
-            } else if (relatedIterators.has(n.parentNode)) {
-                zIndex += RELATED_ADD;
-            }
-            n.zIndex = zIndex;
-        } else {
-            // Free node
-
-            let zIndex = FREE_NODES_INDEX;
-            if (n.selected) {
-                zIndex += SELECTED_ADD;
-            }
-            n.zIndex = zIndex;
-        }
-    }
-
-    // set the zIndex of all edges
-    for (const e of edges) {
-        let zIndex = Math.max(
-            byId.get(e.source)?.zIndex ?? STARTING_Z_INDEX,
-            byId.get(e.target)?.zIndex ?? STARTING_Z_INDEX
-        );
-
-        if (e.selected && zIndex < MIN_SELECTED_INDEX) {
-            zIndex += SELECTED_ADD;
-        }
-
-        e.zIndex = zIndex - 1;
-    }
-};
 
 interface ReactFlowBoxProps {
     nodeTypes: NodeTypes;
@@ -174,7 +58,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const { closeContextMenu } = useContext(ContextMenuContext);
     const {
         setZoom,
-        setHoveredNode,
         setCollidingEdge,
         setCollidingNode,
         addNodeChanges,
@@ -224,8 +107,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const [displayNodes, displayEdges] = useMemo(() => {
         const displayNodes = nodes.map<Node<NodeData>>((n) => ({ ...n })).sort(compareById);
         const displayEdges = edges.map<Edge<EdgeData>>((e) => ({ ...e })).sort(compareById);
-
-        updateZIndexes(displayNodes, displayEdges);
 
         if (isSnapToGrid) {
             for (const n of displayNodes) {
@@ -405,7 +286,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [altPressed, setCollidingEdge, setCollidingNode]);
 
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, node: Node<NodeData> | null) => {
             if (node && altPressed) {
                 const mousePosition = {
                     // React flow's type for the event is incorrect. This value exists.
@@ -422,90 +303,24 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     setCollidingNode(undefined);
                 }
             }
-            const newNodes: Node<NodeData>[] = [];
-            const edgesToRemove: Edge[] = [];
-            const allIterators = nodes.filter((n) => n.type === 'iterator');
-            const draggedNodeIds = draggedNodes.map((n) => n.id);
-            draggedNodes.forEach((node) => {
-                if (!node.parentNode && node.type === 'regularNode') {
-                    const iterInBounds = allIterators.find(
-                        (iterator) =>
-                            iterator.position.x + (iterator.data.iteratorSize?.offsetLeft ?? 0) <
-                                node.position.x &&
-                            iterator.position.y + (iterator.data.iteratorSize?.offsetTop ?? 0) <
-                                node.position.y &&
-                            iterator.position.x + (iterator.width ?? 0) >
-                                node.position.x + (node.width ?? 0) &&
-                            iterator.position.y + (iterator.height ?? 0) >
-                                node.position.y + (node.height ?? 0)
-                    );
-                    if (iterInBounds) {
-                        const {
-                            offsetTop = 0,
-                            offsetLeft = 0,
-                            width = 0,
-                            height = 0,
-                        } = iterInBounds.data.iteratorSize ?? {};
-                        const wBound = width - (node.width ?? 0) + offsetLeft;
-                        const hBound = height - (node.height ?? 0) + offsetTop;
-                        const newNode = {
-                            ...node,
-                            data: { ...node.data, parentNode: iterInBounds.id },
-                            parentNode: iterInBounds.id,
-                            extent: [
-                                [offsetLeft, offsetTop],
-                                [wBound, hBound],
-                            ] as CoordinateExtent,
-                            position: {
-                                x: node.position.x - iterInBounds.position.x,
-                                y: node.position.y - iterInBounds.position.y,
-                            },
-                        };
-
-                        edgesToRemove.push(
-                            ...edges.filter((e) => {
-                                if (e.source === node.id) {
-                                    const target = nodes.find((n) => n.id === e.target);
-                                    if (target && !draggedNodeIds.includes(target.id)) {
-                                        return target.parentNode !== iterInBounds.id;
-                                    }
-                                }
-                                return false;
-                            })
-                        );
-
-                        newNodes.push(newNode);
-                    }
-                }
-            });
-            if (newNodes.length > 0) {
-                changeNodes((oldNodes) => [
-                    ...oldNodes.filter((n) => !newNodes.map((n) => n.id).includes(n.id)),
-                    ...newNodes,
-                ]);
-                changeEdges((oldEdges) => oldEdges.filter((e) => !edgesToRemove.includes(e)));
-            }
 
             addNodeChanges();
             addEdgeChanges();
         },
         [
             altPressed,
-            nodes,
             addNodeChanges,
             addEdgeChanges,
             performNodeOnEdgeCollisionDetection,
             setCollidingEdge,
             setCollidingNode,
-            edges,
-            changeNodes,
-            changeEdges,
         ]
     );
 
     const onSelectionDragStop = useCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (event: React.MouseEvent, nNodes: Node<NodeData>[]) => {
-            onNodeDragStop(event, null, nNodes);
+            onNodeDragStop(event, null);
         },
         [onNodeDragStop]
     );
@@ -513,10 +328,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const onNodesDelete = useCallback(
         (toDelete: readonly Node<NodeData>[]) => {
             changeNodes((nodes) => {
-                const ids = expandSelection(
-                    nodes,
-                    toDelete.map((n) => n.id)
-                );
+                const ids = new Set(toDelete.map((n) => n.id));
                 return nodes.filter((n) => !ids.has(n.id));
             });
         },
@@ -541,10 +353,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         // eslint-disable-next-line no-param-reassign
         event.dataTransfer.dropEffect = 'move';
     }, []);
-
-    const onDragStart = useCallback(() => {
-        setHoveredNode(undefined);
-    }, [setHoveredNode]);
 
     const wrapper = wrapperRef.current;
     const onDrop = useCallback(
@@ -627,13 +435,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             w="100%"
         >
             <ReactFlow
+                elevateEdgesOnSelect
+                elevateNodesOnSelect
                 connectionLineContainerStyle={{ zIndex: 1000 }}
                 connectionRadius={15}
                 deleteKeyCode={deleteKeyCode}
                 edgeTypes={edgeTypes}
                 edges={displayEdges}
-                elevateEdgesOnSelect={false}
-                elevateNodesOnSelect={false}
                 maxZoom={8}
                 minZoom={0.125}
                 multiSelectionKeyCode={multiSelectionKeyCode}
@@ -649,7 +457,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 onConnectEnd={onConnectStop}
                 onConnectStart={onConnectStart}
                 onDragOver={onDragOver}
-                onDragStart={onDragStart}
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}

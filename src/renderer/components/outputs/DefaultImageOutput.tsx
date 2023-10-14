@@ -64,24 +64,21 @@ export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProp
                         const outputIndex = schema.outputs.findIndex((o) => o.id === output.id);
 
                         // TODO: This is a bit of hardcoding, but it works
-                        createNode(
-                            {
-                                id: nodeId,
-                                position: {
-                                    x:
-                                        containingNode.position.x +
-                                        (containingNode.width ?? 0) +
-                                        75 +
-                                        outputIndex * 20,
-                                    y: containingNode.position.y + outputIndex * 30,
-                                },
-                                data: {
-                                    schemaId: VIEW_SCHEMA_ID,
-                                },
-                                nodeType: 'regularNode',
+                        createNode({
+                            id: nodeId,
+                            position: {
+                                x:
+                                    containingNode.position.x +
+                                    (containingNode.width ?? 0) +
+                                    75 +
+                                    outputIndex * 20,
+                                y: containingNode.position.y + outputIndex * 30,
                             },
-                            containingNode.parentNode
-                        );
+                            data: {
+                                schemaId: VIEW_SCHEMA_ID,
+                            },
+                            nodeType: 'regularNode',
+                        });
                         createEdge(
                             { nodeId: id, outputId: output.id },
                             { nodeId, inputId: 0 as InputId }

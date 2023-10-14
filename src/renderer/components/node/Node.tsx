@@ -1,6 +1,6 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { DragEvent, memo, useMemo, useRef } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
@@ -14,7 +14,7 @@ import {
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
@@ -62,11 +62,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { schema, setInputValue } = nodeState;
 
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
     const { categories } = useContext(BackendContext);
     const { getNodeProgress } = useContext(ExecutionContext);
 
-    const { id, inputData, parentNode } = data;
+    const { id, inputData } = data;
     const nodeProgress = getNodeProgress(id);
 
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
@@ -87,7 +86,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     );
 
     const targetRef = useRef<HTMLDivElement>(null);
-    const [checkedSize, setCheckedSize] = useState(false);
 
     const collidingAccentColor = useContextSelector(
         GlobalVolatileContext,
@@ -106,16 +104,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             return undefined;
         }
     );
-
-    useLayoutEffect(() => {
-        if (targetRef.current && parentNode) {
-            updateIteratorBounds(parentNode, null, {
-                width: targetRef.current.offsetWidth,
-                height: targetRef.current.offsetHeight,
-            });
-            setCheckedSize(true);
-        }
-    }, [checkedSize, targetRef.current?.offsetHeight, updateIteratorBounds, parentNode]);
 
     const fileInput = useMemo(() => getSingleFileInput(inputs), [inputs]);
 
@@ -194,11 +182,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             ref={targetRef}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}
-            onDragEnter={() => {
-                if (parentNode) {
-                    setHoveredNode(parentNode);
-                }
-            }}
             onDragOver={onDragOver}
             onDrop={onDrop}
         >
@@ -217,7 +200,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         icon={schema.icon}
                         name={schema.name}
                         nodeProgress={nodeProgress}
-                        parentNode={parentNode}
                         selected={selected}
                     />
                     <NodeBody

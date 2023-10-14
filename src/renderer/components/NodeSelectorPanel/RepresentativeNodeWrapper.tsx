@@ -55,7 +55,7 @@ interface RepresentativeNodeWrapperProps {
 
 export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
-        const { reactFlowWrapper, setHoveredNode, createNode } = useContext(GlobalContext);
+        const { reactFlowWrapper, createNode } = useContext(GlobalContext);
         const { featureStates } = useContext(BackendContext);
         const reactFlowInstance = useReactFlow();
         const { openNodeDocumentation } = useContext(NodeDocumentationContext);
@@ -178,13 +178,9 @@ export const RepresentativeNodeWrapper = memo(
                                     setDidSingleClick(false);
                                     createNodeFromSelector();
                                 }}
-                                onDragEnd={() => {
-                                    setHoveredNode(undefined);
-                                }}
                                 onDragStart={(event) => {
                                     setDidSingleClick(false);
                                     onDragStart(event, node);
-                                    setHoveredNode(undefined);
                                 }}
                             >
                                 <RepresentativeNode

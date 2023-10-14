@@ -45,14 +45,6 @@ const computeInputHashes = (
                 }
             }
 
-            const parent = byId.get(node.parentNode!);
-            if (input.kind === 'generic' && !input.hasHandle && parent) {
-                // Auto inputs of iterator helper nodes depend on the parent iterator
-                inputs.push(getInputHash(parent));
-                // eslint-disable-next-line no-continue
-                continue;
-            }
-
             const value = node.data.inputData[input.id];
             // eslint-disable-next-line eqeqeq
             if (value == undefined) {

@@ -9,8 +9,6 @@ import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
 import { Header } from './components/Header/Header';
 import { HistoryProvider } from './components/HistoryProvider';
-import { IteratorHelperNode } from './components/node/IteratorHelperNode';
-import { IteratorNode } from './components/node/IteratorNode';
 import { Node } from './components/node/Node';
 import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
 import { ReactFlowBox } from './components/ReactFlowBox';
@@ -26,8 +24,6 @@ import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
     regularNode: Node,
-    iterator: IteratorNode,
-    iteratorHelper: IteratorHelperNode,
     newIterator: Node,
     collector: Node,
 };

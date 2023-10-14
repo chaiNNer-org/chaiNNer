@@ -57,17 +57,17 @@ export const CustomEdge = memo(
         );
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
-        const parentNode = useMemo(() => getNode(source)!, [source, getNode]);
+        const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { removeEdgeById } = useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
         const { outputId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
         const definitionType =
-            functionDefinitions.get(parentNode.data.schemaId)?.outputDefaults.get(outputId) ??
+            functionDefinitions.get(edgeParentNode.data.schemaId)?.outputDefaults.get(outputId) ??
             NeverType.instance;
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(source)?.outputs.get(outputId)
@@ -125,7 +125,6 @@ export const CustomEdge = memo(
                 }}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
-                onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}

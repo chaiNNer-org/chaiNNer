@@ -237,7 +237,7 @@ export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> 
     ? T
     : never;
 
-export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper' | 'newIterator' | 'collector';
+export type NodeType = 'regularNode' | 'newIterator' | 'collector';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputHeight = Readonly<Record<InputId, number>>;
@@ -272,7 +272,6 @@ export interface DefaultNode {
 
 export interface NodeData {
     readonly id: string;
-    readonly parentNode?: string;
     readonly schemaId: SchemaId;
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
@@ -282,7 +281,6 @@ export interface NodeData {
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
     readonly invalid?: boolean;
-    readonly iteratorSize?: Readonly<IteratorSize>;
     readonly minWidth?: number;
     readonly minHeight?: number;
 }
@@ -422,7 +420,6 @@ export interface BackendJsonNode {
     schemaId: SchemaId;
     inputs: BackendJsonInput[];
     nodeType: string;
-    parent: string | null;
 }
 
 export interface WindowSize {

@@ -7,7 +7,6 @@ import pathlib
 from enum import Enum
 from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
-from custom_types import NodeType
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 
@@ -174,7 +173,6 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
 
 def check_schema_types(
     wrapped_func: Callable,
-    node_type: NodeType,
     inputs: list[BaseInput],
     outputs: list[BaseOutput],
 ):
@@ -194,19 +192,6 @@ def check_schema_types(
     for arg in arg_spec.args:
         if not arg in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg}'")
-
-    if node_type == "iteratorHelper":
-        # iterator helpers have inputs that do not describe the arguments of the function, so we can't check them
-        return
-
-    if node_type == "iterator":
-        # the last argument of an iterator is the iterator context, so we have to account for that
-        context = [*ann.keys()][-1]
-        context_type = ann.pop(context)
-        if str(context_type) != "<class 'process.IteratorContext'>":
-            raise CheckFailedError(
-                f"Last argument of an iterator must be an IteratorContext, not '{context_type}'"
-            )
 
     if arg_spec.varargs is not None:
         if not arg_spec.varargs in ann:
@@ -255,7 +240,6 @@ def check_schema_types(
 
 def check_naming_conventions(
     wrapped_func: Callable,
-    node_type: NodeType,
     name: str,
     fix: bool,
 ):
@@ -268,9 +252,6 @@ def check_naming_conventions(
         .replace(")", "")
         .replace("&", "and")
     )
-
-    if node_type == "iteratorHelper":
-        expected_name = "iterator_helper_" + expected_name
 
     func_name = wrapped_func.__name__
     file_path = pathlib.Path(inspect.getfile(wrapped_func))
@@ -289,7 +270,7 @@ def check_naming_conventions(
         file_path.write_text(fixed_code, encoding="utf-8")
 
     # check file name
-    if node_type != "iteratorHelper" and file_name != expected_name:
+    if file_name != expected_name:
         if not fix:
             raise CheckFailedError(
                 f"File name is '{file_name}.py', but it should be '{expected_name}.py'"

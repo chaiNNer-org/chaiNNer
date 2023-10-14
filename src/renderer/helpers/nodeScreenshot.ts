@@ -12,14 +12,12 @@ interface Rect {
 }
 
 const getNodesBoundingBox = (nodes: readonly Node<NodeData>[]): Rect | undefined => {
-    const freeNodes = nodes.filter((n) => !n.parentNode);
+    if (nodes.length === 0) return undefined;
 
-    if (freeNodes.length === 0) return undefined;
-
-    const minX = Math.min(...freeNodes.map((n) => n.position.x));
-    const minY = Math.min(...freeNodes.map((n) => n.position.y));
-    const maxX = Math.max(...freeNodes.map((n) => n.position.x + (n.width ?? 0)));
-    const maxY = Math.max(...freeNodes.map((n) => n.position.y + (n.height ?? 0)));
+    const minX = Math.min(...nodes.map((n) => n.position.x));
+    const minY = Math.min(...nodes.map((n) => n.position.y));
+    const maxX = Math.max(...nodes.map((n) => n.position.x + (n.width ?? 0)));
+    const maxY = Math.max(...nodes.map((n) => n.position.y + (n.height ?? 0)));
 
     return {
         x: minX,

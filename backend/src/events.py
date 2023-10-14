@@ -79,11 +79,6 @@ class NodeStartEvent(TypedDict):
     data: NodeStartData
 
 
-class IteratorProgressUpdateEvent(TypedDict):
-    event: Literal["iterator-progress-update"]
-    data: IteratorProgressUpdateData
-
-
 class NodeProgressUpdateEvent(TypedDict):
     event: Literal["node-progress-update"]
     data: NodeProgressUpdateData
@@ -104,7 +99,6 @@ Event = Union[
     ExecutionErrorEvent,
     NodeFinishEvent,
     NodeStartEvent,
-    IteratorProgressUpdateEvent,
     NodeProgressUpdateEvent,
     BackendStatusEvent,
     BackendStateEvent,

@@ -7,7 +7,7 @@ import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
+import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 
 interface ClipboardChain {
@@ -16,10 +16,7 @@ interface ClipboardChain {
 }
 
 const getCopySelection = (nodes: readonly Node<NodeData>[]): Set<string> => {
-    return expandSelection(
-        nodes,
-        nodes.filter((n) => n.selected).map((n) => n.id)
-    );
+    return new Set(nodes.filter((n) => n.selected).map((n) => n.id));
 };
 
 export const copyToClipboard = (
@@ -76,10 +73,10 @@ export const pasteFromClipboard = (
                 const currentIds = new Set(nodes.map((n) => n.id));
                 const newIds = new Set(chain.nodes.map((n) => n.id));
 
-                const newNodes = copyNodes(chain.nodes, deriveId, (oldId) => {
+                const newNodes = copyNodes(chain.nodes, (oldId) => {
                     if (newIds.has(oldId)) return deriveId(oldId);
                     if (currentIds.has(oldId)) return oldId;
-                    return undefined;
+                    return oldId;
                 });
 
                 return [...setSelected(nodes, false), ...setSelected(newNodes, true)];

@@ -250,25 +250,16 @@ export const runChainInCli = async (args: RunArguments) => {
     ensureStaticCorrectness({ nodes, edges }, schemata, functionDefinitions);
 
     // progress
-    const freeNodes = new Set(nodes.filter((n) => !n.parentNode).map((n) => n.id));
-    const lastIteratorPercentage = new Map<string, number>();
-    addEventListener(eventSource, 'iterator-progress-update', ({ iteratorId, percent }) => {
-        const node = nodesById.get(iteratorId);
-        if (node && percent < 1 && lastIteratorPercentage.get(iteratorId) !== percent) {
-            lastIteratorPercentage.set(iteratorId, percent);
-            const schema = schemata.get(node.data.schemaId);
-            log.info(`${schema.name} at ${(percent * 100).toFixed(1)}%`);
-        }
-    });
+    const nodeIds = new Set(nodes.map((n) => n.id));
     const finishedFreeNodes = new Set<string>();
     addEventListener(eventSource, 'node-finish', ({ nodeId }) => {
         let didAdd = false;
-        if (freeNodes.has(nodeId) && !finishedFreeNodes.has(nodeId)) {
+        if (nodeIds.has(nodeId) && !finishedFreeNodes.has(nodeId)) {
             finishedFreeNodes.add(nodeId);
             didAdd = true;
         }
         if (didAdd) {
-            log.info(`Executed ${finishedFreeNodes.size}/${freeNodes.size} nodes`);
+            log.info(`Executed ${finishedFreeNodes.size}/${nodeIds.size} nodes`);
         }
     });
 
