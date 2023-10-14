@@ -990,22 +990,24 @@ export const GlobalProvider = memo(
                 const sourceIters = new Set([
                     ...sourceDownstreamIterNodes,
                     ...sourceUpstreamIterNodes,
+                    ...(sourceNode.type === 'newIterator' ? [sourceNode.id] : []),
                 ]);
 
                 const targetIters = new Set([
                     ...targetDownstreamIterNodes,
                     ...targetUpstreamIterNodes,
+                    ...(targetNode.type === 'newIterator' ? [targetNode.id] : []),
                 ]);
 
                 const intersectionSource = new Set(
-                    [...sourceIters].filter((x) => !targetIters.has(x))
+                    [...sourceIters].filter((x) => targetIters.has(x))
                 );
                 const intersectionTarget = new Set(
-                    [...targetIters].filter((x) => !sourceIters.has(x))
+                    [...targetIters].filter((x) => sourceIters.has(x))
                 );
 
                 const sourceAndTargetShareSameLineage =
-                    intersectionSource.size === 0 && intersectionTarget.size === 0;
+                    intersectionSource.size > 0 && intersectionTarget.size > 0;
 
                 if (
                     sourceHasIteratorLineage &&
