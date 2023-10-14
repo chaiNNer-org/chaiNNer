@@ -57,36 +57,41 @@ def load_image_pairs_node(
     use_limit: bool,
     limit: int,
 ) -> Iterator[Tuple[np.ndarray, np.ndarray, str, str, str, str, str, str, int]]:
+    def load_images(filepaths: Tuple[str, str], index: int):
+        path_a, path_b = filepaths
+        img_a, img_dir_a, basename_a = load_image_node(path_a)
+        img_b, img_dir_b, basename_b = load_image_node(path_b)
+
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path_a = os.path.relpath(img_dir_a, directory_a)
+        rel_path_b = os.path.relpath(img_dir_b, directory_b)
+        return (
+            img_a,
+            img_b,
+            directory_a,
+            directory_b,
+            rel_path_a,
+            rel_path_b,
+            basename_a,
+            basename_b,
+            index,
+        )
+
     supported_filetypes = get_available_image_formats()
 
-    just_image_files_a: List[str] = list_all_files_sorted(
-        directory_a, supported_filetypes
-    )
-    just_image_files_b: List[str] = list_all_files_sorted(
-        directory_b, supported_filetypes
-    )
+    image_files_a: List[str] = list_all_files_sorted(directory_a, supported_filetypes)
+    image_files_b: List[str] = list_all_files_sorted(directory_b, supported_filetypes)
 
-    assert len(just_image_files_a) == len(just_image_files_b), (
+    assert len(image_files_a) == len(image_files_b), (
         "Number of images in directories A and B must be equal. "
-        f"Directory A: {directory_a} has {len(just_image_files_a)} images. "
-        f"Directory B: {directory_b} has {len(just_image_files_b)} images."
+        f"Directory A: {directory_a} has {len(image_files_a)} images. "
+        f"Directory B: {directory_b} has {len(image_files_b)} images."
     )
 
     if use_limit:
-        just_image_files_a = just_image_files_a[:limit]
-        just_image_files_b = just_image_files_b[:limit]
+        image_files_a = image_files_a[:limit]
+        image_files_b = image_files_b[:limit]
 
-    length = len(just_image_files_a)
+    image_files = list(zip(image_files_a, image_files_b))
 
-    def iterator():
-        for idx, filepaths in enumerate(zip(just_image_files_a, just_image_files_b)):
-            path_a, path_b = filepaths
-            img_a, img_dir_a, basename_a = load_image_node(path_a)
-            img_b, img_dir_b, basename_b = load_image_node(path_b)
-
-            # Get relative path from root directory passed by Iterator directory input
-            rel_path_a = os.path.relpath(img_dir_a, directory_a)
-            rel_path_b = os.path.relpath(img_dir_b, directory_b)
-            yield img_a, img_b, directory_a, directory_b, rel_path_a, rel_path_b, basename_a, basename_b, idx,
-
-    return Iterator(iter_supplier=iterator, expected_length=length)
+    return Iterator.from_list(image_files, load_images)

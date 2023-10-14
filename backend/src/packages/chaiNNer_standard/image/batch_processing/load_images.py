@@ -89,6 +89,12 @@ def load_images_node(
     use_limit: bool,
     limit: int,
 ) -> Iterator[Tuple[np.ndarray, str, str, str, int]]:
+    def load_image(path: str, index: int):
+        img, img_dir, basename = load_image_node(path)
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path = os.path.relpath(img_dir, directory)
+        return img, directory, rel_path, basename, index
+
     supported_filetypes = get_available_image_formats()
 
     if not use_glob:
@@ -101,13 +107,4 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    length = len(just_image_files)
-
-    def iterator():
-        for idx, path in enumerate(just_image_files):
-            img, img_dir, basename = load_image_node(path)
-            # Get relative path from root directory passed by Iterator directory input
-            rel_path = os.path.relpath(img_dir, directory)
-            yield img, directory, rel_path, basename, idx
-
-    return Iterator(iter_supplier=iterator, expected_length=length)
+    return Iterator.from_list(just_image_files, load_image)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
+from typing import Tuple
 
 from sanic.log import logger
 
@@ -48,17 +48,13 @@ def load_models_node(
 ) -> Iterator[Tuple[OnnxModel, str, str, str, int]]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
+    def load_model(path: str, index: int):
+        model, dirname, basename = load_model_node(path)
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path = os.path.relpath(dirname, directory)
+        return model, directory, rel_path, basename, index
+
     supported_filetypes = [".onnx"]
+    model_files = list_all_files_sorted(directory, supported_filetypes)
 
-    just_model_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
-
-    length = len(just_model_files)
-
-    def iterator():
-        for idx, path in enumerate(just_model_files):
-            model, dirname, basename = load_model_node(path)
-            # Get relative path from root directory passed by Iterator directory input
-            rel_path = os.path.relpath(dirname, directory)
-            yield model, directory, rel_path, basename, idx
-
-    return Iterator(iter_supplier=iterator, expected_length=length)
+    return Iterator.from_list(model_files, load_model)
