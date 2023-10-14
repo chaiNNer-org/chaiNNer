@@ -117,7 +117,7 @@ def enforce_output(raw_output: object, node: NodeData) -> Output:
 
 
 def run_node(
-    node: NodeData, inputs: Iterable[object], node_id: NodeId
+    node: NodeData, inputs: List[object], node_id: NodeId
 ) -> Output | Iterator | Collector:
     assert (
         node.type == "regularNode"
