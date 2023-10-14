@@ -127,6 +127,7 @@ class SliderInput(NumberInput):
         hide_trailing_zeros: bool = False,
         gradient: Union[List[str], None] = None,
         scale: Literal["linear", "log", "log-offset", "sqrt"] = "linear",
+        has_handle: bool = True,
     ):
         super().__init__(
             label,
@@ -139,6 +140,7 @@ class SliderInput(NumberInput):
             note_expression=note_expression,
             kind="slider",
             hide_trailing_zeros=hide_trailing_zeros,
+            has_handle=has_handle,
         )
         self.ends = ends
         self.slider_step = (
