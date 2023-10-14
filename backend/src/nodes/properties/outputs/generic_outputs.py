@@ -93,3 +93,12 @@ class ColorOutput(BaseOutput):
             )
 
         return value
+
+
+class AudioStreamOutput(BaseOutput):
+    def __init__(self, label: str = "Audio Stream"):
+        super().__init__(
+            output_type="AudioStream",
+            label=label,
+            kind="generic",
+        )

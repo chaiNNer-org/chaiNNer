@@ -420,7 +420,6 @@ class VideoContainer(Enum):
     WEBM = "webm"
     AVI = "avi"
     GIF = "gif"
-    NONE = "none"
 
 
 VIDEO_CONTAINERS = {
@@ -430,23 +429,7 @@ VIDEO_CONTAINERS = {
     VideoContainer.WEBM: "WebM",
     VideoContainer.AVI: "avi",
     VideoContainer.GIF: "GIF",
-    VideoContainer.NONE: "None",
 }
-
-
-VIDEO_NONE_CONTAINERS: List[VideoContainer] = [VideoContainer.NONE, VideoContainer.GIF]
-
-
-def VideoNoneContainerDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoContainer",
-        label="Container",
-        options=[
-            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
-            for vc in VIDEO_NONE_CONTAINERS
-        ],
-        associated_type=VideoContainer,
-    )
 
 
 VIDEO_FFV1_CONTAINERS: List[VideoContainer] = [VideoContainer.MKV]
@@ -527,7 +510,6 @@ class VideoEncoder(Enum):
     H265 = "libx265"
     VP9 = "libvpx-vp9"
     FFV1 = "ffv1"
-    NONE = "none"
 
 
 VIDEO_ENCODER_LABELS = {
@@ -535,7 +517,6 @@ VIDEO_ENCODER_LABELS = {
     VideoEncoder.H265: "H.265 (HEVC)",
     VideoEncoder.VP9: "VP9",
     VideoEncoder.FFV1: "FFV1",
-    VideoEncoder.NONE: "None",
 }
 
 
@@ -664,3 +645,8 @@ def DdsMipMapsDropdown() -> DropDownInput:
             {"option": "No", "value": 1},
         ],
     )
+
+
+class AudioStreamInput(BaseInput):
+    def __init__(self, label: str = "Audio Stream"):
+        super().__init__("AudioStream", label, kind="generic")

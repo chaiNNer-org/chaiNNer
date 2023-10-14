@@ -251,17 +251,21 @@ async def run_individual(request: Request):
                 ),
             )
             # Cache the output of the node
-            ctx.cache[node_id] = output
+            if not isinstance(output, api.Iterator) and not isinstance(
+                output, api.Collector
+            ):
+                ctx.cache[node_id] = output
 
         # Broadcast the output from the individual run
         node_outputs = node_instance.outputs
         if len(node_outputs) > 0:
+            assert not isinstance(output, api.Iterator)
+            assert not isinstance(output, api.Collector)
             data, types = compute_broadcast(output, node_outputs)
             await ctx.queue.put(
                 {
                     "event": "node-finish",
                     "data": {
-                        "finished": [],
                         "nodeId": node_id,
                         "executionTime": execution_time,
                         "data": data,

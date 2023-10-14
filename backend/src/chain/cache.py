@@ -1,5 +1,5 @@
 import gc
-from typing import Dict, Generic, Optional, Set, TypeVar
+from typing import Dict, Generic, Iterable, Optional, Set, TypeVar
 
 from sanic.log import logger
 
@@ -111,3 +111,17 @@ class OutputCache(Generic[T]):
             self.__static[node_id] = value
         else:
             self.__counted[node_id] = _CacheEntry(value, strategy.hits_to_live)
+
+    def delete(self, node_id: NodeId):
+        if node_id in self.__static:
+            del self.__static[node_id]
+        if node_id in self.__counted:
+            del self.__counted[node_id]
+
+    def delete_many(self, node_ids: Iterable[NodeId]):
+        for node_id in node_ids:
+            self.delete(node_id)
+
+    def clear(self):
+        self.__static.clear()
+        self.__counted.clear()

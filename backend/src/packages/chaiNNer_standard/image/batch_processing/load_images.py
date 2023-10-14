@@ -5,18 +5,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
-from sanic.log import logger
 from wcmatch import glob
 
+from api import Iterator
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
-from nodes.properties.inputs import (
-    BoolInput,
-    DirectoryInput,
-    IteratorInput,
-    NumberInput,
-    TextInput,
-)
+from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput, TextInput
 from nodes.properties.outputs import (
     DirectoryOutput,
     ImageOutput,
@@ -24,12 +18,9 @@ from nodes.properties.outputs import (
     TextOutput,
 )
 from nodes.utils.utils import alphanumeric_sort
-from process import IteratorContext
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
-
-IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
 
 def extension_filter(lst: List[str]) -> str:
@@ -56,43 +47,13 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
 
 
 @batch_processing_group.register(
-    schema_id=IMAGE_ITERATOR_NODE_ID,
-    name="Load Image (Iterator)",
-    description="Loads each image file in the directory and outputs the image, directory, subdirectory, filename, and the index.",
-    icon="MdSubdirectoryArrowRight",
-    node_type="iteratorHelper",
-    inputs=[IteratorInput().make_optional()],
-    outputs=[
-        ImageOutput(),
-        DirectoryOutput("Image Directory"),
-        TextOutput("Subdirectory Path"),
-        TextOutput("Image Name"),
-        NumberOutput("Overall Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each image."
-        ),
-    ],
-    side_effects=True,
-)
-def iterator_helper_load_image_node(
-    path: str, root_dir: str, index: int
-) -> Tuple[np.ndarray, str, str, str, int]:
-    img, img_dir, basename = load_image_node(path)
-
-    # Get relative path from root directory passed by Iterator directory input
-    rel_path = os.path.relpath(img_dir, root_dir)
-
-    return img, root_dir, rel_path, basename, index
-
-
-@batch_processing_group.register(
-    schema_id="chainner:image:file_iterator",
-    name="Image File Iterator",
+    schema_id="chainner:image:load_images",
+    name="Load Images",
     description=[
         "Iterate over all files in a directory/folder (batch processing) and run the provided nodes on just the image files. Supports the same file types as `chainner:image:load`.",
         "Optionally, you can toggle whether to iterate recursively (subdirectories) or use a glob expression to filter the files.",
     ],
-    icon="MdLoop",
-    node_type="iterator",
+    icon="BsImages",
     inputs=[
         DirectoryInput(),
         BoolInput("Use WCMatch glob expression", default=False),
@@ -111,32 +72,28 @@ def iterator_helper_load_image_node(
             )
         ),
     ],
-    outputs=[],
-    default_nodes=[
-        # TODO: Figure out a better way to do this
-        {
-            "schemaId": IMAGE_ITERATOR_NODE_ID,
-        },
+    outputs=[
+        ImageOutput(),
+        DirectoryOutput("Directory"),
+        TextOutput("Subdirectory Path"),
+        TextOutput("Name"),
+        NumberOutput("Index"),
     ],
-    side_effects=True,
-    see_also=[
-        "chainner:image:load",
-    ],
+    node_type="newIterator",
 )
-async def image_file_iterator_node(
+def load_images_node(
     directory: str,
     use_glob: bool,
     is_recursive: bool,
     glob_str: str,
     use_limit: bool,
     limit: int,
-    context: IteratorContext,
-) -> None:
-    logger.debug(
-        f"Iterating over images in directory: {directory}, {use_glob} {glob_str} {is_recursive}"
-    )
-
-    img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
+) -> Iterator[Tuple[np.ndarray, str, str, str, int]]:
+    def load_image(path: str, index: int):
+        img, img_dir, basename = load_image_node(path)
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path = os.path.relpath(img_dir, directory)
+        return img, directory, rel_path, basename, index
 
     supported_filetypes = get_available_image_formats()
 
@@ -150,7 +107,4 @@ async def image_file_iterator_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    def before(filepath: str, index: int):
-        context.inputs.set_values(img_path_node_id, [filepath, directory, index])
-
-    await context.run(just_image_files, before)
+    return Iterator.from_list(just_image_files, load_image)

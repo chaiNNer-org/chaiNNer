@@ -283,12 +283,14 @@ export interface BackendEventMap {
         exception: string;
     };
     'node-finish': {
-        finished: string[];
         nodeId: string;
         executionTime?: number | null;
         data?: OutputData | null;
         types?: OutputTypes | null;
         progressPercent?: number | null;
+    };
+    'node-start': {
+        nodeId: string;
     };
     'iterator-progress-update': {
         percent: number;
@@ -297,6 +299,13 @@ export interface BackendEventMap {
         eta: number;
         iteratorId: string;
         running?: string[] | null;
+    };
+    'node-progress-update': {
+        nodeId: string;
+        percent: number;
+        index: number;
+        total: number;
+        eta: number;
     };
     'backend-status': {
         message: string;

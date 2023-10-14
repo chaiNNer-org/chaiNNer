@@ -28,6 +28,8 @@ const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
     regularNode: Node,
     iterator: IteratorNode,
     iteratorHelper: IteratorHelperNode,
+    newIterator: Node,
+    collector: Node,
 };
 const edgeTypes: EdgeTypes = {
     main: CustomEdge,

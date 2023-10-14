@@ -7,6 +7,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Generic,
     Iterable,
     List,
     NewType,
@@ -532,3 +533,42 @@ def add_package(
             dependencies=dependencies or [],
         )
     )
+
+
+I = TypeVar("I")
+L = TypeVar("L")
+
+
+@dataclass
+class Iterator(Generic[I]):
+    iter_supplier: Callable[[], Iterable[I]]
+    expected_length: int
+
+    @staticmethod
+    def from_iter(
+        iter_supplier: Callable[[], Iterable[I]], expected_length: int
+    ) -> "Iterator[I]":
+        return Iterator(iter_supplier, expected_length)
+
+    @staticmethod
+    def from_list(l: List[L], map_fn: Callable[[L, int], I]) -> "Iterator[I]":
+        """
+        Creates a new iterator from a list that is mapped using the given
+        function. The iterable will be equivalent to `map(map_fn, l)`.
+        """
+
+        def supplier():
+            for i, x in enumerate(l):
+                yield map_fn(x, i)
+
+        return Iterator(supplier, len(l))
+
+
+N = TypeVar("N")
+R = TypeVar("R")
+
+
+@dataclass
+class Collector(Generic[N, R]):
+    on_iterate: Callable[[N], None]
+    on_complete: Callable[[], R]

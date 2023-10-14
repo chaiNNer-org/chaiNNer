@@ -94,6 +94,7 @@ class NumberInput(BaseInput):
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
             "hideLabel": self.hide_label,
+            "hasHandle": self.has_handle,
         }
 
     def make_optional(self):

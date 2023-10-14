@@ -56,6 +56,10 @@ import {
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
 import {
+    gatherDownstreamIteratorNodes,
+    gatherUpstreamIteratorNodes,
+} from '../helpers/nodeGathering';
+import {
     PngDataUrl,
     saveDataUrlAsFile,
     takeScreenshot,
@@ -915,8 +919,11 @@ export const GlobalProvider = memo(
                     );
                 }
 
+                const nodes = getNodes();
+                const edges = getEdges();
+
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
+                    const targetChildren = getOutgoers(parentNode, nodes, edges);
                     if (!targetChildren.length) {
                         return false;
                     }
@@ -935,6 +942,79 @@ export const GlobalProvider = memo(
 
                 if (!iteratorLock) {
                     return invalid('Cannot create a connection to/from an iterator in this way.');
+                }
+
+                if (sourceNode.type === 'newIterator' && targetNode.type === 'newIterator') {
+                    return invalid('Cannot connect two iterators.');
+                }
+
+                // Connections cannot be made if:
+                // - The source has iterator lineage AND the target has iterator lineage
+                // Connections CAN be made if:
+                // - the source has iterator lineage AND the target does not
+                // - the target has iterator lineage AND the source does not
+                // - neither the source nor the target have iterator lineage
+                // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
+
+                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(
+                    sourceNode,
+                    nodes,
+                    edges
+                );
+                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(
+                    sourceNode,
+                    nodes,
+                    edges
+                );
+
+                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(
+                    targetNode,
+                    nodes,
+                    edges
+                );
+                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(
+                    targetNode,
+                    nodes,
+                    edges
+                );
+
+                const sourceHasIteratorLineage =
+                    sourceDownstreamIterNodes.size > 0 ||
+                    sourceUpstreamIterNodes.size > 0 ||
+                    sourceNode.type === 'newIterator';
+                const targetHasIteratorLineage =
+                    targetDownstreamIterNodes.size > 0 ||
+                    targetUpstreamIterNodes.size > 0 ||
+                    targetNode.type === 'newIterator';
+
+                const sourceIters = new Set([
+                    ...sourceDownstreamIterNodes,
+                    ...sourceUpstreamIterNodes,
+                    ...(sourceNode.type === 'newIterator' ? [sourceNode.id] : []),
+                ]);
+
+                const targetIters = new Set([
+                    ...targetDownstreamIterNodes,
+                    ...targetUpstreamIterNodes,
+                    ...(targetNode.type === 'newIterator' ? [targetNode.id] : []),
+                ]);
+
+                const intersectionSource = new Set(
+                    [...sourceIters].filter((x) => targetIters.has(x))
+                );
+                const intersectionTarget = new Set(
+                    [...targetIters].filter((x) => sourceIters.has(x))
+                );
+
+                const sourceAndTargetShareSameLineage =
+                    intersectionSource.size > 0 && intersectionTarget.size > 0;
+
+                if (
+                    sourceHasIteratorLineage &&
+                    targetHasIteratorLineage &&
+                    !sourceAndTargetShareSameLineage
+                ) {
+                    return invalid('Cannot connect two nodes with unrelated iterator lineage.');
                 }
 
                 return VALID;

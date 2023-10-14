@@ -55,6 +55,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         isLocked,
         connectedInputs,
         type,
+        schema,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -124,6 +125,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                     connectableType={connectableType}
                     id={nodeId}
                     inputId={inputId}
+                    nodeType={schema.nodeType}
                 >
                     {inputElement}
                 </HandleWrapper>

@@ -4,7 +4,7 @@ import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData } from '../../../common/common-types';
+import { InputId, NodeData, NodeType } from '../../../common/common-types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -18,10 +18,17 @@ export interface HandleWrapperProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
+    nodeType: NodeType;
 }
 
 export const HandleWrapper = memo(
-    ({ children, id, inputId, connectableType }: React.PropsWithChildren<HandleWrapperProps>) => {
+    ({
+        children,
+        id,
+        inputId,
+        connectableType,
+        nodeType,
+    }: React.PropsWithChildren<HandleWrapperProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
@@ -104,6 +111,7 @@ export const HandleWrapper = memo(
                         handleColors={handleColors}
                         id={targetHandle}
                         isValidConnection={isValidConnectionForRf}
+                        nodeType={nodeType}
                         type="input"
                         validity={validity}
                     />
