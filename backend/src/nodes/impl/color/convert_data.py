@@ -257,7 +257,7 @@ conversions: List[Conversion] = [
     ),
     Conversion(
         direction=(YUV, RGB),
-        convert=lambda i: cv2.cvtColor(__rev3(i), cv2.COLOR_YUV2BGR),
+        convert=lambda i: np.clip(cv2.cvtColor(__rev3(i), cv2.COLOR_YUV2BGR), 0, 1),
         cost=__CHROMA_LOST,
     ),
     # HSV/HSL
