@@ -1684,6 +1684,22 @@ const oldToNewIterators: ModernMigration = (data) => {
     return data;
 };
 
+const removeZIndexes: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.zIndex) {
+            delete node.zIndex;
+        }
+    });
+
+    data.edges.forEach((edge) => {
+        if (edge.zIndex) {
+            delete edge.zIndex;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1737,6 +1753,7 @@ const migrations = [
     writeOutputFrame,
     separateNodeWidthAndInputHeight,
     oldToNewIterators,
+    removeZIndexes,
 ];
 
 export const currentMigration = migrations.length;
