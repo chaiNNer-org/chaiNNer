@@ -408,11 +408,6 @@ class ColorInput(BaseInput):
         raise ValueError("ColorInput cannot be made optional")
 
 
-def IteratorInput():
-    """Input for showing that an iterator automatically handles the input"""
-    return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
-
-
 class VideoContainer(Enum):
     MKV = "mkv"
     MP4 = "mp4"

@@ -38,13 +38,6 @@ interface ExecutionStatusContextValue {
     paused: boolean;
 }
 
-export interface IteratorProgress {
-    percent?: number;
-    eta?: number;
-    index?: number;
-    total?: number;
-}
-
 export interface NodeProgress {
     percent?: number;
     eta?: number;

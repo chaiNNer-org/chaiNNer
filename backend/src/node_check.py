@@ -245,7 +245,6 @@ def check_naming_conventions(
 ):
     expected_name = (
         name.lower()
-        .replace(" (iterator)", "")
         .replace(" ", "_")
         .replace("-", "_")
         .replace("(", "")

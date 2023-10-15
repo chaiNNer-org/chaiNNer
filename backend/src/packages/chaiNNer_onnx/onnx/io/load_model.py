@@ -30,7 +30,7 @@ from .. import io_group
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
     see_also=[
-        "chainner:onnx:model_file_iterator",
+        "chainner:onnx:load_models",
     ],
 )
 def load_model_node(path: str) -> Tuple[OnnxModel, str, str]:

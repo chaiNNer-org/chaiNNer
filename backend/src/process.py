@@ -377,7 +377,6 @@ class Executor:
     def __get_output_nodes(self) -> List[NodeId]:
         output_nodes: List[NodeId] = []
         for node in self.chain.nodes.values():
-            # we assume that iterator node always have side effects
             side_effects = node.has_side_effects()
             if side_effects:
                 output_nodes.append(node.id)

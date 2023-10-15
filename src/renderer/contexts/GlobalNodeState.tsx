@@ -21,7 +21,6 @@ import {
     Mutable,
     NodeData,
     OutputId,
-    Size,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
@@ -68,7 +67,6 @@ import {
     copyEdges,
     copyNodes,
     createNode as createNodeImpl,
-    defaultIteratorSize,
     setSelected,
     withNewData,
 } from '../helpers/reactFlowUtil';
@@ -114,7 +112,6 @@ interface GlobalVolatile {
 }
 interface Global {
     reactFlowWrapper: React.RefObject<HTMLDivElement>;
-    defaultIteratorSize: Readonly<Size>;
     setNodesRef: React.MutableRefObject<SetState<Node<NodeData>[]>>;
     setEdgesRef: React.MutableRefObject<SetState<Edge<EdgeData>[]>>;
     addNodeChanges: () => void;
@@ -1330,7 +1327,6 @@ export const GlobalProvider = memo(
 
         const globalValue = useMemoObject<Global>({
             reactFlowWrapper,
-            defaultIteratorSize,
             setNodesRef,
             setEdgesRef,
             addNodeChanges,

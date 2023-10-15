@@ -12,10 +12,6 @@ export interface Size {
     width: number;
     height: number;
 }
-export interface IteratorSize extends Size {
-    offsetTop: number;
-    offsetLeft: number;
-}
 
 export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };

@@ -1,10 +1,7 @@
-import { Size } from 'electron/common';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, InputData, Mutable, NodeData, NodeType } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deepCopy } from '../../common/util';
-
-export const defaultIteratorSize: Readonly<Size> = { width: 1280, height: 720 };
 
 export interface NodeProto {
     id?: string;

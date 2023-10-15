@@ -36,15 +36,6 @@ class NodeStartData(TypedDict):
     nodeId: NodeId
 
 
-class IteratorProgressUpdateData(TypedDict):
-    percent: float
-    index: int
-    total: int
-    eta: float
-    iteratorId: NodeId
-    running: Optional[List[NodeId]]
-
-
 class NodeProgressUpdateData(TypedDict):
     percent: float
     index: int
