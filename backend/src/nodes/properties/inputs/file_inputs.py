@@ -102,7 +102,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         input_type_name="PthFile",
         label="Model",
         file_kind="pth",
-        filetypes=[".pt", ".pth", ".ckpt"],
+        filetypes=[".pt", ".pth", ".ckpt", ".safetensors"],
         primary_input=primary_input,
     )
 

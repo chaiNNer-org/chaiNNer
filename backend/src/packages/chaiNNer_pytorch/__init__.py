@@ -86,6 +86,12 @@ package = add_package(
             version="0.6.1",
             size_estimate=42.2 * KB,
         ),
+        Dependency(
+            display_name="safetensors",
+            pypi_name="safetensors",
+            version="0.4.0",
+            size_estimate=1 * MB,
+        ),
     ],
     icon="PyTorch",
     color="#DD6B20",
