@@ -15,9 +15,6 @@ export const getDisabledStatus = (
     if (data.isDisabled) {
         return DisabledStatus.DirectlyDisabled;
     }
-    if (data.parentNode && effectivelyDisabledNodes.has(data.parentNode)) {
-        return DisabledStatus.ParentDisabled;
-    }
     if (effectivelyDisabledNodes.has(data.id)) {
         return DisabledStatus.InputDisabled;
     }
@@ -48,10 +45,6 @@ export const getEffectivelyDisabledNodes = (
         if (n.data.isDisabled) {
             return true;
         }
-
-        const parent = byId.get(n.data.parentNode!);
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        if (parent && isEffectivelyDisabled(parent)) return true;
 
         const incoming = incomingMap.get(n) ?? [];
         // eslint-disable-next-line @typescript-eslint/no-use-before-define

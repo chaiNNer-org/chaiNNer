@@ -168,7 +168,6 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 disabledStatus={DisabledStatus.Enabled}
                                 icon={selectedSchema.icon}
                                 name={selectedSchema.name}
-                                parentNode={undefined}
                                 selected={false}
                             />
                             <NodeBody

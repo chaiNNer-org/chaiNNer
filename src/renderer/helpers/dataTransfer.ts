@@ -89,23 +89,18 @@ const chainnerPresetProcessor: DataTransferProcessor = (
 
         let newNodes = copyNodes(
             chain.nodes,
-            deriveId,
             (oldId) => {
                 if (newIds.has(oldId)) return deriveId(oldId);
                 if (currentIds.has(oldId)) return oldId;
-                return undefined;
+                return oldId;
             },
             false
         );
 
-        newNodes = newNodes.map((node) =>
-            node.parentNode
-                ? node
-                : {
-                      ...node,
-                      position: getNodePosition(-node.position.x, -node.position.y),
-                  }
-        );
+        newNodes = newNodes.map((node) => ({
+            ...node,
+            position: getNodePosition(-node.position.x, -node.position.y),
+        }));
 
         return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
     });

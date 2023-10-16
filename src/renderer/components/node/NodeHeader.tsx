@@ -13,7 +13,6 @@ interface NodeHeaderProps {
     accentColor: string;
     selected: boolean;
     width?: LayoutProps['width'];
-    parentNode?: string;
     disabledStatus: DisabledStatus;
     nodeProgress?: NodeProgress;
 }
@@ -25,7 +24,6 @@ export const NodeHeader = memo(
         icon,
         accentColor,
         selected,
-        parentNode,
         disabledStatus,
         nodeProgress,
     }: NodeHeaderProps) => {
@@ -46,8 +44,7 @@ export const NodeHeader = memo(
                 <Center
                     bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                     borderBottomColor={accentColor}
-                    borderBottomStyle={parentNode ? 'dashed' : undefined}
-                    borderBottomWidth={parentNode ? '4px' : '2px'}
+                    borderBottomWidth="2px"
                     h="auto"
                     pt={2}
                     verticalAlign="middle"

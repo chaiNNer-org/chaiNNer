@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List, Literal, Optional, TypedDict, Union
+from typing import Dict, Literal, Optional, TypedDict, Union
 
 from base_types import InputId, NodeId, OutputId
 from nodes.base_input import ErrorValue
@@ -36,15 +36,6 @@ class NodeStartData(TypedDict):
     nodeId: NodeId
 
 
-class IteratorProgressUpdateData(TypedDict):
-    percent: float
-    index: int
-    total: int
-    eta: float
-    iteratorId: NodeId
-    running: Optional[List[NodeId]]
-
-
 class NodeProgressUpdateData(TypedDict):
     percent: float
     index: int
@@ -79,11 +70,6 @@ class NodeStartEvent(TypedDict):
     data: NodeStartData
 
 
-class IteratorProgressUpdateEvent(TypedDict):
-    event: Literal["iterator-progress-update"]
-    data: IteratorProgressUpdateData
-
-
 class NodeProgressUpdateEvent(TypedDict):
     event: Literal["node-progress-update"]
     data: NodeProgressUpdateData
@@ -104,7 +90,6 @@ Event = Union[
     ExecutionErrorEvent,
     NodeFinishEvent,
     NodeStartEvent,
-    IteratorProgressUpdateEvent,
     NodeProgressUpdateEvent,
     BackendStatusEvent,
     BackendStateEvent,

@@ -55,8 +55,6 @@ export const getMatchingNodes = (searchQuery: string, schemata: readonly NodeSch
 };
 
 export const getNodesByCategory = (matchingNodes: readonly NodeSchema[]) => {
-    const byCategories: Map<string, NodeSchema[]> = byCategory(
-        matchingNodes.filter((e) => e.nodeType !== 'iteratorHelper')
-    );
+    const byCategories: Map<string, NodeSchema[]> = byCategory(matchingNodes);
     return byCategories;
 };

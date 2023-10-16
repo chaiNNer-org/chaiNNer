@@ -33,16 +33,8 @@ def get_cache_strategies(chain: Chain) -> Dict[NodeId, CacheStrategy]:
 
     for node in chain.nodes.values():
         out_edges = chain.edges_from(node.id)
-        connected_to_child_node = any(
-            chain.nodes[e.target.id].parent for e in out_edges
-        )
 
-        strategy: CacheStrategy
-        if node.parent is None and connected_to_child_node:
-            # free nodes that are connected to child nodes need to live as the execution
-            strategy = StaticCaching
-        else:
-            strategy = CacheStrategy(len(out_edges))
+        strategy: CacheStrategy = CacheStrategy(len(out_edges))
 
         result[node.id] = strategy
 

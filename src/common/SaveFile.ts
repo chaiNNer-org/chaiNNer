@@ -80,10 +80,8 @@ export class SaveFile {
                         outputHeight: n.data.outputHeight,
                         nodeWidth: n.data.nodeWidth,
                         id: n.data.id,
-                        iteratorSize: n.data.iteratorSize,
                         isDisabled: n.data.isDisabled,
                         isLocked: n.data.isLocked,
-                        parentNode: n.data.parentNode,
                     },
                     id: n.id,
                     position: n.position,
@@ -92,7 +90,6 @@ export class SaveFile {
                     height: n.height,
                     width: n.width,
                     zIndex: n.zIndex,
-                    parentNode: n.parentNode,
                 })
             ),
             edges: edges.map((e): Edge<EdgeData> => ({ ...e, data: {} })),

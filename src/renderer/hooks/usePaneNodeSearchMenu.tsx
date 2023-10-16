@@ -377,8 +377,7 @@ interface Position {
 }
 
 export const usePaneNodeSearchMenu = (
-    wrapperRef: React.RefObject<HTMLDivElement>,
-    parent?: string
+    wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
@@ -390,7 +389,6 @@ export const usePaneNodeSearchMenu = (
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
     const [, setGlobalConnectingFrom] = useConnectingFrom;
-    const [stoppedOnIterator, setStoppedOnIterator] = useState<string | null>(null);
 
     const { getNode, project, getNodes, getEdges } = useReactFlow();
 
@@ -434,17 +432,14 @@ export const usePaneNodeSearchMenu = (
                 y: y - reactFlowBounds.top,
             });
             const nodeId = createUniqueId();
-            createNode(
-                {
-                    id: nodeId,
-                    position: projPosition,
-                    data: {
-                        schemaId: schema.schemaId,
-                    },
-                    nodeType: schema.nodeType,
+            createNode({
+                id: nodeId,
+                position: projPosition,
+                data: {
+                    schemaId: schema.schemaId,
                 },
-                stoppedOnIterator || parent
-            );
+                nodeType: schema.nodeType,
+            });
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (connectingFrom && targetFn && target.type !== 'none') {
                 switch (target.type) {
@@ -476,7 +471,6 @@ export const usePaneNodeSearchMenu = (
 
             setConnectingFrom(null);
             setGlobalConnectingFrom(null);
-            setStoppedOnIterator(null);
             closeContextMenu();
         },
         [
@@ -486,10 +480,8 @@ export const usePaneNodeSearchMenu = (
             createNode,
             functionDefinitions,
             mousePosition,
-            parent,
             project,
             setGlobalConnectingFrom,
-            stoppedOnIterator,
             wrapperRef,
         ]
     );
@@ -536,50 +528,12 @@ export const usePaneNodeSearchMenu = (
 
             const isStoppedOnPane = target.classList.contains('react-flow__pane');
 
-            const firstClass = target.classList[0] || '';
-            const stoppedIteratorId =
-                typeof target.className === 'object' && firstClass.startsWith('iterator-editor=')
-                    ? firstClass.slice('iterator-editor='.length)
-                    : undefined;
-
-            const fromNode = getNode(connectingFrom?.nodeId ?? '');
-            const fromParent = fromNode?.parentNode;
-            const fromHandleType = connectingFrom?.handleType;
-
-            const isFreeNodeToPane = isStoppedOnPane && fromParent === undefined;
-            const isIteratorToPane = isStoppedOnPane && fromParent;
-            const isPaneToIterator = !isStoppedOnPane && stoppedIteratorId;
-            const isIteratorToSelf =
-                stoppedIteratorId && fromParent && stoppedIteratorId === fromParent;
-            const isIteratorToOtherIterator =
-                stoppedIteratorId && fromParent && stoppedIteratorId !== fromParent;
-
-            const isIteratorSourceToPaneTarget = isIteratorToPane && fromHandleType === 'source';
-            const isIteratorTargetToPaneSource = isIteratorToPane && fromHandleType === 'target';
-            const isPaneSourceToIteratorTarget = isPaneToIterator && fromHandleType === 'source';
-
-            if (
-                (isFreeNodeToPane ||
-                    isIteratorToSelf ||
-                    isPaneSourceToIteratorTarget ||
-                    isIteratorTargetToPaneSource) &&
-                !(isIteratorSourceToPaneTarget || isIteratorToOtherIterator)
-            ) {
+            if (isStoppedOnPane) {
                 menu.manuallyOpenContextMenu(event.pageX, event.pageY);
-                if (stoppedIteratorId) {
-                    setStoppedOnIterator(stoppedIteratorId);
-                }
             }
             setGlobalConnectingFrom(null);
         },
-        [
-            connectingFrom,
-            getNode,
-            menu,
-            setGlobalConnectingFrom,
-            setMousePosition,
-            setStoppedOnIterator,
-        ]
+        [menu, setGlobalConnectingFrom, setMousePosition]
     );
 
     const onPaneContextMenu = useCallback(

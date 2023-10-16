@@ -87,15 +87,9 @@ const NodeDocumentationModal = memo(() => {
         for (const result of searchResults) {
             const id = String(result.id) as SchemaId;
             scores.set(id, result.score);
-
-            // make sure that the iterator nodes of any helper nodes show up
-            const parent = helperNodeMapping.get(id);
-            if (parent && !scores.has(parent)) {
-                scores.set(parent, result.score);
-            }
         }
         return { searchScores: scores, searchTerms: terms };
-    }, [searchIndex, searchQuery, helperNodeMapping]);
+    }, [searchIndex, searchQuery]);
 
     const highlightRegex = useMemo(() => {
         if (!searchTerms) return undefined;

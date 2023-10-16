@@ -75,7 +75,6 @@ export const toBackendJson = (
                     }
             ),
             nodeType,
-            parent: element.parentNode ?? null,
         });
     });
 

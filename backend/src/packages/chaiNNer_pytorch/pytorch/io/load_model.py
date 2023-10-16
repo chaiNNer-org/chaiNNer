@@ -62,7 +62,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
     see_also=[
-        "chainner:pytorch:model_file_iterator",
+        "chainner:pytorch:load_models",
     ],
 )
 def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:

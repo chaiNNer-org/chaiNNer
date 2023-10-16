@@ -144,6 +144,8 @@ const addBlendNode: ModernMigration = (data) => {
                 };
                 if (node.parentNode !== undefined) {
                     newBlendNode.parentNode = node.parentNode;
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     newBlendNode.data.parentNode = node.parentNode;
                 }
                 data.nodes.push(newBlendNode);
@@ -218,6 +220,8 @@ const addOpacityNode: ModernMigration = (data) => {
         };
         if (node.parentNode !== undefined) {
             newNode.parentNode = node.parentNode;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             newNode.data.parentNode = node.parentNode;
         }
         return [newID, newNode] as const;
@@ -354,6 +358,8 @@ const onnxConvertUpdate: ModernMigration = (data) => {
         };
         if (node.parentNode !== undefined) {
             newNode.parentNode = node.parentNode;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             newNode.data.parentNode = node.parentNode;
         }
 
@@ -1664,10 +1670,30 @@ const oldToNewIterators: ModernMigration = (data) => {
         if (newNode.parentNode) {
             delete newNode.parentNode;
         }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         if (newNode.data.parentNode) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             delete newNode.data.parentNode;
         }
         return newNode;
+    });
+
+    return data;
+};
+
+const removeZIndexes: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.zIndex) {
+            delete node.zIndex;
+        }
+    });
+
+    data.edges.forEach((edge) => {
+        if (edge.zIndex) {
+            delete edge.zIndex;
+        }
     });
 
     return data;
@@ -1726,6 +1752,7 @@ const migrations = [
     writeOutputFrame,
     separateNodeWidthAndInputHeight,
     oldToNewIterators,
+    removeZIndexes,
 ];
 
 export const currentMigration = migrations.length;

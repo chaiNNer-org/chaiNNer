@@ -21,10 +21,10 @@ const fromJson = (json: unknown): ParsedSaveData => {
     const chain = SaveFile.parse(JSON.stringify(json));
 
     // move the whole chain to origin
-    const freeNodes = chain.nodes.filter((n) => !n.parentNode);
-    const minX = Math.min(...freeNodes.map((node) => node.position.x));
-    const minY = Math.min(...freeNodes.map((node) => node.position.y));
-    for (const n of freeNodes) {
+    const chainNodes = chain.nodes;
+    const minX = Math.min(...chainNodes.map((node) => node.position.x));
+    const minY = Math.min(...chainNodes.map((node) => node.position.y));
+    for (const n of chainNodes) {
         n.position.x -= minX;
         n.position.y -= minY;
     }

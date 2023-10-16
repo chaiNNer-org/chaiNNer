@@ -9,7 +9,6 @@ from .chain import (
     EdgeSource,
     EdgeTarget,
     FunctionNode,
-    IteratorNode,
     NewIteratorNode,
 )
 from .input import EdgeInput, Input, InputMap, ValueInput
@@ -54,16 +53,12 @@ def parse_json(json: List[JsonNode]) -> Tuple[Chain, InputMap]:
     index_edges: List[IndexEdge] = []
 
     for json_node in json:
-        if json_node["nodeType"] == "iterator":
-            node = IteratorNode(json_node["id"], json_node["schemaId"])
-        elif json_node["nodeType"] == "newIterator":
+        if json_node["nodeType"] == "newIterator":
             node = NewIteratorNode(json_node["id"], json_node["schemaId"])
         elif json_node["nodeType"] == "collector":
             node = CollectorNode(json_node["id"], json_node["schemaId"])
         else:
             node = FunctionNode(json_node["id"], json_node["schemaId"])
-            node.parent = json_node["parent"]
-            node.is_helper = json_node["nodeType"] == "iteratorHelper"
         chain.add_node(node)
 
         inputs: List[Input] = []

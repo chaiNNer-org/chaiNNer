@@ -38,13 +38,6 @@ interface ExecutionStatusContextValue {
     paused: boolean;
 }
 
-export interface IteratorProgress {
-    percent?: number;
-    eta?: number;
-    index?: number;
-    total?: number;
-}
-
 export interface NodeProgress {
     percent?: number;
     eta?: number;
@@ -57,7 +50,6 @@ interface ExecutionContextValue {
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
-    getIteratorProgress: (iteratorId: string) => IteratorProgress;
     getNodeProgress: (nodeId: string) => NodeProgress | undefined;
 }
 
@@ -90,28 +82,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
 
-    const [iteratorProgress, setIteratorProgress] = useState<
-        Record<string, IteratorProgress | undefined>
-    >({});
-
     const [nodeProgress, setNodeProgress] = useState<Record<string, NodeProgress | undefined>>({});
-
-    const setIteratorProgressImpl = useCallback(
-        (iteratorId: string, progress: IteratorProgress) => {
-            setIteratorProgress((prev) => ({
-                ...prev,
-                [iteratorId]: progress,
-            }));
-        },
-        [setIteratorProgress]
-    );
-
-    const getIteratorProgress = useCallback(
-        (iteratorId: string) => {
-            return iteratorProgress[iteratorId] ?? {};
-        },
-        [iteratorProgress]
-    );
 
     const setNodeProgressImpl = useCallback(
         (nodeId: string, progress: NodeProgress) => {
@@ -141,7 +112,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } else {
             ipcRenderer.send('stop-sleep-blocker');
             setPercentComplete(undefined);
-            setIteratorProgress({});
+            setNodeProgress({});
             unAnimate();
         }
     }, [status, unAnimate]);
@@ -221,29 +192,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         500
     );
     useBackendEventSourceListener(eventSource, 'node-start', updateNodeStart);
-
-    const updateIteratorProgress = useThrottledCallback<
-        BackendEventSourceListener<'iterator-progress-update'>
-    >(
-        useCallback(
-            (data) => {
-                if (data) {
-                    const { percent, index, total, eta, iteratorId, running: runningNodes } = data;
-
-                    if (runningNodes && status === ExecutionStatus.RUNNING) {
-                        animate(runningNodes);
-                    } else if (status !== ExecutionStatus.RUNNING) {
-                        unAnimate();
-                    }
-                    setIteratorProgressImpl(iteratorId, { percent, eta, index, total });
-                }
-            },
-            [animate, setIteratorProgressImpl, status, unAnimate]
-        ),
-        100,
-        { trailing: true }
-    );
-    useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress);
 
     const updateNodeProgress = useThrottledCallback<
         BackendEventSourceListener<'node-progress-update'>
@@ -458,7 +406,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
-        setIteratorProgress({});
+        setNodeProgress({});
     }, [backend, restart, sendAlert]);
 
     // This makes sure keystrokes are executed even if the focus is on an input field
@@ -523,7 +471,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
-        getIteratorProgress,
         getNodeProgress,
     });
 

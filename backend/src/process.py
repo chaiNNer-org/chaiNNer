@@ -7,36 +7,18 @@ import time
 import uuid
 from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
-from typing import (
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-)
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
 
 from sanic.log import logger
 
 from api import Collector, Iterator, NodeData
 from base_types import NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
-from chain.chain import (
-    Chain,
-    CollectorNode,
-    FunctionNode,
-    IteratorNode,
-    NewIteratorNode,
-    Node,
-    SubChain,
-)
+from chain.chain import Chain, CollectorNode, NewIteratorNode, Node
 from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.base_output import BaseOutput
-from progress_controller import Aborted, ProgressController, ProgressToken
+from progress_controller import Aborted, ProgressController
 
 Output = List[object]
 
@@ -80,9 +62,6 @@ def enforce_inputs(
 ) -> List[object]:
     inputs = list(inputs)
 
-    if node.type == "iteratorHelper":
-        return inputs
-
     try:
         enforced_inputs: List[object] = []
         for index, value in enumerate(inputs):
@@ -121,7 +100,6 @@ def run_node(
 ) -> Output | Iterator | Collector:
     assert (
         node.type == "regularNode"
-        or node.type == "iteratorHelper"
         or node.type == "newIterator"
         or node.type == "collector"
     )
@@ -154,28 +132,6 @@ def run_node(
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
-async def run_iterator_node(
-    node: NodeData,
-    inputs: Iterable[object],
-    node_id: NodeId,
-    context: IteratorContext,
-) -> Output:
-    assert node.type == "iterator"
-
-    enforced_inputs = enforce_inputs(inputs, node, node_id)
-    try:
-        raw_output = await node.run(*enforced_inputs, context=context)
-        return enforce_output(raw_output, node)
-    except Aborted:
-        raise
-    except NodeExecutionError:
-        raise
-    except Exception as e:
-        # collect information to provide good error messages
-        input_dict = collect_input_information(node, enforced_inputs)
-        raise NodeExecutionError(node_id, node, str(e), input_dict) from e
-
-
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
     data: Dict[OutputId, object] = dict()
     types: Dict[OutputId, object] = dict()
@@ -203,159 +159,6 @@ class NodeExecutionError(Exception):
         self.node_id: NodeId = node_id
         self.node_data: NodeData = node_data
         self.inputs: InputsDict = inputs
-
-
-class IteratorContext:
-    def __init__(
-        self,
-        executor: Executor,
-        iterator_id: NodeId,
-    ):
-        self.executor: Executor = executor
-        self.progress: ProgressToken = executor.progress
-        self.times: List[float] = []
-
-        self.iterator_id: NodeId = iterator_id
-        self.chain = SubChain(executor.chain, iterator_id)
-        self.inputs = InputMap(parent=executor.inputs)
-
-    def get_helper(self, schema_id: str) -> FunctionNode:
-        for node in self.chain.nodes.values():
-            if node.schema_id == schema_id:
-                return node
-        assert (
-            False
-        ), f"Unable to find {schema_id} helper node for iterator {self.iterator_id}"
-
-    def __create_iterator_executor(self) -> Executor:
-        return Executor(
-            self.executor.chain,
-            self.inputs,
-            self.executor.send_broadcast_data,
-            self.executor.loop,
-            self.executor.queue,
-            self.executor.pool,
-            parent_executor=self.executor,
-        )
-
-    def __get_eta(self, index: int, total: int) -> float:
-        if len(self.times) == 0:
-            return 0
-        return (sum(self.times) / len(self.times)) * (total - index)
-
-    async def __update_progress(self, index: int, length: int):
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": index / length,
-                    "index": index,
-                    "total": length,
-                    "eta": self.__get_eta(index, length),
-                    "iteratorId": self.iterator_id,
-                    "running": list(self.chain.nodes.keys()),
-                },
-            }
-        )
-
-    async def __finish_progress(self, length: int):
-        await self.executor.queue.put(
-            {
-                "event": "iterator-progress-update",
-                "data": {
-                    "percent": 1,
-                    "index": length,
-                    "total": length,
-                    "eta": 0,
-                    "iteratorId": self.iterator_id,
-                    "running": None,
-                },
-            }
-        )
-
-    async def run_iteration(self, index: int, total: int):
-        await self.__update_progress(index, total)
-        await self.progress.suspend()
-
-        start = time.time()
-        try:
-            executor = self.__create_iterator_executor()
-            await executor.run_iteration(self.chain)
-        finally:
-            end = time.time()
-            self.times.append(end - start)
-
-    async def run(
-        self,
-        collection: Iterable[T],
-        before: Callable[[T, int], None | Literal[False]],
-    ):
-        items = list(collection)
-        length = len(items)
-
-        await self.__update_progress(0, length)
-
-        errors: List[str] = []
-        for index, item in enumerate(items):
-            try:
-                await self.progress.suspend()
-
-                result = before(item, index)
-                if result is False:
-                    break
-
-                await self.run_iteration(index, length)
-            except Aborted:
-                raise
-            except Exception as e:
-                logger.error(e)
-                errors.append(str(e))
-
-        await self.__finish_progress(length)
-
-        if len(errors) > 0:
-            raise RuntimeError(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
-
-    async def run_while(
-        self,
-        length_estimate: int,
-        before: Callable[[int], None | Literal[False]],
-        fail_fast=False,
-    ):
-        errors: List[str] = []
-        index = -1
-
-        await self.__update_progress(0, length_estimate)
-
-        while True:
-            try:
-                await self.progress.suspend()
-
-                index += 1
-
-                result = before(index)
-                if result is False:
-                    break
-
-                await self.run_iteration(index, max(length_estimate, index + 1))
-            except Aborted:
-                raise
-            except Exception as e:
-                logger.error(e)
-                if fail_fast:
-                    raise
-                errors.append(str(e))
-
-        await self.__finish_progress(index)
-
-        if len(errors) > 0:
-            raise RuntimeError(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
 
 
 def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
@@ -389,25 +192,16 @@ class Executor:
         queue: EventQueue,
         pool: ThreadPoolExecutor,
         parent_cache: Optional[OutputCache[Output]] = None,
-        parent_executor: Optional[Executor] = None,
     ):
-        assert not (
-            parent_cache and parent_executor
-        ), "Providing both a parent executor and a parent cache is not supported."
-
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain
         self.inputs = inputs
         self.send_broadcast_data: bool = send_broadcast_data
-        self.cache: OutputCache[Output] = OutputCache(
-            parent=parent_executor.cache if parent_executor else parent_cache
-        )
+        self.cache: OutputCache[Output] = OutputCache(parent=parent_cache)
         self.collector_cache: Dict[NodeId, Collector] = {}
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
 
-        self.progress = (
-            ProgressController() if not parent_executor else parent_executor.progress
-        )
+        self.progress = ProgressController()
 
         self.completed_node_ids = set()
 
@@ -415,13 +209,7 @@ class Executor:
         self.queue: EventQueue = queue
         self.pool: ThreadPoolExecutor = pool
 
-        self.parent_executor = parent_executor
-
-        self.cache_strategy: Dict[NodeId, CacheStrategy] = (
-            parent_executor.cache_strategy
-            if parent_executor
-            else get_cache_strategies(chain)
-        )
+        self.cache_strategy: Dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
 
     async def process(self, node_id: NodeId) -> Output | Iterator:
         node = self.chain.nodes[node_id]
@@ -470,20 +258,7 @@ class Executor:
         # Create node based on given category/name information
         node_instance = node.get_node()
 
-        if node_instance.type == "iterator":
-            output, execution_time = await timed_supplier_async(
-                functools.partial(
-                    run_iterator_node,
-                    node_instance,
-                    inputs,
-                    node.id,
-                    IteratorContext(self, node.id),
-                )
-            )
-
-            await self.progress.suspend()
-            await self.__broadcast_data(node_instance, node.id, execution_time, output)
-        elif node_instance.type == "newIterator":
+        if node_instance.type == "newIterator":
             output, execution_time = await self.loop.run_in_executor(
                 self.pool,
                 timed_supplier(
@@ -514,11 +289,7 @@ class Executor:
         # If we are executing a free node from within an iterator,
         # we want to store the result in the cache of the parent executor
         if node.get_node().type != "collector":
-            write_cache = (
-                self.parent_executor.cache
-                if self.parent_executor and node.parent is None
-                else self.cache
-            )
+            write_cache = self.cache
             write_cache.set(node.id, output, self.cache_strategy[node.id])  # type: ignore
 
         return output  # type: ignore
@@ -606,9 +377,8 @@ class Executor:
     def __get_output_nodes(self) -> List[NodeId]:
         output_nodes: List[NodeId] = []
         for node in self.chain.nodes.values():
-            # we assume that iterator node always have side effects
-            side_effects = isinstance(node, IteratorNode) or node.has_side_effects()
-            if node.parent is None and side_effects:
+            side_effects = node.has_side_effects()
+            if side_effects:
                 output_nodes.append(node.id)
         return output_nodes
 
@@ -618,13 +388,6 @@ class Executor:
             if isinstance(node, NewIteratorNode):
                 iterator_nodes.append(node.id)
         return iterator_nodes
-
-    def __get_iterator_output_nodes(self, sub: SubChain) -> List[NodeId]:
-        output_nodes: List[NodeId] = []
-        for node in sub.nodes.values():
-            if node.has_side_effects():
-                output_nodes.append(node.id)
-        return output_nodes
 
     def __get_collector_nodes(self) -> List[NodeId]:
         collector_nodes: List[NodeId] = []
@@ -816,10 +579,6 @@ class Executor:
             await self.__process_nodes(self.__get_iterator_nodes())
         finally:
             gc.collect()
-
-    async def run_iteration(self, sub: SubChain):
-        logger.debug(f"Running executor {self.execution_id}")
-        await self.__process_nodes(self.__get_iterator_output_nodes(sub))
 
     def __get_eta(self, times: List[float], index: int, total: int) -> float:
         if len(times) == 0:
