@@ -37,7 +37,9 @@ class SRVGGNetCompact(nn.Module):
             self.state = self.state["params"]
 
         self.weight_keys = [key for key in self.state.keys() if "weight" in key]
-        self.bias_keys = [key for key in self.state.keys() if "bias" in key]
+        self.highest_num = max(
+            [int(key.split(".")[1]) for key in self.weight_keys if "body" in key]
+        )
 
         self.in_nc = self.get_in_nc()
         self.num_feat = self.get_num_feats()
@@ -82,7 +84,7 @@ class SRVGGNetCompact(nn.Module):
         self.load_state_dict(self.state, strict=False)
 
     def get_num_conv(self) -> int:
-        return (int(self.weight_keys[-1].split(".")[1]) - 2) // 2
+        return (self.highest_num - 2) // 2
 
     def get_num_feats(self) -> int:
         return self.state[self.weight_keys[0]].shape[0]
@@ -91,7 +93,7 @@ class SRVGGNetCompact(nn.Module):
         return self.state[self.weight_keys[0]].shape[1]
 
     def get_scale(self) -> int:
-        self.pixelshuffle_shape = self.state[self.bias_keys[-1]].shape[0]
+        self.pixelshuffle_shape = self.state[f"body.{self.highest_num}.bias"].shape[0]
         # Assume out_nc is the same as in_nc
         # I cant think of a better way to do that
         self.out_nc = self.in_nc
