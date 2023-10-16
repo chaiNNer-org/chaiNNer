@@ -229,46 +229,6 @@ def save_video_node(
         raise ValueError(f"Invalid container: {container}")
 
     extension = container.value
-    video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
-
-    # Common output settings
-    output_params = dict(
-        filename=video_save_path,
-        pix_fmt="yuv420p",
-        r=fps,
-        movflags="faststart",
-    )
-
-    # Append parameters
-    output_params["vcodec"] = encoder.value
-
-    parameters = PARAMETERS[encoder]
-    if "preset" in parameters:
-        output_params["preset"] = video_preset
-    if "crf" in parameters:
-        output_params["crf"] = crf
-
-    # Append additional parameters
-    global_params = list()
-    if advanced and additional_parameters is not None:
-        additional_parameters = " " + " ".join(additional_parameters.split())
-        additional_parameters_array = additional_parameters.split(" -")[1:]
-        non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
-        for parameter in additional_parameters_array:
-            key, value = parameter, None
-            try:
-                key, value = parameter.split(" ")
-            except:
-                pass
-
-            if value is not None:
-                for nop in non_overridable_params:
-                    if not key.startswith(nop):
-                        output_params[key] = value
-                    else:
-                        raise ValueError(f"Duplicate parameter: -{parameter}")
-            else:
-                global_params.append(f"-{parameter}")
 
     # Modify audio settings if needed
     audio_settings = AudioSettings(audio_settings)
@@ -305,7 +265,52 @@ def save_video_node(
 
         # Create the writer and run process
         if writer.out is None:
+            additional_parameters = inputs[11] or None
+            fps = inputs[12]
+            crf = inputs[9]
+            save_dir = inputs[1]
+            video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
+
             h, w, _ = get_h_w_c(img)
+
+            # Common output settings
+            output_params = dict(
+                filename=video_save_path,
+                pix_fmt="yuv420p",
+                r=fps,
+                movflags="faststart",
+            )
+
+            # Append parameters
+            output_params["vcodec"] = encoder.value
+
+            parameters = PARAMETERS[encoder]
+            if "preset" in parameters:
+                output_params["preset"] = video_preset
+            if "crf" in parameters:
+                output_params["crf"] = crf
+
+            # Append additional parameters
+            global_params = list()
+            if advanced and additional_parameters is not None:
+                additional_parameters = " " + " ".join(additional_parameters.split())
+                additional_parameters_array = additional_parameters.split(" -")[1:]
+                non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
+                for parameter in additional_parameters_array:
+                    key, value = parameter, None
+                    try:
+                        key, value = parameter.split(" ")
+                    except:
+                        pass
+
+                    if value is not None:
+                        for nop in non_overridable_params:
+                            if not key.startswith(nop):
+                                output_params[key] = value
+                            else:
+                                raise ValueError(f"Duplicate parameter: -{parameter}")
+                    else:
+                        global_params.append(f"-{parameter}")
 
             # Verify some parameters
             if encoder in [VideoEncoder.H264, VideoEncoder.H265]:
