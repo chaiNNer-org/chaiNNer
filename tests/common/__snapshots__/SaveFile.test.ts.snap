@@ -434,16 +434,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "2": 80,
           "3": 80,
         },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "isDisabled": false,
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
@@ -467,12 +457,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -551,20 +535,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "1": 80,
           "2": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_append",
       },
@@ -597,16 +567,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputHeight": {
           "2": 80,
           "3": 80,
-        },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "isDisabled": false,
         "nodeWidth": 240,
@@ -651,12 +611,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -722,20 +676,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "1": 80,
           "2": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_append",
       },
@@ -761,20 +701,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": 80,
           "1": 80,
           "2": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_append",
@@ -846,16 +772,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputHeight": {
           "2": 80,
           "3": 80,
-        },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
@@ -946,16 +862,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "2": 80,
           "3": 80,
         },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "isDisabled": false,
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
@@ -1000,12 +906,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
@@ -1031,20 +931,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": 80,
           "1": 80,
           "2": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_append",
@@ -1085,12 +971,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -1146,16 +1026,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "2": 80,
           "3": 80,
         },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "isDisabled": false,
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
@@ -1182,20 +1052,6 @@ exports[`Read save file DiffusePBR.chn 1`] = `
           "0": 80,
           "1": 80,
           "2": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_append",
@@ -4469,12 +4325,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputHeight": {
           "0": 91,
         },
-        "inputSize": {
-          "0": {
-            "height": 91,
-            "width": 484,
-          },
-        },
         "nodeWidth": 484,
         "schemaId": "chainner:utility:note",
       },
@@ -4780,12 +4630,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -6447,12 +6291,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
@@ -6606,12 +6444,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -6954,12 +6786,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
       },
@@ -7130,12 +6956,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:note",
@@ -10466,12 +10286,6 @@ exports[`Read save file crop.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 501,
-          },
-        },
         "nodeWidth": 501,
         "schemaId": "chainner:utility:note",
       },
@@ -10676,20 +10490,6 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
           "1": 80,
           "2": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_pattern",
       },
@@ -10723,16 +10523,6 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
           "2": 80,
           "3": 80,
         },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
       },
@@ -10759,20 +10549,6 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
           "1": 80,
           "2": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-          "1": {
-            "height": 80,
-            "width": 240,
-          },
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_replace",
       },
@@ -10793,12 +10569,6 @@ exports[`Read save file empty-string-input-test.chn 1`] = `
         "inputData": {},
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:utility:text_length",
@@ -13893,12 +13663,6 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 243,
-          },
-        },
         "nodeWidth": 243,
         "schemaId": "chainner:utility:note",
       },
@@ -13960,12 +13724,6 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 243,
-          },
-        },
         "nodeWidth": 243,
         "schemaId": "chainner:utility:note",
       },
@@ -14011,12 +13769,6 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/256x256.
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 838,
-          },
         },
         "nodeWidth": 838,
         "schemaId": "chainner:utility:note",
@@ -14342,16 +14094,6 @@ exports[`Read save file save-image-webp-lossless.chn 1`] = `
         "inputHeight": {
           "2": 80,
           "3": 80,
-        },
-        "inputSize": {
-          "2": {
-            "height": 80,
-            "width": 240,
-          },
-          "3": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:save",
@@ -15046,12 +14788,6 @@ exports[`Read save file text-as-image.chn 1`] = `
         "inputHeight": {
           "0": 82,
         },
-        "inputSize": {
-          "0": {
-            "height": 82,
-            "width": 2050,
-          },
-        },
         "nodeWidth": 2050,
         "schemaId": "chainner:utility:note",
       },
@@ -15083,12 +14819,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -15138,12 +14868,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -15202,12 +14926,6 @@ consectetur adipiscing...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 897,
-          },
-        },
         "nodeWidth": 897,
         "schemaId": "chainner:utility:note",
       },
@@ -15239,12 +14957,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -15364,12 +15076,6 @@ consectetur adipiscing ...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -15401,12 +15107,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -15457,12 +15157,6 @@ consectetur adipiscing...",
         "inputHeight": {
           "0": 86,
         },
-        "inputSize": {
-          "0": {
-            "height": 86,
-            "width": 241,
-          },
-        },
         "nodeWidth": 241,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -15485,12 +15179,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 501,
-          },
         },
         "nodeWidth": 501,
         "schemaId": "chainner:utility:note",
@@ -15634,12 +15322,6 @@ consectetur adipiscing...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -15769,12 +15451,6 @@ consectetur adipiscing ...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -15832,12 +15508,6 @@ consectetur adipiscing ...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 1267,
-          },
-        },
         "nodeWidth": 1267,
         "schemaId": "chainner:utility:note",
       },
@@ -15886,12 +15556,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -15959,12 +15623,6 @@ for chaiNNer.",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16014,12 +15672,6 @@ for chaiNNer.",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16068,12 +15720,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -16161,12 +15807,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -16305,12 +15945,6 @@ consectetur adipiscing ...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16342,12 +15976,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -16423,12 +16051,6 @@ for chaiNNer.",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16460,12 +16082,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -16516,12 +16132,6 @@ consectetur adipiscing...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16544,12 +16154,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 556,
-          },
         },
         "nodeWidth": 556,
         "schemaId": "chainner:utility:note",
@@ -16600,12 +16204,6 @@ consectetur adipiscing...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16638,12 +16236,6 @@ consectetur adipiscing ...",
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
-        },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
       },
@@ -16675,12 +16267,6 @@ consectetur adipiscing...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -16751,12 +16337,6 @@ consectetur adipiscing ...",
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 240,
-          },
         },
         "nodeWidth": 240,
         "schemaId": "chainner:image:text_as_image",
@@ -17731,12 +17311,6 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 2481,
-          },
-        },
         "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
@@ -17759,12 +17333,6 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 2481,
-          },
         },
         "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
@@ -17789,12 +17357,6 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 2481,
-          },
-        },
         "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
@@ -17818,12 +17380,6 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputHeight": {
           "0": 80,
         },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 2481,
-          },
-        },
         "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
       },
@@ -17846,12 +17402,6 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         },
         "inputHeight": {
           "0": 80,
-        },
-        "inputSize": {
-          "0": {
-            "height": 80,
-            "width": 2481,
-          },
         },
         "nodeWidth": 2481,
         "schemaId": "chainner:utility:note",
