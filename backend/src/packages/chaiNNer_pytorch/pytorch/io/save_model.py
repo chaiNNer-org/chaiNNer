@@ -49,8 +49,9 @@ def save_model_node(
     full_file = f"{name}.{weight_format.value}"
     full_path = os.path.join(directory, full_file)
     logger.debug(f"Writing model to path: {full_path}")
-    match weight_format:
-        case WeightFormat.PTH:
-            torch.save(model.state_dict(), full_path)
-        case WeightFormat.ST:
-            save_file(model.state_dict(), full_path)
+    if weight_format == WeightFormat.PTH:
+        torch.save(model.state_dict(), full_path)
+    elif weight_format == WeightFormat.ST:
+        save_file(model.state_dict(), full_path)
+    else:
+        raise ValueError(f"Unknown weight format: {weight_format}")
