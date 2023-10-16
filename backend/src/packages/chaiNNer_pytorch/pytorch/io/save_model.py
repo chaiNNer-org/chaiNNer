@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import os
+from enum import Enum
 
 import torch
+from safetensors.torch import save_file
 from sanic.log import logger
 
 from nodes.impl.pytorch.types import PyTorchModel
-from nodes.properties.inputs import DirectoryInput, ModelInput, TextInput
+from nodes.properties.inputs import DirectoryInput, EnumInput, ModelInput, TextInput
 
 from .. import io_group
+
+
+class WeightFormat(Enum):
+    PTH = "pth"
+    ST = "safetensors"
 
 
 @io_group.register(
@@ -23,12 +30,27 @@ from .. import io_group
         ModelInput(),
         DirectoryInput(has_handle=True),
         TextInput("Model Name"),
+        EnumInput(
+            WeightFormat,
+            "Weight Format",
+            default=WeightFormat.PTH,
+            option_labels={
+                WeightFormat.PTH: "PyTorch (.pth)",
+                WeightFormat.ST: "SafeTensors (.safetensors)",
+            },
+        ),
     ],
     outputs=[],
     side_effects=True,
 )
-def save_model_node(model: PyTorchModel, directory: str, name: str) -> None:
-    full_file = f"{name}.pth"
+def save_model_node(
+    model: PyTorchModel, directory: str, name: str, weight_format: WeightFormat
+) -> None:
+    full_file = f"{name}.{weight_format.value}"
     full_path = os.path.join(directory, full_file)
     logger.debug(f"Writing model to path: {full_path}")
-    torch.save(model.state, full_path)
+    match weight_format:
+        case WeightFormat.PTH:
+            torch.save(model.state_dict(), full_path)
+        case WeightFormat.ST:
+            save_file(model.state_dict(), full_path)

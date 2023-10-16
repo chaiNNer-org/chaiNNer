@@ -71,13 +71,15 @@ class RRDBNet(nn.Module):
 
         self.state = self.new_to_old_arch(self.state)
 
-        self.key_arr = list(self.state.keys())
+        highest_weight_num = max(
+            int(re.search(r"model.(\d+)", k).group(1)) for k in self.state
+        )
 
-        self.in_nc: int = self.state[self.key_arr[0]].shape[1]
-        self.out_nc: int = self.state[self.key_arr[-1]].shape[0]
+        self.in_nc: int = self.state["model.0.weight"].shape[1]
+        self.out_nc: int = self.state[f"model.{highest_weight_num}.bias"].shape[0]
 
         self.scale: int = self.get_scale()
-        self.num_filters: int = self.state[self.key_arr[0]].shape[0]
+        self.num_filters: int = self.state["model.0.weight"].shape[0]
 
         c2x2 = False
         if self.state["model.0.weight"].shape[-2] == 2:

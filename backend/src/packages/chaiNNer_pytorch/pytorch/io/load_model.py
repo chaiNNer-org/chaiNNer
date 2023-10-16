@@ -4,6 +4,7 @@ import os
 from typing import Tuple
 
 import torch
+from safetensors.torch import load_file
 from sanic.log import logger
 
 from nodes.impl.pytorch.model_loading import load_state_dict
@@ -98,6 +99,9 @@ def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
             if "state_dict" in checkpoint:
                 checkpoint = checkpoint["state_dict"]
             state_dict = parse_ckpt_state_dict(checkpoint)
+        elif extension == ".safetensors":
+            state_dict = load_file(path, device=str(pytorch_device))
+            logger.info(state_dict.keys())
         else:
             raise ValueError(
                 f"Unsupported model file extension {extension}. Please try a supported model type."
