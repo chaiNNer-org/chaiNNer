@@ -12,6 +12,7 @@ import {
     NodeData,
     OutputId,
     SchemaId,
+    Size,
 } from './common-types';
 import { log } from './log';
 import { legacyMigrations } from './migrations-legacy';
@@ -1358,20 +1359,18 @@ const writeOutputFrame: ModernMigration = (data) => {
 };
 
 const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
+    const hasInputSize = (
+        nodeData: Mutable<ReadonlyNodeData>
+    ): nodeData is Mutable<ReadonlyNodeData> & {
+        inputSize?: Record<InputId, Size>;
+    } => 'inputSize' in nodeData;
+
     data.nodes.forEach((node) => {
         let maxWidth = 0;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (node.data.inputSize) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            const inputSize = node.data.inputSize as Record<
-                InputId,
-                { height: number; width: number }
-            >;
-            if (!node.data.inputHeight) {
-                node.data.inputHeight = {};
-            }
+        if (hasInputSize(node.data)) {
+            const inputSize = node.data.inputSize!;
+            delete node.data.inputSize;
+            node.data.inputHeight ??= {};
             for (const [inputId, { width, height }] of Object.entries(inputSize)) {
                 maxWidth = Math.max(maxWidth, width);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
