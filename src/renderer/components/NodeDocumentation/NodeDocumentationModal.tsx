@@ -59,16 +59,6 @@ const NodeDocumentationModal = memo(() => {
     const selectedSchema = schemata.get(selectedSchemaId);
 
     // search
-    const helperNodeMapping = useMemo(() => {
-        const mapping = new Map<SchemaId, SchemaId>();
-        for (const schema of schemata.schemata) {
-            for (const helper of schema.defaultNodes ?? []) {
-                mapping.set(helper.schemaId, schema.schemaId);
-            }
-        }
-        return mapping;
-    }, [schemata]);
-
     const searchIndex = useMemo(() => createSearchIndex(schemata.schemata), [schemata.schemata]);
     const [searchQuery, setSearchQuery] = useState('');
     const { searchScores, searchTerms } = useMemo(() => {
@@ -100,16 +90,14 @@ const NodeDocumentationModal = memo(() => {
     useEffect(() => {
         if (searchScores && searchScores.size > 0) {
             const highestScore = Math.max(...searchScores.values());
-            let highestScoreSchemaId = [...searchScores.entries()].find(
+            const highestScoreSchemaId = [...searchScores.entries()].find(
                 ([, score]) => score === highestScore
             )?.[0];
             if (highestScoreSchemaId) {
-                highestScoreSchemaId =
-                    helperNodeMapping.get(highestScoreSchemaId) ?? highestScoreSchemaId;
                 openNodeDocumentation(highestScoreSchemaId);
             }
         }
-    }, [searchScores, helperNodeMapping, openNodeDocumentation]);
+    }, [searchScores, openNodeDocumentation]);
 
     return (
         <Modal

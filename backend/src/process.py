@@ -5,9 +5,8 @@ import functools
 import gc
 import time
 import uuid
-from collections.abc import Awaitable
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Dict, Iterable, List, Optional, Set
 
 from sanic.log import logger
 
@@ -19,6 +18,7 @@ from chain.input import EdgeInput, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController
+from util import timed_supplier
 
 Output = List[object]
 
@@ -144,9 +144,6 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
     return data, types
 
 
-T = TypeVar("T")
-
-
 class NodeExecutionError(Exception):
     def __init__(
         self,
@@ -159,23 +156,6 @@ class NodeExecutionError(Exception):
         self.node_id: NodeId = node_id
         self.node_data: NodeData = node_data
         self.inputs: InputsDict = inputs
-
-
-def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
-    def wrapper():
-        start = time.time()
-        result = supplier()
-        duration = time.time() - start
-        return result, duration
-
-    return wrapper
-
-
-async def timed_supplier_async(supplier: Callable[[], Awaitable[T]]) -> Tuple[T, float]:
-    start = time.time()
-    result = await supplier()
-    duration = time.time() - start
-    return result, duration
 
 
 class Executor:
@@ -412,7 +392,7 @@ class Executor:
             upstream_nodes.extend(self.__get_upstream_nodes(upstream_node))
         return set(upstream_nodes)
 
-    async def __process_nodes(self, nodes: List[NodeId]):
+    async def __process_nodes(self):
         await self.progress.suspend()
 
         iterator_node_set = set()
@@ -448,7 +428,7 @@ class Executor:
         before_iteration_time = time.time()
 
         # Now run each of the iterators
-        for iterator_node in nodes:
+        for iterator_node in self.__get_iterator_nodes():
             # Get all downstream nodes of the iterator
             # This excludes any nodes that are downstream of a collector, as well as collectors themselves
             downstream_nodes = [
@@ -576,7 +556,7 @@ class Executor:
     async def run(self):
         logger.debug(f"Running executor {self.execution_id}")
         try:
-            await self.__process_nodes(self.__get_iterator_nodes())
+            await self.__process_nodes()
         finally:
             gc.collect()
 

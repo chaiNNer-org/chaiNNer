@@ -33,14 +33,7 @@ from nodes.utils.exec_options import (
     JsonExecutionOptions,
     set_execution_options,
 )
-from process import (
-    Executor,
-    NodeExecutionError,
-    Output,
-    compute_broadcast,
-    run_node,
-    timed_supplier,
-)
+from process import Executor, NodeExecutionError, Output, compute_broadcast, run_node
 from progress_controller import Aborted
 from response import (
     alreadyRunningResponse,
@@ -50,6 +43,7 @@ from response import (
 )
 from server_config import ServerConfig
 from system import is_arm_mac
+from util import timed_supplier
 
 
 class AppContext:
@@ -132,7 +126,6 @@ async def nodes(_request: Request):
             "nodeType": node.type,
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
-            "defaultNodes": node.default_nodes,
             "features": node.features,
         }
         node_list.append(node_dict)
