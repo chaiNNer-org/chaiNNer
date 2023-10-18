@@ -99,7 +99,7 @@ class ApiConfig:
         if protocol:
             protocol = [protocol]
         else:
-            protocol = ["http"] if host == "127.0.0.1" else ["https", "http"]
+            protocol = ["https", "http"]
 
         if port:
             port = [port]
