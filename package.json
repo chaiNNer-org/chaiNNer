@@ -150,7 +150,7 @@
     "rregex": "^1.7.0",
     "semver": "^7.3.7",
     "systeminformation": "^5.21.7",
-    "undici": "^5.22.1",
+    "undici": "^5.26.2",
     "use-context-selector": "^1.4.0",
     "use-debounce": "^8.0.1",
     "uuid": "^8.3.2",
