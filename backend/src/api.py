@@ -95,7 +95,6 @@ class NodeData:
 
     side_effects: bool
     deprecated: bool
-    default_nodes: List[DefaultNode] | None  # For iterators only
     features: List[FeatureId]
 
     run: RunFn
@@ -126,7 +125,6 @@ class NodeGroup:
         node_type: NodeType = "regularNode",
         side_effects: bool = False,
         deprecated: bool = False,
-        default_nodes: List[DefaultNode] | None = None,
         decorators: List[Callable] | None = None,
         see_also: List[str] | str | None = None,
         features: List[FeatureId] | FeatureId | None = None,
@@ -197,7 +195,6 @@ class NodeGroup:
                 outputs=p_outputs,
                 side_effects=side_effects,
                 deprecated=deprecated,
-                default_nodes=default_nodes,
                 features=features,
                 run=wrapped_func,
             )

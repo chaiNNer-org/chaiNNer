@@ -253,7 +253,6 @@ export interface NodeSchema {
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
     readonly groupLayout: readonly (InputId | Group)[];
-    readonly defaultNodes?: readonly DefaultNode[] | null;
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;

@@ -376,16 +376,13 @@ interface NodeDocsProps {
     schema: NodeSchema;
 }
 export const NodeDocs = memo(({ schema }: NodeDocsProps) => {
-    const { schemata, functionDefinitions, categories } = useContext(BackendContext);
+    const { functionDefinitions, categories } = useContext(BackendContext);
 
     const selectedAccentColor = getCategoryAccentColor(categories, schema.category);
 
     const [isLargerThan1200] = useMediaQuery('(min-width: 1200px)');
 
-    const nodeDocsToShow = [
-        schema,
-        ...(schema.defaultNodes?.map((n) => schemata.get(n.schemaId)) ?? []),
-    ];
+    const nodeFunctionDefinition = functionDefinitions.get(schema.schemaId);
 
     return (
         <Box
@@ -412,43 +409,36 @@ export const NodeDocs = memo(({ schema }: NodeDocsProps) => {
                         textAlign="left"
                         w="full"
                     >
-                        {nodeDocsToShow.map((nodeSchema) => {
-                            const nodeFunctionDefinition = functionDefinitions.get(
-                                nodeSchema.schemaId
-                            );
-                            return (
-                                <Flex
-                                    direction={isLargerThan1200 ? 'row' : 'column'}
-                                    gap={4}
-                                    key={nodeSchema.schemaId}
+                        <Flex
+                            direction={isLargerThan1200 ? 'row' : 'column'}
+                            gap={4}
+                            key={schema.schemaId}
+                        >
+                            <SingleNodeInfo
+                                accentColor={selectedAccentColor}
+                                functionDefinition={nodeFunctionDefinition}
+                                key={schema.schemaId}
+                                schema={schema}
+                            />
+                            <Center
+                                h="full"
+                                position="relative"
+                                verticalAlign="top"
+                            >
+                                <Box
+                                    maxW="fit-content"
+                                    mr={6}
+                                    position="relative"
+                                    w="auto"
                                 >
-                                    <SingleNodeInfo
+                                    <NodeExample
                                         accentColor={selectedAccentColor}
-                                        functionDefinition={nodeFunctionDefinition}
-                                        key={nodeSchema.schemaId}
-                                        schema={nodeSchema}
+                                        key={schema.schemaId}
+                                        selectedSchema={schema}
                                     />
-                                    <Center
-                                        h="full"
-                                        position="relative"
-                                        verticalAlign="top"
-                                    >
-                                        <Box
-                                            maxW="fit-content"
-                                            mr={6}
-                                            position="relative"
-                                            w="auto"
-                                        >
-                                            <NodeExample
-                                                accentColor={selectedAccentColor}
-                                                key={nodeSchema.schemaId}
-                                                selectedSchema={nodeSchema}
-                                            />
-                                        </Box>
-                                    </Center>
-                                </Flex>
-                            );
-                        })}
+                                </Box>
+                            </Center>
+                        </Flex>
                     </VStack>
                 </Box>
             </Box>
