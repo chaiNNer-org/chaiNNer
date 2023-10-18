@@ -19,6 +19,7 @@ from typing import (
 
 from sanic.log import logger
 
+import navi
 from base_types import InputId, OutputId
 from custom_types import NodeType, RunFn
 from node_check import (
@@ -80,6 +81,34 @@ class DefaultNode(TypedDict):
     schemaId: str
 
 
+class IteratorInputInfo:
+    def __init__(
+        self,
+        inputs: int | InputId | List[int] | List[InputId] | List[int | InputId],
+        length_type: navi.ExpressionJson = "uint",
+    ) -> None:
+        self.inputs: List[InputId] = (
+            [InputId(x) for x in inputs]
+            if isinstance(inputs, list)
+            else [InputId(inputs)]
+        )
+        self.length_type: navi.ExpressionJson = length_type
+
+
+class IteratorOutputInfo:
+    def __init__(
+        self,
+        outputs: int | OutputId | List[int] | List[OutputId] | List[int | OutputId],
+        length_type: navi.ExpressionJson = "uint",
+    ) -> None:
+        self.outputs: List[OutputId] = (
+            [OutputId(x) for x in outputs]
+            if isinstance(outputs, list)
+            else [OutputId(outputs)]
+        )
+        self.length_type: navi.ExpressionJson = length_type
+
+
 @dataclass(frozen=True)
 class NodeData:
     schema_id: str
@@ -92,6 +121,9 @@ class NodeData:
     inputs: List[BaseInput]
     outputs: List[BaseOutput]
     group_layout: List[InputId | NestedIdGroup]
+
+    iterator_inputs: List[IteratorInputInfo]
+    iterator_outputs: List[IteratorOutputInfo]
 
     side_effects: bool
     deprecated: bool
@@ -129,6 +161,8 @@ class NodeGroup:
         see_also: List[str] | str | None = None,
         features: List[FeatureId] | FeatureId | None = None,
         limited_to_8bpc: bool | str = False,
+        iterator_inputs: List[IteratorInputInfo] | IteratorInputInfo | None = None,
+        iterator_outputs: List[IteratorOutputInfo] | IteratorOutputInfo | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -152,6 +186,16 @@ class NodeGroup:
 
         see_also = to_list(see_also)
         features = to_list(features)
+
+        iterator_inputs = to_list(iterator_inputs)
+        iterator_outputs = to_list(iterator_outputs)
+
+        if node_type == "collector":
+            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
+        elif node_type == "newIterator":
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
+        else:
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
@@ -193,6 +237,8 @@ class NodeGroup:
                 inputs=p_inputs,
                 group_layout=group_layout,
                 outputs=p_outputs,
+                iterator_inputs=iterator_inputs,
+                iterator_outputs=iterator_outputs,
                 side_effects=side_effects,
                 deprecated=deprecated,
                 features=features,

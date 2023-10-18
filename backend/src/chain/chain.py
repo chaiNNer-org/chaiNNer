@@ -31,16 +31,11 @@ class NewIteratorNode:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
-        self.parent: None = None
-        self.__node = None
-        self.is_helper: bool = False
 
     def get_node(self) -> NodeData:
-        if self.__node is None:
-            node = registry.get_node(self.schema_id)
-            assert node.type == "newIterator", "Invalid iterator node"
-            self.__node = node
-        return self.__node
+        node = registry.get_node(self.schema_id)
+        assert node.type == "newIterator", "Invalid iterator node"
+        return node
 
     def has_side_effects(self) -> bool:
         return self.get_node().side_effects
@@ -50,16 +45,11 @@ class CollectorNode:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
-        self.parent: None = None
-        self.__node = None
-        self.is_helper: bool = False
 
     def get_node(self) -> NodeData:
-        if self.__node is None:
-            node = registry.get_node(self.schema_id)
-            assert node.type == "collector", "Invalid iterator node"
-            self.__node = node
-        return self.__node
+        node = registry.get_node(self.schema_id)
+        assert node.type == "collector", "Invalid collector node"
+        return node
 
     def has_side_effects(self) -> bool:
         return self.get_node().side_effects

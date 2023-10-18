@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-from api import Iterator
+from api import Iterator, IteratorOutputInfo
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
@@ -52,6 +52,7 @@ from .. import batch_processing_group
             "A counter that starts at 0 and increments by 1 for each image."
         ),
     ],
+    iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="Input1 * Input2"),
     node_type="newIterator",
 )
 def split_spritesheet_node(

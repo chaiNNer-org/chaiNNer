@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
-from api import Collector
+from api import Collector, IteratorInputInfo
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -39,6 +37,7 @@ from .. import batch_processing_group
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
     ],
+    iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[
         ImageOutput(
             image_type="""
@@ -52,16 +51,13 @@ from .. import batch_processing_group
     node_type="collector",
 )
 def merge_spritesheet_node(
-    _tile: np.ndarray,
+    _: None,
     rows: int,
     columns: int,
-) -> Collector[Tuple[np.ndarray, int, int], np.ndarray]:
+) -> Collector[np.ndarray, np.ndarray]:
     results = []
 
-    # TODO: This system is pretty messy. We need to separate out the creation
-    # of the collector from the actual collection. As-is we have unused inputs
-    def on_iterate(inputs: Tuple[np.ndarray, int, int]):
-        tile = inputs[0]
+    def on_iterate(tile: np.ndarray):
         results.append(tile)
 
     def on_complete():

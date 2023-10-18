@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from api import Iterator
+from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput
@@ -49,6 +49,7 @@ from ..io.load_image import load_image_node
             "A counter that starts at 0 and increments by 1 for each image."
         ),
     ],
+    iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
     node_type="newIterator",
 )
 def load_image_pairs_node(
@@ -56,7 +57,7 @@ def load_image_pairs_node(
     directory_b: str,
     use_limit: bool,
     limit: int,
-) -> Iterator[Tuple[np.ndarray, np.ndarray, str, str, str, str, str, str, int]]:
+) -> Tuple[Iterator[Tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
     def load_images(filepaths: Tuple[str, str], index: int):
         path_a, path_b = filepaths
         img_a, img_dir_a, basename_a = load_image_node(path_a)
@@ -65,17 +66,7 @@ def load_image_pairs_node(
         # Get relative path from root directory passed by Iterator directory input
         rel_path_a = os.path.relpath(img_dir_a, directory_a)
         rel_path_b = os.path.relpath(img_dir_b, directory_b)
-        return (
-            img_a,
-            img_b,
-            directory_a,
-            directory_b,
-            rel_path_a,
-            rel_path_b,
-            basename_a,
-            basename_b,
-            index,
-        )
+        return img_a, img_b, rel_path_a, rel_path_b, basename_a, basename_b, index
 
     supported_filetypes = get_available_image_formats()
 
@@ -94,4 +85,4 @@ def load_image_pairs_node(
 
     image_files = list(zip(image_files_a, image_files_b))
 
-    return Iterator.from_list(image_files, load_images)
+    return Iterator.from_list(image_files, load_images), directory_a, directory_b
