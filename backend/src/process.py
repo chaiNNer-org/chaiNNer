@@ -6,15 +6,17 @@ import gc
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Iterable, List, Optional, Set
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Dict, Iterable, List, Optional, Union
 
 from sanic.log import logger
 
 from api import Collector, Iterator, NodeData
-from base_types import NodeId, OutputId
-from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
-from chain.chain import Chain, CollectorNode, NewIteratorNode, Node
-from chain.input import EdgeInput, InputMap
+from base_types import InputId, NodeId, OutputId
+from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
+from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
+from chain.input import EdgeInput, Input, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController
@@ -58,21 +60,28 @@ def collect_input_information(
 
 
 def enforce_inputs(
-    inputs: Iterable[object], node: NodeData, node_id: NodeId
+    inputs: List[object],
+    node: NodeData,
+    node_id: NodeId,
+    ignored_inputs: List[InputId],
 ) -> List[object]:
-    inputs = list(inputs)
-
     try:
         enforced_inputs: List[object] = []
+
         for index, value in enumerate(inputs):
-            enforced_inputs.append(node.inputs[index].enforce_(value))
+            i = node.inputs[index]
+            if i.id in ignored_inputs:
+                enforced_inputs.append(None)
+            else:
+                enforced_inputs.append(i.enforce_(value))
+
         return enforced_inputs
     except Exception as e:
         input_dict = collect_input_information(node, inputs, enforced=False)
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
-def enforce_output(raw_output: object, node: NodeData) -> Output:
+def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     l = len(node.outputs)
 
     output: Output
@@ -92,32 +101,56 @@ def enforce_output(raw_output: object, node: NodeData) -> Output:
     for i, o in enumerate(node.outputs):
         output[i] = o.enforce(output[i])
 
-    return output
+    return RegularOutput(output)
+
+
+def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutput:
+    l = len(node.outputs)
+    iterator_output = node.single_iterator_output
+
+    partial: list[object] = [None] * l
+
+    if l == len(iterator_output.outputs):
+        assert isinstance(raw_output, Iterator), "Expected the output to be an iterator"
+        return IteratorOutput(iterator=raw_output, partial_output=partial)
+
+    assert l > len(iterator_output.outputs)
+    assert isinstance(raw_output, (tuple, list))
+
+    iterator, *rest = raw_output
+    assert isinstance(
+        iterator, Iterator
+    ), "Expected the first tuple element to be an iterator"
+    assert len(rest) == l - len(iterator_output.outputs)
+
+    # output-specific validations
+    for i, o in enumerate(node.outputs):
+        if o.id not in iterator_output.outputs:
+            partial[i] = o.enforce(rest.pop(0))
+
+    return IteratorOutput(iterator=iterator, partial_output=partial)
 
 
 def run_node(
     node: NodeData, inputs: List[object], node_id: NodeId
-) -> Output | Iterator | Collector:
-    assert (
-        node.type == "regularNode"
-        or node.type == "newIterator"
-        or node.type == "collector"
-    )
+) -> NodeOutput | CollectorOutput:
+    if node.type == "collector":
+        ignored_inputs = node.single_iterator_input.inputs
+    else:
+        ignored_inputs = []
 
-    enforced_inputs = []
-    if node.type != "collector":
-        enforced_inputs = enforce_inputs(inputs, node, node_id)
+    enforced_inputs = enforce_inputs(inputs, node, node_id, ignored_inputs)
+
     try:
-        if node.type != "collector":
-            raw_output = node.run(*enforced_inputs)
-        else:
-            raw_output = node.run(*list(inputs))
-        if node.type == "newIterator":
-            assert isinstance(raw_output, Iterator)
-            return raw_output
+        raw_output = node.run(*enforced_inputs)
+
         if node.type == "collector":
             assert isinstance(raw_output, Collector)
-            return raw_output
+            return CollectorOutput(raw_output)
+        if node.type == "newIterator":
+            return enforce_iterator_output(raw_output, node)
+
+        assert node.type == "regularNode"
         return enforce_output(raw_output, node)
     except Aborted:
         raise
@@ -125,11 +158,69 @@ def run_node(
         raise
     except Exception as e:
         # collect information to provide good error messages
-        if node.type != "collector":
-            input_dict = collect_input_information(node, enforced_inputs)
-        else:
-            input_dict = collect_input_information(node, list(inputs))
+        input_dict = collect_input_information(node, enforced_inputs)
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
+
+
+def run_collector_iterate(
+    node: CollectorNode, inputs: List[object], collector: Collector
+) -> None:
+    iterator_input = node.data.single_iterator_input
+
+    def get_partial_inputs(values: List[object]) -> List[object]:
+        partial_inputs: List[object] = []
+        index = 0
+        for i in node.data.inputs:
+            if i.id in iterator_input.inputs:
+                partial_inputs.append(values[index])
+                index += 1
+            else:
+                partial_inputs.append(None)
+        return partial_inputs
+
+    enforced_inputs: List[object] = []
+    try:
+        for i in node.data.inputs:
+            if i.id in iterator_input.inputs:
+                enforced_inputs.append(i.enforce_(inputs[len(enforced_inputs)]))
+    except Exception as e:
+        input_dict = collect_input_information(
+            node.data, get_partial_inputs(inputs), enforced=False
+        )
+        raise NodeExecutionError(node.id, node.data, str(e), input_dict) from e
+
+    input_value = (
+        enforced_inputs[0] if len(enforced_inputs) == 1 else tuple(enforced_inputs)
+    )
+
+    try:
+        raw_output = collector.on_iterate(input_value)
+        assert raw_output is None
+    except Exception as e:
+        input_dict = collect_input_information(
+            node.data, get_partial_inputs(enforced_inputs)
+        )
+        raise NodeExecutionError(node.id, node.data, str(e), input_dict) from e
+
+
+class _Timer:
+    def __init__(self) -> None:
+        self.duration: float = 0
+
+    def run(self):
+        return _timer_run(self)
+
+    def add_since(self, start: float):
+        self.duration += time.time() - start
+
+
+@contextmanager
+def _timer_run(timer: _Timer):
+    start = time.time()
+    try:
+        yield None
+    finally:
+        timer.add_since(start)
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
@@ -137,8 +228,10 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
     types: Dict[OutputId, object] = dict()
     for index, node_output in enumerate(node_outputs):
         try:
-            data[node_output.id] = node_output.get_broadcast_data(output[index])
-            types[node_output.id] = node_output.get_broadcast_type(output[index])
+            value = output[index]
+            if value is not None:
+                data[node_output.id] = node_output.get_broadcast_data(value)
+                types[node_output.id] = node_output.get_broadcast_type(value)
         except Exception as e:
             logger.error(f"Error broadcasting output: {e}")
     return data, types
@@ -158,6 +251,25 @@ class NodeExecutionError(Exception):
         self.inputs: InputsDict = inputs
 
 
+@dataclass(frozen=True)
+class RegularOutput:
+    output: Output
+
+
+@dataclass(frozen=True)
+class IteratorOutput:
+    iterator: Iterator
+    partial_output: Output
+
+
+@dataclass(frozen=True)
+class CollectorOutput:
+    collector: Collector
+
+
+NodeOutput = Union[RegularOutput, IteratorOutput]
+
+
 class Executor:
     """
     Class for executing chaiNNer's processing logic
@@ -171,14 +283,13 @@ class Executor:
         loop: asyncio.AbstractEventLoop,
         queue: EventQueue,
         pool: ThreadPoolExecutor,
-        parent_cache: Optional[OutputCache[Output]] = None,
+        parent_cache: Optional[OutputCache[NodeOutput]] = None,
     ):
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain
         self.inputs = inputs
         self.send_broadcast_data: bool = send_broadcast_data
-        self.cache: OutputCache[Output] = OutputCache(parent=parent_cache)
-        self.collector_cache: Dict[NodeId, Collector] = {}
+        self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
 
         self.progress = ProgressController()
@@ -191,7 +302,17 @@ class Executor:
 
         self.cache_strategy: Dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
 
-    async def process(self, node_id: NodeId) -> Output | Iterator:
+    @property
+    def completed_percentage(self) -> float:
+        completed = self.cache.keys().union(self.completed_node_ids)
+        return len(completed) / len(self.chain.nodes)
+
+    async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
+        # Return cached output value from an already-run node if that cached output exists
+        cached = self.cache.get(node_id)
+        if cached is not None:
+            return cached
+
         node = self.chain.nodes[node_id]
         try:
             return await self.__process(node)
@@ -200,107 +321,149 @@ class Executor:
         except NodeExecutionError:
             raise
         except Exception as e:
-            raise NodeExecutionError(node.id, node.get_node(), str(e), {}) from e
+            raise NodeExecutionError(node.id, node.data, str(e), {}) from e
 
-    async def __process(self, node: Node) -> Output | Iterator:
-        """Process a single node"""
+    async def process_regular_node(self, node_id: NodeId) -> RegularOutput:
+        assert self.chain.nodes[node_id].data.type == "regularNode"
+        result = await self.process(node_id)
+        assert isinstance(result, RegularOutput)
+        return result
 
-        # Return cached output value from an already-run node if that cached output exists
-        cached = self.cache.get(node.id)
-        if cached is not None:
-            if not node.id in self.completed_node_ids:
-                self.completed_node_ids.add(node.id)
-                await self.queue.put(self.__create_node_finish(node.id))
-            return cached
+    async def __get_node_output(self, node_id: NodeId, output_index: int) -> object:
+        """
+        Returns the output value of the given node.
+
+        Note: `output_index` is NOT an output ID.
+        """
+
+        # Recursively get the value of the input
+        output = await self.process(node_id)
+
+        if isinstance(output, CollectorOutput):
+            # this generally shouldn't be possible
+            raise ValueError("A collector was not run before another node needed it.")
+
+        if isinstance(output, IteratorOutput):
+            value = output.partial_output[output_index]
+            assert value is not None, "An iterator output was not assigned correctly"
+            return value
+
+        assert isinstance(output, RegularOutput)
+        return output.output[output_index]
+
+    async def __resolve_node_input(self, node_input: Input) -> object:
+        if isinstance(node_input, EdgeInput):
+            # If input is a dict indicating another node, use that node's output value
+            # Recursively get the value of the input
+            return await self.__get_node_output(node_input.id, node_input.index)
+        else:
+            # Otherwise, just use the given input (number, string, etc)
+            return node_input.value
+
+    async def __gather_inputs(self, node: Node) -> List[object]:
+        """
+        Returns the list of input values for the given node.
+        """
+
+        # we want to ignore some inputs if we are running a collector node
+        ignore: set[int] = set()
+        if isinstance(node, CollectorNode):
+            iterator_input = node.data.single_iterator_input
+            for input_index, i in enumerate(node.data.inputs):
+                if i.id in iterator_input.inputs:
+                    ignore.add(input_index)
+
+        assigned_inputs = self.inputs.get(node.id)
+        assert len(assigned_inputs) == len(node.data.inputs)
+
+        inputs = []
+        for input_index, node_input in enumerate(assigned_inputs):
+            if input_index in ignore:
+                inputs.append(None)
+            else:
+                inputs.append(await self.__resolve_node_input(node_input))
+
+        return inputs
+
+    async def __gather_collector_inputs(self, node: Node) -> List[object]:
+        """
+        Returns the input values to be consumed by `Collector.on_iterate`.
+        """
+
+        assert isinstance(node, CollectorNode)
+        assert node.data.type == "collector"
+
+        iterator_input = node.data.single_iterator_input
+
+        assigned_inputs = self.inputs.get(node.id)
+        assert len(assigned_inputs) == len(node.data.inputs)
+
+        inputs = []
+        for input_index, node_input in enumerate(assigned_inputs):
+            i = node.data.inputs[input_index]
+            if i.id in iterator_input.inputs:
+                inputs.append(await self.__resolve_node_input(node_input))
+
+        return inputs
+
+    async def __process(self, node: Node) -> NodeOutput | CollectorOutput:
+        """
+        Process a single node.
+
+        In the case of iterators and collectors, it will only run the node itself,
+        not the actual iteration or collection.
+        """
 
         logger.debug(f"node: {node}")
         logger.debug(f"Running node {node.id}")
 
         await self.queue.put(self.__create_node_start(node.id))
+        await self.progress.suspend()
+
+        inputs = await self.__gather_inputs(node)
 
         await self.progress.suspend()
 
-        inputs = []
-        for node_input in self.inputs.get(node.id):
-            # If input is a dict indicating another node, use that node's output value
-            if isinstance(node_input, EdgeInput):
-                # Recursively get the value of the input
-                processed_input = await self.process(node_input.id)
-                assert not isinstance(processed_input, Iterator)
-                assert not isinstance(processed_input, Collector)
-                inputs.append(processed_input[node_input.index])
-            # Otherwise, just use the given input (number, string, etc)
-            else:
-                inputs.append(node_input.value)
-
+        output, execution_time = await self.loop.run_in_executor(
+            self.pool,
+            timed_supplier(functools.partial(run_node, node.data, inputs, node.id)),
+        )
         await self.progress.suspend()
 
-        # Create node based on given category/name information
-        node_instance = node.get_node()
-
-        if node_instance.type == "newIterator":
-            output, execution_time = await self.loop.run_in_executor(
-                self.pool,
-                timed_supplier(
-                    functools.partial(run_node, node_instance, inputs, node.id)
-                ),
-            )
-            assert isinstance(output, Iterator)
-
-            await self.progress.suspend()
-        elif node_instance.type == "collector":
-            collector_node = self.collector_cache[node.id]
-            collector_node.on_iterate(inputs)
-            output = None
-
-            await self.progress.suspend()
-        else:
-            output, execution_time = await self.loop.run_in_executor(
-                self.pool,
-                timed_supplier(
-                    functools.partial(run_node, node_instance, inputs, node.id)
-                ),
-            )
-
-            await self.progress.suspend()
-            await self.__broadcast_data(node_instance, node.id, execution_time, output)  # type: ignore
+        if isinstance(output, RegularOutput):
+            await self.__broadcast_data(node, execution_time, output.output)
+        elif isinstance(output, IteratorOutput):
+            await self.__broadcast_data(node, execution_time, output.partial_output)
 
         # Cache the output of the node
-        # If we are executing a free node from within an iterator,
-        # we want to store the result in the cache of the parent executor
-        if node.get_node().type != "collector":
-            write_cache = self.cache
-            write_cache.set(node.id, output, self.cache_strategy[node.id])  # type: ignore
+        if not isinstance(output, CollectorOutput):
+            self.cache.set(node.id, output, self.cache_strategy[node.id])
 
-        return output  # type: ignore
+        await self.progress.suspend()
+
+        return output
 
     async def __broadcast_data(
         self,
-        node_instance: NodeData,
-        node_id: NodeId,
+        node: Node,
         execution_time: float,
         output: Output,
     ):
-        finished = self.cache.keys()
-        finished.add(node_id)
-        finished = list(finished)
-
-        self.completed_node_ids.add(node_id)
+        self.completed_node_ids.add(node.id)
 
         async def send_broadcast():
             data, types = await self.loop.run_in_executor(
-                self.pool, lambda: compute_broadcast(output, node_instance.outputs)
+                self.pool, lambda: compute_broadcast(output, node.data.outputs)
             )
             await self.queue.put(
                 {
                     "event": "node-finish",
                     "data": {
-                        "nodeId": node_id,
+                        "nodeId": node.id,
                         "executionTime": execution_time,
                         "data": data,
                         "types": types,
-                        "progressPercent": len(self.completed_node_ids)
-                        / len(self.chain.nodes),
+                        "progressPercent": self.completed_percentage,
                     },
                 }
             )
@@ -308,8 +471,8 @@ class Executor:
         # Only broadcast the output if the node has outputs and the output is not cached
         if (
             self.send_broadcast_data
-            and len(node_instance.outputs) > 0
-            and not self.cache.has(node_id)
+            and len(node.data.outputs) > 0
+            and not self.cache.has(node.id)
         ):
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
@@ -318,33 +481,14 @@ class Executor:
                 {
                     "event": "node-finish",
                     "data": {
-                        "nodeId": node_id,
+                        "nodeId": node.id,
                         "executionTime": execution_time,
                         "data": None,
                         "types": None,
-                        "progressPercent": len(self.completed_node_ids)
-                        / len(self.chain.nodes),
+                        "progressPercent": self.completed_percentage,
                     },
                 }
             )
-
-    def __create_node_finish(self, node_id: NodeId) -> Event:
-        finished = self.cache.keys()
-        finished.add(node_id)
-        finished = list(finished)
-
-        self.completed_node_ids.add(node_id)
-
-        return {
-            "event": "node-finish",
-            "data": {
-                "nodeId": node_id,
-                "executionTime": None,
-                "data": None,
-                "types": None,
-                "progressPercent": len(self.completed_node_ids) / len(self.chain.nodes),
-            },
-        }
 
     def __create_node_start(self, node_id: NodeId) -> Event:
         return {
@@ -354,198 +498,198 @@ class Executor:
             },
         }
 
-    def __get_output_nodes(self) -> List[NodeId]:
-        output_nodes: List[NodeId] = []
-        for node in self.chain.nodes.values():
-            side_effects = node.has_side_effects()
-            if side_effects:
-                output_nodes.append(node.id)
-        return output_nodes
+    def __get_iterated_nodes(
+        self, node: NewIteratorNode
+    ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
+        """
+        Returns all collector and output nodes iterated by the given iterator node
+        """
+        collectors: set[CollectorNode] = set()
+        output_nodes: set[FunctionNode] = set()
 
-    def __get_iterator_nodes(self) -> List[NodeId]:
-        iterator_nodes: List[NodeId] = []
-        for node in self.chain.nodes.values():
-            if isinstance(node, NewIteratorNode):
-                iterator_nodes.append(node.id)
-        return iterator_nodes
+        seen: set[Node] = {node}
 
-    def __get_collector_nodes(self) -> List[NodeId]:
-        collector_nodes: List[NodeId] = []
-        for node in self.chain.nodes.values():
-            if isinstance(node, CollectorNode):
-                collector_nodes.append(node.id)
-        return collector_nodes
+        def visit(n: Node):
+            if n in seen:
+                return
+            seen.add(n)
 
-    def __get_downstream_nodes(self, node: NodeId) -> Set[NodeId]:
-        downstream_nodes: List[NodeId] = []
-        for edge in self.chain.edges_from(node):
-            downstream_nodes.append(edge.target.id)
-        for downstream_node in downstream_nodes:
-            downstream_nodes.extend(self.__get_downstream_nodes(downstream_node))
-        return set(downstream_nodes)
+            if isinstance(n, CollectorNode):
+                collectors.add(n)
+            elif isinstance(n, NewIteratorNode):
+                raise ValueError("Nested iterators are not supported")
+            else:
+                assert isinstance(n, FunctionNode)
 
-    def __get_upstream_nodes(self, node: NodeId) -> Set[NodeId]:
-        upstream_nodes: List[NodeId] = []
-        for edge in self.chain.edges_to(node):
-            upstream_nodes.append(edge.source.id)
-        for upstream_node in upstream_nodes:
-            upstream_nodes.extend(self.__get_upstream_nodes(upstream_node))
-        return set(upstream_nodes)
+                if n.has_side_effects():
+                    output_nodes.add(n)
 
-    async def __process_nodes(self):
+                # follow edges
+                for edge in self.chain.edges_from(n.id):
+                    target_node = self.chain.nodes[edge.target.id]
+                    visit(target_node)
+
+        iterator_output = node.data.single_iterator_output
+        for edge in self.chain.edges_from(node.id):
+            # only follow iterator outputs
+            if edge.source.output_id in iterator_output.outputs:
+                target_node = self.chain.nodes[edge.target.id]
+                visit(target_node)
+
+        return collectors, output_nodes, seen
+
+    def __iterator_fill_partial_output(
+        self, node: NodeData, partial_output: Output, values: object
+    ) -> Output:
+        assert node.type == "newIterator"
+        iterator_output = node.single_iterator_output
+
+        values_list: list[object] = []
+        if len(iterator_output.outputs) == 1:
+            values_list.append(values)
+        else:
+            assert isinstance(values, (tuple, list))
+            values_list.extend(values)
+
+        assert len(values_list) == len(iterator_output.outputs)
+
+        output: Output = partial_output.copy()
+        for index, o in enumerate(node.outputs):
+            if o.id in iterator_output.outputs:
+                output[index] = o.enforce(values_list.pop(0))
+
+        return output
+
+    async def __process_iterator_node(self, node: NewIteratorNode):
         await self.progress.suspend()
 
-        iterator_node_set = set()
-        chain_output_nodes = self.__get_output_nodes()
+        # run the iterator node itself before anything else
+        iterator_output = await self.process(node.id)
+        assert isinstance(iterator_output, IteratorOutput)
 
-        collector_nodes = self.__get_collector_nodes()
-        self.collector_cache: Dict[NodeId, Collector] = {}
-        collector_downstreams = set()
+        collector_nodes, output_nodes, all_iterated_nodes = self.__get_iterated_nodes(
+            node
+        )
+        all_iterated_nodes = {n.id for n in all_iterated_nodes}
 
-        # Run each of the collector nodes first. This gives us all the collector objects that we will use when iterating
+        if len(collector_nodes) == 0 and len(output_nodes) == 0:
+            # unusual, but this can happen
+            # since we don't need to actually iterate the iterator, we can stop here
+            return
+
+        def fill_partial_output(values: object) -> RegularOutput:
+            return RegularOutput(
+                self.__iterator_fill_partial_output(
+                    node.data, iterator_output.partial_output, values
+                )
+            )
+
+        # run each of the collector nodes
+        collectors: list[tuple[Collector, _Timer, CollectorNode]] = []
         for collector_node in collector_nodes:
-            inputs = []
-            for collector_input in self.inputs.get(collector_node):
-                # If input is a dict indicating another node, use that node's output value
-                if isinstance(collector_input, EdgeInput):
-                    # We can't use connections for collectors in case the connection is to an iterator
-                    inputs.append(None)
-                else:
-                    inputs.append(collector_input.value)
-            node_instance = self.chain.nodes[collector_node].get_node()
-            collector_output, execution_time = await self.loop.run_in_executor(
-                self.pool,
-                timed_supplier(
-                    functools.partial(run_node, node_instance, inputs, collector_node)
-                ),
-            )
-            assert isinstance(collector_output, Collector)
-            self.collector_cache[collector_node] = collector_output
-            # Anything downstream from the collector we don't want to run yet, so we keep track of them here
-            downstream_from_collector = self.__get_downstream_nodes(collector_node)
-            collector_downstreams.update(downstream_from_collector)
-
-        before_iteration_time = time.time()
-
-        # Now run each of the iterators
-        for iterator_node in self.__get_iterator_nodes():
-            # Get all downstream nodes of the iterator
-            # This excludes any nodes that are downstream of a collector, as well as collectors themselves
-            downstream_nodes = [
-                x
-                for x in self.__get_downstream_nodes(iterator_node)
-                if x not in collector_downstreams and x not in collector_nodes
-            ]
-            output_nodes = [x for x in chain_output_nodes if x in downstream_nodes]
-            upstream_nodes = [self.__get_upstream_nodes(x) for x in output_nodes]
-            flat_upstream_nodes = set()
-            for x in upstream_nodes:
-                flat_upstream_nodes.update(x)
-            combined_subchain = flat_upstream_nodes.union(downstream_nodes)
-            iterator_node_set = iterator_node_set.union(combined_subchain)
-
-            node_instance = self.chain.nodes[iterator_node].get_node()
-            assert node_instance.type == "newIterator"
-
-            self.cache.set(iterator_node, None, CacheStrategy(0))  # type: ignore
-
-            iter_result = await self.process(iterator_node)
-
-            assert isinstance(iter_result, Iterator)
-
-            num_outgoers = len(self.chain.edges_from(iterator_node))
-
-            start_time = time.time()
-            last_time = start_time
-            times: List[float] = []
-            enforced_values = None
-            for index, values in enumerate(iter_result.iter_supplier()):
-                await self.queue.put(self.__create_node_start(iterator_node))
-
-                self.cache.delete_many(downstream_nodes)
-                enforced_values = enforce_output(
-                    values, self.chain.nodes[iterator_node].get_node()
-                )
-
-                after_time = time.time()
-                execution_time = after_time - last_time
-                times.append(execution_time)
-                await self.__broadcast_data(
-                    node_instance, iterator_node, execution_time, enforced_values
-                )
-                await self.__update_progress(
-                    iterator_node, times, index, iter_result.expected_length
-                )
-                last_time = after_time
-
-                # Set the cache to the value of the generator, so that downstream nodes will pull from that
-                self.cache.set(
-                    iterator_node, enforced_values, CacheStrategy(num_outgoers)
-                )
-                # Run each of the collector nodes
-                for collector_node in collector_nodes:
-                    await self.progress.suspend()
-                    await self.process(collector_node)
-                # Run each of the output nodes
-                for output_node in output_nodes:
-                    await self.progress.suspend()
-                    await self.process(output_node)
-
-                logger.debug(self.cache.keys())
-            end_time = time.time()
-            execution_time = end_time - start_time
-            if enforced_values is not None:
-                await self.__broadcast_data(
-                    node_instance, iterator_node, execution_time, enforced_values
-                )
-            await self.__finish_progress(iterator_node, iter_result.expected_length)
-
-        # Complete each of the collector nodes, and cache their values
-        for collector_node in collector_nodes:
-            collector_result = self.collector_cache[collector_node].on_complete()
-            enforced_values = enforce_output(
-                collector_result, self.chain.nodes[collector_node].get_node()
-            )
-            self.cache.set(
-                collector_node,
-                enforced_values,
-                CacheStrategy(len(self.chain.edges_from(collector_node))),
-            )
-            collector_time = time.time() - before_iteration_time
-            await self.__broadcast_data(
-                self.chain.nodes[collector_node].get_node(),
-                collector_node,
-                collector_time,
-                enforced_values,
-            )
-
-        # Now run everything downstream of the collectors
-        collector_downstream_outputs = [
-            x for x in chain_output_nodes if x in collector_downstreams
-        ]
-        for output_node in collector_downstream_outputs:
             await self.progress.suspend()
-            await self.process(output_node)
+            timer = _Timer()
+            with timer.run():
+                collector_output = await self.process(collector_node.id)
+            assert isinstance(collector_output, CollectorOutput)
+            collectors.append((collector_output.collector, timer, collector_node))
 
-        iterator_node_set.update(collector_nodes)
-        iterator_node_set.update(collector_downstreams)
+        # timing iterations
+        times: List[float] = []
+        expected_length = iterator_output.iterator.expected_length
+        start_time = time.time()
+        last_time = [start_time]
+
+        async def update_progress():
+            times.append(time.time() - last_time[0])
+            iterations = len(times)
+            last_time[0] = time.time()
+            await self.__update_progress(
+                node.id, times, iterations, max(expected_length, iterations)
+            )
+
+        # iterate
+        await self.__update_progress(node.id, times, 0, expected_length)
+
+        for values in iterator_output.iterator.iter_supplier():
+            # write current values to cache
+            iter_output = fill_partial_output(values)
+            self.cache.set(node.id, iter_output, StaticCaching)
+
+            # broadcast
+            # TODO: Execution time. I just don't think any values makes sense here
+            await self.__broadcast_data(node, 0, iter_output.output)
+
+            # run each of the output nodes
+            for output_node in output_nodes:
+                await self.process(output_node.id)
+
+            # run each of the collector nodes
+            for collector, timer, collector_node in collectors:
+                await self.progress.suspend()
+                iterate_inputs = await self.__gather_collector_inputs(collector_node)
+                await self.progress.suspend()
+                with timer.run():
+                    run_collector_iterate(collector_node, iterate_inputs, collector)
+
+            # clear cache for next iteration
+            self.cache.delete_many(all_iterated_nodes)
+
+            await self.progress.suspend()
+            await update_progress()
+            await self.progress.suspend()
+
+        # reset cached value
+        self.cache.delete_many(all_iterated_nodes)
+        self.cache.set(node.id, iterator_output, self.cache_strategy[node.id])
+
+        # re-broadcast final value
+        iterations = len(times)
+        await self.__finish_progress(node.id, iterations)
+        await self.__broadcast_data(
+            node, time.time() - start_time, iterator_output.partial_output
+        )
+
+        # finalize collectors
+        for collector, timer, collector_node in collectors:
+            await self.progress.suspend()
+            with timer.run():
+                collector_output = enforce_output(
+                    collector.on_complete(), collector_node.data
+                )
+
+            # TODO: execution time
+            await self.__broadcast_data(
+                collector_node, timer.duration, collector_output.output
+            )
+
+            self.cache.set(
+                collector_node.id,
+                collector_output,
+                self.cache_strategy[collector_node.id],
+            )
+
+    async def __process_nodes(self):
+        # we first need to run iterator nodes in topological order
+        for node_id in self.chain.topological_order():
+            node = self.chain.nodes[node_id]
+            if isinstance(node, NewIteratorNode):
+                await self.__process_iterator_node(node)
+
+        # now the output nodes outside of iterators
 
         # Now run everything that is not in an iterator lineage
-        without_iterator_lineage = [
-            x for x in self.chain.nodes.values() if x not in iterator_node_set
+        non_iterator_output_nodes = [
+            node
+            for node, iter_node in self.chain.get_parent_iterator_map().items()
+            if iter_node is None and node.has_side_effects()
         ]
+        for output_node in non_iterator_output_nodes:
+            await self.progress.suspend()
+            await self.process(output_node.id)
 
+        # clear cache after the chain is done
         self.cache.clear()
-
-        if len(without_iterator_lineage) > 0:
-            non_iterator_output_nodes = [
-                x for x in chain_output_nodes if x not in iterator_node_set
-            ]
-            for output_node in non_iterator_output_nodes:
-                await self.progress.suspend()
-                await self.process(output_node)
-
-        logger.debug(self.cache.keys())
 
         # await all broadcasts
         tasks = self.__broadcast_tasks

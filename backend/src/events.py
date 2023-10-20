@@ -4,6 +4,8 @@ from typing import Dict, Literal, Optional, TypedDict, Union
 from base_types import InputId, NodeId, OutputId
 from nodes.base_input import ErrorValue
 
+# Data of events
+
 
 class FinishData(TypedDict):
     message: str
@@ -48,6 +50,9 @@ class BackendStatusData(TypedDict):
     message: str
     progress: float
     statusProgress: Optional[float]
+
+
+# Events
 
 
 class FinishEvent(TypedDict):

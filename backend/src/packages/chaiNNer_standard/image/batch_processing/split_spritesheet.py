@@ -71,7 +71,7 @@ def split_spritesheet_node(
     individual_h = h // rows
     individual_w = w // columns
 
-    def get_sprite(_, index: int):
+    def get_sprite(index: int):
         row = index // columns
         col = index % columns
 
@@ -83,4 +83,4 @@ def split_spritesheet_node(
         return sprite, index
 
     # We just need the index, so we can pass in a list of None's
-    return Iterator.from_list([None] * (rows * columns), get_sprite)
+    return Iterator.from_range(rows * columns, get_sprite)

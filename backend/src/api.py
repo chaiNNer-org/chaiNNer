@@ -131,6 +131,16 @@ class NodeData:
 
     run: RunFn
 
+    @property
+    def single_iterator_input(self) -> IteratorInputInfo:
+        assert len(self.iterator_inputs) == 1
+        return self.iterator_inputs[0]
+
+    @property
+    def single_iterator_output(self) -> IteratorOutputInfo:
+        assert len(self.iterator_outputs) == 1
+        return self.iterator_outputs[0]
+
 
 T = TypeVar("T", bound=RunFn)
 S = TypeVar("S")
@@ -601,6 +611,20 @@ class Iterator(Generic[I]):
                 yield map_fn(x, i)
 
         return Iterator(supplier, len(l))
+
+    @staticmethod
+    def from_range(count: int, map_fn: Callable[[int], I]) -> "Iterator[I]":
+        """
+        Creates a new iterator the given number of items where each item is
+        lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
+        """
+        assert count >= 0
+
+        def supplier():
+            for i in range(count):
+                yield map_fn(i)
+
+        return Iterator(supplier, count)
 
 
 N = TypeVar("N")
