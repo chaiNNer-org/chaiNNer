@@ -207,20 +207,16 @@ class _Timer:
     def __init__(self) -> None:
         self.duration: float = 0
 
+    @contextmanager
     def run(self):
-        return _timer_run(self)
+        start = time.time()
+        try:
+            yield None
+        finally:
+            self.add_since(start)
 
     def add_since(self, start: float):
         self.duration += time.time() - start
-
-
-@contextmanager
-def _timer_run(timer: _Timer):
-    start = time.time()
-    try:
-        yield None
-    finally:
-        timer.add_since(start)
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
