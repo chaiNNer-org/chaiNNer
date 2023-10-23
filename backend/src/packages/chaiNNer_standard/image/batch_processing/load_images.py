@@ -74,7 +74,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     outputs=[
         ImageOutput(),
-        DirectoryOutput("Directory"),
+        DirectoryOutput("Directory", output_type="Input0"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
         NumberOutput("Index"),

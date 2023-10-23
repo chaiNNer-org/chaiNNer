@@ -13,9 +13,9 @@ from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
 from nodes.properties.outputs import (
     AudioStreamOutput,
     DirectoryOutput,
+    FileNameOutput,
     ImageOutput,
     NumberOutput,
-    TextOutput,
 )
 from nodes.utils.utils import split_file_path
 
@@ -49,8 +49,8 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
         NumberOutput("Frame Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each frame."
         ),
-        DirectoryOutput("Video Directory"),
-        TextOutput("Video Name"),
+        DirectoryOutput("Video Directory", of_input=0),
+        FileNameOutput("Name", of_input=0),
         NumberOutput("FPS"),
         AudioStreamOutput(),
     ],

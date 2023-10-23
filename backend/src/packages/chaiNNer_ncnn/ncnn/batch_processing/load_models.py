@@ -34,7 +34,7 @@ from ..io.load_model import load_model_node
     ],
     outputs=[
         NcnnModelOutput(),
-        DirectoryOutput("Directory"),
+        DirectoryOutput("Directory", output_type="Input0"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
         NumberOutput("Index", output_type="uint").with_docs(
