@@ -1,5 +1,5 @@
 import navi
-from nodes.base_output import BaseOutput, OutputKind
+from api2 import BaseOutput, OutputKind
 
 from ...impl.ncnn.model import NcnnModelWrapper
 from ...utils.format import format_channel_numbers

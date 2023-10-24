@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Set, TypeVar, Union
 
-from api import NodeData, registry
-from base_types import InputId, NodeId, OutputId
+from api2 import InputId, NodeData, NodeId, OutputId, registry
 
 K = TypeVar("K")
 V = TypeVar("V")

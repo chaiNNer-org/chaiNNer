@@ -7,7 +7,7 @@ from typing import List, cast
 import onnxruntime as ort
 from sanic.log import logger
 
-from api import CacheSetting, DropdownSetting, ToggleSetting
+from api2 import CacheSetting, DropdownSetting, ToggleSetting
 from gpu import get_nvidia_helper
 from system import is_arm_mac
 

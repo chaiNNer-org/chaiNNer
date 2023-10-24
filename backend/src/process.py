@@ -12,13 +12,11 @@ from typing import Dict, Iterable, List, Optional, Union
 
 from sanic.log import logger
 
-from api import Collector, Iterator, NodeData
-from base_types import InputId, NodeId, OutputId
+from api2 import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import Event, EventQueue, InputsDict
-from nodes.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController
 from util import timed_supplier
 

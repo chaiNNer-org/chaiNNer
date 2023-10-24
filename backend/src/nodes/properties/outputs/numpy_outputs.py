@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 import navi
-from nodes.base_output import BaseOutput, OutputKind
+from api2 import BaseOutput, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.pil_utils import InterpolationMethod, resize

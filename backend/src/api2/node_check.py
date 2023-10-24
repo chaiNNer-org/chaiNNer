@@ -7,8 +7,8 @@ import pathlib
 from enum import Enum
 from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
 
-from nodes.base_input import BaseInput
-from nodes.base_output import BaseOutput
+from .input import BaseInput
+from .output import BaseOutput
 
 _Ty = NewType("_Ty", object)
 

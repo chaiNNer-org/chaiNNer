@@ -7,7 +7,7 @@ from typing import List, Tuple
 import numpy as np
 from wcmatch import glob
 
-from api import Iterator, IteratorOutputInfo
+from api2import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput, TextInput

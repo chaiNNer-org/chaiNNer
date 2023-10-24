@@ -1,4 +1,4 @@
-from api import FeatureState
+from api2 import FeatureState
 from nodes.utils.format import join_english
 
 from . import web_ui_feature_descriptor

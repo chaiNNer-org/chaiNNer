@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Union
 
-from base_types import NodeId
+from api2 import NodeId
 
 
 class EdgeInput:

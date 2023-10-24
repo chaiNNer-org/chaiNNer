@@ -9,7 +9,7 @@ except ImportError:
 
     use_gpu = False
 
-from api import DropdownSetting, ToggleSetting
+from api2 import DropdownSetting, ToggleSetting
 from system import is_arm_mac
 
 from . import package

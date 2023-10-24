@@ -1,6 +1,6 @@
 from sanic.log import logger
 
-from api import KB, MB, Dependency, add_package
+from api2 import KB, MB, Dependency, add_package
 
 package = add_package(
     __file__,

@@ -1,8 +1,7 @@
 import asyncio
 from typing import Dict, Literal, Optional, TypedDict, Union
 
-from base_types import InputId, NodeId, OutputId
-from nodes.base_input import ErrorValue
+from api2 import ErrorValue, InputId, NodeId, OutputId
 
 # Data of events
 

@@ -1,6 +1,6 @@
 from sanic.log import logger
 
-from api import MB, Dependency, add_package
+from api2 import MB, Dependency, add_package
 from system import is_arm_mac, is_mac
 
 general = "NCNN uses .bin/.param models to upscale images."

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import navi
-from nodes.base_output import BaseOutput
+from api2 import BaseOutput
 
 
 class DirectoryOutput(BaseOutput):

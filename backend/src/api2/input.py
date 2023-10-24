@@ -5,7 +5,8 @@ from enum import Enum
 from typing import List, Literal, Optional, Type, TypedDict, Union
 
 import navi
-from base_types import InputId
+
+from .types import InputId
 
 InputKind = Literal[
     "number",

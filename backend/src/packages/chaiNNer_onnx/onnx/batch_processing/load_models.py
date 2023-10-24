@@ -5,7 +5,7 @@ from typing import Tuple
 
 from sanic.log import logger
 
-from api import Iterator, IteratorOutputInfo
+from api2 import Iterator, IteratorOutputInfo
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import (

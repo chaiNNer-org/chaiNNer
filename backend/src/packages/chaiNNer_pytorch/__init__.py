@@ -2,7 +2,7 @@ import sys
 
 from sanic.log import logger
 
-from api import GB, KB, MB, Dependency, add_package
+from api2 import GB, KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
