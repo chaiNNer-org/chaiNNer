@@ -72,11 +72,18 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
                 let a = Input0;
                 let b = Input2;
 
+                def nonZero(x: number): number {
+                    match x {
+                        0 => never,
+                        _ as x => x,
+                    }
+                }
+
                 match Input1 {
                     MathOperation::Add      => a + b,
                     MathOperation::Subtract => a - b,
                     MathOperation::Multiply => a * b,
-                    MathOperation::Divide   => a / b,
+                    MathOperation::Divide   => a / nonZero(b),
                     MathOperation::Power    => number::pow(a, b),
                     MathOperation::Log      => number::log(a) / number::log(b),
                     MathOperation::Maximum  => max(a, b),
@@ -85,6 +92,8 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
                     MathOperation::Percent  => a * b / 100,
                 }
                 """,
+        ).with_never_reason(
+            "The mathematical operation is not defined. This is most likely a divide by zero error."
         )
     ],
 )
@@ -98,7 +107,14 @@ def math_node(a: float, op: MathOperation, b: float) -> Union[int, float]:
     elif op == MathOperation.DIVIDE:
         return a / b
     elif op == MathOperation.POWER:
-        return a**b
+        try:
+            result = pow(a, b)
+        except Exception as e:
+            raise ValueError(f"{a}^{b} is not defined for real numbers.") from e
+
+        if isinstance(result, (int, float)):
+            return result
+        raise ValueError(f"{a}^{b} is not defined for real numbers.")
     elif op == MathOperation.LOG:
         return math.log(b, a)
     elif op == MathOperation.MAXIMUM:
