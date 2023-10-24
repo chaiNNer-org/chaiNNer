@@ -224,10 +224,11 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            run_check(
-                TYPE_CHECK_LEVEL,
-                lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
-            )
+            if node_type == "regularNode":
+                run_check(
+                    TYPE_CHECK_LEVEL,
+                    lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
+                )
             run_check(
                 NAME_CHECK_LEVEL,
                 lambda fix: check_naming_conventions(wrapped_func, name, fix),
