@@ -7,7 +7,7 @@ import cv2
 import ffmpeg
 import numpy as np
 
-from api2import Iterator, IteratorOutputInfo
+from api2 import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
 from nodes.properties.outputs import (

@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-from api2import Iterator, IteratorOutputInfo
+from api2 import Iterator, IteratorOutputInfo
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c

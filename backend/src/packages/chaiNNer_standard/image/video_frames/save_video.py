@@ -11,7 +11,7 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api2import Collector, IteratorInputInfo
+from api2 import Collector, IteratorInputInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
