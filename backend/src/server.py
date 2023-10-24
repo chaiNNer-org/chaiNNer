@@ -11,7 +11,6 @@ from json import dumps as stringify
 from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
 import psutil
-from custom_types import UpdateProgressFn
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -31,6 +30,7 @@ from chain.chain import Chain, FunctionNode
 from chain.input import InputMap
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
+from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
