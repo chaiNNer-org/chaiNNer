@@ -19,6 +19,7 @@ from typing import (
 
 from sanic.log import logger
 
+import navi
 from base_types import InputId, OutputId
 from custom_types import NodeType, RunFn
 from node_check import (
@@ -80,6 +81,34 @@ class DefaultNode(TypedDict):
     schemaId: str
 
 
+class IteratorInputInfo:
+    def __init__(
+        self,
+        inputs: int | InputId | List[int] | List[InputId] | List[int | InputId],
+        length_type: navi.ExpressionJson = "uint",
+    ) -> None:
+        self.inputs: List[InputId] = (
+            [InputId(x) for x in inputs]
+            if isinstance(inputs, list)
+            else [InputId(inputs)]
+        )
+        self.length_type: navi.ExpressionJson = length_type
+
+
+class IteratorOutputInfo:
+    def __init__(
+        self,
+        outputs: int | OutputId | List[int] | List[OutputId] | List[int | OutputId],
+        length_type: navi.ExpressionJson = "uint",
+    ) -> None:
+        self.outputs: List[OutputId] = (
+            [OutputId(x) for x in outputs]
+            if isinstance(outputs, list)
+            else [OutputId(outputs)]
+        )
+        self.length_type: navi.ExpressionJson = length_type
+
+
 @dataclass(frozen=True)
 class NodeData:
     schema_id: str
@@ -93,11 +122,24 @@ class NodeData:
     outputs: List[BaseOutput]
     group_layout: List[InputId | NestedIdGroup]
 
+    iterator_inputs: List[IteratorInputInfo]
+    iterator_outputs: List[IteratorOutputInfo]
+
     side_effects: bool
     deprecated: bool
     features: List[FeatureId]
 
     run: RunFn
+
+    @property
+    def single_iterator_input(self) -> IteratorInputInfo:
+        assert len(self.iterator_inputs) == 1
+        return self.iterator_inputs[0]
+
+    @property
+    def single_iterator_output(self) -> IteratorOutputInfo:
+        assert len(self.iterator_outputs) == 1
+        return self.iterator_outputs[0]
 
 
 T = TypeVar("T", bound=RunFn)
@@ -129,6 +171,8 @@ class NodeGroup:
         see_also: List[str] | str | None = None,
         features: List[FeatureId] | FeatureId | None = None,
         limited_to_8bpc: bool | str = False,
+        iterator_inputs: List[IteratorInputInfo] | IteratorInputInfo | None = None,
+        iterator_outputs: List[IteratorOutputInfo] | IteratorOutputInfo | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -153,6 +197,16 @@ class NodeGroup:
         see_also = to_list(see_also)
         features = to_list(features)
 
+        iterator_inputs = to_list(iterator_inputs)
+        iterator_outputs = to_list(iterator_outputs)
+
+        if node_type == "collector":
+            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
+        elif node_type == "newIterator":
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
+        else:
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
+
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
                 return
@@ -170,10 +224,11 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            run_check(
-                TYPE_CHECK_LEVEL,
-                lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
-            )
+            if node_type == "regularNode":
+                run_check(
+                    TYPE_CHECK_LEVEL,
+                    lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
+                )
             run_check(
                 NAME_CHECK_LEVEL,
                 lambda fix: check_naming_conventions(wrapped_func, name, fix),
@@ -193,6 +248,8 @@ class NodeGroup:
                 inputs=p_inputs,
                 group_layout=group_layout,
                 outputs=p_outputs,
+                iterator_inputs=iterator_inputs,
+                iterator_outputs=iterator_outputs,
                 side_effects=side_effects,
                 deprecated=deprecated,
                 features=features,
@@ -555,6 +612,20 @@ class Iterator(Generic[I]):
                 yield map_fn(x, i)
 
         return Iterator(supplier, len(l))
+
+    @staticmethod
+    def from_range(count: int, map_fn: Callable[[int], I]) -> "Iterator[I]":
+        """
+        Creates a new iterator the given number of items where each item is
+        lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
+        """
+        assert count >= 0
+
+        def supplier():
+            for i in range(count):
+                yield map_fn(i)
+
+        return Iterator(supplier, count)
 
 
 N = TypeVar("N")

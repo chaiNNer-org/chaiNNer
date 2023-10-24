@@ -7,15 +7,15 @@ import cv2
 import ffmpeg
 import numpy as np
 
-from api import Iterator
+from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
 from nodes.properties.outputs import (
     AudioStreamOutput,
     DirectoryOutput,
+    FileNameOutput,
     ImageOutput,
     NumberOutput,
-    TextOutput,
 )
 from nodes.utils.utils import split_file_path
 
@@ -49,18 +49,19 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
         NumberOutput("Frame Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each frame."
         ),
-        DirectoryOutput("Video Directory"),
-        TextOutput("Video Name"),
+        DirectoryOutput("Video Directory", of_input=0),
+        FileNameOutput("Name", of_input=0),
         NumberOutput("FPS"),
         AudioStreamOutput(),
     ],
+    iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
     node_type="newIterator",
 )
 def load_video_node(
     path: str,
     use_limit: bool,
     limit: int,
-) -> Iterator[Tuple[np.ndarray, int, str, str, float, Any]]:
+) -> Tuple[Iterator[Tuple[np.ndarray, int]], str, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
     ffmpeg_reader = (
@@ -121,7 +122,13 @@ def load_video_node(
                 break
             in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
             in_frame = cv2.cvtColor(in_frame, cv2.COLOR_RGB2BGR)
-            yield in_frame, index, video_dir, video_name, fps, audio_stream
+            yield in_frame, index
             index += 1
 
-    return Iterator.from_iter(iter_supplier=iterator, expected_length=frame_count)
+    return (
+        Iterator.from_iter(iter_supplier=iterator, expected_length=frame_count),
+        video_dir,
+        video_name,
+        fps,
+        audio_stream,
+    )

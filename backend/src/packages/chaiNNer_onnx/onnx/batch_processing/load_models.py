@@ -5,7 +5,7 @@ from typing import Tuple
 
 from sanic.log import logger
 
-from api import Iterator
+from api import Iterator, IteratorOutputInfo
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import (
@@ -34,27 +34,28 @@ from ..io.load_model import load_model_node
     ],
     outputs=[
         OnnxModelOutput(),
-        DirectoryOutput("Directory"),
+        DirectoryOutput("Directory", output_type="Input0"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
         NumberOutput("Index", output_type="uint").with_docs(
             "A counter that starts at 0 and increments by 1 for each model."
         ),
     ],
+    iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
     node_type="newIterator",
 )
 def load_models_node(
     directory: str,
-) -> Iterator[Tuple[OnnxModel, str, str, str, int]]:
+) -> Tuple[Iterator[Tuple[OnnxModel, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: str, index: int):
         model, dirname, basename = load_model_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
-        return model, directory, rel_path, basename, index
+        return model, rel_path, basename, index
 
     supported_filetypes = [".onnx"]
     model_files = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model)
+    return Iterator.from_list(model_files, load_model), directory

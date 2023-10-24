@@ -1,5 +1,4 @@
 import asyncio
-import functools
 import gc
 import importlib
 import logging
@@ -21,6 +20,8 @@ from sanic_cors import CORS
 import api
 from base_types import NodeId
 from chain.cache import OutputCache
+from chain.chain import Chain, FunctionNode
+from chain.input import InputMap
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from custom_types import UpdateProgressFn
@@ -33,7 +34,7 @@ from nodes.utils.exec_options import (
     JsonExecutionOptions,
     set_execution_options,
 )
-from process import Executor, NodeExecutionError, Output, compute_broadcast, run_node
+from process import Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
     alreadyRunningResponse,
@@ -43,14 +44,13 @@ from response import (
 )
 from server_config import ServerConfig
 from system import is_arm_mac
-from util import timed_supplier
 
 
 class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
         self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, Output] = dict()
+        self.cache: Dict[NodeId, NodeOutput] = dict()
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
@@ -169,12 +169,12 @@ async def run(request: Request):
         exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
         executor = Executor(
-            chain,
-            inputs,
-            full_data["sendBroadcastData"],
-            app.loop,
-            ctx.queue,
-            ctx.pool,
+            chain=chain,
+            inputs=inputs,
+            send_broadcast_data=full_data["sendBroadcastData"],
+            loop=app.loop,
+            queue=ctx.queue,
+            pool=ctx.pool,
             parent_cache=OutputCache(static_data=ctx.cache.copy()),
         )
         try:
@@ -230,44 +230,31 @@ async def run_individual(request: Request):
         logger.debug(full_data)
         exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
-        # Create node based on given category/name information
-        node_instance = api.registry.get_node(full_data["schemaId"])
+
+        chain = Chain()
+        chain.add_node(FunctionNode(node_id, full_data["schemaId"]))
+
+        input_map = InputMap()
+        input_map.set_values(node_id, full_data["inputs"])
+
+        executor = Executor(
+            chain=chain,
+            inputs=input_map,
+            send_broadcast_data=True,
+            loop=app.loop,
+            queue=ctx.queue,
+            pool=ctx.pool,
+        )
 
         with runIndividualCounter:
-            # Run the node and pass in inputs as args
-            output, execution_time = await app.loop.run_in_executor(
-                None,
-                timed_supplier(
-                    functools.partial(
-                        run_node, node_instance, full_data["inputs"], node_id
-                    )
-                ),
-            )
-            # Cache the output of the node
-            if not isinstance(output, api.Iterator) and not isinstance(
-                output, api.Collector
-            ):
+            try:
+                output = await executor.process_regular_node(node_id)
                 ctx.cache[node_id] = output
+            except Aborted:
+                pass
+            finally:
+                gc.collect()
 
-        # Broadcast the output from the individual run
-        node_outputs = node_instance.outputs
-        if len(node_outputs) > 0:
-            assert not isinstance(output, api.Iterator)
-            assert not isinstance(output, api.Collector)
-            data, types = compute_broadcast(output, node_outputs)
-            await ctx.queue.put(
-                {
-                    "event": "node-finish",
-                    "data": {
-                        "nodeId": node_id,
-                        "executionTime": execution_time,
-                        "data": data,
-                        "types": types,
-                        "progressPercent": None,
-                    },
-                }
-            )
-        gc.collect()
         return json({"success": True, "data": None})
     except Exception as exception:
         logger.error(exception, exc_info=True)

@@ -71,8 +71,8 @@ def parse_json(json: List[JsonNode]) -> Tuple[Chain, InputMap]:
         input_map.set(node.id, inputs)
 
     for index_edge in index_edges:
-        source_node = chain.nodes[index_edge.from_id].get_node()
-        target_node = chain.nodes[index_edge.to_id].get_node()
+        source_node = chain.nodes[index_edge.from_id].data
+        target_node = chain.nodes[index_edge.to_id].data
 
         chain.add_edge(
             Edge(

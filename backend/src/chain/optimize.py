@@ -1,10 +1,6 @@
 from sanic.log import logger
 
-from .chain import Chain, Node
-
-
-def __has_side_effects(node: Node) -> bool:
-    return node.has_side_effects()
+from .chain import Chain
 
 
 def __removed_dead_nodes(chain: Chain) -> bool:
@@ -14,7 +10,7 @@ def __removed_dead_nodes(chain: Chain) -> bool:
     changed = False
 
     for node in list(chain.nodes.values()):
-        is_dead = len(chain.edges_from(node.id)) == 0 and not __has_side_effects(node)
+        is_dead = len(chain.edges_from(node.id)) == 0 and not node.has_side_effects()
         if is_dead:
             chain.remove_node(node.id)
             changed = True

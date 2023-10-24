@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import gc
-from typing import Dict, Generic, Iterable, Optional, Set, TypeVar
+from typing import Dict, Generic, Iterable, List, Optional, Set, TypeVar
 
 from sanic.log import logger
 
-from .chain import Chain, NodeId
+from .chain import Chain, Edge, FunctionNode, NewIteratorNode, NodeId
 
 
 class CacheStrategy:
@@ -29,12 +31,41 @@ StaticCaching = CacheStrategy(CacheStrategy.STATIC_HITS_TO_LIVE)
 def get_cache_strategies(chain: Chain) -> Dict[NodeId, CacheStrategy]:
     """Create a map with the cache strategies for all nodes in the given chain."""
 
+    iterator_map = chain.get_parent_iterator_map()
+
+    def any_are_iterated(out_edges: List[Edge]) -> bool:
+        for out_edge in out_edges:
+            target = chain.nodes[out_edge.target.id]
+            if isinstance(target, FunctionNode) and iterator_map[target] is not None:
+                return True
+        return False
+
     result: Dict[NodeId, CacheStrategy] = {}
 
     for node in chain.nodes.values():
-        out_edges = chain.edges_from(node.id)
+        strategy: CacheStrategy
 
-        strategy: CacheStrategy = CacheStrategy(len(out_edges))
+        out_edges = chain.edges_from(node.id)
+        if isinstance(node, FunctionNode) and iterator_map[node] is not None:
+            # the function node is iterated
+            strategy = CacheStrategy(len(out_edges))
+        else:
+            # the node is NOT implicitly iterated
+
+            if isinstance(node, NewIteratorNode):
+                # we only care about non-iterator outputs
+                iterator_output = node.data.single_iterator_output
+                out_edges = [
+                    out_edge
+                    for out_edge in out_edges
+                    if out_edge.source.output_id not in iterator_output.outputs
+                ]
+
+            if any_are_iterated(out_edges):
+                # some output is used by an iterated node
+                strategy = StaticCaching
+            else:
+                strategy = CacheStrategy(len(out_edges))
 
         result[node.id] = strategy
 

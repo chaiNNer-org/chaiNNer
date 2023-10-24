@@ -4,14 +4,14 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from subprocess import Popen
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 import cv2
 import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector
+from api import Collector, IteratorInputInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
@@ -170,12 +170,13 @@ class Writer:
             .with_id(11)
         ),
     ],
+    iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
     node_type="collector",
     side_effects=True,
 )
 def save_video_node(
-    _frames: np.ndarray,
+    _: None,
     save_dir: str,
     video_name: str,
     video_encoder: VideoEncoder,
@@ -191,27 +192,7 @@ def save_video_node(
     audio: Any,
     audio_settings: AudioSettings,
     audio_reduced_settings: AudioReducedSettings,
-) -> Collector[
-    Tuple[
-        np.ndarray,
-        str,
-        str,
-        VideoEncoder,  # encoder
-        VideoContainer,  # h264_container
-        VideoContainer,  # h265_container
-        VideoContainer,  # ffv1_container
-        VideoContainer,  # vp9_container
-        str,  # video_preset
-        int,
-        bool,
-        str,
-        float,
-        Any,
-        AudioSettings,
-        AudioReducedSettings,
-    ],
-    None,
-]:
+) -> Collector[np.ndarray, None,]:
     encoder = VideoEncoder(video_encoder)
     container = None
 
@@ -279,30 +260,7 @@ def save_video_node(
 
     writer = Writer()
 
-    # TODO: This system is pretty messy. We need to separate out the creation
-    # of the collector from the actual collection. As-is we have unused inputs
-    def on_iterate(
-        inputs: Tuple[
-            np.ndarray,
-            str,
-            str,
-            VideoEncoder,  # encoder
-            VideoContainer,  # h264_container
-            VideoContainer,  # h265_container
-            VideoContainer,  # ffv1_container
-            VideoContainer,  # vp9_container
-            str,  # video_preset
-            int,
-            bool,
-            str,
-            float,
-            Any,
-            AudioSettings,
-            AudioReducedSettings,
-        ],
-    ):
-        img = inputs[0]
-
+    def on_iterate(img: np.ndarray):
         # Create the writer and run process
         if writer.out is None:
             h, w, _ = get_h_w_c(img)
