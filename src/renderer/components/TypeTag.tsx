@@ -9,7 +9,6 @@ import {
     isStringLiteral,
     isStructInstance,
     isSubsetOf,
-    literal,
 } from '@chainner/navi';
 import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { ReactNode, memo } from 'react';
@@ -110,6 +109,21 @@ const collectNumericLiterals = (type: Type, maximum = 4): number[] | undefined =
     return list;
 };
 
+const formatNumber = (n: number): string => {
+    if (Number.isNaN(n)) return 'nan';
+    if (n === Infinity) return 'inf';
+    if (n === -Infinity) return '-inf';
+    if (Number.isInteger(n)) return n.toString();
+
+    const dotPosition = Math.ceil(Math.log10(Math.abs(n)));
+    const digits = Math.max(dotPosition + 2, 5);
+    if (digits < 18) {
+        // eslint-disable-next-line no-param-reassign
+        n = Number(n.toExponential(digits));
+    }
+    return n.toString();
+};
+
 type TagValue =
     | { kind: 'literal'; value: string; tooltip?: string }
     | { kind: 'string'; value: string }
@@ -121,12 +135,7 @@ const getTypeText = (type: Type): TagValue[] => {
 
     const numberLiterals = collectNumericLiterals(type, 4);
     if (numberLiterals) {
-        return [
-            {
-                kind: 'literal',
-                value: numberLiterals.map((l) => literal(l).toString()).join(' | '),
-            },
-        ];
+        return [{ kind: 'literal', value: numberLiterals.map(formatNumber).join(' | ') }];
     }
 
     const rangeType = getSimplifiedNumberRange(type);
@@ -135,27 +144,39 @@ const getTypeText = (type: Type): TagValue[] => {
         if (rangeType.type === 'interval') {
             const { min, max } = rangeType;
             if (Number.isFinite(min) && Number.isFinite(max)) {
-                return [{ kind: 'literal', value: `${min} ~ ${max}`, tooltip }];
+                return [
+                    {
+                        kind: 'literal',
+                        value: `${formatNumber(min)}..${formatNumber(max)}`,
+                        tooltip,
+                    },
+                ];
             }
             if (Number.isFinite(min) && max === Infinity) {
-                const op = rangeType.minExclusive ? '>' : '>=';
-                return [{ kind: 'literal', value: `${op} ${min}`, tooltip }];
+                const op = rangeType.minExclusive ? '>' : '≥';
+                return [{ kind: 'literal', value: `${op} ${formatNumber(min)}`, tooltip }];
             }
             if (min === -Infinity && Number.isFinite(max)) {
-                const op = rangeType.maxExclusive ? '<' : '<=';
-                return [{ kind: 'literal', value: `${op} ${max}`, tooltip }];
+                const op = rangeType.maxExclusive ? '<' : '≤';
+                return [{ kind: 'literal', value: `${op} ${formatNumber(max)}`, tooltip }];
             }
         }
         if (rangeType.type === 'int-interval') {
             const { min, max } = rangeType;
             if (Number.isFinite(min) && Number.isFinite(max)) {
-                return [{ kind: 'literal', value: `int ${min} ~ ${max}`, tooltip }];
+                return [
+                    {
+                        kind: 'literal',
+                        value: `int ${formatNumber(min)}..${formatNumber(max)}`,
+                        tooltip,
+                    },
+                ];
             }
             if (Number.isFinite(min) && max === Infinity) {
-                return [{ kind: 'literal', value: `int >= ${min}`, tooltip }];
+                return [{ kind: 'literal', value: `int ≥ ${formatNumber(min)}`, tooltip }];
             }
             if (min === -Infinity && Number.isFinite(max)) {
-                return [{ kind: 'literal', value: `int <= ${max}`, tooltip }];
+                return [{ kind: 'literal', value: `int ≤ ${formatNumber(max)}`, tooltip }];
             }
         }
     }
