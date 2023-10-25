@@ -1,5 +1,5 @@
 import navi
-from api2 import BaseInput
+from api import BaseInput
 
 from ...impl.onnx.model import OnnxModel, OnnxModels, OnnxRemBg, is_rembg_model
 from .generic_inputs import DropDownInput

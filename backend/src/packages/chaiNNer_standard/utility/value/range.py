@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from api2 import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo
 from nodes.properties.inputs import BoolInput, NumberInput
 from nodes.properties.outputs import NumberOutput
 

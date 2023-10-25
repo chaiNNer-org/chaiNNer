@@ -1,7 +1,7 @@
 from typing import List
 
 import navi
-from api2 import BaseOutput, OutputKind
+from api import BaseOutput, OutputKind
 
 from ...impl.pytorch.types import PyTorchModel
 from ...utils.format import format_channel_numbers

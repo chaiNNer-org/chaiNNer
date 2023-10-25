@@ -9,7 +9,7 @@ import numpy as np
 from sanic.log import logger
 
 import navi
-from api2 import BaseInput, InputConversion
+from api import BaseInput, InputConversion
 
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color

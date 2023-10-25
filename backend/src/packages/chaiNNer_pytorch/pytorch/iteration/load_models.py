@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from sanic.log import logger
 
-from api2 import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo
 from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput

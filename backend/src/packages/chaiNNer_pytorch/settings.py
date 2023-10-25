@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import torch
 from sanic.log import logger
 
-from api2 import DropdownSetting, ToggleSetting
+from api import DropdownSetting, ToggleSetting
 from gpu import get_nvidia_helper
 from system import is_arm_mac
 

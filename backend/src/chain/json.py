@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Tuple, TypedDict, Union
 
-from api2 import NodeId
+from api import NodeId
 
 from .chain import (
     Chain,

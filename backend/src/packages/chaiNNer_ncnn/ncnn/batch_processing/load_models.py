@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from sanic.log import logger
 
-from api2 import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import (

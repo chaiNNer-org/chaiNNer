@@ -2,7 +2,7 @@ import sys
 
 from sanic.log import logger
 
-from api2 import add_package
+from api import add_package
 
 package = add_package(
     __file__,

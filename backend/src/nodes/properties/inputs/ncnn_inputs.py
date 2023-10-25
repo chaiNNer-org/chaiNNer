@@ -1,4 +1,4 @@
-from api2 import BaseInput
+from api import BaseInput
 
 from ...impl.ncnn.model import NcnnModelWrapper
 

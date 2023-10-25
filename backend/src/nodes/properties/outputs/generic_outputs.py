@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Union
 
 import navi
-from api2 import BaseOutput
+from api import BaseOutput
 
 from ...impl.color.color import Color
 from ...utils.format import format_color_with_channels

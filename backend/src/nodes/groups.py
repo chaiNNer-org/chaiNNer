@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
 import navi
-from api2 import BaseInput, InputId, NestedGroup, group
+from api import BaseInput, InputId, NestedGroup, group
 
 InputValue = Union[int, str]
 EnumValues = Union[

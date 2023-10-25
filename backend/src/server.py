@@ -17,8 +17,8 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-import api2 as api
-from api2 import (
+import api
+from api import (
     ExecutionOptions,
     Group,
     JsonExecutionOptions,

@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List, Optional, Union
 
 from sanic.log import logger
 
-from api2 import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, OutputId
+from api import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, OutputId
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import navi
-from api2 import BaseOutput
+from api import BaseOutput
 
 
 class DirectoryOutput(BaseOutput):

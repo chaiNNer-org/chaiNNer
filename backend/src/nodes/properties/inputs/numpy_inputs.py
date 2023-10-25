@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 import navi
-from api2 import BaseInput, ErrorValue
+from api import BaseInput, ErrorValue
 
 from ...impl.color.color import Color
 from ...utils.format import format_color_with_channels, format_image_with_channels
