@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from nodes.group import group
+from nodes.groups import ncnn_file_inputs_group
 from nodes.impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from nodes.impl.ncnn.optimizer import NcnnOptimizer
 from nodes.properties.inputs import BinFileInput, ParamFileInput
@@ -21,7 +21,7 @@ from .. import io_group
     ),
     icon="NCNN",
     inputs=[
-        group("ncnn-file-inputs")(
+        ncnn_file_inputs_group(
             ParamFileInput(primary_input=True),
             BinFileInput(primary_input=True),
         )

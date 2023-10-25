@@ -3,8 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
-from nodes.group import group
-from nodes.groups import if_enum_group
+from nodes.groups import from_to_dropdowns_group, if_enum_group
 from nodes.impl.color.convert import (
     color_space_from_id,
     color_space_or_detector_from_id,
@@ -36,7 +35,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     icon="MdColorLens",
     inputs=[
         ImageInput(image_type=navi.Image(channels="Input1.channels")),
-        group("from-to-dropdowns")(
+        from_to_dropdowns_group(
             ColorSpaceDetectorInput(label="From").with_id(1),
             ColorSpaceInput(label="To").with_id(2),
         ),
