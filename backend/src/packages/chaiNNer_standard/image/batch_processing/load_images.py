@@ -7,7 +7,7 @@ from typing import List, Tuple
 import numpy as np
 from wcmatch import glob
 
-from api import Iterator
+from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput, TextInput
@@ -74,11 +74,12 @@ def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]
     ],
     outputs=[
         ImageOutput(),
-        DirectoryOutput("Directory"),
+        DirectoryOutput("Directory", output_type="Input0"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
         NumberOutput("Index"),
     ],
+    iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
     node_type="newIterator",
 )
 def load_images_node(
@@ -88,12 +89,12 @@ def load_images_node(
     glob_str: str,
     use_limit: bool,
     limit: int,
-) -> Iterator[Tuple[np.ndarray, str, str, str, int]]:
+) -> Tuple[Iterator[Tuple[np.ndarray, str, str, int]], str]:
     def load_image(path: str, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(img_dir, directory)
-        return img, directory, rel_path, basename, index
+        return img, rel_path, basename, index
 
     supported_filetypes = get_available_image_formats()
 
@@ -107,4 +108,4 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Iterator.from_list(just_image_files, load_image)
+    return Iterator.from_list(just_image_files, load_image), directory
