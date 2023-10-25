@@ -5,8 +5,6 @@ from api import ErrorValue, InputId, NodeId, OutputId
 
 # Data of events
 
-# Data of events
-
 
 class FinishData(TypedDict):
     message: str
