@@ -48,7 +48,7 @@ from .. import batch_processing_group
                 channels: Input0.channels,
             }"""
         ),
-        NumberOutput("Index", output_type="uint").with_docs(
+        NumberOutput("Index", output_type="min(uint, Input1 * Input2 - 1)").with_docs(
             "A counter that starts at 0 and increments by 1 for each image."
         ),
     ],

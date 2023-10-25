@@ -46,9 +46,10 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
     ],
     outputs=[
         ImageOutput("Frame Image", channels=3),
-        NumberOutput("Frame Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each frame."
-        ),
+        NumberOutput(
+            "Frame Index",
+            output_type="if Input1 { min(uint, Input2 - 1) } else { uint }",
+        ).with_docs("A counter that starts at 0 and increments by 1 for each frame."),
         DirectoryOutput("Video Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
         NumberOutput("FPS"),
