@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
-
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border

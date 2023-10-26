@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
-
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import NumberOutput
 from nodes.utils.utils import get_h_w_c
@@ -38,7 +35,7 @@ from .. import utility_group
 def get_bounding_box_node(
     img: np.ndarray,
     thresh_val: float,
-) -> Tuple[int, int, int, int]:
+) -> tuple[int, int, int, int]:
     # Threshold value 100 guarantees an empty image, so make sure the max
     # is just below that.
     thresh = min(thresh_val / 100, 0.99999)

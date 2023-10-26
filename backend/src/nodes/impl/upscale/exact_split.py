@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 from sanic.log import logger
@@ -39,7 +39,7 @@ class _Segment:
         return self.end + self.endPadding - (self.start - self.startPadding)
 
 
-def _exact_split_into_segments(length: int, exact: int, overlap: int) -> List[_Segment]:
+def _exact_split_into_segments(length: int, exact: int, overlap: int) -> list[_Segment]:
     """
     Splits the given length into segments of `exact` (padded) length.
     Segments will overlap into each other with at least the given overlap.
@@ -51,7 +51,7 @@ def _exact_split_into_segments(length: int, exact: int, overlap: int) -> List[_S
     assert length > exact
     assert exact > overlap * 2
 
-    result: List[_Segment] = []
+    result: list[_Segment] = []
 
     def add(s: _Segment):
         assert s.padded_length == exact
@@ -90,7 +90,7 @@ def _exact_split_into_regions(
     exact_w: int,
     exact_h: int,
     overlap: int,
-) -> List[Tuple[Region, Padding]]:
+) -> list[tuple[Region, Padding]]:
     """
     Returns a list of disjoint regions along with padding.
     Each region plus its padding is guaranteed to have the given exact size.
@@ -105,7 +105,7 @@ def _exact_split_into_regions(
         f"Image is split into {len(x_segments)}x{len(y_segments)} tiles each exactly {exact_w}x{exact_h}px."
     )
 
-    result: List[Tuple[Region, Padding]] = []
+    result: list[tuple[Region, Padding]] = []
     for y in y_segments:
         for x in x_segments:
             result.append(

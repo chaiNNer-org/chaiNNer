@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from enum import Enum
-from typing import Dict, Union
+from typing import Union
 
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
@@ -23,7 +23,7 @@ class MathOperation(Enum):
     PERCENT = "percent"
 
 
-OP_LABEL: Dict[MathOperation, str] = {
+OP_LABEL: dict[MathOperation, str] = {
     MathOperation.ADD: "Add: a + b",
     MathOperation.SUBTRACT: "Subtract: a - b",
     MathOperation.MULTIPLY: "Multiply: a × b",

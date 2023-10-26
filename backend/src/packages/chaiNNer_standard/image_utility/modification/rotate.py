@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from nodes.impl.pil_utils import (
     FillColor,
     RotateSizeChange,

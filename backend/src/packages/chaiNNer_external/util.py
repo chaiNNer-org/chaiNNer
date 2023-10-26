@@ -5,10 +5,9 @@ import io
 
 import cv2
 import numpy as np
-from PIL import Image
-
 from nodes.impl.image_utils import normalize, to_uint8
 from nodes.utils.utils import get_h_w_c
+from PIL import Image
 
 
 def nearest_valid_size(width, height):

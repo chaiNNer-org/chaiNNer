@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
-
-from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
 from nodes.impl.pytorch.types import PyTorchModel
@@ -11,6 +8,7 @@ from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
 from nodes.properties.outputs.pytorch_outputs import ModelOutput
 from nodes.utils.utils import list_all_files_sorted
+from sanic.log import logger
 
 from .. import batch_processing_group
 from ..io.load_model import load_model_node
@@ -42,7 +40,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-) -> Tuple[Iterator[Tuple[PyTorchModel, str, str, int]], str]:
+) -> tuple[Iterator[tuple[PyTorchModel, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: str, index: int):
@@ -52,6 +50,6 @@ def load_models_node(
         return model, rel_path, basename, index
 
     supported_filetypes = [".pt", ".pth", ".ckpt"]
-    model_files: List[str] = list_all_files_sorted(directory, supported_filetypes)
+    model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
 
     return Iterator.from_list(model_files, load_model), directory

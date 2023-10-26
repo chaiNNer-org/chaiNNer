@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.impl.tile import TileMode, tile_image
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput

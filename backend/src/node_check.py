@@ -5,7 +5,7 @@ import inspect
 import os
 import pathlib
 from enum import Enum
-from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
+from typing import Any, Callable, NewType, Union, cast, get_args
 
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
@@ -93,7 +93,7 @@ def eval_type(t: str | _Ty, __globals: dict[str, Any]):
         raise ValueError(f"Unable to evaluate type '{t}': {e}") from e
 
 
-def union_types(types: List[_Ty]) -> _Ty:
+def union_types(types: list[_Ty]) -> _Ty:
     assert len(types) > 0
     t: Any = types[0]
     for t2 in types[1:]:
@@ -101,7 +101,7 @@ def union_types(types: List[_Ty]) -> _Ty:
     return t
 
 
-def union_to_set(t: _Ty) -> Set[_Ty]:
+def union_to_set(t: _Ty) -> set[_Ty]:
     s = str(t)
     if s.startswith("typing.Union["):
         return set(get_args(t))
@@ -118,14 +118,14 @@ def is_subset_of(a: _Ty, b: _Ty) -> bool:
     return union_to_set(a).issubset(union_to_set(b))
 
 
-def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
+def get_type_annotations(fn: Callable) -> dict[str, _Ty]:
     """Get the annotations for a function, with support for Python 3.8+"""
     ann = getattr(fn, "__annotations__", None)
 
     if ann is None:
         return {}
 
-    type_annotations: Dict[str, _Ty] = {}
+    type_annotations: dict[str, _Ty] = {}
     for k, v in ann.items():
         type_annotations[k] = eval_type(v, fn.__globals__)
     return type_annotations
@@ -140,7 +140,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
     if len(outputs) == 0:
         if return_type is not None and return_type is not type(None):  # type: ignore
             raise CheckFailedError(
-                f"Return type should be 'None' because there are no outputs"
+                "Return type should be 'None' because there are no outputs"
             )
     elif len(outputs) == 1:
         o = outputs[0]
@@ -190,11 +190,11 @@ def check_schema_types(
 
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
-        if not arg in ann:
+        if arg not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg}'")
 
     if arg_spec.varargs is not None:
-        if not arg_spec.varargs in ann:
+        if arg_spec.varargs not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg_spec.varargs}'")
         va_type = ann.pop(arg_spec.varargs)
 

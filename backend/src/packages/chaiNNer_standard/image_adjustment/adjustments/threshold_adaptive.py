@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 import cv2
 import numpy as np
-
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -18,7 +16,7 @@ class AdaptiveThresholdType(Enum):
     BINARY_INV = cv2.THRESH_BINARY_INV
 
 
-_THRESHOLD_TYPE_LABELS: Dict[AdaptiveThresholdType, str] = {
+_THRESHOLD_TYPE_LABELS: dict[AdaptiveThresholdType, str] = {
     AdaptiveThresholdType.BINARY: "Binary",
     AdaptiveThresholdType.BINARY_INV: "Binary (Inverted)",
 }
@@ -29,7 +27,7 @@ class AdaptiveMethod(Enum):
     GAUSSIAN = cv2.ADAPTIVE_THRESH_GAUSSIAN_C
 
 
-_ADAPTIVE_METHOD_LABELS: Dict[AdaptiveMethod, str] = {
+_ADAPTIVE_METHOD_LABELS: dict[AdaptiveMethod, str] = {
     AdaptiveMethod.MEAN: "Mean",
     AdaptiveMethod.GAUSSIAN: "Gaussian",
 }

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: pixelshuffle.py
 # Created Date: Friday July 1st 2022
@@ -10,7 +9,7 @@
 # Copyright (c) 2022 Shanghai Jiao Tong University
 #############################################################
 
-import torch.nn as nn
+from torch import nn
 
 
 def pixelshuffle_block(

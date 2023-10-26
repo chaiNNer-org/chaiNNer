@@ -5,10 +5,9 @@ from dataclasses import dataclass
 from typing import List, cast
 
 import onnxruntime as ort
-from sanic.log import logger
-
 from api import CacheSetting, DropdownSetting, ToggleSetting
 from gpu import get_nvidia_helper
+from sanic.log import logger
 from system import is_arm_mac
 
 from . import package

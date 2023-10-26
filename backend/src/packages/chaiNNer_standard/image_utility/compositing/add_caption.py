@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from nodes.impl.caption import CaptionPosition, add_caption
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput, TextInput
 from nodes.properties.outputs import ImageOutput

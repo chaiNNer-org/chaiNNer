@@ -9,8 +9,6 @@ from typing import Any, Optional
 import cv2
 import ffmpeg
 import numpy as np
-from sanic.log import logger
-
 from api import Collector, IteratorInputInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
@@ -33,6 +31,7 @@ from nodes.properties.inputs import (
 from nodes.properties.inputs.generic_inputs import AudioStreamInput
 from nodes.properties.inputs.numeric_inputs import NumberInput
 from nodes.utils.utils import get_h_w_c
+from sanic.log import logger
 
 from .. import video_frames_group
 
@@ -344,8 +343,8 @@ def save_video_node(
                 os.rename(audio_video_path, video_path)
             except:
                 logger.warning(
-                    f"Failed to copy audio to video, input file probably contains "
-                    f"no audio or audio stream is supported by this container. Ignoring audio settings."
+                    "Failed to copy audio to video, input file probably contains "
+                    "no audio or audio stream is supported by this container. Ignoring audio settings."
                 )
                 try:
                     os.remove(audio_video_path)

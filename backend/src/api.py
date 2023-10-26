@@ -6,18 +6,13 @@ from dataclasses import dataclass, field
 from typing import (
     Awaitable,
     Callable,
-    Dict,
     Generic,
     Iterable,
-    List,
     NewType,
-    Tuple,
     TypedDict,
     TypeVar,
     Union,
 )
-
-from sanic.log import logger
 
 import navi
 from base_types import InputId, OutputId
@@ -34,6 +29,7 @@ from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 from nodes.group import Group, GroupId, NestedGroup, NestedIdGroup
 from nodes.utils.exec_options import SettingsJson, get_execution_options
+from sanic.log import logger
 
 KB = 1024**1
 MB = 1024**2
@@ -41,13 +37,13 @@ GB = 1024**3
 
 
 def _process_inputs(base_inputs: Iterable[BaseInput | NestedGroup]):
-    inputs: List[BaseInput] = []
-    groups: List[NestedIdGroup] = []
+    inputs: list[BaseInput] = []
+    groups: list[NestedIdGroup] = []
 
     def add_inputs(
         current: Iterable[BaseInput | NestedGroup],
-    ) -> List[InputId | NestedIdGroup]:
-        layout: List[InputId | NestedIdGroup] = []
+    ) -> list[InputId | NestedIdGroup]:
+        layout: list[InputId | NestedIdGroup] = []
 
         for x in current:
             if isinstance(x, Group):
@@ -69,7 +65,7 @@ def _process_inputs(base_inputs: Iterable[BaseInput | NestedGroup]):
 
 
 def _process_outputs(base_outputs: Iterable[BaseOutput]):
-    outputs: List[BaseOutput] = []
+    outputs: list[BaseOutput] = []
     for i, output_value in enumerate(base_outputs):
         if output_value.id == -1:
             output_value.id = OutputId(i)
@@ -84,10 +80,10 @@ class DefaultNode(TypedDict):
 class IteratorInputInfo:
     def __init__(
         self,
-        inputs: int | InputId | List[int] | List[InputId] | List[int | InputId],
+        inputs: int | InputId | list[int] | list[InputId] | list[int | InputId],
         length_type: navi.ExpressionJson = "uint",
     ) -> None:
-        self.inputs: List[InputId] = (
+        self.inputs: list[InputId] = (
             [InputId(x) for x in inputs]
             if isinstance(inputs, list)
             else [InputId(inputs)]
@@ -98,10 +94,10 @@ class IteratorInputInfo:
 class IteratorOutputInfo:
     def __init__(
         self,
-        outputs: int | OutputId | List[int] | List[OutputId] | List[int | OutputId],
+        outputs: int | OutputId | list[int] | list[OutputId] | list[int | OutputId],
         length_type: navi.ExpressionJson = "uint",
     ) -> None:
-        self.outputs: List[OutputId] = (
+        self.outputs: list[OutputId] = (
             [OutputId(x) for x in outputs]
             if isinstance(outputs, list)
             else [OutputId(outputs)]
@@ -113,21 +109,21 @@ class IteratorOutputInfo:
 class NodeData:
     schema_id: str
     description: str
-    see_also: List[str]
+    see_also: list[str]
     name: str
     icon: str
     type: NodeType
 
-    inputs: List[BaseInput]
-    outputs: List[BaseOutput]
-    group_layout: List[InputId | NestedIdGroup]
+    inputs: list[BaseInput]
+    outputs: list[BaseOutput]
+    group_layout: list[InputId | NestedIdGroup]
 
-    iterator_inputs: List[IteratorInputInfo]
-    iterator_outputs: List[IteratorOutputInfo]
+    iterator_inputs: list[IteratorInputInfo]
+    iterator_outputs: list[IteratorOutputInfo]
 
     side_effects: bool
     deprecated: bool
-    features: List[FeatureId]
+    features: list[FeatureId]
 
     run: RunFn
 
@@ -150,7 +146,7 @@ S = TypeVar("S")
 class NodeGroup:
     category: Category
     name: str
-    nodes: List[NodeData] = field(default_factory=list)
+    nodes: list[NodeData] = field(default_factory=list)
 
     def add_node(self, node: NodeData):
         logger.debug(f"Added {node.schema_id}")
@@ -160,19 +156,19 @@ class NodeGroup:
         self,
         schema_id: str,
         name: str,
-        description: str | List[str],
-        inputs: List[BaseInput | NestedGroup],
-        outputs: List[BaseOutput],
+        description: str | list[str],
+        inputs: list[BaseInput | NestedGroup],
+        outputs: list[BaseOutput],
         icon: str = "BsQuestionCircleFill",
         node_type: NodeType = "regularNode",
         side_effects: bool = False,
         deprecated: bool = False,
-        decorators: List[Callable] | None = None,
-        see_also: List[str] | str | None = None,
-        features: List[FeatureId] | FeatureId | None = None,
+        decorators: list[Callable] | None = None,
+        see_also: list[str] | str | None = None,
+        features: list[FeatureId] | FeatureId | None = None,
         limited_to_8bpc: bool | str = False,
-        iterator_inputs: List[IteratorInputInfo] | IteratorInputInfo | None = None,
-        iterator_outputs: List[IteratorOutputInfo] | IteratorOutputInfo | None = None,
+        iterator_inputs: list[IteratorInputInfo] | IteratorInputInfo | None = None,
+        iterator_outputs: list[IteratorOutputInfo] | IteratorOutputInfo | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -187,7 +183,7 @@ class NodeGroup:
                     " This is generally only a problem if you intend to save the output with 16 bits/channel or higher."
                 )
 
-        def to_list(x: List[S] | S | None) -> List[S]:
+        def to_list(x: list[S] | S | None) -> list[S]:
             if x is None:
                 return []
             if isinstance(x, list):
@@ -270,9 +266,9 @@ class Category:
     icon: str = "BsQuestionCircleFill"
     color: str = "#777777"
     install_hint: str | None = None
-    node_groups: List["NodeGroup"] = field(default_factory=list)
+    node_groups: list[NodeGroup] = field(default_factory=list)
 
-    def add_node_group(self, name: str) -> "NodeGroup":
+    def add_node_group(self, name: str) -> NodeGroup:
         result = NodeGroup(category=self, name=name)
         self.node_groups.append(result)
         return result
@@ -345,11 +341,11 @@ class FeatureState:
     details: str | None = None
 
     @staticmethod
-    def enabled(details: str | None = None) -> "FeatureState":
+    def enabled(details: str | None = None) -> FeatureState:
         return FeatureState(is_enabled=True, details=details)
 
     @staticmethod
-    def disabled(details: str | None = None) -> "FeatureState":
+    def disabled(details: str | None = None) -> FeatureState:
         return FeatureState(is_enabled=False, details=details)
 
 
@@ -373,7 +369,7 @@ class DropdownSetting:
     label: str
     key: str
     description: str
-    options: List[DropdownOption]
+    options: list[DropdownOption]
     default: str
     disabled: bool = False
     type: str = "dropdown"
@@ -444,10 +440,10 @@ class Package:
     description: str
     icon: str
     color: str
-    dependencies: List[Dependency] = field(default_factory=list)
-    categories: List[Category] = field(default_factory=list)
-    features: List[Feature] = field(default_factory=list)
-    settings: List[Setting] = field(default_factory=list)
+    dependencies: list[Dependency] = field(default_factory=list)
+    categories: list[Category] = field(default_factory=list)
+    features: list[Feature] = field(default_factory=list)
+    settings: list[Setting] = field(default_factory=list)
 
     def add_category(
         self,
@@ -456,7 +452,7 @@ class Package:
         icon: str,
         color: str,
         install_hint: str | None = None,
-    ) -> "Category":
+    ) -> Category:
         result = Category(
             package=self,
             name=name,
@@ -507,9 +503,9 @@ class LoadErrorInfo:
 
 class PackageRegistry:
     def __init__(self) -> None:
-        self.packages: Dict[str, Package] = {}
-        self.categories: List[Category] = []
-        self.nodes: Dict[str, Tuple[NodeData, NodeGroup]] = {}
+        self.packages: dict[str, Package] = {}
+        self.categories: list[Category] = []
+        self.nodes: dict[str, tuple[NodeData, NodeGroup]] = {}
 
     def get_node(self, schema_id: str) -> NodeData:
         return self.nodes[schema_id][0]
@@ -519,9 +515,9 @@ class PackageRegistry:
         self.packages[package.where] = package
         return package
 
-    def load_nodes(self, current_file: str) -> List[LoadErrorInfo]:
-        load_error: List[LoadErrorInfo] = []
-        failed_checks: List[CheckFailedError] = []
+    def load_nodes(self, current_file: str) -> list[LoadErrorInfo]:
+        load_error: list[LoadErrorInfo] = []
+        failed_checks: list[CheckFailedError] = []
 
         for package in list(self.packages.values()):
             for file_path in _iter_py_files(os.path.dirname(package.where)):
@@ -568,7 +564,7 @@ def add_package(
     id: str,  # pylint: disable=redefined-builtin
     name: str,
     description: str,
-    dependencies: List[Dependency] | None = None,
+    dependencies: list[Dependency] | None = None,
     icon: str = "BsQuestionCircleFill",
     color: str = "#777777",
 ) -> Package:
@@ -597,11 +593,11 @@ class Iterator(Generic[I]):
     @staticmethod
     def from_iter(
         iter_supplier: Callable[[], Iterable[I]], expected_length: int
-    ) -> "Iterator[I]":
+    ) -> Iterator[I]:
         return Iterator(iter_supplier, expected_length)
 
     @staticmethod
-    def from_list(l: List[L], map_fn: Callable[[L, int], I]) -> "Iterator[I]":
+    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Iterator[I]:
         """
         Creates a new iterator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
@@ -614,7 +610,7 @@ class Iterator(Generic[I]):
         return Iterator(supplier, len(l))
 
     @staticmethod
-    def from_range(count: int, map_fn: Callable[[int], I]) -> "Iterator[I]":
+    def from_range(count: int, map_fn: Callable[[int], I]) -> Iterator[I]:
         """
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.

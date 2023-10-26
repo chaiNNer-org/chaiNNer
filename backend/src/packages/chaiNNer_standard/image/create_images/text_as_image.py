@@ -5,8 +5,6 @@ import sys
 from enum import Enum
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-
 from nodes.impl.caption import get_font_size
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import normalize, to_uint8
@@ -18,6 +16,7 @@ from nodes.properties.inputs import (
     TextInput,
 )
 from nodes.properties.outputs import ImageOutput
+from PIL import Image, ImageDraw, ImageFont
 
 from .. import create_images_group
 

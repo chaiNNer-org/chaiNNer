@@ -49,7 +49,7 @@ def __run_texconv(args: List[str], error_message: str):
         logger.error(
             "\n".join(
                 [
-                    f"Failed to run texconv.",
+                    "Failed to run texconv.",
                     f"texconv: {__TEXCONV_EXE}",
                     f"args: {args}",
                     f"exit code: {result.returncode}",

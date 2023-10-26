@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from nodes.impl.image_utils import as_3d
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput

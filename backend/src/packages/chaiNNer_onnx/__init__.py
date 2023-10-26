@@ -1,7 +1,6 @@
-from sanic.log import logger
-
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
+from sanic.log import logger
 from system import is_arm_mac
 
 general = "ONNX uses .onnx models to upscale images."

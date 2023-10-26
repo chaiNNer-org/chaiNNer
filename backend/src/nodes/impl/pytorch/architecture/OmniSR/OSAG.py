@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: OSAG.py
 # Created Date: Tuesday April 28th 2022
@@ -11,7 +10,7 @@
 #############################################################
 
 
-import torch.nn as nn
+from torch import nn
 
 from .esa import ESA
 from .OSA import OSA_Block

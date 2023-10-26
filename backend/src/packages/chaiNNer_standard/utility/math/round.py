@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Union
 
 import numpy as np
-
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput

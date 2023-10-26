@@ -4,9 +4,9 @@ import math
 import re
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
+from torch import nn
 
 from .timm.helpers import to_2tuple
 from .timm.weight_init import trunc_normal_
@@ -1214,7 +1214,7 @@ class HAT(nn.Module):
         mask_windows = mask_windows.view(-1, self.window_size * self.window_size)
         attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
         attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(
-            attn_mask == 0, float(0.0)
+            attn_mask == 0, 0.0
         )
 
         return attn_mask

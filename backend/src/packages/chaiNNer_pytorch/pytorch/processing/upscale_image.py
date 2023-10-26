@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 import torch
-from sanic.log import logger
-
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
@@ -25,6 +21,7 @@ from nodes.properties.inputs import (
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
+from sanic.log import logger
 
 from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
@@ -46,7 +43,7 @@ def upscale(
 
         def estimate():
             if "cuda" in device.type:
-                mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
+                mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
                 model_bytes = sum(p.numel() * element_size for p in model.parameters())
@@ -150,7 +147,7 @@ def upscale_image_node(
 
     exec_options = get_settings()
 
-    logger.debug(f"Upscaling image...")
+    logger.debug("Upscaling image...")
 
     # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
     in_nc = model.in_nc

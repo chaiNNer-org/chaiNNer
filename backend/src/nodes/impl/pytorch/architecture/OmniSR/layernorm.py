@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: layernorm.py
 # Created Date: Tuesday April 28th 2022
@@ -11,7 +10,7 @@
 #############################################################
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class LayerNormFunction(torch.autograd.Function):

@@ -3,7 +3,6 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-
 from nodes.groups import if_enum_group
 from nodes.impl.color_transfer.linear_histogram import linear_histogram_transfer
 from nodes.impl.color_transfer.mean_std import (

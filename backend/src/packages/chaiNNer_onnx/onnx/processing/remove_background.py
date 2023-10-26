@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import Tuple
-
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.model import OnnxRemBg
 from nodes.impl.onnx.session import get_onnx_session
@@ -52,7 +49,7 @@ def remove_background_node(
     foreground_threshold: int,
     background_threshold: int,
     kernel_size: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Removes background from image"""
 
     settings = get_settings()

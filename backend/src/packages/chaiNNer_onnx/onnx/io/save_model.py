@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 
-from sanic.log import logger
-
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput, OnnxModelInput, TextInput
+from sanic.log import logger
 
 from .. import io_group
 

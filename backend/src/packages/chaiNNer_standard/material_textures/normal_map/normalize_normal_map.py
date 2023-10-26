@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.impl.normals.util import gr_to_xyz, xyz_to_bgr
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput

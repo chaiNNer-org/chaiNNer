@@ -1,6 +1,6 @@
 import math
 
-import torch.nn as nn
+from torch import nn
 
 
 class CA_layer(nn.Module):

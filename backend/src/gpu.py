@@ -10,7 +10,7 @@ try:
     nv.nvmlInit()
     nvidia_is_available = True
     nv.nvmlShutdown()
-except nv.NVMLError as e:
+except nv.NVMLError:
     logger.info("No Nvidia GPU found, or invalid driver installed.")
 except Exception as e:
     logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")

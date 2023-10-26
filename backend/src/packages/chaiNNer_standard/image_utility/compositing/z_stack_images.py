@@ -3,7 +3,6 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput

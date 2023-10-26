@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: esa.py
 # Created Date: Tuesday April 28th 2022
@@ -11,8 +10,8 @@
 #############################################################
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from .layernorm import LayerNorm2d
 

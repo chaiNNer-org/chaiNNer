@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Tuple
 
 import torch
-
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.architecture.SCUNet import SCUNet
 from nodes.impl.pytorch.types import PyTorchSRModel
@@ -35,7 +33,7 @@ from .. import utility_group
 )
 def convert_to_onnx_node(
     model: PyTorchSRModel, is_fp16: int
-) -> Tuple[OnnxGeneric, str]:
+) -> tuple[OnnxGeneric, str]:
     assert not isinstance(
         model, SCUNet
     ), "SCUNet is not supported for NCNN conversion at this time."

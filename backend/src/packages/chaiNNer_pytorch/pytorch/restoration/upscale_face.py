@@ -8,9 +8,6 @@ import numpy as np
 import torch
 from appdirs import user_data_dir
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-from sanic.log import logger
-from torchvision.transforms.functional import normalize as tv_normalize
-
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.types import PyTorchFaceModel
@@ -18,6 +15,8 @@ from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
+from sanic.log import logger
+from torchvision.transforms.functional import normalize as tv_normalize
 
 from ...settings import PyTorchSettings, get_settings
 from .. import restoration_group

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
-from sanic.log import logger
-
 import navi
+import numpy as np
 from nodes.impl.pil_utils import InterpolationMethod, resize
 from nodes.properties.inputs import ImageInput, InterpolationInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
+from sanic.log import logger
 
 from .. import resize_group
 

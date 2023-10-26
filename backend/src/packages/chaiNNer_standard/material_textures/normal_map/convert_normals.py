@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.impl.image_utils import NormalMapType
 from nodes.impl.normals.util import (
     XYZ,

@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
 
 import torch
-from safetensors.torch import load_file
-from sanic.log import logger
-
 from nodes.impl.pytorch.model_loading import load_state_dict
 from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.unpickler import RestrictedUnpickle
 from nodes.utils.utils import split_file_path
+from safetensors.torch import load_file
+from sanic.log import logger
 
 from ...settings import get_settings
 from .. import io_group
@@ -65,7 +63,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
         "chainner:pytorch:load_models",
     ],
 )
-def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
+def load_model_node(path: str) -> tuple[PyTorchModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 

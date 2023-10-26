@@ -6,9 +6,9 @@ import math
 import re
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
+from torch import nn
+from torch.utils import checkpoint
 
 from .timm.helpers import to_2tuple
 from .timm.weight_init import trunc_normal_
@@ -453,7 +453,7 @@ class PSA_Block(nn.Module):
         # calculate attention mask
         attn_mask = mask_windows.unsqueeze(2) - permuted_windows.unsqueeze(1)
         attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(
-            attn_mask == 0, float(0.0)
+            attn_mask == 0, 0.0
         )
 
         return attn_mask

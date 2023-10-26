@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from enum import Enum
 
+import navi
 import numpy as np
 from chainner_ext import (
     fill_alpha_extend_color,
     fill_alpha_fragment_blur,
     fill_alpha_nearest_color,
 )
-
-import navi
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 

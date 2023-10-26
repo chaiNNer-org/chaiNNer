@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from api import Collector, IteratorInputInfo
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput

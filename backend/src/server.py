@@ -10,14 +10,8 @@ from dataclasses import asdict, dataclass
 from json import dumps as stringify
 from typing import Dict, List, Optional, Tuple, TypedDict, Union
 
-import psutil
-from sanic import Sanic
-from sanic.log import access_logger, logger
-from sanic.request import Request
-from sanic.response import json
-from sanic_cors import CORS
-
 import api
+import psutil
 from base_types import NodeId
 from chain.cache import OutputCache
 from chain.chain import Chain, FunctionNode
@@ -42,6 +36,11 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
+from sanic import Sanic
+from sanic.log import access_logger, logger
+from sanic.request import Request
+from sanic.response import json
+from sanic_cors import CORS
 from server_config import ServerConfig
 from system import is_arm_mac
 

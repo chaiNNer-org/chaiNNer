@@ -8,9 +8,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Union
-
-from sanic.log import logger
+from typing import Iterable, List, Optional, Union
 
 from api import Collector, Iterator, NodeData
 from base_types import InputId, NodeId, OutputId
@@ -20,6 +18,7 @@ from chain.input import EdgeInput, Input, InputMap
 from events import Event, EventQueue, InputsDict
 from nodes.base_output import BaseOutput
 from progress_controller import Aborted, ProgressController
+from sanic.log import logger
 from util import timed_supplier
 
 Output = List[object]
@@ -27,7 +26,7 @@ Output = List[object]
 
 def collect_input_information(
     node: NodeData,
-    inputs: List[object],
+    inputs: list[object],
     enforced: bool = True,
 ) -> InputsDict:
     try:
@@ -55,18 +54,18 @@ def collect_input_information(
         return input_dict
     except Exception as outer_e:
         # this method must not throw
-        logger.error(f"Error collecting input information.", outer_e)
+        logger.error("Error collecting input information.", outer_e)
         return {}
 
 
 def enforce_inputs(
-    inputs: List[object],
+    inputs: list[object],
     node: NodeData,
     node_id: NodeId,
-    ignored_inputs: List[InputId],
-) -> List[object]:
+    ignored_inputs: list[InputId],
+) -> list[object]:
     try:
-        enforced_inputs: List[object] = []
+        enforced_inputs: list[object] = []
 
         for index, value in enumerate(inputs):
             i = node.inputs[index]
@@ -132,7 +131,7 @@ def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutpu
 
 
 def run_node(
-    node: NodeData, inputs: List[object], node_id: NodeId
+    node: NodeData, inputs: list[object], node_id: NodeId
 ) -> NodeOutput | CollectorOutput:
     if node.type == "collector":
         ignored_inputs = node.single_iterator_input.inputs
@@ -163,12 +162,12 @@ def run_node(
 
 
 def run_collector_iterate(
-    node: CollectorNode, inputs: List[object], collector: Collector
+    node: CollectorNode, inputs: list[object], collector: Collector
 ) -> None:
     iterator_input = node.data.single_iterator_input
 
-    def get_partial_inputs(values: List[object]) -> List[object]:
-        partial_inputs: List[object] = []
+    def get_partial_inputs(values: list[object]) -> list[object]:
+        partial_inputs: list[object] = []
         index = 0
         for i in node.data.inputs:
             if i.id in iterator_input.inputs:
@@ -178,7 +177,7 @@ def run_collector_iterate(
                 partial_inputs.append(None)
         return partial_inputs
 
-    enforced_inputs: List[object] = []
+    enforced_inputs: list[object] = []
     try:
         for i in node.data.inputs:
             if i.id in iterator_input.inputs:
@@ -220,8 +219,8 @@ class _Timer:
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
-    data: Dict[OutputId, object] = dict()
-    types: Dict[OutputId, object] = dict()
+    data: dict[OutputId, object] = dict()
+    types: dict[OutputId, object] = dict()
     for index, node_output in enumerate(node_outputs):
         try:
             value = output[index]
@@ -286,7 +285,7 @@ class Executor:
         self.inputs = inputs
         self.send_broadcast_data: bool = send_broadcast_data
         self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)
-        self.__broadcast_tasks: List[asyncio.Task[None]] = []
+        self.__broadcast_tasks: list[asyncio.Task[None]] = []
 
         self.progress = ProgressController()
 
@@ -296,7 +295,7 @@ class Executor:
         self.queue: EventQueue = queue
         self.pool: ThreadPoolExecutor = pool
 
-        self.cache_strategy: Dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
+        self.cache_strategy: dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
 
     @property
     def completed_percentage(self) -> float:
@@ -356,7 +355,7 @@ class Executor:
             # Otherwise, just use the given input (number, string, etc)
             return node_input.value
 
-    async def __gather_inputs(self, node: Node) -> List[object]:
+    async def __gather_inputs(self, node: Node) -> list[object]:
         """
         Returns the list of input values for the given node.
         """
@@ -381,7 +380,7 @@ class Executor:
 
         return inputs
 
-    async def __gather_collector_inputs(self, node: Node) -> List[object]:
+    async def __gather_collector_inputs(self, node: Node) -> list[object]:
         """
         Returns the input values to be consumed by `Collector.on_iterate`.
         """
@@ -591,7 +590,7 @@ class Executor:
             collectors.append((collector_output.collector, timer, collector_node))
 
         # timing iterations
-        times: List[float] = []
+        times: list[float] = []
         expected_length = iterator_output.iterator.expected_length
         start_time = time.time()
         last_time = [start_time]
@@ -700,13 +699,13 @@ class Executor:
         finally:
             gc.collect()
 
-    def __get_eta(self, times: List[float], index: int, total: int) -> float:
+    def __get_eta(self, times: list[float], index: int, total: int) -> float:
         if len(times) == 0:
             return 0
         return (sum(times) / len(times)) * (total - index)
 
     async def __update_progress(
-        self, node_id: NodeId, times: List[float], index: int, length: int
+        self, node_id: NodeId, times: list[float], index: int, length: int
     ):
         await self.queue.put(
             {

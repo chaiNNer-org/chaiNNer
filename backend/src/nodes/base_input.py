@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Literal, Optional, Type, TypedDict, Union
+from typing import Literal, Optional, TypedDict, Union
 
 import navi
 from base_types import InputId
@@ -74,10 +74,10 @@ class BaseInput:
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
-        associated_type: Union[Type, None] = None,
+        associated_type: Union[type, None] = None,
     ):
         self.input_type: navi.ExpressionJson = input_type
-        self.input_conversions: List[InputConversion] = []
+        self.input_conversions: list[InputConversion] = []
         self.input_adapt: navi.ExpressionJson | None = None
         self.type_definitions: str | None = None
         self.kind: InputKind = kind
@@ -85,7 +85,7 @@ class BaseInput:
         self.optional: bool = False
         self.has_handle: bool = has_handle
         self.id: InputId = InputId(-1)
-        self.associated_type: Type = associated_type
+        self.associated_type: type = associated_type
 
         # Optional documentation
         self.description: str | None = None

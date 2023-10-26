@@ -31,12 +31,12 @@ _ConditionJson = Union[
 
 class _AndConditionJson(TypedDict):
     kind: Literal["and"]
-    items: List[_ConditionJson]
+    items: list[_ConditionJson]
 
 
 class _OrConditionJson(TypedDict):
     kind: Literal["or"]
-    items: List[_ConditionJson]
+    items: list[_ConditionJson]
 
 
 class _NotConditionJson(TypedDict):
@@ -47,7 +47,7 @@ class _NotConditionJson(TypedDict):
 class _EnumConditionJson(TypedDict):
     kind: Literal["enum"]
     enum: InputId
-    values: List[str | int]
+    values: list[str | int]
 
 
 class _TypeConditionJson(TypedDict):
@@ -79,7 +79,7 @@ class Condition:
         A condition to check whether a certain dropdown/enum input has a certain value.
         """
 
-        v: List[str | int] = []
+        v: list[str | int] = []
 
         def convert(value: int | str | Enum):
             if isinstance(value, (int, str)):

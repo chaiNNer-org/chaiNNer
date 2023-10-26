@@ -7,11 +7,10 @@ Model adapted from advimman's lama project: https://github.com/advimman/lama
 # original implementation https://github.com/pkumivision/FFC/blob/main/model_zoo/ffc.py
 # paper https://proceedings.neurips.cc/paper/2020/file/2fd5d41ec6cfab47e32164d5624269b1-Paper.pdf
 
-from typing import List
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 from torchvision.transforms.functional import InterpolationMode, rotate
 
 

@@ -5,7 +5,6 @@ from math import ceil
 
 import cv2
 import numpy as np
-
 from nodes.groups import linked_inputs_group
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput

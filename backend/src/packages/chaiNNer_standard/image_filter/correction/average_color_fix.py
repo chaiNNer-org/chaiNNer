@@ -4,7 +4,6 @@ from math import ceil
 
 import cv2
 import numpy as np
-
 from nodes.impl.pil_utils import InterpolationMethod, resize
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput

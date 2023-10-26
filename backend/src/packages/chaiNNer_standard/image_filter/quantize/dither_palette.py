@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
+import navi
 import numpy as np
 from chainner_ext import (
     PaletteQuantization,
@@ -9,8 +10,6 @@ from chainner_ext import (
     quantize,
     riemersma_dither,
 )
-
-import navi
 from nodes.groups import if_enum_group
 from nodes.impl.dithering.constants import (
     DIFFUSION_ALGORITHM_MAP,

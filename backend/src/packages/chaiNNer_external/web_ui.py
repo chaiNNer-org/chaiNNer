@@ -5,19 +5,19 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Optional
 
 import requests
 from sanic.log import logger
 
-STABLE_DIFFUSION_TEXT2IMG_PATH = f"/sdapi/v1/txt2img"
-STABLE_DIFFUSION_IMG2IMG_PATH = f"/sdapi/v1/img2img"
-STABLE_DIFFUSION_INTERROGATE_PATH = f"/sdapi/v1/interrogate"
-STABLE_DIFFUSION_OPTIONS_PATH = f"/sdapi/v1/options"
-STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = f"/sdapi/v1/extra-single-image"
-STABLE_DIFFUSION_UPSCALERS_PATH = f"/sdapi/v1/upscalers"
+STABLE_DIFFUSION_TEXT2IMG_PATH = "/sdapi/v1/txt2img"
+STABLE_DIFFUSION_IMG2IMG_PATH = "/sdapi/v1/img2img"
+STABLE_DIFFUSION_INTERROGATE_PATH = "/sdapi/v1/interrogate"
+STABLE_DIFFUSION_OPTIONS_PATH = "/sdapi/v1/options"
+STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = "/sdapi/v1/extra-single-image"
+STABLE_DIFFUSION_UPSCALERS_PATH = "/sdapi/v1/upscalers"
 
-TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+TIMEOUT_MSG = """Stable diffusion request timeout reached."""
 
 STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
     os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", None) or "600"
@@ -39,7 +39,7 @@ class Api:
     def get_url(self, path: str) -> str:
         return f"{self.base_url}{path}"
 
-    def get(self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
+    def get(self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> dict:
         try:
             response = requests.get(self.get_url(path), timeout=timeout)
             if response.status_code != 200:
@@ -56,7 +56,7 @@ class Api:
 
     async def get_async(
         self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT
-    ) -> Dict:
+    ) -> dict:
         def run():
             return self.get(path, timeout)
 
@@ -64,7 +64,7 @@ class Api:
         result = await loop.run_in_executor(_thread_pool, run)
         return result
 
-    def post(self, path: str, json_data: Dict) -> Dict:
+    def post(self, path: str, json_data: dict) -> dict:
         try:
             response = requests.post(
                 self.get_url(path),
@@ -86,9 +86,9 @@ class Api:
 
 @dataclass
 class ApiConfig:
-    protocol: List[str]
+    protocol: list[str]
     host: str
-    port: List[str]
+    port: list[str]
 
     @staticmethod
     def from_env():
@@ -108,8 +108,8 @@ class ApiConfig:
 
         return ApiConfig(protocol, host, port)
 
-    def list_apis(self) -> List[Api]:
-        apis: List[Api] = []
+    def list_apis(self) -> list[Api]:
+        apis: list[Api] = []
         for protocol in self.protocol:
             for port in self.port:
                 apis.append(Api(protocol, self.host, port))

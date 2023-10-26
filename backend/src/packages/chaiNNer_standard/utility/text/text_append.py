@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Union
+from typing import Union
 
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import TextInput
@@ -57,5 +57,5 @@ from .. import text_group
     see_also=["chainner:utility:text_pattern"],
 )
 def text_append_node(separator: str, *args: Union[str, None]) -> str:
-    inputs: List[Union[str, None]] = [*args]
+    inputs: list[Union[str, None]] = [*args]
     return separator.join([x for x in inputs if x is not None])

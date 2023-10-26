@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: OmniSR.py
 # Created Date: Tuesday April 28th 2022
@@ -13,8 +12,8 @@
 import math
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from .OSAG import OSAG
 from .pixelshuffle import pixelshuffle_block

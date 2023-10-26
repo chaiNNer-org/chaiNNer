@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List, Tuple
 
 import numpy as np
-from wcmatch import glob
-
 from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
@@ -18,18 +15,19 @@ from nodes.properties.outputs import (
     TextOutput,
 )
 from nodes.utils.utils import alphanumeric_sort
+from wcmatch import glob
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
 
 
-def extension_filter(lst: List[str]) -> str:
+def extension_filter(lst: list[str]) -> str:
     """generates a mcmatch.glob expression to filter files with specific extensions
     ex. {*,**/*}@(*.png|*.jpg|...)"""
     return "**/*@(" + "|".join(lst) + ")"
 
 
-def list_glob(directory: str, globexpr: str, ext_filter: List[str]) -> List[str]:
+def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]:
     extension_expr = extension_filter(ext_filter)
 
     flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR
@@ -92,7 +90,7 @@ def load_images_node(
     glob_str: str,
     use_limit: bool,
     limit: int,
-) -> Tuple[Iterator[Tuple[np.ndarray, str, str, int]], str]:
+) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], str]:
     def load_image(path: str, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input
@@ -104,7 +102,7 @@ def load_images_node(
     if not use_glob:
         glob_str = "**/*" if is_recursive else "*"
 
-    just_image_files: List[str] = list_glob(directory, glob_str, supported_filetypes)
+    just_image_files: list[str] = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
 

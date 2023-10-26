@@ -4,7 +4,6 @@ from enum import Enum
 
 import cv2
 import numpy as np
-
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 

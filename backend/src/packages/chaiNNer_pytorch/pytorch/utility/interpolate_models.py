@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import gc
-from typing import Tuple
 
 import numpy as np
 import torch
-from sanic.log import logger
-
 from nodes.impl.pytorch.model_loading import load_state_dict
 from nodes.impl.pytorch.types import PyTorchModel
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
+from sanic.log import logger
 
 from .. import utility_group
 
@@ -88,7 +86,7 @@ def check_can_interp(model_a: dict, model_b: dict):
 )
 def interpolate_models_node(
     model_a: PyTorchModel, model_b: PyTorchModel, amount: int
-) -> Tuple[PyTorchModel, int, int]:
+) -> tuple[PyTorchModel, int, int]:
     if amount == 0:
         return model_a, 100, 0
     elif amount == 100:
@@ -97,7 +95,7 @@ def interpolate_models_node(
     state_a = model_a.state
     state_b = model_b.state
 
-    logger.debug(f"Interpolating models...")
+    logger.debug("Interpolating models...")
     if not check_can_interp(state_a, state_b):
         raise ValueError(
             "These models are not compatible and not able to be interpolated together"

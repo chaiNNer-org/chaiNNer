@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 from chainner_ext import Clipboard
-
 from nodes.properties.inputs import ClipboardInput
 
 from .. import clipboard_group

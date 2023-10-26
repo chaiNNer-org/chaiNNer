@@ -11,15 +11,21 @@ indent-width = 4
 # Add the `line-too-long` rule to the enforced rule set.
 extend-select = [
     "UP", # pyupgrade
-    # "E",
-    # "W",  # pycodestyle
-    # "F",      # pyflakes
-    "I", # isort
+    "E",  # pycodestyle
+    "W",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
     # "N",     # pep8-naming
     # "ANN",   # flake8-annotations
     # "ASYNC", # flake8-async
     "PL", # pylint
     # "RUF",   # ruff
+]
+ignore = [
+    "E501",    # Line too long
+    "PLR2004", # Magic value
+    "PLR0913", # Too many arguments
+    "PLR0912", # Too many branches
 ]
 
 [tool.ruff.format]

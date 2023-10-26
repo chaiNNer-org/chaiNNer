@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Optional
 
 import numpy as np
-
 from nodes.groups import seed_group
 from nodes.node_cache import cached
 from nodes.properties.inputs import (

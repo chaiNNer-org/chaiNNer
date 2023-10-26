@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Literal, Optional, Tuple, TypedDict, Union
+from typing import List, Literal, Optional, TypedDict, Union
 
 NumberJson = Union[int, float, Literal["inf"], Literal["-inf"], Literal["NaN"]]
 
@@ -70,18 +70,18 @@ class StringLiteralTypeJson(TypedDict):
 
 class UnionExpressionJson(TypedDict):
     type: Literal["union"]
-    items: List[ExpressionJson]
+    items: list[ExpressionJson]
 
 
 class IntersectionExpressionJson(TypedDict):
     type: Literal["intersection"]
-    items: List[ExpressionJson]
+    items: list[ExpressionJson]
 
 
 class NamedExpressionJson(TypedDict):
     type: Literal["named"]
     name: str
-    fields: Dict[str, ExpressionJson] | None
+    fields: dict[str, ExpressionJson] | None
 
 
 class FieldAccessExpressionJson(TypedDict):
@@ -93,7 +93,7 @@ class FieldAccessExpressionJson(TypedDict):
 class FunctionCallExpressionJson(TypedDict):
     type: Literal["function-call"]
     name: str
-    args: List[ExpressionJson]
+    args: list[ExpressionJson]
 
 
 class MatchArmJson(TypedDict):
@@ -105,7 +105,7 @@ class MatchArmJson(TypedDict):
 class MatchExpressionJson(TypedDict):
     type: Literal["match"]
     of: ExpressionJson
-    arms: List[MatchArmJson]
+    arms: list[MatchArmJson]
 
 
 def literal(value: Union[str, int, float]) -> ExpressionJson:
@@ -150,7 +150,7 @@ def intersect(*items: ExpressionJson) -> ExpressionJson:
     return {"type": "intersection", "items": list(items)}
 
 
-def named(name: str, fields: Dict[str, ExpressionJson] | None = None) -> ExpressionJson:
+def named(name: str, fields: dict[str, ExpressionJson] | None = None) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
 
 
@@ -164,10 +164,10 @@ def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
 
 def match(
     of: ExpressionJson,
-    *args: Tuple[ExpressionJson, str | None, ExpressionJson],
+    *args: tuple[ExpressionJson, str | None, ExpressionJson],
     default: ExpressionJson | None = None,
 ) -> ExpressionJson:
-    arms: List[MatchArmJson] = []
+    arms: list[MatchArmJson] = []
     for pattern, binding, to in args:
         arms.append({"pattern": pattern, "binding": binding, "to": to})
     if default is not None:
@@ -184,7 +184,7 @@ def Image(
     channels_as: Optional[ExpressionJson] = None,
     size_as: Optional[ExpressionJson] = None,
 ) -> ExpressionJson:
-    fields: Dict[str, ExpressionJson] = {}
+    fields: dict[str, ExpressionJson] = {}
     if width is not None:
         fields["width"] = width
     if height is not None:
@@ -207,7 +207,7 @@ def Color(
     channels: Optional[ExpressionJson] = None,
     channels_as: Optional[ExpressionJson] = None,
 ) -> ExpressionJson:
-    fields: Dict[str, ExpressionJson] = {}
+    fields: dict[str, ExpressionJson] = {}
     if channels is not None:
         fields["channels"] = channels
     if channels_as is not None:

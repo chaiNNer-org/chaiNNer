@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Iterable, List, Literal, Tuple, TypedDict, Union, cast
+from typing import Iterable, Literal, TypedDict, Union, cast
 
 import numpy as np
-
 from nodes.utils.utils import get_h_w_c
 
 FloatLike = Union[np.floating, float]
@@ -19,36 +18,36 @@ ColorJsonKind = Literal["grayscale", "rgb", "rgba"]
 
 class ColorJson(TypedDict):
     kind: ColorJsonKind
-    values: List[float]
+    values: list[float]
 
 
 class Color:
-    def __init__(self, value: Tuple[float, ...]) -> None:
+    def __init__(self, value: tuple[float, ...]) -> None:
         assert len(value) >= 1
-        self.value: Tuple[float, ...] = value
+        self.value: tuple[float, ...] = value
 
     @property
     def channels(self) -> int:
         return len(self.value)
 
     @staticmethod
-    def gray(gray: FloatLike) -> "Color":
+    def gray(gray: FloatLike) -> Color:
         return Color((_norm(gray),))
 
     @staticmethod
-    def bgr(value: Iterable[FloatLike]) -> "Color":
+    def bgr(value: Iterable[FloatLike]) -> Color:
         t = tuple(map(_norm, value))
         assert len(t) == 3
         return Color(t)
 
     @staticmethod
-    def bgra(value: Iterable[FloatLike]) -> "Color":
+    def bgra(value: Iterable[FloatLike]) -> Color:
         t = tuple(map(_norm, value))
         assert len(t) == 4
         return Color(t)
 
     @staticmethod
-    def from_1x1_image(img: np.ndarray) -> "Color":
+    def from_1x1_image(img: np.ndarray) -> Color:
         h, w, c = get_h_w_c(img)
         assert h == w == 1
 
@@ -62,7 +61,7 @@ class Color:
             assert False, "Only grayscale, RGB, and RGBA colors are supported."
 
     @staticmethod
-    def from_json(color_json: ColorJson | str) -> "Color":
+    def from_json(color_json: ColorJson | str) -> Color:
         if isinstance(color_json, str):
             color_json = cast(ColorJson, json.loads(color_json))
         kind = color_json["kind"]

@@ -15,8 +15,8 @@ DropBlock impl inspired by two Tensorflow impl that I liked:
 Hacked together by / Copyright 2020 Ross Wightman
 """
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 
 def drop_block_2d(

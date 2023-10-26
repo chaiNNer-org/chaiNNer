@@ -3,7 +3,6 @@ from __future__ import annotations
 from enum import Enum
 
 from chainner_ext import MatchGroup, RustRegex
-
 from nodes.properties.inputs import EnumInput, TextInput
 from nodes.properties.outputs import TextOutput
 from nodes.utils.replacement import ReplacementString

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.gradients import (

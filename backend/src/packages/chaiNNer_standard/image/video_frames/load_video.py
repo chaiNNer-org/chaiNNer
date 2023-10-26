@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Tuple
+from typing import Any
 
 import cv2
 import ffmpeg
 import numpy as np
-
 from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
@@ -62,7 +61,7 @@ def load_video_node(
     path: str,
     use_limit: bool,
     limit: int,
-) -> Tuple[Iterator[Tuple[np.ndarray, int]], str, str, float, Any]:
+) -> tuple[Iterator[tuple[np.ndarray, int]], str, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
     ffmpeg_reader = (

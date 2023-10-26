@@ -4,7 +4,6 @@ from enum import Enum
 
 import cv2
 import numpy as np
-
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.blend import BlendMode, blend_images
 from nodes.impl.color.color import Color

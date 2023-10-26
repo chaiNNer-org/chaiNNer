@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 import cv2
 import numpy as np
 from chainner_ext import binary_threshold
-
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -22,7 +20,7 @@ class ThresholdType(Enum):
     TO_ZERO_INV = cv2.THRESH_TOZERO_INV
 
 
-_THRESHOLD_TYPE_LABELS: Dict[ThresholdType, str] = {
+_THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
     ThresholdType.BINARY: "Binary",
     ThresholdType.BINARY_INV: "Binary (Inverted)",
     ThresholdType.TRUNC: "Truncated",

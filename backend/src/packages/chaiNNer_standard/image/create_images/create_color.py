@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.impl.color.color import Color
 from nodes.properties.inputs import ColorInput, NumberInput
 from nodes.properties.outputs import ImageOutput

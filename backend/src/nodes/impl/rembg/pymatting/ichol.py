@@ -149,7 +149,7 @@ def _backsub_LT_csc_inplace(data, indices, indptr, x, n):
         x[i] = s / L_ii
 
 
-class CholeskyDecomposition(object):
+class CholeskyDecomposition:
     """Cholesky Decomposition
 
     Calling this object applies the preconditioner to a vector by forward and back substitution.

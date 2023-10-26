@@ -1,20 +1,18 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import List, Tuple
 
 import numpy as np
 import onnx
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
-from onnx import numpy_helper as onph
-from onnx.onnx_pb import TensorProto
-from sanic.log import logger
-
 from nodes.impl.onnx.model import OnnxModel, load_onnx_model
 from nodes.impl.onnx.utils import safely_optimize_onnx_model
 from nodes.impl.upscale.auto_split_tiles import NO_TILING
 from nodes.properties.inputs import OnnxModelInput, SliderInput
 from nodes.properties.outputs import NumberOutput, OnnxModelOutput
+from onnx import numpy_helper as onph
+from onnx.onnx_pb import TensorProto
+from sanic.log import logger
 
 from .. import utility_group
 from ..processing.upscale_image import upscale_image_node
@@ -24,7 +22,7 @@ def perform_interp(
     model_a_weights: RepeatedCompositeFieldContainer,
     model_b_weights: RepeatedCompositeFieldContainer,
     amount: float,
-) -> List[TensorProto]:
+) -> list[TensorProto]:
     amount_b = amount / 100
     amount_a = 1 - amount_b
 
@@ -87,7 +85,7 @@ def interpolate_models_node(
     a: OnnxModel,
     b: OnnxModel,
     amount: int,
-) -> Tuple[OnnxModel, int, int]:
+) -> tuple[OnnxModel, int, int]:
     if amount == 0:
         return a, 100, 0
     elif amount == 100:
@@ -106,7 +104,7 @@ def interpolate_models_node(
         model_b_weights
     ), "Models must have same number of weights"
 
-    logger.debug(f"Interpolating models...")
+    logger.debug("Interpolating models...")
     interp_weights_list = perform_interp(model_a_weights, model_b_weights, amount)
 
     model_proto_interp = deepcopy(model_proto_b)

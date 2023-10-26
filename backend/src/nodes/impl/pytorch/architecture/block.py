@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 from __future__ import annotations
 
@@ -7,7 +6,7 @@ from collections import OrderedDict
 from typing import Literal
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 ####################
 # Basic blocks
@@ -27,7 +26,7 @@ def act(act_type: str, inplace=True, neg_slope=0.2, n_prelu=1):
         layer = nn.PReLU(num_parameters=n_prelu, init=neg_slope)
     else:
         raise NotImplementedError(
-            "activation layer [{:s}] is not found".format(act_type)
+            f"activation layer [{act_type:s}] is not found"
         )
     return layer
 
@@ -41,7 +40,7 @@ def norm(norm_type: str, nc: int):
         layer = nn.InstanceNorm2d(nc, affine=False)
     else:
         raise NotImplementedError(
-            "normalization layer [{:s}] is not found".format(norm_type)
+            f"normalization layer [{norm_type:s}] is not found"
         )
     return layer
 
@@ -58,7 +57,7 @@ def pad(pad_type: str, padding):
         layer = nn.ReplicationPad2d(padding)
     else:
         raise NotImplementedError(
-            "padding layer [{:s}] is not implemented".format(pad_type)
+            f"padding layer [{pad_type:s}] is not implemented"
         )
     return layer
 
@@ -174,7 +173,7 @@ def conv_block(
     if c2x2:
         return conv_block_2c2(in_nc, out_nc, act_type=act_type)
 
-    assert mode in ("CNA", "NAC", "CNAC"), "Wrong conv mode [{:s}]".format(mode)
+    assert mode in ("CNA", "NAC", "CNAC"), f"Wrong conv mode [{mode:s}]"
     padding = get_valid_padding(kernel_size, dilation)
     p = pad(pad_type, padding) if pad_type and pad_type != "zero" else None
     padding = padding if pad_type == "zero" else 0

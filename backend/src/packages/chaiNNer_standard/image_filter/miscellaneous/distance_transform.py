@@ -3,7 +3,6 @@ from __future__ import annotations
 import cv2
 import numpy as np
 from chainner_ext import esdf
-
 from nodes.impl.image_utils import as_3d, to_uint8
 from nodes.properties.inputs import BoolInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput

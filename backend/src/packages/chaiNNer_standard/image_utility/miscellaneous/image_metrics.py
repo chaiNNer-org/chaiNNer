@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import math
-from typing import Tuple
 
 import cv2
 import numpy as np
-
 from nodes.impl.image_utils import calculate_ssim
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import NumberOutput
@@ -33,7 +31,7 @@ from .. import miscellaneous_group
 )
 def image_metrics_node(
     orig_img: np.ndarray, comp_img: np.ndarray
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """Compute MSE, PSNR, and SSIM"""
 
     assert (

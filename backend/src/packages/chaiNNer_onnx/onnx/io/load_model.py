@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
 
 import onnx
-from sanic.log import logger
-
 from nodes.impl.onnx.model import OnnxModel, load_onnx_model
 from nodes.properties.inputs import OnnxFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, OnnxModelOutput
 from nodes.utils.utils import split_file_path
+from sanic.log import logger
 
 from .. import io_group
 
@@ -33,7 +31,7 @@ from .. import io_group
         "chainner:onnx:load_models",
     ],
 )
-def load_model_node(path: str) -> Tuple[OnnxModel, str, str]:
+def load_model_node(path: str) -> tuple[OnnxModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 

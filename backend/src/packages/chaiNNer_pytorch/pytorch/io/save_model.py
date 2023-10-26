@@ -4,11 +4,10 @@ import os
 from enum import Enum
 
 import torch
-from safetensors.torch import save_file
-from sanic.log import logger
-
 from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import DirectoryInput, EnumInput, ModelInput, TextInput
+from safetensors.torch import save_file
+from sanic.log import logger
 
 from .. import io_group
 

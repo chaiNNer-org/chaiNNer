@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import gc
-from typing import Dict, Generic, Iterable, List, Optional, Set, TypeVar
+from typing import Generic, Iterable, Optional, TypeVar
 
 from sanic.log import logger
 
@@ -28,19 +28,19 @@ StaticCaching = CacheStrategy(CacheStrategy.STATIC_HITS_TO_LIVE)
 """The value is cached for the during of the execution of the chain."""
 
 
-def get_cache_strategies(chain: Chain) -> Dict[NodeId, CacheStrategy]:
+def get_cache_strategies(chain: Chain) -> dict[NodeId, CacheStrategy]:
     """Create a map with the cache strategies for all nodes in the given chain."""
 
     iterator_map = chain.get_parent_iterator_map()
 
-    def any_are_iterated(out_edges: List[Edge]) -> bool:
+    def any_are_iterated(out_edges: list[Edge]) -> bool:
         for out_edge in out_edges:
             target = chain.nodes[out_edge.target.id]
             if isinstance(target, FunctionNode) and iterator_map[target] is not None:
                 return True
         return False
 
-    result: Dict[NodeId, CacheStrategy] = {}
+    result: dict[NodeId, CacheStrategy] = {}
 
     for node in chain.nodes.values():
         strategy: CacheStrategy
@@ -85,16 +85,16 @@ class _CacheEntry(Generic[T]):
 class OutputCache(Generic[T]):
     def __init__(
         self,
-        parent: Optional["OutputCache[T]"] = None,
-        static_data: Optional[Dict[NodeId, T]] = None,
+        parent: Optional[OutputCache[T]] = None,
+        static_data: Optional[dict[NodeId, T]] = None,
     ):
         super().__init__()
-        self.__static: Dict[NodeId, T] = static_data.copy() if static_data else {}
-        self.__counted: Dict[NodeId, _CacheEntry[T]] = {}
+        self.__static: dict[NodeId, T] = static_data.copy() if static_data else {}
+        self.__counted: dict[NodeId, _CacheEntry[T]] = {}
         self.parent: Optional[OutputCache[T]] = parent
 
-    def keys(self) -> Set[NodeId]:
-        keys: Set[NodeId] = set()
+    def keys(self) -> set[NodeId]:
+        keys: set[NodeId] = set()
         keys.update(self.__static.keys(), self.__counted.keys())
         if self.parent:
             keys.update(self.parent.keys())

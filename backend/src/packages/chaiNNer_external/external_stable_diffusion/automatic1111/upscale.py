@@ -3,7 +3,6 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.node_cache import cached
 from nodes.properties.inputs import (

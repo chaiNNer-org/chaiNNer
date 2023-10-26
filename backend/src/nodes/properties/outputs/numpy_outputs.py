@@ -2,9 +2,8 @@ import base64
 from typing import Optional, Tuple
 
 import cv2
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.base_output import BaseOutput, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8

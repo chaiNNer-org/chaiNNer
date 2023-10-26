@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List
 
 import cv2
 import numpy as np
-
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
@@ -175,7 +173,7 @@ def stack_images_node(
             max_c = max(c, max_c)
             imgs.append(img)
 
-    fixed_imgs: List[np.ndarray] = []
+    fixed_imgs: list[np.ndarray] = []
     for img in imgs:
         h, w, c = get_h_w_c(img)
 

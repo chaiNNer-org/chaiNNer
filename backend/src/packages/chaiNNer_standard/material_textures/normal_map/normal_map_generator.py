@@ -3,9 +3,8 @@ from __future__ import annotations
 from enum import Enum
 
 import cv2
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import if_enum_group
 from nodes.impl.image_utils import fast_gaussian_blur
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.impl.normals.addition import AdditionMethod, add_normals
 from nodes.impl.normals.util import xyz_to_bgr
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput

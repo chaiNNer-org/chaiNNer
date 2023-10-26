@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import os
 from enum import Enum
-from typing import Dict, List, Literal
+from typing import Literal
 
 import cv2
 import numpy as np
-from PIL import Image
-from sanic.log import logger
-
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,
@@ -33,6 +30,8 @@ from nodes.properties.inputs import (
     TextInput,
 )
 from nodes.utils.utils import get_h_w_c
+from PIL import Image
+from sanic.log import logger
 
 from .. import io_group
 
@@ -52,7 +51,7 @@ class ImageFormat(Enum):
         return self.value
 
 
-IMAGE_FORMAT_LABELS: Dict[ImageFormat, str] = {
+IMAGE_FORMAT_LABELS: dict[ImageFormat, str] = {
     ImageFormat.PNG: "PNG",
     ImageFormat.JPG: "JPG",
     ImageFormat.GIF: "GIF",
@@ -285,7 +284,7 @@ def save_image_node(
             image.save(full_path)
 
     else:
-        params: List[int]
+        params: list[int]
         if image_format == ImageFormat.JPG:
             params = [
                 cv2.IMWRITE_JPEG_QUALITY,

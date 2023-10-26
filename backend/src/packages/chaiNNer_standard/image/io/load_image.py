@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import os
 import platform
-from typing import Callable, Iterable, List, Set, Tuple, Union
+from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
-from PIL import Image
-from sanic.log import logger
-
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import (
     get_available_image_formats,
@@ -18,6 +15,8 @@ from nodes.impl.image_formats import (
 from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
+from PIL import Image
+from sanic.log import logger
 
 from .. import io_group
 
@@ -94,7 +93,7 @@ def _read_dds(path: str) -> np.ndarray | None:
 
 
 def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
-    ext_set: Set[str] = set()
+    ext_set: set[str] = set()
     if isinstance(ext, str):
         ext_set.add(ext)
     else:
@@ -103,7 +102,7 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
     return lambda path: decoder(path) if get_ext(path) in ext_set else None
 
 
-_decoders: List[Tuple[str, _Decoder]] = [
+_decoders: list[tuple[str, _Decoder]] = [
     ("pil-jpeg", _for_ext([".jpg", ".jpeg"], _read_pil)),
     ("cv", _read_cv),
     ("texconv-dds", _read_dds),
@@ -137,7 +136,7 @@ valid_formats = get_available_image_formats()
         FileNameOutput("Name", of_input=0),
     ],
 )
-def load_image_node(path: str) -> Tuple[np.ndarray, str, str]:
+def load_image_node(path: str) -> tuple[np.ndarray, str, str]:
     """Reads an image from the specified path and return it as a numpy array"""
 
     logger.debug(f"Reading image from path: {path}")

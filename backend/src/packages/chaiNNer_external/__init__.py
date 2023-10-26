@@ -1,8 +1,7 @@
 import sys
 
-from sanic.log import logger
-
 from api import add_package
+from sanic.log import logger
 
 package = add_package(
     __file__,

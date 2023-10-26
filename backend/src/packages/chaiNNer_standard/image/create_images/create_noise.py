@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import if_enum_group, seed_group
 from nodes.impl.image_utils import cartesian_product
 from nodes.impl.noise_functions.blue import create_blue_noise

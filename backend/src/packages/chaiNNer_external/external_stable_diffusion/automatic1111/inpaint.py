@@ -3,9 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-import numpy as np
-
 import navi
+import numpy as np
 from nodes.groups import if_enum_group, seed_group
 from nodes.node_cache import cached
 from nodes.properties.inputs import (

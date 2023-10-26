@@ -3,10 +3,9 @@ from __future__ import annotations
 import gc
 from typing import Optional
 
+import navi
 import numpy as np
 import torch
-
-import navi
 from nodes.impl.image_utils import as_3d
 from nodes.impl.pytorch.types import PyTorchInpaintModel
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np

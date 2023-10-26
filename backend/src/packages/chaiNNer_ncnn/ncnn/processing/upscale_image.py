@@ -13,8 +13,6 @@ except ImportError:
     from ncnn import ncnn
 
     use_gpu = False
-from sanic.log import logger
-
 from nodes.groups import Condition, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper
@@ -34,6 +32,7 @@ from nodes.properties.inputs import (
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
+from sanic.log import logger
 from system import is_mac
 
 from ...settings import get_settings

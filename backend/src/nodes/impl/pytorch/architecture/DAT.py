@@ -4,12 +4,11 @@ import re
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.utils.checkpoint as checkpoint
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from torch import Tensor
+from torch import nn
 from torch.nn import functional as F
+from torch.utils import checkpoint
 
 from .timm.drop import DropPath
 from .timm.weight_init import trunc_normal_
@@ -446,7 +445,7 @@ class Adaptive_Spatial_Attention(nn.Module):
         attn_mask_0 = mask_windows_0.unsqueeze(1) - mask_windows_0.unsqueeze(2)
         attn_mask_0 = attn_mask_0.masked_fill(
             attn_mask_0 != 0, float(-100.0)
-        ).masked_fill(attn_mask_0 == 0, float(0.0))
+        ).masked_fill(attn_mask_0 == 0, 0.0)
 
         # calculate mask for window-1
         img_mask_1 = img_mask_1.view(
@@ -466,7 +465,7 @@ class Adaptive_Spatial_Attention(nn.Module):
         attn_mask_1 = mask_windows_1.unsqueeze(1) - mask_windows_1.unsqueeze(2)
         attn_mask_1 = attn_mask_1.masked_fill(
             attn_mask_1 != 0, float(-100.0)
-        ).masked_fill(attn_mask_1 == 0, float(0.0))
+        ).masked_fill(attn_mask_1 == 0, 0.0)
 
         return attn_mask_0, attn_mask_1
 

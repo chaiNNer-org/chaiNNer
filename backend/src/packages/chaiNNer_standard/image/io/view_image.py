@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import LargeImageOutput
 

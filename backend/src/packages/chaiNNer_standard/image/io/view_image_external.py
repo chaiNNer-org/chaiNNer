@@ -8,10 +8,9 @@ from tempfile import mkdtemp
 
 import cv2
 import numpy as np
-from sanic.log import logger
-
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput
+from sanic.log import logger
 
 from .. import io_group
 

@@ -4,7 +4,6 @@ from enum import Enum
 
 import cv2
 import numpy as np
-
 from nodes.groups import if_enum_group
 from nodes.impl.cas import cas_mix
 from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput

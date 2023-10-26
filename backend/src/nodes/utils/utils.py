@@ -5,7 +5,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 from sanic.log import logger
@@ -32,14 +32,14 @@ def round_half_up(number: Union[float, int]) -> int:
     return math.floor(number + 0.5)
 
 
-def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
+def get_h_w_c(image: np.ndarray) -> tuple[int, int, int]:
     """Returns the height, width, and number of channels."""
     h, w = image.shape[:2]
     c = 1 if image.ndim == 2 else image.shape[2]
     return h, w, c
 
 
-def alphanumeric_sort(value: str) -> List[Union[str, int]]:
+def alphanumeric_sort(value: str) -> list[Union[str, int]]:
     """Key function to sort strings containing numbers by proper
     numerical order."""
 
@@ -53,21 +53,21 @@ __SPLIT_SNAKE_CASE = re.compile(r"(\d+|_+)")
 __SPLIT_PASCAL_CASE = re.compile(r"(\d+)|(?<=[a-z])(?=[A-Z])")
 
 
-def split_snake_case(s: str) -> List[str]:
+def split_snake_case(s: str) -> list[str]:
     """Splits a snake case identifier into its parts. E.g. `SNAKE_CASE` -> [`snake`, `case`]"""
     return [
         x.lower() for x in __SPLIT_SNAKE_CASE.split(s) if x and not x.startswith("_")
     ]
 
 
-def split_pascal_case(s: str) -> List[str]:
+def split_pascal_case(s: str) -> list[str]:
     """Splits a snake case identifier into its parts. E.g. `SNAKE_CASE` -> [`snake`, `case`]"""
     return [
         x.lower() for x in __SPLIT_PASCAL_CASE.split(s) if x and not x.startswith("_")
     ]
 
 
-def join_pascal_case(words: List[str]) -> str:
+def join_pascal_case(words: list[str]) -> str:
     return "".join([x.capitalize() for x in words])
 
 
@@ -80,11 +80,11 @@ def smart_capitalize(word: str) -> str:
     return word.capitalize()
 
 
-def join_space_case(words: List[str]) -> str:
+def join_space_case(words: list[str]) -> str:
     return " ".join([smart_capitalize(x) for x in words])
 
 
-def split_file_path(path: str) -> Tuple[str, str, str]:
+def split_file_path(path: str) -> tuple[str, str, str]:
     """
     Returns the base directory, file name, and extension of the given file path.
     """
@@ -100,9 +100,9 @@ def walk_error_handler(exception_instance):
 
 
 def list_all_files_sorted(
-    directory: str, ext_filter: Union[List[str], None] = None
-) -> List[str]:
-    just_files: List[str] = []
+    directory: str, ext_filter: Union[list[str], None] = None
+) -> list[str]:
+    just_files: list[str] = []
     for root, dirs, files in os.walk(
         directory, topdown=True, onerror=walk_error_handler
     ):
@@ -123,7 +123,7 @@ class Padding:
     left: int
 
     @staticmethod
-    def all(value: int) -> "Padding":
+    def all(value: int) -> Padding:
         return Padding(value, value, value, value)
 
     @staticmethod

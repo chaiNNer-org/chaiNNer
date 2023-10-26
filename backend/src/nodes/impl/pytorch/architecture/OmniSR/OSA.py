@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 #############################################################
 # File: OSA.py
 # Created Date: Tuesday April 28th 2022
@@ -12,7 +11,7 @@
 
 import torch
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 from einops.layers.torch import Rearrange, Reduce
 from torch import einsum, nn
 

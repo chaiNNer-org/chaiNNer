@@ -7,9 +7,9 @@ import random
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
+from torch import nn
+from torch.utils import checkpoint
 
 from .mat.utils import (
     Conv2dLayer,
@@ -586,7 +586,7 @@ class WindowAttention(nn.Module):
             attn_mask_windows = mask_windows.squeeze(-1).unsqueeze(1).unsqueeze(1)
             attn = attn + attn_mask_windows.masked_fill(
                 attn_mask_windows == 0, float(-100.0)
-            ).masked_fill(attn_mask_windows == 1, float(0.0))
+            ).masked_fill(attn_mask_windows == 1, 0.0)
             with torch.no_grad():
                 mask_windows = torch.clamp(
                     torch.sum(mask_windows, dim=1, keepdim=True), 0, 1
@@ -707,7 +707,7 @@ class SwinTransformerBlock(nn.Module):
         mask_windows = mask_windows.view(-1, self.window_size * self.window_size)
         attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
         attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(
-            attn_mask == 0, float(0.0)
+            attn_mask == 0, 0.0
         )
 
         return attn_mask

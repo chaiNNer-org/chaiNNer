@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import math
 
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 
 class SRVGGNetCompact(nn.Module):

@@ -1,9 +1,8 @@
 import os
 
-from sanic.log import logger
-
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import DirectoryInput, NcnnModelInput, TextInput
+from sanic.log import logger
 
 from .. import io_group
 
