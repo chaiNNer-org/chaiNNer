@@ -5,7 +5,7 @@ from torch import nn
 
 class CA_layer(nn.Module):
     def __init__(self, channel, reduction=16):
-        super(CA_layer, self).__init__()
+        super().__init__()
         # global average pooling
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
@@ -22,7 +22,7 @@ class CA_layer(nn.Module):
 
 class Simple_CA_layer(nn.Module):
     def __init__(self, channel):
-        super(Simple_CA_layer, self).__init__()
+        super().__init__()
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Conv2d(
             in_channels=channel,
@@ -46,7 +46,7 @@ class ECA_layer(nn.Module):
     """
 
     def __init__(self, channel):
-        super(ECA_layer, self).__init__()
+        super().__init__()
 
         b = 1
         gamma = 2
@@ -82,7 +82,7 @@ class ECA_MaxPool_layer(nn.Module):
     """
 
     def __init__(self, channel):
-        super(ECA_MaxPool_layer, self).__init__()
+        super().__init__()
 
         b = 1
         gamma = 2

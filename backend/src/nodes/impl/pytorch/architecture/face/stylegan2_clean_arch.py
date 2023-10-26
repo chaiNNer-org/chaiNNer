@@ -73,7 +73,7 @@ class ModulatedConv2d(nn.Module):
         sample_mode=None,
         eps=1e-8,
     ):
-        super(ModulatedConv2d, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -162,7 +162,7 @@ class StyleConv(nn.Module):
         demodulate=True,
         sample_mode=None,
     ):
-        super(StyleConv, self).__init__()
+        super().__init__()
         self.modulated_conv = ModulatedConv2d(
             in_channels,
             out_channels,
@@ -199,7 +199,7 @@ class ToRGB(nn.Module):
     """
 
     def __init__(self, in_channels, num_style_feat, upsample=True):
-        super(ToRGB, self).__init__()
+        super().__init__()
         self.upsample = upsample
         self.modulated_conv = ModulatedConv2d(
             in_channels,
@@ -239,7 +239,7 @@ class ConstantInput(nn.Module):
     """
 
     def __init__(self, num_channel, size):
-        super(ConstantInput, self).__init__()
+        super().__init__()
         self.weight = nn.Parameter(torch.randn(1, num_channel, size, size))
 
     def forward(self, batch):
@@ -260,7 +260,7 @@ class StyleGAN2GeneratorClean(nn.Module):
     def __init__(
         self, out_size, num_style_feat=512, num_mlp=8, channel_multiplier=2, narrow=1
     ):
-        super(StyleGAN2GeneratorClean, self).__init__()
+        super().__init__()
         # Style MLP layers
         self.num_style_feat = num_style_feat
         style_mlp_layers = [NormStyleCode()]

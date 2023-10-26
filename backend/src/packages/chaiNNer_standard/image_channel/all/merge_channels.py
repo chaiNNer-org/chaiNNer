@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 import cv2
 import navi
 import numpy as np
@@ -49,9 +47,9 @@ from . import node_group
 )
 def merge_channels_node(
     im1: np.ndarray,
-    im2: Union[np.ndarray, None],
-    im3: Union[np.ndarray, None],
-    im4: Union[np.ndarray, None],
+    im2: np.ndarray | None,
+    im3: np.ndarray | None,
+    im4: np.ndarray | None,
 ) -> np.ndarray:
     """Combine separate channels into a multi-chanel image"""
 

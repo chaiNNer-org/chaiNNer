@@ -11,7 +11,7 @@ from . import block as B
 
 class Get_gradient_nopadding(nn.Module):
     def __init__(self):
-        super(Get_gradient_nopadding, self).__init__()
+        super().__init__()
         kernel_v = [[0, -1, 0], [0, 0, 0], [0, 1, 0]]
         kernel_h = [[0, 0, 0], [-1, 0, 1], [0, 0, 0]]
         kernel_h = torch.FloatTensor(kernel_h).unsqueeze(0).unsqueeze(0)
@@ -43,7 +43,7 @@ class SPSRNet(nn.Module):
         upsampler: str = "upconv",
         mode: B.ConvMode = "CNA",
     ):
-        super(SPSRNet, self).__init__()
+        super().__init__()
         self.model_arch = "SPSR"
         self.sub_type = "SR"
 

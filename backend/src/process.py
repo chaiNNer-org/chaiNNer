@@ -8,7 +8,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Union
 
 from api import Collector, Iterator, NodeData
 from base_types import InputId, NodeId, OutputId
@@ -278,7 +278,7 @@ class Executor:
         loop: asyncio.AbstractEventLoop,
         queue: EventQueue,
         pool: ThreadPoolExecutor,
-        parent_cache: Optional[OutputCache[NodeOutput]] = None,
+        parent_cache: OutputCache[NodeOutput] | None = None,
     ):
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain

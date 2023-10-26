@@ -21,7 +21,7 @@ class VectorQuantizer(nn.Module):
     """
 
     def __init__(self, n_e, e_dim, beta):
-        super(VectorQuantizer, self).__init__()
+        super().__init__()
         self.n_e = n_e
         self.e_dim = e_dim
         self.beta = beta
@@ -676,7 +676,7 @@ class RestoreFormer(nn.Module):
         self,
         state_dict,
     ):
-        super(RestoreFormer, self).__init__()
+        super().__init__()
 
         n_embed = 1024
         embed_dim = 256

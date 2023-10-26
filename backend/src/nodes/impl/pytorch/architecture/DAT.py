@@ -1,6 +1,7 @@
 # pylint: skip-file
 import math
 import re
+import sys
 
 import numpy as np
 import torch
@@ -196,7 +197,7 @@ class Spatial_Attention(nn.Module):
             W_sp, H_sp = self.split_size[0], self.split_size[1]
         else:
             print("ERROR MODE", idx)
-            exit(0)
+            sys.exit(0)
         self.H_sp = H_sp
         self.W_sp = W_sp
 
@@ -866,7 +867,7 @@ class Upsample(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
             )
-        super(Upsample, self).__init__(*m)
+        super().__init__(*m)
 
 
 class UpsampleOneStep(nn.Sequential):
@@ -885,7 +886,7 @@ class UpsampleOneStep(nn.Sequential):
         m = []
         m.append(nn.Conv2d(num_feat, (scale**2) * num_out_ch, 3, 1, 1))
         m.append(nn.PixelShuffle(scale))
-        super(UpsampleOneStep, self).__init__(*m)
+        super().__init__(*m)
 
     def flops(self):
         h, w = self.input_resolution
@@ -950,7 +951,6 @@ class DAT(nn.Module):
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
-                supports_fp16 = False
         elif "upsample.0.weight" in state_keys:
             upsampler = "pixelshuffledirect"
         else:

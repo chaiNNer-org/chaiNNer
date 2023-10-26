@@ -581,7 +581,7 @@ class RSTB(nn.Module):
         patch_size=4,
         resi_connection="1conv",
     ):
-        super(RSTB, self).__init__()
+        super().__init__()
 
         self.dim = dim
         self.input_resolution = input_resolution
@@ -758,7 +758,7 @@ class Upsample(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
             )
-        super(Upsample, self).__init__(*m)
+        super().__init__(*m)
 
 
 class UpsampleOneStep(nn.Sequential):
@@ -777,7 +777,7 @@ class UpsampleOneStep(nn.Sequential):
         m = []
         m.append(nn.Conv2d(num_feat, (scale**2) * num_out_ch, 3, 1, 1))
         m.append(nn.PixelShuffle(scale))
-        super(UpsampleOneStep, self).__init__(*m)
+        super().__init__(*m)
 
     def flops(self):
         H, W = self.input_resolution  # type: ignore
@@ -818,7 +818,7 @@ class SwinIR(nn.Module):
         state_dict,
         **kwargs,
     ):
-        super(SwinIR, self).__init__()
+        super().__init__()
 
         # Defaults
         img_size = 64
@@ -845,7 +845,6 @@ class SwinIR(nn.Module):
         num_feat = 64
         num_in_ch = in_chans
         num_out_ch = in_chans
-        supports_fp16 = True
         self.start_unshuffle = 1
 
         self.model_arch = "SwinIR"
@@ -863,7 +862,6 @@ class SwinIR(nn.Module):
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
-                supports_fp16 = False
         elif "upsample.0.weight" in state_keys:
             upsampler = "pixelshuffledirect"
         else:

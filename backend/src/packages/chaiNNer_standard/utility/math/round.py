@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from enum import Enum
-from typing import Union
 
 import numpy as np
 from nodes.groups import if_enum_group
@@ -104,7 +103,7 @@ def round_node(
     scale: RoundScale,
     m: float,
     p: float,
-) -> Union[int, float]:
+) -> int | float:
     if operation == RoundOperation.FLOOR:
         op = math.floor
     elif operation == RoundOperation.CEILING:

@@ -262,7 +262,7 @@ def save_image_node(
         return
 
     # Some formats are handled by PIL
-    if image_format == ImageFormat.GIF or image_format == ImageFormat.TGA:
+    if image_format in (ImageFormat.GIF, ImageFormat.TGA):
         # we only support 8bits of precision for those formats
         img = to_uint8(img, normalized=True)
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Union
 
 import cv2
 import numpy as np
@@ -35,7 +34,7 @@ def denormalize(img: np.ndarray):
 @torch.inference_mode()
 def upscale(
     img: np.ndarray,
-    background_img: Union[np.ndarray, None],
+    background_img: np.ndarray | None,
     face_helper: FaceRestoreHelper,
     face_model: PyTorchFaceModel,
     weight: float,
@@ -148,7 +147,7 @@ def upscale(
 def upscale_face_node(
     img: np.ndarray,
     face_model: PyTorchFaceModel,
-    background_img: Union[np.ndarray, None],
+    background_img: np.ndarray | None,
     scale: int,
     weight: float,
 ) -> np.ndarray:

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from nodes.groups import seed_group
 from nodes.node_cache import cached
@@ -103,8 +101,8 @@ from .. import auto1111_group
 )
 def image_to_image_node(
     image: np.ndarray,
-    prompt: Optional[str],
-    negative_prompt: Optional[str],
+    prompt: str | None,
+    negative_prompt: str | None,
     denoising_strength: float,
     seed: Seed,
     steps: int,

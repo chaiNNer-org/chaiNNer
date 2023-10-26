@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import TextInput
 from nodes.properties.outputs import TextOutput
@@ -49,7 +47,7 @@ from .. import text_group
 )
 def text_pattern_node(
     pattern: str,
-    *args: Union[str, None],
+    *args: str | None,
 ) -> str:
     replacements: dict[str, str] = {}
     for i, s in enumerate(args):

@@ -267,8 +267,7 @@ class NcnnParamCollection:
                 # If a param that defaults to the value of another param, if it's value
                 # equals that of the second param or its default, skip writing it
                 if (
-                    v.value == self.param_dict[pid].value
-                    or v.value == self.param_dict[pid].default
+                    v.value in (self.param_dict[pid].value, self.param_dict[pid].default)
                 ):
                     continue
 

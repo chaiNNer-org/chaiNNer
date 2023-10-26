@@ -35,7 +35,7 @@ def drop_block_2d(
     """
     _, C, H, W = x.shape
     total_size = W * H
-    clipped_block_size = min(block_size, min(W, H))
+    clipped_block_size = min(block_size, W, H)
     # seed_drop_rate, the gamma parameter
     gamma = (
         gamma_scale
@@ -103,7 +103,7 @@ def drop_block_fast_2d(
     """
     _, _, H, W = x.shape
     total_size = W * H
-    clipped_block_size = min(block_size, min(W, H))
+    clipped_block_size = min(block_size, W, H)
     gamma = (
         gamma_scale
         * drop_prob
@@ -151,7 +151,7 @@ class DropBlock2d(nn.Module):
         batchwise: bool = False,
         fast: bool = True,
     ):
-        super(DropBlock2d, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
         self.gamma_scale = gamma_scale
         self.block_size = block_size
@@ -212,7 +212,7 @@ class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks)."""
 
     def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
 

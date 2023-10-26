@@ -24,7 +24,7 @@ class SRVGGNetCompact(nn.Module):
         state_dict,
         act_type: str = "prelu",
     ):
-        super(SRVGGNetCompact, self).__init__()
+        super().__init__()
         self.model_arch = "SRVGG (RealESRGAN)"
         self.sub_type = "SR"
 

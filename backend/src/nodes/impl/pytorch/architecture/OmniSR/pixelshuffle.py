@@ -23,7 +23,7 @@ def pixelshuffle_block(
         in_channels,
         out_channels * (upscale_factor**2),
         kernel_size,
-        padding=1,
+        padding=padding,
         bias=bias,
     )
     pixel_shuffle = nn.PixelShuffle(upscale_factor)

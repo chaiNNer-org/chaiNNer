@@ -62,7 +62,7 @@ class LearnableSpatialTransformWrapper(nn.Module):
 
 class SELayer(nn.Module):
     def __init__(self, channel, reduction=16):
-        super(SELayer, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
             nn.Linear(channel, channel // reduction, bias=False),
@@ -94,7 +94,7 @@ class FourierUnit(nn.Module):
         fft_norm="ortho",
     ):
         # bn_layer not used
-        super(FourierUnit, self).__init__()
+        super().__init__()
         self.groups = groups
 
         self.conv_layer = torch.nn.Conv2d(
@@ -141,7 +141,7 @@ class FourierUnit(nn.Module):
 
         # (batch, c, h, w/2+1, 2)
         fft_dim = (-3, -2, -1) if self.ffc3d else (-2, -1)
-        if half_check == True:
+        if half_check is True:
             ffted = torch.fft.rfftn(
                 x.float(), dim=fft_dim, norm=self.fft_norm
             )  # .type(torch.cuda.HalfTensor)
@@ -175,7 +175,7 @@ class FourierUnit(nn.Module):
         if self.use_se:
             ffted = self.se(ffted)
 
-        if half_check == True:
+        if half_check is True:
             ffted = self.conv_layer(ffted.half())  # (batch, c*2, h, w/2+1)
         else:
             ffted = self.conv_layer(
@@ -206,7 +206,7 @@ class FourierUnit(nn.Module):
             ffted, s=ifft_shape_slice, dim=fft_dim, norm=self.fft_norm
         )
 
-        if half_check == True:
+        if half_check is True:
             output = output.half()
 
         if self.spatial_scale_factor is not None:
@@ -232,7 +232,7 @@ class SpectralTransform(nn.Module):
         **fu_kwargs,
     ):
         # bn_layer not used
-        super(SpectralTransform, self).__init__()
+        super().__init__()
         self.enable_lfu = enable_lfu
         if stride == 2:
             self.downsample = nn.AvgPool2d(kernel_size=(2, 2), stride=2)
@@ -296,9 +296,9 @@ class FFC(nn.Module):
         gated=False,
         **spectral_kwargs,
     ):
-        super(FFC, self).__init__()
+        super().__init__()
 
-        assert stride == 1 or stride == 2, "Stride should be 1 or 2."
+        assert stride in (1, 2), "Stride should be 1 or 2."
         self.stride = stride
 
         in_cg = int(in_channels * ratio_gin)
@@ -406,7 +406,7 @@ class FFC_BN_ACT(nn.Module):
         enable_lfu=True,
         **kwargs,
     ):
-        super(FFC_BN_ACT, self).__init__()
+        super().__init__()
         self.ffc = FFC(
             in_channels,
             out_channels,
@@ -664,7 +664,7 @@ class FFCResNetGenerator(nn.Module):
 
 class LaMa(nn.Module):
     def __init__(self, state_dict) -> None:
-        super(LaMa, self).__init__()
+        super().__init__()
         self.model_arch = "LaMa"
         self.sub_type = "Inpaint"
         self.in_nc = 4

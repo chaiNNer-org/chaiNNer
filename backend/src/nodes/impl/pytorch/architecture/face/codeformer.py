@@ -15,7 +15,7 @@ from torch import Tensor, nn
 
 class VectorQuantizer(nn.Module):
     def __init__(self, codebook_size, emb_dim, beta):
-        super(VectorQuantizer, self).__init__()
+        super().__init__()
         self.codebook_size = codebook_size  # number of embeddings
         self.emb_dim = emb_dim  # dimension of embedding
         self.beta = beta  # commitment cost used in loss term, beta * ||z_e(x)-sg[e]||^2
@@ -544,7 +544,7 @@ def swish(x):
 
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None):
-        super(ResBlock, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = in_channels if out_channels is None else out_channels
         self.norm1 = normalize(in_channels)
@@ -644,7 +644,7 @@ class CodeFormer(VQAutoEncoder):
         self.supports_bf16 = True
         self.min_size_restriction = 16
 
-        super(CodeFormer, self).__init__(
+        super().__init__(
             512, 64, [1, 2, 2, 4, 4, 8], "nearest", 2, [16], codebook_size
         )
 

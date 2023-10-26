@@ -26,7 +26,7 @@ class OSAG(nn.Module):
         window_size=0,
         pe=False,
     ):
-        super(OSAG, self).__init__()
+        super().__init__()
 
         # print("window_size: %d" % (window_size))
         # print("with_pe", pe)

@@ -41,7 +41,7 @@ class StyleGAN2GeneratorBilinearSFT(StyleGAN2GeneratorBilinear):
         narrow=1,
         sft_half=False,
     ):
-        super(StyleGAN2GeneratorBilinearSFT, self).__init__(
+        super().__init__(
             out_size,
             num_style_feat=num_style_feat,
             num_mlp=num_mlp,
@@ -183,7 +183,7 @@ class GFPGANBilinear(nn.Module):
         narrow=1,
         sft_half=False,
     ):
-        super(GFPGANBilinear, self).__init__()
+        super().__init__()
         self.input_is_latent = input_is_latent
         self.different_w = different_w
         self.num_style_feat = num_style_feat

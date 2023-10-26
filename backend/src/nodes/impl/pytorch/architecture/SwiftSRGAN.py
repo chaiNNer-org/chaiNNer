@@ -8,7 +8,7 @@ class SeperableConv2d(nn.Module):
     def __init__(
         self, in_channels, out_channels, kernel_size, stride=1, padding=1, bias=True
     ):
-        super(SeperableConv2d, self).__init__()
+        super().__init__()
         self.depthwise = nn.Conv2d(
             in_channels,
             in_channels,
@@ -34,7 +34,7 @@ class ConvBlock(nn.Module):
         discriminator=False,
         **kwargs,
     ):
-        super(ConvBlock, self).__init__()
+        super().__init__()
 
         self.use_act = use_act
         self.cnn = SeperableConv2d(in_channels, out_channels, **kwargs, bias=not use_bn)
@@ -51,7 +51,7 @@ class ConvBlock(nn.Module):
 
 class UpsampleBlock(nn.Module):
     def __init__(self, in_channels, scale_factor):
-        super(UpsampleBlock, self).__init__()
+        super().__init__()
 
         self.conv = SeperableConv2d(
             in_channels,
@@ -71,7 +71,7 @@ class UpsampleBlock(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
 
         self.block1 = ConvBlock(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
@@ -101,7 +101,7 @@ class Generator(nn.Module):
         self,
         state_dict,
     ):
-        super(Generator, self).__init__()
+        super().__init__()
         self.model_arch = "Swift-SRGAN"
         self.sub_type = "SR"
         self.state = state_dict

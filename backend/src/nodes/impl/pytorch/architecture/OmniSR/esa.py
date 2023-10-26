@@ -32,7 +32,7 @@ class ESA(nn.Module):
     """
 
     def __init__(self, esa_channels, n_feats, conv=nn.Conv2d):
-        super(ESA, self).__init__()
+        super().__init__()
         f = esa_channels
         self.conv1 = conv(n_feats, f, kernel_size=1)
         self.conv_f = conv(f, f, kernel_size=1)
@@ -60,7 +60,7 @@ class LK_ESA(nn.Module):
     def __init__(
         self, esa_channels, n_feats, conv=nn.Conv2d, kernel_expand=1, bias=True
     ):
-        super(LK_ESA, self).__init__()
+        super().__init__()
         f = esa_channels
         self.conv1 = conv(n_feats, f, kernel_size=1)
         self.conv_f = conv(f, f, kernel_size=1)
@@ -123,7 +123,7 @@ class LK_ESA_LN(nn.Module):
     def __init__(
         self, esa_channels, n_feats, conv=nn.Conv2d, kernel_expand=1, bias=True
     ):
-        super(LK_ESA_LN, self).__init__()
+        super().__init__()
         f = esa_channels
         self.conv1 = conv(n_feats, f, kernel_size=1)
         self.conv_f = conv(f, f, kernel_size=1)
@@ -189,7 +189,7 @@ class AdaGuidedFilter(nn.Module):
     def __init__(
         self, esa_channels, n_feats, conv=nn.Conv2d, kernel_expand=1, bias=True
     ):
-        super(AdaGuidedFilter, self).__init__()
+        super().__init__()
 
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Conv2d(
@@ -241,7 +241,7 @@ class AdaConvGuidedFilter(nn.Module):
     def __init__(
         self, esa_channels, n_feats, conv=nn.Conv2d, kernel_expand=1, bias=True
     ):
-        super(AdaConvGuidedFilter, self).__init__()
+        super().__init__()
         f = esa_channels
 
         self.conv_f = conv(f, f, kernel_size=1)

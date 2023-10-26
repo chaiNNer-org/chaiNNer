@@ -31,7 +31,7 @@ class StyleGAN2GeneratorCSFT(StyleGAN2GeneratorClean):
         narrow=1,
         sft_half=False,
     ):
-        super(StyleGAN2GeneratorCSFT, self).__init__(
+        super().__init__(
             out_size,
             num_style_feat=num_style_feat,
             num_mlp=num_mlp,
@@ -147,7 +147,7 @@ class ResBlock(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, mode="down"):
-        super(ResBlock, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv2d(in_channels, in_channels, 3, 1, 1)
         self.conv2 = nn.Conv2d(in_channels, out_channels, 3, 1, 1)
@@ -194,7 +194,7 @@ class GFPGANv1Clean(nn.Module):
         self,
         state_dict,
     ):
-        super(GFPGANv1Clean, self).__init__()
+        super().__init__()
 
         out_size = 512
         num_style_feat = 512

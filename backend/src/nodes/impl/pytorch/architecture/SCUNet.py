@@ -20,7 +20,7 @@ class WMSA(nn.Module):
     """Self-attention module in Swin Transformer"""
 
     def __init__(self, input_dim, output_dim, head_dim, window_size, type):
-        super(WMSA, self).__init__()
+        super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.head_dim = head_dim
@@ -176,7 +176,7 @@ class Block(nn.Module):
         input_resolution=None,
     ):
         """SwinTransformer Block"""
-        super(Block, self).__init__()
+        super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
         assert type in ["W", "SW"]
@@ -212,7 +212,7 @@ class ConvTransBlock(nn.Module):
         input_resolution=None,
     ):
         """SwinTransformer and Conv Block"""
-        super(ConvTransBlock, self).__init__()
+        super().__init__()
         self.conv_dim = conv_dim
         self.trans_dim = trans_dim
         self.head_dim = head_dim
@@ -281,7 +281,7 @@ class SCUNet(nn.Module):
         drop_path_rate=0.0,
         input_resolution=256,
     ):
-        super(SCUNet, self).__init__()
+        super().__init__()
         self.model_arch = "SCUNet"
         self.sub_type = "SR"
 

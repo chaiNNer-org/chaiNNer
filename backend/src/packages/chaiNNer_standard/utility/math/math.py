@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from enum import Enum
-from typing import Union
 
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
@@ -97,7 +96,7 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
         )
     ],
 )
-def math_node(a: float, op: MathOperation, b: float) -> Union[int, float]:
+def math_node(a: float, op: MathOperation, b: float) -> int | float:
     if op == MathOperation.ADD:
         return a + b
     elif op == MathOperation.SUBTRACT:

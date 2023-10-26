@@ -1587,7 +1587,7 @@ class Generator(nn.Module):
 
 class MAT(nn.Module):
     def __init__(self, state_dict):
-        super(MAT, self).__init__()
+        super().__init__()
         self.model_arch = "MAT"
         self.sub_type = "Inpaint"
         self.in_nc = 3

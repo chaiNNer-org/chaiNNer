@@ -43,7 +43,7 @@ class StyleGAN2GeneratorSFT(StyleGAN2Generator):
         narrow=1,
         sft_half=False,
     ):
-        super(StyleGAN2GeneratorSFT, self).__init__(
+        super().__init__(
             out_size,
             num_style_feat=num_style_feat,
             num_mlp=num_mlp,
@@ -176,7 +176,7 @@ class ConvUpLayer(nn.Module):
         bias_init_val=0,
         activate=True,
     ):
-        super(ConvUpLayer, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -228,7 +228,7 @@ class ResUpBlock(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels):
-        super(ResUpBlock, self).__init__()
+        super().__init__()
 
         self.conv1 = ConvLayer(in_channels, in_channels, 3, bias=True, activate=True)
         self.conv2 = ConvUpLayer(
@@ -281,7 +281,7 @@ class GFPGANv1(nn.Module):
         narrow=1,
         sft_half=False,
     ):
-        super(GFPGANv1, self).__init__()
+        super().__init__()
         self.input_is_latent = input_is_latent
         self.different_w = different_w
         self.num_style_feat = num_style_feat
@@ -495,7 +495,7 @@ class FacialComponentDiscriminator(nn.Module):
     """Facial component (eyes, mouth, noise) discriminator used in GFPGAN."""
 
     def __init__(self):
-        super(FacialComponentDiscriminator, self).__init__()
+        super().__init__()
         # It now uses a VGG-style architectrue with fixed model size
         self.conv1 = ConvLayer(
             3,

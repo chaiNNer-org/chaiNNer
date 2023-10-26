@@ -375,7 +375,7 @@ class Block_Attention(nn.Module):
 
 class Channel_Attention(nn.Module):
     def __init__(self, dim, heads, bias=False, dropout=0.0, window_size=7):
-        super(Channel_Attention, self).__init__()
+        super().__init__()
         self.heads = heads
 
         self.temperature = nn.Parameter(torch.ones(heads, 1, 1))
@@ -435,7 +435,7 @@ class Channel_Attention(nn.Module):
 
 class Channel_Attention_grid(nn.Module):
     def __init__(self, dim, heads, bias=False, dropout=0.0, window_size=7):
-        super(Channel_Attention_grid, self).__init__()
+        super().__init__()
         self.heads = heads
 
         self.temperature = nn.Parameter(torch.ones(heads, 1, 1))
@@ -503,7 +503,7 @@ class OSA_Block(nn.Module):
         with_pe=False,
         dropout=0.0,
     ):
-        super(OSA_Block, self).__init__()
+        super().__init__()
 
         w = window_size
 

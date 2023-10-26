@@ -46,7 +46,7 @@ class LayerNormFunction(torch.autograd.Function):
 
 class LayerNorm2d(nn.Module):
     def __init__(self, channels, eps=1e-6):
-        super(LayerNorm2d, self).__init__()
+        super().__init__()
         self.register_parameter("weight", nn.Parameter(torch.ones(channels)))
         self.register_parameter("bias", nn.Parameter(torch.zeros(channels)))
         self.eps = eps

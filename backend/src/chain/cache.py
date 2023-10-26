@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import gc
-from typing import Generic, Iterable, Optional, TypeVar
+from typing import Generic, Iterable, TypeVar
 
 from sanic.log import logger
 
@@ -85,13 +85,13 @@ class _CacheEntry(Generic[T]):
 class OutputCache(Generic[T]):
     def __init__(
         self,
-        parent: Optional[OutputCache[T]] = None,
-        static_data: Optional[dict[NodeId, T]] = None,
+        parent: OutputCache[T] | None = None,
+        static_data: dict[NodeId, T] | None = None,
     ):
         super().__init__()
         self.__static: dict[NodeId, T] = static_data.copy() if static_data else {}
         self.__counted: dict[NodeId, _CacheEntry[T]] = {}
-        self.parent: Optional[OutputCache[T]] = parent
+        self.parent: OutputCache[T] | None = parent
 
     def keys(self) -> set[NodeId]:
         keys: set[NodeId] = set()
@@ -107,7 +107,7 @@ class OutputCache(Generic[T]):
             return self.parent.has(node_id)
         return False
 
-    def get(self, node_id: NodeId) -> Optional[T]:
+    def get(self, node_id: NodeId) -> T | None:
         staticValue = self.__static.get(node_id, None)
         if staticValue is not None:
             return staticValue

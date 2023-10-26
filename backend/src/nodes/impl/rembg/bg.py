@@ -35,7 +35,7 @@ def alpha_matting_cutout(
     background_threshold: int,
     erode_structure_size: int,
 ) -> PILImage:
-    if img.mode == "RGBA" or img.mode == "CMYK":
+    if img.mode in ("RGBA", "CMYK"):
         img = img.convert("RGB")
 
     npimg = np.asarray(img)

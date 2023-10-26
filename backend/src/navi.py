@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import math
-from typing import List, Literal, Optional, TypedDict, Union
+from typing import List, Literal, TypedDict, Union
 
 NumberJson = Union[int, float, Literal["inf"], Literal["-inf"], Literal["NaN"]]
 
 
-def to_number_json(n: Union[int, float]) -> NumberJson:
+def to_number_json(n: int | float) -> NumberJson:
     if math.isnan(n):
         return "NaN"
     if n == float("inf"):
@@ -16,7 +16,7 @@ def to_number_json(n: Union[int, float]) -> NumberJson:
     return n
 
 
-def from_number_json(n: NumberJson) -> Union[int, float]:
+def from_number_json(n: NumberJson) -> int | float:
     if n == "NaN":
         return float("nan")
     if n == "inf":
@@ -108,7 +108,7 @@ class MatchExpressionJson(TypedDict):
     arms: list[MatchArmJson]
 
 
-def literal(value: Union[str, int, float]) -> ExpressionJson:
+def literal(value: str | (int | float)) -> ExpressionJson:
     if isinstance(value, str):
         return {
             "type": "string-literal",
@@ -121,8 +121,8 @@ def literal(value: Union[str, int, float]) -> ExpressionJson:
 
 
 def interval(
-    min_value: Union[int, float, None] = None,
-    max_value: Union[int, float, None] = None,
+    min_value: int | (float | None) = None,
+    max_value: int | (float | None) = None,
 ) -> ExpressionJson:
     return {
         "type": "interval",
@@ -132,8 +132,8 @@ def interval(
 
 
 def int_interval(
-    min_value: Union[int, float, None] = None,
-    max_value: Union[int, float, None] = None,
+    min_value: int | (float | None) = None,
+    max_value: int | (float | None) = None,
 ) -> ExpressionJson:
     return {
         "type": "int-interval",
@@ -176,13 +176,13 @@ def match(
 
 
 def Image(
-    width: Optional[ExpressionJson] = None,
-    height: Optional[ExpressionJson] = None,
-    channels: Optional[ExpressionJson] = None,
-    width_as: Optional[ExpressionJson] = None,
-    height_as: Optional[ExpressionJson] = None,
-    channels_as: Optional[ExpressionJson] = None,
-    size_as: Optional[ExpressionJson] = None,
+    width: ExpressionJson | None = None,
+    height: ExpressionJson | None = None,
+    channels: ExpressionJson | None = None,
+    width_as: ExpressionJson | None = None,
+    height_as: ExpressionJson | None = None,
+    channels_as: ExpressionJson | None = None,
+    size_as: ExpressionJson | None = None,
 ) -> ExpressionJson:
     fields: dict[str, ExpressionJson] = {}
     if width is not None:
@@ -204,8 +204,8 @@ def Image(
 
 
 def Color(
-    channels: Optional[ExpressionJson] = None,
-    channels_as: Optional[ExpressionJson] = None,
+    channels: ExpressionJson | None = None,
+    channels_as: ExpressionJson | None = None,
 ) -> ExpressionJson:
     fields: dict[str, ExpressionJson] = {}
     if channels is not None:

@@ -87,7 +87,7 @@ def threshold_node(
     if thresh_type == ThresholdType.BINARY_INV:
         binary = 1 - binary
 
-    if thresh_type == ThresholdType.BINARY or thresh_type == ThresholdType.BINARY_INV:
+    if thresh_type in (ThresholdType.BINARY, ThresholdType.BINARY_INV):
         if max_value < 1:
             binary *= max_value
         return binary

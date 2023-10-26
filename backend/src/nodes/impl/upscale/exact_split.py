@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable
 
 import numpy as np
 from sanic.log import logger
@@ -132,7 +132,7 @@ def _exact_split_without_padding(
 
     # To allocate the result image, we need to know the upscale factor first,
     # and we only get to know this factor after the first successful upscale.
-    result: Optional[np.ndarray] = None
+    result: np.ndarray | None = None
     scale: int = 0
 
     regions = _exact_split_into_regions(w, h, exact_w, exact_h, overlap)

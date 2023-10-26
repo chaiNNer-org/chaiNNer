@@ -38,7 +38,7 @@ class RRDBNet(nn.Module):
             upsampler: Upsample layer. upconv, pixel_shuffle
             mode: Convolution mode
         """
-        super(RRDBNet, self).__init__()
+        super().__init__()
         self.model_arch = "ESRGAN"
         self.sub_type = "SR"
 

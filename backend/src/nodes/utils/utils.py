@@ -5,7 +5,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import Tuple, Union
+from typing import Tuple
 
 import numpy as np
 from sanic.log import logger
@@ -20,7 +20,7 @@ NUMBERS = re.compile(r"(\d+)")
 ALPHABET = [*"ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
 
 
-def round_half_up(number: Union[float, int]) -> int:
+def round_half_up(number: float | int) -> int:
     """
     Python's `round` method implements round-half-to-even rounding which is very unintuitive.
     This function implements round-half-up rounding.
@@ -39,7 +39,7 @@ def get_h_w_c(image: np.ndarray) -> tuple[int, int, int]:
     return h, w, c
 
 
-def alphanumeric_sort(value: str) -> list[Union[str, int]]:
+def alphanumeric_sort(value: str) -> list[str | int]:
     """Key function to sort strings containing numbers by proper
     numerical order."""
 
@@ -100,7 +100,7 @@ def walk_error_handler(exception_instance):
 
 
 def list_all_files_sorted(
-    directory: str, ext_filter: Union[list[str], None] = None
+    directory: str, ext_filter: list[str] | None = None
 ) -> list[str]:
     just_files: list[str] = []
     for root, dirs, files in os.walk(

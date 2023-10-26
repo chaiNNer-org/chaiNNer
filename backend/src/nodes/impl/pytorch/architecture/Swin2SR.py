@@ -676,7 +676,7 @@ class RSTB(nn.Module):
         patch_size=4,
         resi_connection="1conv",
     ):
-        super(RSTB, self).__init__()
+        super().__init__()
 
         self.dim = dim
         self.input_resolution = input_resolution
@@ -801,7 +801,7 @@ class Upsample(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
             )
-        super(Upsample, self).__init__(*m)
+        super().__init__(*m)
 
 
 class Upsample_hf(nn.Sequential):
@@ -825,7 +825,7 @@ class Upsample_hf(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
             )
-        super(Upsample_hf, self).__init__(*m)
+        super().__init__(*m)
 
 
 class UpsampleOneStep(nn.Sequential):
@@ -844,7 +844,7 @@ class UpsampleOneStep(nn.Sequential):
         m = []
         m.append(nn.Conv2d(num_feat, (scale**2) * num_out_ch, 3, 1, 1))
         m.append(nn.PixelShuffle(scale))
-        super(UpsampleOneStep, self).__init__(*m)
+        super().__init__(*m)
 
     def flops(self):
         H, W = self.input_resolution  # type: ignore
@@ -884,7 +884,7 @@ class Swin2SR(nn.Module):
         state_dict,
         **kwargs,
     ):
-        super(Swin2SR, self).__init__()
+        super().__init__()
 
         # Defaults
         img_size = 128
@@ -928,7 +928,6 @@ class Swin2SR(nn.Module):
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
-                supports_fp16 = False
         elif "upsample.0.weight" in state_keys:
             upsampler = "pixelshuffledirect"
         else:
@@ -955,7 +954,7 @@ class Swin2SR(nn.Module):
 
             for upsample_key in upsample_keys:
                 upscale *= 2
-        elif upsampler == "pixelshuffle" or upsampler == "pixelshuffle_aux":
+        elif upsampler in ("pixelshuffle", "pixelshuffle_aux"):
             upsample_keys = [
                 x
                 for x in state_keys

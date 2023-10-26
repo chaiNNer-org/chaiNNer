@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from math import ceil
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from nodes.groups import if_enum_group, seed_group
@@ -162,8 +162,8 @@ class OutpaintingMethod(Enum):
 )
 def outpaint_node(
     image: np.ndarray,
-    prompt: Optional[str],
-    negative_prompt: Optional[str],
+    prompt: str | None,
+    negative_prompt: str | None,
     denoising_strength: float,
     seed: Seed,
     steps: int,

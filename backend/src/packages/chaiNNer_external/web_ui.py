@@ -5,7 +5,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import requests
 from sanic.log import logger
@@ -116,7 +115,7 @@ class ApiConfig:
         return apis
 
 
-_CURRENT_API: Optional[Api] = None
+_CURRENT_API: Api | None = None
 
 
 async def get_verified_api() -> Api | None:

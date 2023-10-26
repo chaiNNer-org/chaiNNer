@@ -71,7 +71,7 @@ def get_valid_padding(kernel_size, dilation):
 class ConcatBlock(nn.Module):
     # Concat the output of a submodule to its input
     def __init__(self, submodule):
-        super(ConcatBlock, self).__init__()
+        super().__init__()
         self.sub = submodule
 
     def forward(self, x):
@@ -88,7 +88,7 @@ class ConcatBlock(nn.Module):
 class ShortcutBlock(nn.Module):
     # Elementwise sum the output of a submodule to its input
     def __init__(self, submodule):
-        super(ShortcutBlock, self).__init__()
+        super().__init__()
         self.sub = submodule
 
     def forward(self, x):
@@ -105,7 +105,7 @@ class ShortcutBlock(nn.Module):
 class ShortcutBlockSPSR(nn.Module):
     # Elementwise sum the output of a submodule to its input
     def __init__(self, submodule):
-        super(ShortcutBlockSPSR, self).__init__()
+        super().__init__()
         self.sub = submodule
 
     def forward(self, x):
@@ -233,7 +233,7 @@ class ResNetBlock(nn.Module):
         mode: ConvMode = "CNA",
         res_scale=1,
     ):
-        super(ResNetBlock, self).__init__()
+        super().__init__()
         conv0 = conv_block(
             in_nc,
             mid_nc,
@@ -301,7 +301,7 @@ class RRDB(nn.Module):
         plus=False,
         c2x2=False,
     ):
-        super(RRDB, self).__init__()
+        super().__init__()
         self.RDB1 = ResidualDenseBlock_5C(
             nf,
             kernel_size,
@@ -385,7 +385,7 @@ class ResidualDenseBlock_5C(nn.Module):
         plus=False,
         c2x2=False,
     ):
-        super(ResidualDenseBlock_5C, self).__init__()
+        super().__init__()
 
         ## +
         self.conv1x1 = conv1x1(nf, gc) if plus else None

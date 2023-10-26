@@ -43,7 +43,7 @@ class EqualLinear(nn.Module):
         lr_mul=1,
         activation=None,
     ):
-        super(EqualLinear, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.lr_mul = lr_mul
@@ -107,7 +107,7 @@ class ModulatedConv2d(nn.Module):
         eps=1e-8,
         interpolation_mode="bilinear",
     ):
-        super(ModulatedConv2d, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -212,7 +212,7 @@ class StyleConv(nn.Module):
         sample_mode=None,
         interpolation_mode="bilinear",
     ):
-        super(StyleConv, self).__init__()
+        super().__init__()
         self.modulated_conv = ModulatedConv2d(
             in_channels,
             out_channels,
@@ -249,7 +249,7 @@ class ToRGB(nn.Module):
     def __init__(
         self, in_channels, num_style_feat, upsample=True, interpolation_mode="bilinear"
     ):
-        super(ToRGB, self).__init__()
+        super().__init__()
         self.upsample = upsample
         self.interpolation_mode = interpolation_mode
         if self.interpolation_mode == "nearest":
@@ -298,7 +298,7 @@ class ConstantInput(nn.Module):
     """
 
     def __init__(self, num_channel, size):
-        super(ConstantInput, self).__init__()
+        super().__init__()
         self.weight = nn.Parameter(torch.randn(1, num_channel, size, size))
 
     def forward(self, batch):
@@ -328,7 +328,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
         narrow=1,
         interpolation_mode="bilinear",
     ):
-        super(StyleGAN2GeneratorBilinear, self).__init__()
+        super().__init__()
         # Style MLP layers
         self.num_style_feat = num_style_feat
         style_mlp_layers = [NormStyleCode()]
@@ -541,7 +541,7 @@ class ScaledLeakyReLU(nn.Module):
     """
 
     def __init__(self, negative_slope=0.2):
-        super(ScaledLeakyReLU, self).__init__()
+        super().__init__()
         self.negative_slope = negative_slope
 
     def forward(self, x):
@@ -573,7 +573,7 @@ class EqualConv2d(nn.Module):
         bias=True,
         bias_init_val=0,
     ):
-        super(EqualConv2d, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -668,7 +668,7 @@ class ConvLayer(nn.Sequential):
             else:
                 layers.append(ScaledLeakyReLU(0.2))
 
-        super(ConvLayer, self).__init__(*layers)
+        super().__init__(*layers)
 
 
 class ResBlock(nn.Module):
@@ -679,7 +679,7 @@ class ResBlock(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, interpolation_mode="bilinear"):
-        super(ResBlock, self).__init__()
+        super().__init__()
 
         self.conv1 = ConvLayer(in_channels, in_channels, 3, bias=True, activate=True)
         self.conv2 = ConvLayer(

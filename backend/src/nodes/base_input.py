@@ -74,7 +74,7 @@ class BaseInput:
         label: str,
         kind: InputKind = "generic",
         has_handle=True,
-        associated_type: Union[type, None] = None,
+        associated_type: type | None = None,
     ):
         self.input_type: navi.ExpressionJson = input_type
         self.input_conversions: list[InputConversion] = []

@@ -34,7 +34,7 @@ class DropPath(nn.Module):
     """
 
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
 
     def forward(self, x):
@@ -49,7 +49,7 @@ class ChannelAttention(nn.Module):
     """
 
     def __init__(self, num_feat, squeeze_factor=16):
-        super(ChannelAttention, self).__init__()
+        super().__init__()
         self.attention = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(num_feat, num_feat // squeeze_factor, 1, padding=0),
@@ -65,7 +65,7 @@ class ChannelAttention(nn.Module):
 
 class CAB(nn.Module):
     def __init__(self, num_feat, compress_ratio=3, squeeze_factor=30):
-        super(CAB, self).__init__()
+        super().__init__()
 
         self.cab = nn.Sequential(
             nn.Conv2d(num_feat, num_feat // compress_ratio, 3, 1, 1),
@@ -686,7 +686,7 @@ class RHAG(nn.Module):
         patch_size=4,
         resi_connection="1conv",
     ):
-        super(RHAG, self).__init__()
+        super().__init__()
 
         self.dim = dim
         self.input_resolution = input_resolution
@@ -841,7 +841,7 @@ class Upsample(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
             )
-        super(Upsample, self).__init__(*m)
+        super().__init__(*m)
 
 
 class HAT(nn.Module):
@@ -877,7 +877,7 @@ class HAT(nn.Module):
         state_dict,
         **kwargs,
     ):
-        super(HAT, self).__init__()
+        super().__init__()
 
         # Defaults
         img_size = 64
@@ -925,7 +925,6 @@ class HAT(nn.Module):
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
-                supports_fp16 = False
         elif "upsample.0.weight" in state_keys:
             upsampler = "pixelshuffledirect"
         else:

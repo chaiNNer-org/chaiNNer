@@ -59,7 +59,7 @@ class DropDownInput(BaseInput):
         options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
-        associated_type: Union[type, None] = None,
+        associated_type: type | None = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -210,11 +210,11 @@ class TextInput(BaseInput):
         label: str,
         has_handle=True,
         min_length: int = 0,
-        max_length: Union[int, None] = None,
-        placeholder: Union[str, None] = None,
+        max_length: int | None = None,
+        placeholder: str | None = None,
         multiline: bool = False,
         allow_numbers: bool = True,
-        default: Union[str, None] = None,
+        default: str | None = None,
         hide_label: bool = False,
         allow_empty_string: bool = False,
     ):

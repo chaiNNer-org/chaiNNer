@@ -25,7 +25,7 @@ class OmniSR(nn.Module):
         state_dict,
         **kwargs,
     ):
-        super(OmniSR, self).__init__()
+        super().__init__()
         self.state = state_dict
 
         bias = True  # Fine to assume this for now

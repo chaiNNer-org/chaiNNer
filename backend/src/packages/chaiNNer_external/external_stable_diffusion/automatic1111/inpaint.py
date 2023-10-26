@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 import navi
 import numpy as np
@@ -133,8 +132,8 @@ class InpaintArea(Enum):
 def inpaint_node(
     image: np.ndarray,
     mask: np.ndarray,
-    prompt: Optional[str],
-    negative_prompt: Optional[str],
+    prompt: str | None,
+    negative_prompt: str | None,
     denoising_strength: float,
     seed: Seed,
     steps: int,

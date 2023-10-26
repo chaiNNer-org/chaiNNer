@@ -27,7 +27,7 @@ class BasicBlock(nn.Module):
     expansion = 1  # output channel expansion ratio
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(BasicBlock, self).__init__()
+        super().__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
@@ -69,7 +69,7 @@ class IRBlock(nn.Module):
     expansion = 1  # output channel expansion ratio
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, use_se=True):
-        super(IRBlock, self).__init__()
+        super().__init__()
         self.bn0 = nn.BatchNorm2d(inplanes)
         self.conv1 = conv3x3(inplanes, inplanes)
         self.bn1 = nn.BatchNorm2d(inplanes)
@@ -116,7 +116,7 @@ class Bottleneck(nn.Module):
     expansion = 4  # output channel expansion ratio
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(
@@ -163,7 +163,7 @@ class SEBlock(nn.Module):
     """
 
     def __init__(self, channel, reduction=16):
-        super(SEBlock, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(
             1
         )  # pool to 1x1 without spatial information
@@ -197,7 +197,7 @@ class ResNetArcFace(nn.Module):
             block = IRBlock
         self.inplanes = 64
         self.use_se = use_se
-        super(ResNetArcFace, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)

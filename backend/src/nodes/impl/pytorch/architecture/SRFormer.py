@@ -46,7 +46,7 @@ class DropPath(nn.Module):
     """
 
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
 
     def forward(self, x):
@@ -55,7 +55,7 @@ class DropPath(nn.Module):
 
 class dwconv(nn.Module):
     def __init__(self, hidden_features):
-        super(dwconv, self).__init__()
+        super().__init__()
         self.depthwise_conv = nn.Sequential(
             nn.Conv2d(
                 hidden_features,
@@ -729,7 +729,7 @@ class PSA_Group(nn.Module):
         patch_size=4,
         resi_connection="1conv",
     ):
-        super(PSA_Group, self).__init__()
+        super().__init__()
 
         self.dim = dim
         self.input_resolution = input_resolution
@@ -933,7 +933,7 @@ class Upsample(nn.Sequential):
             raise ValueError(
                 f"scale {scale} is not supported. Supported scales: 2^n and 3."
             )
-        super(Upsample, self).__init__(*m)
+        super().__init__(*m)
 
 
 class UpsampleOneStep(nn.Sequential):
@@ -952,7 +952,7 @@ class UpsampleOneStep(nn.Sequential):
         m = []
         m.append(nn.Conv2d(num_feat, (scale**2) * num_out_ch, 3, 1, 1))
         m.append(nn.PixelShuffle(scale))
-        super(UpsampleOneStep, self).__init__(*m)
+        super().__init__(*m)
 
     def flops(self):
         h, w = self.input_resolution
@@ -989,7 +989,7 @@ class SRFormer(nn.Module):
     """
 
     def __init__(self, state_dict):
-        super(SRFormer, self).__init__()
+        super().__init__()
 
         # Default
         img_size = 64
@@ -1025,7 +1025,6 @@ class SRFormer(nn.Module):
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
-                supports_fp16 = False
         elif "upsample.0.weight" in state_keys:
             upsampler = "pixelshuffledirect"
         else:
