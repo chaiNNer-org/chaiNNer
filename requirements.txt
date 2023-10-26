@@ -4,3 +4,4 @@ isort==5.11.5
 pylint==2.16.1
 pyright==1.1.308
 pytest
+ruff==0.1.3
