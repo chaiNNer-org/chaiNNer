@@ -218,9 +218,8 @@ class RRDBNet(nn.Module):
                         sub = re.sub(new_key, old_key, k)
                         if sub != k:
                             old_state[sub] = v
-                else:
-                    if new_key in state:
-                        old_state[old_key] = state[new_key]
+                elif new_key in state:
+                    old_state[old_key] = state[new_key]
 
         # upconv layers
         max_upconv = 0

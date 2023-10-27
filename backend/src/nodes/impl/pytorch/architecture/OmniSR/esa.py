@@ -66,7 +66,7 @@ class LK_ESA(nn.Module):
         self.conv_f = conv(f, f, kernel_size=1)
 
         kernel_size = 17
-        kernel_expand = kernel_expand
+        kernel_expand = kernel_expand  # noqa
         padding = kernel_size // 2
 
         self.vec_conv = nn.Conv2d(
@@ -129,7 +129,7 @@ class LK_ESA_LN(nn.Module):
         self.conv_f = conv(f, f, kernel_size=1)
 
         kernel_size = 17
-        kernel_expand = kernel_expand
+        kernel_expand = kernel_expand  # noqa
         padding = kernel_size // 2
 
         self.norm = LayerNorm2d(n_feats)
@@ -247,7 +247,7 @@ class AdaConvGuidedFilter(nn.Module):
         self.conv_f = conv(f, f, kernel_size=1)
 
         kernel_size = 17
-        kernel_expand = kernel_expand
+        kernel_expand = kernel_expand  # noqa
         padding = kernel_size // 2
 
         self.vec_conv = nn.Conv2d(

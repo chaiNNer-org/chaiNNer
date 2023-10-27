@@ -1,18 +1,18 @@
-from nodes.base_output import *
+from nodes.base_output import *  # noqa: F403
 
-from .file_outputs import *
-from .generic_outputs import *
-from .numpy_outputs import *
+from .file_outputs import *  # noqa: F403
+from .generic_outputs import *  # noqa: F403
+from .numpy_outputs import *  # noqa: F403
 
 try:
-    from .ncnn_outputs import *
-except:
+    from .ncnn_outputs import *  # noqa: F403
+except Exception:
     pass
 try:
-    from .onnx_outputs import *
-except:
+    from .onnx_outputs import *  # noqa: F403
+except Exception:
     pass
 try:
-    from .pytorch_outputs import *
-except:
+    from .pytorch_outputs import *  # noqa: F403
+except Exception:
     pass

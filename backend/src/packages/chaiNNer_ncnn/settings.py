@@ -29,7 +29,7 @@ if not is_arm_mac and use_gpu:
                 default="0",
             )
         )
-    except:
+    except Exception:
         pass
 
 # Haven't tested disabling Winograd/SGEMM in the ncnn_vulkan fork, so only

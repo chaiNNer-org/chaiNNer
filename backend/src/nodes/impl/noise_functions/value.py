@@ -23,7 +23,7 @@ class ValueNoise:
         weights = np.zeros((points.shape[0], 2**self.dimensions))
 
         for i, pattern in enumerate(itertools.product([0, 1], repeat=self.dimensions)):
-            pattern = np.array(pattern, dtype=np.int32)
+            pattern = np.array(pattern, dtype=np.int32)  # noqa
             corners[:, i] = block + pattern
 
             # linear interpolation

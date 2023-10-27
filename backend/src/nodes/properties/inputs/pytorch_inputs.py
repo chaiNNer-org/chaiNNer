@@ -11,7 +11,7 @@ try:
         is_pytorch_model,
         is_pytorch_sr_model,
     )
-except:
+except Exception:
     torch = None
 
 import navi

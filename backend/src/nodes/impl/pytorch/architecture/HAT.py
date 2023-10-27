@@ -327,7 +327,7 @@ class HAB(nn.Module):
             shifted_x = torch.roll(
                 x, shifts=(-self.shift_size, -self.shift_size), dims=(1, 2)
             )
-            attn_mask = attn_mask
+            attn_mask = attn_mask  # noqa
         else:
             shifted_x = x
             attn_mask = None
@@ -1099,7 +1099,9 @@ class HAT(nn.Module):
                 drop=drop_rate,
                 attn_drop=attn_drop_rate,
                 drop_path=dpr[
-                    sum(depths[:i_layer]) : sum(depths[: i_layer + 1])  # type: ignore
+                    sum(depths[:i_layer]) : sum(
+                        depths[: i_layer + 1]
+                    )  # type: ignore
                 ],  # no impact on SR results
                 norm_layer=norm_layer,
                 downsample=None,

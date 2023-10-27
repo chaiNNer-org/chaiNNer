@@ -38,7 +38,7 @@ class ServerConfig:
         try:
             port = int(argv[0]) or 8000
             argv = argv[1:]
-        except:
+        except Exception:
             port = 8000
 
         close_after_start = False

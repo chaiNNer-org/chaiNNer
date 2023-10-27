@@ -93,7 +93,7 @@ _cachedNvidiaHelper = None
 
 def get_nvidia_helper():
     # pylint: disable=global-statement
-    global _cachedNvidiaHelper
+    global _cachedNvidiaHelper  # noqa: PLW0603
     if not nvidia_is_available:
         return None
     if not _cachedNvidiaHelper:

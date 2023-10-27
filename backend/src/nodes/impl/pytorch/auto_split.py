@@ -45,7 +45,7 @@ def pytorch_auto_split(
                 if d_img is not None:
                     try:
                         d_img.detach().cpu()
-                    except:
+                    except Exception:
                         pass
                     del d_img
                 gc.collect()

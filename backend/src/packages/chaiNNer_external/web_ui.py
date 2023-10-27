@@ -121,13 +121,13 @@ _CURRENT_API: Api | None = None
 async def get_verified_api() -> Api | None:
     timeout = 1  # seconds
 
-    global _CURRENT_API  # pylint: disable=global-statement
+    global _CURRENT_API  # pylint: disable=global-statement # noqa
     if _CURRENT_API is not None:
         # redo check to see if it's still alive
         try:
             await _CURRENT_API.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
             return _CURRENT_API
-        except:
+        except Exception:
             _CURRENT_API = None
 
     # check all apis in parallel

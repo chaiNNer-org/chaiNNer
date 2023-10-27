@@ -237,7 +237,7 @@ class Attention(nn.Module):
             self.register_buffer("rel_pos_indices", rel_pos_indices, persistent=False)
 
     def forward(self, x):
-        batch, height, width, window_height, window_width, _, device, h = (
+        _batch, height, width, window_height, window_width, _, _device, h = (
             *x.shape,
             x.device,
             self.heads,

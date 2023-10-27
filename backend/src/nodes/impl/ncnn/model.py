@@ -266,8 +266,9 @@ class NcnnParamCollection:
 
                 # If a param that defaults to the value of another param, if it's value
                 # equals that of the second param or its default, skip writing it
-                if (
-                    v.value in (self.param_dict[pid].value, self.param_dict[pid].default)
+                if v.value in (
+                    self.param_dict[pid].value,
+                    self.param_dict[pid].default,
                 ):
                     continue
 
@@ -487,7 +488,7 @@ class NcnnModel:
             if k < 0:
                 v = []
                 for vi in vs.split(","):
-                    vi = float(vi) if "." in vi or "e" in vi else int(vi)
+                    vi = float(vi) if "." in vi or "e" in vi else int(vi)  # noqa
                     v.append(vi)
                 k = abs(k + 23300)
                 ks = str(k)
@@ -641,10 +642,9 @@ class NcnnModel:
                         binf.read(scale_data_length * 4), np.float32
                     )
                     weight_dict["bias"] = NcnnWeight(bias_data)
-        else:
-            if len(layer.params.weight_order) != 0:
-                error_msg = f"Load weights not added for {op_type} yet, please report"
-                raise ValueError(error_msg)
+        elif len(layer.params.weight_order) != 0:
+            error_msg = f"Load weights not added for {op_type} yet, please report"
+            raise ValueError(error_msg)
 
         return weight_dict
 

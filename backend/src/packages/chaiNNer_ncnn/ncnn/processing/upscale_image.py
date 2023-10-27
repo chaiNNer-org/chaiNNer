@@ -43,7 +43,7 @@ from .. import processing_group
 def managed_blob_vkallocator(vkdev: ncnn.VulkanDevice):
     try:
         blob_vkallocator = vkdev.acquire_blob_allocator()
-    except:
+    except Exception:
         blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
     try:
         yield blob_vkallocator
@@ -56,7 +56,7 @@ def ncnn_allocators(vkdev: ncnn.VulkanDevice):
     with managed_blob_vkallocator(vkdev) as blob_vkallocator:
         try:
             staging_vkallocator = vkdev.acquire_staging_allocator()
-        except:
+        except Exception:
             staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
         try:
             yield blob_vkallocator, staging_vkallocator

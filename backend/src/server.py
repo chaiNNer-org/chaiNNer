@@ -70,7 +70,10 @@ CORS(app)
 
 class SSEFilter(logging.Filter):
     def filter(self, record):
-        return not ((record.request.endswith("/sse") or record.request.endswith("/setup-sse")) and record.status == 200)  # type: ignore
+        return not (
+            (record.request.endswith("/sse") or record.request.endswith("/setup-sse"))
+            and record.status == 200
+        )  # type: ignore
 
 
 class ZeroCounter:
@@ -670,7 +673,7 @@ exit_code = 0
 
 async def close_server(sanic_app: Sanic):
     # pylint: disable=global-statement
-    global exit_code
+    global exit_code  # noqa
 
     try:
         await nodes_available()
@@ -686,7 +689,7 @@ async def close_server(sanic_app: Sanic):
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # pylint: disable=global-statement
-    global setup_task
+    global setup_task  # noqa
 
     # initialize the queues
     ctx = AppContext.get(sanic_app)

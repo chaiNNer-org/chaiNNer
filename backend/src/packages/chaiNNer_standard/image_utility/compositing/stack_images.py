@@ -166,7 +166,7 @@ def stack_images_node(
         if img is not None:
             h, w, c = get_h_w_c(img)
             if c == 1:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)  # noqa PLW2901
                 c = 3
             max_h = max(h, max_h)
             max_w = max(w, max_w)
