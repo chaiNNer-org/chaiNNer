@@ -2,7 +2,7 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": false,
   "files.trimTrailingWhitespace": true,
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "ruff",
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.words": [
     "absdiff",
@@ -111,5 +111,4 @@
         "source.organizeImports": true
     }
   },
-  "isort.args":["--profile", "black", "--src", "${workspaceFolder}/backend/src"]
 }
