@@ -10,7 +10,7 @@ from typing import Any, Callable, NewType, Union, cast, get_args
 from nodes.base_input import BaseInput
 from nodes.base_output import BaseOutput
 
-_Ty = NewType("_Ty", object)
+_Ty = NewType("_Ty", type)
 
 
 class CheckFailedError(Exception):
@@ -151,7 +151,10 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
-        if not str(return_type).startswith("typing.Tuple["):
+        if not (
+            str(return_type).startswith("tuple[")
+            or str(return_type).startswith("typing.Tuple[")
+        ):
             raise CheckFailedError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )
