@@ -25,7 +25,7 @@ from .. import processing_group
         Currently supports u2net models from the rembg project (links found in readme).""",
     icon="ONNX",
     inputs=[
-        ImageInput(),
+        ImageInput(channels=[3, 4]),
         OnnxRemBgModelInput(),
         BoolInput("Post-process Mask", default=False),
         BoolInput("Alpha Matting", default=False),
@@ -38,7 +38,16 @@ from .. import processing_group
     outputs=[
         ImageOutput(
             "Image",
-            image_type="""removeBackground(Input1, Input0)""",
+            image_type="""
+                let image = Input0;
+                let model = Input1;
+
+                Image {
+                    width: image.width,
+                    height: image.height * model.scaleHeight,
+                }
+            """,
+            channels=4,
         ),
         ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
