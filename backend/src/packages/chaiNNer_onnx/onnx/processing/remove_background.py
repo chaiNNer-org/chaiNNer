@@ -39,7 +39,7 @@ from .. import processing_group
         ImageOutput(
             "Image",
             image_type="""
-                let img = Input0;
+                let image = Input0;
                 let model = Input1;
 
                 Image {
