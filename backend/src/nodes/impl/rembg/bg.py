@@ -16,13 +16,11 @@ from cv2 import (
 )
 from PIL import Image
 from PIL.Image import Image as PILImage
+from pymatting import estimate_alpha_cf, estimate_foreground_ml
 from scipy.ndimage import binary_erosion
 
 from ...impl.image_utils import normalize
 from ...utils.utils import get_h_w_c
-from .pymatting.estimate_alpha_cf import estimate_alpha_cf
-from .pymatting.estimate_foreground_ml import estimate_foreground_ml
-from .pymatting.util import stack_images
 from .session_factory import new_session
 
 kernel = getStructuringElement(MORPH_ELLIPSE, (3, 3))
@@ -62,7 +60,7 @@ def alpha_matting_cutout(
 
     alpha = estimate_alpha_cf(img_normalized, trimap_normalized)
     foreground = estimate_foreground_ml(img_normalized, alpha)
-    cutout = stack_images(foreground, alpha)
+    cutout = np.dstack((foreground, alpha))
 
     cutout = np.clip(cutout * 255, 0, 255).astype(np.uint8)  # type: ignore
     cutout = Image.fromarray(cutout)
