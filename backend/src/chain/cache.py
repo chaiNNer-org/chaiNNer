@@ -5,7 +5,9 @@ from typing import Dict, Generic, Iterable, List, Optional, Set, TypeVar
 
 from sanic.log import logger
 
-from .chain import Chain, Edge, FunctionNode, NewIteratorNode, NodeId
+from api import NodeId
+
+from .chain import Chain, Edge, FunctionNode, NewIteratorNode
 
 
 class CacheStrategy:

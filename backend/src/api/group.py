@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union
 
-from base_types import InputId
-from nodes.base_input import BaseInput
+from .input import BaseInput
+from .types import InputId
 
 T = TypeVar("T")
 

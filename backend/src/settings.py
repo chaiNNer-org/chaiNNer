@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from api import SettingsParser
-from nodes.utils.exec_options import get_execution_options
+from api import SettingsParser, get_execution_options
 
 
 @dataclass(frozen=True)

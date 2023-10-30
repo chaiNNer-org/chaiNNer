@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Literal, Type, Union
 
 import navi
-from base_types import OutputId
+
+from .types import OutputId
 
 OutputKind = Literal["image", "large-image", "tagged", "generic"]
 

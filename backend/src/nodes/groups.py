@@ -4,9 +4,7 @@ from enum import Enum
 from typing import Iterable, List, Literal, Tuple, TypedDict, Union
 
 import navi
-from base_types import InputId
-from nodes.base_input import BaseInput
-from nodes.group import NestedGroup, group
+from api import BaseInput, InputId, NestedGroup, group
 
 InputValue = Union[int, str]
 EnumValues = Union[
@@ -218,3 +216,18 @@ def linked_inputs_group(*inputs: BaseInput):
     that the inputs are of the same class and use the same parameters.
     """
     return group("linked-inputs")(*inputs)
+
+
+def ncnn_file_inputs_group(param_input: BaseInput, bin_input: BaseInput):
+    """
+    This group wraps around 2 .param and .bin file inputs and synchronizes them in the UI.
+    """
+    return group("ncnn-file-inputs")(param_input, bin_input)
+
+
+def from_to_dropdowns_group(from_dd: BaseInput, to_dd: BaseInput):
+    """
+    This group wraps around 2 dropdown inputs that will be displayed as
+    `[From] -> [To]` in the UI.
+    """
+    return group("from-to-dropdowns")(from_dd, to_dd)

@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Literal, Union
-
-RunFn = Callable[..., Any]
-
-NodeType = Literal["regularNode", "newIterator", "collector"]
+from typing import Awaitable, Callable, Union
 
 UpdateProgressFn = Callable[[str, float, Union[float, None]], Awaitable[None]]

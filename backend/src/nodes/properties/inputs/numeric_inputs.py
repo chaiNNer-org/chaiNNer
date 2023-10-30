@@ -2,7 +2,7 @@ import math
 from typing import List, Literal, Tuple, Union
 
 import navi
-from nodes.base_input import BaseInput, InputConversion, InputKind
+from api import BaseInput, InputConversion, InputKind
 
 from ...utils.utils import round_half_up
 

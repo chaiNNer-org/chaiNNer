@@ -15,7 +15,7 @@ except:
     torch = None
 
 import navi
-from nodes.base_input import BaseInput
+from api import BaseInput
 
 
 class ModelInput(BaseInput):

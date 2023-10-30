@@ -1,5 +1,5 @@
 import navi
-from nodes.base_output import BaseOutput
+from api import BaseOutput
 
 from ...impl.onnx.model import OnnxModel
 
