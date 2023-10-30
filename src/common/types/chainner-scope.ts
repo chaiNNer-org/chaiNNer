@@ -122,14 +122,6 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     }
 }
 
-def removeBackground(model: OnnxRemBgModel, image: Image) {
-    Image {
-        width: image.width,
-        height: image.height * model.scaleHeight,
-        channels: 4,
-    }
-}
-
 struct SplitFilePath {
     dir: Directory,
     basename: string,
