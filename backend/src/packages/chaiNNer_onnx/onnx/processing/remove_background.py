@@ -24,8 +24,11 @@ from .. import processing_group
     description="""Removes background from image.
         Currently supports u2net models from the rembg project (links found in readme).""",
     icon="ONNX",
+    see_also="chainner:image:alpha_matting",
     inputs=[
-        ImageInput(channels=[3, 4]),
+        ImageInput(channels=[3, 4]).with_docs(
+            "If the image has an alpha channel, it will be ignored."
+        ),
         OnnxRemBgModelInput(),
         BoolInput("Post-process Mask", default=False),
         BoolInput("Alpha Matting", default=False),

@@ -68,6 +68,19 @@ package = add_package(
             import_name="wcmatch",
         ),
         Dependency(
+            display_name="Numba",
+            pypi_name="numba",
+            version="0.57.1",
+            size_estimate=2.5 * MB,
+        ),
+        Dependency(
+            display_name="PyMatting",
+            pypi_name="PyMatting",
+            import_name="pymatting",
+            version="1.1.10",
+            size_estimate=52 * KB,
+        ),
+        Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
             version="0.3.3",

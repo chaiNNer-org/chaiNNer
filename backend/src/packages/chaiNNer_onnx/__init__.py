@@ -61,12 +61,6 @@ package = add_package(
             version="4.24.2",
             size_estimate=500 * KB,
         ),
-        Dependency(
-            display_name="Numba",
-            pypi_name="numba",
-            version="0.57.1",
-            size_estimate=2.5 * MB,
-        ),
     ],
     icon="ONNX",
     color="#63B3ED",
