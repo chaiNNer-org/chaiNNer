@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 import numpy as np
+import psutil
 import torch
 from sanic.log import logger
 
@@ -45,22 +46,44 @@ def upscale(
         device = options.device
 
         def estimate():
+            element_size = 2 if use_fp16 else 4
+            model_bytes = sum(p.numel() * element_size for p in model.parameters())
+
             if "cuda" in device.type:
                 mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
-                free, _total = mem_info
-                element_size = 2 if use_fp16 else 4
-                model_bytes = sum(p.numel() * element_size for p in model.parameters())
-                budget = int(free * 0.8)
+                available_memory, _total = mem_info
+                memory_for_upscaling = get_settings.memory_for_upscaling_gpu / 100
+            else:
+                memory_for_upscaling = get_settings.memory_for_upscaling / 100
 
-                return MaxTileSize(
-                    estimate_tile_size(
-                        budget,
-                        model_bytes,
-                        img,
-                        element_size,
+                if get_settings.is_system_memory:
+                    available_memory = psutil.virtual_memory().total
+
+                    logger.info(
+                        f"Memory limit set to {memory_for_upscaling * 100}% of total"
+                        f" system memory. ({available_memory / (1024 ** 3)} GB)"
                     )
+                else:
+                    available_memory = psutil.virtual_memory().available
+
+            budget = int(
+                max(
+                    available_memory * 0.2,
+                    min(
+                        available_memory * memory_for_upscaling,
+                        available_memory * 0.8,
+                    ),
                 )
-            return MaxTileSize()
+            )
+
+            return MaxTileSize(
+                estimate_tile_size(
+                    budget,
+                    model_bytes,
+                    img,
+                    element_size,
+                )
+            )
 
         # Disable tiling for SCUNet
         upscale_tile_size = tile_size
@@ -83,8 +106,9 @@ def upscale(
     schema_id="chainner:pytorch:upscale_image",
     name="Upscale Image",
     description=(
-        "Upscales an image using a PyTorch Super-Resolution model. Select a"
-        " manual number of tiles if you are having issues with the automatic mode. "
+        "Upscales an image using a PyTorch Super-Resolution model. Select a lower"
+        " memory limit or manually adjust the number of tiles if you are experiencing"
+        " issues with the automatic mode."
     ),
     icon="PyTorch",
     inputs=[
@@ -105,9 +129,10 @@ def upscale(
                 "Generally it's recommended to use the largest tile size possible for"
                 " best performance (with the ideal scenario being no tiling at all),"
                 " but depending on the model and image size, this may not be possible.",
-                "If you are having issues with the automatic mode, you can manually"
-                " select a tile size. Sometimes, a manually selected tile size may be"
-                " faster than what the automatic mode picks.",
+                "If you are having issues with the automatic mode, you can either"
+                " select a lower memory limit or manually select a tile size."
+                " Sometimes, a manually selected tile size may be faster than what the"
+                " automatic mode picks.",
                 hint=True,
             )
         ),
@@ -123,13 +148,14 @@ def upscale(
             )
         )(
             BoolInput("Separate Alpha", default=False).with_docs(
-                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
-                " the upscaled image to be less noisy and more accurate to the alpha of the original"
-                " image, but the image may suffer from dark borders near transparency edges"
-                " (transition from fully transparent to fully opaque).",
-                "Whether enabling this option will improve the upscaled image depends on the original"
-                " image. We generally recommend this option for images with smooth transitions between"
-                " transparent and opaque regions.",
+                "Upscale alpha separately from color. Enabling this option will cause"
+                " the alpha of the upscaled image to be less noisy and more accurate to"
+                " the alpha of the original image, but the image may suffer from dark"
+                " borders near transparency edges (transition from fully transparent to"
+                " fully opaque).",
+                "Whether enabling this option will improve the upscaled image depends"
+                " on the original image. We generally recommend this option for images"
+                " with smooth transitions between transparent and opaque regions.",
             )
         ),
     ],

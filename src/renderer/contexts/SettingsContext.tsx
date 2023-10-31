@@ -19,6 +19,9 @@ interface Settings {
         setSnapToGridAmount: SetState<number>
     ];
     useStartupTemplate: GetSetState<string>;
+    useMemoryForUpscaling: GetSetState<number>;
+    useIsSystemMemory: GetSetState<boolean>;
+    useMemoryForUpscalingGPU: GetSetState<number>;
     useSelectTheme: GetSetState<string>;
     useAnimateChain: GetSetState<boolean>;
     useExperimentalFeatures: GetSetState<boolean>;
@@ -45,6 +48,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
     const useSelectTheme = useMemoArray(useLocalStorage('theme', 'dark'));
+    const useMemoryForUpscaling = useMemoArray(useLocalStorage('memory-for-upscaling', 80));
+    const useIsSystemMemory = useMemoArray(useLocalStorage('use-system-memory', false));
+    const useMemoryForUpscalingGPU = useMemoArray(useLocalStorage('memory-for-upscaling-gpu', 80));
 
     const { setColorMode } = useColorMode();
     const [selectThemeColor] = useSelectTheme;
@@ -90,6 +96,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useSnapToGrid,
         useCheckUpdOnStrtUp,
         useStartupTemplate,
+        useMemoryForUpscaling,
+        useIsSystemMemory,
+        useMemoryForUpscalingGPU,
         useSelectTheme,
         useAnimateChain,
         useExperimentalFeatures,

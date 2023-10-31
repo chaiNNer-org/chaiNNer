@@ -25,7 +25,7 @@ def estimate_tile_size(
     required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
     budget_mem = f"{budget/GB_AMT:.2f}"
     logger.info(
-        f"Estimating memory required: {required_mem} GB, {budget_mem} GB free."
+        f"Estimating memory required: {required_mem} GB, {budget_mem} GB available."
         f" Estimated tile size: {tile_size}"
     )
 

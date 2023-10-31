@@ -31,3 +31,5 @@ export const sanitizedEnv = env;
 export const getCacheLocation = (userDataPath: string, cacheKey: string) => {
     return path.join(userDataPath, '/cache/', cacheKey);
 };
+
+export const totalMemory = os.totalmem();

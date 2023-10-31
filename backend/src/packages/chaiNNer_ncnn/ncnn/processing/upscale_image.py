@@ -4,6 +4,7 @@ from contextlib import contextmanager
 
 import cv2
 import numpy as np
+import psutil
 
 try:
     from ncnn_vulkan import ncnn
@@ -34,7 +35,7 @@ from nodes.properties.inputs import (
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
-from system import is_mac
+from system import is_arm_mac, is_mac
 
 from ...settings import get_settings
 from .. import processing_group
@@ -80,13 +81,39 @@ def upscale_impl(
             vkdev = ncnn.get_gpu_device(settings.gpu_index)
 
             def estimate_gpu():
-                if is_mac:
+                if is_arm_mac:
+                    memory_for_upscaling = get_settings.memory_for_upscaling / 100
+
+                    if get_settings.is_system_memory:
+                        available_memory = psutil.virtual_memory().total
+
+                        logger.info(
+                            f"Memory limit set to {memory_for_upscaling * 100}% of"
+                            " total system memory."
+                            f" ({available_memory / (1024 ** 3)} GB)"
+                        )
+                    else:
+                        available_memory = psutil.virtual_memory().available
+
+                elif is_mac:
                     # the actual estimate frequently crashes on mac, so we just use 256
                     return MaxTileSize(256)
+                else:
+                    available_memory = vkdev.get_heap_budget() * 1024 * 1024
+                    memory_for_upscaling = get_settings.memory_for_upscaling_gpu / 100
 
-                heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
+                budget = int(
+                    max(
+                        available_memory * 0.2,
+                        min(
+                            available_memory * memory_for_upscaling,
+                            available_memory * 0.8,
+                        ),
+                    )
+                )
+
                 return MaxTileSize(
-                    estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
+                    estimate_tile_size(budget, model.model.bin_length, img, 4)
                 )
 
             with ncnn_allocators(vkdev) as (
@@ -130,8 +157,12 @@ def upscale_impl(
 @processing_group.register(
     schema_id="chainner:ncnn:upscale_image",
     name="Upscale Image",
-    description="Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
-            Select a manual number of tiles if you are having issues with the automatic mode.",
+    description=(
+        "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all"
+        " devices, assuming your drivers support Vulkan. Select a lower memory limit or"
+        " manually adjust the number of tiles if you are experiencing issues with the"
+        " automatic mode."
+    ),
     icon="NCNN",
     inputs=[
         ImageInput().with_id(1),
@@ -139,10 +170,17 @@ def upscale_impl(
         TileSizeDropdown()
         .with_id(2)
         .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
-            "If you are having issues with the automatic mode, you can manually select a tile size. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
+            "Tiled upscaling is used to allow large images to be upscaled without"
+            " hitting memory limits.",
+            "This works by splitting the image into tiles (with overlap), upscaling"
+            " each tile individually, and seamlessly recombining them.",
+            "Generally it's recommended to use the largest tile size possible for best"
+            " performance (with the ideal scenario being no tiling at all), but"
+            " depending on the model and image size, this may not be possible.",
+            "If you are having issues with the automatic mode, you can either set a"
+            " lower memory limit or manually select a tile size. On certain machines, a"
+            " very small tile size such as 256 or 128 might be required for it to work"
+            " at all.",
         ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
@@ -154,13 +192,14 @@ def upscale_impl(
             )
         )(
             BoolInput("Separate Alpha", default=False).with_docs(
-                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
-                " the upscaled image to be less noisy and more accurate to the alpha of the original"
-                " image, but the image may suffer from dark borders near transparency edges"
-                " (transition from fully transparent to fully opaque).",
-                "Whether enabling this option will improve the upscaled image depends on the original"
-                " image. We generally recommend this option for images with smooth transitions between"
-                " transparent and opaque regions.",
+                "Upscale alpha separately from color. Enabling this option will cause"
+                " the alpha of the upscaled image to be less noisy and more accurate to"
+                " the alpha of the original image, but the image may suffer from dark"
+                " borders near transparency edges (transition from fully transparent to"
+                " fully opaque).",
+                "Whether enabling this option will improve the upscaled image depends"
+                " on the original image. We generally recommend this option for images"
+                " with smooth transitions between transparent and opaque regions.",
             )
         ),
     ],

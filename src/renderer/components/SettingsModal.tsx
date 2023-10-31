@@ -1,5 +1,11 @@
 import { LinkIcon, SettingsIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import {
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogOverlay,
     Button,
     HStack,
     Icon,
@@ -7,6 +13,7 @@ import {
     Input,
     InputGroup,
     InputLeftElement,
+    InputRightElement,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -27,12 +34,12 @@ import {
 } from '@chakra-ui/react';
 import { produce } from 'immer';
 import path from 'path';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { SettingKey, SettingValue } from '../../common/common-types';
-import { isMac } from '../../common/env';
+import { isArmMac, isMac, totalMemory } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -115,7 +122,12 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
-    const { useStartupTemplate } = useContext(SettingsContext);
+    const {
+        useStartupTemplate,
+        useMemoryForUpscaling,
+        useIsSystemMemory,
+        useMemoryForUpscalingGPU,
+    } = useContext(SettingsContext);
 
     const [startupTemplate, setStartupTemplate] = useStartupTemplate;
 
@@ -142,11 +154,145 @@ const EnvironmentSettings = memo(() => {
         }
     }, [startupTemplate, lastDirectory, setStartupTemplate]);
 
+    const [memoryForUpscaling, setMemoryForUpscaling] = useMemoryForUpscaling;
+    const [isSystemMemory, setIsSystemMemory] = useIsSystemMemory;
+    const [memoryForUpscalingGPU, setMemoryForUpscalingGPU] = useMemoryForUpscalingGPU;
+
+    const systemMemory = () => totalMemory / 1024 ** 3;
+
+    const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const cancelRef = useRef<HTMLButtonElement>(null);
+
+    const handleConfirmationConfirm = () => {
+        setIsConfirmationOpen(false);
+        setIsSystemMemory(true);
+    };
+
+    const handleConfirmationCancel = () => {
+        setIsConfirmationOpen(false);
+    };
+
+    const handleToggle = () => {
+        if (!isSystemMemory) {
+            setIsConfirmationOpen(true);
+        } else {
+            setIsSystemMemory(false);
+        }
+    };
+
+    const confirmationDialog = (
+        <AlertDialog
+            isCentered
+            isOpen={isConfirmationOpen}
+            leastDestructiveRef={cancelRef}
+            onClose={handleConfirmationCancel}
+        >
+            <AlertDialogOverlay />
+            <AlertDialogContent>
+                <AlertDialogHeader
+                    fontSize="lg"
+                    fontWeight="bold"
+                >
+                    Are you sure?
+                </AlertDialogHeader>
+                <AlertDialogBody
+                    justifyContent="flex-end"
+                    width="full"
+                >
+                    This action may result in <strong>heavy swapping</strong> and could potentially{' '}
+                    <strong>render your system unusable</strong> when the <strong>limit</strong> is
+                    set <strong>too high</strong>! Do you really want to continue?
+                </AlertDialogBody>
+                <AlertDialogFooter>
+                    <Button
+                        ref={cancelRef}
+                        onClick={handleConfirmationCancel}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        colorScheme="red"
+                        ml={3}
+                        onClick={handleConfirmationConfirm}
+                    >
+                        Yes, I know what I&#39;m doing
+                    </Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+
     return (
         <VStack
             divider={<StackDivider />}
             w="full"
         >
+            {!isArmMac && (
+                <NumberSetting
+                    setValue={setMemoryForUpscalingGPU}
+                    setting={{
+                        description:
+                            'The maximum amount of freely available VRAM used for upscaling in auto mode.',
+                        label: 'GPU memory limit for upscaling in auto mode',
+                        max: 80,
+                        min: 20,
+                        step: 0.1,
+                        width: 100,
+                        unit: '%',
+                    }}
+                    value={memoryForUpscalingGPU}
+                />
+            )}
+            <NumberSetting
+                setValue={setMemoryForUpscaling}
+                setting={{
+                    description:
+                        'The maximum amount of freely available RAM used for upscaling in auto mode.',
+                    label: `Memory limit for ${!isArmMac ? 'CPU' : ''} upscaling in auto mode`,
+                    max: 80,
+                    min: 20,
+                    step: 0.1,
+                    width: 100,
+                    unit: '%',
+                }}
+                value={memoryForUpscaling}
+            />
+
+            <HStack width="full">
+                <ToggleSetting
+                    setValue={handleToggle}
+                    setting={{
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        description: (
+                            <>
+                                Up to{' '}
+                                <Text
+                                    as="span"
+                                    fontWeight="bold"
+                                >
+                                    {(systemMemory() * (memoryForUpscaling / 100)).toFixed(1)} GiB
+                                </Text>{' '}
+                                out of a total of{' '}
+                                <Text
+                                    as="span"
+                                    fontWeight="bold"
+                                >
+                                    {systemMemory()} GiB
+                                </Text>{' '}
+                                RAM will be used. Use with caution, may result in heavy swapping!
+                            </>
+                        ),
+                        label: `Apply ${memoryForUpscaling.toFixed(
+                            1
+                        )}% memory limit to total system memory`,
+                        disabled: false,
+                    }}
+                    value={isSystemMemory}
+                />
+                {confirmationDialog}
+            </HStack>
+
             <SettingContainer
                 description="Set a chain template to use by default when chaiNNer starts up."
                 title="Startup Template"
@@ -174,17 +320,24 @@ const EnvironmentSettings = memo(() => {
                                 placeholder="Select a file..."
                                 textOverflow="ellipsis"
                                 value={startupTemplate ? path.parse(startupTemplate).base : ''}
+                                width={183}
                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                                 onClick={onButtonClick}
                             />
+
+                            <InputRightElement
+                                width="2.5rem"
+                                zIndex={1}
+                            >
+                                <IconButton
+                                    aria-label="clear"
+                                    icon={<SmallCloseIcon />}
+                                    size="xs"
+                                    onClick={() => setStartupTemplate('')}
+                                />
+                            </InputRightElement>
                         </InputGroup>
                     </Tooltip>
-                    <IconButton
-                        aria-label="clear"
-                        icon={<SmallCloseIcon />}
-                        size="xs"
-                        onClick={() => setStartupTemplate('')}
-                    />
                 </HStack>
             </SettingContainer>
         </VStack>
@@ -269,7 +422,29 @@ const PythonSettings = memo(() => {
                         />
                         {isSystemPython && (
                             <SettingContainer
-                                description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
+                                description={
+                                    <Text>
+                                        If wanted, use a specific python binary rather than the
+                                        default one invoked by{' '}
+                                        <Text
+                                            as="span"
+                                            fontWeight="bold"
+                                        >
+                                            python3
+                                        </Text>{' '}
+                                        or{' '}
+                                        <Text
+                                            as="span"
+                                            fontWeight="bold"
+                                        >
+                                            python
+                                        </Text>
+                                        . This is useful if you have multiple python versions
+                                        installed and want to pick a specific one.
+                                    </Text>
+                                }
                                 title="System Python location (optional)"
                             >
                                 <HStack>
@@ -292,6 +467,7 @@ const PythonSettings = memo(() => {
                                                 className="nodrag"
                                                 cursor="pointer"
                                                 draggable={false}
+                                                marginLeft="1.5"
                                                 placeholder="Select a file..."
                                                 textOverflow="ellipsis"
                                                 value={
@@ -299,17 +475,24 @@ const PythonSettings = memo(() => {
                                                         ? path.parse(systemPythonLocation).base
                                                         : ''
                                                 }
+                                                width={183}
                                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                                                 onClick={onButtonClick}
                                             />
+
+                                            <InputRightElement
+                                                width="2.5rem"
+                                                zIndex={1}
+                                            >
+                                                <IconButton
+                                                    aria-label="clear"
+                                                    icon={<SmallCloseIcon />}
+                                                    size="xs"
+                                                    onClick={() => setSystemPythonLocation(null)}
+                                                />
+                                            </InputRightElement>
                                         </InputGroup>
                                     </Tooltip>
-                                    <IconButton
-                                        aria-label="clear"
-                                        icon={<SmallCloseIcon />}
-                                        size="xs"
-                                        onClick={() => setSystemPythonLocation(null)}
-                                    />
                                 </HStack>
                             </SettingContainer>
                         )}
