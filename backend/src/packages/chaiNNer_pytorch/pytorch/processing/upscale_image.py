@@ -62,17 +62,12 @@ def upscale(
                 )
             return MaxTileSize()
 
-        # Disable tiling for SCUNet
-        upscale_tile_size = tile_size
-        if model.model_arch == "SCUNet":
-            upscale_tile_size = NO_TILING
-
         img_out = pytorch_auto_split(
             img,
             model=model,
             device=device,
             use_fp16=use_fp16,
-            tiler=parse_tile_size_input(upscale_tile_size, estimate),
+            tiler=parse_tile_size_input(tile_size, estimate),
         )
         logger.debug("Done upscaling")
 
@@ -90,26 +85,20 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         SrModelInput().with_id(0),
-        if_group(
-            Condition.type(
-                0, 'PyTorchModel { arch: invStrSet("SCUNet") } ', if_not_connected=True
-            )
-        )(
-            TileSizeDropdown()
-            .with_id(2)
-            .with_docs(
-                "Tiled upscaling is used to allow large images to be upscaled without"
-                " hitting memory limits.",
-                "This works by splitting the image into tiles (with overlap), upscaling"
-                " each tile individually, and seamlessly recombining them.",
-                "Generally it's recommended to use the largest tile size possible for"
-                " best performance (with the ideal scenario being no tiling at all),"
-                " but depending on the model and image size, this may not be possible.",
-                "If you are having issues with the automatic mode, you can manually"
-                " select a tile size. Sometimes, a manually selected tile size may be"
-                " faster than what the automatic mode picks.",
-                hint=True,
-            )
+        TileSizeDropdown()
+        .with_id(2)
+        .with_docs(
+            "Tiled upscaling is used to allow large images to be upscaled without"
+            " hitting memory limits.",
+            "This works by splitting the image into tiles (with overlap), upscaling"
+            " each tile individually, and seamlessly recombining them.",
+            "Generally it's recommended to use the largest tile size possible for"
+            " best performance (with the ideal scenario being no tiling at all),"
+            " but depending on the model and image size, this may not be possible.",
+            "If you are having issues with the automatic mode, you can manually"
+            " select a tile size. Sometimes, a manually selected tile size may be"
+            " faster than what the automatic mode picks.",
+            hint=True,
         ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
