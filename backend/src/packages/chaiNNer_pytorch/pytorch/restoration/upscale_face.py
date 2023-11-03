@@ -195,5 +195,4 @@ def upscale_face_node(
         face_helper = None
         del face_helper
         safe_cuda_cache_empty()
-        # pylint: disable=raise-missing-from
-        raise RuntimeError("Failed to run Face Upscale.")
+        raise RuntimeError("Failed to run Face Upscale.") from e

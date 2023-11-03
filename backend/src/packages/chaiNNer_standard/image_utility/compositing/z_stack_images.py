@@ -83,6 +83,6 @@ def z_stack_images_node(
     elif expression == Expression.MAX:
         result = np.max(images, axis=0)
     else:
-        assert False, f"Invalid expression '{expression}'"
+        raise AssertionError(f"Invalid expression '{expression}'")
 
     return result

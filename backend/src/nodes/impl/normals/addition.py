@@ -96,4 +96,4 @@ def add_normals(
     elif method is AdditionMethod.ANGLES:
         return __angles(xyz1, xyz2, f1, f2)
     else:
-        assert False, f"Invalid normal addition method {method}"
+        raise AssertionError(f"Invalid normal addition method {method}")

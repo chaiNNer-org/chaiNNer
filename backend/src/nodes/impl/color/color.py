@@ -59,7 +59,7 @@ class Color:
         elif c == 4:
             return Color.bgra(img.flat)
         else:
-            assert False, "Only grayscale, RGB, and RGBA colors are supported."
+            raise AssertionError("Only grayscale, RGB, and RGBA colors are supported.")
 
     @staticmethod
     def from_json(color_json: ColorJson | str) -> Color:
@@ -78,7 +78,7 @@ class Color:
             assert len(values) == 4
             return Color.bgra([values[2], values[1], values[0], values[3]])
         else:
-            assert False, f"Unknown color kind {kind}"
+            raise AssertionError(f"Unknown color kind {kind}")
 
     def to_1x1_image(self) -> np.ndarray:
         return self.to_image(1, 1)
@@ -102,6 +102,6 @@ class Color:
             kind = "rgba"
             values = [values[2], values[1], values[0], values[3]]
         else:
-            assert False, f"Colors with {len(values)} are not supported."
+            raise AssertionError(f"Colors with {len(values)} are not supported.")
 
         return {"kind": kind, "values": values}

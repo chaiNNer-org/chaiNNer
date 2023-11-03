@@ -103,7 +103,6 @@ def load_state_dict(state_dict) -> PyTorchModel:
     else:
         try:
             model = ESRGAN(state_dict)
-        except Exception:
-            # pylint: disable=raise-missing-from
-            raise UnsupportedModelError
+        except Exception as e:
+            raise UnsupportedModelError from e
     return model

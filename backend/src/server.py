@@ -582,9 +582,7 @@ async def import_packages(
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
             if config.close_after_start:
-                raise ValueError(  # pylint: disable=raise-missing-from
-                    "Error installing dependencies"
-                )
+                raise ValueError("Error installing dependencies") from ex
 
     logger.info("Done checking dependencies...")
 

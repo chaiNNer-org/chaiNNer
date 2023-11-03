@@ -42,10 +42,9 @@ def onnx_auto_split(
                 or "out of memory" in str(e)
                 or "cudaMalloc" in str(e)
             ):
-                # pylint: disable=raise-missing-from
                 raise RuntimeError(
                     "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
-                )
+                ) from e
             else:
                 # Re-raise the exception if not an OOM error
                 raise

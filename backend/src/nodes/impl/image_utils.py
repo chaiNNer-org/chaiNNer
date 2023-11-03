@@ -170,7 +170,7 @@ def as_2d_grayscale(img: np.ndarray) -> np.ndarray:
         return img
     if img.ndim == 3 and img.shape[2] == 1:
         return img[:, :, 0]
-    assert False, f"Invalid image shape {img.shape}"
+    raise AssertionError(f"Invalid image shape {img.shape}")
 
 
 def as_3d(img: np.ndarray) -> np.ndarray:

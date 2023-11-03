@@ -759,7 +759,7 @@ class NcnnOptimizer:
 
     def __eliminate_split(self):
         blob_input_references = []
-        for i, layer in enumerate(self.model.layers):
+        for _, layer in enumerate(self.model.layers):
             for input_name in layer.inputs:
                 blob_input_references.append(input_name)
 

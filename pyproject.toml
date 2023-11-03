@@ -27,6 +27,7 @@ extend-select = [
     # "ASYNC", # flake8-async
     "PL",  # pylint
     "RUF", # ruff
+    "B",   # flake8-bugbear
 ]
 ignore = [
     "E501",    # Line too long

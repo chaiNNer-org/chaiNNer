@@ -213,8 +213,7 @@ class NodeGroup:
             except CheckFailedError as e:
                 full_error_message = f"Error in {schema_id}: {e}"
                 if level == CheckLevel.ERROR:
-                    # pylint: disable=raise-missing-from
-                    raise CheckFailedError(full_error_message)
+                    raise CheckFailedError(full_error_message) from e
                 logger.warning(full_error_message)
 
         def inner_wrapper(wrapped_func: T) -> T:

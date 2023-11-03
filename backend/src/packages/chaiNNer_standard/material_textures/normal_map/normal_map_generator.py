@@ -35,7 +35,7 @@ def as_grayscale(img: np.ndarray) -> np.ndarray:
         return img
     if c == 3:
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    assert False, "Only grayscale and RGB images are supported."
+    raise AssertionError("Only grayscale and RGB images are supported.")
 
 
 def normalize(x: np.ndarray, y: np.ndarray):
@@ -295,7 +295,7 @@ def normal_map_generator_node(
     elif alpha_output is AlphaOutput.ONE:
         a = np.ones((h, w), dtype=np.float32)
     else:
-        assert False, f"Invalid alpha output '{alpha_output}'"
+        raise AssertionError(f"Invalid alpha output '{alpha_output}'")
 
     r = (x + 1) * 0.5
     g = (y + 1) * 0.5

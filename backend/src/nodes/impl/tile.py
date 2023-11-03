@@ -29,7 +29,7 @@ def tile_image(img: np.ndarray, width: int, height: int, mode: TileMode) -> np.n
             ]
         )
     else:
-        assert False, f"Invalid tile mode {mode}"
+        raise AssertionError(f"Invalid tile mode {mode}")
 
     h, w, _ = get_h_w_c(img)
     tile_w = math.ceil(width / w)

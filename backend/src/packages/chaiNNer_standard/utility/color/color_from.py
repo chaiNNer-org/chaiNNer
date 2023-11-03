@@ -112,4 +112,4 @@ def color_from_node(
     if color_type == ColorType.RGBA:
         return Color.bgra([blue / 255, green / 255, red / 255, alpha / 100])
     else:
-        assert False, f"Invalid color type {color_type}"
+        raise AssertionError(f"Invalid color type {color_type}")
