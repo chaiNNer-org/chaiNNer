@@ -156,7 +156,7 @@ def __cmyk_to_rgb(img: np.ndarray) -> np.ndarray:
 
 
 def __rgb_to_lab(img: np.ndarray) -> np.ndarray:
-    # 0≤L≤100 , −127≤a≤127, −127≤b≤127
+    # 0≤L≤100 , -127≤a≤127, -127≤b≤127
     img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     l = img[:, :, 0] / 100  # type: ignore
     a = (img[:, :, 1] + 127) / 254  # type: ignore
@@ -165,7 +165,7 @@ def __rgb_to_lab(img: np.ndarray) -> np.ndarray:
 
 
 def __lab_to_rgb(img: np.ndarray) -> np.ndarray:
-    # 0≤L≤100 , −127≤a≤127, −127≤b≤127
+    # 0≤L≤100 , -127≤a≤127, -127≤b≤127
     l = img[:, :, 2] * 100
     a = img[:, :, 1] * 254 - 127
     b = img[:, :, 0] * 254 - 127
