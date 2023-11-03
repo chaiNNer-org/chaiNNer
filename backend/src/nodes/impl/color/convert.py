@@ -66,19 +66,18 @@ def get_shortest_path(
             return best.path
 
         for cost, to in get_next(current):
-            cost = best.cost + cost
+            total_cost = best.cost + cost
             old = front.get(to, None)
             if old is None:
                 if to not in processed:
                     new_path = best.path.copy()
                     new_path.append(to)
-                    front[to] = __ProcessingItem(cost=cost, path=new_path)
-            else:
-                if old.cost > cost:
-                    old.cost = cost
-                    old.path.clear()
-                    old.path.extend(best.path)
-                    old.path.append(to)
+                    front[to] = __ProcessingItem(cost=total_cost, path=new_path)
+            elif old.cost > total_cost:
+                old.cost = total_cost
+                old.path.clear()
+                old.path.extend(best.path)
+                old.path.append(to)
 
 
 __conversions_map: Dict[ColorSpace, List[Conversion]] = {}
