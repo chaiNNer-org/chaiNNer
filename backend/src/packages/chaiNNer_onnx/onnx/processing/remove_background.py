@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 import navi
@@ -64,7 +62,7 @@ def remove_background_node(
     foreground_threshold: int,
     background_threshold: int,
     kernel_size: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Removes background from image"""
 
     settings = get_settings()

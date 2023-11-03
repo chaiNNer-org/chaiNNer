@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.pytorch.architecture.DAT import DAT
 from nodes.impl.pytorch.architecture.HAT import HAT
@@ -46,7 +44,7 @@ except Exception:
 )
 def convert_to_ncnn_node(
     model: PyTorchSRModel, is_fp16: int
-) -> Tuple[NcnnModelWrapper, str]:
+) -> tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \

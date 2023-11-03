@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from math import ceil
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 
@@ -163,8 +163,8 @@ class OutpaintingMethod(Enum):
 )
 def outpaint_node(
     image: np.ndarray,
-    prompt: Optional[str],
-    negative_prompt: Optional[str],
+    prompt: str | None,
+    negative_prompt: str | None,
     denoising_strength: float,
     seed: Seed,
     steps: int,
@@ -206,7 +206,7 @@ def outpaint_node(
     expected_output_height = int(ceil(expected_output_height / 64) * 64)
 
     direction = ",".join(direction)
-    request_data: Dict[str, Any] = {
+    request_data: dict[str, Any] = {
         "init_images": [encode_base64_image(image)],
         "prompt": prompt or "",
         "negative_prompt": negative_prompt or "",

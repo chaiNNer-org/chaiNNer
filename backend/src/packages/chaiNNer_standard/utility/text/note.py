@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 from nodes.properties.inputs import TextInput
 
 from .. import text_group
@@ -22,5 +20,5 @@ from .. import text_group
     ],
     outputs=[],
 )
-def note_node(_text: Union[str, None]) -> None:
+def note_node(_text: str | None) -> None:
     return

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from nodes.properties.inputs import ImageInput
@@ -27,6 +25,6 @@ from .. import utility_group
 )
 def get_dimensions_node(
     img: np.ndarray,
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     h, w, c = get_h_w_c(img)
     return w, h, c

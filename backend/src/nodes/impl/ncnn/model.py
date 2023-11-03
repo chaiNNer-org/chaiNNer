@@ -377,7 +377,7 @@ class NcnnModel:
             param_path = bin_path.replace(".bin", ".param")
 
         model = NcnnModel()
-        with open(param_path, "r", encoding="utf-8") as paramf:
+        with open(param_path, encoding="utf-8") as paramf:
             with open(bin_path, "rb") as binf:
                 paramf.readline()
                 counts = paramf.readline().strip().split(" ")

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 import navi
@@ -56,7 +54,7 @@ from . import node_group
 )
 def separate_rgba_node(
     img: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     h, w, c = get_h_w_c(img)
     safe_out = np.ones((h, w), dtype=np.float32)
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Set, TypeVar, Union
+from typing import Callable, TypeVar, Union
 
 from api import InputId, NodeData, NodeId, OutputId, registry
 
@@ -8,7 +8,7 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-def get_or_add(d: Dict[K, V], key: K, supplier: Callable[[], V]) -> V:
+def get_or_add(d: dict[K, V], key: K, supplier: Callable[[], V]) -> V:
     value = d.get(key)
     if value is None:
         value = supplier()
@@ -72,9 +72,9 @@ class Edge:
 
 class Chain:
     def __init__(self):
-        self.nodes: Dict[NodeId, Node] = {}
-        self.__edges_by_source: Dict[NodeId, List[Edge]] = {}
-        self.__edges_by_target: Dict[NodeId, List[Edge]] = {}
+        self.nodes: dict[NodeId, Node] = {}
+        self.__edges_by_source: dict[NodeId, list[Edge]] = {}
+        self.__edges_by_target: dict[NodeId, list[Edge]] = {}
 
     def add_node(self, node: Node):
         assert node.id not in self.nodes, f"Duplicate node id {node.id}"
@@ -84,10 +84,10 @@ class Chain:
         get_or_add(self.__edges_by_source, edge.source.id, list).append(edge)
         get_or_add(self.__edges_by_target, edge.target.id, list).append(edge)
 
-    def edges_from(self, source: NodeId) -> List[Edge]:
+    def edges_from(self, source: NodeId) -> list[Edge]:
         return self.__edges_by_source.get(source, [])
 
-    def edges_to(self, target: NodeId) -> List[Edge]:
+    def edges_to(self, target: NodeId) -> list[Edge]:
         return self.__edges_by_target.get(target, [])
 
     def remove_node(self, node_id: NodeId):
@@ -105,12 +105,12 @@ class Chain:
         for e in self.__edges_by_target.pop(node_id, []):
             self.__edges_by_source[e.source.id].remove(e)
 
-    def topological_order(self) -> List[NodeId]:
+    def topological_order(self) -> list[NodeId]:
         """
         Returns all nodes in topological order.
         """
-        result: List[NodeId] = []
-        visited: Set[NodeId] = set()
+        result: list[NodeId] = []
+        visited: set[NodeId] = set()
 
         def visit(node_id: NodeId):
             if node_id in visited:
@@ -127,11 +127,11 @@ class Chain:
 
         return result
 
-    def get_parent_iterator_map(self) -> Dict[FunctionNode, NewIteratorNode | None]:
+    def get_parent_iterator_map(self) -> dict[FunctionNode, NewIteratorNode | None]:
         """
         Returns a map of all function nodes to their parent iterator node (if any).
         """
-        iterator_cache: Dict[FunctionNode, NewIteratorNode | None] = {}
+        iterator_cache: dict[FunctionNode, NewIteratorNode | None] = {}
 
         def get_iterator(r: FunctionNode) -> NewIteratorNode | None:
             if r in iterator_cache:

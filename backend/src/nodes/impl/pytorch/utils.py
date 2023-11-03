@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Type
-
 import numpy as np
 import torch
 from torch import Tensor
@@ -91,7 +89,7 @@ def tensor2np(
     data_range=255,
     denormalize=False,
     change_range=True,
-    imtype: Type = np.uint8,
+    imtype: type = np.uint8,
 ) -> np.ndarray:
     """Converts a Tensor array into a numpy image array.
     Parameters:

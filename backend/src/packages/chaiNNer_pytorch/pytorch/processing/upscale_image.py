@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 import torch
 from sanic.log import logger
@@ -45,7 +43,7 @@ def upscale(
 
         def estimate():
             if "cuda" in device.type:
-                mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
+                mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
                 model_bytes = sum(p.numel() * element_size for p in model.parameters())

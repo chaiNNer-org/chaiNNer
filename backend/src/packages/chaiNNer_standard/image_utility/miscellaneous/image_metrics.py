@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import Tuple
 
 import cv2
 import numpy as np
@@ -33,7 +32,7 @@ from .. import miscellaneous_group
 )
 def image_metrics_node(
     orig_img: np.ndarray, comp_img: np.ndarray
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """Compute MSE, PSNR, and SSIM"""
 
     assert (

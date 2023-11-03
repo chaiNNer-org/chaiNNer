@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 import cv2
 import numpy as np
@@ -22,7 +21,7 @@ class ThresholdType(Enum):
     TO_ZERO_INV = cv2.THRESH_TOZERO_INV
 
 
-_THRESHOLD_TYPE_LABELS: Dict[ThresholdType, str] = {
+_THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
     ThresholdType.BINARY: "Binary",
     ThresholdType.BINARY_INV: "Binary (Inverted)",
     ThresholdType.TRUNC: "Truncated",

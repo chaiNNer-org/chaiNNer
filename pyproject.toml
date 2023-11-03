@@ -17,7 +17,7 @@ unsafe-fixes = true
 [tool.ruff.lint]
 # Add the `line-too-long` rule to the enforced rule set.
 extend-select = [
-    # "UP", # pyupgrade
+    "UP", # pyupgrade
     "E", # pycodestyle
     "W", # pycodestyle
     # "F",  # pyflakes

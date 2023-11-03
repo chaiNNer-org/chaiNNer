@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 import navi
@@ -13,7 +11,7 @@ from nodes.utils.utils import get_h_w_c
 from .. import conversion_group
 
 
-def get_size(img: np.ndarray) -> Tuple[int, int]:
+def get_size(img: np.ndarray) -> tuple[int, int]:
     h, w, _ = get_h_w_c(img)
     return w, h
 
@@ -24,7 +22,7 @@ def spec_to_metal(
     gloss: np.ndarray | None,
     metallic_min: float,
     metallic_max: float,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     assert get_h_w_c(diff)[2] == 3, "Expected the diffuse map to be an RGB image"
     assert get_h_w_c(spec)[2] == 3, "Expected the specular map to be an RGB image"
 
@@ -117,7 +115,7 @@ def specular_to_metal_node(
     gloss: np.ndarray | None,
     metallic_min: float,
     metallic_max: float,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     metallic_min /= 100
     metallic_max /= 100
 

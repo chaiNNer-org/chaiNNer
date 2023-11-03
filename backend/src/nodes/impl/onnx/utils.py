@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Tuple
+from typing import Literal
 
 import onnxoptimizer
 import onnxruntime as ort
@@ -16,8 +16,8 @@ def as_int(value) -> int | None:
 
 
 def parse_onnx_shape(
-    shape: Tuple[int | str, str | int, str | int, str | int]
-) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+    shape: tuple[int | str, str | int, str | int, str | int]
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     if isinstance(shape[1], int) and shape[1] <= 4:
         return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
     elif isinstance(shape[3], int) and shape[3] <= 4:
@@ -28,7 +28,7 @@ def parse_onnx_shape(
 
 def get_input_shape(
     session: ort.InferenceSession,
-) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     """
     Returns the input shape, input channels, input width (optional), and input height (optional).
     """
@@ -38,7 +38,7 @@ def get_input_shape(
 
 def get_output_shape(
     session: ort.InferenceSession,
-) -> Tuple[OnnxInputShape, int, int | None, int | None]:
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     """
     Returns the output shape, output channels, output width (optional), and output height (optional).
     """

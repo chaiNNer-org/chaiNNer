@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from api import Iterator, IteratorOutputInfo
@@ -59,7 +57,7 @@ def split_spritesheet_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,
-) -> Iterator[Tuple[np.ndarray, int]]:
+) -> Iterator[tuple[np.ndarray, int]]:
     h, w, _ = get_h_w_c(sprite_sheet)
     assert (
         h % rows == 0

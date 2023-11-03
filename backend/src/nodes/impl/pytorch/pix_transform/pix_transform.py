@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, Tuple
+from typing import Literal
 
 import numpy as np
 import torch
@@ -15,7 +15,7 @@ from .pix_transform_net import PixTransformNet
 class Params:
     spatial_features_input: bool = True
     # spatial color head
-    weights_regularizer: Tuple[float, float, float] | None = (0.0001, 0.001, 0.001)
+    weights_regularizer: tuple[float, float, float] | None = (0.0001, 0.001, 0.001)
     loss: Literal["mse", "l1"] = "l1"
     lr: float = 0.001
     batch_size: int = 32

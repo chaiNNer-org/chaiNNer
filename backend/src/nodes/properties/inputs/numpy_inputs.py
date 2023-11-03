@@ -1,7 +1,7 @@
 # pylint: disable=relative-beyond-top-level
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Union
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class ImageInput(BaseInput):
         self,
         label: str = "Image",
         image_type: navi.ExpressionJson = "Image | Color",
-        channels: Union[int, List[int], None] = None,
+        channels: int | list[int] | None = None,
         allow_colors: bool = False,
     ):
         base_type = [navi.Image(channels=channels)]
@@ -36,7 +36,7 @@ class ImageInput(BaseInput):
         image_type = navi.intersect(image_type, base_type)
         super().__init__(image_type, label)
 
-        self.channels: Optional[List[int]] = (
+        self.channels: list[int] | None = (
             [channels] if isinstance(channels, int) else channels
         )
         self.allow_colors: bool = allow_colors

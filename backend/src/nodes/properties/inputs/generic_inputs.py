@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from enum import Enum
-from typing import Dict, Generic, List, Literal, Tuple, Type, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar, Union
 
 import numpy as np
 from sanic.log import logger
@@ -57,10 +57,10 @@ class DropDownInput(BaseInput):
         self,
         input_type: navi.ExpressionJson,
         label: str,
-        options: List[DropDownOption],
+        options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
-        associated_type: Union[Type, None] = None,
+        associated_type: Any = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
@@ -149,11 +149,11 @@ class EnumInput(Generic[T], DropDownInput):
 
     def __init__(
         self,
-        enum: Type[T],
+        enum: type[T],
         label: str | None = None,
         default: T | None = None,
         type_name: str | None = None,
-        option_labels: Dict[T, str] | None = None,
+        option_labels: dict[T, str] | None = None,
         extra_definitions: str | None = None,
     ):
         if type_name is None:
@@ -163,8 +163,8 @@ class EnumInput(Generic[T], DropDownInput):
         if option_labels is None:
             option_labels = {}
 
-        options: List[DropDownOption] = []
-        variant_types: List[str] = []
+        options: list[DropDownOption] = []
+        variant_types: list[str] = []
         for variant in enum:
             value = variant.value
             assert isinstance(value, (int, str))
@@ -211,11 +211,11 @@ class TextInput(BaseInput):
         label: str,
         has_handle=True,
         min_length: int = 0,
-        max_length: Union[int, None] = None,
-        placeholder: Union[str, None] = None,
+        max_length: int | None = None,
+        placeholder: str | None = None,
         multiline: bool = False,
         allow_numbers: bool = True,
-        default: Union[str, None] = None,
+        default: str | None = None,
         hide_label: bool = False,
         allow_empty_string: bool = False,
     ):
@@ -338,7 +338,7 @@ class ColorInput(BaseInput):
         self,
         label: str = "Color",
         default: Color | None = None,
-        channels: int | List[int] | None = None,
+        channels: int | list[int] | None = None,
     ):
         super().__init__(
             input_type=navi.Color(channels=channels),
@@ -354,7 +354,7 @@ class ColorInput(BaseInput):
             }
         """
 
-        self.channels: List[int] | None = (
+        self.channels: list[int] | None = (
             [channels] if isinstance(channels, int) else channels
         )
 
@@ -427,7 +427,7 @@ VIDEO_CONTAINERS = {
 }
 
 
-VIDEO_FFV1_CONTAINERS: List[VideoContainer] = [VideoContainer.MKV]
+VIDEO_FFV1_CONTAINERS: list[VideoContainer] = [VideoContainer.MKV]
 
 
 def VideoFfv1ContainerDropdown() -> DropDownInput:
@@ -442,7 +442,7 @@ def VideoFfv1ContainerDropdown() -> DropDownInput:
     )
 
 
-VIDEO_VP9_CONTAINERS: List[VideoContainer] = [
+VIDEO_VP9_CONTAINERS: list[VideoContainer] = [
     VideoContainer.WEBM,
     VideoContainer.MP4,
     VideoContainer.MKV,
@@ -461,7 +461,7 @@ def VideoVp9ContainerDropdown() -> DropDownInput:
     )
 
 
-VIDEO_H264_CONTAINERS: List[VideoContainer] = [
+VIDEO_H264_CONTAINERS: list[VideoContainer] = [
     VideoContainer.MKV,
     VideoContainer.MP4,
     VideoContainer.MOV,
@@ -481,7 +481,7 @@ def VideoH264ContainerDropdown() -> DropDownInput:
     )
 
 
-VIDEO_H265_CONTAINERS: List[VideoContainer] = [
+VIDEO_H265_CONTAINERS: list[VideoContainer] = [
     VideoContainer.MKV,
     VideoContainer.MP4,
     VideoContainer.MOV,
@@ -594,7 +594,7 @@ def TileSizeDropdown(
     )
 
 
-SUPPORTED_DDS_FORMATS: List[Tuple[DDSFormat, str]] = [
+SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
     ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
     ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
     ("BC3_UNORM_SRGB", "BC3 (8bpp, sRGB, 8-bit Alpha)"),

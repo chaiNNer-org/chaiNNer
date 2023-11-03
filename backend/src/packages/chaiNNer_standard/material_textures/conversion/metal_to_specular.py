@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 import navi
@@ -13,7 +11,7 @@ from nodes.utils.utils import get_h_w_c
 from .. import conversion_group
 
 
-def get_size(img: np.ndarray) -> Tuple[int, int]:
+def get_size(img: np.ndarray) -> tuple[int, int]:
     h, w, _ = get_h_w_c(img)
     return w, h
 
@@ -22,7 +20,7 @@ def metal_to_spec(
     albedo: np.ndarray,
     metal: np.ndarray,
     roughness: np.ndarray | None,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     assert get_h_w_c(albedo)[2] == 3, "Expected the albedo map to be an RGB image"
 
     # This uses the conversion method described here:
@@ -87,7 +85,7 @@ def metal_to_specular_node(
     albedo: np.ndarray,
     metal: np.ndarray,
     roughness: np.ndarray | None,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     albedo_channels = get_h_w_c(albedo)[2]
     if albedo_channels == 4:
         albedo_alpha = albedo[:, :, 3]

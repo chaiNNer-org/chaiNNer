@@ -5,7 +5,7 @@ import inspect
 import os
 import pathlib
 from enum import Enum
-from typing import Any, Callable, Dict, List, NewType, Set, Union, cast, get_args
+from typing import Any, Callable, NewType, Union, cast, get_args
 
 from .input import BaseInput
 from .output import BaseOutput
@@ -93,7 +93,7 @@ def eval_type(t: str | _Ty, __globals: dict[str, Any]):
         raise ValueError(f"Unable to evaluate type '{t}': {e}") from e
 
 
-def union_types(types: List[_Ty]) -> _Ty:
+def union_types(types: list[_Ty]) -> _Ty:
     assert len(types) > 0
     t: Any = types[0]
     for t2 in types[1:]:
@@ -101,7 +101,7 @@ def union_types(types: List[_Ty]) -> _Ty:
     return t
 
 
-def union_to_set(t: _Ty) -> Set[_Ty]:
+def union_to_set(t: _Ty) -> set[_Ty]:
     s = str(t)
     if s.startswith("typing.Union["):
         return set(get_args(t))
@@ -118,14 +118,19 @@ def is_subset_of(a: _Ty, b: _Ty) -> bool:
     return union_to_set(a).issubset(union_to_set(b))
 
 
-def get_type_annotations(fn: Callable) -> Dict[str, _Ty]:
+def is_tuple(t: _Ty) -> bool:
+    s = str(t)
+    return s.startswith("typing.Tuple[") or s.startswith("tuple[")
+
+
+def get_type_annotations(fn: Callable) -> dict[str, _Ty]:
     """Get the annotations for a function, with support for Python 3.8+"""
     ann = getattr(fn, "__annotations__", None)
 
     if ann is None:
         return {}
 
-    type_annotations: Dict[str, _Ty] = {}
+    type_annotations: dict[str, _Ty] = {}
     for k, v in ann.items():
         type_annotations[k] = eval_type(v, fn.__globals__)
     return type_annotations
@@ -151,7 +156,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
-        if not str(return_type).startswith("typing.Tuple["):
+        if not is_tuple(return_type):
             raise CheckFailedError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )

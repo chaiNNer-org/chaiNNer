@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
@@ -50,7 +48,7 @@ def check_will_upscale(interp: NcnnModelWrapper):
 )
 def interpolate_models_node(
     model_a: NcnnModelWrapper, model_b: NcnnModelWrapper, amount: int
-) -> Tuple[NcnnModelWrapper, int, int]:
+) -> tuple[NcnnModelWrapper, int, int]:
     if amount == 0:
         return model_a, 100, 0
     elif amount == 100:

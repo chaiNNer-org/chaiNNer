@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import List, Tuple
 
 import numpy as np
 import onnx
@@ -24,7 +23,7 @@ def perform_interp(
     model_a_weights: RepeatedCompositeFieldContainer,
     model_b_weights: RepeatedCompositeFieldContainer,
     amount: float,
-) -> List[TensorProto]:
+) -> list[TensorProto]:
     amount_b = amount / 100
     amount_a = 1 - amount_b
 
@@ -87,7 +86,7 @@ def interpolate_models_node(
     a: OnnxModel,
     b: OnnxModel,
     amount: int,
-) -> Tuple[OnnxModel, int, int]:
+) -> tuple[OnnxModel, int, int]:
     if amount == 0:
         return a, 100, 0
     elif amount == 100:

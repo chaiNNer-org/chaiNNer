@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
 
 import torch
 from safetensors.torch import load_file
@@ -65,7 +64,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
         "chainner:pytorch:load_models",
     ],
 )
-def load_model_node(path: str) -> Tuple[PyTorchModel, str, str]:
+def load_model_node(path: str) -> tuple[PyTorchModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 

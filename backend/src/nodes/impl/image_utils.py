@@ -6,7 +6,6 @@ import os
 import random
 import string
 from enum import Enum
-from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -305,7 +304,7 @@ def calculate_ssim(
     return float(np.mean(ssim_map))
 
 
-def cv_save_image(path: str, img: np.ndarray, params: List[int]):
+def cv_save_image(path: str, img: np.ndarray, params: list[int]):
     """
     A light wrapper around `cv2.imwrite` to support non-ASCII paths.
     """
@@ -327,7 +326,7 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
                 outf.write(buf_img)  # type: ignore
 
 
-def cartesian_product(arrays: List[np.ndarray]) -> np.ndarray:
+def cartesian_product(arrays: list[np.ndarray]) -> np.ndarray:
     """
     Returns the cartesian product of the given arrays. Good for initializing coordinates, for example.
 
@@ -389,7 +388,7 @@ def fast_gaussian_blur(
             return 6
         return 8
 
-    def get_sizing(size: int, sigma: float, f: float) -> Tuple[int, float, float]:
+    def get_sizing(size: int, sigma: float, f: float) -> tuple[int, float, float]:
         """
         Return the size of the downsampled image, the sigma of the downsampled gaussian blur,
         and the sigma of the upscaled gaussian blur.
