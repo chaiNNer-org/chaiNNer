@@ -87,7 +87,7 @@ def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
 def _get_iinfo(img: np.ndarray) -> np.iinfo | None:
     try:
         return np.iinfo(img.dtype)
-    except:
+    except Exception:
         return None
 
 
@@ -321,7 +321,7 @@ def cv_save_image(path: str, img: np.ndarray, params: List[int]):
             full_temp_path = os.path.join(dirname, temp_filename)
             cv2.imwrite(full_temp_path, img, params)
             os.rename(full_temp_path, path)
-        except:
+        except Exception:
             _, buf_img = cv2.imencode(f".{extension}", img, params)
             with open(path, "wb") as outf:
                 outf.write(buf_img)  # type: ignore

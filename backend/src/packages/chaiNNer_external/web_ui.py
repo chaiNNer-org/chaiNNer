@@ -128,7 +128,7 @@ async def get_verified_api() -> Api | None:
         try:
             await _CURRENT_API.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
             return _CURRENT_API
-        except:
+        except Exception:
             _CURRENT_API = None
 
     # check all apis in parallel

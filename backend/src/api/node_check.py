@@ -42,7 +42,7 @@ def _get_check_level(name: str, default: CheckLevel) -> CheckLevel:
     try:
         s = os.environ.get(name, default.value)
         return CheckLevel.parse(s)
-    except:
+    except Exception:
         return default
 
 

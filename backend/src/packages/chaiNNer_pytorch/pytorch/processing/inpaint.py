@@ -99,13 +99,13 @@ def inpaint(
             if d_img is not None:
                 try:
                     d_img.detach().cpu()
-                except:
+                except Exception:
                     pass
                 del d_img
             if d_mask is not None:
                 try:
                     d_mask.detach().cpu()
-                except:
+                except Exception:
                     pass
                 del d_mask
             gc.collect()

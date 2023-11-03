@@ -24,10 +24,10 @@ __TEXCONV_EXE = os.path.join(__TEXCONV_DIR, "texconv.exe")
 def __decode(b: bytes) -> str:
     try:
         return b.decode(encoding="iso8859-1")
-    except:
+    except Exception:
         try:
             return b.decode(encoding="utf-8")
-        except:
+        except Exception:
             return str(b)
 
 

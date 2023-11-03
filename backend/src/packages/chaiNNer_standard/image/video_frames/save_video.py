@@ -239,7 +239,7 @@ def save_video_node(
             key, value = parameter, None
             try:
                 key, value = parameter.split(" ")
-            except:
+            except Exception:
                 pass
 
             if value is not None:
@@ -342,14 +342,14 @@ def save_video_node(
                 # delete original, rename new
                 os.remove(video_path)
                 os.rename(audio_video_path, video_path)
-            except:
+            except Exception:
                 logger.warning(
                     "Failed to copy audio to video, input file probably contains "
                     "no audio or audio stream is supported by this container. Ignoring audio settings."
                 )
                 try:
                     os.remove(audio_video_path)
-                except:
+                except Exception:
                     pass
 
     return Collector(on_iterate=on_iterate, on_complete=on_complete)

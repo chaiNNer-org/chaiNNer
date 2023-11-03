@@ -6,13 +6,13 @@ from .numpy_inputs import *
 
 try:
     from .ncnn_inputs import *
-except:
+except Exception:
     pass
 try:
     from .onnx_inputs import *
-except:
+except Exception:
     pass
 try:
     from .pytorch_inputs import *
-except:
+except Exception:
     pass

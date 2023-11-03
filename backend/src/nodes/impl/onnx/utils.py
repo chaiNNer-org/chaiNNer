@@ -53,6 +53,6 @@ def safely_optimize_onnx_model(model_proto: ModelProto) -> ModelProto:
     try:
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
         model_proto = onnxoptimizer.optimize(model_proto, passes)
-    except:
+    except Exception:
         pass
     return model_proto

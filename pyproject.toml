@@ -16,10 +16,10 @@ extend-exclude = ["**/pytorch/architecture/**"]
 # Add the `line-too-long` rule to the enforced rule set.
 extend-select = [
     # "UP", # pyupgrade
-    "E",  # pycodestyle
-    "W",  # pycodestyle
+    "E", # pycodestyle
+    "W", # pycodestyle
     # "F",  # pyflakes
-    "I",  # isort
+    "I", # isort
     # "N",     # pep8-naming
     # "ANN",   # flake8-annotations
     # "ASYNC", # flake8-async
@@ -34,7 +34,9 @@ ignore = [
     "PLR0913", # Too many arguments
     "PLR0915", # Too many statements,
     "E741",    # Ambiguous variable name,
+    "E712",    # true-false-comparison, has false positives because of numpy's operator overloading
     "F821",    # Undefined name -- this one is weird, it seems like it has false positives on closures and other context changes
+    "F403",    # 'from module import *' used; unable to detect undefined names
 ]
 
 [tool.ruff.format]
