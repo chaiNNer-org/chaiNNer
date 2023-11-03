@@ -29,7 +29,7 @@ def kmeans_palette(image: np.ndarray, num_colors: int) -> np.ndarray:
     attempts = 10
     cv2.setRNGSeed(0)
     _, _, center = cv2.kmeans(
-        flat_image,
+        flat_image,  # type: ignore
         num_colors,
         None,  # type: ignore
         criteria,

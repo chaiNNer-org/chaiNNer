@@ -46,7 +46,7 @@ def add_caption(
     pimg = Image.fromarray(to_uint8(img))
     font_path = os.path.join(
         os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore
-        "fonts/Roboto-Light.ttf",
+        "fonts/Roboto-Light.ttf",  # type: ignore
     )
     font = ImageFont.truetype(font_path, fontsize)
     h, w, c = get_h_w_c(img)

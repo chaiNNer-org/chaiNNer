@@ -16,7 +16,7 @@ from .format import SRGB_FORMATS, DxgiFormat
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore
-    "texconv",
+    "texconv",  # type: ignore
 )
 __TEXCONV_EXE = os.path.join(__TEXCONV_DIR, "texconv.exe")
 
