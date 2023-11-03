@@ -7,7 +7,7 @@ requires-python = ">=3.8"
 line-length = 88
 indent-width = 4
 
-src = ["backend/src"]
+src = ["src"]
 
 # ignore vendored code
 extend-exclude = ["**/pytorch/architecture/**"]
