@@ -19,13 +19,13 @@ from . import node_group
     outputs=[
         ImageOutput(
             "RGB",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=3,
             assume_normalized=True,
         ),
         ImageOutput(
             "Alpha",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ),

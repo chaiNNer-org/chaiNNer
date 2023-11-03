@@ -20,9 +20,9 @@ extend-select = [
     "UP", # pyupgrade
     "E",  # pycodestyle
     "W",  # pycodestyle
-    # "F",  # pyflakes
-    "I", # isort
-    # "N",     # pep8-naming
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
     # "ANN",   # flake8-annotations
     # "ASYNC", # flake8-async
     "PL", # pylint
@@ -40,6 +40,7 @@ ignore = [
     "F821",    # Undefined name -- this one is weird, it seems like it has false positives on closures and other context changes
     "F403",    # 'from module import *' used; unable to detect undefined names
     "PLW0603", # Using the global statement
+    "N999",    # Invalid module name (which triggers for chaiNNer)
 ]
 
 [tool.ruff.format]

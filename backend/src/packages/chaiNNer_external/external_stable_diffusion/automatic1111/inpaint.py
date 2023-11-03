@@ -45,7 +45,7 @@ class InpaintArea(Enum):
     icon="MdChangeCircle",
     inputs=[
         ImageInput(),
-        ImageInput("Mask", channels=1, image_type=navi.Image(size_as="Input0")),
+        ImageInput("Mask", channels=1, image_type=navi.image(size_as="Input0")),
         TextInput("Prompt", multiline=True).make_optional(),
         TextInput("Negative Prompt", multiline=True).make_optional(),
         SliderInput(

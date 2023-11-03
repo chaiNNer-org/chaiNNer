@@ -65,7 +65,7 @@ def metal_to_spec(
         ImageOutput("Diffuse", image_type="Input0"),
         ImageOutput(
             "Specular",
-            image_type=navi.Image(size_as="Input1"),
+            image_type=navi.image(size_as="Input1"),
             channels=3,
         ),
         ImageOutput(

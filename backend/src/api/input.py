@@ -42,7 +42,7 @@ class InputConversion:
     type: navi.ExpressionJson
     convert: navi.ExpressionJson
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "type": self.type,
             "convert": self.convert,
@@ -125,12 +125,12 @@ class BaseInput:
             "typeModule": type(value).__module__,
         }
 
-    def toDict(self):
+    def to_dict(self):
         actual_type = [self.input_type, "null"] if self.optional else self.input_type
         return {
             "id": self.id,
             "type": actual_type,
-            "conversions": [c.toDict() for c in self.input_conversions],
+            "conversions": [c.to_dict() for c in self.input_conversions],
             "adapt": self.input_adapt,
             "typeDefinitions": self.type_definitions,
             "kind": self.kind,
@@ -158,7 +158,7 @@ class BaseInput:
         return self
 
     def __repr__(self):
-        return str(self.toDict())
+        return str(self.to_dict())
 
     def __iter__(self):
-        yield from self.toDict().items()
+        yield from self.to_dict().items()

@@ -11,8 +11,8 @@ __maintainer__ = "Daniel Steinberg"
 __link__ = "https://github.com/dstein64/colortrans"
 
 
-def matrix_sqrt(X):
-    eig_val, eig_vec = np.linalg.eig(X)
+def matrix_sqrt(x):
+    eig_val, eig_vec = np.linalg.eig(x)
     return eig_vec.dot(np.diag(np.sqrt(eig_val.clip(min=0)))).dot(eig_vec.T)
 
 

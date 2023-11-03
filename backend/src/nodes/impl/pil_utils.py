@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 from ..utils.utils import get_h_w_c
-from .image_utils import FillColor, convert_to_BGRA, normalize, to_uint8
+from .image_utils import FillColor, convert_to_bgra, normalize, to_uint8
 
 
 class InterpolationMethod(Enum):
@@ -73,7 +73,7 @@ def rotate(
 
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:
-        img = convert_to_BGRA(img, c)
+        img = convert_to_bgra(img, c)
     fill_color = tuple([x * 255 for x in fill.get_color(c)])
 
     resample = INTERPOLATION_METHODS_MAP[interpolation.interpolation_method]

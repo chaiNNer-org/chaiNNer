@@ -274,7 +274,7 @@ class Category:
         self.node_groups.append(result)
         return result
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "name": self.name,
             "description": self.description,
@@ -295,7 +295,7 @@ class Dependency:
 
     import_name: str | None = None
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "displayName": self.display_name,
             "pypiName": self.pypi_name,
@@ -323,7 +323,7 @@ class Feature:
         self.behavior = FeatureBehavior(check=check)
         return FeatureId(self.id)
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,

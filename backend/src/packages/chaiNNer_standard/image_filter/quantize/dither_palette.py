@@ -45,7 +45,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
     icon="MdShowChart",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        ImageInput(label="Palette", image_type=navi.Image(channels_as="Input0")),
+        ImageInput(label="Palette", image_type=navi.image(channels_as="Input0")),
         EnumInput(
             PaletteDitherAlgorithm,
             option_labels=PALETTE_DITHER_ALGORITHM_LABELS,

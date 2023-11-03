@@ -45,9 +45,9 @@ class FileInput(BaseInput):
 
         self.associated_type = str
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "filetypes": self.filetypes,
             "fileKind": self.file_kind,
             "primaryInput": self.primary_input,
@@ -60,7 +60,7 @@ class FileInput(BaseInput):
         return value
 
 
-def ImageFileInput(primary_input: bool = False) -> FileInput:
+def ImageFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local image file"""
     return FileInput(
         input_type_name="ImageFile",
@@ -72,7 +72,7 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def VideoFileInput(primary_input: bool = False) -> FileInput:
+def VideoFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local video file"""
     return FileInput(
         input_type_name="VideoFile",
@@ -96,7 +96,7 @@ def VideoFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def PthFileInput(primary_input: bool = False) -> FileInput:
+def PthFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local .pth file"""
     return FileInput(
         input_type_name="PthFile",
@@ -131,9 +131,9 @@ class DirectoryInput(BaseInput):
 
         self.associated_type = str
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "hideLabel": self.hide_label,
         }
 
@@ -144,7 +144,7 @@ class DirectoryInput(BaseInput):
         return value
 
 
-def BinFileInput(primary_input: bool = False) -> FileInput:
+def BinFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local .bin file"""
     return FileInput(
         input_type_name="NcnnBinFile",
@@ -155,7 +155,7 @@ def BinFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def ParamFileInput(primary_input: bool = False) -> FileInput:
+def ParamFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local .param file"""
     return FileInput(
         input_type_name="NcnnParamFile",
@@ -166,7 +166,7 @@ def ParamFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def OnnxFileInput(primary_input: bool = False) -> FileInput:
+def OnnxFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     """Input for submitting a local .onnx file"""
     return FileInput(
         input_type_name="OnnxFile",

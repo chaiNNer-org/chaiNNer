@@ -22,7 +22,7 @@ from . import node_group
     outputs=[
         ImageOutput(
             "R Channel",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         )
@@ -30,7 +30,7 @@ from . import node_group
         .with_id(2),
         ImageOutput(
             "G Channel",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         )
@@ -38,7 +38,7 @@ from . import node_group
         .with_id(1),
         ImageOutput(
             "B Channel",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         )
@@ -46,7 +46,7 @@ from . import node_group
         .with_id(0),
         ImageOutput(
             "A Channel",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
         ).with_docs("The alpha (transparency mask) channel."),

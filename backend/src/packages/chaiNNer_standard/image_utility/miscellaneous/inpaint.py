@@ -50,7 +50,7 @@ class InpaintAlgorithm(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(
+            image_type=navi.image(
                 width="Input0.width & Input1.width",
                 height="Input0.height & Input1.height",
                 channels="Input0.channels",

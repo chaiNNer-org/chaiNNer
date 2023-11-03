@@ -22,7 +22,7 @@ from .. import create_images_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(
+            image_type=navi.image(
                 width="Input1",
                 height="Input2",
                 channels="Input0.channels",

@@ -46,7 +46,7 @@ class TextOutput(BaseOutput):
         return value
 
 
-def FileNameOutput(label: str = "Name", of_input: int | None = None):
+def FileNameOutput(label: str = "Name", of_input: int | None = None):  # noqa: N802
     output_type = (
         "string"
         if of_input is None
@@ -73,7 +73,7 @@ class ColorOutput(BaseOutput):
         channels: int | None = None,
     ):
         super().__init__(
-            output_type=navi.intersect(color_type, navi.Color(channels=channels)),
+            output_type=navi.intersect(color_type, navi.color(channels=channels)),
             label=label,
             kind="generic",
         )

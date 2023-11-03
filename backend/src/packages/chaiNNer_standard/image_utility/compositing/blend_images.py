@@ -9,7 +9,7 @@ from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.blend import BlendMode, blend_images
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import as_2d_grayscale
-from nodes.impl.pil_utils import convert_to_BGRA
+from nodes.impl.pil_utils import convert_to_bgra
 from nodes.properties.inputs import (
     BlendModeDropdown,
     BoolInput,
@@ -244,7 +244,7 @@ def blend_images_node(
 
     if any((top, bottom, left, right)):
         # copyMakeBorder will create black border if base not converted to RGBA first
-        base = convert_to_BGRA(base, base_channel_count)
+        base = convert_to_bgra(base, base_channel_count)
         base = cv2.copyMakeBorder(
             base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0.0,)
         )
@@ -286,7 +286,7 @@ def blend_images_node(
     # Have to ensure blend and result have same shape
     if result_c < blend_c:
         if blend_c == 4:
-            result = convert_to_BGRA(result, result_c)
+            result = convert_to_bgra(result, result_c)
         else:
             result = as_2d_grayscale(result)
             result = np.dstack((result, result, result))

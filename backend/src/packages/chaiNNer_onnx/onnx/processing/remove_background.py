@@ -50,7 +50,7 @@ from .. import processing_group
             """,
             channels=4,
         ),
-        ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
+        ImageOutput("Mask", image_type=navi.image(size_as="Input0"), channels=1),
     ],
     limited_to_8bpc=True,
 )

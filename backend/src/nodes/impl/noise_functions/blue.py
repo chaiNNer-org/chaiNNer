@@ -50,7 +50,7 @@ def find_tightest_cluster(binary_pattern: np.ndarray, standard_deviation: float)
 def create_blue_noise(
     output_shape: tuple[int, int],
     standard_deviation: float = 1.5,
-    InitialSeedFraction: float = 0.1,
+    initial_seed_fraction: float = 0.1,
     seed: int = 0,
 ):
     """Generates a blue noise dither array of the given shape using the method
@@ -67,7 +67,7 @@ def create_blue_noise(
            Ulichney proposes to use a value of 1.5. If you want an anisotropic
            Gaussian, you can pass a tuple of length len(OutputShape) with one
            standard deviation per dimension.
-    @param InitialSeedFraction The only non-deterministic step in the algorithm
+    @param initial_seed_fraction The only non-deterministic step in the algorithm
            marks a small number of pixels in the grid randomly. This parameter
            defines the fraction of such points. It has to be positive but less
            than 0.5. Very small values lead to ordered patterns, beyond that there
@@ -77,7 +77,7 @@ def create_blue_noise(
     n_rank = np.prod(output_shape)
     # Generate the initial binary pattern with a prescribed number of ones
     n_initial_one = max(
-        1, min(int((n_rank - 1) / 2), int(n_rank * InitialSeedFraction))
+        1, min(int((n_rank - 1) / 2), int(n_rank * initial_seed_fraction))
     )
     # Start from white noise (this is the only randomized step)
     initial_binary_pattern = np.zeros(output_shape, dtype=np.bool_)

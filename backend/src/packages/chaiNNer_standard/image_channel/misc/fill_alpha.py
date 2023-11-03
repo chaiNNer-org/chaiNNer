@@ -34,7 +34,7 @@ class AlphaFillMethod(Enum):
     outputs=[
         ImageOutput(
             "RGB",
-            image_type=navi.Image(size_as="Input0"),
+            image_type=navi.image(size_as="Input0"),
             channels=3,
         ),
     ],

@@ -7,7 +7,7 @@ from api import BaseInput, InputConversion, InputKind
 from ...utils.utils import round_half_up
 
 
-def clampNumber(
+def clamp_number(
     value: Union[float, int],
     precision: int,
     min_value: Union[float, int, None],
@@ -82,9 +82,9 @@ class NumberInput(BaseInput):
         if self.precision == 0:
             self.input_conversions = [InputConversion("number", "round(Input)")]
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "min": self.minimum,
             "max": self.maximum,
             "noteExpression": self.note_expression,
@@ -106,7 +106,7 @@ class NumberInput(BaseInput):
         if math.isnan(value):
             raise ValueError("NaN is not a valid number")
 
-        return clampNumber(value, self.precision, self.minimum, self.maximum)
+        return clamp_number(value, self.precision, self.minimum, self.maximum)
 
 
 class SliderInput(NumberInput):
@@ -151,9 +151,9 @@ class SliderInput(NumberInput):
         self.gradient = gradient
         self.scale = scale
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "ends": self.ends,
             "sliderStep": self.slider_step,
             "gradient": self.gradient,

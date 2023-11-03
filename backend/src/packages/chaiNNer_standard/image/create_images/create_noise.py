@@ -128,7 +128,7 @@ def _add_noise(
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(
+            image_type=navi.image(
                 width="Input0",
                 height="Input1",
             ),

@@ -17,7 +17,7 @@ from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_str
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import Event, EventQueue, InputsDict
-from progress_controller import Aborted, ProgressController
+from progress_controller import AbortedError, ProgressController
 from util import timed_supplier
 
 Output = List[object]
@@ -150,7 +150,7 @@ def run_node(
 
         assert node.type == "regularNode"
         return enforce_output(raw_output, node)
-    except Aborted:
+    except AbortedError:
         raise
     except NodeExecutionError:
         raise
@@ -310,7 +310,7 @@ class Executor:
         node = self.chain.nodes[node_id]
         try:
             return await self.__process(node)
-        except Aborted:
+        except AbortedError:
             raise
         except NodeExecutionError:
             raise

@@ -36,7 +36,7 @@ class NumPyOutput(BaseOutput):
         return value
 
 
-def AudioOutput():
+def AudioOutput():  # noqa: N802
     """Output a 1D Audio NumPy array"""
     return NumPyOutput("Audio", "Audio")
 
@@ -52,7 +52,7 @@ class ImageOutput(NumPyOutput):
         assume_normalized: bool = False,
     ):
         super().__init__(
-            navi.intersect(image_type, navi.Image(channels=channels)),
+            navi.intersect(image_type, navi.image(channels=channels)),
             label,
             kind=kind,
             has_handle=has_handle,
@@ -71,7 +71,7 @@ class ImageOutput(NumPyOutput):
 
     def get_broadcast_type(self, value: np.ndarray):
         h, w, c = get_h_w_c(value)
-        return navi.Image(width=w, height=h, channels=c)
+        return navi.image(width=w, height=h, channels=c)
 
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)
@@ -203,6 +203,6 @@ class LargeImageOutput(ImageOutput):
         }
 
 
-def VideoOutput():
+def VideoOutput():  # noqa: N802
     """Output a 3D Video NumPy array"""
     return NumPyOutput("Video", "Video")

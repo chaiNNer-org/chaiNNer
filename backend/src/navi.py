@@ -175,7 +175,7 @@ def match(
     return {"type": "match", "of": of, "arms": arms}
 
 
-def Image(
+def image(
     width: ExpressionJson | None = None,
     height: ExpressionJson | None = None,
     channels: ExpressionJson | None = None,
@@ -203,7 +203,7 @@ def Image(
     return named("Image", fields)
 
 
-def Color(
+def color(
     channels: ExpressionJson | None = None,
     channels_as: ExpressionJson | None = None,
 ) -> ExpressionJson:

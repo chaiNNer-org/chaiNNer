@@ -27,7 +27,7 @@ from . import node_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(
+            image_type=navi.image(
                 size_as="Input0",
                 channels="""
                     match (

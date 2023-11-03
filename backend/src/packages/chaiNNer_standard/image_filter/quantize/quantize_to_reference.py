@@ -52,7 +52,7 @@ def quantize_image(image, palette):
         ImageInput(
             "Reference Image",
             channels=[3, 4],
-            image_type=navi.Image(channels_as="Input0"),
+            image_type=navi.image(channels_as="Input0"),
         ),
         SliderInput("Kernel Radius", minimum=1, maximum=5, default=1).with_docs(
             "Determines the size of the region around each pixel in the reference image that is used to determine the local color palette.",
