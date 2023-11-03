@@ -23,7 +23,7 @@
     "lint:py": "black --check ./backend && isort backend/ --check --profile=black --src=backend/src",
     "lint:fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && stylelint src/**/*.scss --fix && black ./backend && isort backend/ --profile=black --src=backend/src",
     "test:js": "jest",
-    "test:py": "pytest ./backend/tests/",
+    "test:py": "pytest ./backend/tests/ ",
     "test:update": "npm run test:js -- -u",
     "test": "npm run test:js && npm run test:py",
     "postinstall": "patch-package"
