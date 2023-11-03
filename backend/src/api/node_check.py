@@ -118,6 +118,11 @@ def is_subset_of(a: _Ty, b: _Ty) -> bool:
     return union_to_set(a).issubset(union_to_set(b))
 
 
+def is_tuple(t: _Ty) -> bool:
+    s = str(t)
+    return s.startswith("typing.Tuple[") or s.startswith("tuple[")
+
+
 def get_type_annotations(fn: Callable) -> dict[str, _Ty]:
     """Get the annotations for a function, with support for Python 3.8+"""
     ann = getattr(fn, "__annotations__", None)
@@ -151,7 +156,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
                 f"Return type '{return_type}' must be a subset of '{o.associated_type}'"
             )
     else:
-        if not str(return_type).startswith("typing.Tuple["):
+        if not is_tuple(return_type):
             raise CheckFailedError(
                 f"Return type '{return_type}' must be a tuple because there are multiple outputs"
             )
