@@ -192,7 +192,7 @@ def save_video_node(
     audio: Any,
     audio_settings: AudioSettings,
     audio_reduced_settings: AudioReducedSettings,
-) -> Collector[np.ndarray, None,]:
+) -> Collector[np.ndarray, None]:
     encoder = VideoEncoder(video_encoder)
     container = None
 
@@ -344,8 +344,8 @@ def save_video_node(
                 os.rename(audio_video_path, video_path)
             except:
                 logger.warning(
-                    f"Failed to copy audio to video, input file probably contains "
-                    f"no audio or audio stream is supported by this container. Ignoring audio settings."
+                    "Failed to copy audio to video, input file probably contains "
+                    "no audio or audio stream is supported by this container. Ignoring audio settings."
                 )
                 try:
                     os.remove(audio_video_path)

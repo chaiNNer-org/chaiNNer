@@ -10,7 +10,6 @@ from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.impl.upscale.auto_split_tiles import (
-    NO_TILING,
     TileSize,
     estimate_tile_size,
     parse_tile_size_input,
@@ -139,7 +138,7 @@ def upscale_image_node(
 
     exec_options = get_settings()
 
-    logger.debug(f"Upscaling image...")
+    logger.debug("Upscaling image...")
 
     # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
     in_nc = model.in_nc

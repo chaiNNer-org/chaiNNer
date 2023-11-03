@@ -137,7 +137,9 @@ def nptensor2np(
         img_np = np_denorm(img_np)  # denormalize if needed
     if change_range:
         img_np = np.clip(
-            data_range * img_np, 0, data_range  # type: ignore
+            data_range * img_np,
+            0,
+            data_range,
         ).round()  # np.clip to the data_range
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32

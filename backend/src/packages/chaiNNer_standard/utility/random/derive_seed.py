@@ -43,7 +43,7 @@ def _to_bytes(s: Source) -> bytes:
     icon="MdCalculate",
     inputs=[
         seed_group(SeedInput(has_handle=False)),
-        SourceInput(f"Source A"),
+        SourceInput("Source A"),
         optional_list_group(
             *[SourceInput(f"Source {letter}") for letter in ALPHABET[1:10]],
         ),

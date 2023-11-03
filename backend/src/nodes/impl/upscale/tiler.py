@@ -37,7 +37,7 @@ class NoTiling(Tiler):
         return size, size
 
     def split(self, _: Size) -> Size:
-        raise ValueError(f"Image cannot be upscale with No Tiling mode.")
+        raise ValueError("Image cannot be upscale with No Tiling mode.")
 
 
 class MaxTileSize(Tiler):

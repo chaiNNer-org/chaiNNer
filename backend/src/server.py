@@ -71,7 +71,11 @@ CORS(app)
 
 class SSEFilter(logging.Filter):
     def filter(self, record):
-        return not ((record.request.endswith("/sse") or record.request.endswith("/setup-sse")) and record.status == 200)  # type: ignore
+        request = record.request  # type: ignore
+        return not (
+            (request.endswith("/sse") or request.endswith("/setup-sse"))
+            and record.status == 200  # type: ignore
+        )
 
 
 class ZeroCounter:

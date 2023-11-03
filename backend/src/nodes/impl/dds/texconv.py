@@ -15,7 +15,8 @@ from ..image_utils import cv_save_image
 from .format import SRGB_FORMATS, DxgiFormat
 
 __TEXCONV_DIR = os.path.join(
-    os.path.dirname(sys.modules["__main__"].__file__), "texconv"  # type: ignore
+    os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore
+    "texconv",
 )
 __TEXCONV_EXE = os.path.join(__TEXCONV_DIR, "texconv.exe")
 
@@ -49,7 +50,7 @@ def __run_texconv(args: List[str], error_message: str):
         logger.error(
             "\n".join(
                 [
-                    f"Failed to run texconv.",
+                    "Failed to run texconv.",
                     f"texconv: {__TEXCONV_EXE}",
                     f"args: {args}",
                     f"exit code: {result.returncode}",
