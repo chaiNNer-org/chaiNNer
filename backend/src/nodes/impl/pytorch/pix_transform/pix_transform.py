@@ -5,8 +5,8 @@ from typing import Literal
 
 import numpy as np
 import torch
-import torch.optim as optim
 import torch.utils.data
+from torch import optim
 
 from .pix_transform_net import PixTransformNet
 

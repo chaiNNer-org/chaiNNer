@@ -64,14 +64,13 @@ class ReplacementString:
         for token in self.tokens:
             if isinstance(token, str):
                 result += token
+            elif token.name in replacements:
+                result += replacements[token.name]
             else:
-                if token.name in replacements:
-                    result += replacements[token.name]
-                else:
-                    raise ValueError(
-                        "Unknown replacement."
-                        f" There is no replacement with the name or id {token.name}."
-                        f" Available replacements: {', '.join(replacements.keys()) }."
-                    )
+                raise ValueError(
+                    "Unknown replacement."
+                    f" There is no replacement with the name or id {token.name}."
+                    f" Available replacements: {', '.join(replacements.keys()) }."
+                )
 
         return result

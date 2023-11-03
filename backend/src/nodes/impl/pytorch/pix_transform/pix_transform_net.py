@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import torch.nn as nn
+from torch import nn
 
 
 class PixTransformNet(nn.Module):

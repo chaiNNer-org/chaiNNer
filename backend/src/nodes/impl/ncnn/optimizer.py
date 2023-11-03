@@ -419,8 +419,7 @@ class NcnnOptimizer:
                     if self.model.layers[j].num_inputs != 2:
                         continue
                     if (
-                        self.model.layers[j].inputs[0] == output
-                        or self.model.layers[j].inputs[1] == output
+                        output in (self.model.layers[j].inputs[0], self.model.layers[j].inputs[1])
                     ):
                         break
                 else:
@@ -608,7 +607,7 @@ class NcnnOptimizer:
                     layer.outputs,
                 )
                 eltwise.add_param(0, EOT.SUM)
-                if j0 != i and j1 != i:
+                if i not in (j0, j1):
                     # fuse BinaryOp - BinaryOp - BinaryOp to Eltwise
                     eltwise.add_param(
                         1,
@@ -945,8 +944,7 @@ class NcnnOptimizer:
                     if self.model.layers[j].num_inputs != 2:
                         continue
                     if (
-                        self.model.layers[j].inputs[0] == reshape_output
-                        or self.model.layers[j].inputs[1] == reshape_output
+                        reshape_output in (self.model.layers[j].inputs[0], self.model.layers[j].inputs[1])
                     ):
                         break
                 else:

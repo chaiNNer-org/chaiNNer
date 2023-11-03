@@ -34,7 +34,7 @@ def collect_input_information(
         for value, node_input in zip(inputs, node.inputs):
             if not enforced:
                 try:
-                    value = node_input.enforce_(value)
+                    value = node_input.enforce_(value)  # noqa
                 except Exception as e:
                     logger.error(
                         f"Error enforcing input {node_input.label} (id {node_input.id})",
