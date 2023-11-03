@@ -40,5 +40,6 @@ jobs:
                   if [[ "${{ matrix.os }}" != "macos-13" ]]; then
                       npm run publish -- --dry-run
                   else
+                      npm i appdmg@0.6.6
                       npm run publish -- --dry-run --arch=universal
                   fi
