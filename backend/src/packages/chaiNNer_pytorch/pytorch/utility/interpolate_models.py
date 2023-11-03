@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gc
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -88,7 +87,7 @@ def check_can_interp(model_a: dict, model_b: dict):
 )
 def interpolate_models_node(
     model_a: PyTorchModel, model_b: PyTorchModel, amount: int
-) -> Tuple[PyTorchModel, int, int]:
+) -> tuple[PyTorchModel, int, int]:
     if amount == 0:
         return model_a, 100, 0
     elif amount == 100:

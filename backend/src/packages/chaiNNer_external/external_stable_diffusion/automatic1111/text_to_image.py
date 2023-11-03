@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 
 from nodes.groups import seed_group
@@ -84,8 +82,8 @@ from .. import auto1111_group
     features=web_ui,
 )
 def text_to_image_node(
-    prompt: Optional[str],
-    negative_prompt: Optional[str],
+    prompt: str | None,
+    negative_prompt: str | None,
     seed: Seed,
     steps: int,
     sampler_name: SamplerName,

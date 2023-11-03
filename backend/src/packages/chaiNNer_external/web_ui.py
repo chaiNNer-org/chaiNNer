@@ -5,7 +5,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import requests
 from sanic.log import logger
@@ -39,7 +38,7 @@ class Api:
     def get_url(self, path: str) -> str:
         return f"{self.base_url}{path}"
 
-    def get(self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> Dict:
+    def get(self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT) -> dict:
         try:
             response = requests.get(self.get_url(path), timeout=timeout)
             if response.status_code != 200:
@@ -56,7 +55,7 @@ class Api:
 
     async def get_async(
         self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT
-    ) -> Dict:
+    ) -> dict:
         def run():
             return self.get(path, timeout)
 
@@ -64,7 +63,7 @@ class Api:
         result = await loop.run_in_executor(_thread_pool, run)
         return result
 
-    def post(self, path: str, json_data: Dict) -> Dict:
+    def post(self, path: str, json_data: dict) -> dict:
         try:
             response = requests.post(
                 self.get_url(path),
@@ -86,9 +85,9 @@ class Api:
 
 @dataclass
 class ApiConfig:
-    protocol: List[str]
+    protocol: list[str]
     host: str
-    port: List[str]
+    port: list[str]
 
     @staticmethod
     def from_env():
@@ -108,15 +107,15 @@ class ApiConfig:
 
         return ApiConfig(protocol, host, port)
 
-    def list_apis(self) -> List[Api]:
-        apis: List[Api] = []
+    def list_apis(self) -> list[Api]:
+        apis: list[Api] = []
         for protocol in self.protocol:
             for port in self.port:
                 apis.append(Api(protocol, self.host, port))
         return apis
 
 
-_CURRENT_API: Optional[Api] = None
+_CURRENT_API: Api | None = None
 
 
 async def get_verified_api() -> Api | None:

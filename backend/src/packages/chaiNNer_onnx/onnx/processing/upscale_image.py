@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 import onnxruntime as ort
 from sanic.log import logger
@@ -36,7 +34,7 @@ def upscale(
     session: ort.InferenceSession,
     tile_size: TileSize,
     change_shape: bool,
-    exact_size: Tuple[int, int] | None,
+    exact_size: tuple[int, int] | None,
 ) -> np.ndarray:
     logger.debug("Upscaling image")
 

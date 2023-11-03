@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
 
 from sanic.log import logger
 
@@ -46,17 +45,17 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-) -> Tuple[Iterator[Tuple[NcnnModelWrapper, str, str, int]], str]:
+) -> tuple[Iterator[tuple[NcnnModelWrapper, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    def load_model(filepath_pairs: Tuple[str, str], index: int):
+    def load_model(filepath_pairs: tuple[str, str], index: int):
         model, dirname, basename = load_model_node(filepath_pairs[0], filepath_pairs[1])
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 
-    param_files: List[str] = list_all_files_sorted(directory, [".param"])
-    bin_files: List[str] = list_all_files_sorted(directory, [".bin"])
+    param_files: list[str] = list_all_files_sorted(directory, [".param"])
+    bin_files: list[str] = list_all_files_sorted(directory, [".bin"])
 
     if len(param_files) != len(bin_files):
         raise ValueError(

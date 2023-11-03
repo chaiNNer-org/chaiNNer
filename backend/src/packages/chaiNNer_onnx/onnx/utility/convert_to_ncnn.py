@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import onnx
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
@@ -33,7 +31,7 @@ FP_MODE_32 = 0
 )
 def convert_to_ncnn_node(
     model: OnnxModel, is_fp16: int
-) -> Tuple[NcnnModelWrapper, str]:
+) -> tuple[NcnnModelWrapper, str]:
     fp16 = bool(is_fp16)
 
     model_proto = onnx.load_model_from_string(model.bytes)

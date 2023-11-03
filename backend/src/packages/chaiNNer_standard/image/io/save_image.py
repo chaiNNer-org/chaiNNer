@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import Enum
-from typing import Dict, List, Literal
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -52,7 +52,7 @@ class ImageFormat(Enum):
         return self.value
 
 
-IMAGE_FORMAT_LABELS: Dict[ImageFormat, str] = {
+IMAGE_FORMAT_LABELS: dict[ImageFormat, str] = {
     ImageFormat.PNG: "PNG",
     ImageFormat.JPG: "JPG",
     ImageFormat.GIF: "GIF",
@@ -285,7 +285,7 @@ def save_image_node(
             image.save(full_path)
 
     else:
-        params: List[int]
+        params: list[int]
         if image_format == ImageFormat.JPG:
             params = [
                 cv2.IMWRITE_JPEG_QUALITY,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 import numpy as np
 from chainner_ext import (
@@ -25,7 +24,7 @@ from nodes.properties.outputs import ImageOutput
 
 from .. import quantize_group
 
-_THRESHOLD_MAP: Dict[ThresholdMap, int] = {
+_THRESHOLD_MAP: dict[ThresholdMap, int] = {
     ThresholdMap.BAYER_2: 2,
     ThresholdMap.BAYER_4: 4,
     ThresholdMap.BAYER_8: 8,

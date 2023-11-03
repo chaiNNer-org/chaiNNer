@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from functools import reduce
-from typing import Dict, List, Literal, Tuple
+from typing import Dict, Literal
 
 import cv2
 import numpy as np
@@ -59,9 +59,9 @@ ParamKey = Literal["a", "b", "A", "B"]
 Params = Dict[ParamKey, float]
 
 
-def get_parameters(component_count: int) -> Tuple[List[Params], float]:
+def get_parameters(component_count: int) -> tuple[list[Params], float]:
     parameter_index = max(0, min(component_count - 1, len(kernel_params) - 1))
-    param_keys: List[ParamKey] = ["a", "b", "A", "B"]
+    param_keys: list[ParamKey] = ["a", "b", "A", "B"]
     parameter_dictionaries = [
         dict(zip(param_keys, b)) for b in kernel_params[parameter_index]
     ]
@@ -79,7 +79,7 @@ def complex_kernel_1d(radius: int, scale: float, a: float, b: float):
     return kernel_complex.reshape((1, kernel_size))
 
 
-def normalize_kernels(kernels: List[np.ndarray], params: List[Params]):
+def normalize_kernels(kernels: list[np.ndarray], params: list[Params]):
     total = 0
     for k, p in zip(kernels, params):
         for i in range(k.shape[1]):

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from enum import Enum
-from typing import Dict, Union
 
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
@@ -23,7 +22,7 @@ class MathOperation(Enum):
     PERCENT = "percent"
 
 
-OP_LABEL: Dict[MathOperation, str] = {
+OP_LABEL: dict[MathOperation, str] = {
     MathOperation.ADD: "Add: a + b",
     MathOperation.SUBTRACT: "Subtract: a - b",
     MathOperation.MULTIPLY: "Multiply: a × b",
@@ -97,7 +96,7 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
         )
     ],
 )
-def math_node(a: float, op: MathOperation, b: float) -> Union[int, float]:
+def math_node(a: float, op: MathOperation, b: float) -> int | float:
     if op == MathOperation.ADD:
         return a + b
     elif op == MathOperation.SUBTRACT:

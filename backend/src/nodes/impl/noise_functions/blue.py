@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 from scipy import ndimage
 
@@ -50,7 +48,7 @@ def find_tightest_cluster(binary_pattern: np.ndarray, standard_deviation: float)
 
 
 def create_blue_noise(
-    output_shape: Tuple[int, int],
+    output_shape: tuple[int, int],
     standard_deviation: float = 1.5,
     InitialSeedFraction: float = 0.1,
     seed: int = 0,

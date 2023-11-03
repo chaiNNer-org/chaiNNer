@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import base64
 import hashlib
-from typing import Tuple
 
 import numpy as np
 
@@ -34,7 +33,7 @@ from .. import miscellaneous_group
         TextOutput("Base64"),
     ],
 )
-def generate_hash_node(img: np.ndarray, size: int) -> Tuple[str, str]:
+def generate_hash_node(img: np.ndarray, size: int) -> tuple[str, str]:
     """Generate a hash from the input image. The digest size determines the length of the hash that is output."""
     img = np.ascontiguousarray(to_uint8(img))
     h = hashlib.blake2b(img, digest_size=size)  # type: ignore

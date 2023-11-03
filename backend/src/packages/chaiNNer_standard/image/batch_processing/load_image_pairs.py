@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
 
 import numpy as np
 
@@ -57,8 +56,8 @@ def load_image_pairs_node(
     directory_b: str,
     use_limit: bool,
     limit: int,
-) -> Tuple[Iterator[Tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
-    def load_images(filepaths: Tuple[str, str], index: int):
+) -> tuple[Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
+    def load_images(filepaths: tuple[str, str], index: int):
         path_a, path_b = filepaths
         img_a, img_dir_a, basename_a = load_image_node(path_a)
         img_b, img_dir_b, basename_b = load_image_node(path_b)
@@ -70,8 +69,8 @@ def load_image_pairs_node(
 
     supported_filetypes = get_available_image_formats()
 
-    image_files_a: List[str] = list_all_files_sorted(directory_a, supported_filetypes)
-    image_files_b: List[str] = list_all_files_sorted(directory_b, supported_filetypes)
+    image_files_a: list[str] = list_all_files_sorted(directory_a, supported_filetypes)
+    image_files_b: list[str] = list_all_files_sorted(directory_b, supported_filetypes)
 
     assert len(image_files_a) == len(image_files_b), (
         "Number of images in directories A and B must be equal. "

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Tuple
 
 import numpy as np
 
@@ -71,7 +70,7 @@ def stretch_contrast_node(
     manual_min: float,
     manual_max: float,
 ) -> np.ndarray:
-    def get_range_of(i: np.ndarray) -> Tuple[float, float]:
+    def get_range_of(i: np.ndarray) -> tuple[float, float]:
         if mode == StretchMode.AUTOMATIC:
             return float(np.min(i)), float(np.max(i))
         elif mode == StretchMode.PERCENTILE:
@@ -98,7 +97,7 @@ def stretch_contrast_node(
     else:
         # stretch all channels individually
 
-        channels: List[np.ndarray] = []
+        channels: list[np.ndarray] = []
         for i in range(get_h_w_c(img)[2]):
             channel = img[:, :, i]
 

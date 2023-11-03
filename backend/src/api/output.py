@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Type, Union
+from typing import Any, Literal
 
 import navi
 
@@ -16,7 +16,7 @@ class BaseOutput:
         label: str,
         kind: OutputKind = "generic",
         has_handle: bool = True,
-        associated_type: Union[Type, None] = None,
+        associated_type: Any = None,
     ):
         self.output_type: navi.ExpressionJson = output_type
         self.label: str = label
@@ -25,7 +25,7 @@ class BaseOutput:
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
 
-        self.associated_type: Union[Type, None] = associated_type
+        self.associated_type: Any = associated_type
 
         # Optional documentation
         self.description: str | None = None

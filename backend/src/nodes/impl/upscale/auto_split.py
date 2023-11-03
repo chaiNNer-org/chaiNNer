@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 from sanic.log import logger
@@ -131,7 +131,7 @@ def _max_split(
 
     # To allocate the result image, we need to know the upscale factor first,
     # and we only get to know this factor after the first successful upscale.
-    result: Optional[np.ndarray] = None
+    result: np.ndarray | None = None
     scale: int = 0
 
     restart = True

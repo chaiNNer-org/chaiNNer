@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Tuple
 
 import numpy as np
 from sanic.log import logger
@@ -34,7 +33,7 @@ class ResizeCondition(Enum):
 
 def resize_to_side_conditional(
     w: int, h: int, target: int, side: SideSelection, condition: ResizeCondition
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     def compare_conditions(b: int) -> bool:
         if condition == ResizeCondition.BOTH:
             return False

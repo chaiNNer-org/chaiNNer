@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gc
-from typing import Optional
 
 import numpy as np
 import torch
@@ -29,7 +28,7 @@ def pad_img_to_modulo(
     img: np.ndarray,
     mod: int,
     square: bool = False,
-    min_size: Optional[int] = None,
+    min_size: int | None = None,
 ):
     img = as_3d(img)
     h, w, _ = get_h_w_c(img)

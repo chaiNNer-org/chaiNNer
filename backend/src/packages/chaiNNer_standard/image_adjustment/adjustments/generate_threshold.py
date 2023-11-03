@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 import cv2
 import numpy as np
@@ -19,7 +18,7 @@ class AutoThreshold(Enum):
     TRIANGLE = 1
 
 
-_AUTO_THRESHOLD_LABELS: Dict[AutoThreshold, str] = {
+_AUTO_THRESHOLD_LABELS: dict[AutoThreshold, str] = {
     AutoThreshold.OTSU: "Otsu's Method",
     AutoThreshold.TRIANGLE: "Triangle Method",
 }

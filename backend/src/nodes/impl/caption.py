@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import sys
 from enum import Enum
-from typing import Tuple
 
 import cv2
 import numpy as np
@@ -18,7 +17,7 @@ class CaptionPosition(Enum):
     TOP = "top"
 
 
-def get_font_size(font: ImageFont.FreeTypeFont, text: str) -> Tuple[int, int]:
+def get_font_size(font: ImageFont.FreeTypeFont, text: str) -> tuple[int, int]:
     """Get font [width, height] of the given text"""
     # (left, top, right, bottom)
     caption_bb = font.getbbox(text)

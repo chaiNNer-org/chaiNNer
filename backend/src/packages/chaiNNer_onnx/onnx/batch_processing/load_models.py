@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
 
 from sanic.log import logger
 
@@ -46,7 +45,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-) -> Tuple[Iterator[Tuple[OnnxModel, str, str, int]], str]:
+) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: str, index: int):

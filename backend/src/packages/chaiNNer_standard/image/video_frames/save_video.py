@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from subprocess import Popen
-from typing import Any, Optional
+from typing import Any
 
 import cv2
 import ffmpeg
@@ -187,7 +187,7 @@ def save_video_node(
     video_preset: str,
     crf: int,
     advanced: bool,
-    additional_parameters: Optional[str],
+    additional_parameters: str | None,
     fps: float,
     audio: Any,
     audio_settings: AudioSettings,
