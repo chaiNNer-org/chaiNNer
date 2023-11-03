@@ -418,8 +418,9 @@ class NcnnOptimizer:
                         continue
                     if self.model.layers[j].num_inputs != 2:
                         continue
-                    if (
-                        output in (self.model.layers[j].inputs[0], self.model.layers[j].inputs[1])
+                    if output in (
+                        self.model.layers[j].inputs[0],
+                        self.model.layers[j].inputs[1],
                     ):
                         break
                 else:
@@ -943,8 +944,9 @@ class NcnnOptimizer:
                         continue
                     if self.model.layers[j].num_inputs != 2:
                         continue
-                    if (
-                        reshape_output in (self.model.layers[j].inputs[0], self.model.layers[j].inputs[1])
+                    if reshape_output in (
+                        self.model.layers[j].inputs[0],
+                        self.model.layers[j].inputs[1],
                     ):
                         break
                 else:
