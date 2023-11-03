@@ -12,6 +12,8 @@ src = ["backend/src"]
 # ignore vendored code
 extend-exclude = ["**/pytorch/architecture/**"]
 
+unsafe-fixes = true
+
 [tool.ruff.lint]
 # Add the `line-too-long` rule to the enforced rule set.
 extend-select = [
