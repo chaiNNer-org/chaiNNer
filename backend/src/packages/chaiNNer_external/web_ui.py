@@ -10,14 +10,14 @@ from typing import Dict, List, Optional
 import requests
 from sanic.log import logger
 
-STABLE_DIFFUSION_TEXT2IMG_PATH = f"/sdapi/v1/txt2img"
-STABLE_DIFFUSION_IMG2IMG_PATH = f"/sdapi/v1/img2img"
-STABLE_DIFFUSION_INTERROGATE_PATH = f"/sdapi/v1/interrogate"
-STABLE_DIFFUSION_OPTIONS_PATH = f"/sdapi/v1/options"
-STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = f"/sdapi/v1/extra-single-image"
-STABLE_DIFFUSION_UPSCALERS_PATH = f"/sdapi/v1/upscalers"
+STABLE_DIFFUSION_TEXT2IMG_PATH = "/sdapi/v1/txt2img"
+STABLE_DIFFUSION_IMG2IMG_PATH = "/sdapi/v1/img2img"
+STABLE_DIFFUSION_INTERROGATE_PATH = "/sdapi/v1/interrogate"
+STABLE_DIFFUSION_OPTIONS_PATH = "/sdapi/v1/options"
+STABLE_DIFFUSION_EXTRA_SINGLE_IMAGE_PATH = "/sdapi/v1/extra-single-image"
+STABLE_DIFFUSION_UPSCALERS_PATH = "/sdapi/v1/upscalers"
 
-TIMEOUT_MSG = f"""Stable diffusion request timeout reached."""
+TIMEOUT_MSG = """Stable diffusion request timeout reached."""
 
 STABLE_DIFFUSION_REQUEST_TIMEOUT = float(
     os.environ.get("STABLE_DIFFUSION_REQUEST_TIMEOUT", None) or "600"
@@ -128,7 +128,7 @@ async def get_verified_api() -> Api | None:
         try:
             await _CURRENT_API.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout)
             return _CURRENT_API
-        except:
+        except Exception:
             _CURRENT_API = None
 
     # check all apis in parallel

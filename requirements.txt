@@ -1,6 +1,4 @@
-black==23.1.0
+ruff==0.1.3
 debugpy
-isort==5.11.5
-pylint==2.16.1
 pyright==1.1.308
 pytest

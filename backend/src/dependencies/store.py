@@ -196,13 +196,13 @@ async def install_dependencies(
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
-            await update_progress_cb(f"Installing collected dependencies...", 0.9, None)
+            await update_progress_cb("Installing collected dependencies...", 0.9, None)
 
     exit_code = process.wait()
     if exit_code != 0:
         raise ValueError("An error occurred while installing dependencies.")
 
-    await update_progress_cb(f"Finished installing dependencies...", 1, None)
+    await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
         installing_name = dep_info["package_name"]

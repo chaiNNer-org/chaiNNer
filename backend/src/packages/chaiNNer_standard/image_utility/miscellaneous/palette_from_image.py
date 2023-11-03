@@ -73,9 +73,7 @@ MAX_COLORS = 4096
                         },
                         MAX_COLORS
                     )
-                """.replace(
-                    "MAX_COLORS", str(MAX_COLORS)
-                ),
+                """.replace("MAX_COLORS", str(MAX_COLORS)),
                 height=1,
                 channels_as="Input0",
             ),

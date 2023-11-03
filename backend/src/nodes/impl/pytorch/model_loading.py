@@ -24,7 +24,7 @@ class UnsupportedModel(Exception):
 
 
 def load_state_dict(state_dict) -> PyTorchModel:
-    logger.debug(f"Loading state dict into pytorch model arch")
+    logger.debug("Loading state dict into pytorch model arch")
 
     state_dict_keys = list(state_dict.keys())
 
@@ -103,7 +103,7 @@ def load_state_dict(state_dict) -> PyTorchModel:
     else:
         try:
             model = ESRGAN(state_dict)
-        except:
+        except Exception:
             # pylint: disable=raise-missing-from
             raise UnsupportedModel
     return model

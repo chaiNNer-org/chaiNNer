@@ -53,7 +53,7 @@ def collect_input_information(
         return input_dict
     except Exception as outer_e:
         # this method must not throw
-        logger.error(f"Error collecting input information.", outer_e)
+        logger.error("Error collecting input information.", outer_e)
         return {}
 
 

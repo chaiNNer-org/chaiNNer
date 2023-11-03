@@ -26,7 +26,21 @@ from ..ncnn.model import (
     UnaryOpTypes,
 )
 from ..ncnn.optimizer import NcnnOptimizer
-from .tensorproto_utils import *
+from .tensorproto_utils import (
+    APT,
+    FLOAT32_MAX,
+    get_node_attr_af,
+    get_node_attr_ai,
+    get_node_attr_f,
+    get_node_attr_from_input_af,
+    get_node_attr_from_input_ai,
+    get_node_attr_from_input_f,
+    get_node_attr_i,
+    get_node_attr_s,
+    get_node_attr_tensor,
+    get_tensor_proto_data_size,
+    set_node_attr_ai,
+)
 
 UOT = UnaryOpTypes
 BOT = BinaryOpTypes

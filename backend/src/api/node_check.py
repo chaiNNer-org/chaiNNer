@@ -42,7 +42,7 @@ def _get_check_level(name: str, default: CheckLevel) -> CheckLevel:
     try:
         s = os.environ.get(name, default.value)
         return CheckLevel.parse(s)
-    except:
+    except Exception:
         return default
 
 
@@ -140,7 +140,7 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
     if len(outputs) == 0:
         if return_type is not None and return_type is not type(None):  # type: ignore
             raise CheckFailedError(
-                f"Return type should be 'None' because there are no outputs"
+                "Return type should be 'None' because there are no outputs"
             )
     elif len(outputs) == 1:
         o = outputs[0]
@@ -190,11 +190,11 @@ def check_schema_types(
 
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
-        if not arg in ann:
+        if arg not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg}'")
 
     if arg_spec.varargs is not None:
-        if not arg_spec.varargs in ann:
+        if arg_spec.varargs not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg_spec.varargs}'")
         va_type = ann.pop(arg_spec.varargs)
 

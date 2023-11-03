@@ -44,9 +44,7 @@ def convert_to_onnx_node(
     exec_options = get_settings()
     device = exec_options.device
     if fp16:
-        assert (
-            exec_options.use_fp16
-        ), "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
+        assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
     model = model.eval()
     model = model.to(device)

@@ -4,13 +4,13 @@ from .numpy_outputs import *
 
 try:
     from .ncnn_outputs import *
-except:
+except Exception:
     pass
 try:
     from .onnx_outputs import *
-except:
+except Exception:
     pass
 try:
     from .pytorch_outputs import *
-except:
+except Exception:
     pass

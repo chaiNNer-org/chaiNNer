@@ -1,0 +1,53 @@
+[project]
+# Support Python 3.8+.
+requires-python = ">=3.8"
+
+[tool.ruff]
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+src = ["backend/src"]
+
+# ignore vendored code
+extend-exclude = ["**/pytorch/architecture/**"]
+
+[tool.ruff.lint]
+# Add the `line-too-long` rule to the enforced rule set.
+extend-select = [
+    # "UP", # pyupgrade
+    "E", # pycodestyle
+    "W", # pycodestyle
+    # "F",  # pyflakes
+    "I", # isort
+    # "N",     # pep8-naming
+    # "ANN",   # flake8-annotations
+    # "ASYNC", # flake8-async
+    # "PL", # pylint
+    # "RUF",   # ruff
+]
+ignore = [
+    "E501",    # Line too long
+    "PLR2004", # Magic value
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments
+    "PLR0915", # Too many statements,
+    "E741",    # Ambiguous variable name,
+    "E712",    # true-false-comparison, has false positives because of numpy's operator overloading
+    "F821",    # Undefined name -- this one is weird, it seems like it has false positives on closures and other context changes
+    "F403",    # 'from module import *' used; unable to detect undefined names
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

@@ -188,8 +188,14 @@ def text_as_image_node(
     pil_image = Image.new("RGBA", (width, height))
     drawing = ImageDraw.Draw(pil_image)
 
-    x_ref = round(np.sum(np.array([width, w_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["x"]))  # type: ignore
-    y_ref = round(np.sum(np.array([height, h_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["y"]))  # type: ignore
+    x_ref = round(
+        np.sum(np.array([width, w_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["x"])  # type: ignore
+    )
+    y_ref = round(
+        np.sum(
+            np.array([height, h_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["y"]  # type: ignore
+        )
+    )
 
     drawing.text(
         (x_ref, y_ref),

@@ -106,7 +106,7 @@ def interpolate_models_node(
         model_b_weights
     ), "Models must have same number of weights"
 
-    logger.debug(f"Interpolating models...")
+    logger.debug("Interpolating models...")
     interp_weights_list = perform_interp(model_a_weights, model_b_weights, amount)
 
     model_proto_interp = deepcopy(model_proto_b)

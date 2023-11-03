@@ -152,4 +152,6 @@ def remove_bg(
     if len(cutouts) > 0:
         cutout = get_concat_v_multi(cutouts)
 
-    return cvtColor(normalize(np.asarray(cutout)), COLOR_RGBA2BGRA), normalize(np.asarray(mask))  # type: ignore  pylint: disable=undefined-loop-variable
+    return cvtColor(normalize(np.asarray(cutout)), COLOR_RGBA2BGRA), normalize(
+        np.asarray(mask)  # type: ignore
+    )

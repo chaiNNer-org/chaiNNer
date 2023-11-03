@@ -22,7 +22,7 @@ try:
     from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
         convert_to_ncnn_node as onnx_convert_to_ncnn_node,
     )
-except:
+except Exception:
     onnx_convert_to_ncnn_node = None
 
 
