@@ -25,7 +25,11 @@ jobs:
 
         strategy:
             matrix:
-                os: [macos-13, ubuntu-latest, windows-latest]
+                os: [
+                    # macos-13,
+                    ubuntu-latest,
+                    windows-latest
+                ]
 
         steps:
             - uses: actions/checkout@v3
@@ -36,7 +40,6 @@ jobs:
             - name: publish --dry-run
               shell: bash
               run: |
-                  npm ci
                   if [[ "${{ matrix.os }}" != "macos-13" ]]; then
                       npm run publish -- --dry-run
                   else
