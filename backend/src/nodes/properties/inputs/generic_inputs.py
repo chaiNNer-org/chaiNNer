@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from enum import Enum
-from typing import Generic, Literal, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar, Union
 
 import numpy as np
 from sanic.log import logger
@@ -60,7 +60,7 @@ class DropDownInput(BaseInput):
         options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
-        associated_type: type | None = None,
+        associated_type: Any = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
