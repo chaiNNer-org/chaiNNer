@@ -59,6 +59,7 @@ ignore = [
     "PLW0603", # Using the global statement
     "N999",    # Invalid module name (which triggers for chaiNNer)
     "N818",    # Exception name should end in Error
+    "ISC001",  # Implicit string concatenation, conflicts with formatter
 ]
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
