@@ -36,7 +36,7 @@ class NumPyOutput(BaseOutput):
         return value
 
 
-def AudioOutput():  # noqa: N802
+def AudioOutput():
     """Output a 1D Audio NumPy array"""
     return NumPyOutput("Audio", "Audio")
 
@@ -203,6 +203,6 @@ class LargeImageOutput(ImageOutput):
         }
 
 
-def VideoOutput():  # noqa: N802
+def VideoOutput():
     """Output a 3D Video NumPy array"""
     return NumPyOutput("Video", "Video")

@@ -46,7 +46,7 @@ class TextOutput(BaseOutput):
         return value
 
 
-def FileNameOutput(label: str = "Name", of_input: int | None = None):  # noqa: N802
+def FileNameOutput(label: str = "Name", of_input: int | None = None):
     output_type = (
         "string"
         if of_input is None

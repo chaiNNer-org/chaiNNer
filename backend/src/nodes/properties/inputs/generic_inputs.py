@@ -430,7 +430,7 @@ VIDEO_CONTAINERS = {
 VIDEO_FFV1_CONTAINERS: list[VideoContainer] = [VideoContainer.MKV]
 
 
-def VideoFfv1ContainerDropdown() -> DropDownInput:  # noqa: N802
+def VideoFfv1ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
@@ -449,7 +449,7 @@ VIDEO_VP9_CONTAINERS: list[VideoContainer] = [
 ]
 
 
-def VideoVp9ContainerDropdown() -> DropDownInput:  # noqa: N802
+def VideoVp9ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
@@ -469,7 +469,7 @@ VIDEO_H264_CONTAINERS: list[VideoContainer] = [
 ]
 
 
-def VideoH264ContainerDropdown() -> DropDownInput:  # noqa: N802
+def VideoH264ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
@@ -488,7 +488,7 @@ VIDEO_H265_CONTAINERS: list[VideoContainer] = [
 ]
 
 
-def VideoH265ContainerDropdown() -> DropDownInput:  # noqa: N802
+def VideoH265ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
@@ -515,7 +515,7 @@ VIDEO_ENCODER_LABELS = {
 }
 
 
-def VideoEncoderDropdown() -> DropDownInput:  # noqa: N802
+def VideoEncoderDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoEncoder",
         label="Encoder",
@@ -528,7 +528,7 @@ def VideoEncoderDropdown() -> DropDownInput:  # noqa: N802
     )
 
 
-def VideoPresetDropdown() -> DropDownInput:  # noqa: N802
+def VideoPresetDropdown() -> DropDownInput:
     """Video Type option dropdown"""
     return DropDownInput(
         input_type="VideoPreset",
@@ -546,7 +546,7 @@ def VideoPresetDropdown() -> DropDownInput:  # noqa: N802
     )
 
 
-def BlendModeDropdown() -> DropDownInput:  # noqa: N802
+def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return EnumInput(
         BlendMode,
@@ -556,7 +556,7 @@ def BlendModeDropdown() -> DropDownInput:  # noqa: N802
     )
 
 
-def FillColorDropdown() -> DropDownInput:  # noqa: N802
+def FillColorDropdown() -> DropDownInput:
     return EnumInput(
         FillColor,
         label="Negative Space Fill",
@@ -572,7 +572,7 @@ def FillColorDropdown() -> DropDownInput:  # noqa: N802
     )
 
 
-def TileSizeDropdown(  # noqa: N802
+def TileSizeDropdown(
     label="Tile Size", estimate=True, default: TileSize | None = None
 ) -> DropDownInput:
     options = []
@@ -620,7 +620,7 @@ SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
 ]
 
 
-def DdsFormatDropdown() -> DropDownInput:  # noqa: N802
+def DdsFormatDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsFormat",
         label="DDS Format",
@@ -629,7 +629,7 @@ def DdsFormatDropdown() -> DropDownInput:  # noqa: N802
     )
 
 
-def DdsMipMapsDropdown() -> DropDownInput:  # noqa: N802
+def DdsMipMapsDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="DdsMipMaps",
         label="Generate Mip Maps",

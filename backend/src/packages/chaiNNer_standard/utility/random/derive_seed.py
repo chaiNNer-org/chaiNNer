@@ -15,7 +15,7 @@ from .. import random_group
 Source = Union[int, float, str, Seed]
 
 
-def SourceInput(label: str):  # noqa: N802
+def SourceInput(label: str):
     return BaseInput(
         kind="generic",
         label=label,

@@ -44,7 +44,7 @@ class OnnxRemBgModelInput(OnnxModelInput):
         return value
 
 
-def OnnxFpDropdown() -> DropDownInput:  # noqa: N802
+def OnnxFpDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="FpMode",
         label="Data Type",

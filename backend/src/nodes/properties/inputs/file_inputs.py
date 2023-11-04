@@ -60,7 +60,7 @@ class FileInput(BaseInput):
         return value
 
 
-def ImageFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def ImageFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
         input_type_name="ImageFile",
@@ -72,7 +72,7 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     )
 
 
-def VideoFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def VideoFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
         input_type_name="VideoFile",
@@ -96,7 +96,7 @@ def VideoFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     )
 
 
-def PthFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
         input_type_name="PthFile",
@@ -144,7 +144,7 @@ class DirectoryInput(BaseInput):
         return value
 
 
-def BinFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def BinFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput(
         input_type_name="NcnnBinFile",
@@ -155,7 +155,7 @@ def BinFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     )
 
 
-def ParamFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def ParamFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput(
         input_type_name="NcnnParamFile",
@@ -166,7 +166,7 @@ def ParamFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
     )
 
 
-def OnnxFileInput(primary_input: bool = False) -> FileInput:  # noqa: N802
+def OnnxFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .onnx file"""
     return FileInput(
         input_type_name="OnnxFile",

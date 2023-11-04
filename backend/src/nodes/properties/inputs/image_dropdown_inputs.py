@@ -13,7 +13,7 @@ from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
 from .generic_inputs import DropDownInput, EnumInput
 
 
-def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:  # noqa: N802
+def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
     return DropDownInput(
         input_type="ColorSpace",
         label=label,
@@ -28,7 +28,7 @@ def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:  # noq
     )
 
 
-def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:  # noqa: N802
+def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
     return DropDownInput(
         input_type="ColorSpace",
         label=label,
@@ -50,7 +50,7 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:  # noqa: N802
     )
 
 
-def InterpolationInput() -> DropDownInput:  # noqa: N802
+def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return EnumInput(
         InterpolationMethod,
@@ -61,7 +61,7 @@ def InterpolationInput() -> DropDownInput:  # noqa: N802
     )
 
 
-def RotateInterpolationInput() -> DropDownInput:  # noqa: N802
+def RotateInterpolationInput() -> DropDownInput:
     return EnumInput(
         RotationInterpolationMethod,
         label="Interpolation Method",
@@ -71,7 +71,7 @@ def RotateInterpolationInput() -> DropDownInput:  # noqa: N802
     )
 
 
-def BorderInput() -> DropDownInput:  # noqa: N802
+def BorderInput() -> DropDownInput:
     return EnumInput(
         BorderType,
         default=BorderType.REFLECT_MIRROR,
@@ -95,7 +95,7 @@ def BorderInput() -> DropDownInput:  # noqa: N802
     )
 
 
-def NormalChannelInvertInput() -> DropDownInput:  # noqa: N802
+def NormalChannelInvertInput() -> DropDownInput:
     return DropDownInput(
         input_type="NormalChannelInvert",
         label="Invert",

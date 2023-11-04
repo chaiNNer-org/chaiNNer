@@ -42,8 +42,8 @@ ignore = [
     "F403",    # 'from module import *' used; unable to detect undefined names
     "PLW0603", # Using the global statement
     "N999",    # Invalid module name (which triggers for chaiNNer)
+    "N818",    # Exception name should end in Error
 ]
-
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
@@ -56,3 +56,7 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["*Input", "*Output", "*Dropdown"]

@@ -99,6 +99,6 @@ class ModelOutput(BaseOutput):
         )
 
 
-def TorchScriptOutput():  # noqa: N802
+def TorchScriptOutput():
     """Output a JIT traced model"""
     return BaseOutput("PyTorchScript", "Traced Model")

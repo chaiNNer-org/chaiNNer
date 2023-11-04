@@ -213,7 +213,7 @@ class NodeGroup:
             except CheckFailedError as e:
                 full_error_message = f"Error in {schema_id}: {e}"
                 if level == CheckLevel.ERROR:
-                    raise CheckFailedError(full_error_message) from e
+                    raise CheckFailedError(full_error_message)  # noqa: B904
                 logger.warning(full_error_message)
 
         def inner_wrapper(wrapped_func: T) -> T:
