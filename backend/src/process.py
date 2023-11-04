@@ -14,7 +14,6 @@ from api import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, Outp
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
-from events import Event, EventQueue, InputsDict
 from progress_controller import Aborted, ProgressController
 from util import timed_supplier
 
