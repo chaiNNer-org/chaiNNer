@@ -54,6 +54,10 @@ jobs:
                   python-version: '3.9'
                   cache: 'pip'
             - run: pip install -r requirements.txt
+            - uses: actions/cache@v3
+              with:
+                path: ~/.cache/chainner_pip
+                key: chainner-pip-cache
             - name: Start backend to install dependencies
               run: python ./backend/src/run.py --close-after-start --install-builtin-packages
             - name: pyright
