@@ -29,7 +29,7 @@ def format_image_with_channels(
     assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
-    if all([x in named for x in channels]):
+    if all(x in named for x in channels):
         if plural:
             return join_english(channels, lambda c: named[c], conj=conj) + " images"
         else:
@@ -51,7 +51,7 @@ def format_color_with_channels(
     assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
-    if all([x in named for x in channels]):
+    if all(x in named for x in channels):
         if plural:
             return join_english(channels, lambda c: named[c], conj=conj) + " colors"
         else:

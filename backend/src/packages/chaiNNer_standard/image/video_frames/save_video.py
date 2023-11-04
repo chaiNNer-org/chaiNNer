@@ -213,12 +213,12 @@ def save_video_node(
     video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
 
     # Common output settings
-    output_params = dict(
-        filename=video_save_path,
-        pix_fmt="yuv420p",
-        r=fps,
-        movflags="faststart",
-    )
+    output_params = {
+        "filename": video_save_path,
+        "pix_fmt": "yuv420p",
+        "r": fps,
+        "movflags": "faststart",
+    }
 
     # Append parameters
     output_params["vcodec"] = encoder.value
@@ -230,7 +230,7 @@ def save_video_node(
         output_params["crf"] = crf
 
     # Append additional parameters
-    global_params = list()
+    global_params = []
     if advanced and additional_parameters is not None:
         additional_parameters = " " + " ".join(additional_parameters.split())
         additional_parameters_array = additional_parameters.split(" -")[1:]
@@ -313,10 +313,10 @@ def save_video_node(
             audio_video_path = f"{base}_av{ext}"
 
             # Default and auto -> copy
-            output_params = dict(
-                vcodec="copy",
-                acodec="copy",
-            )
+            output_params = {
+                "vcodec": "copy",
+                "acodec": "copy",
+            }
             if writer.container == VideoContainer.WEBM:
                 if writer.audio_settings in [
                     AudioSettings.TRANSCODE,

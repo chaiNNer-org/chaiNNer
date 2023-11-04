@@ -50,7 +50,7 @@ class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
         self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, NodeOutput] = dict()
+        self.cache: Dict[NodeId, NodeOutput] = {}
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore

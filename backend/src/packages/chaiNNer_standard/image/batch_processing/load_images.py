@@ -40,7 +40,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
     )
 
     return sorted(
-        list(set(map(lambda f: str(Path(directory) / f), filtered))),
+        {str(Path(directory) / f) for f in filtered},
         key=alphanumeric_sort,
     )
 

@@ -20,7 +20,7 @@ def perform_interp(model_a: dict, model_b: dict, amount: int):
         amount_b = amount / 100
         amount_a = 1 - amount_b
 
-        state_dict = dict()
+        state_dict = {}
         for k, v_1 in model_a.items():
             v_2 = model_b[k]
             state_dict[k] = (amount_a * v_1) + (amount_b * v_2)

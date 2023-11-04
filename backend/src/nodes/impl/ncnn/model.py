@@ -477,8 +477,8 @@ class NcnnModel:
         num_outputs = int(param_list[3])
         input_end = 4 + num_inputs
         output_end = input_end + num_outputs
-        inputs = [i for i in param_list[4:input_end]]
-        outputs = [o for o in param_list[input_end:output_end]]
+        inputs = list(param_list[4:input_end])
+        outputs = list(param_list[input_end:output_end])
 
         params = param_list[output_end:]
         param_dict = {}

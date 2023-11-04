@@ -28,6 +28,10 @@ extend-select = [
     "PL",  # pylint
     "RUF", # ruff
     "B",   # flake8-bugbear
+    # "A",   # flake8-builtins
+    # "COM", # flake8-commas
+    "C4", # flake8-comprehensions
+
 ]
 ignore = [
     "E501",    # Line too long

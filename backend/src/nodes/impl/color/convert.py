@@ -111,7 +111,7 @@ def convert(
         raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
     logger.debug(
-        f"Converting color using the path {' -> '.join(map(lambda x: x.name, path))}"
+        f"Converting color using the path {' -> '.join(x.name for x in path)}"
     )
 
     for i in range(1, len(path)):

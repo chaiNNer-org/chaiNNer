@@ -59,7 +59,7 @@ ROT = ReductionOpTypes
 class Onnx2NcnnConverter:
     def __init__(self, onnx_model: ModelProto):
         self.onnx_graph: GraphProto = onnx_model.graph
-        self.mutable_graph_nodes: List[NodeProto] = [n for n in self.onnx_graph.node]
+        self.mutable_graph_nodes: List[NodeProto] = list(self.onnx_graph.node)
         self.node_count: int = len(self.onnx_graph.node)
         self.weights: Dict[str, TensorProto] = {
             initializer.name: initializer for initializer in self.onnx_graph.initializer
@@ -3738,8 +3738,8 @@ class Onnx2NcnnConverter:
                             np.delete(axes, i)
                             break
 
-                layer.add_param(9, [starts.size, *[s for s in starts]])
-                layer.add_param(10, [ends.size, *[e for e in ends]])
+                layer.add_param(9, [starts.size, *list(starts)])
+                layer.add_param(10, [ends.size, *list(ends)])
                 if axes.size:
                     assert np.all(
                         axes != 0 and axes <= 3 and axes >= -3
@@ -3758,7 +3758,7 @@ class Onnx2NcnnConverter:
                 assert axis >= 1, f"Unsupported axis {axis} in Split"
 
                 if splits.size:
-                    layer.add_param(0, [output_size, *[s for s in splits[:-1]], -233])
+                    layer.add_param(0, [output_size, *list(splits[:-1]), -233])
                 else:
                     layer.add_param(
                         0, [output_size, *[-233 for _ in range(output_size)]]

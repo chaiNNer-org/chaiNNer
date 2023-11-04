@@ -106,9 +106,9 @@ def lens_blur(
     ]
     components = normalize_kernels(components, parameters)
     img = np.power(img, exposure_gamma)
-    component_output = list()
+    component_output = []
     for component, component_params in zip(components, parameters):
-        channels = list()
+        channels = []
         component_real = np.real(component)
         component_imag = np.imag(component)
         component_real_t = component_real.transpose()
