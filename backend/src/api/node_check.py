@@ -120,7 +120,7 @@ def is_subset_of(a: _Ty, b: _Ty) -> bool:
 
 def is_tuple(t: _Ty) -> bool:
     s = str(t)
-    return s.startswith("typing.Tuple[") or s.startswith("tuple[")
+    return s.startswith(("typing.Tuple[", "tuple["))
 
 
 def get_type_annotations(fn: Callable) -> dict[str, _Ty]:

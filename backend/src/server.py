@@ -75,7 +75,7 @@ class SSEFilter(logging.Filter):
     def filter(self, record):
         request = record.request  # type: ignore
         return not (
-            (request.endswith("/sse") or request.endswith("/setup-sse"))
+            (request.endswith(("/sse", "/setup-sse")))
             and record.status == 200  # type: ignore
         )
 

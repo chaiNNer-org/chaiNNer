@@ -71,8 +71,8 @@ def pix_transform(
 
     guide_patches = torch.zeros((m * m, guide_tensor.shape[0], d, d)).to(device)
     source_pixels = torch.zeros((m * m, 1)).to(device)
-    for i in range(0, m):
-        for j in range(0, m):
+    for i in range(m):
+        for j in range(m):
             guide_patches[j + i * m, :, :, :] = guide_tensor[
                 :, i * d : (i + 1) * d, j * d : (j + 1) * d
             ]
@@ -103,7 +103,7 @@ def pix_transform(
     ###############################################################################################
 
     epochs = params.batch_size * params.iteration // (m * m)
-    for _epoch in range(0, epochs):
+    for _epoch in range(epochs):
         for x, y in train_loader:
             optimizer.zero_grad()
 

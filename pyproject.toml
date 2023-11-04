@@ -30,8 +30,19 @@ extend-select = [
     "B",   # flake8-bugbear
     # "A",   # flake8-builtins
     # "COM", # flake8-commas
-    "C4", # flake8-comprehensions
-    "FA", # flake8-future-annotations
+    "C4",  # flake8-comprehensions
+    "FA",  # flake8-future-annotations
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "G",   # flake8-logging-format
+    # "INP", # flake8-implicit-namespaces
+    "PIE", # flake8-pie
+    # "PYI", # flake8-pyi
+    "Q", # flake8-quotes
+    # "RET", # flake8-return
+    "SLF", # flake8-self
+    # "SIM", # flake8-simplify
+    # "TCH", # flake8-tidy-imports
 
 ]
 ignore = [
