@@ -35,7 +35,7 @@ from dependencies.store import DependencyInfo, install_dependencies, installed_p
 from events import EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
 from process import Executor, NodeExecutionError, NodeOutput
-from progress_controller import AbortedError
+from progress_controller import Aborted
 from response import (
     already_running_response,
     error_response,
@@ -184,7 +184,7 @@ async def run(request: Request):
         try:
             ctx.executor = executor
             await executor.run()
-        except AbortedError:
+        except Aborted:
             pass
         finally:
             ctx.executor = None
@@ -254,7 +254,7 @@ async def run_individual(request: Request):
             try:
                 output = await executor.process_regular_node(node_id)
                 ctx.cache[node_id] = output
-            except AbortedError:
+            except Aborted:
                 pass
             finally:
                 gc.collect()

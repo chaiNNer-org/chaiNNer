@@ -2,7 +2,7 @@ import asyncio
 from abc import ABC, abstractmethod
 
 
-class AbortedError(Exception):
+class Aborted(Exception):
     pass
 
 
@@ -49,9 +49,9 @@ class ProgressController(ProgressToken):
 
     async def suspend(self) -> None:
         if self.aborted:
-            raise AbortedError()
+            raise Aborted()
 
         while self.paused:
             await asyncio.sleep(0.1)
             if self.aborted:
-                raise AbortedError()
+                raise Aborted()

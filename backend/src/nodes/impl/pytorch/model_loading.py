@@ -19,7 +19,7 @@ from .architecture.SwinIR import SwinIR
 from .types import PyTorchModel
 
 
-class UnsupportedModelError(Exception):
+class UnsupportedModel(Exception):
     pass
 
 
@@ -104,5 +104,5 @@ def load_state_dict(state_dict) -> PyTorchModel:
         try:
             model = ESRGAN(state_dict)
         except Exception as e:
-            raise UnsupportedModelError from e
+            raise UnsupportedModel from e
     return model
