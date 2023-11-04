@@ -43,10 +43,7 @@ def metal_to_spec(
         scaled_albedo = resize(albedo, metal_size, InterpolationMethod.LANCZOS)
     spec = metal3 * scaled_albedo + metal3_inv * 0.22
 
-    if roughness is None:
-        gloss = np.zeros((1, 1), np.float32) + 0.5
-    else:
-        gloss = 1 - roughness
+    gloss = np.zeros((1, 1), np.float32) + 0.5 if roughness is None else 1 - roughness
 
     return diff, spec, gloss
 

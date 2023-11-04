@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import gc
 
 import numpy as np
@@ -43,10 +44,8 @@ def pytorch_auto_split(
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
                 if d_img is not None:
-                    try:
+                    with contextlib.suppress(Exception):
                         d_img.detach().cpu()
-                    except Exception:
-                        pass
                     del d_img
                 gc.collect()
                 safe_cuda_cache_empty()

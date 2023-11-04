@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import gc
 
 import numpy as np
@@ -96,16 +97,12 @@ def inpaint(
         except RuntimeError:
             # Collect garbage (clear VRAM)
             if d_img is not None:
-                try:
+                with contextlib.suppress(Exception):
                     d_img.detach().cpu()
-                except Exception:
-                    pass
                 del d_img
             if d_mask is not None:
-                try:
+                with contextlib.suppress(Exception):
                     d_mask.detach().cpu()
-                except Exception:
-                    pass
                 del d_mask
             gc.collect()
             safe_cuda_cache_empty()

@@ -10,7 +10,7 @@ from ...utils.utils import get_h_w_c
 
 class ColorSpace:
     def __init__(self, id_: int, name: str, channels: int):
-        assert 0 <= id_ and id_ < 256
+        assert id_ >= 0 and id_ < 256
         self.id = id_
         self.name = name
         self.channels = channels
@@ -18,7 +18,7 @@ class ColorSpace:
 
 class ColorSpaceDetector:
     def __init__(self, id_: int, name: str, color_spaces: Iterable[ColorSpace]) -> None:
-        assert 1000 <= id_ and id_ < 2000
+        assert id_ >= 1000 and id_ < 2000
         self.id = id_
         self.name = name
         self.channel_map: dict[int, ColorSpace] = {}

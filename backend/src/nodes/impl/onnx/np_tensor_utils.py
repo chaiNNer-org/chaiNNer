@@ -45,7 +45,7 @@ def np_rgba_to_bgra(img: np.ndarray) -> np.ndarray:
 def np2nptensor(
     img: np.ndarray,
     bgr2rgb=True,
-    data_range=1.0,  # pylint: disable=unused-argument
+    data_range=1.0,  # noqa: ARG001
     normalize=False,
     change_range=True,
     add_batch=True,

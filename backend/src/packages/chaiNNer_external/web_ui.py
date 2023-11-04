@@ -95,15 +95,9 @@ class ApiConfig:
         host = os.environ.get("STABLE_DIFFUSION_HOST", "127.0.0.1")
         port = os.environ.get("STABLE_DIFFUSION_PORT", None)
 
-        if protocol:
-            protocol = [protocol]
-        else:
-            protocol = ["https", "http"]
+        protocol = [protocol] if protocol else ["https", "http"]
 
-        if port:
-            port = [port]
-        else:
-            port = ["7860", "7861"]
+        port = [port] if port else ["7860", "7861"]
 
         return ApiConfig(protocol, host, port)
 

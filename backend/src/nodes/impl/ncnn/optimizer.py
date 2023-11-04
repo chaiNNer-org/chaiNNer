@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 
 from ...utils.checked_cast import checked_cast
@@ -192,12 +194,10 @@ class NcnnOptimizer:
                     )
                 )
 
-                try:
+                with contextlib.suppress(KeyError):
                     layer.weight_data["bias"].weight = (
                         layer.weight_data["bias"].weight * data
                     )
-                except KeyError:
-                    pass
 
                 self.model.layers[i].outputs[0] = self.model.layers[j].outputs[0]
                 self.model.node_count -= 1

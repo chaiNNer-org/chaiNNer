@@ -211,11 +211,12 @@ def check_schema_types(
         for i in varargs_inputs:
             associated_type = i.associated_type
 
-            if associated_type is not None:
-                if not is_subset_of(associated_type, va_type):
-                    raise CheckFailedError(
-                        f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
-                    )
+            if associated_type is not None and not is_subset_of(
+                associated_type, va_type
+            ):
+                raise CheckFailedError(
+                    f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
+                )
 
             # append to total
             if associated_type is not None:

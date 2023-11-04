@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -237,10 +238,8 @@ def save_video_node(
         non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
         for parameter in additional_parameters_array:
             key, value = parameter, None
-            try:
+            with contextlib.suppress(Exception):
                 key, value = parameter.split(" ")
-            except Exception:
-                pass
 
             if value is not None:
                 for nop in non_overridable_params:
@@ -347,9 +346,7 @@ def save_video_node(
                     "Failed to copy audio to video, input file probably contains "
                     "no audio or audio stream is supported by this container. Ignoring audio settings."
                 )
-                try:
+                with contextlib.suppress(Exception):
                     os.remove(audio_video_path)
-                except Exception:
-                    pass
 
     return Collector(on_iterate=on_iterate, on_complete=on_complete)

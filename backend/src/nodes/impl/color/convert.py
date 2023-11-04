@@ -54,9 +54,7 @@ def get_shortest_path(
     while len(front) > 0:
         best = None
         for x in front.values():
-            if best is None:
-                best = x
-            elif x.cost < best.cost:
+            if best is None or x.cost < best.cost:
                 best = x
         assert best is not None
 

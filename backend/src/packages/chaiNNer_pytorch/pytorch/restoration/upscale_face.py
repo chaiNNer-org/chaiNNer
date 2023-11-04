@@ -53,10 +53,7 @@ def upscale(
     face_helper.align_warp_face()
 
     should_use_fp16 = exec_options.use_fp16 and face_model.supports_fp16
-    if should_use_fp16:
-        face_model = face_model.half()
-    else:
-        face_model = face_model.float()
+    face_model = face_model.half() if should_use_fp16 else face_model.float()
 
     # face restoration
     for cropped_face in face_helper.cropped_faces:

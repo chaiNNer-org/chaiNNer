@@ -45,7 +45,7 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # Swift-SRGAN
     elif (
         "model" in state_dict_keys
-        and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
+        and "initial.cnn.depthwise.weight" in state_dict["model"]
     ):
         model = SwiftSRGAN(state_dict)
     # SwinIR, Swin2SR, SRFormer, HAT

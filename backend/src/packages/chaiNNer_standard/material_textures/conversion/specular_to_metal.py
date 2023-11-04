@@ -55,10 +55,7 @@ def spec_to_metal(
     metal3_scaled = np.dstack((metal_scaled,) * 3)
     albedo = metal3_scaled * sped_scaled + (1 - metal3_scaled) * diff
 
-    if gloss is None:
-        roughness = np.zeros((1, 1), np.float32) + 0.5
-    else:
-        roughness = 1 - gloss
+    roughness = np.zeros((1, 1), np.float32) + 0.5 if gloss is None else 1 - gloss
 
     return albedo, metal, roughness
 

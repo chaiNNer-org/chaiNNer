@@ -117,64 +117,62 @@ class Onnx2NcnnConverter:
     def fuse_weight_reshape(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
-            if node.op_type == "Reshape":
-                if node.input[0] in self.weights:
-                    self.weights[node.output[0]] = self.weights[node.input[0]]
-                    if len(node.input) == 1:
-                        shape = get_node_attr_ai(node, "shape")
-                    elif len(node.input) == 2:
-                        shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
-                    else:
-                        shape = np.empty(0, np.int64)
+            if node.op_type == "Reshape" and node.input[0] in self.weights:
+                self.weights[node.output[0]] = self.weights[node.input[0]]
+                if len(node.input) == 1:
+                    shape = get_node_attr_ai(node, "shape")
+                elif len(node.input) == 2:
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
+                else:
+                    shape = np.empty(0, np.int64)
 
-                    self.clear_container(self.weights[node.output[0]].dims)
-                    for dim in shape:
-                        self.weights[node.output[0]].dims.append(dim)
+                self.clear_container(self.weights[node.output[0]].dims)
+                for dim in shape:
+                    self.weights[node.output[0]].dims.append(dim)
 
-                    node.op_type = "noop_reducedncnn"
+                node.op_type = "noop_reducedncnn"
 
-                    self.node_reference[node.input[0]] -= 1
-                    if len(node.input) == 2:
-                        self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.input[0]] -= 1
+                if len(node.input) == 2:
+                    self.node_reference[node.input[1]] -= 1
 
-                    reduced_node_count[0] += 1
-                    i += 1  # noqa
+                reduced_node_count[0] += 1
+                i += 1  # noqa
 
     def fuse_weight_transpose(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
-            if node.op_type == "Transpose":
-                if (
-                    node.input[0] in self.weights
-                    and len(self.weights[node.input[0]].dims) == 2
-                ):
-                    perm = get_node_attr_ai(node, "perm")
-                    if perm.size != 2 or perm[0] != 1 or perm[1] != 0:
-                        continue
+            if node.op_type == "Transpose" and (
+                node.input[0] in self.weights
+                and len(self.weights[node.input[0]].dims) == 2
+            ):
+                perm = get_node_attr_ai(node, "perm")
+                if perm.size != 2 or perm[0] != 1 or perm[1] != 0:
+                    continue
 
-                    self.weights[node.output[0]] = self.weights[node.input[0]]
+                self.weights[node.output[0]] = self.weights[node.input[0]]
 
-                    # Permute weight
-                    B = self.weights[node.output[0]]
+                # Permute weight
+                B = self.weights[node.output[0]]
 
-                    h, w = B.dims[:2]
+                h, w = B.dims[:2]
 
-                    permuted_data = onph.to_array(B).T
+                permuted_data = onph.to_array(B).T
 
-                    B.dims[:2] = (w, h)
+                B.dims[:2] = (w, h)
 
-                    if B.raw_data:
-                        B.raw_data = permuted_data.tobytes()
-                    else:
-                        self.clear_container(B.float_data)
-                        B.float_data.extend(permuted_data)
+                if B.raw_data:
+                    B.raw_data = permuted_data.tobytes()
+                else:
+                    self.clear_container(B.float_data)
+                    B.float_data.extend(permuted_data)
 
-                    # Reduce
-                    node.op_type = "noop_reducednccn"
-                    self.node_reference[node.input[0]] -= 1
+                # Reduce
+                node.op_type = "noop_reducednccn"
+                self.node_reference[node.input[0]] -= 1
 
-                    reduced_node_count[0] += 1
-                    i += 1  # noqa
+                reduced_node_count[0] += 1
+                i += 1  # noqa
 
     def fuse_shufflechannel(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
@@ -2418,7 +2416,7 @@ class Onnx2NcnnConverter:
                 if len(node.input) == 3:
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
-            elif op == "Conv":
+            elif op == "Conv":  # noqa: SIM114
                 self.node_reference[node.input[1]] -= 1
                 if len(node.input) == 3:
                     self.node_reference[node.input[2]] -= 1
@@ -2517,7 +2515,7 @@ class Onnx2NcnnConverter:
                         self.node_reference[node.input[3]] -= 1
                     if len(node.input) >= 5:
                         self.node_reference[node.input[4]] -= 1
-            elif op == "Upsample":
+            elif op == "Upsample":  # noqa: SIM114
                 if len(node.input) >= 2:
                     self.node_reference[node.input[1]] -= 1
             elif op in ("adaptive_avg_pool2d", "adaptive_max_pool2d"):
@@ -2526,7 +2524,7 @@ class Onnx2NcnnConverter:
 
         # count all weight node with zero reference
         zero_reference_weight_node_count = 0
-        for input_name in self.weights.keys():
+        for input_name in self.weights:
             # there may be some weight nodes in initializer but none of the graph nodes use them
             # add them to blob_names so we could get proper blob count later
             self.blob_names[input_name] = None
