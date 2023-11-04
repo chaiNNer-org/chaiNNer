@@ -203,7 +203,7 @@ class NcnnParamCollection:
                 logger.error(f"Op {self.op} does not have param {pid}, please report")
                 raise
 
-            defaultValue = param["defaultValue"]
+            default_value = param["defaultValue"]
             value = param["defaultValue"]
             if isinstance(value, str):
                 for key, val in list(param_dict.items())[:-1]:
@@ -212,14 +212,14 @@ class NcnnParamCollection:
                             value = self.param_dict[int(key)].value
                         except KeyError:
                             value = val["defaultValue"]
-                        defaultValue = val["defaultValue"]
+                        default_value = val["defaultValue"]
 
                         break
                 else:
                     msg = f"Op {self.op} does not have param {value}, please report"
                     raise KeyError(msg) from exc
 
-            return NcnnParam(idstr, param["paramPhase"], value, defaultValue)
+            return NcnnParam(idstr, param["paramPhase"], value, default_value)
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]

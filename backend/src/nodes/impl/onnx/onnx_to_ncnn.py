@@ -1,3 +1,5 @@
+# ruff: noqa: N806
+
 from typing import Dict, List, Union
 
 import numpy as np
@@ -2323,7 +2325,9 @@ class Onnx2NcnnConverter:
                 continue
 
             # find node that produces missing_input_name
+            swap_j = 0
             for j, nodeq in enumerate(self.mutable_graph_nodes, i + 1):
+                swap_j = j
                 found = False
                 for output_name in nodeq.output:
                     if output_name == missing_input_name:
@@ -2338,7 +2342,7 @@ class Onnx2NcnnConverter:
                     f"which is required by node {i} ({node.name})."
                 )
 
-            self.swap_nodes(i, j)
+            self.swap_nodes(i, swap_j)
 
         # global definition line
         # [layer count][blob count]

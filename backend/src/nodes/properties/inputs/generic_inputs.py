@@ -80,9 +80,9 @@ class DropDownInput(BaseInput):
             associated_type if associated_type is not None else type(self.default)
         )
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "options": self.options,
             "def": self.default,
             "preferredStyle": self.preferred_style,
@@ -261,9 +261,9 @@ class TextInput(BaseInput):
 
         return value
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
@@ -397,9 +397,9 @@ class ColorInput(BaseInput):
 
         return value
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "def": json.dumps(self.default.to_json()),
             "channels": self.channels,
         }

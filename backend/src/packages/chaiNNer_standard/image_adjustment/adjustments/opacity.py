@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
-from nodes.impl.pil_utils import convert_to_BGRA
+from nodes.impl.pil_utils import convert_to_bgra
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -42,7 +42,7 @@ def opacity_node(img: np.ndarray, opacity: float) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if opacity == 100 and c == 4:
         return img
-    imgout = convert_to_BGRA(img, c)
+    imgout = convert_to_bgra(img, c)
     opacity /= 100
 
     imgout[:, :, 3] *= opacity

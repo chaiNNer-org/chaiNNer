@@ -73,7 +73,7 @@ class NormalMapType(Enum):
     OCTAHEDRAL = "Octahedral"
 
 
-def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
+def convert_to_bgra(img: np.ndarray, in_c: int) -> np.ndarray:
     assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
     if in_c == 1:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
@@ -146,7 +146,7 @@ def to_uint16(
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
     c = get_h_w_c(img)[2]
     if fill == FillColor.TRANSPARENT:
-        img = convert_to_BGRA(img, c)
+        img = convert_to_bgra(img, c)
     fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
@@ -170,7 +170,7 @@ def as_2d_grayscale(img: np.ndarray) -> np.ndarray:
         return img
     if img.ndim == 3 and img.shape[2] == 1:
         return img[:, :, 0]
-    assert False, f"Invalid image shape {img.shape}"
+    raise AssertionError(f"Invalid image shape {img.shape}")
 
 
 def as_3d(img: np.ndarray) -> np.ndarray:
@@ -282,8 +282,8 @@ def calculate_ssim(
     """Calculates mean localized Structural Similarity Index (SSIM)
     between two images."""
 
-    C1 = 0.01**2
-    C2 = 0.03**2
+    c1 = 0.01**2
+    c2 = 0.03**2
 
     kernel = cv2.getGaussianKernel(11, 1.5)
     window = np.outer(kernel, kernel.transpose())  # type: ignore
@@ -297,8 +297,8 @@ def calculate_ssim(
     sigma2_sq = cv2.filter2D(img2**2, -1, window)[5:-5, 5:-5] - mu2_sq
     sigma12 = cv2.filter2D(img1 * img2, -1, window)[5:-5, 5:-5] - mu1_mu2
 
-    ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / (
-        (mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2)
+    ssim_map = ((2 * mu1_mu2 + c1) * (2 * sigma12 + c2)) / (
+        (mu1_sq + mu2_sq + c1) * (sigma1_sq + sigma2_sq + c2)
     )
 
     return float(np.mean(ssim_map))

@@ -123,8 +123,7 @@ def upscale_impl(
         raise
     except Exception as e:
         logger.error(e)
-        # pylint: disable=raise-missing-from
-        raise RuntimeError("An unexpected error occurred during NCNN processing.")
+        raise RuntimeError("An unexpected error occurred during NCNN processing.")  # noqa: B904
 
 
 @processing_group.register(

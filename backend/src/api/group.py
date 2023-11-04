@@ -26,12 +26,12 @@ class Group(Generic[T]):
         self.info: GroupInfo = info
         self.items: List[T] = items
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "id": self.info.id,
             "kind": self.info.kind,
             "options": self.info.options,
-            "items": [i.toDict() if isinstance(i, Group) else i for i in self.items],
+            "items": [i.to_dict() if isinstance(i, Group) else i for i in self.items],
         }
 
 

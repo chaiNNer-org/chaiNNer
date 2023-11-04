@@ -30,7 +30,7 @@ class BaseOutput:
         # Optional documentation
         self.description: str | None = None
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "id": self.id,
             "type": self.output_type,
@@ -54,10 +54,10 @@ class BaseOutput:
         return self
 
     def __repr__(self):
-        return str(self.toDict())
+        return str(self.to_dict())
 
     def __iter__(self):
-        yield from self.toDict().items()
+        yield from self.to_dict().items()
 
     def get_broadcast_data(self, _value):
         return None

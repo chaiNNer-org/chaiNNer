@@ -110,9 +110,9 @@ class OutputCache(Generic[T]):
         return False
 
     def get(self, node_id: NodeId) -> T | None:
-        staticValue = self.__static.get(node_id, None)
-        if staticValue is not None:
-            return staticValue
+        static_value = self.__static.get(node_id, None)
+        if static_value is not None:
+            return static_value
 
         counted = self.__counted.get(node_id, None)
         if counted is not None:

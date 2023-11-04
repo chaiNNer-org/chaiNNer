@@ -26,11 +26,11 @@ class AlreadyRunningResponse(TypedDict):
     message: str
 
 
-def successResponse(message: str) -> SuccessResponse:
+def success_response(message: str) -> SuccessResponse:
     return {"type": "success", "message": message}
 
 
-def errorResponse(
+def error_response(
     message: str,
     exception: Union[str, Exception],
     source: Optional[ExecutionErrorSource] = None,
@@ -49,9 +49,9 @@ def errorResponse(
     }
 
 
-def noExecutorResponse(message: str) -> NoExecutorResponse:
+def no_executor_response(message: str) -> NoExecutorResponse:
     return {"type": "no-executor", "message": message}
 
 
-def alreadyRunningResponse(message: str) -> AlreadyRunningResponse:
+def already_running_response(message: str) -> AlreadyRunningResponse:
     return {"type": "already-running", "message": message}

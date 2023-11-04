@@ -88,17 +88,17 @@ class NvidiaHelper:
         return supports_fp16(gpu)
 
 
-_cachedNvidiaHelper = None
+_cached_nvidia_helper = None
 
 
 def get_nvidia_helper():
     # pylint: disable=global-statement
-    global _cachedNvidiaHelper
+    global _cached_nvidia_helper
     if not nvidia_is_available:
         return None
-    if not _cachedNvidiaHelper:
-        _cachedNvidiaHelper = NvidiaHelper()
-    return _cachedNvidiaHelper
+    if not _cached_nvidia_helper:
+        _cached_nvidia_helper = NvidiaHelper()
+    return _cached_nvidia_helper
 
 
 __all__ = [

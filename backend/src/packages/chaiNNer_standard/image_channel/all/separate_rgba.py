@@ -66,7 +66,7 @@ def separate_rgba_node(
     out = []
     for i in range(c):
         out.append(img[:, :, i])
-    for i in range(4 - c):
+    for _ in range(4 - c):
         out.append(safe_out)
 
     return out[2], out[1], out[0], out[3]

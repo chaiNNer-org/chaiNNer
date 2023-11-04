@@ -110,11 +110,11 @@ def save_as_dds(
 
     assert ext == ".dds", "The file to save must end with '.dds'"
 
-    tempDir = mkdtemp(prefix="chaiNNer-")
+    temp_dir = mkdtemp(prefix="chaiNNer-")
 
     try:
-        tempPng = os.path.join(tempDir, f"{name}.png")
-        cv_save_image(tempPng, image, [])
+        temp_png = os.path.join(temp_dir, f"{name}.png")
+        cv_save_image(temp_png, image, [])
 
         args = [
             "-y",
@@ -142,7 +142,7 @@ def save_as_dds(
         if separate_alpha:
             args.append("-sepalpha")
 
-        args.append(tempPng)
+        args.append(temp_png)
         __run_texconv(args, "Unable to write DDS")
     finally:
-        shutil.rmtree(tempDir)
+        shutil.rmtree(temp_dir)

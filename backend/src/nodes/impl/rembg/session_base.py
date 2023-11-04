@@ -24,16 +24,16 @@ class BaseSession:
         im_ary = np.array(im)
         im_ary = im_ary / np.max(im_ary)
 
-        tmpImg = np.zeros((im_ary.shape[0], im_ary.shape[1], 3))
-        tmpImg[:, :, 0] = (im_ary[:, :, 0] - self.mean[0]) / self.std[0]
-        tmpImg[:, :, 1] = (im_ary[:, :, 1] - self.mean[1]) / self.std[1]
-        tmpImg[:, :, 2] = (im_ary[:, :, 2] - self.mean[2]) / self.std[2]
+        tmp_img = np.zeros((im_ary.shape[0], im_ary.shape[1], 3))
+        tmp_img[:, :, 0] = (im_ary[:, :, 0] - self.mean[0]) / self.std[0]
+        tmp_img[:, :, 1] = (im_ary[:, :, 1] - self.mean[1]) / self.std[1]
+        tmp_img[:, :, 2] = (im_ary[:, :, 2] - self.mean[2]) / self.std[2]
 
-        tmpImg = tmpImg.transpose((2, 0, 1))
+        tmp_img = tmp_img.transpose((2, 0, 1))
 
         model_input_name = self.inner_session.get_inputs()[0].name
 
-        return {model_input_name: np.expand_dims(tmpImg, 0).astype(np.float32)}
+        return {model_input_name: np.expand_dims(tmp_img, 0).astype(np.float32)}
 
     def predict(self, _: PILImage) -> List[PILImage]:
         raise NotImplementedError

@@ -52,4 +52,4 @@ def get_height_map(img: np.ndarray, source: HeightSource) -> np.ndarray:
     elif source == HeightSource.SCREEN_RGB:
         return 1 - ((1 - r) * (1 - g) * (1 - b))
     else:
-        assert False, f"Invalid height source {source}."
+        raise AssertionError(f"Invalid height source {source}.")

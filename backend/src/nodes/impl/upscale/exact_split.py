@@ -27,8 +27,8 @@ def _pad_image(img: np.ndarray, min_size: Size):
 class _Segment:
     start: int
     end: int
-    startPadding: int
-    endPadding: int
+    start_padding: int
+    end_padding: int
 
     @property
     def length(self) -> int:
@@ -36,7 +36,7 @@ class _Segment:
 
     @property
     def padded_length(self) -> int:
-        return self.end + self.endPadding - (self.start - self.startPadding)
+        return self.end + self.end_padding - (self.start - self.start_padding)
 
 
 def _exact_split_into_segments(length: int, exact: int, overlap: int) -> list[_Segment]:
@@ -68,18 +68,18 @@ def _exact_split_into_segments(length: int, exact: int, overlap: int) -> list[_S
     add(_Segment(0, exact - overlap, 0, overlap))
 
     while result[-1].end < length:
-        startPadding = overlap
+        start_padding = overlap
         start = result[-1].end
         end = start + exact - overlap * 2
-        endPadding = overlap
+        end_padding = overlap
 
-        if end + endPadding >= length:
+        if end + end_padding >= length:
             # last segment
-            endPadding = 0
+            end_padding = 0
             end = length
-            startPadding = exact - (end - start)
+            start_padding = exact - (end - start)
 
-        add(_Segment(start, end, startPadding, endPadding))
+        add(_Segment(start, end, start_padding, end_padding))
 
     return result
 
@@ -111,7 +111,9 @@ def _exact_split_into_regions(
             result.append(
                 (
                     Region(x.start, y.start, x.length, y.length),
-                    Padding(y.startPadding, x.endPadding, y.endPadding, x.startPadding),
+                    Padding(
+                        y.start_padding, x.end_padding, y.end_padding, x.start_padding
+                    ),
                 )
             )
     return result

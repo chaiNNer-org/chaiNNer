@@ -8,9 +8,9 @@ from .architecture.HAT import HAT
 from .architecture.LaMa import LaMa
 from .architecture.MAT import MAT
 from .architecture.OmniSR.OmniSR import OmniSR
-from .architecture.RRDB import RRDBNet as ESRGAN
+from .architecture.RRDB import RRDBNet as ESRGAN  # noqa: N814
 from .architecture.SCUNet import SCUNet
-from .architecture.SPSR import SPSRNet as SPSR
+from .architecture.SPSR import SPSRNet as SPSR  # noqa: N814
 from .architecture.SRFormer import SRFormer
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
@@ -103,7 +103,6 @@ def load_state_dict(state_dict) -> PyTorchModel:
     else:
         try:
             model = ESRGAN(state_dict)
-        except Exception:
-            # pylint: disable=raise-missing-from
-            raise UnsupportedModel
+        except Exception as e:
+            raise UnsupportedModel from e
     return model

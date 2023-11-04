@@ -51,7 +51,7 @@ class Api:
                 f"webui GET request to {path} connection failed"
             ) from exc
         except requests.exceptions.ReadTimeout as exc:
-            raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
+            raise ExternalServiceTimeoutError(TIMEOUT_MSG) from exc
 
     async def get_async(
         self, path: str, timeout: float = STABLE_DIFFUSION_REQUEST_TIMEOUT
@@ -80,7 +80,7 @@ class Api:
                 f"webui POST request to {path} connection failed"
             ) from exc
         except requests.exceptions.ReadTimeout as exc:
-            raise ExternalServiceTimeout(TIMEOUT_MSG) from exc
+            raise ExternalServiceTimeoutError(TIMEOUT_MSG) from exc
 
 
 @dataclass
@@ -167,7 +167,7 @@ class ExternalServiceConnectionError(Exception):
     pass
 
 
-class ExternalServiceTimeout(Exception):
+class ExternalServiceTimeoutError(Exception):
     pass
 
 

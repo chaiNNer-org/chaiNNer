@@ -213,8 +213,7 @@ class NodeGroup:
             except CheckFailedError as e:
                 full_error_message = f"Error in {schema_id}: {e}"
                 if level == CheckLevel.ERROR:
-                    # pylint: disable=raise-missing-from
-                    raise CheckFailedError(full_error_message)
+                    raise CheckFailedError(full_error_message)  # noqa: B904
                 logger.warning(full_error_message)
 
         def inner_wrapper(wrapped_func: T) -> T:
@@ -274,7 +273,7 @@ class Category:
         self.node_groups.append(result)
         return result
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "name": self.name,
             "description": self.description,
@@ -295,7 +294,7 @@ class Dependency:
 
     import_name: str | None = None
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "displayName": self.display_name,
             "pypiName": self.pypi_name,
@@ -323,7 +322,7 @@ class Feature:
         self.behavior = FeatureBehavior(check=check)
         return FeatureId(self.id)
 
-    def toDict(self):
+    def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,

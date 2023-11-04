@@ -25,11 +25,10 @@ def perform_interp(model_a: dict, model_b: dict, amount: int):
             v_2 = model_b[k]
             state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
         return state_dict
-    except Exception:
-        # pylint: disable=raise-missing-from
+    except Exception as e:
         raise ValueError(
             "These models are not compatible and able not able to be interpolated together"
-        )
+        ) from e
 
 
 def check_can_interp(model_a: dict, model_b: dict):

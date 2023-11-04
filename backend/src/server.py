@@ -37,10 +37,10 @@ from gpu import get_nvidia_helper
 from process import Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
-    alreadyRunningResponse,
-    errorResponse,
-    noExecutorResponse,
-    successResponse,
+    already_running_response,
+    error_response,
+    no_executor_response,
+    success_response,
 )
 from server_config import ServerConfig
 from system import is_arm_mac
@@ -93,7 +93,7 @@ class ZeroCounter:
         self.count -= 1
 
 
-runIndividualCounter = ZeroCounter()
+run_individual_counter = ZeroCounter()
 
 setup_task = None
 
@@ -118,10 +118,10 @@ async def nodes(_request: Request):
             "schemaId": node.schema_id,
             "name": node.name,
             "category": sub.category.name,
-            "inputs": [x.toDict() for x in node.inputs],
-            "outputs": [x.toDict() for x in node.outputs],
+            "inputs": [x.to_dict() for x in node.inputs],
+            "outputs": [x.to_dict() for x in node.outputs],
             "groupLayout": [
-                g.toDict() if isinstance(g, Group) else g for g in node.group_layout
+                g.to_dict() if isinstance(g, Group) else g for g in node.group_layout
             ],
             "description": node.description,
             "seeAlso": node.see_also,
@@ -137,7 +137,7 @@ async def nodes(_request: Request):
     return json(
         {
             "nodes": node_list,
-            "categories": [x.toDict() for x in api.registry.categories],
+            "categories": [x.to_dict() for x in api.registry.categories],
             "categoriesMissingNodes": [],
         }
     )
@@ -158,11 +158,11 @@ async def run(request: Request):
     if ctx.executor:
         message = "Cannot run another executor while the first one is still running."
         logger.warning(message)
-        return json(alreadyRunningResponse(message), status=500)
+        return json(already_running_response(message), status=500)
 
     try:
         # wait until all previews are done
-        await runIndividualCounter.wait_zero()
+        await run_individual_counter.wait_zero()
 
         full_data: RunRequest = dict(request.json)  # type: ignore
         logger.debug(full_data)
@@ -193,7 +193,7 @@ async def run(request: Request):
         await ctx.queue.put(
             {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
         )
-        return json(successResponse("Successfully ran nodes!"), status=200)
+        return json(success_response("Successfully ran nodes!"), status=200)
     except Exception as exception:
         logger.error(exception, exc_info=True)
         logger.error(traceback.format_exc())
@@ -211,7 +211,7 @@ async def run(request: Request):
             }
 
         await ctx.queue.put({"event": "execution-error", "data": error})
-        return json(errorResponse("Error running nodes!", exception), status=500)
+        return json(error_response("Error running nodes!", exception), status=500)
 
 
 class RunIndividualRequest(TypedDict):
@@ -250,7 +250,7 @@ async def run_individual(request: Request):
             pool=ctx.pool,
         )
 
-        with runIndividualCounter:
+        with run_individual_counter:
             try:
                 output = await executor.process_regular_node(node_id)
                 ctx.cache[node_id] = output
@@ -288,15 +288,15 @@ async def pause(request: Request):
     if not ctx.executor:
         message = "No executor to pause"
         logger.warning(message)
-        return json(noExecutorResponse(message), status=400)
+        return json(no_executor_response(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to pause...")
         ctx.executor.pause()
-        return json(successResponse("Successfully paused execution!"), status=200)
+        return json(success_response("Successfully paused execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(errorResponse("Error pausing execution!", exception), status=500)
+        return json(error_response("Error pausing execution!", exception), status=500)
 
 
 @app.route("/resume", methods=["POST"])
@@ -308,15 +308,15 @@ async def resume(request: Request):
     if not ctx.executor:
         message = "No executor to resume"
         logger.warning(message)
-        return json(noExecutorResponse(message), status=400)
+        return json(no_executor_response(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to resume...")
         ctx.executor.resume()
-        return json(successResponse("Successfully resumed execution!"), status=200)
+        return json(success_response("Successfully resumed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(errorResponse("Error resuming execution!", exception), status=500)
+        return json(error_response("Error resuming execution!", exception), status=500)
 
 
 @app.route("/kill", methods=["POST"])
@@ -328,17 +328,17 @@ async def kill(request: Request):
     if not ctx.executor:
         message = "No executor to kill"
         logger.warning("No executor to kill")
-        return json(noExecutorResponse(message), status=400)
+        return json(no_executor_response(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
         while ctx.executor:
             await asyncio.sleep(0.0001)
-        return json(successResponse("Successfully killed execution!"), status=200)
+        return json(success_response("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(errorResponse("Error killing execution!", exception), status=500)
+        return json(error_response("Error killing execution!", exception), status=500)
 
 
 @app.route("/list-gpus/ncnn", methods=["GET"])
@@ -429,7 +429,7 @@ async def get_packages(_request: Request):
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
             pkg_dep_item = {
-                **pkg_dep.toDict(),
+                **pkg_dep.to_dict(),
             }
             if installed_version is None:
                 pkg_dep_item["installed"] = None
@@ -444,8 +444,8 @@ async def get_packages(_request: Request):
                 "description": package.description,
                 "icon": package.icon,
                 "color": package.color,
-                "dependencies": [d.toDict() for d in package.dependencies],
-                "features": [f.toDict() for f in package.features],
+                "dependencies": [d.to_dict() for d in package.dependencies],
+                "features": [f.to_dict() for f in package.features],
                 "settings": [asdict(x) for x in package.settings],
             }
         )
@@ -582,9 +582,7 @@ async def import_packages(
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
             if config.close_after_start:
-                raise ValueError(  # pylint: disable=raise-missing-from
-                    "Error installing dependencies"
-                )
+                raise ValueError("Error installing dependencies") from ex
 
     logger.info("Done checking dependencies...")
 

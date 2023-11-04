@@ -72,7 +72,8 @@ def _exact_split(
             raise _SplitEx
         return result
 
-    MAX_ITER = 20
+    MAX_ITER = 20  # noqa: N806
+
     for _ in range(MAX_ITER):
         try:
             max_overlap = min(*starting_tile_size) // 4

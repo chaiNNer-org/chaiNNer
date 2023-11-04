@@ -1,8 +1,8 @@
 import numpy as np
 
 from ...utils.checked_cast import checked_cast
-from .model import BinaryOpTypes as BOT
-from .model import EltwiseOpTypes as EOT
+from .model import BinaryOpTypes as BOT  # noqa
+from .model import EltwiseOpTypes as EOT  # noqa
 from .model import NcnnLayer, NcnnModel
 
 
@@ -759,7 +759,7 @@ class NcnnOptimizer:
 
     def __eliminate_split(self):
         blob_input_references = []
-        for i, layer in enumerate(self.model.layers):
+        for _, layer in enumerate(self.model.layers):
             for input_name in layer.inputs:
                 blob_input_references.append(input_name)
 

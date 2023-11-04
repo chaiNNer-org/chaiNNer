@@ -45,9 +45,9 @@ class FileInput(BaseInput):
 
         self.associated_type = str
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "filetypes": self.filetypes,
             "fileKind": self.file_kind,
             "primaryInput": self.primary_input,
@@ -131,9 +131,9 @@ class DirectoryInput(BaseInput):
 
         self.associated_type = str
 
-    def toDict(self):
+    def to_dict(self):
         return {
-            **super().toDict(),
+            **super().to_dict(),
             "hideLabel": self.hide_label,
         }
 

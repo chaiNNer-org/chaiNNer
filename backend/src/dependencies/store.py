@@ -15,6 +15,8 @@ installed_packages: Dict[str, Union[str, None]] = {}
 
 COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
+DEP_MAX_PROGRESS = 0.8
+
 
 class DependencyInfo(TypedDict):
     package_name: str
@@ -114,8 +116,6 @@ async def install_dependencies(
     deps_count = len(dependencies_to_install)
     deps_counter = 0
     transitive_deps_counter = 0
-
-    DEP_MAX_PROGRESS = 0.8
 
     def get_progress_amount():
         transitive_progress = 1 - 1 / (2**transitive_deps_counter)

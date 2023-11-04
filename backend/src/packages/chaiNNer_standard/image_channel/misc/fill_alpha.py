@@ -60,6 +60,6 @@ def fill_alpha_node(img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
             anti_aliasing=True,
         )
     else:
-        assert False, f"Invalid alpha fill method {method}"
+        raise AssertionError(f"Invalid alpha fill method {method}")
 
     return img[:, :, :3]

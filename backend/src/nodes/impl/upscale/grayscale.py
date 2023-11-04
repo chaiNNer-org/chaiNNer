@@ -36,7 +36,7 @@ class SplitMode(Enum):
                 *remaining_channels,
             ]
         else:
-            assert False
+            raise AssertionError()
 
     def combine(self, channels: List[np.ndarray]) -> np.ndarray:
         l = len(channels)
@@ -55,7 +55,7 @@ class SplitMode(Enum):
                 return rgb
             return np.dstack([rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2], *channels[3:]])
         else:
-            assert False
+            raise AssertionError()
 
 
 def grayscale_split(

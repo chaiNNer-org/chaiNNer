@@ -195,7 +195,7 @@ def stack_images_node(
                     interpolation=cv2.INTER_NEAREST,
                 )
         else:
-            assert False, f"Invalid orientation '{orientation}'"
+            raise AssertionError(f"Invalid orientation '{orientation}'")
 
         # Expand channel dims if necessary
         if c < max_c:
