@@ -83,7 +83,7 @@ def _exact_split(
                 upscale=no_split_upscale,
                 overlap=min(max_overlap, overlap),
             )
-        except _SplitEx:
+        except _SplitEx:  # noqa: PERF203
             starting_tile_size = split_tile_size(starting_tile_size)
 
     raise ValueError(f"Aborting after {MAX_ITER} splits. Unable to upscale image.")

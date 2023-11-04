@@ -65,8 +65,8 @@ def separate_rgba_node(
 
     out = []
     for i in range(c):
-        out.append(img[:, :, i])
+        out.append(img[:, :, i])  # noqa: PERF401
     for _ in range(4 - c):
-        out.append(safe_out)
+        out.append(safe_out)  # noqa: PERF401
 
     return out[2], out[1], out[0], out[3]

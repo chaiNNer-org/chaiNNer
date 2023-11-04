@@ -583,7 +583,7 @@ def TileSizeDropdown(
     options.append({"option": "No Tiling", "value": -1})
 
     for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
-        options.append({"option": str(size), "value": size})
+        options.append({"option": str(size), "value": size})  # noqa: PERF401
 
     return DropDownInput(
         input_type="TileSize",

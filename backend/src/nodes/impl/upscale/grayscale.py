@@ -68,8 +68,6 @@ def grayscale_split(
     """
 
     input_channels = mode.split(img)
-    output_channels: list[np.ndarray] = []
-    for channel in input_channels:
-        output_channels.append(process(channel))
+    output_channels: list[np.ndarray] = [process(channel) for channel in input_channels]
 
     return mode.combine(output_channels)

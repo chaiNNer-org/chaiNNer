@@ -352,7 +352,7 @@ async def list_ncnn_gpus(_request: Request):
 
         result = []
         for i in range(ncnn.get_gpu_count()):
-            result.append(ncnn.get_gpu_info(i).device_name())
+            result.append(ncnn.get_gpu_info(i).device_name())  # noqa: PERF401
         return json(result)
     except Exception as exception:
         try:
@@ -475,7 +475,7 @@ async def get_features(_request: Request):
     features: list[tuple[api.Feature, api.Package]] = []
     for package in api.registry.packages.values():
         for feature in package.features:
-            features.append((feature, package))
+            features.append((feature, package))  # noqa: PERF401
 
     # check all features in parallel
     async def check(feature: api.Feature) -> api.FeatureState | None:

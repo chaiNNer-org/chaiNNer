@@ -226,7 +226,7 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
             if value is not None:
                 data[node_output.id] = node_output.get_broadcast_data(value)
                 types[node_output.id] = node_output.get_broadcast_type(value)
-        except Exception as e:
+        except Exception as e:  # noqa: PERF203
             logger.error(f"Error broadcasting output: {e}")
     return data, types
 

@@ -16,9 +16,9 @@ from . import package
 
 if not is_arm_mac and use_gpu:
     try:
-        gpu_list = []
-        for i in range(ncnn.get_gpu_count()):
-            gpu_list.append(ncnn.get_gpu_info(i).device_name())
+        gpu_list = [
+            ncnn.get_gpu_info(i).device_name() for i in range(ncnn.get_gpu_count())
+        ]
 
         package.add_setting(
             DropdownSetting(

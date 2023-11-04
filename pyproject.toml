@@ -46,7 +46,7 @@ extend-select = [
     "ARG", # flake8-arguments
     # "PTH", # flake8-pathlib
     # "NPY", # numpy-specific rules
-    # "PERF", # performance rules
+    "PERF", # performance rules
 
 ]
 ignore = [

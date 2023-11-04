@@ -761,7 +761,7 @@ class NcnnOptimizer:
         blob_input_references = []
         for _, layer in enumerate(self.model.layers):
             for input_name in layer.inputs:
-                blob_input_references.append(input_name)
+                blob_input_references.append(input_name)  # noqa: PERF402
 
         for i, layer in enumerate(self.model.layers):
             if layer.op_type == "Split":

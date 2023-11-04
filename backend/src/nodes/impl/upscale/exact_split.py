@@ -108,7 +108,7 @@ def _exact_split_into_regions(
     result: list[tuple[Region, Padding]] = []
     for y in y_segments:
         for x in x_segments:
-            result.append(
+            result.append(  # noqa: PERF401
                 (
                     Region(x.start, y.start, x.length, y.length),
                     Padding(

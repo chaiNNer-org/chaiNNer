@@ -105,7 +105,7 @@ class ApiConfig:
         apis: list[Api] = []
         for protocol in self.protocol:
             for port in self.port:
-                apis.append(Api(protocol, self.host, port))
+                apis.append(Api(protocol, self.host, port))  # noqa: PERF401
         return apis
 
 

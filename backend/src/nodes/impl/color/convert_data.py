@@ -339,7 +339,7 @@ for dir_3, dir_4 in ALPHA_PAIRS.items():
     )
 
 __ALPHA_3_to_4 = dict(ALPHA_PAIRS)
-for conv in list(conversions):
+for conv in conversions:
     in_4 = __ALPHA_3_to_4.get(conv.input)
     out_4 = __ALPHA_3_to_4.get(conv.output)
 
