@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
 from json import load as jload
-from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
@@ -170,24 +171,24 @@ class NcnnParam:
         self,
         pid: str,
         name: str,
-        value: Union[float, int, List[Union[float, int]]],
-        default: Union[float, int],
+        value: float | int | list[float | int],
+        default: float | int,
     ) -> None:
         self.id: str = pid
         self.name: str = name
-        self.value: Union[float, int, List[Union[float, int]]] = value
-        self.default: Union[float, int] = default
+        self.value: float | int | list[float | int] = value
+        self.default: float | int = default
 
 
 class NcnnParamCollection:
     def __init__(
         self,
         op: str,
-        param_dict: Union[Dict[int, NcnnParam], None] = None,
+        param_dict: dict[int, NcnnParam] | None = None,
     ) -> None:
         self.op: str = op
-        self.param_dict: Dict[int, NcnnParam] = {} if param_dict is None else param_dict
-        self.weight_order: Dict[str, List[int]] = (
+        self.param_dict: dict[int, NcnnParam] = {} if param_dict is None else param_dict
+        self.weight_order: dict[str, list[int]] = (
             param_schema[self.op]["weightOrder"] if self.op else {}
         )
 
@@ -221,9 +222,7 @@ class NcnnParamCollection:
 
             return NcnnParam(idstr, param["paramPhase"], value, default_value)
 
-    def __setitem__(
-        self, pid: int, value: Union[float, int, List[Union[float, int]]]
-    ) -> None:
+    def __setitem__(self, pid: int, value: float | int | list[float | int]) -> None:
         idstr = str(pid)
         param_dict = param_schema[self.op]
         try:
@@ -307,33 +306,31 @@ class NcnnLayer:
         name: str = "",
         num_inputs: int = 0,
         num_outputs: int = 0,
-        inputs: Union[List[str], None] = None,
-        outputs: Union[List[str], None] = None,
-        params: Union[NcnnParamCollection, None] = None,
-        weight_data: Union[Dict[str, NcnnWeight], None] = None,
+        inputs: list[str] | None = None,
+        outputs: list[str] | None = None,
+        params: NcnnParamCollection | None = None,
+        weight_data: dict[str, NcnnWeight] | None = None,
     ):
         self.op_type: str = op_type
         self.name: str = name
         self.num_inputs: int = num_inputs
         self.num_outputs: int = num_outputs
-        self.inputs: List[str] = [] if inputs is None else inputs
-        self.outputs: List[str] = [] if outputs is None else outputs
+        self.inputs: list[str] = [] if inputs is None else inputs
+        self.outputs: list[str] = [] if outputs is None else outputs
         self.params: NcnnParamCollection = (
             NcnnParamCollection(op_type) if params is None else params
         )
-        self.weight_data: Dict[str, NcnnWeight] = (
+        self.weight_data: dict[str, NcnnWeight] = (
             {} if weight_data is None else weight_data
         )
 
-    def add_param(
-        self, pid: int, value: Union[float, int, List[Union[float, int]]]
-    ) -> None:
+    def add_param(self, pid: int, value: float | int | list[float | int]) -> None:
         self.params[pid] = value
 
     def add_weight(
         self,
         weight_name: str,
-        data: Union[float, int, np.ndarray],
+        data: float | int | np.ndarray,
         quantize_tag: bytes = b"",
     ) -> int:
         if isinstance(data, float):
@@ -362,7 +359,7 @@ class NcnnModel:
     ) -> None:
         self.node_count: int = node_count
         self.blob_count: int = blob_count
-        self.layers: List[NcnnLayer] = []
+        self.layers: list[NcnnLayer] = []
         self.bin_length = 0
 
     @property
@@ -370,7 +367,7 @@ class NcnnModel:
         return "7767517"
 
     @staticmethod
-    def load_from_file(param_path: str = "", bin_path: str = "") -> "NcnnModel":
+    def load_from_file(param_path: str = "", bin_path: str = "") -> NcnnModel:
         if bin_path == "":
             bin_path = param_path.replace(".param", ".bin")
         elif param_path == "":
@@ -397,10 +394,10 @@ class NcnnModel:
     @staticmethod
     def interp_layers(
         a: NcnnLayer, b: NcnnLayer, alpha_a: float
-    ) -> Tuple[NcnnLayer, bytes]:
+    ) -> tuple[NcnnLayer, bytes]:
         weights_a = a.weight_data
         weights_b = b.weight_data
-        weights_interp: Dict[str, NcnnWeight] = {}
+        weights_interp: dict[str, NcnnWeight] = {}
         layer_bytes = b""
 
         if weights_a:
@@ -468,7 +465,7 @@ class NcnnModel:
     def add_layer(self, layer: NcnnLayer) -> None:
         self.layers.append(layer)
 
-    def parse_param_layer(self, layer_str: str) -> Tuple[str, NcnnLayer]:
+    def parse_param_layer(self, layer_str: str) -> tuple[str, NcnnLayer]:
         param_list = layer_str.strip().split()
         op_type, name = param_list[:2]
         assert op_type != "MemoryData", "This NCNN param file contains invalid layers"
@@ -477,8 +474,8 @@ class NcnnModel:
         num_outputs = int(param_list[3])
         input_end = 4 + num_inputs
         output_end = input_end + num_outputs
-        inputs = [i for i in param_list[4:input_end]]
-        outputs = [o for o in param_list[input_end:output_end]]
+        inputs = list(param_list[4:input_end])
+        outputs = list(param_list[input_end:output_end])
 
         params = param_list[output_end:]
         param_dict = {}
@@ -517,7 +514,7 @@ class NcnnModel:
 
     def load_layer_weights(
         self, binf: BufferedReader, op_type: str, layer: NcnnLayer
-    ) -> Dict[str, NcnnWeight]:
+    ) -> dict[str, NcnnWeight]:
         weight_dict = {}
         if op_type == "BatchNorm":
             channels_data = checked_cast(int, layer.params[0].value) * 4
@@ -693,7 +690,7 @@ class NcnnModel:
         with open(filename, "wb") as f:
             f.write(self.serialize_weights())
 
-    def interpolate(self, model_b: "NcnnModel", alpha: float) -> "NcnnModel":
+    def interpolate(self, model_b: NcnnModel, alpha: float) -> NcnnModel:
         interp_model = deepcopy(self)
 
         layer_a_weights = [(i, l) for i, l in enumerate(self.layers) if l.weight_data]
@@ -731,7 +728,7 @@ class NcnnModelWrapper:
         self.fp: str = fp
 
     @staticmethod
-    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int, str]:
+    def get_broadcast_data(model: NcnnModel) -> tuple[int, int, int, int, str]:
         scale = 1.0
         in_nc = 0
         out_nc = 0
@@ -787,7 +784,7 @@ class NcnnModelWrapper:
         return int(scale), in_nc, out_nc, nf, fp
 
     @staticmethod
-    def get_nf_and_in_nc(layer: NcnnLayer) -> Tuple[int, int]:
+    def get_nf_and_in_nc(layer: NcnnLayer) -> tuple[int, int]:
         nf = layer.params[0].value
         kernel_w = layer.params[1].value
         try:

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import List
 
 import numpy as np
 
@@ -12,7 +13,7 @@ class SplitMode(Enum):
     RGB = 1
     LAB = 2
 
-    def split(self, img: np.ndarray) -> List[np.ndarray]:
+    def split(self, img: np.ndarray) -> list[np.ndarray]:
         if img.ndim == 2:
             return [img]
 
@@ -38,7 +39,7 @@ class SplitMode(Enum):
         else:
             raise AssertionError()
 
-    def combine(self, channels: List[np.ndarray]) -> np.ndarray:
+    def combine(self, channels: list[np.ndarray]) -> np.ndarray:
         l = len(channels)
         assert l > 0
 
@@ -67,7 +68,7 @@ def grayscale_split(
     """
 
     input_channels = mode.split(img)
-    output_channels: List[np.ndarray] = []
+    output_channels: list[np.ndarray] = []
     for channel in input_channels:
         output_channels.append(process(channel))
 

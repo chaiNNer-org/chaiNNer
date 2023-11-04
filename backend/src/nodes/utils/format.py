@@ -1,4 +1,6 @@
-from typing import Callable, Iterable, List, Literal, TypeVar
+from __future__ import annotations
+
+from typing import Callable, Iterable, Literal, TypeVar
 
 T = TypeVar("T")
 Conj = Literal["and", "or"]
@@ -22,14 +24,14 @@ def join_english(
 
 
 def format_image_with_channels(
-    channels: List[int],
+    channels: list[int],
     conj: Conj = "and",
     plural: bool = False,
 ) -> str:
     assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
-    if all([x in named for x in channels]):
+    if all(x in named for x in channels):
         if plural:
             return join_english(channels, lambda c: named[c], conj=conj) + " images"
         else:
@@ -44,14 +46,14 @@ def format_image_with_channels(
 
 
 def format_color_with_channels(
-    channels: List[int],
+    channels: list[int],
     conj: Conj = "and",
     plural: bool = False,
 ) -> str:
     assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
-    if all([x in named for x in channels]):
+    if all(x in named for x in channels):
         if plural:
             return join_english(channels, lambda c: named[c], conj=conj) + " colors"
         else:

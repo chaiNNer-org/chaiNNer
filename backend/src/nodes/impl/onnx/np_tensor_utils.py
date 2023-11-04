@@ -1,11 +1,11 @@
-from typing import Tuple, Type
+from __future__ import annotations
 
 import numpy as np
 
 from ..image_utils import MAX_VALUES_BY_DTYPE, as_3d
 
 
-def np_denorm(x: np.ndarray, min_max: Tuple[float, float] = (-1.0, 1.0)) -> np.ndarray:
+def np_denorm(x: np.ndarray, min_max: tuple[float, float] = (-1.0, 1.0)) -> np.ndarray:
     """Denormalize from [-1,1] range to [0,1]
     formula: xi' = (xi - mu)/sigma
     Example: "out = (x + 1.0) / 2.0" for denorm
@@ -91,7 +91,7 @@ def nptensor2np(
     data_range=255,
     denormalize=False,
     change_range=True,
-    imtype: Type = np.uint8,
+    imtype: type = np.uint8,
 ) -> np.ndarray:
     """Converts a Tensor array into a numpy image array.
     Parameters:

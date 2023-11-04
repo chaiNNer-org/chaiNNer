@@ -1,4 +1,6 @@
-from typing import List, Literal, Optional, Tuple, TypedDict, Union
+from __future__ import annotations
+
+from typing import Literal, TypedDict, Union
 
 from api import NodeId
 
@@ -31,8 +33,8 @@ JsonInput = Union[JsonEdgeInput, JsonValueInput]
 class JsonNode(TypedDict):
     id: NodeId
     schemaId: str
-    inputs: List[JsonInput]
-    parent: Optional[NodeId]
+    inputs: list[JsonInput]
+    parent: NodeId | None
     nodeType: str
 
 
@@ -46,11 +48,11 @@ class IndexEdge:
         self.to_index = to_index
 
 
-def parse_json(json: List[JsonNode]) -> Tuple[Chain, InputMap]:
+def parse_json(json: list[JsonNode]) -> tuple[Chain, InputMap]:
     chain = Chain()
     input_map = InputMap()
 
-    index_edges: List[IndexEdge] = []
+    index_edges: list[IndexEdge] = []
 
     for json_node in json:
         if json_node["nodeType"] == "newIterator":
@@ -61,7 +63,7 @@ def parse_json(json: List[JsonNode]) -> Tuple[Chain, InputMap]:
             node = FunctionNode(json_node["id"], json_node["schemaId"])
         chain.add_node(node)
 
-        inputs: List[Input] = []
+        inputs: list[Input] = []
         for index, i in enumerate(json_node["inputs"]):
             if i["type"] == "edge":
                 inputs.append(EdgeInput(i["id"], i["index"]))

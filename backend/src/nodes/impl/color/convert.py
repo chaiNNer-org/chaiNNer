@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Generic, Iterable, List, Set, Tuple, TypeVar, Union
+from typing import Callable, Generic, Iterable, TypeVar
 
 import numpy as np
 from sanic.log import logger
@@ -21,7 +23,7 @@ def color_space_from_id(id_: int) -> ColorSpace:
     raise ValueError(f"There is no color space with the id {id_}.")
 
 
-def color_space_or_detector_from_id(id_: int) -> Union[ColorSpace, ColorSpaceDetector]:
+def color_space_or_detector_from_id(id_: int) -> ColorSpace | ColorSpaceDetector:
     for c in color_spaces_or_detectors:
         if c.id == id_:
             return c
@@ -34,18 +36,18 @@ T = TypeVar("T")
 @dataclass(order=True)
 class __ProcessingItem(Generic[T]):  # noqa: N801
     cost: int
-    path: List[T] = field(compare=False)
+    path: list[T] = field(compare=False)
 
 
 def get_shortest_path(
     start: T,
     is_destination: Callable[[T], bool],
-    get_next: Callable[[T], Iterable[Tuple[int, T]]],
-) -> Union[List[T], None]:
+    get_next: Callable[[T], Iterable[tuple[int, T]]],
+) -> list[T] | None:
     """A simple implementation of Dijkstra's"""
 
-    processed: Set[T] = set()
-    front: Dict[T, __ProcessingItem] = {
+    processed: set[T] = set()
+    front: dict[T, __ProcessingItem] = {
         start: __ProcessingItem(cost=0, path=[start]),
     }
 
@@ -80,7 +82,7 @@ def get_shortest_path(
                 old.path.append(to)
 
 
-__conversions_map: Dict[ColorSpace, List[Conversion]] = {}
+__conversions_map: dict[ColorSpace, list[Conversion]] = {}
 for conversion in conversions:
     l = __conversions_map.get(conversion.input, [])
     if len(l) == 0:
@@ -90,7 +92,7 @@ for conversion in conversions:
 
 def convert(
     img: np.ndarray,
-    input_: Union[ColorSpace, ColorSpaceDetector],
+    input_: ColorSpace | ColorSpaceDetector,
     output: ColorSpace,
 ) -> np.ndarray:
     if isinstance(input_, ColorSpaceDetector):
@@ -110,9 +112,7 @@ def convert(
     if path is None:
         raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
-    logger.debug(
-        f"Converting color using the path {' -> '.join(map(lambda x: x.name, path))}"
-    )
+    logger.debug(f"Converting color using the path {' -> '.join(x.name for x in path)}")
 
     for i in range(1, len(path)):
         curr_in = path[i - 1]

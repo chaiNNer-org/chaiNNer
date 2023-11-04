@@ -73,4 +73,4 @@ def get_pil_formats():
 
 def get_available_image_formats():
     all_formats = [*get_opencv_formats(), *get_pil_formats()]
-    return sorted(list(set(all_formats)))
+    return sorted(set(all_formats))

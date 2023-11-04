@@ -1,16 +1,17 @@
+from __future__ import annotations
+
 import functools
 import hashlib
 import os
 import tempfile
 import time
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from sanic.log import logger
 
 CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
-CACHE_REGISTRY: List["NodeOutputCache"] = []
+CACHE_REGISTRY: list[NodeOutputCache] = []
 
 
 class CachedNumpyArray:
@@ -28,14 +29,14 @@ class CachedNumpyArray:
 
 class NodeOutputCache:
     def __init__(self):
-        self._data: Dict[Tuple, List] = {}
-        self._bytes: Dict[Tuple, int] = {}
-        self._access_time: Dict[Tuple, float] = {}
+        self._data: dict[tuple, list] = {}
+        self._bytes: dict[tuple, int] = {}
+        self._access_time: dict[tuple, float] = {}
 
         CACHE_REGISTRY.append(self)
 
     @staticmethod
-    def _args_to_key(args) -> Tuple:
+    def _args_to_key(args) -> tuple:
         key = []
         for arg in args:
             if isinstance(arg, (int, float, bool, str, bytes)):
@@ -70,7 +71,7 @@ class NodeOutputCache:
     def empty(self):
         return len(self._data) == 0
 
-    def oldest(self) -> Tuple[Tuple, float]:
+    def oldest(self) -> tuple[tuple, float]:
         return min(self._access_time.items(), key=lambda x: x[1])
 
     def size(self):
@@ -95,21 +96,21 @@ class NodeOutputCache:
             cache.drop(key)
 
     @staticmethod
-    def _write_arrays_to_disk(output: List) -> List:
+    def _write_arrays_to_disk(output: list) -> list:
         return [
             CachedNumpyArray(item) if isinstance(item, np.ndarray) else item
             for item in output
         ]
 
     @staticmethod
-    def _read_arrays_from_disk(output: List) -> List:
+    def _read_arrays_from_disk(output: list) -> list:
         return [
             item.value() if isinstance(item, CachedNumpyArray) else item
             for item in output
         ]
 
     @staticmethod
-    def _output_to_list(output) -> List:
+    def _output_to_list(output) -> list:
         if isinstance(output, list):
             return output
         elif isinstance(output, tuple):
@@ -118,12 +119,12 @@ class NodeOutputCache:
             return [output]
 
     @staticmethod
-    def _list_to_output(output: List):
+    def _list_to_output(output: list):
         if len(output) == 1:
             return output[0]
         return output
 
-    def get(self, args) -> Optional[List]:
+    def get(self, args) -> list | None:
         key = self._args_to_key(args)
         if key in self._data:
             logger.debug("Cache hit")

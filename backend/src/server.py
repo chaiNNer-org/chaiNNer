@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import gc
 import importlib
@@ -8,7 +10,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import Dict, List, Optional, Tuple, TypedDict, Union
+from typing import TypedDict
 
 import psutil
 from sanic import Sanic
@@ -49,8 +51,8 @@ from system import is_arm_mac
 class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
-        self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, NodeOutput] = dict()
+        self.executor: Executor | None = None
+        self.cache: dict[NodeId, NodeOutput] = {}
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
@@ -58,7 +60,7 @@ class AppContext:
         self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
-    def get(app_instance: Sanic) -> "AppContext":
+    def get(app_instance: Sanic) -> AppContext:
         assert isinstance(app_instance.ctx, AppContext)
         return app_instance.ctx
 
@@ -73,8 +75,7 @@ class SSEFilter(logging.Filter):
     def filter(self, record):
         request = record.request  # type: ignore
         return not (
-            (request.endswith("/sse") or request.endswith("/setup-sse"))
-            and record.status == 200  # type: ignore
+            (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore
         )
 
 
@@ -144,7 +145,7 @@ async def nodes(_request: Request):
 
 
 class RunRequest(TypedDict):
-    data: List[JsonNode]
+    data: list[JsonNode]
     options: JsonExecutionOptions
     sendBroadcastData: bool
 
@@ -216,7 +217,7 @@ async def run(request: Request):
 
 class RunIndividualRequest(TypedDict):
     id: NodeId
-    inputs: List[object]
+    inputs: list[object]
     schemaId: str
     options: JsonExecutionOptions
 
@@ -457,7 +458,7 @@ async def get_packages(_request: Request):
 async def get_installed_dependencies(_request: Request):
     await nodes_available()
 
-    installed_deps: Dict[str, str] = {}
+    installed_deps: dict[str, str] = {}
     for package in api.registry.packages.values():
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
@@ -471,13 +472,13 @@ async def get_installed_dependencies(_request: Request):
 async def get_features(_request: Request):
     await nodes_available()
 
-    features: List[Tuple[api.Feature, api.Package]] = []
+    features: list[tuple[api.Feature, api.Package]] = []
     for package in api.registry.packages.values():
         for feature in package.features:
             features.append((feature, package))
 
     # check all features in parallel
-    async def check(feature: api.Feature) -> Union[api.FeatureState, None]:
+    async def check(feature: api.Feature) -> api.FeatureState | None:
         if feature.behavior is None:
             # no behavior assigned
             return None
@@ -488,7 +489,7 @@ async def get_features(_request: Request):
             return api.FeatureState.disabled(str(e))
 
     # because good API design just isn't pythonic, asyncio.gather will return List[Any].
-    results: List[Union[api.FeatureState, None]] = await asyncio.gather(
+    results: list[api.FeatureState | None] = await asyncio.gather(
         *[check(f) for f, _ in features]
     )
 
@@ -537,8 +538,8 @@ async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
 ):
-    async def install_deps(dependencies: List[api.Dependency]):
-        dep_info: List[DependencyInfo] = [
+    async def install_deps(dependencies: list[api.Dependency]):
+        dep_info: list[DependencyInfo] = [
             {
                 "package_name": dep.pypi_name,
                 "display_name": dep.display_name,
@@ -559,7 +560,7 @@ async def import_packages(
 
     logger.info("Checking dependencies...")
 
-    to_install: List[api.Dependency] = []
+    to_install: list[api.Dependency] = []
     for package in api.registry.packages.values():
         logger.info(f"Checking dependencies for {package.name}...")
 
@@ -594,7 +595,7 @@ async def import_packages(
 
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
-        import_errors: List[api.LoadErrorInfo] = []
+        import_errors: list[api.LoadErrorInfo] = []
         for e in load_errors:
             if not isinstance(e.error, ModuleNotFoundError):
                 logger.warning(f"Failed to load {e.module} ({e.file}):")
@@ -620,7 +621,7 @@ async def setup(sanic_app: Sanic):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
     async def update_progress(
-        message: str, progress: float, status_progress: Union[float, None] = None
+        message: str, progress: float, status_progress: float | None = None
     ):
         await setup_queue.put_and_wait(
             {

@@ -218,8 +218,8 @@ class _Timer:
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
-    data: dict[OutputId, object] = dict()
-    types: dict[OutputId, object] = dict()
+    data: dict[OutputId, object] = {}
+    types: dict[OutputId, object] = {}
     for index, node_output in enumerate(node_outputs):
         try:
             value = output[index]

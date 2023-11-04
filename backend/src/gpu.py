@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import List, Tuple, Union
 
 import pynvml as nv
 from sanic.log import logger
@@ -53,7 +54,7 @@ class NvidiaHelper:
 
         self.__num_gpus = nv.nvmlDeviceGetCount()
 
-        self.__gpus: List[_GPU] = []
+        self.__gpus: list[_GPU] = []
         for i in range(self.__num_gpus):
             handle = nv.nvmlDeviceGetHandleByIndex(i)
             self.__gpus.append(
@@ -73,15 +74,15 @@ class NvidiaHelper:
     def num_gpus(self):
         return self.__num_gpus
 
-    def list_gpus(self) -> List[str]:
+    def list_gpus(self) -> list[str]:
         return [gpu.name for gpu in self.__gpus]
 
-    def get_current_vram_usage(self, gpu_index=0) -> Tuple[int, int, int]:
+    def get_current_vram_usage(self, gpu_index=0) -> tuple[int, int, int]:
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index].handle)
 
         return info.total, info.used, info.free
 
-    def supports_fp16(self, gpu_index: Union[int, None] = None) -> bool:
+    def supports_fp16(self, gpu_index: int | None = None) -> bool:
         if gpu_index is None:
             return all(supports_fp16(gpu) for gpu in self.__gpus)
         gpu = self.__gpus[gpu_index]

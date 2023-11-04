@@ -154,13 +154,13 @@ def _max_split(
             f"Currently {tile_count_x}x{tile_count_y} tiles each {tile_size_x}x{tile_size_y}px."
         )
 
-        for y in range(0, tile_count_y):
+        for y in range(tile_count_y):
             if restart:
                 break
             if y < start_y:
                 continue
 
-            for x in range(0, tile_count_x):
+            for x in range(tile_count_x):
                 if y == start_y and x < start_x:
                     continue
 

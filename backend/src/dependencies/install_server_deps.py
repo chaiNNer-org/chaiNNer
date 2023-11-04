@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import subprocess
 from json import loads as json_parse
-from typing import List
 
 from .store import (
     DependencyInfo,
@@ -28,7 +29,7 @@ except Exception as e:
     print(f"Failed to get installed packages: {e}")
 
 
-deps: List[DependencyInfo] = [
+deps: list[DependencyInfo] = [
     {
         "package_name": "sanic",
         "display_name": "Sanic",

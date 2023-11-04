@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
@@ -10,16 +10,16 @@ class BaseSession:
     def __init__(
         self,
         inner_session: ort.InferenceSession,
-        mean: Tuple[float, float, float],
-        std: Tuple[float, float, float],
-        size: Tuple[int, int],
+        mean: tuple[float, float, float],
+        std: tuple[float, float, float],
+        size: tuple[int, int],
     ):
         self.inner_session = inner_session
         self.mean = mean
         self.std = std
         self.size = size
 
-    def normalize(self, img: PILImage) -> Dict[str, np.ndarray]:
+    def normalize(self, img: PILImage) -> dict[str, np.ndarray]:
         im = img.convert("RGB").resize(self.size, Image.LANCZOS)
         im_ary = np.array(im)
         im_ary = im_ary / np.max(im_ary)
@@ -35,5 +35,5 @@ class BaseSession:
 
         return {model_input_name: np.expand_dims(tmp_img, 0).astype(np.float32)}
 
-    def predict(self, _: PILImage) -> List[PILImage]:
+    def predict(self, _: PILImage) -> list[PILImage]:
         raise NotImplementedError

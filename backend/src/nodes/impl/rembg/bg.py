@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
@@ -74,7 +74,7 @@ def naive_cutout(img: PILImage, mask: PILImage) -> PILImage:
     return cutout
 
 
-def get_concat_v_multi(imgs: List[PILImage]) -> PILImage:
+def get_concat_v_multi(imgs: list[PILImage]) -> PILImage:
     pivot = imgs.pop(0)
     for im in imgs:
         pivot = get_concat_v(pivot, im)
@@ -111,7 +111,7 @@ def remove_bg(
     alpha_matting_background_threshold: int = 10,
     alpha_matting_erode_size: int = 10,
     post_process_mask: bool = False,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     # Flip channels to RGB mode and convert to PIL Image
     img = (img * 255).astype(np.uint8)
     _, _, c = get_h_w_c(img)

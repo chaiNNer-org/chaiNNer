@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import math
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -32,7 +33,7 @@ class EdgeFilter(Enum):
     MULTI_GAUSS = "multi-gauss"
 
 
-FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
+FILTERS_X: dict[EdgeFilter, np.ndarray] = {
     EdgeFilter.SOBEL: np.array(
         [
             [+1, 0, -1],
@@ -95,7 +96,7 @@ FILTERS_X: Dict[EdgeFilter, np.ndarray] = {
 }
 
 
-def create_gauss_kernel(parameters: List[Tuple[float, float]]) -> np.ndarray:
+def create_gauss_kernel(parameters: list[tuple[float, float]]) -> np.ndarray:
     """
     Parameters is a list of tuples (sigma, weight).
     """
@@ -150,8 +151,8 @@ def create_gauss_kernel(parameters: List[Tuple[float, float]]) -> np.ndarray:
 
 def get_filter_kernels(
     edge_filter: EdgeFilter,
-    gauss_parameter: List[Tuple[float, float]],
-) -> Tuple[np.ndarray, np.ndarray]:
+    gauss_parameter: list[tuple[float, float]],
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Returns the x and y kernels of the given edge filter.
     """

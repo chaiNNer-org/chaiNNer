@@ -1,4 +1,6 @@
-from typing import Dict, Literal, Set, Union, cast
+from __future__ import annotations
+
+from typing import Literal, Union, cast
 
 DxgiFormat = Literal[
     "UNKNOWN",
@@ -141,13 +143,13 @@ Legacy DX9 formats. Those are the FourCC of those formats.
 
 DDSFormat = Union[DxgiFormat, LegacyFormat]
 
-LEGACY_TO_DXGI: Dict[LegacyFormat, DxgiFormat] = {
+LEGACY_TO_DXGI: dict[LegacyFormat, DxgiFormat] = {
     "DXT1": "BC1_UNORM",
     "DXT3": "BC2_UNORM",
     "DXT5": "BC3_UNORM",
 }
 
-SRGB_FORMATS: Set[DxgiFormat] = {
+SRGB_FORMATS: set[DxgiFormat] = {
     "BC1_UNORM_SRGB",
     "BC2_UNORM_SRGB",
     "BC3_UNORM_SRGB",
@@ -157,7 +159,7 @@ SRGB_FORMATS: Set[DxgiFormat] = {
     "B8G8R8X8_UNORM_SRGB",
 }
 
-WITH_ALPHA: Set[DDSFormat] = {
+WITH_ALPHA: set[DDSFormat] = {
     "R32G32B32A32_TYPELESS",
     "R32G32B32A32_FLOAT",
     "R32G32B32A32_UINT",
@@ -203,12 +205,12 @@ WITH_ALPHA: Set[DDSFormat] = {
     "DXT5",
 }
 
-BC7_FORMATS: Set[DxgiFormat] = {
+BC7_FORMATS: set[DxgiFormat] = {
     "BC7_TYPELESS",
     "BC7_UNORM",
     "BC7_UNORM_SRGB",
 }
-BC123_FORMATS: Set[DDSFormat] = {
+BC123_FORMATS: set[DDSFormat] = {
     "BC1_TYPELESS",
     "BC1_UNORM",
     "BC1_UNORM_SRGB",
@@ -224,7 +226,7 @@ BC123_FORMATS: Set[DDSFormat] = {
     "DXT5",
 }
 
-PREFER_DX9: Set[DDSFormat] = {
+PREFER_DX9: set[DDSFormat] = {
     "R8G8B8A8_UNORM",
     "B8G8R8A8_UNORM",
     "B5G5R5A1_UNORM",

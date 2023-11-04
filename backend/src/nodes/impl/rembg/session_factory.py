@@ -1,4 +1,4 @@
-from typing import Type
+from __future__ import annotations
 
 import onnxruntime as ort
 
@@ -9,7 +9,7 @@ from .session_simple import SimpleSession
 
 
 def new_session(session: ort.InferenceSession) -> BaseSession:
-    session_class: Type[BaseSession]
+    session_class: type[BaseSession]
 
     input_width = get_input_shape(session)[2]
 

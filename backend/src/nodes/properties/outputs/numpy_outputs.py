@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import base64
-from typing import Optional, Tuple
 
 import cv2
 import numpy as np
@@ -48,7 +49,7 @@ class ImageOutput(NumPyOutput):
         image_type: navi.ExpressionJson = "Image",
         kind: OutputKind = "image",
         has_handle: bool = True,
-        channels: Optional[int] = None,
+        channels: int | None = None,
         assume_normalized: bool = False,
     ):
         super().__init__(
@@ -58,7 +59,7 @@ class ImageOutput(NumPyOutput):
             has_handle=has_handle,
         )
 
-        self.channels: Optional[int] = channels
+        self.channels: int | None = channels
         self.assume_normalized: bool = assume_normalized
 
     def get_broadcast_data(self, value: np.ndarray):
@@ -119,7 +120,7 @@ def preview_encode(
     target_size: int = 512,
     grace: float = 1.2,
     lossless: bool = False,
-) -> Tuple[str, np.ndarray]:
+) -> tuple[str, np.ndarray]:
     """
     resize the image, so the preview loads faster and doesn't lag the UI
     512 was chosen as the default target because a 512x512 RGBA 8bit PNG is at most 1MB in size

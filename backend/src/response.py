@@ -1,4 +1,6 @@
-from typing import Literal, Optional, TypedDict, Union
+from __future__ import annotations
+
+from typing import Literal, TypedDict
 
 from events import ExecutionErrorSource
 from process import NodeExecutionError
@@ -13,7 +15,7 @@ class ErrorResponse(TypedDict):
     type: Literal["error"]
     message: str
     exception: str
-    source: Optional[ExecutionErrorSource]
+    source: ExecutionErrorSource | None
 
 
 class NoExecutorResponse(TypedDict):
@@ -32,8 +34,8 @@ def success_response(message: str) -> SuccessResponse:
 
 def error_response(
     message: str,
-    exception: Union[str, Exception],
-    source: Optional[ExecutionErrorSource] = None,
+    exception: str | Exception,
+    source: ExecutionErrorSource | None = None,
 ) -> ErrorResponse:
     if source is None and isinstance(exception, NodeExecutionError):
         source = {
