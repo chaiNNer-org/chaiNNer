@@ -57,7 +57,7 @@ jobs:
             - uses: actions/cache@v3
               with:
                 path: ~/.cache/chainner_pip
-                key: chainner-pip-cache
+                key: chainner-pip-cache-3.9
             - name: Start backend to install dependencies
               run: python ./backend/src/run.py --close-after-start --install-builtin-packages
             - name: pyright
