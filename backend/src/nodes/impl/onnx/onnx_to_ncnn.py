@@ -1,6 +1,5 @@
 # ruff: noqa: N806
-
-from typing import Dict, List, Union
+from __future__ import annotations
 
 import numpy as np
 import onnx.numpy_helper as onph
@@ -59,21 +58,21 @@ ROT = ReductionOpTypes
 class Onnx2NcnnConverter:
     def __init__(self, onnx_model: ModelProto):
         self.onnx_graph: GraphProto = onnx_model.graph
-        self.mutable_graph_nodes: List[NodeProto] = list(self.onnx_graph.node)
+        self.mutable_graph_nodes: list[NodeProto] = list(self.onnx_graph.node)
         self.node_count: int = len(self.onnx_graph.node)
-        self.weights: Dict[str, TensorProto] = {
+        self.weights: dict[str, TensorProto] = {
             initializer.name: initializer for initializer in self.onnx_graph.initializer
         }
 
-        self.producers: Dict[str, None] = {i.name: None for i in self.onnx_graph.input}
-        self.node_reference: Dict[str, int] = {}
-        self.blob_names: Dict[str, None] = {}
+        self.producers: dict[str, None] = {i.name: None for i in self.onnx_graph.input}
+        self.node_reference: dict[str, int] = {}
+        self.blob_names: dict[str, None] = {}
 
     @staticmethod
     def add_weight(
         layer: NcnnLayer,
         weight_name: str,
-        data: Union[float, int, np.ndarray, TensorProto],
+        data: float | (int | (np.ndarray | TensorProto)),
         quantize_tag: bytes = b"",
     ) -> int:
         if isinstance(data, TensorProto):
@@ -83,7 +82,7 @@ class Onnx2NcnnConverter:
 
     @staticmethod
     def clear_container(
-        container: Union[RepeatedCompositeFieldContainer, RepeatedScalarFieldContainer],
+        container: RepeatedCompositeFieldContainer | RepeatedScalarFieldContainer,
     ) -> None:
         for _ in range(len(container)):
             container.pop()
@@ -115,7 +114,7 @@ class Onnx2NcnnConverter:
                     set_node_attr_ai(gather, "ends", np.array([index + 1], np.int32))
                     set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
 
-    def fuse_weight_reshape(self, reduced_node_count: List[int]) -> None:
+    def fuse_weight_reshape(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Reshape":
@@ -141,7 +140,7 @@ class Onnx2NcnnConverter:
                     reduced_node_count[0] += 1
                     i += 1  # noqa
 
-    def fuse_weight_transpose(self, reduced_node_count: List[int]) -> None:
+    def fuse_weight_transpose(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Transpose":
@@ -177,7 +176,7 @@ class Onnx2NcnnConverter:
                     reduced_node_count[0] += 1
                     i += 1  # noqa
 
-    def fuse_shufflechannel(self, reduced_node_count: List[int]) -> None:
+    def fuse_shufflechannel(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -281,7 +280,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2  # noqa
 
-    def fuse_shufflechannel_split(self, reduced_node_count: List[int]) -> None:
+    def fuse_shufflechannel_split(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -342,7 +341,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_hardswish(self, reduced_node_count: List[int]) -> None:
+    def fuse_hardswish(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -493,7 +492,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_hardsigmoid(self, reduced_node_count: List[int]) -> None:
+    def fuse_hardsigmoid(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -590,7 +589,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2  # noqa
 
-    def fuse_swish(self, reduced_node_count: List[int]) -> None:
+    def fuse_swish(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -622,7 +621,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_batchnorm1d_squeeze_unsqueeze(self, reduced_node_count: List[int]) -> None:
+    def fuse_batchnorm1d_squeeze_unsqueeze(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -660,7 +659,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2  # noqa
 
-    def fuse_unsqueeze_prelu(self, reduced_node_count: List[int]) -> None:
+    def fuse_unsqueeze_prelu(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -700,7 +699,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_normalize(self, reduced_node_count: List[int]) -> None:
+    def fuse_normalize(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -793,7 +792,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 4 if has_shape_node else 3
                 i += 4 if has_shape_node else 3  # noqa
 
-    def fuse_groupnorm(self, reduced_node_count: List[int]) -> None:
+    def fuse_groupnorm(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -927,7 +926,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 4
                 i += 4  # noqa
 
-    def fuse_layernorm(self, reduced_node_count: List[int]) -> None:
+    def fuse_layernorm(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1108,7 +1107,7 @@ class Onnx2NcnnConverter:
                     reduced_node_count[0] += 8
                     i += 8  # noqa
 
-    def fuse_flatten(self, reduced_node_count: List[int]) -> None:
+    def fuse_flatten(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1220,7 +1219,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 5
                 i += 5  # noqa
 
-    def fuse_pixelshuffle(self, reduced_node_count: List[int]) -> None:
+    def fuse_pixelshuffle(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1318,7 +1317,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2  # noqa
 
-    def fuse_reorg(self, reduced_node_count: List[int]) -> None:
+    def fuse_reorg(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1413,7 +1412,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2  # noqa
 
-    def fuse_expand_broadcast(self, reduced_node_count: List[int]) -> None:
+    def fuse_expand_broadcast(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1449,7 +1448,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_lstm_gru_rnn(self, reduced_node_count: List[int]) -> None:
+    def fuse_lstm_gru_rnn(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
@@ -1649,7 +1648,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1  # noqa
 
-    def fuse_multiheadattention(self, reduced_node_count: List[int]) -> None:
+    def fuse_multiheadattention(self, reduced_node_count: list[int]) -> None:
         for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 

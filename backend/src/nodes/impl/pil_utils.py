@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Tuple
 
 import numpy as np
 from PIL import Image
@@ -42,7 +43,7 @@ class RotateSizeChange(Enum):
 
 
 def resize(
-    img: np.ndarray, out_dims: Tuple[int, int], interpolation: InterpolationMethod
+    img: np.ndarray, out_dims: tuple[int, int], interpolation: InterpolationMethod
 ) -> np.ndarray:
     """Perform PIL resize"""
 

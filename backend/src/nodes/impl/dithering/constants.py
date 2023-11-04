@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Dict
 
 from chainner_ext import DiffusionAlgorithm
 
@@ -26,7 +27,7 @@ ERROR_PROPAGATION_MAP_LABELS = {
     ErrorDiffusionMap.SIERRA_LITE: "Sierra Lite",
 }
 
-DIFFUSION_ALGORITHM_MAP: Dict[ErrorDiffusionMap, DiffusionAlgorithm] = {
+DIFFUSION_ALGORITHM_MAP: dict[ErrorDiffusionMap, DiffusionAlgorithm] = {
     ErrorDiffusionMap.FLOYD_STEINBERG: DiffusionAlgorithm.FloydSteinberg,
     ErrorDiffusionMap.JARVIS_ET_AL: DiffusionAlgorithm.JarvisJudiceNinke,
     ErrorDiffusionMap.STUCKI: DiffusionAlgorithm.Stucki,

@@ -1,17 +1,19 @@
+from __future__ import annotations
+
 import json
 import os
 import re
 import subprocess
 import sys
 from logging import Logger
-from typing import Dict, List, Optional, Tuple, TypedDict, Union
+from typing import TypedDict
 
 from custom_types import UpdateProgressFn
 
 python_path = sys.executable
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-installed_packages: Dict[str, Union[str, None]] = {}
+installed_packages: dict[str, str | None] = {}
 
 COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 
@@ -20,9 +22,9 @@ DEP_MAX_PROGRESS = 0.8
 
 class DependencyInfo(TypedDict):
     package_name: str
-    display_name: Optional[str]
-    version: Optional[str]
-    from_file: Optional[str]
+    display_name: str | None
+    version: str | None
+    from_file: str | None
 
 
 def pin(dependency: DependencyInfo) -> str:
@@ -41,7 +43,7 @@ def pin(dependency: DependencyInfo) -> str:
     return f"{package_name}=={version}"
 
 
-def coerce_semver(version: str) -> Tuple[int, int, int]:
+def coerce_semver(version: str) -> tuple[int, int, int]:
     regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
     match = re.search(regex, version)
     if match:
@@ -53,7 +55,7 @@ def coerce_semver(version: str) -> Tuple[int, int, int]:
     return (0, 0, 0)
 
 
-def get_deps_to_install(dependencies: List[DependencyInfo]):
+def get_deps_to_install(dependencies: list[DependencyInfo]):
     dependencies_to_install = []
     for dependency in dependencies:
         version = installed_packages.get(dependency["package_name"], None)
@@ -68,7 +70,7 @@ def get_deps_to_install(dependencies: List[DependencyInfo]):
 
 
 def install_dependencies_sync(
-    dependencies: List[DependencyInfo],
+    dependencies: list[DependencyInfo],
 ):
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
@@ -96,9 +98,9 @@ def install_dependencies_sync(
 
 
 async def install_dependencies(
-    dependencies: List[DependencyInfo],
-    update_progress_cb: Optional[UpdateProgressFn] = None,
-    logger: Optional[Logger] = None,
+    dependencies: list[DependencyInfo],
+    update_progress_cb: UpdateProgressFn | None = None,
+    logger: Logger | None = None,
 ):
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:

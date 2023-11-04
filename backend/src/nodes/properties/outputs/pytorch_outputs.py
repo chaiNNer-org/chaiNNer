@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import navi
 from api import BaseOutput, OutputKind
@@ -7,7 +7,7 @@ from ...impl.pytorch.types import PyTorchModel
 from ...utils.format import format_channel_numbers
 
 
-def _get_sizes(value: PyTorchModel) -> List[str]:
+def _get_sizes(value: PyTorchModel) -> list[str]:
     if "SRVGG" in value.model_arch:
         return [f"{value.num_feat}nf", f"{value.num_conv}nc"]
     elif (

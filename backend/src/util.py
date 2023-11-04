@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import time
-from typing import Callable, Tuple, TypeVar
+from typing import Callable, TypeVar
 
 T = TypeVar("T")
 
 
-def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
+def timed_supplier(supplier: Callable[[], T]) -> Callable[[], tuple[T, float]]:
     def wrapper():
         start = time.time()
         result = supplier()

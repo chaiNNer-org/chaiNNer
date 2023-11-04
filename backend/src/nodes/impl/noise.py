@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Callable, List
+from typing import Callable
 
 import numpy as np
 
@@ -9,8 +11,8 @@ from .image_utils import as_target_channels
 
 def __add_noises(
     image: np.ndarray,
-    noise_gen: Callable[[int, int], List[np.ndarray]],
-    combine: Callable[[np.ndarray, List[np.ndarray]], np.ndarray],
+    noise_gen: Callable[[int, int], list[np.ndarray]],
+    combine: Callable[[np.ndarray, list[np.ndarray]], np.ndarray],
 ) -> np.ndarray:
     img = image
     h, w, c = get_h_w_c(img)
@@ -108,7 +110,7 @@ def salt_and_pepper_noise(
         salt = rng.choice([0, 1], (h, w, noise_c), p=[1 - amt, amt]).astype(np.uint8)
         return [pepper, salt]
 
-    def combine(i: np.ndarray, n: List[np.ndarray]):
+    def combine(i: np.ndarray, n: list[np.ndarray]):
         pepper, salt = n
         return np.where(salt == 1, 1, np.where(pepper == 0, 0, i))
 

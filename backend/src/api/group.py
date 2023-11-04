@@ -1,4 +1,6 @@
-from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union
+from __future__ import annotations
+
+from typing import Any, Generic, NewType, TypeVar, Union
 
 from .input import BaseInput
 from .types import InputId
@@ -14,17 +16,17 @@ class GroupInfo:
         self,
         group_id: GroupId,
         kind: str,
-        options: Optional[Dict[str, Any]] = None,
+        options: dict[str, Any] | None = None,
     ) -> None:
         self.id: GroupId = group_id
         self.kind: str = kind
-        self.options: Dict[str, Any] = {} if options is None else options
+        self.options: dict[str, Any] = {} if options is None else options
 
 
 class Group(Generic[T]):
-    def __init__(self, info: GroupInfo, items: List[T]) -> None:
+    def __init__(self, info: GroupInfo, items: list[T]) -> None:
         self.info: GroupInfo = info
-        self.items: List[T] = items
+        self.items: list[T] = items
 
     def to_dict(self):
         return {
@@ -40,10 +42,10 @@ NestedIdGroup = Group[Union[InputId, "NestedIdGroup"]]
 
 
 # pylint: disable-next=redefined-builtin
-def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
+def group(kind: str, options: dict[str, Any] | None = None, id: int = -1):
     info = GroupInfo(GroupId(id), kind, options)
 
-    def ret(*items: Union[BaseInput, NestedGroup]) -> NestedGroup:
+    def ret(*items: BaseInput | NestedGroup) -> NestedGroup:
         return Group(info, list(items))
 
     return ret

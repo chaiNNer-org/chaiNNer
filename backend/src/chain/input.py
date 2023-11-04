@@ -1,4 +1,6 @@
-from typing import Dict, List, Optional, Union
+from __future__ import annotations
+
+from typing import Union
 
 from api import NodeId
 
@@ -18,11 +20,11 @@ Input = Union[EdgeInput, ValueInput]
 
 
 class InputMap:
-    def __init__(self, parent: Optional["InputMap"] = None) -> None:
-        self.__data: Dict[NodeId, List[Input]] = {}
-        self.parent: Optional[InputMap] = parent
+    def __init__(self, parent: InputMap | None = None) -> None:
+        self.__data: dict[NodeId, list[Input]] = {}
+        self.parent: InputMap | None = parent
 
-    def get(self, node_id: NodeId) -> List[Input]:
+    def get(self, node_id: NodeId) -> list[Input]:
         values = self.__data.get(node_id, None)
         if values is not None:
             return values
@@ -32,16 +34,16 @@ class InputMap:
 
         raise AssertionError(f"Unknown node id {node_id}")
 
-    def set(self, node_id: NodeId, values: List[Input]):
+    def set(self, node_id: NodeId, values: list[Input]):
         self.__data[node_id] = values
 
-    def set_values(self, node_id: NodeId, values: List[object]):
+    def set_values(self, node_id: NodeId, values: list[object]):
         self.__data[node_id] = [ValueInput(x) for x in values]
 
-    def set_append(self, node_id: NodeId, values: List[Input]):
+    def set_append(self, node_id: NodeId, values: list[Input]):
         inputs = [*self.get(node_id), *values]
         self.set(node_id, inputs)
 
-    def set_append_values(self, node_id: NodeId, values: List[object]):
+    def set_append_values(self, node_id: NodeId, values: list[object]):
         inputs = [*self.get(node_id), *[ValueInput(x) for x in values]]
         self.set(node_id, inputs)

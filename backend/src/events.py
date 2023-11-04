@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Dict, Literal, Optional, TypedDict, Union
+from typing import Dict, Literal, TypedDict, Union
 
 from api import ErrorValue, InputId, NodeId, OutputId
 
@@ -22,15 +24,15 @@ class ExecutionErrorSource(TypedDict):
 class ExecutionErrorData(TypedDict):
     message: str
     exception: str
-    source: Optional[ExecutionErrorSource]
+    source: ExecutionErrorSource | None
 
 
 class NodeFinishData(TypedDict):
     nodeId: NodeId
-    executionTime: Optional[float]
-    data: Optional[Dict[OutputId, object]]
-    types: Optional[Dict[OutputId, object]]
-    progressPercent: Optional[float]
+    executionTime: float | None
+    data: dict[OutputId, object] | None
+    types: dict[OutputId, object] | None
+    progressPercent: float | None
 
 
 class NodeStartData(TypedDict):
@@ -48,7 +50,7 @@ class NodeProgressUpdateData(TypedDict):
 class BackendStatusData(TypedDict):
     message: str
     progress: float
-    statusProgress: Optional[float]
+    statusProgress: float | None
 
 
 # Events
@@ -85,7 +87,7 @@ class BackendStatusEvent(TypedDict):
 
 
 class BackendStateEvent(TypedDict):
-    event: Union[Literal["backend-ready"], Literal["backend-started"]]
+    event: Literal["backend-ready"] | Literal["backend-started"]
     data: None
 
 

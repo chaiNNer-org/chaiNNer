@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 from PIL import Image
@@ -54,7 +54,7 @@ pallete3 = [
 
 
 class ClothSession(BaseSession):
-    def predict(self, img: PILImage) -> List[PILImage]:
+    def predict(self, img: PILImage) -> list[PILImage]:
         ort_outs = self.inner_session.run(None, self.normalize(img))
 
         pred = ort_outs

@@ -1,4 +1,6 @@
-from typing import Callable, Dict, Iterable, Tuple
+from __future__ import annotations
+
+from typing import Callable, Iterable
 
 import numpy as np
 
@@ -19,7 +21,7 @@ class ColorSpaceDetector:
         assert 1000 <= id_ and id_ < 2000
         self.id = id_
         self.name = name
-        self.channel_map: Dict[int, ColorSpace] = {}
+        self.channel_map: dict[int, ColorSpace] = {}
         for cs in color_spaces:
             assert cs.channels not in self.channel_map
             self.channel_map[cs.channels] = cs
@@ -66,7 +68,7 @@ ConvertFn = Callable[[np.ndarray], np.ndarray]
 class Conversion:
     def __init__(
         self,
-        direction: Tuple[ColorSpace, ColorSpace],
+        direction: tuple[ColorSpace, ColorSpace],
         convert: ConvertFn,
         cost: int = 1,
     ):

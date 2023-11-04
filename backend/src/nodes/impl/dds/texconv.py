@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import platform
 import shutil
@@ -5,7 +7,6 @@ import subprocess
 import sys
 import uuid
 from tempfile import mkdtemp
-from typing import List
 
 import numpy as np
 from sanic.log import logger
@@ -31,7 +32,7 @@ def __decode(b: bytes) -> str:
             return str(b)
 
 
-def __run_texconv(args: List[str], error_message: str):
+def __run_texconv(args: list[str], error_message: str):
     if platform.system() != "Windows":
         # texconv is only supported on Windows.
         raise ValueError(

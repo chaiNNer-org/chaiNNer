@@ -7,8 +7,9 @@ Simplex noise demystified, Stefan Gustavson (2005)
 http://staffwww.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
 """
 
+from __future__ import annotations
+
 import itertools
-from typing import Optional
 
 import numpy as np
 
@@ -43,7 +44,7 @@ SCALE = {
 
 
 class SimplexNoise:
-    def __init__(self, dimensions: int, seed: Optional[int], r2: float = 0.5):
+    def __init__(self, dimensions: int, seed: int | None, r2: float = 0.5):
         if dimensions <= 0:
             raise ValueError
         if dimensions == 1:

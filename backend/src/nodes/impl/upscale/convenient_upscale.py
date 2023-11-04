@@ -1,4 +1,4 @@
-from typing import Tuple
+from __future__ import annotations
 
 import numpy as np
 
@@ -7,7 +7,7 @@ from ..image_op import ImageOp, clipped
 from ..image_utils import as_target_channels
 
 
-def with_black_and_white_backgrounds(img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def with_black_and_white_backgrounds(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     c = get_h_w_c(img)[2]
     assert c == 4
 
