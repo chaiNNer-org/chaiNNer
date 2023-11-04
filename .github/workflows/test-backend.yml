@@ -67,4 +67,9 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
+                  cache: 'pip'
+            - uses: actions/cache@v3
+              with:
+                path: ~/.cache/chainner_pip
+                key: chainner-pip-cache-${{ matrix.python-version }}
             - run: python ./backend/src/run.py --close-after-start --install-builtin-packages --error-on-failed-node
