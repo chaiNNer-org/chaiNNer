@@ -12,8 +12,8 @@ from ...utils.utils import round_half_up
 def clamp_number(
     value: float | int,
     precision: int,
-    min_value: float | (int | None),
-    max_value: float | (int | None),
+    min_value: float | int | None,
+    max_value: float | int | None,
 ) -> float | int:
     # Convert proper number type
     value = round_half_up(value) if precision == 0 else round(value, precision)
@@ -32,8 +32,8 @@ def clamp_number(
 
 
 def get_number_type(
-    min_value: float | (int | None),
-    max_value: float | (int | None),
+    min_value: float | int | None,
+    max_value: float | int | None,
     precision: int,
 ) -> navi.ExpressionJson:
     if precision > 0:
@@ -49,10 +49,10 @@ class NumberInput(BaseInput):
         self,
         label: str,
         precision: int = 0,
-        controls_step: float | (int | None) = None,
+        controls_step: float | int | None = None,
         default: float | int = 0,
-        minimum: float | (int | None) = 0,
-        maximum: float | (int | None) = None,
+        minimum: float | int | None = 0,
+        maximum: float | int | None = None,
         unit: str | None = None,
         note_expression: str | None = None,
         kind: InputKind = "number",
@@ -118,8 +118,8 @@ class SliderInput(NumberInput):
         self,
         label: str,
         precision: int = 0,
-        controls_step: float | (int | None) = None,
-        slider_step: float | (int | None) = None,
+        controls_step: float | int | None = None,
+        slider_step: float | int | None = None,
         minimum: float | int = 0,
         maximum: float | int = 100,
         default: float | int = 50,

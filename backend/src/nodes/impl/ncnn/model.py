@@ -171,12 +171,12 @@ class NcnnParam:
         self,
         pid: str,
         name: str,
-        value: float | (int | list[float | int]),
+        value: float | int | list[float | int],
         default: float | int,
     ) -> None:
         self.id: str = pid
         self.name: str = name
-        self.value: float | (int | list[float | int]) = value
+        self.value: float | int | list[float | int] = value
         self.default: float | int = default
 
 
@@ -222,7 +222,7 @@ class NcnnParamCollection:
 
             return NcnnParam(idstr, param["paramPhase"], value, default_value)
 
-    def __setitem__(self, pid: int, value: float | (int | list[float | int])) -> None:
+    def __setitem__(self, pid: int, value: float | int | list[float | int]) -> None:
         idstr = str(pid)
         param_dict = param_schema[self.op]
         try:
@@ -324,13 +324,13 @@ class NcnnLayer:
             {} if weight_data is None else weight_data
         )
 
-    def add_param(self, pid: int, value: float | (int | list[float | int])) -> None:
+    def add_param(self, pid: int, value: float | int | list[float | int]) -> None:
         self.params[pid] = value
 
     def add_weight(
         self,
         weight_name: str,
-        data: float | (int | np.ndarray),
+        data: float | int | np.ndarray,
         quantize_tag: bytes = b"",
     ) -> int:
         if isinstance(data, float):

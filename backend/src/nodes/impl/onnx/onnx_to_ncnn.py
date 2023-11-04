@@ -72,7 +72,7 @@ class Onnx2NcnnConverter:
     def add_weight(
         layer: NcnnLayer,
         weight_name: str,
-        data: float | (int | (np.ndarray | TensorProto)),
+        data: float | int | np.ndarray | TensorProto,
         quantize_tag: bytes = b"",
     ) -> int:
         if isinstance(data, TensorProto):
