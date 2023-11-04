@@ -133,7 +133,7 @@ def inpaint(
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input0.width & Input1.width",
                 height="Input0.height & Input1.height",
             ),

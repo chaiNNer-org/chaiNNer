@@ -23,7 +23,7 @@ from .. import modification_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input0.width",
                 height="Input0.height",
                 channels="FillColor::getOutputChannels(Input3, Input0.channels)",

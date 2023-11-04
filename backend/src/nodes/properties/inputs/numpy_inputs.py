@@ -30,9 +30,9 @@ class ImageInput(BaseInput):
         channels: int | list[int] | None = None,
         allow_colors: bool = False,
     ):
-        base_type = [navi.image(channels=channels)]
+        base_type = [navi.Image(channels=channels)]
         if allow_colors:
-            base_type.append(navi.color(channels=channels))
+            base_type.append(navi.Color(channels=channels))
         image_type = navi.intersect(image_type, base_type)
         super().__init__(image_type, label)
 

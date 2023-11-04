@@ -34,7 +34,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     ),
     icon="MdColorLens",
     inputs=[
-        ImageInput(image_type=navi.image(channels="Input1.channels")),
+        ImageInput(image_type=navi.Image(channels="Input1.channels")),
         from_to_dropdowns_group(
             ColorSpaceDetectorInput(label="From").with_id(1),
             ColorSpaceInput(label="To").with_id(2),
@@ -45,7 +45,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 size_as="Input0",
                 channels="""
                     if bool::and(Input2.supportsAlpha, Input3) {

@@ -90,7 +90,7 @@ class GradientStyle(Enum):
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input0",
                 height="Input1",
                 channels="max(Input9.channels, Input10.channels)",

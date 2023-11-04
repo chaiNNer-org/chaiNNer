@@ -27,7 +27,7 @@ from .. import resize_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input1",
                 height="Input2",
                 channels="Input0.channels",

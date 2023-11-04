@@ -33,7 +33,7 @@ from .. import resize_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="max(1, int & round(Input0.width * Input1 / 100))",
                 height="max(1, int & round(Input0.height * Input1 / 100))",
                 channels_as="Input0",

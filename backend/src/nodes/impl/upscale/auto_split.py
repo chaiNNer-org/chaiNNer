@@ -10,8 +10,6 @@ from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split
 from .tiler import Tiler
 
-MAX_ITER = 20
-
 
 class Split:
     pass
@@ -52,7 +50,7 @@ def auto_split(
     )
 
 
-class _SplitExError(Exception):
+class _SplitEx(Exception):
     pass
 
 
@@ -71,8 +69,10 @@ def _exact_split(
     def no_split_upscale(i: np.ndarray, r: Region) -> np.ndarray:
         result = upscale(i, r)
         if isinstance(result, Split):
-            raise _SplitExError
+            raise _SplitEx
         return result
+
+    MAX_ITER = 20  # noqa: N806
 
     for _ in range(MAX_ITER):
         try:
@@ -83,7 +83,7 @@ def _exact_split(
                 upscale=no_split_upscale,
                 overlap=min(max_overlap, overlap),
             )
-        except _SplitExError:
+        except _SplitEx:
             starting_tile_size = split_tile_size(starting_tile_size)
 
     raise ValueError(f"Aborting after {MAX_ITER} splits. Unable to upscale image.")

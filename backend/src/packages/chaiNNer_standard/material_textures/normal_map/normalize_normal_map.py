@@ -22,7 +22,7 @@ from .. import normal_map_group
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=navi.image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
     ],

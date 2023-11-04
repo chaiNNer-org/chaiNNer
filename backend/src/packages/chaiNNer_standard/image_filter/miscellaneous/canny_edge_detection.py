@@ -23,7 +23,7 @@ from .. import miscellaneous_group
         NumberInput("Lower Threshold", minimum=0, default=100),
         NumberInput("Upper Threshold", minimum=0, default=300),
     ],
-    outputs=[ImageOutput(image_type=navi.image(size_as="Input0"), channels=1)],
+    outputs=[ImageOutput(image_type=navi.Image(size_as="Input0"), channels=1)],
 )
 def canny_edge_detection_node(
     img: np.ndarray,

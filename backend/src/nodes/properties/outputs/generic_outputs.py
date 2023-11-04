@@ -73,7 +73,7 @@ class ColorOutput(BaseOutput):
         channels: int | None = None,
     ):
         super().__init__(
-            output_type=navi.intersect(color_type, navi.color(channels=channels)),
+            output_type=navi.intersect(color_type, navi.Color(channels=channels)),
             label=label,
             kind="generic",
         )

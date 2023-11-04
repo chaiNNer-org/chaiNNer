@@ -28,7 +28,7 @@ from .. import border_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input0.width + Input2 * 2",
                 height="Input0.height + Input2 * 2",
                 channels="BorderType::getOutputChannels(Input1, Input0.channels, Input3)",

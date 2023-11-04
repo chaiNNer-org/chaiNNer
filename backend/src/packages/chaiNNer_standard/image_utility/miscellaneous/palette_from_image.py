@@ -64,7 +64,7 @@ MAX_COLORS = 4096
     outputs=[
         ImageOutput(
             "Palette",
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="""
                     min(
                         match Input1 {

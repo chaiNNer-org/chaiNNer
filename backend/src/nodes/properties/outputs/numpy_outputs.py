@@ -52,7 +52,7 @@ class ImageOutput(NumPyOutput):
         assume_normalized: bool = False,
     ):
         super().__init__(
-            navi.intersect(image_type, navi.image(channels=channels)),
+            navi.intersect(image_type, navi.Image(channels=channels)),
             label,
             kind=kind,
             has_handle=has_handle,
@@ -71,7 +71,7 @@ class ImageOutput(NumPyOutput):
 
     def get_broadcast_type(self, value: np.ndarray):
         h, w, c = get_h_w_c(value)
-        return navi.image(width=w, height=h, channels=c)
+        return navi.Image(width=w, height=h, channels=c)
 
     def enforce(self, value) -> np.ndarray:
         assert isinstance(value, np.ndarray)

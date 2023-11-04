@@ -29,7 +29,7 @@ from .. import adjustments_group
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.image(size_as="Input0"),
+            image_type=navi.Image(size_as="Input0"),
             channels=4,
             assume_normalized=True,
         )

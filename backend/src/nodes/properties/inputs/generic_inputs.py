@@ -341,7 +341,7 @@ class ColorInput(BaseInput):
         channels: int | list[int] | None = None,
     ):
         super().__init__(
-            input_type=navi.color(channels=channels),
+            input_type=navi.Color(channels=channels),
             label=label,
             has_handle=True,
             kind="color",

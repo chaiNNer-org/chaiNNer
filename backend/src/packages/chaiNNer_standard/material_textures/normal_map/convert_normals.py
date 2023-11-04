@@ -52,7 +52,7 @@ from .. import normal_map_group
     outputs=[
         ImageOutput(
             "Normal Map",
-            image_type=navi.image(
+            image_type=navi.Image(
                 width="Input0.width",
                 height="Input0.height",
             ),

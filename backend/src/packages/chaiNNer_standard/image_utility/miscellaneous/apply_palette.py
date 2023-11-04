@@ -45,7 +45,7 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
         ImageInput("Palette"),
     ],
     outputs=[
-        ImageOutput(image_type=navi.image(size_as="Input0", channels_as="Input1"))
+        ImageOutput(image_type=navi.Image(size_as="Input0", channels_as="Input1"))
     ],
 )
 def apply_palette_node(
