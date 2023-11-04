@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-import numpy as np
 from chainner_ext import (
     fill_alpha_extend_color,
     fill_alpha_fragment_blur,
@@ -14,6 +14,9 @@ from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
 from . import node_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class AlphaFillMethod(Enum):

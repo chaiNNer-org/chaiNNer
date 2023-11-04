@@ -5,15 +5,18 @@ import platform
 import subprocess
 import time
 from tempfile import mkdtemp
+from typing import TYPE_CHECKING
 
 import cv2
-import numpy as np
 from sanic.log import logger
 
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput
 
 from .. import io_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @io_group.register(

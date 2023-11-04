@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import math
-from typing import Callable, Union
+from typing import TYPE_CHECKING, Callable, Union
 
 import numpy as np
 from sanic.log import logger
 
 from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split
-from .tiler import Tiler
+
+if TYPE_CHECKING:
+    from .tiler import Tiler
 
 
 class Split:

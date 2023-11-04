@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import gc
+from typing import TYPE_CHECKING
 
 import numpy as np
-import onnxruntime as ort
 
 from ..upscale.auto_split import Tiler, auto_split
 from .np_tensor_utils import np2nptensor, nptensor2np
+
+if TYPE_CHECKING:
+    import onnxruntime as ort
 
 
 def onnx_auto_split(

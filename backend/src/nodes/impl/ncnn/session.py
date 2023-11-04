@@ -12,9 +12,13 @@ except ImportError:
 
     use_gpu = False
 
-from packages.chaiNNer_ncnn.settings import NcnnSettings
 
-from .model import NcnnModelWrapper
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from packages.chaiNNer_ncnn.settings import NcnnSettings
+
+    from .model import NcnnModelWrapper
 
 
 def create_ncnn_net(model: NcnnModelWrapper, settings: NcnnSettings) -> ncnn.Net:

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from nodes.impl.ncnn.model import NcnnModelWrapper
+from typing import TYPE_CHECKING
+
 from nodes.properties.inputs import NcnnModelInput
 from nodes.properties.outputs import NumberOutput
 
 from .. import utility_group
+
+if TYPE_CHECKING:
+    from nodes.impl.ncnn.model import NcnnModelWrapper
 
 
 @utility_group.register(

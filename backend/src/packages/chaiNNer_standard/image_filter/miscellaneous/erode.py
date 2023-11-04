@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import cv2
-import numpy as np
 
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class MorphShape(Enum):

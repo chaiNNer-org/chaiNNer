@@ -5,10 +5,11 @@ import inspect
 import os
 import pathlib
 from enum import Enum
-from typing import Any, Callable, NewType, Union, cast, get_args
+from typing import TYPE_CHECKING, Any, Callable, NewType, Union, cast, get_args
 
-from .input import BaseInput
-from .output import BaseOutput
+if TYPE_CHECKING:
+    from .input import BaseInput
+    from .output import BaseOutput
 
 _Ty = NewType("_Ty", object)
 

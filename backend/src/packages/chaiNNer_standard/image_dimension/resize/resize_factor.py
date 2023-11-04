@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
+
 from sanic.log import logger
 
 import navi
@@ -10,6 +11,9 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
 
 from .. import resize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @resize_group.register(

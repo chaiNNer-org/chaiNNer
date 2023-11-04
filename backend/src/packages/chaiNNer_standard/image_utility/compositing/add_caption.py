@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.impl.caption import CaptionPosition, add_caption
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput, TextInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import compositing_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @compositing_group.register(

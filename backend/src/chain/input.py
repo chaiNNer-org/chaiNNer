@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
-from api import NodeId
+if TYPE_CHECKING:
+    from api import NodeId
 
 
 class EdgeInput:

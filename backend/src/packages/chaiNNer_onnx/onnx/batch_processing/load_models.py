@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
-from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import (
     DirectoryOutput,
@@ -17,6 +17,9 @@ from nodes.utils.utils import list_all_files_sorted
 
 from .. import batch_processing_group
 from ..io.load_model import load_model_node
+
+if TYPE_CHECKING:
+    from nodes.impl.onnx.model import OnnxModel
 
 
 @batch_processing_group.register(

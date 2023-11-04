@@ -1,16 +1,20 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.groups import if_enum_group
-from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.properties.inputs import BorderInput, ColorInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import Padding
 
 from .. import border_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.impl.color.color import Color
 
 
 @border_group.register(

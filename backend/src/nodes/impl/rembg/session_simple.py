@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 from PIL import Image
-from PIL.Image import Image as PILImage
 
 from .session_base import BaseSession
+
+if TYPE_CHECKING:
+    from PIL.Image import Image as PILImage
 
 
 class SimpleSession(BaseSession):

@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
-from nodes.impl.color.color import Color
 from nodes.properties.inputs import ColorInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import create_images_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.impl.color.color import Color
 
 
 @create_images_group.register(

@@ -3,12 +3,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from subprocess import Popen
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
 import ffmpeg
-import numpy as np
 from sanic.log import logger
 
 from api import Collector, IteratorInputInfo
@@ -35,6 +33,11 @@ from nodes.properties.inputs.numeric_inputs import NumberInput
 from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
+
+if TYPE_CHECKING:
+    from subprocess import Popen
+
+    import numpy as np
 
 ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
 ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")

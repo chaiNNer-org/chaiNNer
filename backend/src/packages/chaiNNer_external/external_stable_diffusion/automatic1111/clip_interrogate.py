@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.node_cache import cached
 from nodes.properties.inputs import ImageInput
@@ -10,6 +10,9 @@ from ...features import web_ui
 from ...util import encode_base64_image
 from ...web_ui import STABLE_DIFFUSION_INTERROGATE_PATH, get_api
 from .. import auto1111_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @auto1111_group.register(

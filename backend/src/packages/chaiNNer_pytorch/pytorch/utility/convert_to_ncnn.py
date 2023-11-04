@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from nodes.impl.ncnn.model import NcnnModelWrapper
+from typing import TYPE_CHECKING
+
 from nodes.impl.pytorch.architecture.DAT import DAT
 from nodes.impl.pytorch.architecture.HAT import HAT
 from nodes.impl.pytorch.architecture.OmniSR.OmniSR import OmniSR
@@ -8,12 +9,15 @@ from nodes.impl.pytorch.architecture.SCUNet import SCUNet
 from nodes.impl.pytorch.architecture.SRFormer import SRFormer
 from nodes.impl.pytorch.architecture.Swin2SR import Swin2SR
 from nodes.impl.pytorch.architecture.SwinIR import SwinIR
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
 from .. import utility_group
 from .convert_to_onnx import convert_to_onnx_node
+
+if TYPE_CHECKING:
+    from nodes.impl.ncnn.model import NcnnModelWrapper
+    from nodes.impl.pytorch.types import PyTorchSRModel
 
 try:
     from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import FP_MODE_32

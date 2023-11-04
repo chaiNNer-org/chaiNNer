@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from nodes.impl.pytorch.types import PyTorchModel
+from typing import TYPE_CHECKING
+
 from nodes.properties.inputs import ModelInput
 from nodes.properties.outputs import NumberOutput
 
 from .. import utility_group
+
+if TYPE_CHECKING:
+    from nodes.impl.pytorch.types import PyTorchModel
 
 
 @utility_group.register(

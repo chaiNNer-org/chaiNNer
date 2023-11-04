@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-import numpy as np
 from chainner_ext import (
     UniformQuantization,
     error_diffusion_dither,
@@ -23,6 +23,9 @@ from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import quantize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 _THRESHOLD_MAP: dict[ThresholdMap, int] = {
     ThresholdMap.BAYER_2: 2,

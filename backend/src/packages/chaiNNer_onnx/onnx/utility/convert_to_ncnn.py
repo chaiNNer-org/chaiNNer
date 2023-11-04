@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import onnx
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
-from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.onnx_to_ncnn import Onnx2NcnnConverter
 from nodes.impl.onnx.utils import safely_optimize_onnx_model
 from nodes.properties.inputs import OnnxFpDropdown, OnnxModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
 from .. import utility_group
+
+if TYPE_CHECKING:
+    from nodes.impl.onnx.model import OnnxModel
 
 FP_MODE_32 = 0
 

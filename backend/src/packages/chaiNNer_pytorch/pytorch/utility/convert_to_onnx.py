@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import torch
 
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.architecture.SCUNet import SCUNet
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
 from ...settings import get_settings
 from .. import utility_group
+
+if TYPE_CHECKING:
+    from nodes.impl.pytorch.types import PyTorchSRModel
 
 
 @utility_group.register(

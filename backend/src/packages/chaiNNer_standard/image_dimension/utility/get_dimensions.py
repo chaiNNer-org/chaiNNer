@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import NumberOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import utility_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @utility_group.register(

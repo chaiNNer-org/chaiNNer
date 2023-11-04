@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.impl.tile import TileMode, tile_image
@@ -8,6 +8,9 @@ from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import resize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @resize_group.register(

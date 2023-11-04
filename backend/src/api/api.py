@@ -4,6 +4,7 @@ import importlib
 import os
 from dataclasses import dataclass, field
 from typing import (
+    TYPE_CHECKING,
     Awaitable,
     Callable,
     Generic,
@@ -16,10 +17,7 @@ from typing import (
 
 from sanic.log import logger
 
-import navi
-
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
-from .input import BaseInput
 from .node_check import (
     NAME_CHECK_LEVEL,
     TYPE_CHECK_LEVEL,
@@ -28,9 +26,14 @@ from .node_check import (
     check_naming_conventions,
     check_schema_types,
 )
-from .output import BaseOutput
 from .settings import SettingsJson, get_execution_options
 from .types import InputId, NodeType, OutputId, RunFn
+
+if TYPE_CHECKING:
+    import navi
+
+    from .input import BaseInput
+    from .output import BaseOutput
 
 KB = 1024**1
 MB = 1024**2

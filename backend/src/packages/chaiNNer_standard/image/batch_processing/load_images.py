@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import numpy as np
 from wcmatch import glob
 
 from api import Iterator, IteratorOutputInfo
@@ -20,6 +20,9 @@ from nodes.utils.utils import alphanumeric_sort
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def extension_filter(lst: list[str]) -> str:

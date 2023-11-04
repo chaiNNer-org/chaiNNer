@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import os
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import torch
 from safetensors.torch import save_file
 from sanic.log import logger
 
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import DirectoryInput, EnumInput, ModelInput, TextInput
 
 from .. import io_group
+
+if TYPE_CHECKING:
+    from nodes.impl.pytorch.types import PyTorchModel
 
 
 class WeightFormat(Enum):

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from nodes.impl.color.color import Color
+from typing import TYPE_CHECKING
+
 from nodes.properties.inputs import ColorInput
 from nodes.properties.outputs import ColorOutput
 
 from .. import color_group
+
+if TYPE_CHECKING:
+    from nodes.impl.color.color import Color
 
 
 @color_group.register(

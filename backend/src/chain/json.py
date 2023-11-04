@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict, Union
-
-from api import NodeId
+from typing import TYPE_CHECKING, Literal, TypedDict, Union
 
 from .chain import (
     Chain,
@@ -14,6 +12,9 @@ from .chain import (
     NewIteratorNode,
 )
 from .input import EdgeInput, Input, InputMap, ValueInput
+
+if TYPE_CHECKING:
+    from api import NodeId
 
 
 class JsonEdgeInput(TypedDict):

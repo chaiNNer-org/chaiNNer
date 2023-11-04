@@ -1,12 +1,10 @@
 # ruff: noqa: N806
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import onnx.numpy_helper as onph
-from google.protobuf.internal.containers import (
-    RepeatedCompositeFieldContainer,
-    RepeatedScalarFieldContainer,
-)
 from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, NodeProto, TensorProto
 from sanic.log import logger
 
@@ -42,6 +40,12 @@ from .tensorproto_utils import (
     get_tensor_proto_data_size,
     set_node_attr_ai,
 )
+
+if TYPE_CHECKING:
+    from google.protobuf.internal.containers import (
+        RepeatedCompositeFieldContainer,
+        RepeatedScalarFieldContainer,
+    )
 
 UOT = UnaryOpTypes
 BOT = BinaryOpTypes

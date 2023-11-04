@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
 
-from .model import OnnxModel
+if TYPE_CHECKING:
+    from .model import OnnxModel
 
 
 def create_inference_session(

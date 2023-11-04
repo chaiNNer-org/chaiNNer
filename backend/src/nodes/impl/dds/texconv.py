@@ -7,13 +7,16 @@ import subprocess
 import sys
 import uuid
 from tempfile import mkdtemp
+from typing import TYPE_CHECKING
 
-import numpy as np
 from sanic.log import logger
 
 from ...utils.utils import split_file_path
 from ..image_utils import cv_save_image
 from .format import SRGB_FORMATS, DxgiFormat
+
+if TYPE_CHECKING:
+    import numpy as np
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore

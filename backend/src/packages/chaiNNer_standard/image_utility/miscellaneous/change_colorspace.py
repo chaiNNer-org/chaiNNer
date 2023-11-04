@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.groups import from_to_dropdowns_group, if_enum_group
@@ -19,6 +19,9 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 
 from .. import miscellaneous_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 COLOR_SPACES_WITH_ALPHA_PARTNER = [
     c.id for c in color_spaces if get_alpha_partner(c) is not None

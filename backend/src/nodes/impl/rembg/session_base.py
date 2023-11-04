@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import onnxruntime as ort
 from PIL import Image
-from PIL.Image import Image as PILImage
+
+if TYPE_CHECKING:
+    import onnxruntime as ort
+    from PIL.Image import Image as PILImage
 
 
 class BaseSession:

@@ -1,18 +1,21 @@
 from __future__ import annotations
 
 import gc
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 from sanic.log import logger
 
 from nodes.impl.pytorch.model_loading import load_state_dict
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
 
 from .. import utility_group
+
+if TYPE_CHECKING:
+    from nodes.impl.pytorch.types import PyTorchModel
 
 
 def perform_interp(model_a: dict, model_b: dict, amount: int):

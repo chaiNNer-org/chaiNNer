@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.impl.normals.util import gr_to_xyz, xyz_to_bgr
@@ -8,6 +8,9 @@ from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import normal_map_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @normal_map_group.register(

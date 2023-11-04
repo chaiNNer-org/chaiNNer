@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-import numpy as np
 from sanic.log import logger
 
 from nodes.impl.pil_utils import InterpolationMethod, resize
@@ -16,6 +16,9 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
 
 from .. import resize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class SideSelection(Enum):

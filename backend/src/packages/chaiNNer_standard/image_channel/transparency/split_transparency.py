@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.impl.image_utils import as_target_channels
@@ -8,6 +8,9 @@ from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
 from . import node_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @node_group.register(

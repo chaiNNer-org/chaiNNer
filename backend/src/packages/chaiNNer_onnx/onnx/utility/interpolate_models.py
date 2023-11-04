@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 import onnx
-from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
-from onnx.onnx_pb import TensorProto
 from sanic.log import logger
 
 from nodes.impl.onnx.model import OnnxModel, load_onnx_model
@@ -17,6 +16,10 @@ from nodes.properties.outputs import NumberOutput, OnnxModelOutput
 
 from .. import utility_group
 from ..processing.upscale_image import upscale_image_node
+
+if TYPE_CHECKING:
+    from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
+    from onnx.onnx_pb import TensorProto
 
 
 def perform_interp(

@@ -5,10 +5,12 @@ import os
 import re
 import subprocess
 import sys
-from logging import Logger
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
-from custom_types import UpdateProgressFn
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from custom_types import UpdateProgressFn
 
 python_path = sys.executable
 dir_path = os.path.dirname(os.path.realpath(__file__))

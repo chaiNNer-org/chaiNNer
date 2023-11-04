@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-import onnxruntime as ort
+from typing import TYPE_CHECKING
 
 from ...impl.onnx.utils import get_input_shape
-from .session_base import BaseSession
 from .session_cloth import ClothSession
 from .session_simple import SimpleSession
+
+if TYPE_CHECKING:
+    import onnxruntime as ort
+
+    from .session_base import BaseSession
 
 
 def new_session(session: ort.InferenceSession) -> BaseSession:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.groups import linked_inputs_group
 from nodes.impl.image_utils import fast_gaussian_blur
@@ -8,6 +8,9 @@ from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import blur_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @blur_group.register(

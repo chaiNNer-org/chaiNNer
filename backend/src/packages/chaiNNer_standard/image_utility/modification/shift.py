@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.impl.image_utils import FillColor, shift
@@ -8,6 +8,9 @@ from nodes.properties.inputs import FillColorDropdown, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import modification_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @modification_group.register(

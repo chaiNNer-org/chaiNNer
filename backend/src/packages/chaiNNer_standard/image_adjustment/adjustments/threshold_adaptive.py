@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import cv2
-import numpy as np
 
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import adjustments_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class AdaptiveThresholdType(Enum):

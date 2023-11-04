@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.groups import seed_group
 from nodes.node_cache import cached
@@ -12,7 +12,6 @@ from nodes.properties.inputs import (
     TextInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.seed import Seed
 from nodes.utils.utils import get_h_w_c
 
 from ...features import web_ui
@@ -24,6 +23,11 @@ from ...web_ui import (
     get_api,
 )
 from .. import auto1111_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.utils.seed import Seed
 
 
 @auto1111_group.register(

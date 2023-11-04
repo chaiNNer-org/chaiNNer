@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 from enum import Enum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import cv2
-import numpy as np
 from PIL import Image
 from sanic.log import logger
 
@@ -35,6 +34,9 @@ from nodes.properties.inputs import (
 from nodes.utils.utils import get_h_w_c
 
 from .. import io_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class ImageFormat(Enum):

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 from sanic.log import logger
 
-from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput, OnnxModelInput, TextInput
 
 from .. import io_group
+
+if TYPE_CHECKING:
+    from nodes.impl.onnx.model import OnnxModel
 
 
 @io_group.register(

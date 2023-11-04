@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
@@ -10,6 +9,9 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import crop_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class CropMode(Enum):

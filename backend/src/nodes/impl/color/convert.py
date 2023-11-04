@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import TYPE_CHECKING, Callable, Generic, Iterable, TypeVar
 
-import numpy as np
 from sanic.log import logger
 
 from .convert_data import color_spaces, color_spaces_or_detectors, conversions
@@ -14,6 +13,9 @@ from .convert_model import (
     assert_input_channels,
     assert_output_channels,
 )
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def color_space_from_id(id_: int) -> ColorSpace:

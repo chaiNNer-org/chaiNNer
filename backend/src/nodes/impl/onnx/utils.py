@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import onnxoptimizer
-import onnxruntime as ort
-from onnx.onnx_pb import ModelProto
+
+if TYPE_CHECKING:
+    import onnxruntime as ort
+    from onnx.onnx_pb import ModelProto
 
 OnnxInputShape = Literal["BCHW", "BHWC"]
 

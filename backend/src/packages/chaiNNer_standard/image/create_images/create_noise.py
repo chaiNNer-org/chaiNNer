@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -18,9 +19,11 @@ from nodes.properties.inputs import (
     SliderInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.seed import Seed
 
 from .. import create_images_group
+
+if TYPE_CHECKING:
+    from nodes.utils.seed import Seed
 
 
 class NoiseMethod(Enum):

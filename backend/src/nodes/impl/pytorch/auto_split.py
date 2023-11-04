@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import gc
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 
 from ..upscale.auto_split import Split, Tiler, auto_split
-from .types import PyTorchModel
 from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
+
+if TYPE_CHECKING:
+    from .types import PyTorchModel
 
 
 @torch.inference_mode()

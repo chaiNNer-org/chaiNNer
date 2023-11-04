@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from api import Iterator, IteratorOutputInfo
 from nodes.properties.inputs import ImageInput, NumberInput
@@ -8,6 +8,9 @@ from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import batch_processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @batch_processing_group.register(

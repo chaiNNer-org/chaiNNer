@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import gc
-from typing import Generic, Iterable, TypeVar
+from typing import TYPE_CHECKING, Generic, Iterable, TypeVar
 
 from sanic.log import logger
 
-from api import NodeId
-
 from .chain import Chain, Edge, FunctionNode, NewIteratorNode
+
+if TYPE_CHECKING:
+    from api import NodeId
 
 
 class CacheStrategy:

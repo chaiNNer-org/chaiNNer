@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import LargeImageOutput
 
 from .. import io_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @io_group.register(

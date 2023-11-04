@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import cv2
-import numpy as np
 from chainner_ext import binary_threshold
 
 from nodes.groups import if_enum_group
@@ -11,6 +11,9 @@ from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInpu
 from nodes.properties.outputs import ImageOutput
 
 from .. import adjustments_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class ThresholdType(Enum):

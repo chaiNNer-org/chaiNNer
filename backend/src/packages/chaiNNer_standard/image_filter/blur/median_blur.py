@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import cv2
-import numpy as np
 
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import blur_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @blur_group.register(

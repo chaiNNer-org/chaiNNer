@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import onnxruntime as ort
 from cv2 import (
     BORDER_DEFAULT,
     COLOR_BGR2RGB,
@@ -15,13 +16,16 @@ from cv2 import (
     morphologyEx,
 )
 from PIL import Image
-from PIL.Image import Image as PILImage
 from pymatting import estimate_alpha_cf, estimate_foreground_ml
 from scipy.ndimage import binary_erosion
 
 from ...impl.image_utils import normalize
 from ...utils.utils import get_h_w_c
 from .session_factory import new_session
+
+if TYPE_CHECKING:
+    import onnxruntime as ort
+    from PIL.Image import Image as PILImage
 
 kernel = getStructuringElement(MORPH_ELLIPSE, (3, 3))
 

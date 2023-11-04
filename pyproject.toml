@@ -42,7 +42,7 @@ extend-select = [
     # "RET", # flake8-return
     "SLF", # flake8-self
     # "SIM", # flake8-simplify
-    # "TCH", # flake8-tidy-imports
+    "TCH", # flake8-tidy-imports
 
 ]
 ignore = [

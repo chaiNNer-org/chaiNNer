@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.node_cache import cached
@@ -25,6 +24,9 @@ from ...web_ui import (
     get_api,
 )
 from .. import auto1111_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class UpscalerMode(Enum):

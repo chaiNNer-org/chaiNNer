@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
 from nodes.impl.pytorch.pix_transform.pix_transform import Params
@@ -10,6 +10,9 @@ from nodes.properties.outputs import ImageOutput
 
 from ...settings import get_settings
 from .. import processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @processing_group.register(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
@@ -12,7 +13,6 @@ from torchvision.transforms.functional import normalize as tv_normalize
 
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
-from nodes.impl.pytorch.types import PyTorchFaceModel
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -20,6 +20,9 @@ from nodes.utils.utils import get_h_w_c
 
 from ...settings import PyTorchSettings, get_settings
 from .. import restoration_group
+
+if TYPE_CHECKING:
+    from nodes.impl.pytorch.types import PyTorchFaceModel
 
 
 def denormalize(img: np.ndarray):

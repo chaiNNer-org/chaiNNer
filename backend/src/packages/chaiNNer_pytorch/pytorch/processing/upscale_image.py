@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
+
 import torch
 from sanic.log import logger
 
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
     estimate_tile_size,
@@ -25,6 +25,11 @@ from nodes.utils.utils import get_h_w_c
 
 from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.impl.pytorch.types import PyTorchSRModel
 
 
 def upscale(

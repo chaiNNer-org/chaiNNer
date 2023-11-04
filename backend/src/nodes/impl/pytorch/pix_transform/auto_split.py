@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import gc
+from typing import TYPE_CHECKING
 
 import numpy as np
-import torch
 
 from ....utils.utils import Region, Size, get_h_w_c
 from ...image_op import to_op
@@ -13,6 +13,9 @@ from ...upscale.passthrough import passthrough_single_color
 from ...upscale.tiler import Tiler
 from ..utils import safe_cuda_cache_empty
 from .pix_transform import Params, pix_transform
+
+if TYPE_CHECKING:
+    import torch
 
 
 class _PixTiler(Tiler):

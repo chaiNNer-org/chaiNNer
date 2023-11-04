@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
-from events import ExecutionErrorSource
 from process import NodeExecutionError
+
+if TYPE_CHECKING:
+    from events import ExecutionErrorSource
 
 
 class SuccessResponse(TypedDict):

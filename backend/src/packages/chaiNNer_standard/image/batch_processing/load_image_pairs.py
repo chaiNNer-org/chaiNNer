@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
@@ -18,6 +17,9 @@ from nodes.utils.utils import list_all_files_sorted
 
 from .. import batch_processing_group
 from ..io.load_image import load_image_node
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @batch_processing_group.register(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-import numpy as np
 from chainner_ext import (
     PaletteQuantization,
     error_diffusion_dither,
@@ -22,6 +22,9 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import quantize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class PaletteDitherAlgorithm(Enum):

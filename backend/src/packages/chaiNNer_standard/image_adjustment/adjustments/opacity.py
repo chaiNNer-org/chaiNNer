@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.impl.pil_utils import convert_to_bgra
@@ -9,6 +9,9 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import adjustments_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @adjustments_group.register(

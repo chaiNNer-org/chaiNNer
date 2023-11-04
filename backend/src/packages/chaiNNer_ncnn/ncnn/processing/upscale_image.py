@@ -3,7 +3,6 @@ from __future__ import annotations
 from contextlib import contextmanager
 
 import cv2
-import numpy as np
 
 try:
     from ncnn_vulkan import ncnn
@@ -13,11 +12,12 @@ except ImportError:
     from ncnn import ncnn
 
     use_gpu = False
+from typing import TYPE_CHECKING
+
 from sanic.log import logger
 
 from nodes.groups import Condition, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
-from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.ncnn.session import get_ncnn_net
 from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
@@ -38,6 +38,11 @@ from system import is_mac
 
 from ...settings import get_settings
 from .. import processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.impl.ncnn.model import NcnnModelWrapper
 
 
 @contextmanager

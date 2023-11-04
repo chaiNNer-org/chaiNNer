@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-from nodes.impl.color.color import Color
 from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
 from . import node_group
+
+if TYPE_CHECKING:
+    from nodes.impl.color.color import Color
 
 
 @node_group.register(

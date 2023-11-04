@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
+
 from sanic.log import logger
 
 import navi
@@ -9,6 +10,9 @@ from nodes.properties.inputs import ImageInput, InterpolationInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import resize_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @resize_group.register(

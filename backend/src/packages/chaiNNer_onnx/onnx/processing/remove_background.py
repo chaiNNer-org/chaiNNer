@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 import navi
 from nodes.groups import Condition, if_group
-from nodes.impl.onnx.model import OnnxRemBg
 from nodes.impl.onnx.session import get_onnx_session
 from nodes.impl.rembg.bg import remove_bg
 from nodes.properties.inputs import ImageInput, OnnxRemBgModelInput
@@ -14,6 +13,11 @@ from nodes.properties.outputs import ImageOutput
 
 from ...settings import get_settings
 from .. import processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.impl.onnx.model import OnnxRemBg
 
 
 @processing_group.register(

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import numpy as np
-import onnxruntime as ort
+from typing import TYPE_CHECKING
+
 from sanic.log import logger
 
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
-from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.session import get_onnx_session
 from nodes.impl.onnx.utils import get_input_shape, get_output_shape
 from nodes.impl.upscale.auto_split_tiles import (
@@ -27,6 +26,12 @@ from nodes.utils.utils import get_h_w_c
 
 from ...settings import get_settings
 from .. import processing_group
+
+if TYPE_CHECKING:
+    import numpy as np
+    import onnxruntime as ort
+
+    from nodes.impl.onnx.model import OnnxModel
 
 
 def upscale(

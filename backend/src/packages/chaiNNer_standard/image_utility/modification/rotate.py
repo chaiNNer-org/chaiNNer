@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.impl.pil_utils import (
     FillColor,
@@ -18,6 +18,9 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 
 from .. import modification_group
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @modification_group.register(

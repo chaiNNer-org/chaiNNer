@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import functools
 import gc
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, List, Union
+from typing import TYPE_CHECKING, Iterable, List, Union
 
 from sanic.log import logger
 
@@ -19,6 +17,12 @@ from chain.input import EdgeInput, Input, InputMap
 from events import Event, EventQueue, InputsDict
 from progress_controller import Aborted, ProgressController
 from util import timed_supplier
+
+if TYPE_CHECKING:
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+
+    from events import Event, EventQueue, InputsDict
 
 Output = List[object]
 

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nodes.groups import seed_group
 from nodes.impl.noise import (
@@ -15,9 +14,13 @@ from nodes.impl.noise import (
 )
 from nodes.properties.inputs import EnumInput, ImageInput, SeedInput, SliderInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.seed import Seed
 
 from .. import noise_group
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from nodes.utils.seed import Seed
 
 
 class NoiseType(Enum):

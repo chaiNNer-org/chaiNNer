@@ -10,12 +10,11 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import psutil
 from sanic import Sanic
 from sanic.log import access_logger, logger
-from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
@@ -32,7 +31,6 @@ from chain.chain import Chain, FunctionNode
 from chain.input import InputMap
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
-from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
@@ -46,6 +44,11 @@ from response import (
 )
 from server_config import ServerConfig
 from system import is_arm_mac
+
+if TYPE_CHECKING:
+    from sanic.request import Request
+
+    from custom_types import UpdateProgressFn
 
 
 class AppContext:

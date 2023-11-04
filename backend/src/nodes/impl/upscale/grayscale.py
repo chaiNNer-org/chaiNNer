@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ..color.convert import convert
 from ..color.convert_data import LAB, RGB
-from ..image_op import ImageOp
+
+if TYPE_CHECKING:
+    from ..image_op import ImageOp
 
 
 class SplitMode(Enum):
