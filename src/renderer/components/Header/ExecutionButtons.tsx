@@ -27,10 +27,10 @@ export const ExecutionButtons = memo(() => {
                 <IconButton
                     aria-label={t('header.runButton', 'Run button')}
                     colorScheme="green"
+                    icon={<IoPlay />}
                     isDisabled={
                         !(status === ExecutionStatus.READY || status === ExecutionStatus.PAUSED)
                     }
-                    icon={<IoPlay />}
                     size="md"
                     variant="outline"
                     onClick={() => {
@@ -50,8 +50,8 @@ export const ExecutionButtons = memo(() => {
                 <IconButton
                     aria-label={t('header.pauseButton', 'Pause button')}
                     colorScheme="yellow"
-                    isDisabled={status !== ExecutionStatus.RUNNING}
                     icon={<IoPause />}
+                    isDisabled={status !== ExecutionStatus.RUNNING}
                     size="md"
                     variant="outline"
                     onClick={() => {
@@ -71,8 +71,8 @@ export const ExecutionButtons = memo(() => {
                 <IconButton
                     aria-label={t('header.stopButton', 'Stop button')}
                     colorScheme="red"
-                    isDisabled={![ExecutionStatus.RUNNING, ExecutionStatus.PAUSED].includes(status)}
                     icon={<IoStop />}
+                    isDisabled={![ExecutionStatus.RUNNING, ExecutionStatus.PAUSED].includes(status)}
                     isLoading={ExecutionStatus.KILLING === status}
                     size="md"
                     variant="outline"
