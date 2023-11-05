@@ -45,6 +45,7 @@ extend-select = [
     "SLF", # flake8-self
     # "SIM", # flake8-simplify
     # "TCH", # flake8-tidy-imports
+    "NPY", # NumPy-specific rules
 ]
 ignore = [
     "E501",    # Line too long
