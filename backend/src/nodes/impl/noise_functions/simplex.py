@@ -88,9 +88,8 @@ class SimplexNoise:
             # Use the canonical table from the reference implementation
             self.permutation_table = PERMUTATION_TABLE_ARRAY
         else:
-            np.random.seed(seed)
             self.permutation_table = np.arange(self.gradients.shape[0] * 16)
-            np.random.shuffle(self.permutation_table)
+            np.random.default_rng(seed).shuffle(self.permutation_table)
 
     def evaluate(self, points: np.ndarray):
         n_points = points.shape[0]

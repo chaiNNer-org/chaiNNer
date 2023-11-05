@@ -10,9 +10,8 @@ class ValueNoise:
         self.values = np.arange(16, dtype="float32")
         self.values = self.values / max(self.values)
 
-        np.random.seed(seed)
         self.permutation_table = np.arange(self.values.size * 16)
-        np.random.shuffle(self.permutation_table)
+        np.random.default_rng(seed).shuffle(self.permutation_table)
 
     def evaluate(self, points: np.ndarray):
         block, fractional = np.divmod(points, 1)
