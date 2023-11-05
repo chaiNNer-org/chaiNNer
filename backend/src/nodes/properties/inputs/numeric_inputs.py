@@ -102,7 +102,7 @@ class NumberInput(BaseInput):
     def make_optional(self):
         raise ValueError("NumberInput and SliderInput cannot be made optional")
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         assert isinstance(value, (int, float))
 
         if math.isnan(value):

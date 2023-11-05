@@ -59,10 +59,10 @@ class BaseOutput:
     def __iter__(self):
         yield from self.to_dict().items()
 
-    def get_broadcast_data(self, _value):
+    def get_broadcast_data(self, _value: object):
         return None
 
-    def get_broadcast_type(self, _value) -> navi.ExpressionJson | None:
+    def get_broadcast_type(self, _value: object) -> navi.ExpressionJson | None:
         return None
 
     def enforce(self, value: object) -> object:

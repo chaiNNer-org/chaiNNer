@@ -11,7 +11,7 @@ from nodes.impl.image_utils import normalize, to_uint8
 from nodes.utils.utils import get_h_w_c
 
 
-def nearest_valid_size(width, height):
+def nearest_valid_size(width: int, height: int):
     return (width // 8) * 8, (height // 8) * 8
 
 

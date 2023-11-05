@@ -44,11 +44,11 @@ def np_rgba_to_bgra(img: np.ndarray) -> np.ndarray:
 
 def np2nptensor(
     img: np.ndarray,
-    bgr2rgb=True,
-    data_range=1.0,  # pylint: disable=unused-argument
-    normalize=False,
-    change_range=True,
-    add_batch=True,
+    bgr2rgb: bool = True,
+    data_range: float = 1.0,
+    normalize: bool = False,
+    change_range: bool = True,
+    add_batch: bool = True,
 ) -> np.ndarray:
     """Converts a numpy image array into a numpy Tensor array.
     Parameters:
@@ -86,11 +86,11 @@ def np2nptensor(
 
 def nptensor2np(
     img: np.ndarray,
-    rgb2bgr=True,
-    remove_batch=True,
-    data_range=255,
-    denormalize=False,
-    change_range=True,
+    rgb2bgr: bool = True,
+    remove_batch: bool = True,
+    data_range: float = 255,
+    denormalize: bool = False,
+    change_range: bool = True,
     imtype: type = np.uint8,
 ) -> np.ndarray:
     """Converts a Tensor array into a numpy image array.

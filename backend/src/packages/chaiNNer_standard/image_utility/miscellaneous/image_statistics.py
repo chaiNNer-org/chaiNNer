@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import SupportsFloat
+
 import numpy as np
 
 from nodes.properties.inputs import ImageInput, SliderInput
@@ -37,7 +39,7 @@ def image_statistics_node(
     img: np.ndarray,
     percentile: float,
 ) -> tuple[float, float, float, float]:
-    def to_float(n) -> float:
+    def to_float(n: SupportsFloat) -> float:
         # float32 has ~8 digits of precision.
         # So by rounding to 4 digits, we have 1 digit left over to contain rounding errors
         return round(float(n) * 255, 4)

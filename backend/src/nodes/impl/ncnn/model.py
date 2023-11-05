@@ -241,7 +241,7 @@ class NcnnParamCollection:
         except KeyError:
             pass
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, item: int) -> bool:
         if item in self.param_dict:
             return True
         return False

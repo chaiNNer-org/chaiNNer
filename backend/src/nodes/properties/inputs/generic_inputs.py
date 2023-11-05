@@ -91,7 +91,7 @@ class DropDownInput(BaseInput):
     def make_optional(self):
         raise ValueError("DropDownInput cannot be made optional")
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
@@ -118,7 +118,7 @@ class BoolInput(DropDownInput):
         )
         self.associated_type = bool
 
-    def enforce(self, value) -> bool:
+    def enforce(self, value: object) -> bool:
         value = super().enforce(value)
         return bool(value)
 
@@ -198,7 +198,7 @@ class EnumInput(Generic[T], DropDownInput):
 
         self.associated_type = enum
 
-    def enforce(self, value) -> T:
+    def enforce(self, value: object) -> T:
         value = super().enforce(value)
         return self.enum(value)
 
@@ -209,7 +209,7 @@ class TextInput(BaseInput):
     def __init__(
         self,
         label: str,
-        has_handle=True,
+        has_handle: bool = True,
         min_length: int = 0,
         max_length: int | None = None,
         placeholder: str | None = None,
@@ -243,7 +243,7 @@ class TextInput(BaseInput):
         if allow_numbers:
             self.input_conversions = [InputConversion("number", "toString(Input)")]
 
-    def enforce(self, value) -> str:
+    def enforce(self, value: object) -> str:
         if isinstance(value, float) and int(value) == value:
             # stringify integers values
             value = str(int(value))
@@ -281,7 +281,7 @@ class ClipboardInput(BaseInput):
         super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if isinstance(value, np.ndarray):
             return normalize(value)
 
@@ -297,7 +297,7 @@ class AnyInput(BaseInput):
         super().__init__(input_type="any", label=label)
         self.associated_type = object
 
-    def enforce_(self, value):
+    def enforce_(self, value: object):
         # The behavior for optional inputs and None makes sense for all inputs except this one.
         return value
 
@@ -324,10 +324,12 @@ class SeedInput(NumberInput):
 
         self.associated_type = Seed
 
-    def enforce(self, value) -> Seed:
+    def enforce(self, value: object) -> Seed:
         if isinstance(value, Seed):
             return value
-        return Seed(int(value))
+        if isinstance(value, (int, float, str)):
+            return Seed(int(value))
+        raise ValueError(f"Cannot convert {value} to Seed")
 
     def make_optional(self):
         raise ValueError("SeedInput cannot be made optional")
@@ -381,7 +383,7 @@ class ColorInput(BaseInput):
 
         self.associated_type = Color
 
-    def enforce(self, value) -> Color:
+    def enforce(self, value: object) -> Color:
         if isinstance(value, str):
             # decode color JSON strings from the frontend
             value = Color.from_json(json.loads(value))
@@ -573,7 +575,7 @@ def FillColorDropdown() -> DropDownInput:
 
 
 def TileSizeDropdown(
-    label="Tile Size", estimate=True, default: TileSize | None = None
+    label: str = "Tile Size", estimate: bool = True, default: TileSize | None = None
 ) -> DropDownInput:
     options = []
     if estimate:

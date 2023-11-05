@@ -18,7 +18,7 @@ def add_xy(img: np.ndarray, scale: float) -> np.ndarray:
     return np.dstack((img, xx * scale, yy * scale))
 
 
-def quantize_image(image, palette):
+def quantize_image(image: np.ndarray, palette: np.ndarray):
     _, _, c = get_h_w_c(image)
     # Flatten image and palette for easy computation
     flat_img = image.reshape((-1, c))

@@ -46,7 +46,7 @@ class ImageInput(BaseInput):
         if self.allow_colors:
             self.associated_type = Union[np.ndarray, Color]
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if isinstance(value, Color):
             if not self.allow_colors:
                 raise ValueError(
@@ -79,7 +79,7 @@ class ImageInput(BaseInput):
 
         return value
 
-    def get_error_value(self, value) -> ErrorValue:
+    def get_error_value(self, value: object) -> ErrorValue:
         def get_channels(channel: int) -> str:
             if channel == 1:
                 return "Grayscale"

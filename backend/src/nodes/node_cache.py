@@ -6,9 +6,12 @@ import os
 import tempfile
 import time
 from enum import Enum
+from typing import Iterable, NewType
 
 import numpy as np
 from sanic.log import logger
+
+from api import RunFn
 
 CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
 CACHE_REGISTRY: list[NodeOutputCache] = []
@@ -27,16 +30,19 @@ class CachedNumpyArray:
         return np.frombuffer(self.file.read(), dtype=self.dtype).reshape(self.shape)
 
 
+CacheKey = NewType("CacheKey", tuple)
+
+
 class NodeOutputCache:
     def __init__(self):
-        self._data: dict[tuple, list] = {}
-        self._bytes: dict[tuple, int] = {}
-        self._access_time: dict[tuple, float] = {}
+        self._data: dict[CacheKey, list] = {}
+        self._bytes: dict[CacheKey, int] = {}
+        self._access_time: dict[CacheKey, float] = {}
 
         CACHE_REGISTRY.append(self)
 
     @staticmethod
-    def _args_to_key(args) -> tuple:
+    def _args_to_key(args: Iterable[object]) -> CacheKey:
         key = []
         for arg in args:
             if isinstance(arg, (int, float, bool, str, bytes)):
@@ -51,13 +57,13 @@ class NodeOutputCache:
                 key.append(hashlib.sha256(arg.tobytes()).digest())
             elif hasattr(arg, "cache_key_func"):
                 key.append(arg.__class__.__name__)
-                key.append(arg.cache_key_func())
+                key.append(arg.cache_key_func())  # type: ignore
             else:
                 raise RuntimeError(f"Unexpected argument type {arg.__class__.__name__}")
-        return tuple(key)
+        return CacheKey(tuple(key))
 
     @staticmethod
-    def _estimate_bytes(output) -> int:
+    def _estimate_bytes(output: list[object]) -> int:
         size = 0
         for out in output:
             if isinstance(out, np.ndarray):
@@ -68,10 +74,10 @@ class NodeOutputCache:
                 size += 1024  # 1 KiB
         return size
 
-    def empty(self):
+    def empty(self) -> bool:
         return len(self._data) == 0
 
-    def oldest(self) -> tuple[tuple, float]:
+    def oldest(self) -> tuple[CacheKey, float]:
         return min(self._access_time.items(), key=lambda x: x[1])
 
     def size(self):
@@ -110,7 +116,7 @@ class NodeOutputCache:
         ]
 
     @staticmethod
-    def _output_to_list(output) -> list:
+    def _output_to_list(output: object) -> list[object]:
         if isinstance(output, list):
             return output
         elif isinstance(output, tuple):
@@ -119,12 +125,12 @@ class NodeOutputCache:
             return [output]
 
     @staticmethod
-    def _list_to_output(output: list):
+    def _list_to_output(output: list[object]):
         if len(output) == 1:
             return output[0]
         return output
 
-    def get(self, args) -> list | None:
+    def get(self, args: Iterable[object]) -> object | None:
         key = self._args_to_key(args)
         if key in self._data:
             logger.debug("Cache hit")
@@ -133,24 +139,24 @@ class NodeOutputCache:
         logger.debug("Cache miss")
         return None
 
-    def put(self, args, output):
+    def put(self, args: Iterable[object], output: object):
         key = self._args_to_key(args)
         self._data[key] = self._write_arrays_to_disk(self._output_to_list(output))
-        self._bytes[key] = self._estimate_bytes(output)
+        self._bytes[key] = self._estimate_bytes(self._output_to_list(output))
         self._access_time[key] = time.time()
         self._enforce_limits()
 
-    def drop(self, key):
+    def drop(self, key: CacheKey):
         del self._data[key]
         del self._bytes[key]
         del self._access_time[key]
 
 
-def cached(run):
+def cached(run: RunFn):
     cache = NodeOutputCache()
 
     @functools.wraps(run)
-    def _run(*args):
+    def _run(*args: object):
         out = cache.get(args)
         if out is not None:
             return out
