@@ -9,7 +9,7 @@ from onnx.onnx_pb import ModelProto
 OnnxInputShape = Literal["BCHW", "BHWC"]
 
 
-def as_int(value) -> int | None:
+def as_int(value: object) -> int | None:
     if isinstance(value, int):
         return value
     return None

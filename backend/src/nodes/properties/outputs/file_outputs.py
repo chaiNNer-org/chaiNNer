@@ -24,6 +24,6 @@ class DirectoryOutput(BaseOutput):
     def get_broadcast_type(self, value: str):
         return navi.named("Directory", {"path": navi.literal(value)})
 
-    def enforce(self, value) -> str:
+    def enforce(self, value: object) -> str:
         assert isinstance(value, str)
         return value

@@ -39,7 +39,7 @@ def image_stats(img: np.ndarray):
     return a_mean, a_std, b_mean, b_std, c_mean, c_std
 
 
-def min_max_scale(img: np.ndarray, new_range=(0, 255)):
+def min_max_scale(img: np.ndarray, new_range: tuple[float, float] = (0, 255)):
     """Perform min-max scaling to a NumPy array"""
 
     # Get arrays current min and max

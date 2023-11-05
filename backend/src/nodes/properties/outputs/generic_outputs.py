@@ -25,7 +25,7 @@ class NumberOutput(BaseOutput):
     def get_broadcast_type(self, value: int | float):
         return navi.literal(value)
 
-    def enforce(self, value) -> int | float:
+    def enforce(self, value: object) -> int | float:
         assert isinstance(value, (int, float))
         return value
 
@@ -41,7 +41,7 @@ class TextOutput(BaseOutput):
     def get_broadcast_type(self, value: str):
         return navi.literal(value)
 
-    def enforce(self, value) -> str:
+    def enforce(self, value: object) -> str:
         assert isinstance(value, str)
         return value
 
@@ -60,7 +60,7 @@ class SeedOutput(BaseOutput):
     def __init__(self, label: str = "Seed"):
         super().__init__(output_type="Seed", label=label, kind="generic")
 
-    def enforce(self, value) -> Seed:
+    def enforce(self, value: object) -> Seed:
         assert isinstance(value, Seed)
         return value
 
@@ -80,7 +80,7 @@ class ColorOutput(BaseOutput):
 
         self.channels = channels
 
-    def enforce(self, value) -> Color:
+    def enforce(self, value: object) -> Color:
         assert isinstance(value, Color)
 
         if self.channels is not None and value.channels != self.channels:

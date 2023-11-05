@@ -77,7 +77,7 @@ class NvidiaHelper:
     def list_gpus(self) -> list[str]:
         return [gpu.name for gpu in self.__gpus]
 
-    def get_current_vram_usage(self, gpu_index=0) -> tuple[int, int, int]:
+    def get_current_vram_usage(self, gpu_index: int = 0) -> tuple[int, int, int]:
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index].handle)
 
         return info.total, info.used, info.free

@@ -32,7 +32,7 @@ class NumPyOutput(BaseOutput):
             associated_type=np.ndarray,
         )
 
-    def enforce(self, value) -> np.ndarray:
+    def enforce(self, value: object) -> np.ndarray:
         assert isinstance(value, np.ndarray)
         return value
 
@@ -74,7 +74,7 @@ class ImageOutput(NumPyOutput):
         h, w, c = get_h_w_c(value)
         return navi.Image(width=w, height=h, channels=c)
 
-    def enforce(self, value) -> np.ndarray:
+    def enforce(self, value: object) -> np.ndarray:
         assert isinstance(value, np.ndarray)
 
         h, w, c = get_h_w_c(value)

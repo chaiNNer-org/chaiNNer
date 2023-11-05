@@ -21,14 +21,14 @@ from ..upscale.auto_split import Split, Tiler, auto_split
 
 def ncnn_auto_split(
     img: np.ndarray,
-    net,
+    net,  # noqa: ANN001
     input_name: str,
     output_name: str,
-    blob_vkallocator,
-    staging_vkallocator,
+    blob_vkallocator,  # noqa: ANN001
+    staging_vkallocator,  # noqa: ANN001
     tiler: Tiler,
 ) -> np.ndarray:
-    def upscale(img: np.ndarray, _):
+    def upscale(img: np.ndarray, _: object):
         ex = net.create_extractor()
         if use_gpu:
             ex.set_blob_vkallocator(blob_vkallocator)

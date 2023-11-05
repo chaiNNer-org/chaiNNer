@@ -74,7 +74,7 @@ class BaseInput:
         input_type: navi.ExpressionJson,
         label: str,
         kind: InputKind = "generic",
-        has_handle=True,
+        has_handle: bool = True,
         associated_type: Any = None,
     ):
         self.input_type: navi.ExpressionJson = input_type
@@ -145,7 +145,7 @@ class BaseInput:
         self.id = InputId(input_id)
         return self
 
-    def with_docs(self, *description: str, hint=False):
+    def with_docs(self, *description: str, hint: bool = False):
         self.description = "\n\n".join(description)
         self.hint = hint
         return self

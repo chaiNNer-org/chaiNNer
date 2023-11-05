@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from sanic.log import logger
 
 from .architecture.DAT import DAT
@@ -23,7 +27,7 @@ class UnsupportedModel(Exception):
     pass
 
 
-def load_state_dict(state_dict) -> PyTorchModel:
+def load_state_dict(state_dict: dict[str, Any]) -> PyTorchModel:
     logger.debug("Loading state dict into pytorch model arch")
 
     state_dict_keys = list(state_dict.keys())

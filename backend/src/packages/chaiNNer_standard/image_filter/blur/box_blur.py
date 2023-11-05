@@ -27,7 +27,7 @@ def get_kernel_1d(radius: float) -> np.ndarray:
     return kernel
 
 
-def get_kernel_2d(radius_x: float, radius_y) -> np.ndarray:
+def get_kernel_2d(radius_x: float, radius_y: float) -> np.ndarray:
     # Create kernel of dims h * w, rounded up to the closest odd integer
     kernel = np.ones((ceil(radius_y) * 2 + 1, ceil(radius_x) * 2 + 1), np.float32) / (
         (2 * radius_y + 1) * (2 * radius_x + 1)

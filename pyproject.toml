@@ -23,7 +23,9 @@ extend-select = [
     "F",  # pyflakes
     "I",  # isort
     "N",  # pep8-naming
-    # "ANN",   # flake8-annotations
+    # "ANN", # flake8-annotations
+    "ANN001",
+    "ANN002",
     # "ASYNC", # flake8-async
     "PL",  # pylint
     "RUF", # ruff
@@ -43,7 +45,6 @@ extend-select = [
     "SLF", # flake8-self
     # "SIM", # flake8-simplify
     # "TCH", # flake8-tidy-imports
-
 ]
 ignore = [
     "E501",    # Line too long
@@ -61,6 +62,7 @@ ignore = [
     "N818",    # Exception name should end in Error
     "ISC001",  # Implicit string concatenation, conflicts with formatter
 ]
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"

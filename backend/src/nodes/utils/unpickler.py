@@ -16,7 +16,7 @@ safe_list = {
 
 
 class RestrictedUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
+    def find_class(self, module: str, name: str):
         # Only allow required classes to load state dict
         if (module, name) not in safe_list:
             raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden")

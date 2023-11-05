@@ -15,7 +15,7 @@ def _luminance(img: np.ndarray) -> np.ndarray:
     return np.dot(img[..., :3], [0.2126, 0.7152, 0.0722])
 
 
-def create_cas_mask(img: np.ndarray, kernel, bias: float = 2) -> np.ndarray:
+def create_cas_mask(img: np.ndarray, kernel: np.ndarray, bias: float = 2) -> np.ndarray:
     """
     Uses contrast adaptive sharpening's method to create a mask to interpolate between the original
     and sharpened image.
@@ -48,7 +48,7 @@ def create_cas_mask(img: np.ndarray, kernel, bias: float = 2) -> np.ndarray:
 def cas_mix(
     img: np.ndarray,
     sharpened: np.ndarray,
-    kernel,
+    kernel: np.ndarray,
     bias: float = 2,
 ) -> np.ndarray:
     mask = create_cas_mask(img, kernel, bias)

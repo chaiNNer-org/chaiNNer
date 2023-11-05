@@ -35,7 +35,7 @@ class FractalMethod(Enum):
 
 
 def _add_noise(
-    generator_class,
+    generator_class,  # noqa: ANN001
     image: np.ndarray,
     scale: float,
     brightness: float,

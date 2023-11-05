@@ -20,7 +20,7 @@ def onnx_auto_split(
 
     is_fp16_model = session.get_inputs()[0].type == "tensor(float16)"
 
-    def upscale(img: np.ndarray, _):
+    def upscale(img: np.ndarray, _: object):
         try:
             lr_img = np2nptensor(img, change_range=False)
             lr_img = lr_img.astype(np.float16) if is_fp16_model else lr_img

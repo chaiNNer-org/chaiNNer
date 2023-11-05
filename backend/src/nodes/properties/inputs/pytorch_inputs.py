@@ -30,7 +30,7 @@ class ModelInput(BaseInput):
         if torch is not None:
             self.associated_type = PyTorchModel
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert is_pytorch_model(value), "Expected a supported PyTorch model."
@@ -50,7 +50,7 @@ class SrModelInput(ModelInput):
         if torch is not None:
             self.associated_type = PyTorchSRModel
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert is_pytorch_sr_model(
@@ -70,7 +70,7 @@ class FaceModelInput(ModelInput):
         if torch is not None:
             self.associated_type = PyTorchFaceModel
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert is_pytorch_face_model(
@@ -90,7 +90,7 @@ class InpaintModelInput(ModelInput):
         if torch is not None:
             self.associated_type = PyTorchInpaintModel
 
-    def enforce(self, value):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert is_pytorch_inpaint_model(
