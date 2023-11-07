@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Dict, Literal, TypedDict, Union
-
-from attr import dataclass
 
 from api import ErrorValue, InputId, NodeId, OutputId
 
