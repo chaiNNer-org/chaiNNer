@@ -5,7 +5,7 @@ import inspect
 import os
 import pathlib
 from enum import Enum
-from typing import Any, Callable, NewType, Union, cast, get_args
+from typing import Any, Callable, NewType, Tuple, Union, cast, get_args
 
 from .input import BaseInput
 from .output import BaseOutput
@@ -70,6 +70,15 @@ class TypeTransformer(ast.NodeTransformer):
             )
         return super().visit_BinOp(node)
 
+    def visit_Subscript(self, node: ast.Subscript):  # noqa
+        if isinstance(node.value, ast.Name) and node.value.id == "tuple":
+            return ast.Subscript(
+                value=ast.Name(id="Tuple", ctx=ast.Load()),
+                slice=node.slice,
+                ctx=ast.Load(),
+            )
+        return super().visit_Subscript(node)
+
 
 def compile_type_string(s: str, filename: str = "<string>"):
     tree = ast.parse(s, filename, "eval")
@@ -84,6 +93,7 @@ def eval_type(t: str | _Ty, __globals: dict[str, Any]):
     # `compile_type_string` adds `Union`, so we need it in scope
     local_scope = {
         "Union": Union,
+        "Tuple": Tuple,
     }
 
     try:
