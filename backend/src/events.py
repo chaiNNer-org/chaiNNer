@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+from abc import ABC, abstractmethod
 from typing import Dict, Literal, TypedDict, Union
+
+from attr import dataclass
 
 from api import ErrorValue, InputId, NodeId, OutputId
 
@@ -102,7 +105,27 @@ Event = Union[
 ]
 
 
-class EventQueue:
+class EventConsumer(ABC):
+    @abstractmethod
+    async def put(self, event: Event) -> None:
+        ...
+
+    @staticmethod
+    def filter(queue: EventConsumer, allowed: set[str]) -> EventConsumer:
+        return _FilteredEventConsumer(queue, allowed)
+
+
+@dataclass
+class _FilteredEventConsumer(EventConsumer):
+    queue: EventConsumer
+    allowed: set[str]
+
+    async def put(self, event: Event) -> None:
+        if event["event"] in self.allowed:
+            await self.queue.put(event)
+
+
+class EventQueue(EventConsumer):
     def __init__(self):
         self.queue = asyncio.Queue()
 

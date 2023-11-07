@@ -16,7 +16,7 @@ from api import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, Outp
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
-from events import Event, EventQueue, InputsDict
+from events import Event, EventConsumer, InputsDict
 from progress_controller import Aborted, ProgressController
 from util import timed_supplier
 
@@ -275,7 +275,7 @@ class Executor:
         inputs: InputMap,
         send_broadcast_data: bool,
         loop: asyncio.AbstractEventLoop,
-        queue: EventQueue,
+        queue: EventConsumer,
         pool: ThreadPoolExecutor,
         parent_cache: OutputCache[NodeOutput] | None = None,
     ):
@@ -291,7 +291,7 @@ class Executor:
         self.completed_node_ids = set()
 
         self.loop: asyncio.AbstractEventLoop = loop
-        self.queue: EventQueue = queue
+        self.queue: EventConsumer = queue
         self.pool: ThreadPoolExecutor = pool
 
         self.cache_strategy: dict[NodeId, CacheStrategy] = get_cache_strategies(chain)

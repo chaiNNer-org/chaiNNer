@@ -34,7 +34,7 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
-from events import EventQueue, ExecutionErrorData
+from events import EventConsumer, EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
 from process import Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
@@ -242,12 +242,15 @@ async def run_individual(request: Request):
         input_map = InputMap()
         input_map.set_values(node_id, full_data["inputs"])
 
+        # only yield certain types of events
+        queue = EventConsumer.filter(ctx.queue, {"node-finish", "execution-error"})
+
         executor = Executor(
             chain=chain,
             inputs=input_map,
             send_broadcast_data=True,
             loop=app.loop,
-            queue=ctx.queue,
+            queue=queue,
             pool=ctx.pool,
         )
 
