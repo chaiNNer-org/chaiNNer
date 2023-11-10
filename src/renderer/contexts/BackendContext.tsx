@@ -13,8 +13,9 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
 import { Backend, BackendNodesResponse, getBackend } from '../../common/Backend';
+import { CategoryMap } from '../../common/CategoryMap';
 import {
-    Category,
+    CategoryId,
     Feature,
     FeatureId,
     FeatureState,
@@ -24,6 +25,7 @@ import {
 } from '../../common/common-types';
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
+import { sortNodes } from '../../common/nodes/sort';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -40,15 +42,10 @@ interface BackendContextState {
     backend: Backend;
     ownsBackend: boolean;
     schemata: SchemaMap;
+    categories: CategoryMap;
+    categoriesMissingNodes: readonly CategoryId[];
     schemaInputs: SchemaInputsMap;
     pythonInfo: PythonInfo;
-    /**
-     * An ordered list of all categories supported by the backend.
-     *
-     * Some categories might be empty.
-     */
-    categories: readonly Category[];
-    categoriesMissingNodes: readonly string[];
     packages: readonly Package[];
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
@@ -73,19 +70,20 @@ type BackendData = [BackendNodesResponse, Package[]];
 interface NodesInfo {
     rawResponse: BackendData;
     schemata: SchemaMap;
-    categories: Category[];
+    categories: CategoryMap;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
-    categoriesMissingNodes: string[];
+    categoriesMissingNodes: CategoryId[];
     packages: Package[];
 }
 
 const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
+    const categoryMap = new CategoryMap(categories);
 
     return {
         rawResponse,
-        schemata: new SchemaMap(nodes),
-        categories,
+        schemata: new SchemaMap(sortNodes(nodes, categoryMap)),
+        categories: categoryMap,
         functionDefinitions: parseFunctionDefinitions(nodes),
         categoriesMissingNodes,
         packages: rawResponse[1],
@@ -364,7 +362,7 @@ export const BackendProvider = memo(
             schemata: nodesInfo?.schemata ?? SchemaMap.EMPTY,
             schemaInputs,
             pythonInfo,
-            categories: nodesInfo?.categories ?? EMPTY_ARRAY,
+            categories: nodesInfo?.categories ?? CategoryMap.EMPTY,
             categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? EMPTY_ARRAY,
             packages: nodesInfo?.packages ?? EMPTY_ARRAY,
             features: featuresMaps,

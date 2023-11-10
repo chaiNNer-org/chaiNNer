@@ -30,7 +30,7 @@ from .node_check import (
 )
 from .output import BaseOutput
 from .settings import SettingsJson, get_execution_options
-from .types import InputId, NodeType, OutputId, RunFn
+from .types import InputId, NodeId, NodeType, OutputId, RunFn
 
 KB = 1024**1
 MB = 1024**2
@@ -146,12 +146,22 @@ S = TypeVar("S")
 @dataclass
 class NodeGroup:
     category: Category
+    id: str
     name: str
+    order: list[str | NodeId] = field(default_factory=list)
     nodes: list[NodeData] = field(default_factory=list)
 
     def add_node(self, node: NodeData):
         logger.debug(f"Added {node.schema_id}")
         self.nodes.append(node)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "category": self.category.id,
+            "name": self.name,
+            "order": self.order,
+        }
 
     def register(
         self,
@@ -261,6 +271,7 @@ class NodeGroup:
 @dataclass
 class Category:
     package: Package
+    id: str
     name: str
     description: str
     icon: str = "BsQuestionCircleFill"
@@ -269,17 +280,23 @@ class Category:
     node_groups: list[NodeGroup] = field(default_factory=list)
 
     def add_node_group(self, name: str) -> NodeGroup:
-        result = NodeGroup(category=self, name=name)
+        result = NodeGroup(
+            category=self,
+            id=self.id + "/" + name.lower(),
+            name=name,
+        )
         self.node_groups.append(result)
         return result
 
     def to_dict(self):
         return {
+            "id": self.id,
             "name": self.name,
             "description": self.description,
             "icon": self.icon,
             "color": self.color,
             "installHint": self.install_hint,
+            "groups": [g.to_dict() for g in self.node_groups],
         }
 
 
@@ -455,6 +472,7 @@ class Package:
     ) -> Category:
         result = Category(
             package=self,
+            id=name.lower(),
             name=name,
             description=description,
             icon=icon,
@@ -520,7 +538,9 @@ class PackageRegistry:
         failed_checks: list[CheckFailedError] = []
 
         for package in list(self.packages.values()):
-            for file_path in _iter_py_files(os.path.dirname(package.where)):
+            for file_path in reversed(
+                list(_iter_py_files(os.path.dirname(package.where)))
+            ):
                 _, name = os.path.split(file_path)
 
                 if not name.startswith("_"):

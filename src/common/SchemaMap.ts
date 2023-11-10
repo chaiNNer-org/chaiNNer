@@ -1,4 +1,12 @@
-import { InputData, InputId, InputValue, NodeSchema, SchemaId } from './common-types';
+import {
+    CategoryId,
+    InputData,
+    InputId,
+    InputValue,
+    NodeGroupId,
+    NodeSchema,
+    SchemaId,
+} from './common-types';
 import { log } from './log';
 
 const BLANK_SCHEMA: NodeSchema = {
@@ -6,8 +14,8 @@ const BLANK_SCHEMA: NodeSchema = {
     outputs: [],
     groupLayout: [],
     icon: '',
-    category: '',
-    subcategory: '',
+    category: '' as CategoryId,
+    nodeGroup: '' as NodeGroupId,
     name: '',
     description: '',
     seeAlso: [],

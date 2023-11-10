@@ -191,7 +191,6 @@ export const RepresentativeNodeWrapper = memo(
                                     name={node.name}
                                     nodeType={node.nodeType}
                                     schemaId={node.schemaId}
-                                    subcategory={node.subcategory}
                                 />
                             </Center>
                         </Tooltip>

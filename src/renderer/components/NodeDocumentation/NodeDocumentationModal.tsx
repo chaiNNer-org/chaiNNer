@@ -15,6 +15,7 @@ import MiniSearch from 'minisearch';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
+import { CategoryMap } from '../../../common/CategoryMap';
 import { NodeSchema, SchemaId } from '../../../common/common-types';
 import { escapeRegExp } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -23,13 +24,13 @@ import { HighlightContainer } from './HighlightContainer';
 import { NodeDocs } from './NodeDocs';
 import { NodesList } from './NodesList';
 
-const createSearchIndex = (schemata: readonly NodeSchema[]) => {
+const createSearchIndex = (schemata: readonly NodeSchema[], categories: CategoryMap) => {
     const idField: keyof NodeSchema = 'schemaId';
     const fields: (keyof NodeSchema)[] = [
         'category',
+        'nodeGroup',
         'description',
         'name',
-        'subcategory',
         'inputs',
         'outputs',
     ];
@@ -44,6 +45,14 @@ const createSearchIndex = (schemata: readonly NodeSchema[]) => {
                     .map((i) => `${i.label} ${i.description ?? ''}`)
                     .join('\n\n');
             }
+            if (fieldName === 'category') {
+                const categoryId = document[fieldName];
+                return categories.get(categoryId)?.name ?? categoryId;
+            }
+            if (fieldName === 'nodeGroup') {
+                const nodeGroupId = document[fieldName];
+                return categories.getGroup(nodeGroupId)?.name ?? nodeGroupId;
+            }
             return String((document as unknown as Record<string, unknown>)[fieldName]);
         },
     });
@@ -54,12 +63,15 @@ const createSearchIndex = (schemata: readonly NodeSchema[]) => {
 const NodeDocumentationModal = memo(() => {
     const { selectedSchemaId, isOpen, openNodeDocumentation, onClose } =
         useContext(NodeDocumentationContext);
-    const { schemata } = useContext(BackendContext);
+    const { schemata, categories } = useContext(BackendContext);
 
     const selectedSchema = schemata.get(selectedSchemaId);
 
     // search
-    const searchIndex = useMemo(() => createSearchIndex(schemata.schemata), [schemata.schemata]);
+    const searchIndex = useMemo(
+        () => createSearchIndex(schemata.schemata, categories),
+        [schemata.schemata, categories]
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const { searchScores, searchTerms } = useMemo(() => {
         if (!searchQuery.trim()) return {};
