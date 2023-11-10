@@ -86,6 +86,23 @@ def box_blur_node(
     if radius_x == 0 or radius_y == 0:
         return img
 
+    use_optimized_int = (
+        # both radii are integers
+        int(radius_x) == radius_x
+        and int(radius_y) == radius_y
+        # you can't tell the difference between a float and an integer when the radius is large enough
+        or radius_x > 200
+        and radius_y > 200
+    )
+
+    if use_optimized_int:
+        # we can use an optimized box blur implementation
+        radius_x = int(round(radius_x))
+        radius_y = int(round(radius_y))
+        return cv2.blur(
+            img, (radius_x * 2 + 1, radius_y * 2 + 1), borderType=cv2.BORDER_REFLECT_101
+        )
+
     # Separable filter is faster for relatively small kernels, but after a certain size it becomes
     # slower than filter2D's DFT implementation. The exact cutoff depends on the hardware.
     avg_radius = math.sqrt(radius_x * radius_y)
