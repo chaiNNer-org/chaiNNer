@@ -538,9 +538,7 @@ class PackageRegistry:
         failed_checks: list[CheckFailedError] = []
 
         for package in list(self.packages.values()):
-            for file_path in reversed(
-                list(_iter_py_files(os.path.dirname(package.where)))
-            ):
+            for file_path in _iter_py_files(os.path.dirname(package.where)):
                 _, name = os.path.split(file_path)
 
                 if not name.startswith("_"):
