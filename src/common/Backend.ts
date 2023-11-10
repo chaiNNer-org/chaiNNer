@@ -2,6 +2,7 @@ import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
+    CategoryId,
     FeatureState,
     InputId,
     InputValue,
@@ -66,7 +67,7 @@ export type BackendExecutorActionResponse =
 export interface BackendNodesResponse {
     nodes: NodeSchema[];
     categories: Category[];
-    categoriesMissingNodes: string[];
+    categoriesMissingNodes: CategoryId[];
 }
 export interface BackendRunRequest {
     data: BackendJsonNode[];

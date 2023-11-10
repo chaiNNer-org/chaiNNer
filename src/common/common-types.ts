@@ -244,8 +244,8 @@ export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;
-    readonly category: string;
-    readonly subcategory: string;
+    readonly category: CategoryId;
+    readonly nodeGroup: NodeGroupId;
     readonly description: string;
     readonly seeAlso: readonly SchemaId[];
     readonly icon: string;
@@ -423,13 +423,22 @@ export interface WindowSize {
     readonly height: number;
 }
 
+export type CategoryId = string & { readonly __categoryId: never };
 export interface Category {
-    name: string;
-    description: string;
-    icon: string;
-    color: string;
-    installHint?: string;
-    excludedFromCheck: string[];
+    readonly id: CategoryId;
+    readonly name: string;
+    readonly description: string;
+    readonly icon: string;
+    readonly color: string;
+    readonly installHint?: string;
+    readonly groups: readonly NodeGroup[];
+}
+export type NodeGroupId = string & { readonly __nodeGroupId: never };
+export interface NodeGroup {
+    readonly id: NodeGroupId;
+    readonly category: CategoryId;
+    readonly name: string;
+    readonly order: readonly SchemaId[];
 }
 
 export type ColorJson = GrayscaleColorJson | RgbColorJson | RgbaColorJson;

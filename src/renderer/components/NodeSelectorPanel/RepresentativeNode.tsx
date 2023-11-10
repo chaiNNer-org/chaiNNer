@@ -2,16 +2,14 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { NodeType, SchemaId } from '../../../common/common-types';
+import { CategoryId, NodeType, SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { IconFactory } from '../CustomIcons';
 
 interface RepresentativeNodeProps {
-    category: string;
-    // eslint-disable-next-line react/no-unused-prop-types
-    subcategory: string;
+    category: CategoryId;
     icon: string;
     name: string;
     collapsed?: boolean;

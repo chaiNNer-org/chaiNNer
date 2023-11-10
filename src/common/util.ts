@@ -284,3 +284,37 @@ export const isAutoInput = (input: Input): boolean =>
     input.kind === 'generic' && input.optional && !input.hasHandle;
 
 export const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export function groupBy<T, K extends keyof T>(iter: Iterable<T>, key: K): Map<T[K], T[]>;
+export function groupBy<T, K>(iter: Iterable<T>, selector: (item: T) => K): Map<K, T[]>;
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
+export function groupBy<T>(
+    iter: Iterable<T>,
+    key: keyof T | ((item: T) => unknown)
+): Map<unknown, T[]> {
+    const map = new Map<unknown, T[]>();
+
+    if (typeof key === 'function') {
+        for (const item of iter) {
+            const k = key(item);
+            let list = map.get(k);
+            if (list === undefined) {
+                list = [];
+                map.set(k, list);
+            }
+            list.push(item);
+        }
+    } else {
+        for (const item of iter) {
+            const k = item[key];
+            let list = map.get(k);
+            if (list === undefined) {
+                list = [];
+                map.set(k, list);
+            }
+            list.push(item);
+        }
+    }
+
+    return map;
+}

@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Category, NodeSchema } from '../../../common/common-types';
+import { groupBy } from '../../../common/util';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
@@ -76,31 +77,38 @@ export const RegularAccordionItem = memo(
 
 interface SubcategoriesProps {
     collapsed: boolean;
-    subcategoryMap: Map<string, NodeSchema[]>;
+    category: Category;
+    categoryNodes: readonly NodeSchema[];
 }
 
-export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
+export const Subcategories = memo(({ collapsed, category, categoryNodes }: SubcategoriesProps) => {
+    const byGroup = groupBy(categoryNodes, 'nodeGroup');
     return (
         <>
-            {[...subcategoryMap].map(([subcategory, nodes]) => (
-                <Box key={subcategory}>
-                    <Center>
-                        <SubcategoryHeading
-                            collapsed={collapsed}
-                            subcategory={subcategory}
-                        />
-                    </Center>
-                    <Box>
-                        {nodes.map((node) => (
-                            <RepresentativeNodeWrapper
+            {category.groups.map((group) => {
+                const nodes = byGroup.get(group.id);
+                if (!nodes) return null;
+
+                return (
+                    <Box key={group.id}>
+                        <Center>
+                            <SubcategoryHeading
                                 collapsed={collapsed}
-                                key={node.schemaId}
-                                node={node}
+                                group={group}
                             />
-                        ))}
+                        </Center>
+                        <Box>
+                            {nodes.map((node) => (
+                                <RepresentativeNodeWrapper
+                                    collapsed={collapsed}
+                                    key={node.schemaId}
+                                    node={node}
+                                />
+                            ))}
+                        </Box>
                     </Box>
-                </Box>
-            ))}
+                );
+            })}
         </>
     );
 });

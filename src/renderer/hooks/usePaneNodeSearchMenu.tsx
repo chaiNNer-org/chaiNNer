@@ -14,8 +14,9 @@ import {
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Edge, Node, OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { CategoryMap } from '../../common/CategoryMap';
 import {
-    Category,
+    CategoryId,
     EdgeData,
     InputId,
     NodeData,
@@ -29,6 +30,7 @@ import { FunctionDefinition } from '../../common/types/function';
 import {
     assertNever,
     createUniqueId,
+    groupBy,
     parseSourceHandle,
     parseTargetHandle,
     stopPropagation,
@@ -45,7 +47,7 @@ import {
     gatherDownstreamIteratorNodes,
     gatherUpstreamIteratorNodes,
 } from '../helpers/nodeGathering';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
+import { getMatchingNodes } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
@@ -116,15 +118,15 @@ interface MenuProps {
     targets: ReadonlyMap<NodeSchema, ConnectionTarget>;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
-    categories: readonly Category[];
+    categories: CategoryMap;
 }
 
 const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    const byCategories: ReadonlyMap<string, readonly NodeSchema[]> = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, schemata)),
-        [searchQuery, schemata]
+    const byCategories: ReadonlyMap<CategoryId, readonly NodeSchema[]> = useMemo(
+        () => groupBy(getMatchingNodes(searchQuery, schemata, categories), 'category'),
+        [searchQuery, schemata, categories]
     );
 
     const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
@@ -225,10 +227,11 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                 )}
 
                 {byCategories.size > 0 ? (
-                    [...byCategories].map(([category, categorySchemata]) => {
-                        const accentColor = getCategoryAccentColor(categories, category);
+                    [...byCategories].map(([categoryId, categorySchemata]) => {
+                        const accentColor = getCategoryAccentColor(categories, categoryId);
+                        const category = categories.get(categoryId);
                         return (
-                            <Box key={category}>
+                            <Box key={categoryId}>
                                 <HStack
                                     borderRadius="md"
                                     mx={1}
@@ -237,9 +240,9 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                                     <IconFactory
                                         accentColor={accentColor}
                                         boxSize={3}
-                                        icon={categories.find((c) => c.name === category)?.icon}
+                                        icon={category?.icon}
                                     />
-                                    <Text fontSize="xs">{category}</Text>
+                                    <Text fontSize="xs">{category?.name ?? categoryId}</Text>
                                 </HStack>
                                 {categorySchemata.map((schema) => (
                                     <SchemaItem

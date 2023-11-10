@@ -17,14 +17,11 @@ import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { groupBy } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import {
-    getMatchingNodes,
-    getNodesByCategory,
-    getSubcategories,
-} from '../../helpers/nodeSearchFuncs';
+import { getMatchingNodes } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { SearchBar } from '../SearchBar';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
@@ -43,9 +40,10 @@ export const NodeSelector = memo(() => {
 
     const matchingNodes = getMatchingNodes(
         searchQuery,
-        schemata.schemata.filter((s) => !s.deprecated)
+        schemata.schemata.filter((s) => !s.deprecated),
+        categories
     );
-    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+    const byCategories = useMemo(() => groupBy(matchingNodes, 'category'), [matchingNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
         SettingsContext,
@@ -165,24 +163,20 @@ export const NodeSelector = memo(() => {
                                             favoriteNodes={favoriteNodes}
                                             noFavorites={favorites.size === 0}
                                         />
-                                        {categories.map((category) => {
-                                            const categoryNodes = byCategories.get(category.name);
+                                        {categories.categories.map((category) => {
+                                            const categoryNodes = byCategories.get(category.id);
                                             const categoryIsMissingNodes =
-                                                categoriesMissingNodes.includes(category.name);
+                                                categoriesMissingNodes.includes(category.id);
 
                                             if (!categoryNodes && !categoryIsMissingNodes) {
                                                 return null;
                                             }
 
-                                            const subcategoryMap = categoryNodes
-                                                ? getSubcategories(categoryNodes)
-                                                : null;
-
                                             return (
                                                 <RegularAccordionItem
                                                     category={category}
                                                     collapsed={collapsed}
-                                                    key={category.name}
+                                                    key={category.id}
                                                 >
                                                     {categoryIsMissingNodes && (
                                                         <PackageHint
@@ -192,10 +186,11 @@ export const NodeSelector = memo(() => {
                                                             onClick={openDependencyManager}
                                                         />
                                                     )}
-                                                    {subcategoryMap && (
+                                                    {categoryNodes && (
                                                         <Subcategories
+                                                            category={category}
+                                                            categoryNodes={categoryNodes}
                                                             collapsed={collapsed}
-                                                            subcategoryMap={subcategoryMap}
                                                         />
                                                     )}
                                                 </RegularAccordionItem>

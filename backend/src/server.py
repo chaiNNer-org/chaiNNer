@@ -118,7 +118,8 @@ async def nodes(_request: Request):
         node_dict = {
             "schemaId": node.schema_id,
             "name": node.name,
-            "category": sub.category.name,
+            "category": sub.category.id,
+            "nodeGroup": sub.id,
             "inputs": [x.to_dict() for x in node.inputs],
             "outputs": [x.to_dict() for x in node.outputs],
             "groupLayout": [
@@ -127,7 +128,6 @@ async def nodes(_request: Request):
             "description": node.description,
             "seeAlso": node.see_also,
             "icon": node.icon,
-            "subcategory": sub.name,
             "nodeType": node.type,
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,

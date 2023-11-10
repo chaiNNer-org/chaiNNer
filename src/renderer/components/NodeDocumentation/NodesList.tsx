@@ -2,9 +2,9 @@ import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
+import { groupBy } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
-import { getNodesByCategory } from '../../helpers/nodeSearchFuncs';
 import { IconFactory } from '../CustomIcons';
 import { SearchBar } from '../SearchBar';
 
@@ -33,14 +33,14 @@ export const NodesList = memo(
             return filtered.filter((s) => searchScores.has(s.schemaId));
         }, [schemata.schemata, searchScores]);
 
-        const byCategories = useMemo(() => getNodesByCategory(filteredSchema), [filteredSchema]);
+        const byCategories = useMemo(() => groupBy(filteredSchema, 'category'), [filteredSchema]);
 
         const sortedCategories = useMemo(() => {
-            if (!searchScores) return categories;
+            if (!searchScores) return categories.categories;
 
-            return [...categories].sort((a, b) => {
-                const aNodes = byCategories.get(a.name) ?? [];
-                const bNodes = byCategories.get(b.name) ?? [];
+            return [...categories.categories].sort((a, b) => {
+                const aNodes = byCategories.get(a.id) ?? [];
+                const bNodes = byCategories.get(b.id) ?? [];
                 const aMaxScore = Math.max(...aNodes.map((n) => searchScores.get(n.schemaId) ?? 0));
                 const bMaxScore = Math.max(...bNodes.map((n) => searchScores.get(n.schemaId) ?? 0));
                 return bMaxScore - aMaxScore;
@@ -101,7 +101,7 @@ export const NodesList = memo(
                             <Text>No nodes found</Text>
                         ) : (
                             sortedCategories.map((category) => {
-                                const categoryNodes = byCategories.get(category.name);
+                                const categoryNodes = byCategories.get(category.id);
 
                                 if (!categoryNodes || categoryNodes.length === 0) {
                                     return null;
@@ -117,7 +117,7 @@ export const NodesList = memo(
 
                                 return (
                                     <Box
-                                        key={category.name}
+                                        key={category.id}
                                         w="full"
                                     >
                                         <Center

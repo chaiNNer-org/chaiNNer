@@ -6,7 +6,8 @@ import {
     evaluate,
     isDisjointWith,
 } from '@chainner/navi';
-import { Category } from '../../common/common-types';
+import { CategoryMap } from '../../common/CategoryMap';
+import { CategoryId } from '../../common/common-types';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { lazy } from '../../common/util';
 
@@ -41,6 +42,6 @@ export const getTypeAccentColors = (inputType: Type): readonly [string, ...strin
     return colors.length > 0 ? (colors as [string, ...string[]]) : defaultColorList;
 };
 
-export const getCategoryAccentColor = (categories: readonly Category[], category: string) => {
-    return categories.find((c) => c.name === category)?.color ?? '#718096';
+export const getCategoryAccentColor = (categories: CategoryMap, category: CategoryId) => {
+    return categories.get(category)?.color ?? '#718096';
 };
