@@ -5,13 +5,13 @@ import gc
 import numpy as np
 import torch
 from sanic.log import logger
+from spandrel import ModelDescriptor, ModelLoader
 
-from nodes.impl.pytorch.model_loading import load_state_dict
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
 
+from ...settings import get_settings
 from .. import utility_group
 
 
@@ -37,18 +37,22 @@ def check_can_interp(model_a: dict, model_b: dict):
     if a_keys != b_keys:
         return False
     interp_50 = perform_interp(model_a, model_b, 50)
-    model = load_state_dict(interp_50).cpu()
-    size = model.min_size_restriction if model.min_size_restriction is not None else 3
+    model_descriptor = ModelLoader(torch.device("cpu")).load_from_state_dict(interp_50)
+    size = (
+        model_descriptor.size_requirements.minimum
+        if model_descriptor.size_requirements.minimum is not None
+        else 3
+    )
     assert isinstance(size, int), "min_size_restriction must be an int"
-    fake_img = np.ones((size, size, model.in_nc), dtype=np.float32)
+    fake_img = np.ones((size, size, model_descriptor.input_channels), dtype=np.float32)
     del interp_50
     with torch.no_grad():
         img_tensor = np2tensor(fake_img, change_range=True).cpu()
-        t_out = model(img_tensor)
+        t_out = model_descriptor.model(img_tensor)
         if isinstance(t_out, tuple):
             t_out = t_out[0]
         result = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
-    del model, img_tensor, t_out, fake_img
+    del model_descriptor, img_tensor, t_out, fake_img
     mean_color = np.mean(result)
     del result
     gc.collect()
@@ -85,15 +89,15 @@ def check_can_interp(model_a: dict, model_b: dict):
     ],
 )
 def interpolate_models_node(
-    model_a: PyTorchModel, model_b: PyTorchModel, amount: int
-) -> tuple[PyTorchModel, int, int]:
+    model_a: ModelDescriptor, model_b: ModelDescriptor, amount: int
+) -> tuple[ModelDescriptor, int, int]:
     if amount == 0:
         return model_a, 100, 0
     elif amount == 100:
         return model_b, 0, 100
 
-    state_a = model_a.state
-    state_b = model_b.state
+    state_a = model_a.state_dict
+    state_b = model_b.state_dict
 
     logger.debug("Interpolating models...")
     if not check_can_interp(state_a, state_b):
@@ -102,6 +106,8 @@ def interpolate_models_node(
         )
 
     state_dict = perform_interp(state_a, state_b, amount)
-    model = load_state_dict(state_dict)
+
+    get_settings()
+    model = ModelLoader().load_from_state_dict(state_dict)
 
     return model, 100 - amount, amount

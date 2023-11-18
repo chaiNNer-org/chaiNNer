@@ -6,8 +6,8 @@ from enum import Enum
 import torch
 from safetensors.torch import save_file
 from sanic.log import logger
+from spandrel import ModelDescriptor
 
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import DirectoryInput, EnumInput, ModelInput, TextInput
 
 from .. import io_group
@@ -44,14 +44,14 @@ class WeightFormat(Enum):
     side_effects=True,
 )
 def save_model_node(
-    model: PyTorchModel, directory: str, name: str, weight_format: WeightFormat
+    model: ModelDescriptor, directory: str, name: str, weight_format: WeightFormat
 ) -> None:
     full_file = f"{name}.{weight_format.value}"
     full_path = os.path.join(directory, full_file)
     logger.debug(f"Writing model to path: {full_path}")
     if weight_format == WeightFormat.PTH:
-        torch.save(model.state_dict(), full_path)
+        torch.save(model.state_dict, full_path)
     elif weight_format == WeightFormat.ST:
-        save_file(model.state_dict(), full_path)
+        save_file(model.state_dict, full_path)
     else:
         raise ValueError(f"Unknown weight format: {weight_format}")

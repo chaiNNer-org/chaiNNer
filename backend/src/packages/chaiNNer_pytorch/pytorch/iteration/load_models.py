@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 
 from sanic.log import logger
+from spandrel import ModelDescriptor
 
 from api import Iterator, IteratorOutputInfo
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
 from nodes.properties.outputs.pytorch_outputs import ModelOutput
@@ -41,7 +41,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-) -> tuple[Iterator[tuple[PyTorchModel, str, str, int]], str]:
+) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: str, index: int):

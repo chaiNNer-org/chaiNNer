@@ -6,14 +6,13 @@ import numpy as np
 import torch
 
 from ..upscale.auto_split import Split, Tiler, auto_split
-from .types import PyTorchModel
 from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
 
 
 @torch.inference_mode()
 def pytorch_auto_split(
     img: np.ndarray,
-    model: PyTorchModel,
+    model: torch.nn.Module,
     device: torch.device,
     use_fp16: bool,
     tiler: Tiler,

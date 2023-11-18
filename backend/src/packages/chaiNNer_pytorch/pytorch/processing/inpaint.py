@@ -4,10 +4,10 @@ import gc
 
 import numpy as np
 import torch
+from spandrel import InpaintModelDescriptor
 
 import navi
 from nodes.impl.image_utils import as_3d
-from nodes.impl.pytorch.types import PyTorchInpaintModel
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import ImageInput
 from nodes.properties.inputs.pytorch_inputs import InpaintModelInput
@@ -51,22 +51,30 @@ def pad_img_to_modulo(
 def inpaint(
     img: np.ndarray,
     mask: np.ndarray,
-    model: PyTorchInpaintModel,
+    model: InpaintModelDescriptor,
     options: PyTorchSettings,
 ):
     with torch.no_grad():
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.use_fp16 and model.supports_fp16
+        use_fp16 = options.use_fp16 and model.supports_half
         device = options.device
 
         model = model.to(device)
-        model = model.half() if use_fp16 else model.float()
+        model.model.half() if use_fp16 else model.model.float()
 
         orig_height, orig_width, _ = get_h_w_c(img)
 
-        img = pad_img_to_modulo(img, model.pad_mod, model.pad_to_square, model.min_size)
+        img = pad_img_to_modulo(
+            img,
+            model.size_requirements.multiple_of or 0,
+            model.size_requirements.square,
+            model.size_requirements.minimum,
+        )
         mask = pad_img_to_modulo(
-            mask, model.pad_mod, model.pad_to_square, model.min_size
+            mask,
+            model.size_requirements.multiple_of or 0,
+            model.size_requirements.square,
+            model.size_requirements.minimum,
         )
 
         img_tensor = np2tensor(img, change_range=True)
@@ -82,7 +90,7 @@ def inpaint(
             d_mask = (d_mask > 0.5) * 1
             d_mask = d_mask.half() if use_fp16 else d_mask.float()
 
-            result = model(d_img, d_mask)
+            result = model.model(d_img, d_mask)
             result = tensor2np(
                 result.detach().cpu().detach(),
                 change_range=False,
@@ -144,7 +152,7 @@ def inpaint(
 def inpaint_node(
     img: np.ndarray,
     mask: np.ndarray,
-    model: PyTorchInpaintModel,
+    model: InpaintModelDescriptor,
 ) -> np.ndarray:
     """Inpaint an image"""
 

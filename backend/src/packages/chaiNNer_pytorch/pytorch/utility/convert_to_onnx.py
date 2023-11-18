@@ -3,10 +3,10 @@ from __future__ import annotations
 from io import BytesIO
 
 import torch
+from spandrel import ModelDescriptor
+from spandrel.architectures.SCUNet import SCUNet
 
 from nodes.impl.onnx.model import OnnxGeneric
-from nodes.impl.pytorch.architecture.SCUNet import SCUNet
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
@@ -33,7 +33,7 @@ from .. import utility_group
     ],
 )
 def convert_to_onnx_node(
-    model: PyTorchSRModel, is_fp16: int
+    model: ModelDescriptor, is_fp16: int
 ) -> tuple[OnnxGeneric, str]:
     assert not isinstance(
         model, SCUNet
@@ -45,27 +45,27 @@ def convert_to_onnx_node(
     if fp16:
         assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
-    model = model.eval()
+    model.model.eval()
     model = model.to(device)
     # https://github.com/onnx/onnx/issues/654
     dynamic_axes = {
         "input": {0: "batch_size", 2: "height", 3: "width"},
         "output": {0: "batch_size", 2: "height", 3: "width"},
     }
-    dummy_input = torch.rand(1, model.in_nc, 64, 64)
+    dummy_input = torch.rand(1, model.input_channels, 64, 64)
     dummy_input = dummy_input.to(device)
 
-    should_use_fp16 = exec_options.use_fp16 and model.supports_fp16 and fp16
+    should_use_fp16 = exec_options.use_fp16 and model.supports_half and fp16
     if should_use_fp16:
-        model = model.half()
+        model.model.half()
         dummy_input = dummy_input.half()
     else:
-        model = model.float()
+        model.model.float()
         dummy_input = dummy_input.float()
 
     with BytesIO() as f:
         torch.onnx.export(
-            model,
+            model.model,
             dummy_input,
             f,
             opset_version=14,

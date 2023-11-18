@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import os
 
-import torch
-from safetensors.torch import load_file
 from sanic.log import logger
+from spandrel import ModelDescriptor, ModelLoader
 
-from nodes.impl.pytorch.model_loading import load_state_dict
-from nodes.impl.pytorch.types import PyTorchModel
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
-from nodes.utils.unpickler import RestrictedUnpickle
 from nodes.utils.utils import split_file_path
 
 from ...settings import get_settings
@@ -64,7 +60,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
         "chainner:pytorch:load_models",
     ],
 )
-def load_model_node(path: str) -> tuple[PyTorchModel, str, str]:
+def load_model_node(path: str) -> tuple[ModelDescriptor, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 
@@ -77,48 +73,20 @@ def load_model_node(path: str) -> tuple[PyTorchModel, str, str]:
 
     try:
         logger.debug(f"Reading state dict from path: {path}")
-        extension = os.path.splitext(path)[1].lower()
 
-        if extension == ".pt":
-            state_dict = torch.jit.load(  # type: ignore
-                path, map_location=pytorch_device
-            ).state_dict()
-        elif extension == ".pth":
-            state_dict = torch.load(
-                path,
-                map_location=pytorch_device,
-                pickle_module=RestrictedUnpickle,  # type: ignore
-            )
-        elif extension == ".ckpt":
-            checkpoint = torch.load(
-                path,
-                map_location=pytorch_device,
-                pickle_module=RestrictedUnpickle,  # type: ignore
-            )
-            if "state_dict" in checkpoint:
-                checkpoint = checkpoint["state_dict"]
-            state_dict = parse_ckpt_state_dict(checkpoint)
-        elif extension == ".safetensors":
-            state_dict = load_file(path, device=str(pytorch_device))
-            logger.info(state_dict.keys())
-        else:
-            raise ValueError(
-                f"Unsupported model file extension {extension}. Please try a supported model type."
-            )
+        model_descriptor = ModelLoader(pytorch_device).load_from_file(path)
 
-        model = load_state_dict(state_dict)
-
-        for _, v in model.named_parameters():
+        for _, v in model_descriptor.model.named_parameters():
             v.requires_grad = False
-        model.eval()
-        model = model.to(pytorch_device)
-        if not hasattr(model, "supports_fp16"):
-            model.supports_fp16 = False  # type: ignore
-        should_use_fp16 = exec_options.use_fp16 and model.supports_fp16
+        model_descriptor.model.eval()
+        model_descriptor = model_descriptor.to(pytorch_device)
+        if not hasattr(model_descriptor, "supports_fp16"):
+            model_descriptor.supports_fp16 = False  # type: ignore
+        should_use_fp16 = exec_options.use_fp16 and model_descriptor.supports_half
         if should_use_fp16:
-            model = model.half()
+            model_descriptor.model.half()
         else:
-            model = model.float()
+            model_descriptor.model.float()
     except Exception as e:
         raise ValueError(
             f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try"
@@ -126,4 +94,4 @@ def load_model_node(path: str) -> tuple[PyTorchModel, str, str]:
         ) from e
 
     dirname, basename, _ = split_file_path(path)
-    return model, dirname, basename
+    return model_descriptor, dirname, basename
