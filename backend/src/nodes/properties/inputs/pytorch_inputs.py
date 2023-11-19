@@ -40,7 +40,6 @@ class ModelInput(BaseInput):
             assert isinstance(
                 value, ModelDescriptor
             ), "Expected a supported PyTorch model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -62,7 +61,6 @@ class SrModelInput(ModelInput):
             assert isinstance(
                 value, (RestorationModelDescriptor, SRModelDescriptor)
             ), "Expected a Super-Resolution or Restoration model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -82,7 +80,6 @@ class FaceModelInput(ModelInput):
             assert isinstance(
                 value, FaceSRModelDescriptor
             ), "Expected a Face-specific Super-Resolution model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -102,7 +99,6 @@ class InpaintModelInput(ModelInput):
             assert isinstance(
                 value, InpaintModelDescriptor
             ), "Expected an inpainting-specific model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
