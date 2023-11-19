@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 try:
     import torch
     from spandrel import (
@@ -53,7 +55,7 @@ class SrModelInput(ModelInput):
             navi.intersect(input_type, "PyTorchSRModel"),
         )
         if torch is not None:
-            self.associated_type = SRModelDescriptor | RestorationModelDescriptor
+            self.associated_type = Union[SRModelDescriptor, RestorationModelDescriptor]
 
     def enforce(self, value: object):
         if torch is not None:
