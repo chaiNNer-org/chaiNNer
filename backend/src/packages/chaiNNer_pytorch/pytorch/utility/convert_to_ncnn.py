@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from spandrel import SRModelDescriptor
+from spandrel import RestorationModelDescriptor, SRModelDescriptor
 from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
 from spandrel.architectures.OmniSR import OmniSR
@@ -45,7 +45,7 @@ except Exception:
     ],
 )
 def convert_to_ncnn_node(
-    model: SRModelDescriptor, is_fp16: int
+    model: SRModelDescriptor | RestorationModelDescriptor, is_fp16: int
 ) -> tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(

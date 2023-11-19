@@ -3,7 +3,7 @@ from __future__ import annotations
 from io import BytesIO
 
 import torch
-from spandrel import SRModelDescriptor
+from spandrel import RestorationModelDescriptor, SRModelDescriptor
 from spandrel.architectures.SCUNet import SCUNet
 
 from nodes.impl.onnx.model import OnnxGeneric
@@ -33,7 +33,7 @@ from .. import utility_group
     ],
 )
 def convert_to_onnx_node(
-    model: SRModelDescriptor, is_fp16: int
+    model: SRModelDescriptor | RestorationModelDescriptor, is_fp16: int
 ) -> tuple[OnnxGeneric, str]:
     assert not isinstance(
         model, SCUNet

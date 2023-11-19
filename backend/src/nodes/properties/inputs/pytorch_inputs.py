@@ -4,6 +4,7 @@ try:
         FaceSRModelDescriptor,
         InpaintModelDescriptor,
         ModelDescriptor,
+        RestorationModelDescriptor,
         SRModelDescriptor,
     )
 except Exception:
@@ -12,6 +13,7 @@ except Exception:
     SRModelDescriptor = object
     FaceSRModelDescriptor = object
     InpaintModelDescriptor = object
+    RestorationModelDescriptor = object
 
 import navi
 from api import BaseInput
@@ -49,13 +51,13 @@ class SrModelInput(ModelInput):
             navi.intersect(input_type, "PyTorchSRModel"),
         )
         if torch is not None:
-            self.associated_type = SRModelDescriptor
+            self.associated_type = SRModelDescriptor | RestorationModelDescriptor
 
     def enforce(self, value: object):
         if torch is not None:
             assert isinstance(
-                value, SRModelDescriptor
-            ), "Expected a regular Super-Resolution model."
+                value, (RestorationModelDescriptor, SRModelDescriptor)
+            ), "Expected a Super-Resolution or Restoration model."
             assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
