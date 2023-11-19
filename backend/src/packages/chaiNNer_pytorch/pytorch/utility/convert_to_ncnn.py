@@ -55,32 +55,8 @@ def convert_to_ncnn_node(
         )
 
     assert not isinstance(
-        model, SwinIR
-    ), "SwinIR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, Swin2SR
-    ), "Swin2SR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, HAT
-    ), "HAT is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, OmniSR
-    ), "OmniSR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, SCUNet
-    ), "SCUNet is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, SRFormer
-    ), "SRFormer is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, DAT
-    ), "DAT is not supported for NCNN conversion at this time."
+        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
+    ), f"{model.architecture} is not supported for NCNN conversions at this time."
 
     # Intermediate conversion to ONNX is always fp32
     onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]

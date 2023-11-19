@@ -80,8 +80,6 @@ def load_model_node(path: str) -> tuple[ModelDescriptor, str, str]:
             v.requires_grad = False
         model_descriptor.model.eval()
         model_descriptor = model_descriptor.to(pytorch_device)
-        if not hasattr(model_descriptor, "supports_fp16"):
-            model_descriptor.supports_fp16 = False  # type: ignore
         should_use_fp16 = exec_options.use_fp16 and model_descriptor.supports_half
         if should_use_fp16:
             model_descriptor.model.half()

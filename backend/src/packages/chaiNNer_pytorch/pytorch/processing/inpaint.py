@@ -66,13 +66,13 @@ def inpaint(
 
         img = pad_img_to_modulo(
             img,
-            model.size_requirements.multiple_of or 0,
+            model.size_requirements.multiple_of or 1,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )
         mask = pad_img_to_modulo(
             mask,
-            model.size_requirements.multiple_of or 0,
+            model.size_requirements.multiple_of or 1,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )

@@ -36,8 +36,8 @@ def convert_to_onnx_node(
     model: SRModelDescriptor | RestorationModelDescriptor, is_fp16: int
 ) -> tuple[OnnxGeneric, str]:
     assert not isinstance(
-        model, SCUNet
-    ), "SCUNet is not supported for NCNN conversion at this time."
+        model.model, SCUNet
+    ), "SCUNet is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
     exec_options = get_settings()
