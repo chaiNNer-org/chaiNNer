@@ -8,6 +8,10 @@ try:
     )
 except Exception:
     torch = None
+    ModelDescriptor = object
+    SRModelDescriptor = object
+    FaceSRModelDescriptor = object
+    InpaintModelDescriptor = object
 
 import navi
 from api import BaseInput
@@ -30,7 +34,7 @@ class ModelInput(BaseInput):
             assert isinstance(
                 value, ModelDescriptor
             ), "Expected a supported PyTorch model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."
+            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -52,7 +56,7 @@ class SrModelInput(ModelInput):
             assert isinstance(
                 value, SRModelDescriptor
             ), "Expected a regular Super-Resolution model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."
+            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -72,7 +76,7 @@ class FaceModelInput(ModelInput):
             assert isinstance(
                 value, FaceSRModelDescriptor
             ), "Expected a Face-specific Super-Resolution model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."
+            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
@@ -92,7 +96,7 @@ class InpaintModelInput(ModelInput):
             assert isinstance(
                 value, InpaintModelDescriptor
             ), "Expected an inpainting-specific model."
-            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."
+            assert isinstance(value.model, torch.nn.Module), "Expected a PyTorch model."  # type: ignore
         return value
 
 
