@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy as np
 import torch
 from sanic.log import logger
+from spandrel import RestorationModelDescriptor, SRModelDescriptor
 
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
     estimate_tile_size,
@@ -29,7 +29,7 @@ from .. import processing_group
 
 def upscale(
     img: np.ndarray,
-    model: PyTorchSRModel,
+    model: SRModelDescriptor | RestorationModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
 ):
@@ -38,7 +38,7 @@ def upscale(
         logger.debug("Upscaling image")
 
         # TODO: use bfloat16 if RTX
-        use_fp16 = options.use_fp16 and model.supports_fp16
+        use_fp16 = options.use_fp16 and model.supports_half
         device = options.device
 
         def estimate():
@@ -46,7 +46,9 @@ def upscale(
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
-                model_bytes = sum(p.numel() * element_size for p in model.parameters())
+                model_bytes = sum(
+                    p.numel() * element_size for p in model.model.parameters()
+                )
                 budget = int(free * 0.8)
 
                 return MaxTileSize(
@@ -61,7 +63,7 @@ def upscale(
 
         img_out = pytorch_auto_split(
             img,
-            model=model,
+            model=model.model,
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
@@ -128,7 +130,7 @@ def upscale(
 )
 def upscale_image_node(
     img: np.ndarray,
-    model: PyTorchSRModel,
+    model: SRModelDescriptor | RestorationModelDescriptor,
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
@@ -139,8 +141,8 @@ def upscale_image_node(
     logger.debug("Upscaling image...")
 
     # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
-    in_nc = model.in_nc
-    out_nc = model.out_nc
+    in_nc = model.input_channels
+    out_nc = model.output_channels
     scale = model.scale
     h, w, c = get_h_w_c(img)
     logger.debug(

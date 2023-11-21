@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from spandrel import RestorationModelDescriptor, SRModelDescriptor
+from spandrel.architectures.DAT import DAT
+from spandrel.architectures.HAT import HAT
+from spandrel.architectures.OmniSR import OmniSR
+from spandrel.architectures.SCUNet import SCUNet
+from spandrel.architectures.SRFormer import SRFormer
+from spandrel.architectures.Swin2SR import Swin2SR
+from spandrel.architectures.SwinIR import SwinIR
+
 from nodes.impl.ncnn.model import NcnnModelWrapper
-from nodes.impl.pytorch.architecture.DAT import DAT
-from nodes.impl.pytorch.architecture.HAT import HAT
-from nodes.impl.pytorch.architecture.OmniSR.OmniSR import OmniSR
-from nodes.impl.pytorch.architecture.SCUNet import SCUNet
-from nodes.impl.pytorch.architecture.SRFormer import SRFormer
-from nodes.impl.pytorch.architecture.Swin2SR import Swin2SR
-from nodes.impl.pytorch.architecture.SwinIR import SwinIR
-from nodes.impl.pytorch.types import PyTorchSRModel
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
@@ -22,6 +23,7 @@ try:
     )
 except Exception:
     onnx_convert_to_ncnn_node = None
+    FP_MODE_32 = 0
 
 
 @utility_group.register(
@@ -43,7 +45,7 @@ except Exception:
     ],
 )
 def convert_to_ncnn_node(
-    model: PyTorchSRModel, is_fp16: int
+    model: SRModelDescriptor | RestorationModelDescriptor, is_fp16: int
 ) -> tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
@@ -53,32 +55,8 @@ def convert_to_ncnn_node(
         )
 
     assert not isinstance(
-        model, SwinIR
-    ), "SwinIR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, Swin2SR
-    ), "Swin2SR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, HAT
-    ), "HAT is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, OmniSR
-    ), "OmniSR is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, SCUNet
-    ), "SCUNet is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, SRFormer
-    ), "SRFormer is not supported for NCNN conversion at this time."
-
-    assert not isinstance(
-        model, DAT
-    ), "DAT is not supported for NCNN conversion at this time."
+        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
+    ), f"{model.architecture} is not supported for NCNN conversions at this time."
 
     # Intermediate conversion to ONNX is always fp32
     onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]

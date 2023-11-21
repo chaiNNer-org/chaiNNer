@@ -58,7 +58,7 @@ let PyTorchFaceModel = PyTorchModel {
 };
 let PyTorchSRModel = PyTorchModel {
     arch: invStrSet(PyTorchFaceModel.arch | PyTorchInpaintModel.arch),
-    subType: "SR"
+    subType: "SR" | "Restoration"
 };
 let PyTorchInpaintModel = PyTorchModel {
     arch: "LaMa" | "MAT",

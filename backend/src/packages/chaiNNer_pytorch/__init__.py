@@ -92,6 +92,12 @@ package = add_package(
             version="0.4.0",
             size_estimate=1 * MB,
         ),
+        Dependency(
+            display_name="Spandrel",
+            pypi_name="spandrel",
+            version="0.0.3",
+            size_estimate=180.7 * KB,
+        ),
     ],
     icon="PyTorch",
     color="#DD6B20",

@@ -8,11 +8,11 @@ import torch
 from appdirs import user_data_dir
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from sanic.log import logger
+from spandrel import FaceSRModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
-from nodes.impl.pytorch.types import PyTorchFaceModel
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import FaceModelInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -37,7 +37,7 @@ def upscale(
     img: np.ndarray,
     background_img: np.ndarray | None,
     face_helper: FaceRestoreHelper,
-    face_model: PyTorchFaceModel,
+    face_model: FaceSRModelDescriptor,
     weight: float,
     exec_options: PyTorchSettings,
     device: torch.device,
@@ -52,11 +52,11 @@ def upscale(
     # align and warp each face
     face_helper.align_warp_face()
 
-    should_use_fp16 = exec_options.use_fp16 and face_model.supports_fp16
+    should_use_fp16 = exec_options.use_fp16 and face_model.supports_half
     if should_use_fp16:
-        face_model = face_model.half()
+        face_model.model.half()
     else:
-        face_model = face_model.float()
+        face_model.model.float()
 
     # face restoration
     for cropped_face in face_helper.cropped_faces:
@@ -72,7 +72,9 @@ def upscale(
                 cropped_face_t = cropped_face_t.half()
             else:
                 cropped_face_t = cropped_face_t.float()
-            output = face_model(cropped_face_t, return_rgb=False, weight=weight)[0]
+            output = face_model.model(cropped_face_t, return_rgb=False, weight=weight)[
+                0
+            ]
             # convert to image
             output = (output + 1) / 2
             restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
@@ -147,7 +149,7 @@ def upscale(
 )
 def upscale_face_node(
     img: np.ndarray,
-    face_model: PyTorchFaceModel,
+    face_model: FaceSRModelDescriptor,
     background_img: np.ndarray | None,
     scale: int,
     weight: float,

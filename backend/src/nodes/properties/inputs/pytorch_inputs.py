@@ -1,18 +1,23 @@
+from __future__ import annotations
+
+from typing import Union
+
 try:
     import torch
-
-    from ...impl.pytorch.types import (
-        PyTorchFaceModel,
-        PyTorchInpaintModel,
-        PyTorchModel,
-        PyTorchSRModel,
-        is_pytorch_face_model,
-        is_pytorch_inpaint_model,
-        is_pytorch_model,
-        is_pytorch_sr_model,
+    from spandrel import (
+        FaceSRModelDescriptor,
+        InpaintModelDescriptor,
+        ModelDescriptor,
+        RestorationModelDescriptor,
+        SRModelDescriptor,
     )
 except Exception:
     torch = None
+    ModelDescriptor = object
+    SRModelDescriptor = object
+    FaceSRModelDescriptor = object
+    InpaintModelDescriptor = object
+    RestorationModelDescriptor = object
 
 import navi
 from api import BaseInput
@@ -28,12 +33,13 @@ class ModelInput(BaseInput):
     ):
         super().__init__(input_type, label)
         if torch is not None:
-            self.associated_type = PyTorchModel
+            self.associated_type = ModelDescriptor
 
     def enforce(self, value: object):
         if torch is not None:
-            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert is_pytorch_model(value), "Expected a supported PyTorch model."
+            assert isinstance(
+                value, ModelDescriptor
+            ), "Expected a supported PyTorch model."
         return value
 
 
@@ -48,14 +54,13 @@ class SrModelInput(ModelInput):
             navi.intersect(input_type, "PyTorchSRModel"),
         )
         if torch is not None:
-            self.associated_type = PyTorchSRModel
+            self.associated_type = Union[SRModelDescriptor, RestorationModelDescriptor]
 
     def enforce(self, value: object):
         if torch is not None:
-            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert is_pytorch_sr_model(
-                value
-            ), "Expected a regular Super-Resolution model."
+            assert isinstance(
+                value, (RestorationModelDescriptor, SRModelDescriptor)
+            ), "Expected a Super-Resolution or Restoration model."
         return value
 
 
@@ -68,13 +73,12 @@ class FaceModelInput(ModelInput):
             navi.intersect(input_type, "PyTorchFaceModel"),
         )
         if torch is not None:
-            self.associated_type = PyTorchFaceModel
+            self.associated_type = FaceSRModelDescriptor
 
     def enforce(self, value: object):
         if torch is not None:
-            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert is_pytorch_face_model(
-                value
+            assert isinstance(
+                value, FaceSRModelDescriptor
             ), "Expected a Face-specific Super-Resolution model."
         return value
 
@@ -88,13 +92,12 @@ class InpaintModelInput(ModelInput):
             navi.intersect(input_type, "PyTorchInpaintModel"),
         )
         if torch is not None:
-            self.associated_type = PyTorchInpaintModel
+            self.associated_type = InpaintModelDescriptor
 
     def enforce(self, value: object):
         if torch is not None:
-            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
-            assert is_pytorch_inpaint_model(
-                value
+            assert isinstance(
+                value, InpaintModelDescriptor
             ), "Expected an inpainting-specific model."
         return value
 
