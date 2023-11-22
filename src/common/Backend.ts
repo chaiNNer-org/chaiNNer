@@ -220,20 +220,6 @@ export class Backend {
         return this.fetchJson('/clear-cache/individual', 'POST', { id });
     }
 
-    /**
-     * Gets a list of all NCNN GPU devices and their indexes
-     */
-    listNcnnGpus(): Promise<string[]> {
-        return this.fetchJson('/list-gpus/ncnn', 'GET');
-    }
-
-    /**
-     * Gets a list of all Nvidia GPU devices and their indexes
-     */
-    listNvidiaGpus(): Promise<string[]> {
-        return this.fetchJson('/list-gpus/nvidia', 'GET');
-    }
-
     pythonInfo(): Promise<PythonInfo> {
         return this.fetchJson('/python-info', 'GET');
     }

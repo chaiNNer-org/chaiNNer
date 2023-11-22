@@ -45,13 +45,11 @@ import {
     PyPiPackage,
     Version,
 } from '../../common/common-types';
-import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
 import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -386,15 +384,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [usePipDirectly, setUsePipDirectly] = useState(false);
 
-    const [hasNvidia, setHasNvidia] = useState(false);
-    useAsyncEffect(
-        () => ({
-            supplier: async () => (await backend.listNvidiaGpus()).length > 0,
-            successEffect: setHasNvidia,
-        }),
-        [backend]
-    );
-
     const { data: installedPyPi, refetch: refetchInstalledPyPi } = useQuery({
         queryKey: 'dependencies',
         queryFn: async () => {
@@ -531,16 +520,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalCloseButton disabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
-                            {!isArmMac && (
-                                <Flex w="full">
-                                    <Text
-                                        flex="1"
-                                        textAlign="left"
-                                    >
-                                        {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
-                                    </Text>
-                                </Flex>
-                            )}
                             <Flex
                                 align="center"
                                 w="full"
