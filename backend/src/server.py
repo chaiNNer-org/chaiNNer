@@ -345,47 +345,6 @@ async def kill(request: Request):
         return json(error_response("Error killing execution!", exception), status=500)
 
 
-@app.route("/list-gpus/ncnn", methods=["GET"])
-async def list_ncnn_gpus(_request: Request):
-    """Lists the available GPUs for NCNN"""
-    await nodes_available()
-    try:
-        # pylint: disable=import-outside-toplevel
-        from ncnn_vulkan import ncnn
-
-        result = []
-        for i in range(ncnn.get_gpu_count()):
-            result.append(ncnn.get_gpu_info(i).device_name())
-        return json(result)
-    except Exception as exception:
-        try:
-            from ncnn import ncnn
-
-            result = ["cpu"]
-            return json(result)
-        except Exception as exception2:
-            logger.error(exception, exc_info=True)
-            logger.error(exception2, exc_info=True)
-            return json([])
-
-
-@app.route("/list-gpus/nvidia", methods=["GET"])
-async def list_nvidia_gpus(_request: Request):
-    """Lists the available GPUs for NCNN"""
-    await nodes_available()
-    try:
-        nv = get_nvidia_helper()
-
-        if nv is None:
-            return json([])
-
-        result = nv.list_gpus()
-        return json(result)
-    except Exception as exception:
-        logger.error(exception, exc_info=True)
-        return json([])
-
-
 @app.route("/python-info", methods=["GET"])
 async def python_info(_request: Request):
     version = (
