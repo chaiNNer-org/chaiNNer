@@ -53,15 +53,12 @@ struct PyTorchModel {
     subType: string,
 }
 let PyTorchFaceModel = PyTorchModel {
-    arch: "GFPGAN" | "RestoreFormer" | "CodeFormer",
-    subType: "Face SR"
+    subType: "FaceSR"
 };
 let PyTorchSRModel = PyTorchModel {
-    arch: invStrSet(PyTorchFaceModel.arch | PyTorchInpaintModel.arch),
     subType: "SR" | "Restoration"
 };
 let PyTorchInpaintModel = PyTorchModel {
-    arch: "LaMa" | "MAT",
     subType: "Inpaint"
 };
 
