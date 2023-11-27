@@ -9,7 +9,7 @@ except ImportError:
 
     use_gpu = False
 
-from api import DropdownSetting, ToggleSetting
+from api import DropdownSetting, NumberSetting, ToggleSetting
 from system import is_arm_mac
 
 from . import package
@@ -34,7 +34,8 @@ if not is_arm_mac and use_gpu:
 
 # Haven't tested disabling Winograd/SGEMM in the ncnn_vulkan fork, so only
 # allow it with upstream ncnn for now. It should work fine regardless of
-# CPU/GPU, but I only tested with CPU.
+# CPU/GPU, but I only tested with CPU. Ditto for multithreading, except it
+# only makes sense for CPU.
 if not use_gpu:
     package.add_setting(
         ToggleSetting(
@@ -53,12 +54,24 @@ if not use_gpu:
         )
     )
 
+    package.add_setting(
+        NumberSetting(
+            label="Thread Count",
+            key="threads",
+            description="Number of threads for NCNN. Only affects CPU mode.",
+            default=ncnn.Net().opt.num_threads,
+            min=1,
+            max=ncnn.Net().opt.num_threads,
+        )
+    )
+
 
 @dataclass(frozen=True)
 class NcnnSettings:
     gpu_index: int
     winograd: bool
     sgemm: bool
+    threads: int
 
 
 def get_settings() -> NcnnSettings:
@@ -68,4 +81,5 @@ def get_settings() -> NcnnSettings:
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
         winograd=settings.get_bool("winograd", True),
         sgemm=settings.get_bool("sgemm", True),
+        threads=settings.get_int("threads", ncnn.Net().opt.num_threads, parse_str=True),
     )
