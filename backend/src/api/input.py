@@ -49,6 +49,11 @@ class InputConversion:
         }
 
 
+@dataclass
+class IOFusion:
+    output_id: OutputId
+
+
 class LiteralErrorValue(TypedDict):
     type: Literal["literal"]
     value: str | int | float | None
@@ -88,7 +93,7 @@ class BaseInput:
         self.id: InputId = InputId(-1)
         self.associated_type: Any = associated_type
 
-        self.fused_with_output: OutputId | None = None
+        self.fused: IOFusion | None = None
 
         # Optional documentation
         self.description: str | None = None
@@ -141,7 +146,11 @@ class BaseInput:
             "hasHandle": self.has_handle,
             "description": self.description,
             "hint": self.hint,
-            "fusedWithOutput": self.fused_with_output,
+            "fused": {
+                "outputId": self.fused.output_id,
+            }
+            if self.fused
+            else None,
         }
 
     def with_id(self, input_id: InputId | int):
@@ -160,8 +169,8 @@ class BaseInput:
             self.associated_type = Optional[associated_type]
         return self
 
-    def fused(self, with_output: OutputId | int = 0):
-        self.fused_with_output = OutputId(with_output)
+    def make_fused(self, with_output: OutputId | int = 0):
+        self.fused = IOFusion(output_id=OutputId(with_output))
         return self
 
     def __repr__(self):

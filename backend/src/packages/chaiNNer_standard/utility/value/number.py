@@ -19,7 +19,7 @@ from .. import value_group
             precision=100,
             controls_step=1,
             hide_label=True,
-        ).fused(),
+        ).make_fused(),
     ],
     outputs=[
         NumberOutput("Number", output_type="Input0"),

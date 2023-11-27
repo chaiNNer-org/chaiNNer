@@ -28,6 +28,10 @@ export interface InputConversionSchema {
     readonly convert: ExpressionJson;
 }
 
+export interface IOFusion {
+    readonly outputId: OutputId;
+}
+
 interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
@@ -54,7 +58,7 @@ interface InputBase {
     readonly hasHandle: boolean;
     readonly description?: string;
     readonly hint: boolean;
-    readonly fusedWithOutput?: OutputId | null;
+    readonly fused?: IOFusion | null;
 }
 export interface InputOption {
     option: string;

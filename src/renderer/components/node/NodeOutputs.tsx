@@ -87,7 +87,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
     return (
         <>
             {schema.outputs.map((output) => {
-                if (schema.inputs.some((i) => i.fusedWithOutput === output.id)) {
+                if (schema.inputs.some((i) => i.fused?.outputId === output.id)) {
                     return null;
                 }
 

@@ -14,7 +14,7 @@ from .. import value_group
     inputs=[
         TextInput(
             "Text", min_length=0, hide_label=True, allow_empty_string=True
-        ).fused(),
+        ).make_fused(),
     ],
     outputs=[
         TextOutput("Text", output_type="Input0"),

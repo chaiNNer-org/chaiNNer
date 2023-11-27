@@ -1,5 +1,5 @@
 import { NeverType } from '@chainner/navi';
-import { Box, HStack } from '@chakra-ui/react';
+import { Box, Center, HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { Input, InputKind, InputValue, Size } from '../../../common/common-types';
@@ -7,6 +7,7 @@ import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeState } from '../../helpers/nodeState';
 import { OutputHandle } from '../outputs/OutputContainer';
+import { TypeTags } from '../TypeTag';
 import { ColorInput } from './ColorInput';
 import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
@@ -43,7 +44,7 @@ export interface SingleInputProps {
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputProps) => {
-    const { id: inputId, kind, hasHandle, fusedWithOutput } = input;
+    const { id: inputId, kind, hasHandle, fused } = input;
     const {
         schemaId,
         id: nodeId,
@@ -132,28 +133,38 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         );
     }
 
-    if (fusedWithOutput != null) {
+    if (fused) {
+        const outputType = nodeState.type.instance?.outputs.get(fused.outputId);
+
         const fusedOutputHandle = (
             <OutputHandle
                 definitionType={
-                    functionDefinition?.outputDefaults.get(fusedWithOutput) ?? NeverType.instance
+                    functionDefinition?.outputDefaults.get(fused.outputId) ?? NeverType.instance
                 }
                 id={nodeId}
-                isConnected={nodeState.connectedOutputs.has(fusedWithOutput)}
+                isConnected={nodeState.connectedOutputs.has(fused.outputId)}
                 nodeType={schema.nodeType}
-                outputId={fusedWithOutput}
-                type={nodeState.type.instance?.outputs.get(fusedWithOutput)}
+                outputId={fused.outputId}
+                type={outputType}
             />
         );
 
         inputElement = (
-            <HStack>
+            <HStack spacing={0}>
                 <Box
                     flexGrow={1}
                     mr="0.5em"
                 >
                     {inputElement}
                 </Box>
+                {input.kind === 'generic' && outputType && (
+                    <Center pr="0.5em">
+                        <TypeTags
+                            isOptional={false}
+                            type={outputType}
+                        />
+                    </Center>
+                )}
                 {fusedOutputHandle}
             </HStack>
         );
