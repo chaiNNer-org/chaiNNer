@@ -52,18 +52,6 @@ struct PyTorchModel {
     size: string,
     subType: string,
 }
-let PyTorchFaceModel = PyTorchModel {
-    arch: "GFPGAN" | "RestoreFormer" | "CodeFormer",
-    subType: "Face SR"
-};
-let PyTorchSRModel = PyTorchModel {
-    arch: invStrSet(PyTorchFaceModel.arch | PyTorchInpaintModel.arch),
-    subType: "SR" | "Restoration"
-};
-let PyTorchInpaintModel = PyTorchModel {
-    arch: "LaMa" | "MAT",
-    subType: "Inpaint"
-};
 
 struct NcnnBinFile { path: string }
 struct NcnnParamFile { path: string }
