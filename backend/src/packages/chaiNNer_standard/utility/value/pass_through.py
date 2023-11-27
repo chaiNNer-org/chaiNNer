@@ -15,8 +15,12 @@ from .. import value_group
     name="Pass Through",
     description="Outputs the input value as is.",
     icon="MdDoubleArrow",
-    inputs=[AnyInput(label="Value")],
-    outputs=[BaseOutput(output_type="Input0", label="Value")],
+    inputs=[
+        AnyInput(label="Value").make_fused(),
+    ],
+    outputs=[
+        BaseOutput(output_type="Input0", label="Value"),
+    ],
 )
 def pass_through_node(value: object) -> object:
     return value

@@ -20,7 +20,7 @@ from .. import value_group
             precision=0,
             controls_step=1,
             unit="%",
-        ).fused(),
+        ).make_fused(),
     ],
     outputs=[
         NumberOutput("Percent", output_type="Input0"),

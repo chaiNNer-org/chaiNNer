@@ -16,7 +16,7 @@ export const NodeBody = memo(({ nodeState, animated = false }: NodeBodyProps) =>
 
     const autoInput = inputs.length === 1 && isAutoInput(inputs[0]);
     const anyVisibleOutputs = outputs.some((output) => {
-        return !inputs.some((input) => input.fusedWithOutput === output.id);
+        return !inputs.some((input) => input.fused?.outputId === output.id);
     });
 
     return (

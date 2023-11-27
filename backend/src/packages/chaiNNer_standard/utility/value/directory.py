@@ -14,7 +14,7 @@ from .. import value_group
     inputs=[
         DirectoryInput(
             "Directory", must_exist=False, hide_label=True, has_handle=True
-        ).fused(),
+        ).make_fused(),
     ],
     outputs=[
         DirectoryOutput("Directory", output_type="Input0"),
