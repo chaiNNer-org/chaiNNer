@@ -51,7 +51,10 @@ class SrModelInput(ModelInput):
     ):
         super().__init__(
             label,
-            navi.intersect(input_type, "PyTorchSRModel"),
+            navi.intersect(
+                input_type,
+                """PyTorchModel { subType: "SR" | "Restoration" }""",
+            ),
         )
         if torch is not None:
             self.associated_type = Union[SRModelDescriptor, RestorationModelDescriptor]
@@ -70,7 +73,10 @@ class FaceModelInput(ModelInput):
     ):
         super().__init__(
             label,
-            navi.intersect(input_type, "PyTorchFaceModel"),
+            navi.intersect(
+                input_type,
+                """PyTorchModel { subType: "FaceSR" }""",
+            ),
         )
         if torch is not None:
             self.associated_type = FaceSRModelDescriptor
@@ -89,7 +95,10 @@ class InpaintModelInput(ModelInput):
     ):
         super().__init__(
             label,
-            navi.intersect(input_type, "PyTorchInpaintModel"),
+            navi.intersect(
+                input_type,
+                """PyTorchModel { subType: "Inpaint" }""",
+            ),
         )
         if torch is not None:
             self.associated_type = InpaintModelDescriptor

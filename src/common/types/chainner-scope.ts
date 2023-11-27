@@ -52,15 +52,6 @@ struct PyTorchModel {
     size: string,
     subType: string,
 }
-let PyTorchFaceModel = PyTorchModel {
-    subType: "FaceSR"
-};
-let PyTorchSRModel = PyTorchModel {
-    subType: "SR" | "Restoration"
-};
-let PyTorchInpaintModel = PyTorchModel {
-    subType: "Inpaint"
-};
 
 struct NcnnBinFile { path: string }
 struct NcnnParamFile { path: string }
