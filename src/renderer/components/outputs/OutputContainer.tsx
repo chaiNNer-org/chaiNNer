@@ -3,13 +3,76 @@ import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeType, Output } from '../../../common/common-types';
+import { NodeType, Output, OutputId } from '../../../common/common-types';
 import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { Handle } from '../Handle';
 import { TypeTags } from '../TypeTag';
+
+export interface OutputHandleProps {
+    id: string;
+    outputId: OutputId;
+    nodeType: NodeType;
+    definitionType: Type;
+    type: Type | undefined;
+    isConnected: boolean;
+}
+
+export const OutputHandle = memo(
+    ({ id, outputId, nodeType, definitionType, type, isConnected }: OutputHandleProps) => {
+        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
+        const [connectingFrom] = useConnectingFrom;
+
+        const isValidConnectionForRf = useCallback(
+            (connection: Readonly<Connection>): boolean => {
+                return isValidConnection(connection).isValid;
+            },
+            [isValidConnection]
+        );
+
+        const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
+
+        const validity = useMemo(() => {
+            // no active connection
+            if (!connectingFrom) return VALID;
+
+            // We only want to display the connectingFrom source handle
+            if (connectingFrom.handleType === 'source') {
+                return connectingFrom.handleId === sourceHandle
+                    ? VALID
+                    : invalid('Cannot create an output-to-output connection');
+            }
+
+            return isValidConnection({
+                source: id,
+                sourceHandle,
+                target: connectingFrom.nodeId,
+                targetHandle: connectingFrom.handleId,
+            });
+        }, [connectingFrom, id, sourceHandle, isValidConnection]);
+
+        const handleColors = getTypeAccentColors(type || definitionType);
+
+        return (
+            <Center
+                position="absolute"
+                right="-6px"
+            >
+                <Handle
+                    connectedColor={isConnected ? handleColors[0] : undefined}
+                    handleColors={handleColors}
+                    id={sourceHandle}
+                    isValidConnection={isValidConnectionForRf}
+                    nodeType={nodeType}
+                    type="output"
+                    validity={validity}
+                />
+            </Center>
+        );
+    }
+);
 
 interface OutputContainerProps {
     output: Output;
@@ -32,57 +95,19 @@ export const OutputContainer = memo(
         isConnected,
         nodeType,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
-        const [connectingFrom] = useConnectingFrom;
-
-        const isValidConnectionForRf = useCallback(
-            (connection: Readonly<Connection>): boolean => {
-                return isValidConnection(connection).isValid;
-            },
-            [isValidConnection]
-        );
-
-        const sourceHandle = stringifySourceHandle({ nodeId: id, outputId: output.id });
-
-        const validity = useMemo(() => {
-            // no active connection
-            if (!connectingFrom) return VALID;
-
-            // We only want to display the connectingFrom source handle
-            if (connectingFrom.handleType === 'source') {
-                return connectingFrom.handleId === sourceHandle
-                    ? VALID
-                    : invalid('Cannot create an output-to-output connection');
-            }
-
-            return isValidConnection({
-                source: id,
-                sourceHandle,
-                target: connectingFrom.nodeId,
-                targetHandle: connectingFrom.handleId,
-            });
-        }, [connectingFrom, id, sourceHandle, isValidConnection]);
-
         let contents = children;
         if (output.hasHandle) {
-            const handleColors = getTypeAccentColors(type || definitionType);
             contents = (
                 <HStack h="full">
                     {children}
-                    <Center
-                        position="absolute"
-                        right="-6px"
-                    >
-                        <Handle
-                            connectedColor={isConnected ? handleColors[0] : undefined}
-                            handleColors={handleColors}
-                            id={sourceHandle}
-                            isValidConnection={isValidConnectionForRf}
-                            nodeType={nodeType}
-                            type="output"
-                            validity={validity}
-                        />
-                    </Center>
+                    <OutputHandle
+                        definitionType={definitionType}
+                        id={id}
+                        isConnected={isConnected}
+                        nodeType={nodeType}
+                        outputId={output.id}
+                        type={type}
+                    />
                 </HStack>
             );
         }

@@ -13,7 +13,7 @@ from .. import color_group
     description="Outputs the given color.",
     icon="MdColorLens",
     inputs=[
-        ColorInput(),
+        ColorInput().fused(),
     ],
     outputs=[
         ColorOutput(color_type="Input0"),

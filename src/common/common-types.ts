@@ -54,6 +54,7 @@ interface InputBase {
     readonly hasHandle: boolean;
     readonly description?: string;
     readonly hint: boolean;
+    readonly fusedWithOutput?: OutputId | null;
 }
 export interface InputOption {
     option: string;

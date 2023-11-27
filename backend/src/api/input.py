@@ -6,7 +6,7 @@ from typing import Any, Literal, Optional, TypedDict, Union
 
 import navi
 
-from .types import InputId
+from .types import InputId, OutputId
 
 InputKind = Literal[
     "number",
@@ -88,6 +88,8 @@ class BaseInput:
         self.id: InputId = InputId(-1)
         self.associated_type: Any = associated_type
 
+        self.fused_with_output: OutputId | None = None
+
         # Optional documentation
         self.description: str | None = None
         self.hint: bool = False
@@ -139,6 +141,7 @@ class BaseInput:
             "hasHandle": self.has_handle,
             "description": self.description,
             "hint": self.hint,
+            "fusedWithOutput": self.fused_with_output,
         }
 
     def with_id(self, input_id: InputId | int):
@@ -155,6 +158,10 @@ class BaseInput:
         if self.associated_type is not None:
             associated_type = self.associated_type
             self.associated_type = Optional[associated_type]
+        return self
+
+    def fused(self, with_output: OutputId | int = 0):
+        self.fused_with_output = OutputId(with_output)
         return self
 
     def __repr__(self):

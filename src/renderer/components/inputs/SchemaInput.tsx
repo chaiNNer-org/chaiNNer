@@ -1,17 +1,18 @@
 import { NeverType } from '@chainner/navi';
-import { HStack } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { Input, InputKind, InputValue, Size } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeState } from '../../helpers/nodeState';
+import { OutputHandle } from '../outputs/OutputContainer';
 import { ColorInput } from './ColorInput';
 import { DirectoryInput } from './DirectoryInput';
 import { DropDownInput } from './DropDownInput';
 import { FileInput } from './FileInput';
 import { GenericInput } from './GenericInput';
-import { HandleWrapper, InputContainer } from './InputContainer';
+import { InputContainer, InputHandle } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
@@ -42,7 +43,7 @@ export interface SingleInputProps {
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputProps) => {
-    const { id: inputId, kind, hasHandle } = input;
+    const { id: inputId, kind, hasHandle, fusedWithOutput } = input;
     const {
         schemaId,
         id: nodeId,
@@ -118,20 +119,45 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         );
     }
 
-    return (
-        <InputContainer>
-            {hasHandle ? (
-                <HandleWrapper
-                    connectableType={connectableType}
-                    id={nodeId}
-                    inputId={inputId}
-                    nodeType={schema.nodeType}
+    if (hasHandle) {
+        inputElement = (
+            <InputHandle
+                connectableType={connectableType}
+                id={nodeId}
+                inputId={inputId}
+                nodeType={schema.nodeType}
+            >
+                {inputElement}
+            </InputHandle>
+        );
+    }
+
+    if (fusedWithOutput != null) {
+        const fusedOutputHandle = (
+            <OutputHandle
+                definitionType={
+                    functionDefinition?.outputDefaults.get(fusedWithOutput) ?? NeverType.instance
+                }
+                id={nodeId}
+                isConnected={nodeState.connectedOutputs.has(fusedWithOutput)}
+                nodeType={schema.nodeType}
+                outputId={fusedWithOutput}
+                type={nodeState.type.instance?.outputs.get(fusedWithOutput)}
+            />
+        );
+
+        inputElement = (
+            <HStack>
+                <Box
+                    flexGrow={1}
+                    mr="0.5em"
                 >
                     {inputElement}
-                </HandleWrapper>
-            ) : (
-                inputElement
-            )}
-        </InputContainer>
-    );
+                </Box>
+                {fusedOutputHandle}
+            </HStack>
+        );
+    }
+
+    return <InputContainer>{inputElement}</InputContainer>;
 });
