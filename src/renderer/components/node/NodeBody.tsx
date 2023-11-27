@@ -15,6 +15,9 @@ export const NodeBody = memo(({ nodeState, animated = false }: NodeBodyProps) =>
     const { inputs, outputs } = nodeState.schema;
 
     const autoInput = inputs.length === 1 && isAutoInput(inputs[0]);
+    const anyVisibleOutputs = outputs.some((output) => {
+        return !inputs.some((input) => input.fusedWithOutput === output.id);
+    });
 
     return (
         <>
@@ -28,7 +31,7 @@ export const NodeBody = memo(({ nodeState, animated = false }: NodeBodyProps) =>
                 </Box>
             )}
 
-            {outputs.length > 0 && <Box py={1} />}
+            {anyVisibleOutputs && <Box py={1} />}
             <Box
                 bg="var(--bg-700)"
                 w="full"

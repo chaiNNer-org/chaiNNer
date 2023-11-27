@@ -20,10 +20,10 @@ from .. import value_group
             precision=0,
             controls_step=1,
             unit="%",
-        ),
+        ).fused(),
     ],
     outputs=[
-        NumberOutput("%", output_type="Input0"),
+        NumberOutput("Percent", output_type="Input0"),
     ],
 )
 def percent_node(number: int) -> int:

@@ -14,21 +14,21 @@ import { Handle } from '../Handle';
 import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
 
-export interface HandleWrapperProps {
+export interface InputHandleProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
     nodeType: NodeType;
 }
 
-export const HandleWrapper = memo(
+export const InputHandle = memo(
     ({
         children,
         id,
         inputId,
         connectableType,
         nodeType,
-    }: React.PropsWithChildren<HandleWrapperProps>) => {
+    }: React.PropsWithChildren<InputHandleProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();

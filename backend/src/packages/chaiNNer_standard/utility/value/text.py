@@ -12,7 +12,9 @@ from .. import value_group
     description="Outputs the given text.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", min_length=0, hide_label=True, allow_empty_string=True),
+        TextInput(
+            "Text", min_length=0, hide_label=True, allow_empty_string=True
+        ).fused(),
     ],
     outputs=[
         TextOutput("Text", output_type="Input0"),

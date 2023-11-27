@@ -12,7 +12,9 @@ from .. import value_group
     description="Outputs the given directory.",
     icon="BsFolder",
     inputs=[
-        DirectoryInput("Directory", must_exist=False, hide_label=True, has_handle=True),
+        DirectoryInput(
+            "Directory", must_exist=False, hide_label=True, has_handle=True
+        ).fused(),
     ],
     outputs=[
         DirectoryOutput("Directory", output_type="Input0"),

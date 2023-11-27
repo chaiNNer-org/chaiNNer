@@ -87,6 +87,10 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
     return (
         <>
             {schema.outputs.map((output) => {
+                if (schema.inputs.some((i) => i.fusedWithOutput === output.id)) {
+                    return null;
+                }
+
                 const definitionType = functions?.get(output.id) ?? NeverType.instance;
                 const type = nodeState.type.instance?.outputs.get(output.id);
 
