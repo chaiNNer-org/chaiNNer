@@ -30,6 +30,7 @@ export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProp
                 }}
                 bgColor="var(--node-image-preview-button-bg)"
                 borderRadius="md"
+                className="nodrag"
                 cursor="pointer"
                 h="1.75rem"
                 maxH="1.75rem"
