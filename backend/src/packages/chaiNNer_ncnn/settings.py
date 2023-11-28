@@ -92,9 +92,13 @@ def get_settings() -> NcnnSettings:
 
     return NcnnSettings(
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
-        winograd=settings.get_bool("winograd", default_net_opt.use_winograd_convolution),
+        winograd=settings.get_bool(
+            "winograd", default_net_opt.use_winograd_convolution
+        ),
         sgemm=settings.get_bool("sgemm", default_net_opt.use_sgemm_convolution),
-        threads=settings.get_int("threads", default_net_opt.num_threads, parse_str=True),
+        threads=settings.get_int(
+            "threads", default_net_opt.num_threads, parse_str=True
+        ),
         blocktime=settings.get_int(
             "blocktime", default_net_opt.openmp_blocktime, parse_str=True
         ),
