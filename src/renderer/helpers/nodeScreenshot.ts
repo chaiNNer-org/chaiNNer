@@ -36,6 +36,9 @@ export const takeScreenshot = async (
 ): Promise<PngDataUrl> => {
     const oldViewport = reactFlow.getViewport();
 
+    const rfElement = (currentFlowWrapper.firstElementChild ?? currentFlowWrapper) as HTMLElement;
+    const oldBorderRadius = rfElement.style.borderRadius;
+
     const reactFlowViewport = currentFlowWrapper.getBoundingClientRect();
     const nodes = reactFlow.getNodes();
     const nodesBoundingBox = getNodesBoundingBox(nodes) ?? { x: 0, y: 0, width: 0, height: 0 };
@@ -52,17 +55,18 @@ export const takeScreenshot = async (
         reactFlowViewport.height / paddedBoundingBox.height
     );
 
-    reactFlow.setViewport({
-        x: paddedBoundingBox.x * -1 * exportZoom,
-        y: paddedBoundingBox.y * -1 * exportZoom,
-        zoom: exportZoom,
-    });
-
     try {
+        reactFlow.setViewport({
+            x: paddedBoundingBox.x * -1 * exportZoom,
+            y: paddedBoundingBox.y * -1 * exportZoom,
+            zoom: exportZoom,
+        });
+        rfElement.style.borderRadius = '0';
+
         // wait for the viewport to be updated
         await delay(10);
 
-        const dataUrl = await toPng(currentFlowWrapper, {
+        const dataUrl = await toPng(rfElement, {
             style: {
                 padding: '0',
                 margin: '0',
@@ -71,6 +75,7 @@ export const takeScreenshot = async (
             pixelRatio: 1 / exportZoom,
             width: paddedBoundingBox.width * exportZoom,
             height: paddedBoundingBox.height * exportZoom,
+            backgroundColor: getComputedStyle(rfElement).backgroundColor,
             filter: (node: unknown) => {
                 if (
                     node instanceof HTMLElement &&
@@ -86,6 +91,7 @@ export const takeScreenshot = async (
         return dataUrl as PngDataUrl;
     } finally {
         reactFlow.setViewport(oldViewport);
+        rfElement.style.borderRadius = oldBorderRadius;
     }
 };
 
