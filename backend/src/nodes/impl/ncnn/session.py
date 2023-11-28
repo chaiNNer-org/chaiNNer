@@ -37,6 +37,9 @@ def create_ncnn_net(model: NcnnModelWrapper, settings: NcnnSettings) -> ncnn.Net
         # Configure Winograd/SGEMM optimizations
         net.opt.use_winograd_convolution = settings.winograd
         net.opt.use_sgemm_convolution = settings.sgemm
+        # Configure multithreading
+        net.opt.num_threads = settings.threads
+        net.opt.openmp_blocktime = settings.blocktime
 
     # Load model param and bin
     net.load_param_mem(model.model.write_param())
