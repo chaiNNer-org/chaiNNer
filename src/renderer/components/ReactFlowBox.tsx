@@ -426,9 +426,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     return (
         <Box
-            bg="var(--chain-editor-bg)"
-            borderRadius="lg"
-            borderWidth="0px"
             className={animateChain ? '' : 'no-chain-animation'}
             h="100%"
             ref={wrapperRef}
@@ -452,6 +449,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 style={{
                     zIndex: 0,
                     borderRadius: '0.5rem',
+                    backgroundColor: 'var(--chain-editor-bg)',
                 }}
                 onConnect={createConnection}
                 onConnectEnd={onConnectStop}
