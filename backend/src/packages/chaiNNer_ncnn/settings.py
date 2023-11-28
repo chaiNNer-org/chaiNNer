@@ -44,7 +44,7 @@ if not use_gpu:
             label="Use Winograd",
             key="winograd",
             description="Enable Winograd convolution for NCNN. Typically faster but uses more memory.",
-            default=True,
+            default=default_net_opt.use_winograd_convolution,
         )
     )
     package.add_setting(
@@ -52,7 +52,7 @@ if not use_gpu:
             label="Use SGEMM",
             key="sgemm",
             description="Enable SGEMM convolution for NCNN. Typically faster but uses more memory.",
-            default=True,
+            default=default_net_opt.use_sgemm_convolution,
         )
     )
 
@@ -92,8 +92,8 @@ def get_settings() -> NcnnSettings:
 
     return NcnnSettings(
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
-        winograd=settings.get_bool("winograd", True),
-        sgemm=settings.get_bool("sgemm", True),
+        winograd=settings.get_bool("winograd", default_net_opt.use_winograd_convolution),
+        sgemm=settings.get_bool("sgemm", default_net_opt.use_sgemm_convolution),
         threads=settings.get_int("threads", default_net_opt.num_threads, parse_str=True),
         blocktime=settings.get_int(
             "blocktime", default_net_opt.openmp_blocktime, parse_str=True
