@@ -361,16 +361,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             if (!wrapper) return;
 
             try {
-                const reactFlowBounds = wrapper.getBoundingClientRect();
-
                 const options: DataTransferProcessorOptions = {
                     schemata,
                     createNode,
                     getNodePosition: (offsetX = 0, offsetY = 0) => {
                         const { zoom } = reactFlowInstance.getViewport();
-                        return reactFlowInstance.project({
-                            x: event.clientX - reactFlowBounds.left - offsetX * zoom,
-                            y: event.clientY - reactFlowBounds.top - offsetY * zoom,
+                        return reactFlowInstance.screenToFlowPosition({
+                            x: event.clientX - offsetX * zoom,
+                            y: event.clientY - offsetY * zoom,
                         });
                     },
                     changeNodes,

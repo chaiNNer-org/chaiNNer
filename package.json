@@ -146,7 +146,7 @@
     "react-markdown": "^8.0.3",
     "react-query": "^3.39.3",
     "react-time-ago": "^7.2.1",
-    "reactflow": "^11.9.3",
+    "reactflow": "^11.10.1",
     "rregex": "^1.7.0",
     "semver": "^7.3.7",
     "systeminformation": "^5.21.7",
