@@ -30,7 +30,7 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.0",
+                version="2.1.1",
                 size_estimate=55.8 * MB,
             ),
             Dependency(
@@ -45,7 +45,7 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.0+cu121" if nvidia_is_available else "2.1.0",
+                version="2.1.1+cu121" if nvidia_is_available else "2.1.1",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
