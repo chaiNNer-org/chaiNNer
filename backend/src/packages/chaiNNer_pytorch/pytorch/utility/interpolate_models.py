@@ -96,8 +96,8 @@ def interpolate_models_node(
     elif amount == 100:
         return model_b, 0, 100
 
-    state_a = model_a.state_dict
-    state_b = model_b.state_dict
+    state_a = model_a.model.state_dict()
+    state_b = model_b.model.state_dict()
 
     logger.debug("Interpolating models...")
     if not check_can_interp(state_a, state_b):
