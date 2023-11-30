@@ -84,6 +84,6 @@ def rotate(
         angle,
         resample=resample,  # type: ignore
         expand=bool(expand.value),
-        fillcolor=fill_color,
+        fillcolor=fill_color,  # type: ignore
     )
     return normalize(np.array(pimg))

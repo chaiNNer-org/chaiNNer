@@ -203,7 +203,7 @@ def text_as_image_node(
         font=font,
         anchor="mm",
         align=alignment.value,
-        fill=ink,
+        fill=ink,  # type: ignore
     )
 
     img = normalize(np.array(pil_image))

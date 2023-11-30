@@ -68,7 +68,7 @@ def add_caption(
         font=font,
         anchor="mm",
         align="center",
-        fill=font_color,
+        fill=font_color,  # type: ignore
     )
 
     img = normalize(np.array(pimg))

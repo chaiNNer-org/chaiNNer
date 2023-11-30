@@ -179,7 +179,7 @@ def create_noise_node(
         generator_class = ValueNoise
 
     if fractal_method == FractalMethod.NONE:
-        _add_noise(generator_class, image=img, **kwargs)
+        _add_noise(generator_class, image=img, **kwargs)  # type: ignore
     elif fractal_method == FractalMethod.PINK:
         del kwargs["scale"], kwargs["brightness"]
         total_brightness = 0
@@ -189,7 +189,7 @@ def create_noise_node(
             _add_noise(
                 generator_class,
                 image=img,
-                **kwargs,
+                **kwargs,  # type: ignore
                 scale=scale,
                 brightness=brightness * relative_brightness,
             )

@@ -46,7 +46,10 @@ def create_inference_session(
     else:
         providers = [execution_provider, "CPUExecutionProvider"]
 
-    session = ort.InferenceSession(model.bytes, providers=providers)
+    session = ort.InferenceSession(
+        model.bytes,
+        providers=providers,  # type: ignore
+    )
     return session
 
 

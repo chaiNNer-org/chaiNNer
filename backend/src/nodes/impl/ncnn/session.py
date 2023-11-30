@@ -8,7 +8,7 @@ try:
 
     use_gpu = True
 except ImportError:
-    from ncnn import ncnn
+    from ncnn import ncnn  # type: ignore
 
     use_gpu = False
 

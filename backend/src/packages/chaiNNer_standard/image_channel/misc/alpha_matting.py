@@ -95,6 +95,7 @@ def alpha_matting_node(
     assert trimap.dtype == np.float64
     alpha = pymatting.estimate_alpha_cf(img, trimap)
     foreground = pymatting.estimate_foreground_ml(img, alpha)
+    assert isinstance(foreground, np.ndarray)
 
     # convert to bgr
     foreground = cv2.cvtColor(foreground, cv2.COLOR_RGB2BGR)
