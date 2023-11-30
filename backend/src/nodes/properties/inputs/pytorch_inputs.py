@@ -52,7 +52,7 @@ class SrModelInput(ModelInput):
         if torch is not None:
             self.associated_type = ImageModelDescriptor
 
-    def enforce(self, value: ModelDescriptor):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(
                 value, ImageModelDescriptor
@@ -78,7 +78,7 @@ class FaceModelInput(ModelInput):
         if torch is not None:
             self.associated_type = ImageModelDescriptor
 
-    def enforce(self, value: ModelDescriptor):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(
                 value, ImageModelDescriptor
@@ -103,7 +103,7 @@ class InpaintModelInput(ModelInput):
         if torch is not None:
             self.associated_type = MaskedImageModelDescriptor
 
-    def enforce(self, value: ModelDescriptor):
+    def enforce(self, value: object):
         if torch is not None:
             assert isinstance(
                 value, MaskedImageModelDescriptor
