@@ -30,7 +30,7 @@ def _to_bytes(s: Source) -> bytes:
         s = s.value
 
     i = int(s)
-    if isinstance(s, int) or s == i:
+    if isinstance(s, int) or s == i:  # type: ignore
         return i.to_bytes(i.bit_length() // 8 + 1, byteorder="big", signed=True)
 
     return struct.pack("d", s)

@@ -7,7 +7,7 @@
 	],
 	"ignore": [],
 	"typeCheckingMode": "basic",
-	"useLibraryCodeForTypes": false,
+	"useLibraryCodeForTypes": true,
 	"strictListInference": true,
 	"strictDictionaryInference": true,
 	"strictSetInference": true,

@@ -239,5 +239,5 @@ PREFER_DX9: set[DDSFormat] = {
 
 def to_dxgi(f: DDSFormat) -> DxgiFormat:
     if f in LEGACY_TO_DXGI:
-        return LEGACY_TO_DXGI[cast(LegacyFormat, f)]
+        return LEGACY_TO_DXGI[f]
     return cast(DxgiFormat, f)

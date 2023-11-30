@@ -62,7 +62,7 @@ class NvidiaHelper:
                     name=nv.nvmlDeviceGetName(handle),
                     uuid=nv.nvmlDeviceGetUUID(handle),
                     index=i,
-                    handle=handle,
+                    handle=handle,  # type: ignore
                     arch=nv.nvmlDeviceGetArchitecture(handle),
                 )
             )
@@ -80,7 +80,7 @@ class NvidiaHelper:
     def get_current_vram_usage(self, gpu_index: int = 0) -> tuple[int, int, int]:
         info = nv.nvmlDeviceGetMemoryInfo(self.__gpus[gpu_index].handle)
 
-        return info.total, info.used, info.free
+        return info.total, info.used, info.free  # type: ignore
 
     def supports_fp16(self, gpu_index: int | None = None) -> bool:
         if gpu_index is None:
