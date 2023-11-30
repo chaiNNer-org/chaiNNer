@@ -109,7 +109,5 @@ class InpaintModelInput(ModelInput):
 
 
 class TorchScriptInput(BaseInput):
-    """Input a JIT traced model"""
-
     def __init__(self, label: str = "Traced Model"):
         super().__init__("PyTorchScript", label)
