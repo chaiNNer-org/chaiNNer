@@ -1,16 +1,9 @@
 from __future__ import annotations
 
 try:
-    import torch
-    from spandrel import (
-        ImageModelDescriptor,
-        MaskedImageModelDescriptor,
-        ModelDescriptor,
-    )
+    import spandrel
 except Exception:
-    torch = None
-    ImageModelDescriptor = object
-    MaskedImageModelDescriptor = object
+    spandrel = None
 
 import navi
 from api import BaseInput
@@ -25,13 +18,14 @@ class ModelInput(BaseInput):
         input_type: navi.ExpressionJson = "PyTorchModel",
     ):
         super().__init__(input_type, label)
-        if torch is not None:
-            self.associated_type = ModelDescriptor
+        if spandrel is not None:
+            self.associated_type = spandrel.ModelDescriptor
 
     def enforce(self, value: object):
-        if torch is not None:
+        if spandrel is not None:
             assert isinstance(
-                value, (ImageModelDescriptor, MaskedImageModelDescriptor)
+                value,
+                (spandrel.ImageModelDescriptor, spandrel.MaskedImageModelDescriptor),
             ), "Expected a supported PyTorch model."
         return value
 
@@ -49,13 +43,13 @@ class SrModelInput(ModelInput):
                 """PyTorchModel { subType: "SR" | "Restoration" }""",
             ),
         )
-        if torch is not None:
-            self.associated_type = ImageModelDescriptor
+        if spandrel is not None:
+            self.associated_type = spandrel.ImageModelDescriptor
 
     def enforce(self, value: object):
-        if torch is not None:
+        if spandrel is not None:
             assert isinstance(
-                value, ImageModelDescriptor
+                value, spandrel.ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
             assert value.purpose in (
                 "SR",
@@ -75,13 +69,13 @@ class FaceModelInput(ModelInput):
                 """PyTorchModel { subType: "FaceSR" }""",
             ),
         )
-        if torch is not None:
-            self.associated_type = ImageModelDescriptor
+        if spandrel is not None:
+            self.associated_type = spandrel.ImageModelDescriptor
 
     def enforce(self, value: object):
-        if torch is not None:
+        if spandrel is not None:
             assert isinstance(
-                value, ImageModelDescriptor
+                value, spandrel.ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
             assert value.purpose in (
                 "FaceSR"
@@ -100,13 +94,13 @@ class InpaintModelInput(ModelInput):
                 """PyTorchModel { subType: "Inpaint" }""",
             ),
         )
-        if torch is not None:
-            self.associated_type = MaskedImageModelDescriptor
+        if spandrel is not None:
+            self.associated_type = spandrel.MaskedImageModelDescriptor
 
     def enforce(self, value: object):
-        if torch is not None:
+        if spandrel is not None:
             assert isinstance(
-                value, MaskedImageModelDescriptor
+                value, spandrel.MaskedImageModelDescriptor
             ), "Expected a supported masked-image PyTorch model."
             assert value.purpose in (
                 "Inpaint"
