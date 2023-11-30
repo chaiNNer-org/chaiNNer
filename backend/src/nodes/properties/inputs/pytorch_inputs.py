@@ -2,11 +2,17 @@ from __future__ import annotations
 
 try:
     import spandrel
+    from spandrel import Purpose
 except Exception:
     spandrel = None
 
 import navi
 from api import BaseInput
+
+
+def _model_with_purpose(purpose: set[Purpose]):
+    sub_type = " | ".join('"' + p + '"' for p in purpose)
+    return "PyTorchModel { subType: " + sub_type + " }"
 
 
 class ModelInput(BaseInput):
@@ -36,12 +42,11 @@ class SrModelInput(ModelInput):
         label: str = "Model",
         input_type: navi.ExpressionJson = "PyTorchModel",
     ):
+        self.purpose: set[Purpose] = {"SR", "Restoration"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "SR" | "Restoration" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if spandrel is not None:
             self.associated_type = spandrel.ImageModelDescriptor
@@ -51,9 +56,8 @@ class SrModelInput(ModelInput):
             assert isinstance(
                 value, spandrel.ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
-            assert value.purpose in (
-                "SR",
-                "Restoration",
+            assert (
+                value.purpose in self.purpose
             ), "Expected a Super-Resolution or Restoration model."
         return value
 
@@ -62,12 +66,11 @@ class FaceModelInput(ModelInput):
     def __init__(
         self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
+        self.purpose: set[Purpose] = {"FaceSR"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "FaceSR" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if spandrel is not None:
             self.associated_type = spandrel.ImageModelDescriptor
@@ -77,8 +80,8 @@ class FaceModelInput(ModelInput):
             assert isinstance(
                 value, spandrel.ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
-            assert value.purpose in (
-                "FaceSR"
+            assert (
+                value.purpose in self.purpose
             ), "Expected a Face Super-Resolution model."
         return value
 
@@ -87,12 +90,11 @@ class InpaintModelInput(ModelInput):
     def __init__(
         self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
+        self.purpose: set[Purpose] = {"Inpaint"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "Inpaint" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if spandrel is not None:
             self.associated_type = spandrel.MaskedImageModelDescriptor
@@ -102,9 +104,7 @@ class InpaintModelInput(ModelInput):
             assert isinstance(
                 value, spandrel.MaskedImageModelDescriptor
             ), "Expected a supported masked-image PyTorch model."
-            assert value.purpose in (
-                "Inpaint"
-            ), "Expected a Face Super-Resolution model."
+            assert value.purpose in self.purpose, "Expected an Inpainting model."
         return value
 
 
