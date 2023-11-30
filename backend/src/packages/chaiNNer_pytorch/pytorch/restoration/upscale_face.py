@@ -8,7 +8,7 @@ import torch
 from appdirs import user_data_dir
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from sanic.log import logger
-from spandrel import FaceSRModelDescriptor
+from spandrel import ImageModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 
 from nodes.groups import Condition, if_group
@@ -37,7 +37,7 @@ def upscale(
     img: np.ndarray,
     background_img: np.ndarray | None,
     face_helper: FaceRestoreHelper,
-    face_model: FaceSRModelDescriptor,
+    face_model: ImageModelDescriptor,
     weight: float,
     exec_options: PyTorchSettings,
     device: torch.device,
@@ -149,7 +149,7 @@ def upscale(
 )
 def upscale_face_node(
     img: np.ndarray,
-    face_model: FaceSRModelDescriptor,
+    face_model: ImageModelDescriptor,
     background_img: np.ndarray | None,
     scale: int,
     weight: float,
