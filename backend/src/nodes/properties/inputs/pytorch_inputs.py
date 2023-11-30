@@ -6,6 +6,7 @@ try:
         ImageModelDescriptor,
         MaskedImageModelDescriptor,
         ModelDescriptor,
+        Purpose,
     )
 except Exception:
     torch = None
@@ -14,6 +15,11 @@ except Exception:
 
 import navi
 from api import BaseInput
+
+
+def _model_with_purpose(purpose: set[Purpose]):
+    sub_type = " | ".join('"' + p + '"' for p in purpose)
+    return "PyTorchModel { subType: " + sub_type + " }"
 
 
 class ModelInput(BaseInput):
@@ -42,25 +48,23 @@ class SrModelInput(ModelInput):
         label: str = "Model",
         input_type: navi.ExpressionJson = "PyTorchModel",
     ):
+        self.purpose: set[Purpose] = {"SR", "Restoration"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "SR" | "Restoration" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if torch is not None:
             self.associated_type = ImageModelDescriptor
 
     def enforce(self, value: ModelDescriptor):
         if torch is not None:
+            assert (
+                value.purpose in self.purpose
+            ), "Expected a Super-Resolution or Restoration model."
             assert isinstance(
                 value, ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
-            assert value.purpose in (
-                "SR",
-                "Restoration",
-            ), "Expected a Super-Resolution or Restoration model."
         return value
 
 
@@ -68,24 +72,23 @@ class FaceModelInput(ModelInput):
     def __init__(
         self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
+        self.purpose: set[Purpose] = {"FaceSR"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "FaceSR" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if torch is not None:
             self.associated_type = ImageModelDescriptor
 
     def enforce(self, value: ModelDescriptor):
         if torch is not None:
+            assert (
+                value.purpose in self.purpose
+            ), "Expected a Face Super-Resolution model."
             assert isinstance(
                 value, ImageModelDescriptor
             ), "Expected a supported single image PyTorch model."
-            assert value.purpose in (
-                "FaceSR"
-            ), "Expected a Face Super-Resolution model."
         return value
 
 
@@ -93,24 +96,21 @@ class InpaintModelInput(ModelInput):
     def __init__(
         self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
+        self.purpose: set[Purpose] = {"Inpaint"}
+
         super().__init__(
             label,
-            navi.intersect(
-                input_type,
-                """PyTorchModel { subType: "Inpaint" }""",
-            ),
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
         )
         if torch is not None:
             self.associated_type = MaskedImageModelDescriptor
 
     def enforce(self, value: ModelDescriptor):
         if torch is not None:
+            assert value.purpose in self.purpose, "Expected an Inpainting model."
             assert isinstance(
                 value, MaskedImageModelDescriptor
             ), "Expected a supported masked-image PyTorch model."
-            assert value.purpose in (
-                "Inpaint"
-            ), "Expected a Face Super-Resolution model."
         return value
 
 
