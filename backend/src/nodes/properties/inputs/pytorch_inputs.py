@@ -1,23 +1,16 @@
 from __future__ import annotations
 
-from typing import Union
-
 try:
     import torch
     from spandrel import (
-        FaceSRModelDescriptor,
-        InpaintModelDescriptor,
+        ImageModelDescriptor,
+        MaskedImageModelDescriptor,
         ModelDescriptor,
-        RestorationModelDescriptor,
-        SRModelDescriptor,
     )
 except Exception:
     torch = None
-    ModelDescriptor = object
-    SRModelDescriptor = object
-    FaceSRModelDescriptor = object
-    InpaintModelDescriptor = object
-    RestorationModelDescriptor = object
+    ImageModelDescriptor = object
+    MaskedImageModelDescriptor = object
 
 import navi
 from api import BaseInput
@@ -38,7 +31,7 @@ class ModelInput(BaseInput):
     def enforce(self, value: object):
         if torch is not None:
             assert isinstance(
-                value, ModelDescriptor
+                value, (ImageModelDescriptor, MaskedImageModelDescriptor)
             ), "Expected a supported PyTorch model."
         return value
 
@@ -57,12 +50,16 @@ class SrModelInput(ModelInput):
             ),
         )
         if torch is not None:
-            self.associated_type = Union[SRModelDescriptor, RestorationModelDescriptor]
+            self.associated_type = ImageModelDescriptor
 
-    def enforce(self, value: object):
+    def enforce(self, value: ModelDescriptor):
         if torch is not None:
             assert isinstance(
-                value, (RestorationModelDescriptor, SRModelDescriptor)
+                value, ImageModelDescriptor
+            ), "Expected a supported single image PyTorch model."
+            assert value.purpose in (
+                "SR",
+                "Restoration",
             ), "Expected a Super-Resolution or Restoration model."
         return value
 
@@ -79,13 +76,16 @@ class FaceModelInput(ModelInput):
             ),
         )
         if torch is not None:
-            self.associated_type = FaceSRModelDescriptor
+            self.associated_type = ImageModelDescriptor
 
-    def enforce(self, value: object):
+    def enforce(self, value: ModelDescriptor):
         if torch is not None:
             assert isinstance(
-                value, FaceSRModelDescriptor
-            ), "Expected a Face-specific Super-Resolution model."
+                value, ImageModelDescriptor
+            ), "Expected a supported single image PyTorch model."
+            assert value.purpose in (
+                "FaceSR"
+            ), "Expected a Face Super-Resolution model."
         return value
 
 
@@ -101,13 +101,16 @@ class InpaintModelInput(ModelInput):
             ),
         )
         if torch is not None:
-            self.associated_type = InpaintModelDescriptor
+            self.associated_type = MaskedImageModelDescriptor
 
-    def enforce(self, value: object):
+    def enforce(self, value: ModelDescriptor):
         if torch is not None:
             assert isinstance(
-                value, InpaintModelDescriptor
-            ), "Expected an inpainting-specific model."
+                value, MaskedImageModelDescriptor
+            ), "Expected a supported masked-image PyTorch model."
+            assert value.purpose in (
+                "Inpaint"
+            ), "Expected a Face Super-Resolution model."
         return value
 
 

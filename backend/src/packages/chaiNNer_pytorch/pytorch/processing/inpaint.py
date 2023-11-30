@@ -4,7 +4,7 @@ import gc
 
 import numpy as np
 import torch
-from spandrel import InpaintModelDescriptor
+from spandrel import MaskedImageModelDescriptor
 
 import navi
 from nodes.impl.image_utils import as_3d
@@ -51,7 +51,7 @@ def pad_img_to_modulo(
 def inpaint(
     img: np.ndarray,
     mask: np.ndarray,
-    model: InpaintModelDescriptor,
+    model: MaskedImageModelDescriptor,
     options: PyTorchSettings,
 ):
     with torch.no_grad():
@@ -152,7 +152,7 @@ def inpaint(
 def inpaint_node(
     img: np.ndarray,
     mask: np.ndarray,
-    model: InpaintModelDescriptor,
+    model: MaskedImageModelDescriptor,
 ) -> np.ndarray:
     """Inpaint an image"""
 

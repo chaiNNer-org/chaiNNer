@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 from sanic.log import logger
-from spandrel import RestorationModelDescriptor, SRModelDescriptor
+from spandrel import ImageModelDescriptor
 
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
@@ -29,7 +29,7 @@ from .. import processing_group
 
 def upscale(
     img: np.ndarray,
-    model: SRModelDescriptor | RestorationModelDescriptor,
+    model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
 ):
@@ -130,7 +130,7 @@ def upscale(
 )
 def upscale_image_node(
     img: np.ndarray,
-    model: SRModelDescriptor | RestorationModelDescriptor,
+    model: ImageModelDescriptor,
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
