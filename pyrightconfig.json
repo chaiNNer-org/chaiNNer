@@ -5,17 +5,12 @@
 	"exclude": [
 		"**/__pycache__"
 	],
-	"ignore": [
-		"backend/src/nodes/impl/pytorch/architecture"
-	],
-
+	"ignore": [],
 	"typeCheckingMode": "basic",
 	"useLibraryCodeForTypes": false,
-
 	"strictListInference": true,
 	"strictDictionaryInference": true,
 	"strictSetInference": true,
-
 	"reportDuplicateImport": "warning",
 	"reportImportCycles": "error",
 	"reportIncompatibleVariableOverride": "error",
