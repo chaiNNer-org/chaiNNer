@@ -6,7 +6,7 @@
 		"**/__pycache__"
 	],
 	"ignore": [],
-	"typeCheckingMode": "basic"
+	"typeCheckingMode": "basic",
 	"useLibraryCodeForTypes": true,
 	"strictListInference": true,
 	"strictDictionaryInference": true,
