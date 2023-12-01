@@ -44,6 +44,7 @@ def check_can_interp(model_a: dict, model_b: dict):
     interp_50 = perform_interp(model_a, model_b, 50)
     model_descriptor = ModelLoader(torch.device("cpu")).load_from_state_dict(interp_50)
     size = max(model_descriptor.size_requirements.minimum, 3)
+    size = size + (size % model_descriptor.size_requirements.multiple_of)
     assert isinstance(size, int), "min_size_restriction must be an int"
     fake_img = np.ones((size, size, model_descriptor.input_channels), dtype=np.float32)
     del interp_50
