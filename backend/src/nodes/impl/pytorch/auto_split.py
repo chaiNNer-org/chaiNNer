@@ -4,6 +4,8 @@ import gc
 
 import numpy as np
 import torch
+from sanic.log import logger
+from spandrel import ImageModelDescriptor
 
 from ..upscale.auto_split import Split, Tiler, auto_split
 from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
@@ -12,13 +14,13 @@ from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
 @torch.inference_mode()
 def pytorch_auto_split(
     img: np.ndarray,
-    model: torch.nn.Module,
+    model: ImageModelDescriptor,
     device: torch.device,
     use_fp16: bool,
     tiler: Tiler,
 ) -> np.ndarray:
     model = model.to(device)
-    model = model.half() if use_fp16 else model.float()
+    model.model.half() if use_fp16 else model.model.float()
 
     def upscale(img: np.ndarray, _: object):
         img_tensor = np2tensor(img, change_range=True)
@@ -29,6 +31,7 @@ def pytorch_auto_split(
             d_img = d_img.half() if use_fp16 else d_img.float()
 
             result = model(d_img)
+            logger.info(result)
             result = tensor2np(
                 result.detach().cpu().detach(),
                 change_range=False,

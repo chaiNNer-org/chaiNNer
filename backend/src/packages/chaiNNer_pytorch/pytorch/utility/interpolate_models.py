@@ -5,7 +5,12 @@ import gc
 import numpy as np
 import torch
 from sanic.log import logger
-from spandrel import ModelDescriptor, ModelLoader
+from spandrel import (
+    ImageModelDescriptor,
+    MaskedImageModelDescriptor,
+    ModelDescriptor,
+    ModelLoader,
+)
 
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
@@ -44,7 +49,17 @@ def check_can_interp(model_a: dict, model_b: dict):
     del interp_50
     with torch.no_grad():
         img_tensor = np2tensor(fake_img, change_range=True).cpu()
-        t_out = model_descriptor.model(img_tensor)
+        if isinstance(model_descriptor, MaskedImageModelDescriptor):
+            np.ones((size, size, 1), dtype=np.float32)
+            mask_tensor = np2tensor(fake_img, change_range=True).cpu()
+            t_out = model_descriptor(img_tensor, mask_tensor)
+        elif isinstance(model_descriptor, ImageModelDescriptor):  # type: ignore <- I get that this can technically never happen, but please just let me write exhaustive checks
+            t_out = model_descriptor(img_tensor)
+        else:
+            logger.warning(
+                "Unknown model type used with interpolation. Since we cannot verify inference works with this model, we will assume the interpolation is valid. Please report."
+            )
+            return True
         if isinstance(t_out, tuple):
             t_out = t_out[0]
         result = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
