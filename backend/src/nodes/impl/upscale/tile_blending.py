@@ -55,13 +55,28 @@ class TileBlender:
         channels: int,
         direction: BlendDirection,
         blend_fn: Callable[[np.ndarray], np.ndarray] = sin_blend_fn,
+        _prev: TileBlender | None = None,
     ) -> None:
         self.direction: BlendDirection = direction
-        self.result: np.ndarray = np.zeros((height, width, channels), dtype=np.float32)
         self.blend_fn: Callable[[np.ndarray], np.ndarray] = blend_fn
         self.offset: int = 0
         self.last_end_overlap: int = 0
         self._last_blend: np.ndarray | None = None
+
+        if (
+            _prev is not None
+            and _prev.direction == direction
+            and _prev.width == width
+            and _prev.height == height
+            and _prev.channels == channels
+        ):
+            if _prev.blend_fn == blend_fn:
+                # reuse blend
+                self._last_blend = _prev._last_blend  # noqa: SLF001
+            result = _prev.result
+        else:
+            result = np.zeros((height, width, channels), dtype=np.float32)
+        self.result: np.ndarray = result
 
     @property
     def width(self) -> int:

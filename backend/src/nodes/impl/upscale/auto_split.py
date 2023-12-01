@@ -154,6 +154,8 @@ def _max_split(
             f"Currently {tile_count_x}x{tile_count_y} tiles each {tile_size_x}x{tile_size_y}px."
         )
 
+        prev_row_result: TileBlender | None = None
+
         for y in range(tile_count_y):
             if y < start_y:
                 continue
@@ -205,7 +207,9 @@ def _max_split(
                         channels=c,
                         direction=BlendDirection.X,
                         blend_fn=half_sin_blend_fn,
+                        _prev=prev_row_result,
                     )
+                    prev_row_result = row_result
                     row_overlap = TileOverlap(pad.top * scale, pad.bottom * scale)
 
                 assert current_scale == scale
