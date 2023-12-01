@@ -22,6 +22,10 @@ def convert_to_onnx_impl(
     dummy_input = dummy_input.to(device)
 
     if use_half:
+        if not model.supports_half:
+            raise ValueError(
+                f"Model of arch {model.architecture} does not support half precision."
+            )
         model.model.half()
         dummy_input = dummy_input.half()
     else:
