@@ -35,6 +35,18 @@ class TileOverlap:
         return self.start + self.end
 
 
+def _fast_mix(a: np.ndarray, b: np.ndarray, blend: np.ndarray) -> np.ndarray:
+    """
+    Returns `a * (1 - blend) + b * blend`
+    """
+    # a * (1 - blend) + b * blend
+    # a - a * blend + b * blend
+    r = b * blend
+    r += a
+    r -= a * blend  # type: ignore
+    return r
+
+
 class TileBlender:
     def __init__(
         self,
@@ -49,6 +61,7 @@ class TileBlender:
         self.blend_fn: Callable[[np.ndarray], np.ndarray] = blend_fn
         self.offset: int = 0
         self.last_end_overlap: int = 0
+        self._last_blend: np.ndarray | None = None
 
     @property
     def width(self) -> int:
@@ -61,6 +74,31 @@ class TileBlender:
     @property
     def channels(self) -> int:
         return self.result.shape[2]
+
+    def _get_blend(self, blend_size: int) -> np.ndarray:
+        if self.direction == BlendDirection.X:
+            if self._last_blend is not None and self._last_blend.shape[1] == blend_size:
+                return self._last_blend
+
+            blend = self.blend_fn(
+                np.arange(blend_size, dtype=np.float32) / (blend_size - 1)
+            )
+            blend = blend.reshape((1, blend_size, 1))
+            blend = np.repeat(blend, repeats=self.height, axis=0)
+            blend = np.repeat(blend, repeats=self.channels, axis=2)
+        else:
+            if self._last_blend is not None and self._last_blend.shape[0] == blend_size:
+                return self._last_blend
+
+            blend = self.blend_fn(
+                np.arange(blend_size, dtype=np.float32) / (blend_size - 1)
+            )
+            blend = blend.reshape((blend_size, 1, 1))
+            blend = np.repeat(blend, repeats=self.width, axis=1)
+            blend = np.repeat(blend, repeats=self.channels, axis=2)
+
+        self._last_blend = blend
+        return blend
 
     def add_tile(self, tile: np.ndarray, overlap: TileOverlap) -> None:
         h, w, c = get_h_w_c(tile)
@@ -96,21 +134,16 @@ class TileBlender:
 
                 # blend the overlapping part
                 blend_size = o.start * 2
-                blend = self.blend_fn(
-                    np.arange(blend_size, dtype=np.float32) / (blend_size - 1)
-                )
-                blend = blend.reshape((1, blend_size, 1))
-                blend = np.repeat(blend, repeats=h, axis=0)
-                blend = np.repeat(blend, repeats=c, axis=2)
+                blend = self._get_blend(blend_size)
 
                 left = self.result[
                     :, self.offset - o.start : self.offset + o.start, ...
                 ]
                 right = tile[:, :blend_size, ...]
 
-                self.result[:, self.offset - o.start : self.offset + o.start, ...] = (
-                    left * (1 - blend) + right * blend
-                )
+                self.result[
+                    :, self.offset - o.start : self.offset + o.start, ...
+                ] = _fast_mix(left, right, blend)
 
                 self.offset += w - o.total
                 self.last_end_overlap = o.end
@@ -143,21 +176,16 @@ class TileBlender:
 
                 # blend the overlapping part
                 blend_size = o.start * 2
-                blend = self.blend_fn(
-                    np.arange(blend_size, dtype=np.float32) / (blend_size - 1)
-                )
-                blend = blend.reshape((blend_size, 1, 1))
-                blend = np.repeat(blend, repeats=w, axis=1)
-                blend = np.repeat(blend, repeats=c, axis=2)
+                blend = self._get_blend(blend_size)
 
                 left = self.result[
                     self.offset - o.start : self.offset + o.start, :, ...
                 ]
                 right = tile[: o.start * 2, :, ...]
 
-                self.result[self.offset - o.start : self.offset + o.start, :, ...] = (
-                    left * (1 - blend) + right * blend
-                )
+                self.result[
+                    self.offset - o.start : self.offset + o.start, :, ...
+                ] = _fast_mix(left, right, blend)
 
                 self.offset += h - o.total
                 self.last_end_overlap = o.end
