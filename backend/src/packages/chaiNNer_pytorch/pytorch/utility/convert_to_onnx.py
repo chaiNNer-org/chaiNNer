@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from enum import Enum
-from io import BytesIO
 
-import torch
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.SCUNet import SCUNet
 
 from nodes.impl.onnx.model import OnnxGeneric
+from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
 from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
@@ -69,37 +68,16 @@ def convert_to_onnx_node(
 
     model.model.eval()
     model = model.to(device)
-    # https://github.com/onnx/onnx/issues/654
-    dynamic_axes = {
-        "input": {0: "batch_size", 2: "height", 3: "width"},
-        "output": {0: "batch_size", 2: "height", 3: "width"},
-    }
-    dummy_input = torch.rand(1, model.input_channels, 64, 64)
-    dummy_input = dummy_input.to(device)
 
-    should_use_fp16 = exec_options.use_fp16 and model.supports_half and fp16
-    if should_use_fp16:
-        model.model.half()
-        dummy_input = dummy_input.half()
-    else:
-        model.model.float()
-        dummy_input = dummy_input.float()
+    use_half = fp16 and model.supports_half
 
-    with BytesIO() as f:
-        torch.onnx.export(
-            model.model,
-            dummy_input,
-            f,
-            opset_version=opset.value,
-            verbose=False,
-            input_names=["input"],
-            output_names=["output"],
-            dynamic_axes=dynamic_axes,
-            do_constant_folding=True,
-        )
-        f.seek(0)
-        onnx_model_bytes = f.read()
+    onnx_model_bytes = convert_to_onnx_impl(
+        model,
+        device,
+        use_half,
+        opset_version=opset.value,
+    )
 
-    fp_mode = "fp16" if should_use_fp16 else "fp32"
+    fp_mode = "fp16" if use_half else "fp32"
 
     return OnnxGeneric(onnx_model_bytes), fp_mode

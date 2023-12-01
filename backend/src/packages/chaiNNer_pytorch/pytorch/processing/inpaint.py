@@ -90,7 +90,7 @@ def inpaint(
             d_mask = (d_mask > 0.5) * 1
             d_mask = d_mask.half() if use_fp16 else d_mask.float()
 
-            result = model.model(d_img, d_mask)
+            result = model(d_img, d_mask)
             result = tensor2np(
                 result.detach().cpu().detach(),
                 change_range=False,
