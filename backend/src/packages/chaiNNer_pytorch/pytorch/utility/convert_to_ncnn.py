@@ -10,20 +10,20 @@ from spandrel.architectures.Swin2SR import Swin2SR
 from spandrel.architectures.SwinIR import SwinIR
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
+from nodes.impl.onnx.model import OnnxGeneric
+from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
+from ...settings import get_settings
 from .. import utility_group
-from .convert_to_onnx import convert_to_onnx_node
 
 try:
-    from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import FP_MODE_32
     from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
         convert_to_ncnn_node as onnx_convert_to_ncnn_node,
     )
 except Exception:
     onnx_convert_to_ncnn_node = None
-    FP_MODE_32 = 0
 
 
 @utility_group.register(
@@ -58,8 +58,13 @@ def convert_to_ncnn_node(
         model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
     ), f"{model.architecture} is not supported for NCNN conversions at this time."
 
+    exec_options = get_settings()
+    device = exec_options.device
+
     # Intermediate conversion to ONNX is always fp32
-    onnx_model = convert_to_onnx_node(model, FP_MODE_32)[0]
+    onnx_model = OnnxGeneric(
+        convert_to_onnx_impl(model, device, False, "data", "output")
+    )
     ncnn_model, fp_mode = onnx_convert_to_ncnn_node(onnx_model, is_fp16)
 
     return ncnn_model, fp_mode
