@@ -20,7 +20,10 @@ def pytorch_auto_split(
     tiler: Tiler,
 ) -> np.ndarray:
     model = model.to(device)
-    model.model.half() if use_fp16 else model.model.float()
+    if use_fp16:
+        model.model.half()
+    else:
+        model.model.float()
 
     def upscale(img: np.ndarray, _: object):
         img_tensor = np2tensor(img, change_range=True)
