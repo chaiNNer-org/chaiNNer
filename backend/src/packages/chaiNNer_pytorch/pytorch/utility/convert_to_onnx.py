@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from io import BytesIO
 
 import torch
@@ -7,11 +8,26 @@ from spandrel import ImageModelDescriptor
 from spandrel.architectures.SCUNet import SCUNet
 
 from nodes.impl.onnx.model import OnnxGeneric
-from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
+from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
 from ...settings import get_settings
 from .. import utility_group
+
+
+class Opset(Enum):
+    OPSET_14 = 14
+    OPSET_15 = 15
+    OPSET_16 = 16
+    OPSET_17 = 17
+
+
+OPSET_LABELS: dict[Opset, str] = {
+    Opset.OPSET_14: "14",
+    Opset.OPSET_15: "15",
+    Opset.OPSET_16: "16",
+    Opset.OPSET_17: "17",
+}
 
 
 @utility_group.register(
@@ -26,6 +42,12 @@ from .. import utility_group
     inputs=[
         SrModelInput("PyTorch Model"),
         OnnxFpDropdown(),
+        EnumInput(
+            Opset,
+            label="Opset",
+            default=Opset.OPSET_14,
+            option_labels=OPSET_LABELS,
+        ),
     ],
     outputs=[
         OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
@@ -33,7 +55,7 @@ from .. import utility_group
     ],
 )
 def convert_to_onnx_node(
-    model: ImageModelDescriptor, is_fp16: int
+    model: ImageModelDescriptor, is_fp16: int, opset: Opset
 ) -> tuple[OnnxGeneric, str]:
     assert not isinstance(
         model.model, SCUNet
@@ -68,7 +90,7 @@ def convert_to_onnx_node(
             model.model,
             dummy_input,
             f,
-            opset_version=14,
+            opset_version=opset.value,
             verbose=False,
             input_names=["input"],
             output_names=["output"],
