@@ -63,6 +63,7 @@ export const Timer = memo(({ time }: TimerProps) => {
             closeOnClick={false}
             gutter={24}
             label={`Execution took approximately ${joinEnglish(longParts)}.`}
+            openDelay={150}
             px={2}
             textAlign="center"
         >
