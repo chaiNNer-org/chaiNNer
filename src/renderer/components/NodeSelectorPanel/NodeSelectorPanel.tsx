@@ -107,6 +107,7 @@ export const NodeSelector = memo(() => {
                                 m={0}
                                 overflowX="hidden"
                                 p={0}
+                                position="relative"
                             >
                                 <SearchBar
                                     value={searchQuery}
@@ -134,7 +135,7 @@ export const NodeSelector = memo(() => {
                                             h="0.5rem"
                                             opacity={showCollapseButtons ? 0.75 : 0}
                                             position="absolute"
-                                            top="154px"
+                                            top="40px"
                                             w={collapsed ? 'auto' : '100px'}
                                             zIndex={999}
                                             onClick={toggleAccordion}
