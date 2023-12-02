@@ -66,6 +66,7 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
                 bg="currentColor"
                 height="2px"
                 mt="-2px"
+                opacity={0.8}
             />
         </Tabs>
     );
