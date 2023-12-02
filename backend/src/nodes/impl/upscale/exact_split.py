@@ -9,6 +9,7 @@ from sanic.log import logger
 
 from ...utils.utils import Padding, Region, Size, get_h_w_c
 from ..image_utils import BorderType, create_border
+from .tile_blending import BlendDirection, TileBlender, TileOverlap, half_sin_blend_fn
 
 
 def _pad_image(img: np.ndarray, min_size: Size):
@@ -90,7 +91,7 @@ def _exact_split_into_regions(
     exact_w: int,
     exact_h: int,
     overlap: int,
-) -> list[tuple[Region, Padding]]:
+) -> list[list[tuple[Region, Padding]]]:
     """
     Returns a list of disjoint regions along with padding.
     Each region plus its padding is guaranteed to have the given exact size.
@@ -105,10 +106,11 @@ def _exact_split_into_regions(
         f"Image is split into {len(x_segments)}x{len(y_segments)} tiles each exactly {exact_w}x{exact_h}px."
     )
 
-    result: list[tuple[Region, Padding]] = []
+    result: list[list[tuple[Region, Padding]]] = []
     for y in y_segments:
+        row: list[tuple[Region, Padding]] = []
         for x in x_segments:
-            result.append(
+            row.append(
                 (
                     Region(x.start, y.start, x.length, y.length),
                     Padding(
@@ -116,6 +118,7 @@ def _exact_split_into_regions(
                     ),
                 )
             )
+        result.append(row)
     return result
 
 
@@ -134,39 +137,62 @@ def _exact_split_without_padding(
 
     # To allocate the result image, we need to know the upscale factor first,
     # and we only get to know this factor after the first successful upscale.
-    result: np.ndarray | None = None
+    result: TileBlender | None = None
     scale: int = 0
 
     regions = _exact_split_into_regions(w, h, exact_w, exact_h, overlap)
-    for tile, pad in regions:
-        padded_tile = tile.add_padding(pad)
+    for row in regions:
+        row_result: TileBlender | None = None
+        row_overlap: TileOverlap | None = None
 
-        upscale_result = upscale(padded_tile.read_from(img), padded_tile)
+        for tile, pad in row:
+            padded_tile = tile.add_padding(pad)
+            assert padded_tile.size == exact_size
 
-        # figure out by how much the image was upscaled by
-        up_h, up_w, _ = get_h_w_c(upscale_result)
-        current_scale = up_h // padded_tile.height
-        assert current_scale > 0
-        assert padded_tile.height * current_scale == up_h
-        assert padded_tile.width * current_scale == up_w
+            upscale_result = upscale(padded_tile.read_from(img), padded_tile)
 
+            # figure out by how much the image was upscaled by
+            up_h, up_w, _ = get_h_w_c(upscale_result)
+            current_scale = up_h // exact_h
+            assert current_scale > 0
+            assert exact_h * current_scale == up_h
+            assert exact_w * current_scale == up_w
+
+            if row_result is None:
+                # allocate the result image
+                scale = current_scale
+                row_result = TileBlender(
+                    width=w * scale,
+                    height=exact_h * scale,
+                    channels=c,
+                    direction=BlendDirection.X,
+                    blend_fn=half_sin_blend_fn,
+                )
+                row_overlap = TileOverlap(pad.top * scale, pad.bottom * scale)
+
+            assert current_scale == scale
+
+            row_result.add_tile(
+                upscale_result, TileOverlap(pad.left * scale, pad.right * scale)
+            )
+
+        assert row_result is not None
+        assert row_overlap is not None
         if result is None:
-            # allocate the result image
-            scale = current_scale
-            result = np.zeros((h * scale, w * scale, c), dtype=np.float32)
+            result = TileBlender(
+                width=w * scale,
+                height=h * scale,
+                channels=c,
+                direction=BlendDirection.Y,
+                blend_fn=half_sin_blend_fn,
+            )
 
-        assert current_scale == scale
-
-        # remove overlap padding
-        upscale_result = pad.scale(scale).remove_from(upscale_result)
-
-        # copy into result image
-        tile.scale(scale).write_into(result, upscale_result)
+        result.add_tile(row_result.get_result(), row_overlap)
 
     assert result is not None
 
     # remove initially added padding
-    return result
+    return result.get_result()
 
 
 def exact_split(
