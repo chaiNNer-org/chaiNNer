@@ -10,7 +10,7 @@ from nodes.groups import if_enum_group
 from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import threshold_group
 
 
 class ThresholdType(Enum):
@@ -30,7 +30,7 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
 }
 
 
-@adjustments_group.register(
+@threshold_group.register(
     schema_id="chainner:image:threshold",
     name="Threshold",
     description="Replaces pixels based on the threshold value. If the pixel value is smaller than the threshold, it is set to 0, otherwise it is set to the maximum value.",

@@ -9,7 +9,7 @@ from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import threshold_group
 
 
 class AdaptiveThresholdType(Enum):
@@ -34,7 +34,7 @@ _ADAPTIVE_METHOD_LABELS: dict[AdaptiveMethod, str] = {
 }
 
 
-@adjustments_group.register(
+@threshold_group.register(
     schema_id="chainner:image:threshold_adaptive",
     name="Threshold (Adaptive)",
     description="Similar to regular threshold, but determines the threshold for a pixel based on a small region around it.",
