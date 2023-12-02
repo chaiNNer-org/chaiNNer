@@ -23,8 +23,6 @@ export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 
 export type ExpressionJson =
     | boolean
-    | string
-    | number
     | TypeJson
     | ExpressionJson[]
     | UnionExpressionJson

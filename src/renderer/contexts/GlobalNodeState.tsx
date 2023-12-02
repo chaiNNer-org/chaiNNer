@@ -455,7 +455,9 @@ export const GlobalProvider = memo(
                 });
 
                 const result = await ipcRenderer.invoke('file-save-as-json', saveData, undefined);
-                if (result.kind === 'Canceled') return;
+                if (result.kind === 'Canceled') {
+                    return null;
+                }
             } catch (error) {
                 log.error(error);
 
