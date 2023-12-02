@@ -206,9 +206,9 @@ class TileBlender:
                 self.last_end_overlap = o.end
 
     def get_result(self) -> np.ndarray:
-        # if self.direction == BlendDirection.X:
-        #     assert self.offset == self.width
-        # else:
-        #     assert self.offset == self.height
+        if self.direction == BlendDirection.X:
+            assert self.offset == self.width
+        else:
+            assert self.offset == self.height
 
         return self.result
