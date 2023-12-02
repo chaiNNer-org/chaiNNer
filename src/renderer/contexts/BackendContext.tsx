@@ -58,7 +58,7 @@ interface BackendContextState {
 }
 
 export const BackendContext = createContext<Readonly<BackendContextState>>(
-    {} as BackendContextState
+    {} as BackendContextState,
 );
 
 interface BackendProviderProps {
@@ -111,7 +111,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
             supplier: () => ipcRenderer.invoke('refresh-nodes'),
             successEffect: setPeriodicRefresh,
         }),
-        []
+        [],
     );
 
     const nodesQuery = useQuery({
@@ -169,11 +169,11 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
                         type: AlertType.CRIT_ERROR,
                         title: t(
                             'error.title.unableToProcessNodes',
-                            'Unable to process backend nodes.'
+                            'Unable to process backend nodes.',
                         ),
                         message: `${t(
                             'error.message.criticalBackend',
-                            'A critical error occurred while processing the node data returned by the backend.'
+                            'A critical error occurred while processing the node data returned by the backend.',
                         )}\n\n${String(e)}`,
                     });
                 }
@@ -192,7 +192,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
                 type: AlertType.CRIT_ERROR,
                 message: `${t(
                     'error.message.criticalBackend',
-                    'A critical error occurred while processing the node data returned by the backend.'
+                    'A critical error occurred while processing the node data returned by the backend.',
                 )}\n\n${t('error.error', 'Error')}: ${message}`,
             });
         }
@@ -213,7 +213,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
     }, [nodesInfo?.functionDefinitions]);
     const schemaInputs = useMemo(
         () => new SchemaInputsMap(nodesInfo?.schemata.schemata ?? []),
-        [nodesInfo?.schemata]
+        [nodesInfo?.schemata],
     );
 
     let connectionState: 'connecting' | 'connected' | 'failed' = 'connecting';
@@ -284,7 +284,7 @@ export const BackendProvider = memo(
                     ownsBackendRef.current = value;
                 },
             }),
-            []
+            [],
         );
 
         const restartingRef = useRef(false);
@@ -293,13 +293,13 @@ export const BackendProvider = memo(
 
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            restartingRef
+            restartingRef,
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
         const featureStatesMaps = useMemo((): ReadonlyMap<FeatureId, FeatureState> => {
             return new Map(
-                featureStates.map((featureState) => [featureState.featureId, featureState])
+                featureStates.map((featureState) => [featureState.featureId, featureState]),
             );
         }, [featureStates]);
         const featuresMaps = useMemo((): ReadonlyMap<FeatureId, Feature> => {
@@ -307,7 +307,7 @@ export const BackendProvider = memo(
             return new Map(
                 nodesInfo.packages
                     .flatMap((p) => p.features)
-                    .map((feature) => [feature.id, feature])
+                    .map((feature) => [feature.id, feature]),
             );
         }, [nodesInfo]);
 
@@ -376,5 +376,5 @@ export const BackendProvider = memo(
         });
 
         return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
-    }
+    },
 );

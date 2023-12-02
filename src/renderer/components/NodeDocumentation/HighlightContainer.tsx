@@ -27,7 +27,7 @@ const HighlightedText = memo(({ text, regex }: { text: string; regex: RegExp }) 
             </Text>
         ) : (
             part
-        )
+        ),
     );
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -91,5 +91,5 @@ export const HighlightContainer = memo(
                 <SupportHighlighting>{children}</SupportHighlighting>
             </HighlightContext.Provider>
         );
-    }
+    },
 );

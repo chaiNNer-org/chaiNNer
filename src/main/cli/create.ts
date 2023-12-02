@@ -35,6 +35,6 @@ export const createCli = (command: () => Promise<void>) => {
                 log.error(error);
                 app.exit(1);
             }
-        }
+        },
     );
 };

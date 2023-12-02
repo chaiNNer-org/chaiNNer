@@ -126,7 +126,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
 
     const byCategories: ReadonlyMap<CategoryId, readonly NodeSchema[]> = useMemo(
         () => groupBy(getMatchingNodes(searchQuery, schemata, categories), 'category'),
-        [searchQuery, schemata, categories]
+        [searchQuery, schemata, categories],
     );
 
     const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
@@ -141,7 +141,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
             setSearchQuery('');
             onSelect(schema, targets.get(schema)!);
         },
-        [setSearchQuery, onSelect, targets]
+        [setSearchQuery, onSelect, targets],
     );
     const onEnterHandler = useCallback(() => {
         const nodes = [...byCategories.values()].flat();
@@ -276,7 +276,7 @@ const getConnectionTarget = (
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
     getNode: (id: string) => Node<NodeData> | undefined,
     nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
+    edges: Edge<EdgeData>[],
 ): ConnectionTarget | undefined => {
     if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
         return { type: 'none' };
@@ -306,12 +306,12 @@ const getConnectionTarget = (
             const downstreamIters = gatherDownstreamIteratorNodes(
                 getNode(connectingFrom.nodeId)!,
                 nodes,
-                edges
+                edges,
             );
             const upstreamIters = gatherUpstreamIteratorNodes(
                 getNode(connectingFrom.nodeId)!,
                 nodes,
-                edges
+                edges,
             );
             const hasIteratorLineage =
                 downstreamIters.size > 0 ||
@@ -368,7 +368,7 @@ const getConnectionTarget = (
 interface UsePaneNodeSearchMenuValue {
     readonly onConnectStart: (
         event: React.MouseEvent | React.TouchEvent,
-        handle: OnConnectStartParams
+        handle: OnConnectStartParams,
     ) => void;
     readonly onConnectStop: (event: MouseEvent | TouchEvent) => void;
     readonly onPaneContextMenu: (event: React.MouseEvent) => void;
@@ -380,7 +380,7 @@ interface Position {
 }
 
 export const usePaneNodeSearchMenu = (
-    wrapperRef: React.RefObject<HTMLDivElement>
+    wrapperRef: React.RefObject<HTMLDivElement>,
 ): UsePaneNodeSearchMenuValue => {
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
@@ -408,12 +408,12 @@ export const usePaneNodeSearchMenu = (
                     functionDefinitions,
                     getNode,
                     getNodes(),
-                    getEdges()
+                    getEdges(),
                 );
                 if (!target) return [];
 
                 return [[schema, target] as const];
-            })
+            }),
         );
     }, [
         schemata.schemata,
@@ -486,7 +486,7 @@ export const usePaneNodeSearchMenu = (
             project,
             setGlobalConnectingFrom,
             wrapperRef,
-        ]
+        ],
     );
 
     const menuProps: MenuProps = {
@@ -515,7 +515,7 @@ export const usePaneNodeSearchMenu = (
             setConnectingFrom(handle);
             setGlobalConnectingFrom(handle);
         },
-        [setConnectingFrom, setGlobalConnectingFrom, setMousePosition]
+        [setConnectingFrom, setGlobalConnectingFrom, setMousePosition],
     );
 
     const onConnectStop = useCallback(
@@ -536,7 +536,7 @@ export const usePaneNodeSearchMenu = (
             }
             setGlobalConnectingFrom(null);
         },
-        [menu, setGlobalConnectingFrom, setMousePosition]
+        [menu, setGlobalConnectingFrom, setMousePosition],
     );
 
     const onPaneContextMenu = useCallback(
@@ -548,7 +548,7 @@ export const usePaneNodeSearchMenu = (
             });
             menu.onContextMenu(event);
         },
-        [setConnectingFrom, menu, setMousePosition]
+        [setConnectingFrom, menu, setMousePosition],
     );
 
     return { onConnectStart, onConnectStop, onPaneContextMenu };

@@ -70,7 +70,7 @@ const NodeDocumentationModal = memo(() => {
     // search
     const searchIndex = useMemo(
         () => createSearchIndex(schemata.schemata, categories),
-        [schemata.schemata, categories]
+        [schemata.schemata, categories],
     );
     const [searchQuery, setSearchQuery] = useState('');
     const { searchScores, searchTerms } = useMemo(() => {
@@ -103,7 +103,7 @@ const NodeDocumentationModal = memo(() => {
         if (searchScores && searchScores.size > 0) {
             const highestScore = Math.max(...searchScores.values());
             const highestScoreSchemaId = [...searchScores.entries()].find(
-                ([, score]) => score === highestScore
+                ([, score]) => score === highestScore,
             )?.[0];
             if (highestScoreSchemaId) {
                 openNodeDocumentation(highestScoreSchemaId);

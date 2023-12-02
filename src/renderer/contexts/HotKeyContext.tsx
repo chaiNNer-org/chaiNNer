@@ -22,7 +22,7 @@ export const HotkeysProvider = memo(({ children }: React.PropsWithChildren<unkno
             setEnabled(value);
             ipcRenderer.send(value ? 'enable-menu' : 'disable-menu');
         },
-        [setEnabled]
+        [setEnabled],
     );
 
     const value = useMemoObject<HotkeysContextState>({

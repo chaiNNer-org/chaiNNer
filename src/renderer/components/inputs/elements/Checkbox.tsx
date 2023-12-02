@@ -45,5 +45,5 @@ export const Checkbox = memo(
                 </Box>
             </ChakraCheckbox>
         );
-    }
+    },
 );

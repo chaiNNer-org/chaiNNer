@@ -33,7 +33,7 @@ export const useInputRefactor = (
     nodeId: string | undefined,
     input: Omit<PartialBy<Input, 'id'>, 'type' | 'conversion'>,
     value: InputValue,
-    isConnected: boolean
+    isConnected: boolean,
 ): JSX.Element | null => {
     const { t } = useTranslation();
     const { createNode, createEdge } = useContext(GlobalContext);
@@ -86,12 +86,12 @@ export const useInputRefactor = (
                     });
                     createEdge(
                         { nodeId: valueNodeId, outputId: 0 as OutputId },
-                        { nodeId, inputId }
+                        { nodeId, inputId },
                     );
                 }}
             >
                 {t('inputs.extractValueIntoNode', 'Extract value into node')}
-            </MenuItem>
+            </MenuItem>,
         );
     }
 
@@ -113,13 +113,13 @@ export const useInputRefactor = (
                 }}
             >
                 {t('inputs.copyInputOverrideId', 'Copy Input Override Id')}
-            </MenuItem>
+            </MenuItem>,
         );
     }
 
     // handle dividers
     const finalOptions = refactoringOptions.filter(
-        (o, i) => o !== 'divider' || (i > 0 && refactoringOptions[i - 1] !== 'divider')
+        (o, i) => o !== 'divider' || (i > 0 && refactoringOptions[i - 1] !== 'divider'),
     );
 
     if (finalOptions.length === 0) return null;
@@ -128,7 +128,7 @@ export const useInputRefactor = (
             <MenuDivider />
             {finalOptions.map((o, i) =>
                 // eslint-disable-next-line react/no-array-index-key
-                o === 'divider' ? <MenuDivider key={`divider ${i}`} /> : o
+                o === 'divider' ? <MenuDivider key={`divider ${i}`} /> : o,
             )}
         </>
     );

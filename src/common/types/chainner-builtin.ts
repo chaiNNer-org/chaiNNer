@@ -60,7 +60,7 @@ class ReplacementString {
                     throw new Error(
                         'Invalid replacement pattern. {} is not a valid replacement.' +
                             ` Either specify a name or id number, or escape a single "{" as "{{".` +
-                            ` Full pattern: ${pattern}`
+                            ` Full pattern: ${pattern}`,
                     );
                 }
                 if (!contentPattern.test(interpolation)) {
@@ -68,7 +68,7 @@ class ReplacementString {
                         'Invalid replacement pattern.' +
                             ` "{${interpolation}}" is not a valid replacement.` +
                             ' Names and ids only allow letters and digits.' +
-                            ` Full pattern: ${pattern}`
+                            ` Full pattern: ${pattern}`,
                     );
                 }
 
@@ -101,7 +101,7 @@ class ReplacementString {
                     throw new Error(
                         'Unknown replacement.' +
                             ` There is no replacement with the name or id ${token.name}.` +
-                            ` Available replacements: ${[...replacements.keys()].join(', ')}.`
+                            ` Available replacements: ${[...replacements.keys()].join(', ')}.`,
                     );
                 }
             }
@@ -214,7 +214,7 @@ const regexReplaceImpl = (
     text: string,
     regexPattern: string,
     replacementPattern: string,
-    count: number
+    count: number,
 ): string | undefined => {
     // parse and validate before doing actual work
     const regex = new RRegex(regexPattern);
@@ -232,7 +232,7 @@ const regexReplaceImpl = (
             throw new Error(
                 'Invalid replacement pattern.' +
                     ` "{${name}}" is not a valid replacement.` +
-                    ` Available replacements: ${[...availableNames].join(', ')}.`
+                    ` Available replacements: ${[...availableNames].join(', ')}.`,
             );
         }
     }
@@ -295,7 +295,7 @@ export const regexReplace = wrapQuaternary<
                 text.value,
                 regexPattern.value,
                 replacementPattern.value,
-                count.value
+                count.value,
             );
             if (result !== undefined) {
                 return new StringLiteralType(result);
@@ -353,12 +353,12 @@ export const padStart = wrapTernary<StringPrimitive, Int, StringPrimitive, Strin
         if (padding.type !== 'literal') return StringType.instance;
         try {
             return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
-                literal(pyPadStart(text.value, i, padding.value))
+                literal(pyPadStart(text.value, i, padding.value)),
             );
         } catch {
             return NeverType.instance;
         }
-    }
+    },
 );
 export const padEnd = wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
     (text, width, padding) => {
@@ -366,12 +366,12 @@ export const padEnd = wrapTernary<StringPrimitive, Int, StringPrimitive, StringP
         if (padding.type !== 'literal') return StringType.instance;
         try {
             return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
-                literal(pyPadEnd(text.value, i, padding.value))
+                literal(pyPadEnd(text.value, i, padding.value)),
             );
         } catch {
             return NeverType.instance;
         }
-    }
+    },
 );
 export const padCenter = wrapTernary<StringPrimitive, Int, StringPrimitive, StringPrimitive>(
     (text, width, padding) => {
@@ -379,12 +379,12 @@ export const padCenter = wrapTernary<StringPrimitive, Int, StringPrimitive, Stri
         if (padding.type !== 'literal') return StringType.instance;
         try {
             return handleNumberLiterals<StringPrimitive>(width, StringType.instance, (i) =>
-                literal(pyPadCenter(text.value, i, padding.value))
+                literal(pyPadCenter(text.value, i, padding.value)),
             );
         } catch {
             return NeverType.instance;
         }
-    }
+    },
 );
 
 export const splitFilePath = wrapScopedUnary(
@@ -406,7 +406,7 @@ export const splitFilePath = wrapScopedUnary(
             });
         }
         return createInstance(splitFilePathDesc);
-    }
+    },
 );
 
 export const parseColorJson = wrapScopedUnary(
@@ -428,5 +428,5 @@ export const parseColorJson = wrapScopedUnary(
             return NeverType.instance;
         }
         return createInstance(colorDesc);
-    }
+    },
 );

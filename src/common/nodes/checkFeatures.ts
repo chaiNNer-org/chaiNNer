@@ -5,7 +5,7 @@ import { VALID, Validity, invalid } from '../Validity';
 export const checkFeatures = (
     features: readonly FeatureId[],
     featureMap: ReadonlyMap<FeatureId, Feature>,
-    featureStates: ReadonlyMap<FeatureId, FeatureState>
+    featureStates: ReadonlyMap<FeatureId, FeatureState>,
 ): Validity => {
     const nonEnabledFeatures = features.filter((f) => !featureStates.get(f)?.enabled);
     if (nonEnabledFeatures.length === 0) return VALID;
@@ -20,6 +20,6 @@ export const checkFeatures = (
     }
 
     return invalid(
-        `${prefix} required to run this node. See the dependency manager for more details.`
+        `${prefix} required to run this node. See the dependency manager for more details.`,
     );
 };

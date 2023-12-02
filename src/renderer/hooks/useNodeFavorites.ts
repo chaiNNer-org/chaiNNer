@@ -13,7 +13,7 @@ export interface UseNodeFavorites {
 export const useNodeFavorites = () => {
     const [favoritesArray, setFavorites] = useContextSelector(
         SettingsContext,
-        (c) => c.useNodeFavorites
+        (c) => c.useNodeFavorites,
     );
 
     const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
@@ -22,13 +22,13 @@ export const useNodeFavorites = () => {
         (...schemaIds: SchemaId[]) => {
             setFavorites((prev) => [...new Set([...prev, ...schemaIds])]);
         },
-        [setFavorites]
+        [setFavorites],
     );
     const removeFavorite = useCallback(
         (schemaId: SchemaId) => {
             setFavorites((prev) => prev.filter((id) => id !== schemaId));
         },
-        [setFavorites]
+        [setFavorites],
     );
 
     return useMemoObject<UseNodeFavorites>({ favorites, addFavorites, removeFavorite });

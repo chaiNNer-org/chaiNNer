@@ -27,7 +27,7 @@ export interface TypeInfo {
 
 const useTypeInfo = (id: string): TypeInfo => {
     const instance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
+        c.typeState.functions.get(id),
     );
 
     const connectedInputsString = useContextSelector(GlobalVolatileContext, (c) => {
@@ -48,13 +48,13 @@ const useTypeInfo = (id: string): TypeInfo => {
 export const testInputConditionTypeInfo = (
     condition: Condition,
     inputData: InputData,
-    typeInfo: TypeInfo
+    typeInfo: TypeInfo,
 ): boolean => {
     return testInputCondition(
         condition,
         inputData,
         (id) => typeInfo.instance?.inputs.get(id),
-        (id) => typeInfo.connectedInputs.has(id)
+        (id) => typeInfo.connectedInputs.has(id),
     );
 };
 
@@ -87,11 +87,11 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
 
     const setInputHeight = useMemo(
         () => setNodeInputHeight.bind(null, id),
-        [id, setNodeInputHeight]
+        [id, setNodeInputHeight],
     );
     const setOutputHeight = useMemo(
         () => setNodeOutputHeight.bind(null, id),
-        [id, setNodeOutputHeight]
+        [id, setNodeOutputHeight],
     );
 
     const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
@@ -100,12 +100,12 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
     const schema = schemata.get(schemaId);
 
     const connectedString = useContextSelector(GlobalVolatileContext, (c) =>
-        JSON.stringify(c.getConnected(id))
+        JSON.stringify(c.getConnected(id)),
     );
     const [connectedInputs, connectedOutputs] = useMemo(() => {
         const [inputsSet, outputsSet] = JSON.parse(connectedString) as [
             IdSet<InputId>,
-            IdSet<OutputId>
+            IdSet<OutputId>,
         ];
 
         return [IdSet.toSet(inputsSet), IdSet.toSet(outputsSet)];
@@ -115,7 +115,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
 
     const testCondition = useCallback(
         (condition: Condition) => testInputConditionTypeInfo(condition, inputData, type),
-        [inputData, type]
+        [inputData, type],
     );
 
     return useMemoObject<NodeState>({

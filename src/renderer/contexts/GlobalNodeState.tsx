@@ -191,11 +191,11 @@ export const GlobalProvider = memo(
 
         const changeNodes = useMemo(
             () => wrapRefChanges(setNodesRef, addNodeChanges),
-            [addNodeChanges]
+            [addNodeChanges],
         );
         const changeEdges = useMemo(
             () => wrapRefChanges(setEdgesRef, addEdgeChanges),
-            [addEdgeChanges]
+            [addEdgeChanges],
         );
 
         const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
@@ -232,7 +232,7 @@ export const GlobalProvider = memo(
                     return { map };
                 });
             },
-            [setManualOutputTypes, scope]
+            [setManualOutputTypes, scope],
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
@@ -255,7 +255,7 @@ export const GlobalProvider = memo(
                     getEdges(),
                     manualOutputTypes.map,
                     functionDefinitions,
-                    typeStateRef.current
+                    typeStateRef.current,
                 );
                 setTypeState(types);
                 typeStateRef.current = types;
@@ -284,7 +284,7 @@ export const GlobalProvider = memo(
             if (viewportInitialized) {
                 const cachedViewport = getSessionStorageOrDefault<Viewport | null>(
                     'cachedViewport',
-                    null
+                    null,
                 );
                 if (cachedViewport) setViewport(cachedViewport);
             }
@@ -321,7 +321,7 @@ export const GlobalProvider = memo(
                 setSavePathInternal(path ?? null);
                 if (path) pushOpenPath(path);
             },
-            [setSavePathInternal, pushOpenPath]
+            [setSavePathInternal, pushOpenPath],
         );
 
         const [collidingEdge, setCollidingEdge] = useState<string | undefined>();
@@ -381,7 +381,7 @@ export const GlobalProvider = memo(
                     return newNodes;
                 });
             },
-            [changeNodes]
+            [changeNodes],
         );
 
         const dumpState = useCallback((): SaveData => {
@@ -402,7 +402,7 @@ export const GlobalProvider = memo(
                         const result = await ipcRenderer.invoke(
                             'file-save-as-json',
                             saveData,
-                            savePath || (openRecent[0] && dirname(openRecent[0]))
+                            savePath || (openRecent[0] && dirname(openRecent[0])),
                         );
                         if (result.kind === 'Canceled') {
                             return SaveResult.Canceled;
@@ -431,7 +431,7 @@ export const GlobalProvider = memo(
                 savePath,
                 sendToast,
                 setSavePath,
-            ]
+            ],
         );
         const exportTemplate = useCallback(async () => {
             try {
@@ -501,7 +501,7 @@ export const GlobalProvider = memo(
                         }
                     })
                     .catch(log.error);
-            }, [performSave])
+            }, [performSave]),
         );
 
         useIpcRendererListener(
@@ -514,7 +514,7 @@ export const GlobalProvider = memo(
                         }
                     })
                     .catch(log.error);
-            }, [performSave])
+            }, [performSave]),
         );
 
         const setStateFromJSON = useCallback(
@@ -542,7 +542,7 @@ export const GlobalProvider = memo(
                 const validEdges = savedData.edges
                     // Filter out any edges that do not have a source or target node associated with it
                     .filter(
-                        (edge) => validNodeIds.has(edge.target) && validNodeIds.has(edge.source)
+                        (edge) => validNodeIds.has(edge.target) && validNodeIds.has(edge.source),
                     )
                     // Un-animate all edges, if was accidentally saved when animated
                     .map((edge) => (edge.animated ? { ...edge, animated: false } : edge));
@@ -564,7 +564,7 @@ export const GlobalProvider = memo(
                     });
                 }
                 const deprecatedNodes = [...new Set(validNodes.map((n) => n.data.schemaId))].filter(
-                    (id) => schemata.get(id).deprecated
+                    (id) => schemata.get(id).deprecated,
                 );
                 if (deprecatedNodes.length > 0) {
                     const list = deprecatedNodes
@@ -605,7 +605,7 @@ export const GlobalProvider = memo(
                 sendAlert,
                 setSavePath,
                 setViewport,
-            ]
+            ],
         );
         const setStateFromJSONRef = useRef(setStateFromJSON);
         setStateFromJSONRef.current = setStateFromJSON;
@@ -634,7 +634,7 @@ export const GlobalProvider = memo(
             'file-new',
             useCallback(() => {
                 clearState().catch(log.error);
-            }, [clearState])
+            }, [clearState]),
         );
 
         useAsyncEffect(
@@ -652,7 +652,7 @@ export const GlobalProvider = memo(
                     }
                 }
             },
-            [removeRecentPath, sendAlert]
+            [removeRecentPath, sendAlert],
         );
 
         // Register Open File event handler
@@ -672,20 +672,20 @@ export const GlobalProvider = memo(
                         });
                     }
                 },
-                [removeRecentPath, sendAlert]
-            )
+                [removeRecentPath, sendAlert],
+            ),
         );
 
         // Register Save/Save-As event handlers
         useIpcRendererListener(
             'file-save-as',
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            useCallback(() => performSave(true), [performSave])
+            useCallback(() => performSave(true), [performSave]),
         );
         useIpcRendererListener(
             'file-save',
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            useCallback(() => performSave(false), [performSave])
+            useCallback(() => performSave(false), [performSave]),
         );
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         useIpcRendererListener('file-export-template', exportTemplate);
@@ -715,7 +715,7 @@ export const GlobalProvider = memo(
                     setFirstLoad(false);
                 }
             },
-            [firstLoad, sendAlert, setFirstLoad, startupTemplate]
+            [firstLoad, sendAlert, setFirstLoad, startupTemplate],
         );
 
         const removeNodesById = useCallback(
@@ -729,17 +729,17 @@ export const GlobalProvider = memo(
                 const toRemove = new Set(filteredIds);
                 changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
                 changeEdges((edges) =>
-                    edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
+                    edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target)),
                 );
             },
-            [changeNodes, changeEdges, getNode]
+            [changeNodes, changeEdges, getNode],
         );
 
         const removeEdgeById = useCallback(
             (id: string) => {
                 changeEdges((edges) => edges.filter((e) => e.id !== id));
             },
-            [changeEdges]
+            [changeEdges],
         );
 
         const selectNode = useCallback(
@@ -750,10 +750,10 @@ export const GlobalProvider = memo(
                             return !n.selected ? { ...n, selected: true } : n;
                         }
                         return n.selected ? { ...n, selected: false } : n;
-                    })
+                    }),
                 );
             },
-            [changeNodes]
+            [changeNodes],
         );
 
         const createNode = useCallback(
@@ -766,7 +766,7 @@ export const GlobalProvider = memo(
                     ];
                 });
             },
-            [changeNodes, schemata]
+            [changeNodes, schemata],
         );
 
         const createConnection = useCallback(
@@ -790,7 +790,7 @@ export const GlobalProvider = memo(
                     newEdge,
                 ]);
             },
-            [changeEdges]
+            [changeEdges],
         );
 
         const createEdge = useCallback(
@@ -802,7 +802,7 @@ export const GlobalProvider = memo(
                     targetHandle: stringifyTargetHandle(to),
                 });
             },
-            [createConnection]
+            [createConnection],
         );
 
         const isValidConnection = useCallback(
@@ -835,13 +835,13 @@ export const GlobalProvider = memo(
                     const schema = schemata.get(targetNode.data.schemaId);
                     const input = schema.inputs.find((i) => i.id === targetHandleId)!;
                     const inputType = withoutNull(
-                        targetFn.definition.inputDefaults.get(targetHandleId)!
+                        targetFn.definition.inputDefaults.get(targetHandleId)!,
                     );
 
                     const error = simpleError(outputType, inputType);
                     if (error) {
                         return invalid(
-                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
+                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`,
                         );
                     }
 
@@ -851,7 +851,7 @@ export const GlobalProvider = memo(
                     return invalid(
                         `Input ${
                             input.label
-                        } cannot be connected with an incompatible value. ${trace.join(' ')}`
+                        } cannot be connected with an incompatible value. ${trace.join(' ')}`,
                     );
                 }
 
@@ -888,23 +888,23 @@ export const GlobalProvider = memo(
                 const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(
                     sourceNode,
                     nodes,
-                    edges
+                    edges,
                 );
                 const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(
                     sourceNode,
                     nodes,
-                    edges
+                    edges,
                 );
 
                 const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(
                     targetNode,
                     nodes,
-                    edges
+                    edges,
                 );
                 const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(
                     targetNode,
                     nodes,
-                    edges
+                    edges,
                 );
 
                 const sourceHasIteratorLineage =
@@ -929,10 +929,10 @@ export const GlobalProvider = memo(
                 ]);
 
                 const intersectionSource = new Set(
-                    [...sourceIters].filter((x) => targetIters.has(x))
+                    [...sourceIters].filter((x) => targetIters.has(x)),
                 );
                 const intersectionTarget = new Set(
-                    [...targetIters].filter((x) => sourceIters.has(x))
+                    [...targetIters].filter((x) => sourceIters.has(x)),
                 );
 
                 const sourceAndTargetShareSameLineage =
@@ -948,7 +948,7 @@ export const GlobalProvider = memo(
 
                 return VALID;
             },
-            [typeState.functions, getNode, getNodes, getEdges, schemata]
+            [typeState.functions, getNode, getNodes, getEdges, schemata],
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();
@@ -959,7 +959,7 @@ export const GlobalProvider = memo(
         ]);
         const getInputHash = useCallback(
             (nodeId: string): string => inputHashesRef.current.get(nodeId) ?? 'invalid node',
-            [inputHashesRef]
+            [inputHashesRef],
         );
 
         const setNodeInputValue = useCallback(
@@ -978,7 +978,7 @@ export const GlobalProvider = memo(
                 });
                 addInputDataChanges();
             },
-            [modifyNode, addInputDataChanges]
+            [modifyNode, addInputDataChanges],
         );
 
         const setNodeInputHeight = useCallback(
@@ -991,7 +991,7 @@ export const GlobalProvider = memo(
                     return withNewData(old, 'inputHeight', newInputHeight);
                 });
             },
-            [modifyNode]
+            [modifyNode],
         );
 
         const setNodeOutputHeight = useCallback(
@@ -1004,7 +1004,7 @@ export const GlobalProvider = memo(
                     return withNewData(old, 'outputHeight', newOutputHeight);
                 });
             },
-            [modifyNode]
+            [modifyNode],
         );
 
         const setNodeWidth = useCallback(
@@ -1013,7 +1013,7 @@ export const GlobalProvider = memo(
                     return withNewData(old, 'nodeWidth', width);
                 });
             },
-            [modifyNode]
+            [modifyNode],
         );
 
         const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
@@ -1036,7 +1036,7 @@ export const GlobalProvider = memo(
                     });
                 }
             },
-            [setAnimatedNodes]
+            [setAnimatedNodes],
         );
         const unAnimate = useCallback(
             (nodes?: Iterable<string>): void => {
@@ -1058,11 +1058,11 @@ export const GlobalProvider = memo(
                 } else {
                     setAnimatedNodes(EMPTY_SET);
                     setEdgesRef.current((edges) =>
-                        edges.map((e) => (e.animated ? { ...e, animated: false } : e))
+                        edges.map((e) => (e.animated ? { ...e, animated: false } : e)),
                     );
                 }
             },
-            [setAnimatedNodes]
+            [setAnimatedNodes],
         );
 
         const toggleNodeLock = useCallback(
@@ -1077,7 +1077,7 @@ export const GlobalProvider = memo(
                     };
                 });
             },
-            [modifyNode]
+            [modifyNode],
         );
 
         const connectedInputsMap = useMemo(
@@ -1111,12 +1111,12 @@ export const GlobalProvider = memo(
                 });
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            [edgeChanges, getEdges]
+            [edgeChanges, getEdges],
         );
         const getConnected = useCallback(
             (id: string): readonly [IdSet<InputId>, IdSet<OutputId>] =>
                 connectedInputsMap().get(id) ?? EMPTY_CONNECTED,
-            [connectedInputsMap]
+            [connectedInputsMap],
         );
 
         const duplicateNodes = useCallback(
@@ -1130,7 +1130,7 @@ export const GlobalProvider = memo(
                 changeNodes((nodes) => {
                     const newNodes = copyNodes(
                         nodes.filter((n) => nodesToCopy.has(n.id)),
-                        deriveId
+                        deriveId,
                     );
                     const derivedIds = ids.map((id) => deriveId(id));
                     newNodes.forEach((n) => {
@@ -1145,7 +1145,7 @@ export const GlobalProvider = memo(
                         edges.filter((e) => {
                             return nodesToCopy.has(e.target) && nodesToCopy.has(e.source);
                         }),
-                        deriveId
+                        deriveId,
                     );
 
                     if (withInputEdges) {
@@ -1165,14 +1165,14 @@ export const GlobalProvider = memo(
                                     targetHandle,
                                     selected: false,
                                 };
-                            })
+                            }),
                         );
                     }
 
                     return [...setSelected(edges, false), ...newEdge];
                 });
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges],
         );
 
         const clearNodes = useCallback(
@@ -1182,7 +1182,7 @@ export const GlobalProvider = memo(
                         return withNewData(
                             old,
                             'inputData',
-                            schemata.getDefaultInput(old.data.schemaId)
+                            schemata.getDefaultInput(old.data.schemaId),
                         );
                     });
                     outputDataActions.delete(id);
@@ -1190,7 +1190,7 @@ export const GlobalProvider = memo(
                     backend.clearNodeCacheIndividual(id).catch(log.error);
                 });
             },
-            [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
+            [modifyNode, addInputDataChanges, outputDataActions, backend, schemata],
         );
 
         const setNodeDisabled = useCallback(
@@ -1199,7 +1199,7 @@ export const GlobalProvider = memo(
                     return withNewData(n, 'isDisabled', isDisabled);
                 });
             },
-            [modifyNode]
+            [modifyNode],
         );
 
         const [viewportExportPadding] = useViewportExportPadding;
@@ -1219,7 +1219,7 @@ export const GlobalProvider = memo(
                     .then(saveAs)
                     .catch(log.error);
             },
-            [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
+            [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast],
         );
         const exportViewportScreenshot = useCallback(() => {
             const currentChainName = savePath ? parse(savePath).name : 'Untitled';
@@ -1265,7 +1265,7 @@ export const GlobalProvider = memo(
             const nodesToCopy = getNodes().filter((n) => n.selected);
             duplicateNodes(
                 nodesToCopy.map((n) => n.id),
-                true
+                true,
             );
         }, [getNodes, duplicateNodes]);
 
@@ -1291,8 +1291,8 @@ export const GlobalProvider = memo(
                         exportViewportScreenshotToClipboard();
                     }
                 },
-                [exportViewportScreenshot, exportViewportScreenshotToClipboard]
-            )
+                [exportViewportScreenshot, exportViewportScreenshotToClipboard],
+            ),
         );
         useHotkeys('ctrl+a, cmd+a', selectAllFn);
 
@@ -1305,7 +1305,7 @@ export const GlobalProvider = memo(
             removeNodesById(
                 getNodes()
                     .filter((n) => !schemata.has(n.data.schemaId))
-                    .map((n) => n.id)
+                    .map((n) => n.id),
             );
         }, [schemata, getNodes, removeNodesById]);
 
@@ -1369,5 +1369,5 @@ export const GlobalProvider = memo(
                 </div>
             </GlobalVolatileContext.Provider>
         );
-    }
+    },
 );

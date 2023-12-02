@@ -110,7 +110,7 @@ const toV03 = (data) => {
                     newElement.data.category = newCategory;
                 } catch (error) {
                     log.warn(
-                        `File contains invalid node of type "${newElement.data.type}" that could not be converted.`
+                        `File contains invalid node of type "${newElement.data.type}" that could not be converted.`,
                     );
                 }
                 return newElement;

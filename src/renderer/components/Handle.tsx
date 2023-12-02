@@ -87,7 +87,7 @@ const HandleElement = memo(
                 )}
             </Tooltip>
         );
-    }
+    },
 );
 
 const Div = chakra('div', {
@@ -173,5 +173,5 @@ export const Handle = memo(
                 onContextMenu={noContextMenu}
             />
         );
-    }
+    },
 );

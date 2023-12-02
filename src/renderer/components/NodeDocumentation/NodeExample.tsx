@@ -27,7 +27,7 @@ import { NodeHeader } from '../node/NodeHeader';
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
 const useStateForSchema = function <T>(
     schema: NodeSchema,
-    defaultValue: T
+    defaultValue: T,
 ): [T, (value: (prev: T) => T) => void] {
     const [state, setState] = useState<{ value: T; schema: NodeSchema }>({
         value: defaultValue,
@@ -43,7 +43,7 @@ const useStateForSchema = function <T>(
                 };
             });
         },
-        [schema, defaultValue]
+        [schema, defaultValue],
     );
 
     const value = state.schema === schema ? state.value : defaultValue;
@@ -67,40 +67,40 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         (inputId: InputId, value: InputValue): void => {
             setInputData((prev) => ({ ...prev, [inputId]: value }));
         },
-        [setInputData]
+        [setInputData],
     );
 
     const [inputHeight, setInputHeight] = useStateForSchema<InputHeight>(
         selectedSchema,
-        EMPTY_OBJECT
+        EMPTY_OBJECT,
     );
     const setSingleInputHeight = useCallback(
         (inputId: InputId, height: number): void => {
             setInputHeight((prev) => ({ ...prev, [inputId]: height }));
         },
-        [setInputHeight]
+        [setInputHeight],
     );
 
     const [nodeWidth, setNodeWidth] = useStateForSchema<number | undefined>(
         selectedSchema,
-        undefined
+        undefined,
     );
     const setWidth = useCallback(
         (width: number): void => {
             setNodeWidth((prev) => (prev === undefined ? width : Math.max(prev, width)));
         },
-        [setNodeWidth]
+        [setNodeWidth],
     );
 
     const [outputHeight, setOutputHeight] = useStateForSchema<OutputHeight>(
         selectedSchema,
-        EMPTY_OBJECT
+        EMPTY_OBJECT,
     );
     const setSingleOutputHeight = useCallback(
         (outputId: OutputId, height: number): void => {
             setOutputHeight((prev) => ({ ...prev, [outputId]: height }));
         },
-        [setOutputHeight]
+        [setOutputHeight],
     );
 
     const nodeIdPrefix = 'FakeId ';
@@ -123,7 +123,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
             new Map([[nodeId, node]]),
             EMPTY_ARRAY,
             EMPTY_MAP,
-            functionDefinitions
+            functionDefinitions,
         );
     }, [nodeId, selectedSchema, inputData, functionDefinitions]);
 
@@ -133,7 +133,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
     };
 
     const requiredGenericInputs = new Set(
-        selectedSchema.inputs.filter((i) => !i.optional && i.kind === 'generic').map((i) => i.id)
+        selectedSchema.inputs.filter((i) => !i.optional && i.kind === 'generic').map((i) => i.id),
     );
     const validity = checkNodeValidity({
         schema: selectedSchema,

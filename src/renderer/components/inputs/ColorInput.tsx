@@ -113,7 +113,7 @@ const RgbOrRgbaPicker = memo(
                 </VStack>
             </HStack>
         );
-    }
+    },
 );
 
 interface PickerFor<C extends ColorJson> {
@@ -129,7 +129,7 @@ const GrayPicker = memo(
             (value: number) => {
                 onChange({ kind: 'grayscale', values: [value / 255] });
             },
-            [onChange]
+            [onChange],
         );
         const value = Math.round(color.values[0] * 255);
 
@@ -159,7 +159,7 @@ const GrayPicker = memo(
                 </HStack>
             </HStack>
         );
-    }
+    },
 );
 const RgbaPicker = memo(
     ({ color, onChange, compare, kindSelector }: PickerFor<RgbColorJson | RgbaColorJson>) => {
@@ -173,7 +173,7 @@ const RgbaPicker = memo(
                     onChange({ kind: 'rgb', values: [r / 255, g / 255, b / 255] });
                 }
             },
-            [onChange, originalAlpha]
+            [onChange, originalAlpha],
         );
 
         let alpha;
@@ -204,7 +204,7 @@ const RgbaPicker = memo(
                 onChange={onChangeRgb}
             />
         );
-    }
+    },
 );
 
 const ColorPickerContent = memo(
@@ -223,7 +223,7 @@ const ColorPickerContent = memo(
                 // eslint-disable-next-line no-param-reassign
                 internalColor.current = value;
             },
-            [internalColor]
+            [internalColor],
         );
         useEffect(() => setColor(outsideColor), [outsideColor, setColor]);
 
@@ -254,7 +254,7 @@ const ColorPickerContent = memo(
                 onChange={setColor}
             />
         );
-    }
+    },
 );
 
 interface ColorPickerProps {
@@ -339,7 +339,7 @@ export const ColorInput = memo(
 
         const onChange = useCallback(
             (newColor: ColorJson) => setValue(JSON.stringify(newColor)),
-            [setValue]
+            [setValue],
         );
 
         return (
@@ -368,5 +368,5 @@ export const ColorInput = memo(
                 </Box>
             </WithoutLabel>
         );
-    }
+    },
 );

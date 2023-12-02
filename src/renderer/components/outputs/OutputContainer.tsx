@@ -29,7 +29,7 @@ export const OutputHandle = memo(
             (connection: Readonly<Connection>): boolean => {
                 return isValidConnection(connection).isValid;
             },
-            [isValidConnection]
+            [isValidConnection],
         );
 
         const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
@@ -71,7 +71,7 @@ export const OutputHandle = memo(
                 />
             </Center>
         );
-    }
+    },
 );
 
 interface OutputContainerProps {
@@ -155,5 +155,5 @@ export const OutputContainer = memo(
                 <Box pb={generic ? 0 : 1}>{contents}</Box>
             </Box>
         );
-    }
+    },
 );

@@ -61,5 +61,5 @@ export const ColorCompare = memo(
                 </Tooltip>
             </ButtonGroup>
         );
-    }
+    },
 );

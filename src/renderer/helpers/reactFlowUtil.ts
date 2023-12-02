@@ -13,7 +13,7 @@ export interface NodeProto {
 export const createNode = (
     { id = createUniqueId(), position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
-    selected = false
+    selected = false,
 ): Node<NodeData> => {
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
@@ -32,7 +32,7 @@ export const createNode = (
 
 export const snapToGrid = (
     position: Readonly<XYPosition>,
-    snapToGridAmount: number
+    snapToGridAmount: number,
 ): XYPosition => ({
     x: position.x - (position.x % snapToGridAmount),
     y: position.y - (position.y % snapToGridAmount),
@@ -40,14 +40,14 @@ export const snapToGrid = (
 
 export const isSnappedToGrid = (
     position: Readonly<XYPosition>,
-    snapToGridAmount: number
+    snapToGridAmount: number,
 ): boolean => position.x % snapToGridAmount === 0 && position.y % snapToGridAmount === 0;
 
 export const copyNode = (node: Readonly<Node<NodeData>>): Node<Mutable<NodeData>> => deepCopy(node);
 export const withNewData = <K extends keyof NodeData>(
     node: Node<NodeData>,
     key: K,
-    value: NodeData[K]
+    value: NodeData[K],
 ): Node<NodeData> => {
     if (node.data[key] === value) {
         return node;
@@ -60,13 +60,13 @@ export const withNewDataMap = (node: Node<NodeData>, update: Partial<NodeData>):
 
 export const setSelected = <T extends { selected?: boolean }>(
     selectable: readonly T[],
-    selected: boolean
+    selected: boolean,
 ): T[] => selectable.map((s) => ({ ...s, selected }));
 
 export const copyNodes = (
     nodesToCopy: readonly Node<NodeData>[],
     deriveNodeId: (oldId: string) => string,
-    modifyPositions = true
+    modifyPositions = true,
 ): Mutable<Node<NodeData>>[] => {
     const offsetX = 50 * (Math.random() * 2 - 1);
     const offsetY = 50 * (Math.random() * 2 - 1);
@@ -89,7 +89,7 @@ export const copyNodes = (
 };
 export const copyEdges = (
     edgesToCopy: readonly Edge<EdgeData>[],
-    deriveNodeId: (oldId: string) => string
+    deriveNodeId: (oldId: string) => string,
 ): Mutable<Edge<EdgeData>>[] => {
     return edgesToCopy.map((e) => {
         let { source, sourceHandle, target, targetHandle } = e;

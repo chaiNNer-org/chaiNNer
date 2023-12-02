@@ -16,7 +16,7 @@ interface Settings {
         snapToGrid: boolean,
         setSnapToGrid: SetState<boolean>,
         snapToGridAmount: number,
-        setSnapToGridAmount: SetState<number>
+        setSnapToGridAmount: SetState<number>,
     ];
     useStartupTemplate: GetSetState<string>;
     useSelectTheme: GetSetState<string>;
@@ -39,7 +39,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
     const useSystemPythonLocation = useMemoArray(
-        useLocalStorage<string | null>('system-python-location', null)
+        useLocalStorage<string | null>('system-python-location', null),
     );
     const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup-2', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
@@ -68,18 +68,18 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     // Node Settings
     const useNodeFavorites = useMemoArray(
-        useLocalStorage<readonly SchemaId[]>('node-favorites', [])
+        useLocalStorage<readonly SchemaId[]>('node-favorites', []),
     );
     const useNodeSelectorCollapsed = useMemoArray(
-        useLocalStorage('node-selector-collapsed', false)
+        useLocalStorage('node-selector-collapsed', false),
     );
 
     const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
     const useEnableHardwareAcceleration = useMemoArray(
-        useLocalStorage('enable-hardware-acceleration', false)
+        useLocalStorage('enable-hardware-acceleration', false),
     );
     const useAllowMultipleInstances = useMemoArray(
-        useLocalStorage('allow-multiple-instances', false)
+        useLocalStorage('allow-multiple-instances', false),
     );
 
     const contextValue = useMemoObject<Settings>({

@@ -62,5 +62,5 @@ export const ColorBoxButton = forwardRef<ColorBoxButtonProps, 'button'>(
                 </Text>
             </Button>
         );
-    }
+    },
 );

@@ -17,7 +17,7 @@ export const useDisabled = (data: NodeData): UseDisabled => {
     const { id, isDisabled, schemaId } = data;
 
     const status = useContextSelector(GlobalVolatileContext, (c) =>
-        getDisabledStatus(data, c.effectivelyDisabledNodes)
+        getDisabledStatus(data, c.effectivelyDisabledNodes),
     );
     const { setNodeDisabled } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
@@ -30,7 +30,7 @@ export const useDisabled = (data: NodeData): UseDisabled => {
         status,
         toggleDirectlyDisabled: useCallback(
             () => setNodeDisabled(id, !isDisabled),
-            [setNodeDisabled, id, isDisabled]
+            [setNodeDisabled, id, isDisabled],
         ),
     });
 };

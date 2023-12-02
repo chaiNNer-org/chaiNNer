@@ -14,7 +14,7 @@ export interface OnStdio {
 export const runPip = async (
     { python }: PythonInfo,
     args: readonly string[],
-    onStdio: OnStdio = {}
+    onStdio: OnStdio = {},
 ): Promise<string> => {
     const { onStdout = noop, onStderr = (data) => log.error(data) } = onStdio;
 
@@ -71,7 +71,7 @@ export const runPipInstall = async (
     info: PythonInfo,
     dependencies: readonly PyPiPackage[],
     onProgress?: (percentage: number) => void,
-    onStdio?: OnStdio
+    onStdio?: OnStdio,
 ): Promise<void> => {
     onProgress?.(0);
     if (onProgress === undefined) {
@@ -82,7 +82,7 @@ export const runPipInstall = async (
         await runPip(
             info,
             ['install', '--upgrade', ...deps, ...findLinks, '--no-cache-dir'],
-            onStdio
+            onStdio,
         );
     } else {
         const { python } = info;
@@ -98,7 +98,7 @@ export const runPipUninstall = async (
     info: PythonInfo,
     dependencies: readonly PyPiPackage[],
     onProgress?: (percentage: number) => void,
-    onStdio?: OnStdio
+    onStdio?: OnStdio,
 ): Promise<void> => {
     onProgress?.(10);
     const deps = dependencies.map((p) => p.pypiName);

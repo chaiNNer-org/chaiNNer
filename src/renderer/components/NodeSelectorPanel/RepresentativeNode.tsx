@@ -167,5 +167,5 @@ export const RepresentativeNode = memo(
                 </Box>
             </Center>
         );
-    }
+    },
 );

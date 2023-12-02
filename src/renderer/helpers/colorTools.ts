@@ -43,7 +43,7 @@ const rgbToHex = (rgb: [number, number, number]): string =>
 const interpolateColorImpl = (
     color1: [number, number, number],
     color2: [number, number, number],
-    factor = 0.5
+    factor = 0.5,
 ): [number, number, number] => {
     const result = color1.slice() as [number, number, number];
     for (let i = 0; i < 3; i += 1) {

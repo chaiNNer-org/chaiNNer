@@ -30,7 +30,7 @@ export interface InvokeChannels {
         [
             filters: Electron.FileFilter[],
             allowMultiple: boolean | undefined,
-            dirPath: string | undefined
+            dirPath: string | undefined,
         ]
     >;
 
@@ -96,28 +96,28 @@ interface SafeIpcMain extends Electron.IpcMain {
         listener: (
             event: IpcMainInvokeEvent,
             ...args: ChannelArgs<C>
-        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>
+        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>,
     ): void;
     handleOnce<C extends keyof InvokeChannels>(
         channel: C,
         listener: (
             event: IpcMainInvokeEvent,
             ...args: ChannelArgs<C>
-        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>
+        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>,
     ): void;
     on<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void,
     ): this;
     once<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void,
     ): this;
     removeAllListeners(channel?: keyof SendChannels): this;
     removeHandler(channel: keyof InvokeChannels): void;
     removeListener<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcMainEvent | IpcMainInvokeEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcMainEvent | IpcMainInvokeEvent, ...args: ChannelArgs<C>) => void,
     ): this;
 }
 
@@ -128,17 +128,17 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
     ): Promise<ChannelReturn<C>>;
     on<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void,
     ): this;
     once<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void,
     ): this;
     postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePort[]): void;
     removeAllListeners(channel: keyof SendChannels): this;
     removeListener<C extends keyof SendChannels>(
         channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
+        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void,
     ): this;
     send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
     sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;

@@ -102,5 +102,5 @@ export const NumberInput = memo(
                 </HStack>
             </MaybeLabel>
         );
-    }
+    },
 );

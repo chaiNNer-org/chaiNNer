@@ -14,7 +14,7 @@ export const noop = () => {};
 export const checkFileExists = (file: string): Promise<boolean> =>
     fs.access(file, constants.F_OK).then(
         () => true,
-        () => false
+        () => false,
     );
 
 export const assertNever = (value: never): never => {
@@ -28,7 +28,7 @@ export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as
 
 export const findLastIndex = <T>(
     array: readonly T[],
-    predicate: (value: T, index: number, obj: readonly T[]) => unknown
+    predicate: (value: T, index: number, obj: readonly T[]) => unknown,
 ): number => {
     for (let i = array.length - 1; i >= 0; i -= 1) {
         if (predicate(array[i], i, array)) {
@@ -39,7 +39,7 @@ export const findLastIndex = <T>(
 };
 export const findLast = <T>(
     array: readonly T[],
-    predicate: (value: T, index: number, obj: readonly T[]) => unknown
+    predicate: (value: T, index: number, obj: readonly T[]) => unknown,
 ): T | undefined => {
     const index = findLastIndex(array, predicate);
     if (index === -1) return undefined;
@@ -102,7 +102,7 @@ export const lazy = <T>(fn: () => T): (() => T) => {
 };
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const lazyKeyed = <K extends object, T extends {} | null>(
-    fn: (key: K) => T
+    fn: (key: K) => T,
 ): ((key: K) => T) => {
     const cache = new WeakMap<K, T>();
     return (key) => {
@@ -135,7 +135,7 @@ export type Comparator<T> = (a: T, b: T) => number;
 export const compareSequences = <T>(
     a: readonly T[],
     b: readonly T[],
-    compare: Comparator<T>
+    compare: Comparator<T>,
 ): number => {
     if (a.length !== b.length) return a.length - b.length;
     for (let i = 0; i < a.length; i += 1) {
@@ -175,7 +175,7 @@ export type Visitors<State extends { readonly type: string }, R> = {
 };
 export const visitByType = <State extends { readonly type: string }, R>(
     state: State,
-    visitors: Visitors<State, R>
+    visitors: Visitors<State, R>,
 ): R => {
     const v = (visitors as Record<string, unknown>)[state.type] as (state: State) => R;
     return v(state);
@@ -187,7 +187,7 @@ export const visitByType = <State extends { readonly type: string }, R>(
  */
 export const topologicalSort = <T>(
     allNodes: Iterable<T>,
-    getOut: (node: T) => Iterable<T>
+    getOut: (node: T) => Iterable<T>,
 ): T[] | undefined => {
     // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
     const unmarked = new Set(allNodes);
@@ -275,7 +275,7 @@ export const fixRoundingError = (n: number): number => {
 
 export const getInputValue = <T extends NonNullable<InputValue>>(
     inputId: InputId,
-    inputData: InputData
+    inputData: InputData,
 ): T | undefined => {
     return (inputData[inputId] ?? undefined) as T | undefined;
 };
@@ -290,7 +290,7 @@ export function groupBy<T, K>(iter: Iterable<T>, selector: (item: T) => K): Map<
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
 export function groupBy<T>(
     iter: Iterable<T>,
-    key: keyof T | ((item: T) => unknown)
+    key: keyof T | ((item: T) => unknown),
 ): Map<unknown, T[]> {
     const map = new Map<unknown, T[]>();
 

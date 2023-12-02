@@ -29,7 +29,7 @@ const deletePycFiles = async (directory) => {
                 } else if (file.isFile() && path.extname(file.name) === '.pyc') {
                     await fs.unlink(fullPath);
                 }
-            })
+            }),
         );
     } catch (error) {
         // eslint-disable-next-line no-console

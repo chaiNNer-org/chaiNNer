@@ -43,7 +43,7 @@ export const AppInfo = memo(() => {
             supplier: () => ipcRenderer.invoke('get-app-version'),
             successEffect: setAppVersion,
         }),
-        []
+        [],
     );
 
     const [updateVersion, setUpdateVersion] = useState<GitHubRelease>();
@@ -199,7 +199,7 @@ export const AppInfo = memo(() => {
                                         if (updateVersion?.tag_name) {
                                             localStorage.setItem(
                                                 `ignored-update`,
-                                                updateVersion.tag_name
+                                                updateVersion.tag_name,
                                             );
                                         }
                                         onAlertClose();

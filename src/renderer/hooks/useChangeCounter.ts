@@ -29,7 +29,7 @@ export const wrapChanges = <T>(setter: SetState<T>, addChange: () => void): SetS
 };
 export const wrapRefChanges = <T>(
     setter: Readonly<React.MutableRefObject<SetState<T>>>,
-    addChange: () => void
+    addChange: () => void,
 ): SetState<T> => {
     return (value) => {
         setter.current(value);

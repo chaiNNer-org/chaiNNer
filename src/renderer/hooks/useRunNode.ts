@@ -16,7 +16,7 @@ import { useAsyncEffect } from './useAsyncEffect';
  */
 export const useRunNode = (
     { inputData, id, schemaId }: NodeData,
-    shouldRun: boolean
+    shouldRun: boolean,
 ): (() => void) => {
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
@@ -34,11 +34,11 @@ export const useRunNode = (
 
     const inputs = useMemo(
         () => mapInputValues(schema, (inputId) => inputData[inputId] ?? null),
-        [inputData, schema]
+        [inputData, schema],
     );
     const inputHash = useMemo(
         () => `${reloadCounter};${JSON.stringify(inputs)}`,
-        [reloadCounter, inputs]
+        [reloadCounter, inputs],
     );
     const lastInputHash = useRef<string>();
     useAsyncEffect(
@@ -76,7 +76,7 @@ export const useRunNode = (
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [shouldRun, inputHash]
+        [shouldRun, inputHash],
     );
 
     useEffect(() => {

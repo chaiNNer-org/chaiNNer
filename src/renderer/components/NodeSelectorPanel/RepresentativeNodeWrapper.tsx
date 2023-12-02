@@ -198,5 +198,5 @@ export const RepresentativeNodeWrapper = memo(
                 </Tooltip>
             </Box>
         );
-    }
+    },
 );

@@ -37,7 +37,7 @@ export const CustomEdge = memo(
 
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
-            (c) => c.effectivelyDisabledNodes
+            (c) => c.effectivelyDisabledNodes,
         );
         const { useAnimateChain } = useContext(SettingsContext);
         const { paused } = useContext(ExecutionStatusContext);
@@ -53,7 +53,7 @@ export const CustomEdge = memo(
                     targetY,
                     targetPosition,
                 }),
-            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
+            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition],
         );
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
@@ -69,8 +69,9 @@ export const CustomEdge = memo(
         const definitionType =
             functionDefinitions.get(edgeParentNode.data.schemaId)?.outputDefaults.get(outputId) ??
             NeverType.instance;
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(source)?.outputs.get(outputId)
+        const type = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.typeState.functions.get(source)?.outputs.get(outputId),
         );
 
         const [accentColor] = getTypeAccentColors(type || definitionType);
@@ -87,7 +88,7 @@ export const CustomEdge = memo(
 
         const isColliding = useContextSelector(
             GlobalVolatileContext,
-            (c) => c.collidingEdge === id
+            (c) => c.collidingEdge === id,
         );
 
         const classModifier = `${isHovered ? 'hovered' : ''} ${
@@ -110,7 +111,7 @@ export const CustomEdge = memo(
                 data.targetY = targetY;
             },
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            [sourceX, sourceY, targetX, targetY]
+            [sourceX, sourceY, targetX, targetY],
         );
 
         const menu = useEdgeMenu(id);
@@ -206,5 +207,5 @@ export const CustomEdge = memo(
                 </foreignObject>
             </g>
         );
-    }
+    },
 );

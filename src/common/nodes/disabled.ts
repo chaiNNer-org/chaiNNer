@@ -10,7 +10,7 @@ export enum DisabledStatus {
 
 export const getDisabledStatus = (
     data: NodeData,
-    effectivelyDisabledNodes: ReadonlySet<string>
+    effectivelyDisabledNodes: ReadonlySet<string>,
 ): DisabledStatus => {
     if (data.isDisabled) {
         return DisabledStatus.DirectlyDisabled;
@@ -23,7 +23,7 @@ export const getDisabledStatus = (
 
 export const getEffectivelyDisabledNodes = (
     nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[]
+    edges: readonly Edge<EdgeData>[],
 ): Node<NodeData>[] => {
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const incomingMap = new Map<Node<NodeData>, Node<NodeData>[]>();

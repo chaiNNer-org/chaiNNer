@@ -61,5 +61,5 @@ export const TextBox = memo(
                 </Tooltip>
             </Center>
         );
-    }
+    },
 );

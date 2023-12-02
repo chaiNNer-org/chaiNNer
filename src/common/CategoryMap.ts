@@ -19,7 +19,7 @@ export class CategoryMap {
         this.categories = [...categories];
         this.lookup = new Map(categories.map((c) => [c.id, c] as const));
         this.lookupGroup = new Map(
-            categories.flatMap((c) => c.groups).map((g) => [g.id, g] as const)
+            categories.flatMap((c) => c.groups).map((g) => [g.id, g] as const),
         );
     }
 

@@ -26,5 +26,5 @@ export const RequiredGroup = memo(
                 ))}
             </>
         );
-    }
+    },
 );

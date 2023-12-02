@@ -22,7 +22,7 @@ export const SettingItem = memo(({ setting, value, setValue }: SettingItemProps)
     }
 
     const Component = SettingComponents[setting.type] as (
-        props: SettingsProps<Setting['type']>
+        props: SettingsProps<Setting['type']>,
     ) => JSX.Element;
 
     return (

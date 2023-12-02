@@ -37,7 +37,7 @@ export const App = memo(() => {
 
     useAsyncEffect(
         () => ({ supplier: () => ipcRenderer.invoke('get-backend-url'), successEffect: setUrl }),
-        []
+        [],
     );
     useAsyncEffect(
         () => ({
@@ -47,7 +47,7 @@ export const App = memo(() => {
                 setStorageInitialized(true);
             },
         }),
-        []
+        [],
     );
 
     const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
@@ -56,7 +56,7 @@ export const App = memo(() => {
             supplier: () => ipcRenderer.invoke('get-python'),
             successEffect: setPythonInfo,
         }),
-        []
+        [],
     );
 
     return (

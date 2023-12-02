@@ -18,7 +18,7 @@ export class EdgeState {
 
     private constructor(
         byTargetHandle: EdgeState['byTargetHandle'],
-        byTarget: EdgeState['byTarget']
+        byTarget: EdgeState['byTarget'],
     ) {
         this.byTargetHandle = byTargetHandle;
         this.byTarget = byTarget;

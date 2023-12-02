@@ -24,7 +24,7 @@ import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const parseScale = (
-    input: Pick<OfKind<Input, 'slider'>, 'scale' | 'min' | 'max' | 'precision'>
+    input: Pick<OfKind<Input, 'slider'>, 'scale' | 'min' | 'max' | 'precision'>,
 ): Scale => {
     switch (input.scale) {
         case 'linear':
@@ -44,7 +44,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
     try {
         return String(
             // eslint-disable-next-line @typescript-eslint/no-implied-eval
-            new Function(...Object.keys(args), `return ${expression};`)(...Object.values(args))
+            new Function(...Object.keys(args), `return ${expression};`)(...Object.values(args)),
         );
     } catch (error) {
         return undefined;
@@ -53,7 +53,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
 
 const wholeNumberDigitsOf = (n: number) => Math.floor(Math.abs(n)).toString().length;
 const computeInputWidthRem = (
-    input: Pick<OfKind<Input, 'slider'>, 'min' | 'max' | 'precision'>
+    input: Pick<OfKind<Input, 'slider'>, 'min' | 'max' | 'precision'>,
 ) => {
     const { min, max, precision } = input;
 
@@ -91,7 +91,7 @@ export const SliderInput = memo(
 
         const precisionOutput = useCallback(
             (val: number) => (hideTrailingZeros ? String(val) : val.toFixed(precision)),
-            [hideTrailingZeros, precision]
+            [hideTrailingZeros, precision],
         );
 
         useEffect(() => {
@@ -106,7 +106,7 @@ export const SliderInput = memo(
                 setInputString(precisionOutput(n));
                 setSliderValue(n);
             },
-            [precisionOutput]
+            [precisionOutput],
         );
         const onNumberInputChange = (numberAsString: string) => {
             setInputString(numberAsString);
@@ -116,7 +116,7 @@ export const SliderInput = memo(
         // dynamic number input width based on precision
         const schema = useContextSelector(
             BackendContext,
-            (c) => nodeSchemaId && c.schemata.get(nodeSchemaId)
+            (c) => nodeSchemaId && c.schemata.get(nodeSchemaId),
         );
         const inputWidthRem = useMemo(() => {
             const ownWidth = computeInputWidthRem(input);
@@ -126,7 +126,7 @@ export const SliderInput = memo(
                 ...schema.inputs.map((i) => {
                     if (i.kind === 'slider') return computeInputWidthRem(i);
                     return -Infinity;
-                })
+                }),
             );
         }, [input, schema]);
 
@@ -233,5 +233,5 @@ export const SliderInput = memo(
         }
 
         return <WithLabel input={input}>{slider}</WithLabel>;
-    }
+    },
 );

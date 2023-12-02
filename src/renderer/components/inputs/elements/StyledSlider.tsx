@@ -298,5 +298,5 @@ export const StyledSlider = memo(
                 </Tooltip>
             </Slider>
         );
-    }
+    },
 );

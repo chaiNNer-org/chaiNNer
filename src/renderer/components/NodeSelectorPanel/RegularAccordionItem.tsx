@@ -72,7 +72,7 @@ export const RegularAccordionItem = memo(
                 </AccordionPanel>
             </AccordionItem>
         );
-    }
+    },
 );
 
 interface SubcategoriesProps {
@@ -131,7 +131,7 @@ export const PackageHintText = memo(
                 <em>Click</em> to open the dependency manager to install {packageName}.
             </Text>
         </>
-    )
+    ),
 );
 
 export const PackageHint = memo(({ collapsed, onClick, hint, packageName }: PackageHintProps) => {

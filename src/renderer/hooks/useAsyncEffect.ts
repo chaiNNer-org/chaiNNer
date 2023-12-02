@@ -95,7 +95,7 @@ const noopPromise = async (): Promise<void> => {};
  */
 export const useAsyncEffect = <T>(
     optionsFn: () => UseAsyncEffectOptions<T> | void | undefined,
-    dependencies: readonly unknown[]
+    dependencies: readonly unknown[],
 ) => {
     const options = optionsFn() ?? (noopPromise as () => Promise<T & void>);
     const objOptions: ObjectUseAsyncEffectOptions<T> =
@@ -138,7 +138,7 @@ export const useAsyncEffect = <T>(
                 if (controller.isCanceled) return;
                 cEffect(reason);
                 fEffect();
-            }
+            },
         );
 
         return controller.cancel;

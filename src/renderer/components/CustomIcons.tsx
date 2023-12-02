@@ -182,7 +182,7 @@ export const IconFactory = memo(
                 transition="0.15s ease-in-out"
             />
         );
-    }
+    },
 );
 
 export const DragHandleSVG = createIcon({

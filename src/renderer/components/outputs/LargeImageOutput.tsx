@@ -103,7 +103,7 @@ export const LargeImageOutput = memo(
                         topLeft: false,
                     }}
                     grid={useMemoArray<[number, number]>(
-                        isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
+                        isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1],
                     )}
                     handleComponent={{
                         bottomRight: (
@@ -241,7 +241,7 @@ export const LargeImageOutput = memo(
                                     >
                                         {t(
                                             'outputs.largeImage.imageNotAvailable',
-                                            'Image not available.'
+                                            'Image not available.',
                                         )}
                                     </Text>
                                 </HStack>
@@ -251,5 +251,5 @@ export const LargeImageOutput = memo(
                 </Resizable>
             </Center>
         );
-    }
+    },
 );

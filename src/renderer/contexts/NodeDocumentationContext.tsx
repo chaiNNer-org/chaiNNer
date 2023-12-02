@@ -14,13 +14,13 @@ interface NodeDocumentationContextState {
 
 // TODO: create context requires default values
 export const NodeDocumentationContext = createContext<NodeDocumentationContextState>(
-    {} as NodeDocumentationContextState
+    {} as NodeDocumentationContextState,
 );
 
 export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const defaultSchemaId = useContextSelector(
         BackendContext,
-        (context) => context.schemata.schemata[0].schemaId
+        (context) => context.schemata.schemata[0].schemaId,
     );
     const [selectedSchemaId, setSelectedSchemaId] = useState<SchemaId>(defaultSchemaId);
 
@@ -33,7 +33,7 @@ export const NodeDocumentationProvider = memo(({ children }: React.PropsWithChil
             }
             onOpen();
         },
-        [onOpen]
+        [onOpen],
     );
 
     const contextValue = useMemoObject({

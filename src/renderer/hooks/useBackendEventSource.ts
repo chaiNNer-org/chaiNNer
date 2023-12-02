@@ -10,20 +10,20 @@ import { log } from '../../common/log';
 export type BackendEventSource = EventSource & { readonly __backend?: never };
 
 export const useBackendEventSource = (
-    url: string
+    url: string,
 ): readonly [BackendEventSource | null, EventSourceStatus] => {
     return useEventSource(`${url}/sse`, true);
 };
 
 export type BackendEventSourceListener<T extends keyof BackendEventMap> = (
     e: BackendEventMap[T] | undefined,
-    event: EventSourceEvent
+    event: EventSourceEvent,
 ) => void;
 
 export const useBackendEventSourceListener = <T extends keyof BackendEventMap>(
     source: BackendEventSource | null,
     type: T,
-    listener: BackendEventSourceListener<T>
+    listener: BackendEventSourceListener<T>,
 ): void => {
     useEventSourceListener(
         source,
@@ -43,10 +43,10 @@ export const useBackendEventSourceListener = <T extends keyof BackendEventMap>(
                     `Listener for event ${type} and data ${
                         parsed === undefined ? 'undefined' : JSON.stringify(parsed)
                     } errored: `,
-                    error
+                    error,
                 );
             }
         },
-        [source, type, listener]
+        [source, type, listener],
     );
 };

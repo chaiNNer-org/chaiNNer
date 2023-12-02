@@ -37,7 +37,7 @@ interface UseColorMode {
 export const useColorModels = <T>(
     color: T,
     toRgbColor: (color: T) => RgbColor,
-    onChange: (value: RgbColor) => void
+    onChange: (value: RgbColor) => void,
 ): UseColorMode => {
     const [state, setState] = useState<readonly [RgbColor, HsvColor]>(() => {
         const rgb = toRgbColor(color);
@@ -84,7 +84,7 @@ export const useColorModels = <T>(
             updateFromRgb(newRgb);
             onChange(newRgb);
         },
-        [onChange, updateFromRgb]
+        [onChange, updateFromRgb],
     );
     const changeHsv = useCallback(
         (newHsv: HsvColor): void => {
@@ -93,7 +93,7 @@ export const useColorModels = <T>(
             updateFromHsv(newHsv, newRgb);
             onChange(newRgb);
         },
-        [onChange, updateFromHsv]
+        [onChange, updateFromHsv],
     );
 
     const [rgb, hsv] = state;

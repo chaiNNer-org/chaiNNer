@@ -90,7 +90,7 @@ export class SaveFile {
                     height: n.height,
                     width: n.width,
                     zIndex: n.zIndex,
-                })
+                }),
             ),
             edges: edges.map((e): Edge<EdgeData> => ({ ...e, data: {} })),
             viewport,

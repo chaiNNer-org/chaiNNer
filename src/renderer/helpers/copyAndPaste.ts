@@ -21,7 +21,7 @@ const getCopySelection = (nodes: readonly Node<NodeData>[]): Set<string> => {
 
 export const copyToClipboard = (
     nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[]
+    edges: readonly Edge<EdgeData>[],
 ) => {
     const copyIds = getCopySelection(nodes);
 
@@ -38,7 +38,7 @@ export const cutAndCopyToClipboard = (
     edges: readonly Edge<EdgeData>[],
 
     setNodes: SetState<Node<NodeData>[]>,
-    setEdges: SetState<Edge<EdgeData>[]>
+    setEdges: SetState<Edge<EdgeData>[]>,
 ) => {
     copyToClipboard(nodes, edges);
 
@@ -48,7 +48,7 @@ export const cutAndCopyToClipboard = (
     setNodes((nodes) => nodes.filter((n) => !copyIds.has(n.id)));
     // eslint-disable-next-line @typescript-eslint/no-shadow
     setEdges((edges) =>
-        edges.filter((e) => !(e.selected || copyIds.has(e.source) || copyIds.has(e.target)))
+        edges.filter((e) => !(e.selected || copyIds.has(e.source) || copyIds.has(e.target))),
     );
 };
 
@@ -57,13 +57,13 @@ export const pasteFromClipboard = (
     setEdges: SetState<Edge<EdgeData>[]>,
     createNode: (proto: NodeProto, parentId?: string) => void,
     project: Project,
-    reactFlowWrapper: React.RefObject<Element>
+    reactFlowWrapper: React.RefObject<Element>,
 ) => {
     const availableFormats = clipboard.availableFormats();
     if (availableFormats.length === 0) {
         try {
             const chain = JSON.parse(
-                clipboard.readBuffer('application/chainner.chain').toString()
+                clipboard.readBuffer('application/chainner.chain').toString(),
             ) as ClipboardChain;
 
             const duplicationId = createUniqueId();

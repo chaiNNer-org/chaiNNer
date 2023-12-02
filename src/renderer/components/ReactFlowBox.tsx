@@ -94,14 +94,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             // we handle removes ourselves
             internalOnNodesChange(changes.filter((c) => c.type !== 'remove'));
         },
-        [internalOnNodesChange]
+        [internalOnNodesChange],
     );
     const onEdgesChange: OnEdgesChange = useCallback(
         (changes) => {
             // we handle removes ourselves
             internalOnEdgesChange(changes.filter((c) => c.type !== 'remove'));
         },
-        [internalOnEdgesChange]
+        [internalOnEdgesChange],
     );
 
     const [displayNodes, displayEdges] = useMemo(() => {
@@ -124,7 +124,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         (node: Node<NodeData>, mousePosition: XYPosition) => {
             // First, we need to make sure this node is an orphan. We can do a find so it stops early
             const hasConnectedEdge = !!edges.find(
-                (e) => e.source === node.id || e.target === node.id
+                (e) => e.source === node.id || e.target === node.id,
             );
             if (hasConnectedEdge) {
                 return;
@@ -151,7 +151,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 .filter((e): e is CandidateEdge => {
                     // if one value is set, all are
                     return Boolean(
-                        e.data?.sourceX !== undefined && e.sourceHandle && e.targetHandle
+                        e.data?.sourceX !== undefined && e.sourceHandle && e.targetHandle,
                     );
                 })
                 .flatMap((e) => {
@@ -180,7 +180,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     const firstPossibleOutput = getFirstPossibleOutput(
                         fn,
                         targetEdgeDefinition,
-                        inputId
+                        inputId,
                     );
                     if (firstPossibleInput === undefined || firstPossibleOutput === undefined) {
                         return EMPTY_ARRAY;
@@ -249,7 +249,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 },
             };
         },
-        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
+        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions],
     );
 
     const onNodeDrag = useCallback(
@@ -271,7 +271,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 }
             }
         },
-        [altPressed, performNodeOnEdgeCollisionDetection, setCollidingEdge, setCollidingNode]
+        [altPressed, performNodeOnEdgeCollisionDetection, setCollidingEdge, setCollidingNode],
     );
 
     const lastAltPressed = useRef<boolean>(altPressed);
@@ -314,7 +314,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             performNodeOnEdgeCollisionDetection,
             setCollidingEdge,
             setCollidingNode,
-        ]
+        ],
     );
 
     const onSelectionDragStop = useCallback(
@@ -322,7 +322,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         (event: React.MouseEvent, nNodes: Node<NodeData>[]) => {
             onNodeDragStop(event, null);
         },
-        [onNodeDragStop]
+        [onNodeDragStop],
     );
 
     const onNodesDelete = useCallback(
@@ -332,7 +332,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return nodes.filter((n) => !ids.has(n.id));
             });
         },
-        [changeNodes]
+        [changeNodes],
     );
 
     const onEdgesDelete = useCallback(
@@ -340,12 +340,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             const edgeIds = new Set(edgesToDelete.map((e) => e.id));
             changeEdges((edges) => edges.filter((e) => !edgeIds.has(e.id)));
         },
-        [changeEdges]
+        [changeEdges],
     );
 
     const onMoveEnd = useCallback(
         (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
-        [setZoom]
+        [setZoom],
     );
 
     const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
@@ -393,7 +393,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 });
             }
         },
-        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, changeEdges, changeNodes]
+        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, changeEdges, changeNodes],
     );
 
     // TODO: I want to get this to work at some point but for now it needs to not exist
@@ -413,13 +413,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             setSelectedNodes(nodes);
             selectionMenu.onContextMenu(event);
         },
-        [selectionMenu, setSelectedNodes]
+        [selectionMenu, setSelectedNodes],
     );
 
     const multiSelectionKeyCode = useMemo(() => (isMac ? ['Meta'] : ['Control']), []);
     const deleteKeyCode = useMemo(
         () => (isMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
-        []
+        [],
     );
 
     return (

@@ -17,7 +17,7 @@ export interface OutputDataActions {
         executionTime: number | undefined,
         nodeInputHash: string,
         data: OutputData | undefined,
-        types: OutputTypes | undefined
+        types: OutputTypes | undefined,
     ): void;
     delete(nodeId: string): void;
     clear(): void;
@@ -48,7 +48,7 @@ export const useOutputDataStore = () => {
                     return prev;
                 });
             },
-            [setMap]
+            [setMap],
         ),
         delete: useCallback(
             (nodeId) => {
@@ -59,7 +59,7 @@ export const useOutputDataStore = () => {
                     return newMap;
                 });
             },
-            [setMap]
+            [setMap],
         ),
         clear: useCallback(() => {
             setMap(EMPTY_MAP);

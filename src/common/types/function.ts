@@ -30,7 +30,7 @@ type IdType<P extends 'Input' | 'Output'> = P extends 'Input' ? InputId : Output
 const getParamRefs = <P extends 'Input' | 'Output'>(
     expression: Expression,
     param: P,
-    valid: ReadonlySet<IdType<P>>
+    valid: ReadonlySet<IdType<P>>,
 ): Set<IdType<P>> => {
     const refs = new Set<IdType<P>>();
     for (const ref of getReferences(expression)) {
@@ -57,7 +57,7 @@ interface InputInfo {
 }
 const evaluateInputs = (
     schema: NodeSchema,
-    scope: Scope
+    scope: Scope,
 ): { ordered: InputInfo[]; defaults: Map<InputId, NonNeverType> } => {
     const inputIds = new Set(schema.inputs.map((i) => i.id));
 
@@ -75,18 +75,18 @@ const evaluateInputs = (
             throw new Error(
                 `Unable to parse input type of ${name}:\n` +
                     `JSON: ${JSON.stringify(input.type)}\n` +
-                    `${String(error)}`
+                    `${String(error)}`,
             );
         }
     }
 
     const ordered = topologicalSort(infos.values(), (node) =>
-        [...node.inputRefs].map((ref) => infos.get(ref)!)
+        [...node.inputRefs].map((ref) => infos.get(ref)!),
     );
     if (!ordered) {
         throw new Error(
             `The types of the inputs of ${schema.name} (id: ${schema.schemaId}) has a cyclic dependency.` +
-                ` Carefully review the uses for 'Input*' variables in the input types of that node.`
+                ` Carefully review the uses for 'Input*' variables in the input types of that node.`,
         );
     }
     ordered.reverse();
@@ -127,7 +127,7 @@ interface OutputInfo {
 const evaluateOutputs = (
     schema: NodeSchema,
     scope: Scope,
-    inputDefaults: ReadonlyMap<InputId, NonNeverType>
+    inputDefaults: ReadonlyMap<InputId, NonNeverType>,
 ): { ordered: OutputInfo[]; defaults: Map<OutputId, NonNeverType> } => {
     const inputIds = new Set(inputDefaults.keys());
     const outputIds = new Set(schema.outputs.map((i) => i.id));
@@ -150,18 +150,18 @@ const evaluateOutputs = (
             throw new Error(
                 `Unable to parse input type of ${name}:\n` +
                     `JSON: ${JSON.stringify(output.type)}\n` +
-                    `${String(error)}`
+                    `${String(error)}`,
             );
         }
     }
 
     const ordered = topologicalSort(infos.values(), (node) =>
-        [...node.outputRefs].map((ref) => infos.get(ref)!)
+        [...node.outputRefs].map((ref) => infos.get(ref)!),
     );
     if (!ordered) {
         throw new Error(
             `The types of the output of ${schema.name} (id: ${schema.schemaId}) has a cyclic dependency.` +
-                ` Carefully review the uses for 'Output*' variables in that node.`
+                ` Carefully review the uses for 'Output*' variables in that node.`,
         );
     }
     ordered.reverse();
@@ -197,7 +197,7 @@ const evaluateOutputs = (
 
 const getInputDataAdapters = (
     schema: NodeSchema,
-    scope: Scope
+    scope: Scope,
 ): ReadonlyMap<InputId, (value: InputSchemaValue) => NonNeverType | undefined> => {
     const adapters = new Map<InputId, (value: InputSchemaValue) => NonNeverType | undefined>();
 
@@ -212,7 +212,7 @@ const getInputDataAdapters = (
             try {
                 conversionScope.assignParameter(
                     'Input',
-                    union(NumberType.instance, StringType.instance)
+                    union(NumberType.instance, StringType.instance),
                 );
                 evaluate(adoptExpression, conversionScope);
             } catch (error) {
@@ -246,7 +246,7 @@ const getInputDataAdapters = (
                                 type = evaluate(fromJson(o.type), scope);
                             } catch (error) {
                                 throw new Error(
-                                    `Unable to evaluate type of option ${name}: ${String(error)}`
+                                    `Unable to evaluate type of option ${name}: ${String(error)}`,
                                 );
                             }
                             if (type.type === 'never') {
@@ -392,10 +392,10 @@ export class FunctionDefinition {
         const inputs = evaluateInputs(schema, scope);
         this.inputDefaults = inputs.defaults;
         this.inputExpressions = new Map(
-            inputs.ordered.map(({ expression, input }) => [input.id, expression])
+            inputs.ordered.map(({ expression, input }) => [input.id, expression]),
         );
         this.inputGenerics = new Set(
-            inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id)
+            inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id),
         );
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
         this.inputConversions = getConversions(schema, scope);
@@ -403,19 +403,19 @@ export class FunctionDefinition {
             [...this.inputDefaults].map(([id, d]) => {
                 const c = this.inputConversions.get(id)?.convertibleTypes ?? NeverType.instance;
                 return [id, union(d, c)];
-            })
+            }),
         );
 
         // outputs
         const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
         this.outputDefaults = outputs.defaults;
         this.outputExpressions = new Map(
-            outputs.ordered.map(({ expression, output }) => [output.id, expression])
+            outputs.ordered.map(({ expression, output }) => [output.id, expression]),
         );
         this.outputGenerics = new Set(
             outputs.ordered
                 .filter((i) => i.inputRefs.size > 0 || i.outputRefs.size > 0)
-                .map(({ output }) => output.id)
+                .map(({ output }) => output.id),
         );
         this.outputEvaluationOrder = outputs.ordered.map(({ output }) => output.id);
 
@@ -476,7 +476,7 @@ export class FunctionInstance {
         inputs: ReadonlyMap<InputId, NonNeverType>,
         outputs: ReadonlyMap<OutputId, NonNeverType>,
         inputErrors: readonly FunctionInputAssignmentError[],
-        outputErrors: readonly FunctionOutputError[]
+        outputErrors: readonly FunctionOutputError[],
     ) {
         this.definition = definition;
         this.inputs = inputs;
@@ -491,14 +491,14 @@ export class FunctionInstance {
             definition.inputDefaults,
             definition.outputDefaults,
             [],
-            []
+            [],
         );
     }
 
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs: (inputId: InputId) => NonNeverType | undefined,
-        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP
+        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
     ): FunctionInstance {
         const inputErrors: FunctionInputAssignmentError[] = [];
         const outputErrors: FunctionOutputError[] = [];
@@ -553,7 +553,7 @@ export class FunctionInstance {
                 inputs,
                 definition.outputDefaults,
                 inputErrors,
-                outputErrors
+                outputErrors,
             );
         }
 

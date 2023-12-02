@@ -53,7 +53,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
     const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
-        c.outputDataMap.get(id)
+        c.outputDataMap.get(id),
     );
     const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
     const stale = inputHash !== outputDataEntry?.inputHash;
@@ -69,7 +69,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
             }
             return NO_OUTPUT_DATA;
         },
-        [outputDataEntry, stale]
+        [outputDataEntry, stale],
     );
 
     const currentTypes = stale ? undefined : outputDataEntry?.types;

@@ -74,7 +74,7 @@ export const ColorSlider = memo(
                 />
             </HStack>
         );
-    }
+    },
 );
 
 const getRgbStyle = (color0: RgbColor, color255: RgbColor): SliderStyle => {

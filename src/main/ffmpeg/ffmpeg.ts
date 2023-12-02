@@ -35,7 +35,7 @@ const getExecutableRelativePath = (platform: SupportedPlatform): FfmpegInfo => {
 const extractFfmpeg = async (
     directory: string,
     tarPath: string,
-    onProgress: (percent: number) => void
+    onProgress: (percent: number) => void,
 ) => {
     const files = await decompress(tarPath);
     const totalFiles = files.length;
@@ -49,7 +49,7 @@ const extractFfmpeg = async (
             const percentageComplete = (doneCounter / totalFiles) * 100;
             doneCounter += 1;
             onProgress(percentageComplete);
-        })
+        }),
     );
 };
 
@@ -60,7 +60,7 @@ const extractFfmpeg = async (
  */
 export const getIntegratedFfmpeg = async (
     directory: string,
-    onProgress: (percentage: number, stage: 'download' | 'extract') => void
+    onProgress: (percentage: number, stage: 'download' | 'extract') => void,
 ): Promise<FfmpegInfo> => {
     const platform = getPlatform();
     const { ffmpeg, ffprobe } = getExecutableRelativePath(platform);

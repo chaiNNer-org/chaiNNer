@@ -14,7 +14,7 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
                 const before = isLetter().isMatch(char) ? `[^a-z]` : `.`;
                 return `(?:.*${before})?${hex}`;
             })
-            .join('')}`
+            .join('')}`,
     );
     return (name) => pattern.isMatch(name);
 };
@@ -22,7 +22,7 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
 export const getMatchingNodes = (
     searchQuery: string,
     schemata: readonly NodeSchema[],
-    categories: CategoryMap
+    categories: CategoryMap,
 ) => {
     const matchesSearchQuery = createSearchPredicate(searchQuery);
     const matchingNodes = !searchQuery

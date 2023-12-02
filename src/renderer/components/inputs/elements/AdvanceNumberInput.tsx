@@ -90,7 +90,7 @@ export const AdvancedNumberInput = memo(
                       setImmediate(() => {
                           setInput(value);
                           setInputString(
-                              hideTrailingZeros ? String(value) : value.toFixed(precision)
+                              hideTrailingZeros ? String(value) : value.toFixed(precision),
                           );
                       });
                   }
@@ -206,5 +206,5 @@ export const AdvancedNumberInput = memo(
                 </NumberInput>
             </InputGroup>
         );
-    }
+    },
 );

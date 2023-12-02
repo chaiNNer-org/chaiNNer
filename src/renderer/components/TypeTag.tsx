@@ -281,7 +281,7 @@ export const TypeTag = memo(
                 {...rest}
             />
         );
-    })
+    }),
 );
 
 export interface TypeTagsProps {

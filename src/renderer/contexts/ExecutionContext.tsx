@@ -59,7 +59,7 @@ export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusCont
 });
 
 export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
-    {} as ExecutionContextValue
+    {} as ExecutionContextValue,
 );
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -91,14 +91,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 [nodeId]: progress,
             }));
         },
-        [setNodeProgress]
+        [setNodeProgress],
     );
 
     const getNodeProgress = useCallback(
         (nodeId: string) => {
             return nodeProgress[nodeId];
         },
-        [nodeProgress]
+        [nodeProgress],
     );
 
     useEffect(() => {
@@ -131,7 +131,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 message: formatExecutionErrorMessage(
                     data,
                     schemata,
-                    (label, value) => `• ${label}: ${value}`
+                    (label, value) => `• ${label}: ${value}`,
                 ),
             });
             unAnimate();
@@ -158,7 +158,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                         executionTime ?? undefined,
                         inputHash,
                         data ?? undefined,
-                        types ?? undefined
+                        types ?? undefined,
                     );
                     if (progressPercent != null) {
                         if (progressPercent === 1) {
@@ -171,9 +171,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     unAnimate([nodeId]);
                 }
             },
-            [unAnimate, outputDataActions, getInputHash]
+            [unAnimate, outputDataActions, getInputHash],
         ),
-        500
+        500,
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
 
@@ -187,9 +187,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     animate([nodeId]);
                 }
             },
-            [status, animate]
+            [status, animate],
         ),
-        500
+        500,
     );
     useBackendEventSourceListener(eventSource, 'node-start', updateNodeStart);
 
@@ -203,10 +203,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     setNodeProgressImpl(nodeId, { percent, eta, index, total });
                 }
             },
-            [setNodeProgressImpl]
+            [setNodeProgressImpl],
         ),
         100,
-        { trailing: true }
+        { trailing: true },
     );
     useBackendEventSourceListener(eventSource, 'node-progress-update', updateNodeProgress);
 
@@ -250,7 +250,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const allEdges = getEdges();
 
         const disabledNodes = new Set(
-            getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
+            getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id),
         );
         const nodesToOptimize = allNodes.filter((n) => !disabledNodes.has(n.id));
         const nodes = getNodesWithSideEffects(nodesToOptimize, allEdges, schemata);
@@ -285,7 +285,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     connectedInputs: getConnectedInputs(node.id, edges),
                     schema,
                     functionInstance,
-                })
+                }),
             );
             if (validity.isValid) return [];
 

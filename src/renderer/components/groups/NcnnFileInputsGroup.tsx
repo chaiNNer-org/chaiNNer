@@ -61,7 +61,7 @@ export const NcnnFileInputsGroup = memo(({ inputs, nodeState }: GroupProps<'ncnn
 
                         if (typeof file === 'string') {
                             ifOtherExists(file, '.param', (param) =>
-                                setInputValue(paramInput.id, param)
+                                setInputValue(paramInput.id, param),
                             );
                         }
                     },

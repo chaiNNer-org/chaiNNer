@@ -50,7 +50,7 @@ const prettyPrintString = (type: StringPrimitive): string => {
 };
 const prettyPrintStruct = (
     type: StructValueType,
-    options: Readonly<PrettyPrintOptions>
+    options: Readonly<PrettyPrintOptions>,
 ): string => {
     switch (type.type) {
         case 'instance': {
@@ -67,7 +67,7 @@ const prettyPrintStruct = (
                 }
             } else {
                 fields = type.descriptor.fields.map(
-                    (f, i) => `${f.name}: ${prettyPrintType(type.fields[i], options)}`
+                    (f, i) => `${f.name}: ${prettyPrintType(type.fields[i], options)}`,
                 );
             }
 

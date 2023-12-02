@@ -18,7 +18,7 @@ interface NodeFooterProps {
 export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFooterProps) => {
     const { canDisable } = useDisable ?? { canDisable: false };
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
-        c.outputDataMap.get(id)
+        c.outputDataMap.get(id),
     );
 
     return (

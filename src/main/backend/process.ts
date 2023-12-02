@@ -56,7 +56,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         port: number,
         python: PythonInfo,
         env: Env,
-        process: ChildProcessWithoutNullStreams
+        process: ChildProcessWithoutNullStreams,
     ) {
         this.port = port;
         this.python = python;
@@ -76,7 +76,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     private static spawnProcess(
         port: number,
         { python }: PythonInfo,
-        env: Env
+        env: Env,
     ): ChildProcessWithoutNullStreams {
         log.info('Attempting to spawn backend...');
 
@@ -117,7 +117,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         });
         process.on('exit', (code, signal) => {
             log.error(
-                `Python subprocess exited with code ${String(code)} and signal ${String(signal)}`
+                `Python subprocess exited with code ${String(code)} and signal ${String(signal)}`,
             );
 
             if (this.process === process) {

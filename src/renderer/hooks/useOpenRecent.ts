@@ -8,7 +8,7 @@ const MAX_ENTRIES = 20;
 export const useOpenRecent = () => {
     const [recentlyOpen, setRecentlyOpen] = useLocalStorage<readonly string[]>(
         'use-recently-open',
-        []
+        [],
     );
 
     useEffect(() => {
@@ -31,7 +31,7 @@ export const useOpenRecent = () => {
 
                 return newPaths;
             }),
-        [setRecentlyOpen]
+        [setRecentlyOpen],
     );
 
     const remove = useCallback(
@@ -42,12 +42,12 @@ export const useOpenRecent = () => {
                 }
                 return prev.filter((p) => p !== path);
             }),
-        [setRecentlyOpen]
+        [setRecentlyOpen],
     );
 
     useIpcRendererListener(
         'clear-open-recent',
-        useCallback(() => setRecentlyOpen([]), [setRecentlyOpen])
+        useCallback(() => setRecentlyOpen([]), [setRecentlyOpen]),
     );
 
     return [recentlyOpen, push, remove] as const;

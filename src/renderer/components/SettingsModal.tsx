@@ -133,7 +133,7 @@ const EnvironmentSettings = memo(() => {
             'file-select',
             fileFilter,
             false,
-            fileDir
+            fileDir,
         );
         const selectedPath = filePaths[0];
         if (!canceled && selectedPath) {
@@ -223,7 +223,7 @@ const PythonSettings = memo(() => {
                 }
                 // eslint-disable-next-line no-param-reassign
                 draftState[pkg][key] = value;
-            })
+            }),
         );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

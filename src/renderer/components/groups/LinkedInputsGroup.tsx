@@ -37,7 +37,7 @@ export const LinkedInputsGroup = memo(
                         }
                     }
                 },
-                [linked, setInputValue, inputs]
+                [linked, setInputValue, inputs],
             ),
         });
 
@@ -46,11 +46,11 @@ export const LinkedInputsGroup = memo(
         const label = linked
             ? `The values of ${joinEnglish(
                   inputs.map((input) => input.label),
-                  'and'
+                  'and',
               )} are currently linked to the same value. Click here to undo this link.`
             : `Click here to link ${joinEnglish(
                   inputs.map((input) => input.label),
-                  'and'
+                  'and',
               )} to the same value.`;
 
         const linkButtonWidth = 1.4;
@@ -144,7 +144,7 @@ export const LinkedInputsGroup = memo(
                                     } else {
                                         // use the value of the first unconnected input
                                         const firstUnconnectedInput = inputs.find(
-                                            (input) => !nodeState.connectedInputs.has(input.id)
+                                            (input) => !nodeState.connectedInputs.has(input.id),
                                         );
                                         if (firstUnconnectedInput) {
                                             value = nodeState.inputData[firstUnconnectedInput.id];
@@ -163,5 +163,5 @@ export const LinkedInputsGroup = memo(
                 </Box>
             </HStack>
         );
-    }
+    },
 );

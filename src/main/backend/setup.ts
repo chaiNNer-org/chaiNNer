@@ -31,7 +31,7 @@ const getPythonInfo = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    rootDir: string
+    rootDir: string,
 ) => {
     log.info('Attempting to check Python env...');
 
@@ -103,7 +103,7 @@ const getPythonInfo = async (
                         totalProgress: stage === 'download' ? 0.3 : 0.4,
                         statusProgress: percentage / 100,
                     });
-                }
+                },
             );
         } catch (error) {
             log.error(error);
@@ -181,7 +181,7 @@ const setupOwnedBackend = async (
     token: ProgressToken,
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
-    rootDir: string
+    rootDir: string,
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
         status: t('splash.checkingPort', 'Checking for available port...'),
@@ -210,7 +210,7 @@ const setupOwnedBackend = async (
 
 const setupBorrowedBackend = async (
     token: ProgressToken,
-    url: string
+    url: string,
 ): Promise<BorrowedBackendProcess> => {
     log.info(`Attempting to setup backend from ${url}...`);
 
@@ -226,7 +226,7 @@ export const setupBackend = async (
     useSystemPython: boolean,
     systemPythonLocation: string | undefined | null,
     rootDir: string,
-    remoteBackend: string | undefined
+    remoteBackend: string | undefined,
 ): Promise<BackendProcess> => {
     token.submitProgress({ totalProgress: 0 });
 

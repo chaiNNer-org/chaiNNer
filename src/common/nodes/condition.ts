@@ -7,7 +7,7 @@ import { TypeState } from './TypeState';
 
 type Primitives = {
     [K in Exclude<Condition['kind'], 'and' | 'or' | 'not'>]: (
-        condition: OfKind<Condition, K>
+        condition: OfKind<Condition, K>,
     ) => boolean;
 };
 
@@ -39,7 +39,7 @@ export const testInputCondition = (
     condition: Condition,
     inputData: InputData,
     getInputType: (inputId: InputId) => Type | undefined,
-    isConnected: (inputId: InputId) => boolean
+    isConnected: (inputId: InputId) => boolean,
 ): boolean => {
     return testCondition(condition, {
         enum: (c) => {
@@ -75,13 +75,13 @@ export const testInputConditionTypeState = (
     condition: Condition,
     inputData: InputData,
     nodeId: string,
-    typeState: TypeState
+    typeState: TypeState,
 ): boolean => {
     return testInputCondition(
         condition,
         inputData,
         (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-        (id) => typeState.edges.isInputConnected(nodeId, id)
+        (id) => typeState.edges.isInputConnected(nodeId, id),
     );
 };
 

@@ -104,7 +104,7 @@ export const NodeHeader = memo(
                                     fontSize="sm"
                                     fontWeight="medium"
                                 >{`${Number(index)}/${Number(total)} (${Number(
-                                    percent * 100
+                                    percent * 100,
                                 ).toFixed(0)}%)`}</Text>
                                 <Text
                                     fontSize="sm"
@@ -141,5 +141,5 @@ export const NodeHeader = memo(
                 )}
             </VStack>
         );
-    }
+    },
 );

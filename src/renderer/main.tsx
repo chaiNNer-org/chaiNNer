@@ -48,7 +48,7 @@ export const Main = memo(() => {
                 const fullInfo = {
                     ...info,
                     settings: Object.fromEntries(
-                        getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)])
+                        getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)]),
                     ),
                 };
 
@@ -58,8 +58,8 @@ export const Main = memo(() => {
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },
-            [sendAlert, t]
-        )
+            [sendAlert, t],
+        ),
     );
 
     if (connectionState === 'failed') return null;

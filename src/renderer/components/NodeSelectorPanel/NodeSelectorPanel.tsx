@@ -41,13 +41,13 @@ export const NodeSelector = memo(() => {
     const matchingNodes = getMatchingNodes(
         searchQuery,
         schemata.schemata.filter((s) => !s.deprecated),
-        categories
+        categories,
     );
     const byCategories = useMemo(() => groupBy(matchingNodes, 'category'), [matchingNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
         SettingsContext,
-        (c) => c.useNodeSelectorCollapsed
+        (c) => c.useNodeSelectorCollapsed,
     );
 
     const { favorites } = useNodeFavorites();
@@ -232,7 +232,7 @@ export const NodeSelector = memo(() => {
                                     .filter((preset) =>
                                         `${preset.name} ${preset.author} ${preset.description}`
                                             .toLowerCase()
-                                            .includes(searchQuery.toLowerCase())
+                                            .includes(searchQuery.toLowerCase()),
                                     )
                                     .map((preset) => (
                                         <PresetComponent

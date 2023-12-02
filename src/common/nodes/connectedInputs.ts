@@ -6,7 +6,7 @@ import type { Edge } from 'reactflow';
 
 export const getConnectedInputs = (
     nodeId: string,
-    edges: readonly Edge<EdgeData>[]
+    edges: readonly Edge<EdgeData>[],
 ): Set<InputId> => {
     const targetedInputs = edges
         .filter((e) => e.target === nodeId && e.targetHandle)
@@ -20,7 +20,7 @@ export const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): Input
 export const getFirstPossibleOutput = (
     outputFn: FunctionDefinition,
     inputFn: FunctionDefinition,
-    inputId: InputId
+    inputId: InputId,
 ): OutputId | undefined => {
     return outputFn.schema.outputs.find((o) => {
         const type = outputFn.outputDefaults.get(o.id);

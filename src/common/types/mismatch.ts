@@ -29,7 +29,7 @@ export interface FieldAssignmentError {
 
 export const generateAssignmentErrorTrace = (
     assigned: Type,
-    definition: Type
+    definition: Type,
 ): AssignmentErrorTrace | undefined => {
     if (!isDisjointWith(assigned, definition)) {
         // types compatible
@@ -99,7 +99,7 @@ const areSetsDisjoint = <T>(a: Iterable<T>, b: ReadonlySet<T>): boolean => {
 const shortTypeComparison = (
     a: Type,
     b: Type,
-    toString: (t: Type) => string
+    toString: (t: Type) => string,
 ): [a: string, b: string] => {
     const aNames = shortTypeNames(a);
     const bNames = shortTypeNames(b);
@@ -123,7 +123,7 @@ export const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
         const [a, d] = shortTypeComparison(
             trace.inner.assigned,
             trace.inner.definition,
-            prettyPrintType
+            prettyPrintType,
         );
         return [
             `The **${trace.assigned.descriptor.name}** types are incompatible because **${trace.field}: ${a}** is not connectable with **${trace.field}: ${d}**.`,
@@ -132,7 +132,7 @@ export const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
 
     return [
         `The type **${prettyPrintType(assigned)}** is not connectable with **${prettyPrintType(
-            definition
+            definition,
         )}** because the **${trace.field}** fields are incompatible.`,
         ...printErrorTrace(trace.inner),
     ];
@@ -140,13 +140,13 @@ export const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
 
 export const simpleError = (
     assigned: Type,
-    definition: Type
+    definition: Type,
 ): { assigned: string; definition: string } | undefined => {
     // image channel mismatch
     if (isImage(assigned)) {
         const d = evaluate(
             new IntersectionExpression([definition, new NamedExpression('Image')]),
-            getChainnerScope()
+            getChainnerScope(),
         );
 
         if (isImage(d)) {
@@ -170,7 +170,7 @@ export const simpleError = (
     if (isColor(assigned)) {
         const d = evaluate(
             new IntersectionExpression([definition, new NamedExpression('Color')]),
-            getChainnerScope()
+            getChainnerScope(),
         );
 
         if (isColor(d)) {

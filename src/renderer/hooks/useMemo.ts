@@ -13,6 +13,6 @@ export const useMemoArray = <T extends readonly unknown[]>(array: T): T =>
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useMemoObject = <T extends Readonly<Record<string | number, any>>>(
-    obj: T
+    obj: T,
     // eslint-disable-next-line react-hooks/exhaustive-deps
 ): Readonly<T> => useMemo(() => obj, Object.values(obj));

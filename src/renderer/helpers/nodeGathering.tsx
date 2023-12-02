@@ -4,7 +4,7 @@ import { EdgeData, NodeData } from '../../common/common-types';
 export const gatherDownstreamIteratorNodes = (
     node: Node<NodeData>,
     nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
+    edges: Edge<EdgeData>[],
 ) => {
     const outgoers = getOutgoers(node, nodes, edges);
     const results = new Set<string>();
@@ -22,7 +22,7 @@ export const gatherDownstreamIteratorNodes = (
 export const gatherUpstreamIteratorNodes = (
     node: Node<NodeData>,
     nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
+    edges: Edge<EdgeData>[],
 ) => {
     const incomers = getIncomers(node, nodes, edges);
     const results = new Set<string>();
@@ -40,7 +40,7 @@ export const gatherUpstreamIteratorNodes = (
 export const gatherDownstreamNodes = (
     node: Node<NodeData>,
     nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
+    edges: Edge<EdgeData>[],
 ) => {
     const outgoers = getOutgoers(node, nodes, edges);
     const results = new Set<string>();
@@ -56,7 +56,7 @@ export const gatherDownstreamNodes = (
 export const gatherUpstreamNodes = (
     node: Node<NodeData>,
     nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
+    edges: Edge<EdgeData>[],
 ) => {
     const incomers = getIncomers(node, nodes, edges);
     const results = new Set<string>();

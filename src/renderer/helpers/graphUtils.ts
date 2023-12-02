@@ -137,7 +137,7 @@ export const getBezierPathValues = ({
     targetControlX: number,
     targetControlY: number,
     targetX: number,
-    targetY: number
+    targetY: number,
 ] => {
     const [sourceControlX, sourceControlY] = getControlWithCurvature({
         pos: sourcePosition,

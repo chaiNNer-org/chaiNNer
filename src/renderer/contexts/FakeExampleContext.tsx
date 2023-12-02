@@ -15,5 +15,5 @@ export const FakeNodeProvider = memo(
         const value = useMemoObject<FakeNodeContextState>({ isFake });
 
         return <FakeNodeContext.Provider value={value}>{children}</FakeNodeContext.Provider>;
-    }
+    },
 );

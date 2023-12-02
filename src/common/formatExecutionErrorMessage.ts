@@ -6,7 +6,7 @@ const defaultListItem = (label: string, value: string) => `- ${label}: ${value}`
 export const formatExecutionErrorMessage = (
     { exception, source }: BackendEventMap['execution-error'],
     schemata: SchemaMap,
-    formatListItem: (label: string, value: string) => string = defaultListItem
+    formatListItem: (label: string, value: string) => string = defaultListItem,
 ): string => {
     if (!source) return exception;
 

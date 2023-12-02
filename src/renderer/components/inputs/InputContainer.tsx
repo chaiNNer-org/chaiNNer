@@ -35,7 +35,7 @@ export const InputHandle = memo(
 
         const connectedEdge = useMemo(() => {
             return getEdges().find(
-                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
+                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId,
             );
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [edgeChanges, getEdges, id, inputId]);
@@ -48,7 +48,7 @@ export const InputHandle = memo(
             (connection: Readonly<Connection>): boolean => {
                 return isValidConnection(connection).isValid;
             },
-            [isValidConnection]
+            [isValidConnection],
         );
 
         const validity = useMemo(() => {
@@ -123,10 +123,9 @@ export const InputHandle = memo(
                 {children}
             </HStack>
         );
-    }
+    },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface InputContainerProps {}
 
 export const InputContainer = memo(({ children }: React.PropsWithChildren<InputContainerProps>) => {
@@ -220,7 +219,7 @@ export const WithLabel = memo(
                 <Box pb={1}>{children}</Box>
             </Box>
         );
-    }
+    },
 );
 
 export const WithoutLabel = memo(
@@ -234,7 +233,7 @@ export const WithoutLabel = memo(
                 {children}
             </Box>
         );
-    }
+    },
 );
 
 interface MaybeLabelProps {

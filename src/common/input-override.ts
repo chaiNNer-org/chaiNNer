@@ -40,7 +40,7 @@ const assignInput = (
     node: Node<NodeData>,
     inputId: InputId,
     value: InputValue,
-    schemata: SchemaMap
+    schemata: SchemaMap,
 ): void => {
     const schema = schemata.get(node.data.schemaId);
     const input = schema.inputs.find((i) => i.id === inputId);
@@ -51,7 +51,7 @@ const assignInput = (
     if (value === undefined) {
         if (!input.optional)
             throw new Error(
-                `The input with id ${inputId} on node ${node.id} is not optional but was assigned null/undefined.`
+                `The input with id ${inputId} on node ${node.id} is not optional but was assigned null/undefined.`,
             );
 
         inputData[inputId] = undefined;
@@ -77,8 +77,8 @@ const assignInput = (
                 throw new Error(
                     `${errorStart}, which expects ${joinEnglish(
                         input.filetypes,
-                        'or'
-                    )} files but was given ${value}.`
+                        'or',
+                    )} files but was given ${value}.`,
                 );
             }
 
@@ -95,11 +95,11 @@ const assignInput = (
                 throw new Error(`${errorStart}, which expects an integer found ${value}.`);
             if (min != null && value < min)
                 throw new Error(
-                    `${errorStart}, which expects a number >= ${min} but found ${value}.`
+                    `${errorStart}, which expects a number >= ${min} but found ${value}.`,
                 );
             if (max != null && value > max)
                 throw new Error(
-                    `${errorStart}, which expects a number <= ${max} but found ${value}.`
+                    `${errorStart}, which expects a number <= ${max} but found ${value}.`,
                 );
 
             inputData[inputId] = value;
@@ -126,7 +126,7 @@ export const applyOverrides = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
     schemata: SchemaMap,
-    overrideFile: OverrideFile
+    overrideFile: OverrideFile,
 ): void => {
     if (!overrideFile.inputs) {
         // nothing to do

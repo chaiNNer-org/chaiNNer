@@ -55,7 +55,7 @@ export const FileInput = memo(
                 'file-select',
                 fileFilter,
                 false,
-                fileDir
+                fileDir,
             );
             const selectedPath = filePaths[0];
             if (!canceled && selectedPath) {
@@ -195,5 +195,5 @@ export const FileInput = memo(
                 </VStack>
             </WithLabel>
         );
-    }
+    },
 );

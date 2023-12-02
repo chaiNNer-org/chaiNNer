@@ -91,7 +91,7 @@ const BG2: RgbColorJson = { kind: 'rgb', values: [1, 1, 1] };
 export const getCssBackground = (color: ColorJson): string => {
     if (color.kind === 'rgba' && color.values[3] < 1) {
         return `repeating-conic-gradient(${toCssColor(withBg(color, BG1))} 0% 25%, ${toCssColor(
-            withBg(color, BG2)
+            withBg(color, BG2),
         )} 0% 50%) 0 0 / 20px 20px`;
     }
     return `${toCssColor(color)}`;

@@ -50,7 +50,7 @@ export const DirectoryInput = memo(
         const onButtonClick = async () => {
             const { canceled, filePaths } = await ipcRenderer.invoke(
                 'dir-select',
-                value ?? getLastDirectory() ?? ''
+                value ?? getLastDirectory() ?? '',
             );
             const path = filePaths[0];
             if (!canceled && path) {
@@ -137,5 +137,5 @@ export const DirectoryInput = memo(
                 </Tooltip>
             </MaybeLabel>
         );
-    }
+    },
 );

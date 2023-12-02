@@ -68,5 +68,5 @@ export const PresetComponent = memo(
                 </Center>
             </Box>
         );
-    }
+    },
 );

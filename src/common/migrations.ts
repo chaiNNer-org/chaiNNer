@@ -53,7 +53,7 @@ const toV080: ModernMigration = (data) => {
         // Invert interpolation weight
         if (
             ['chainner:pytorch:interpolate_models', 'chainner:ncnn:interpolate_models'].includes(
-                node.data.schemaId
+                node.data.schemaId,
             )
         ) {
             node.data.inputData[2] = 100 - (node.data.inputData[2] as number);
@@ -67,15 +67,15 @@ const updateAdjustmentScale: ModernMigration = (data) => {
         // Convert slider scales for several Adjustment nodes
         if (node.data.schemaId === 'chainner:image:hue_and_saturation') {
             node.data.inputData[2] = (((node.data.inputData[2] as number) / 255) * 100.0).toFixed(
-                1
+                1,
             );
         }
         if (node.data.schemaId === 'chainner:image:brightness_and_contrast') {
             node.data.inputData[1] = (((node.data.inputData[1] as number) / 255) * 100.0).toFixed(
-                1
+                1,
             );
             node.data.inputData[2] = (((node.data.inputData[2] as number) / 255) * 100.0).toFixed(
-                1
+                1,
             );
         }
     });
@@ -231,7 +231,7 @@ const addOpacityNode: ModernMigration = (data) => {
         opacityNodeID: string,
         blendNodeID: string,
         handleID: number,
-        nodeZIndex: number
+        nodeZIndex: number,
     ) => {
         return {
             id: deriveUniqueId(opacityNodeID + blendNodeID + String(handleID)),
@@ -410,7 +410,7 @@ const onnxConvertUpdate: ModernMigration = (data) => {
                                         newNameInputEdge.target = modelNameAsInputNode.id;
                                         newNameInputEdge.targetHandle = `${modelNameAsInputNode.id}-${inputDataIndex}`;
                                         newNameInputEdge.id = deriveUniqueId(
-                                            newNameInputEdge.targetHandle
+                                            newNameInputEdge.targetHandle,
                                         );
                                         data.edges.push(newNameInputEdge);
                                     }
@@ -452,7 +452,7 @@ const onnxConvertUpdate: ModernMigration = (data) => {
 const removeEmptyStrings: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         node.data.inputData = Object.fromEntries(
-            Object.entries(node.data.inputData).filter(([, value]) => value !== '')
+            Object.entries(node.data.inputData).filter(([, value]) => value !== ''),
         );
     });
 
@@ -474,7 +474,7 @@ const removeTargetTileSize: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         if (
             ['chainner:ncnn:upscale_image', 'chainner:onnx:upscale_image'].includes(
-                node.data.schemaId
+                node.data.schemaId,
             )
         ) {
             delete node.data.inputData[2];
@@ -1041,16 +1041,16 @@ const createColor: ModernMigration = (data) => {
             // rewire image output edges
             changeEdgeIfExistsSource(
                 { nodeId: node.id, outputId: 0 as OutputId },
-                { nodeId: ccId, outputId: 0 as OutputId }
+                { nodeId: ccId, outputId: 0 as OutputId },
             );
             // rewire width and height edges
             changeEdgeIfExistsTarget(
                 { nodeId: node.id, inputId: 0 as InputId },
-                { nodeId: ccId, inputId: 1 as InputId }
+                { nodeId: ccId, inputId: 1 as InputId },
             );
             changeEdgeIfExistsTarget(
                 { nodeId: node.id, inputId: 1 as InputId },
-                { nodeId: ccId, inputId: 2 as InputId }
+                { nodeId: ccId, inputId: 2 as InputId },
             );
 
             // if the color channel inputs have edges, then we need to cerate a Color From node
@@ -1059,27 +1059,27 @@ const createColor: ModernMigration = (data) => {
 
                 newEdge(
                     { nodeId: cfId, outputId: 0 as OutputId },
-                    { nodeId: ccId, inputId: 0 as InputId }
+                    { nodeId: ccId, inputId: 0 as InputId },
                 );
 
                 if (node.data.schemaId === CREATE_COLOR_GRAY) {
                     changeEdgeIfExistsTarget(
                         { nodeId: node.id, inputId: 2 as InputId },
-                        { nodeId: cfId, inputId: 1 as InputId }
+                        { nodeId: cfId, inputId: 1 as InputId },
                     );
                 } else {
                     // RGB or RGBA
                     changeEdgeIfExistsTarget(
                         { nodeId: node.id, inputId: 2 as InputId },
-                        { nodeId: cfId, inputId: 2 as InputId }
+                        { nodeId: cfId, inputId: 2 as InputId },
                     );
                     changeEdgeIfExistsTarget(
                         { nodeId: node.id, inputId: 3 as InputId },
-                        { nodeId: cfId, inputId: 3 as InputId }
+                        { nodeId: cfId, inputId: 3 as InputId },
                     );
                     changeEdgeIfExistsTarget(
                         { nodeId: node.id, inputId: 4 as InputId },
-                        { nodeId: cfId, inputId: 4 as InputId }
+                        { nodeId: cfId, inputId: 4 as InputId },
                     );
                 }
 
@@ -1109,11 +1109,11 @@ const createColor: ModernMigration = (data) => {
                     });
                     changeEdgeIfExistsTarget(
                         { nodeId: node.id, inputId: 5 as InputId },
-                        { nodeId: mathId, inputId: 0 as InputId }
+                        { nodeId: mathId, inputId: 0 as InputId },
                     );
                     newEdge(
                         { nodeId: mathId, outputId: 0 as OutputId },
-                        { nodeId: cfId, inputId: 5 as InputId }
+                        { nodeId: cfId, inputId: 5 as InputId },
                     );
                 }
             }
@@ -1360,7 +1360,7 @@ const writeOutputFrame: ModernMigration = (data) => {
 
 const separateNodeWidthAndInputHeight: ModernMigration = (data) => {
     const hasInputSize = (
-        nodeData: Mutable<ReadonlyNodeData>
+        nodeData: Mutable<ReadonlyNodeData>,
     ): nodeData is Mutable<ReadonlyNodeData> & {
         inputSize?: Record<InputId, Size>;
     } => 'inputSize' in nodeData;
@@ -1451,7 +1451,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:image:file_iterator_load',
-                    'chainner:image:load_images'
+                    'chainner:image:load_images',
                 );
                 break;
             }
@@ -1459,7 +1459,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:image:paired_file_iterator_load',
-                    'chainner:image:load_image_pairs'
+                    'chainner:image:load_image_pairs',
                 );
                 break;
             }
@@ -1467,7 +1467,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:pytorch:model_iterator_load',
-                    'chainner:pytorch:load_models'
+                    'chainner:pytorch:load_models',
                 );
                 break;
             }
@@ -1475,7 +1475,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:ncnn:model_iterator_load',
-                    'chainner:ncnn:load_models'
+                    'chainner:ncnn:load_models',
                 );
                 break;
             }
@@ -1483,7 +1483,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:onnx:model_iterator_load',
-                    'chainner:onnx:load_models'
+                    'chainner:onnx:load_models',
                 );
                 break;
             }
@@ -1491,12 +1491,12 @@ const oldToNewIterators: ModernMigration = (data) => {
                 standardIteratorMigration(
                     node,
                     'chainner:image:spritesheet_iterator_load',
-                    'chainner:image:split_spritesheet'
+                    'chainner:image:split_spritesheet',
                 );
 
                 const subNodes = nodesByParentNodes.get(node.id);
                 const appendHelper = subNodes?.find(
-                    (n) => n.data.schemaId === 'chainner:image:spritesheet_iterator_save'
+                    (n) => n.data.schemaId === 'chainner:image:spritesheet_iterator_save',
                 );
 
                 if (appendHelper) {
@@ -1531,10 +1531,10 @@ const oldToNewIterators: ModernMigration = (data) => {
             case 'chainner:image:video_frame_iterator': {
                 const subNodes = nodesByParentNodes.get(node.id);
                 const loadHelper = subNodes?.find(
-                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_load'
+                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_load',
                 );
                 const saveHelper = subNodes?.find(
-                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_save'
+                    (n) => n.data.schemaId === 'chainner:image:simple_video_frame_iterator_save',
                 );
 
                 const iteratorInputs = node.data.inputData;

@@ -5,7 +5,7 @@ import { getChainnerScope } from '../types/chainner-scope';
 import { FunctionDefinition } from '../types/function';
 
 export const parseFunctionDefinitions = (
-    nodes: readonly NodeSchema[]
+    nodes: readonly NodeSchema[],
 ): Map<SchemaId, FunctionDefinition> => {
     const errors: string[] = [];
 
@@ -24,12 +24,12 @@ export const parseFunctionDefinitions = (
 
                 try {
                     const definitions = parseDefinitions(
-                        new SourceDocument(typeDefinitions, `${schema.schemaId} ${input.id}`)
+                        new SourceDocument(typeDefinitions, `${schema.schemaId} ${input.id}`),
                     );
                     for (const d of definitions) {
                         if (parentScope.has(d.name)) {
                             errors.push(
-                                `Duplicate type definitions for ${d.name} in ${schema.schemaId} > ${input.label} (id: ${input.id}). The type definition is already defined in chainner scope (see "src/common/types/chainner-scope.ts")`
+                                `Duplicate type definitions for ${d.name} in ${schema.schemaId} > ${input.label} (id: ${input.id}). The type definition is already defined in chainner scope (see "src/common/types/chainner-scope.ts")`,
                             );
                             continue;
                         }
@@ -43,7 +43,7 @@ export const parseFunctionDefinitions = (
                     errors.push(
                         `Unable to add type definitions of ${schema.schemaId} > ${input.label} (id: ${input.id}):` +
                             `\nError: ${String(error)}` +
-                            `\nType definitions: ${typeDefinitions}`
+                            `\nType definitions: ${typeDefinitions}`,
                     );
                 }
             }

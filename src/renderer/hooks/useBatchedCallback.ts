@@ -10,7 +10,7 @@ import { useMemo } from 'react';
  */
 export const batchedCallback = <T extends unknown[]>(
     fn: (...args: T) => void,
-    wait: number
+    wait: number,
 ): ((...arg: T) => void) => {
     let queue: T[] = [];
     let lastCall = Date.now();
@@ -45,7 +45,7 @@ export const batchedCallback = <T extends unknown[]>(
 
 export const useBatchedCallback = <T extends unknown[]>(
     fn: (...args: T) => void,
-    wait: number
+    wait: number,
 ): ((...arg: T) => void) => {
     return useMemo(() => batchedCallback(fn, wait), [fn, wait]);
 };

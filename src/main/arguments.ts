@@ -59,7 +59,7 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
                                 ' Right now, only number, text, file, and directory inputs are supported.',
                         },
                     });
-            }
+            },
         )
         .options({
             remoteBackend: {

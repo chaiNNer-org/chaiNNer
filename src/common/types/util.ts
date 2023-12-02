@@ -35,7 +35,7 @@ interface KnownInstance<N extends keyof KnownStructDefinitions> {
     readonly descriptor: StructDescriptor & { readonly name: N };
 }
 const createAssertFn = <N extends keyof KnownStructDefinitions>(
-    name: N
+    name: N,
 ): ((type: Type) => type is StructInstanceType & KnownInstance<N>) => {
     const fn = (type: Type) => isStructInstance(type) && type.descriptor.name === name;
     return fn as never;
@@ -46,7 +46,7 @@ export const isColor = createAssertFn('Color');
 export const isDirectory = createAssertFn('Directory');
 
 export const getFields = <N extends keyof KnownStructDefinitions>(
-    type: StructInstanceType & KnownInstance<N>
+    type: StructInstanceType & KnownInstance<N>,
 ): KnownStructDefinitions[N] => {
     const fields: Record<string, NonNeverType> = {};
     type.descriptor.fields.forEach((field, i) => {

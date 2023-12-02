@@ -35,7 +35,7 @@ export const useLastWindowSize = () => {
             (_, maximized) => {
                 setSize((prev) => ({ ...prev, maximized }));
             },
-            [setSize]
-        )
+            [setSize],
+        ),
     );
 };

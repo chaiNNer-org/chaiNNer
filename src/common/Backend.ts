@@ -184,7 +184,7 @@ export class Backend {
      * Runs the provided nodes
      */
     run(
-        data: BackendRunRequest
+        data: BackendRunRequest,
     ): Promise<BackendSuccessResponse | BackendExceptionResponse | BackendAlreadyRunningResponse> {
         return this.fetchJson('/run', 'POST', data);
     }

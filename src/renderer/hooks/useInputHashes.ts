@@ -17,11 +17,11 @@ const EMPTY = '6227edf5-cc54-4d34-b863-f647d3a73509';
 const computeInputHashes = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
+    schemata: SchemaMap,
 ): Map<string, string> => {
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const byTargetHandle = new Map(
-        edges.filter((e) => e.targetHandle).map((e) => [e.targetHandle!, e])
+        edges.filter((e) => e.targetHandle).map((e) => [e.targetHandle!, e]),
     );
 
     const hashes = new Map<string, string>();
@@ -33,7 +33,7 @@ const computeInputHashes = (
         const inputs: string[] = [node.data.schemaId];
         for (const input of schema.inputs) {
             const connectedEdge = byTargetHandle.get(
-                stringifyTargetHandle({ nodeId: node.id, inputId: input.id })
+                stringifyTargetHandle({ nodeId: node.id, inputId: input.id }),
             );
             if (connectedEdge) {
                 const source = byId.get(connectedEdge.source);

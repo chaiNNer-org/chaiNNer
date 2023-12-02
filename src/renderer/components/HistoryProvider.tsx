@@ -66,7 +66,7 @@ export const HistoryProvider = memo(
     ({ children }: React.PropsWithChildren<unknown>): JSX.Element => {
         const changeId = useContextSelector(
             GlobalVolatileContext,
-            (c) => `${c.nodeChanges},${c.edgeChanges}`
+            (c) => `${c.nodeChanges},${c.edgeChanges}`,
         );
         const { changeNodes, changeEdges } = useContext(GlobalContext);
         const { getNodes, getEdges } = useReactFlow();
@@ -94,7 +94,7 @@ export const HistoryProvider = memo(
                 changeNodes(nodes);
                 changeEdges(edges);
             },
-            [setSelfUpdate, changeNodes, changeEdges]
+            [setSelfUpdate, changeNodes, changeEdges],
         );
 
         // commit to history
@@ -124,5 +124,5 @@ export const HistoryProvider = memo(
 
         // eslint-disable-next-line react/jsx-no-useless-fragment
         return <>{children}</>;
-    }
+    },
 );

@@ -82,7 +82,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const accentColor = getCategoryAccentColor(categories, category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
-        [selected, accentColor, regularBorderColor]
+        [selected, accentColor, regularBorderColor],
     );
 
     const targetRef = useRef<HTMLDivElement>(null);
@@ -102,7 +102,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 }
             }
             return undefined;
-        }
+        },
     );
 
     const fileInput = useMemo(() => getSingleFileInput(inputs), [inputs]);

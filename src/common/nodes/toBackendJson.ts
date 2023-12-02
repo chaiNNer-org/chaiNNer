@@ -14,7 +14,7 @@ import type { Edge, Node } from 'reactflow';
 export const toBackendJson = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
+    schemata: SchemaMap,
 ): BackendJsonNode[] => {
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
     const convertHandle = (handle: ParsedSourceHandle): BackendJsonEdgeInput => {
@@ -26,7 +26,7 @@ export const toBackendJson = (
         const index = schema.outputs.findIndex((inOut) => inOut.id === handle.outputId);
         if (index === -1) {
             throw new Error(
-                `Invalid handle: There is no output with id ${handle.outputId} in ${schema.name}`
+                `Invalid handle: There is no output with id ${handle.outputId} in ${schema.name}`,
             );
         }
 
@@ -58,7 +58,7 @@ export const toBackendJson = (
 
         if (!nodeType) {
             throw new Error(
-                `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`
+                `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`,
             );
         }
 
@@ -72,7 +72,7 @@ export const toBackendJson = (
                     inputHandles[id]?.[inputId] ?? {
                         type: 'value',
                         value: inputData[inputId] ?? null,
-                    }
+                    },
             ),
             nodeType,
         });

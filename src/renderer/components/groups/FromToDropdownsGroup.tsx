@@ -17,7 +17,7 @@ const SmallDropDown = memo(({ input, inputData, setInputValue, isLocked }: Small
     const value = getInputValue<string | number>(input.id, inputData);
     const setValue = useCallback(
         (data?: string | number) => setInputValue(input.id, data ?? input.def),
-        [setInputValue, input]
+        [setInputValue, input],
     );
 
     return (
@@ -63,5 +63,5 @@ export const FromToDropdownsGroup = memo(
                 </HStack>
             </InputContainer>
         );
-    }
+    },
 );

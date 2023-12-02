@@ -132,7 +132,7 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                             .then(async (cacheLocation) => {
                                 const files = await readdir(cacheLocation);
                                 await Promise.all(
-                                    files.map((file) => unlink(path.join(cacheLocation, file)))
+                                    files.map((file) => unlink(path.join(cacheLocation, file))),
                                 );
                             })
                             .catch(log.error);

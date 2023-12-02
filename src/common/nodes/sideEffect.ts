@@ -9,7 +9,7 @@ import type { Edge, Node } from 'reactflow';
 export const getNodesWithSideEffects = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
+    schemata: SchemaMap,
 ): Node<NodeData>[] => {
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const outgoingMap = new Map<Node<NodeData>, Node<NodeData>[]>();

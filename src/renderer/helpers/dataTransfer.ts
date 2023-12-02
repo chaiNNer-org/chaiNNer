@@ -30,7 +30,7 @@ export interface DataTransferProcessorOptions {
 
 export const getSingleFileWithExtension = (
     dataTransfer: DataTransfer,
-    allowedExtensions: readonly string[]
+    allowedExtensions: readonly string[],
 ): string | undefined => {
     if (dataTransfer.files.length === 1) {
         const [file] = dataTransfer.files;
@@ -49,17 +49,17 @@ export const getSingleFileWithExtension = (
  */
 export type DataTransferProcessor = (
     dataTransfer: DataTransfer,
-    options: DataTransferProcessorOptions
+    options: DataTransferProcessorOptions,
 ) => boolean;
 
 const chainnerSchemaProcessor: DataTransferProcessor = (
     dataTransfer,
-    { getNodePosition, createNode, schemata }
+    { getNodePosition, createNode, schemata },
 ) => {
     if (!dataTransfer.getData(TransferTypes.ChainnerSchema)) return false;
 
     const { schemaId, offsetX, offsetY } = JSON.parse(
-        dataTransfer.getData(TransferTypes.ChainnerSchema)
+        dataTransfer.getData(TransferTypes.ChainnerSchema),
     ) as ChainnerDragData;
 
     const nodeSchema = schemata.get(schemaId);
@@ -74,7 +74,7 @@ const chainnerSchemaProcessor: DataTransferProcessor = (
 
 const chainnerPresetProcessor: DataTransferProcessor = (
     dataTransfer,
-    { changeNodes, changeEdges, getNodePosition }
+    { changeNodes, changeEdges, getNodePosition },
 ) => {
     if (!dataTransfer.getData(TransferTypes.Preset)) return false;
 
@@ -94,7 +94,7 @@ const chainnerPresetProcessor: DataTransferProcessor = (
                 if (currentIds.has(oldId)) return oldId;
                 return oldId;
             },
-            false
+            false,
         );
 
         newNodes = newNodes.map((node) => ({
@@ -132,7 +132,7 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
 
 const openFileProcessor: DataTransferProcessor = (
     dataTransfer,
-    { schemata, getNodePosition, createNode }
+    { schemata, getNodePosition, createNode },
 ) => {
     for (const schema of schemata.schemata) {
         for (const input of schema.inputs) {

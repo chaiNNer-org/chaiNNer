@@ -32,7 +32,7 @@ export type PngDataUrl = string & { readonly __PngDataUrl: never };
 export const takeScreenshot = async (
     currentFlowWrapper: HTMLElement,
     reactFlow: ReactFlowInstance<NodeData, EdgeData>,
-    padding: number
+    padding: number,
 ): Promise<PngDataUrl> => {
     const oldViewport = reactFlow.getViewport();
 
@@ -52,7 +52,7 @@ export const takeScreenshot = async (
 
     const exportZoom = Math.min(
         reactFlowViewport.width / paddedBoundingBox.width,
-        reactFlowViewport.height / paddedBoundingBox.height
+        reactFlowViewport.height / paddedBoundingBox.height,
     );
 
     try {

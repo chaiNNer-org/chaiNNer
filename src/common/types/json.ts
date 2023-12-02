@@ -137,8 +137,8 @@ export const fromJson = (e: ExpressionJson): Expression => {
             return new StructExpression(
                 e.name,
                 Object.entries(e.fields ?? {}).map(
-                    ([name, type]) => new StructExpressionField(name, fromJson(type))
-                )
+                    ([name, type]) => new StructExpressionField(name, fromJson(type)),
+                ),
             );
         case 'field-access':
             return new FieldAccessExpression(fromJson(e.of), e.field);
@@ -149,7 +149,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
                 fromJson(e.of),
                 e.arms.map(({ pattern, binding, to }) => {
                     return new MatchArm(fromJson(pattern), binding ?? undefined, fromJson(to));
-                })
+                }),
             );
         default:
             return assertNever(e);

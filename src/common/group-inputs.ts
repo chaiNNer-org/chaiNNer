@@ -44,7 +44,7 @@ export type GroupInputs = Exact<Pick<DeclaredGroupInputs, GroupKind>>;
 
 const allInputsOfKind = <K extends InputKind>(
     inputs: readonly InputItem[],
-    kind: K
+    kind: K,
 ): inputs is readonly OfKind<Input, K>[] => {
     return inputs.every((i) => i.kind === kind);
 };
@@ -107,7 +107,7 @@ const groupInputsChecks: {
     [Kind in GroupKind]: (
         inputs: readonly InputItem[],
         group: OfKind<Group, Kind>,
-        schema: NodeSchema
+        schema: NodeSchema,
     ) => string | undefined;
 } = {
     conditional: (inputs, { options: { condition } }, schema) => {
@@ -168,7 +168,7 @@ const groupInputsChecks: {
 export const checkGroupInputs = (
     inputs: readonly InputItem[],
     group: Group,
-    schema: NodeSchema
+    schema: NodeSchema,
 ): Validity => {
     const checkFn = groupInputsChecks[group.kind];
     if (typeof checkFn !== 'function') {

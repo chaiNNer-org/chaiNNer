@@ -24,7 +24,7 @@ export interface UseNodeMenuOptions {
 export const useNodeMenu = (
     data: NodeData,
     useDisabled: UseDisabled,
-    { canLock = true, reload }: UseNodeMenuOptions = {}
+    { canLock = true, reload }: UseNodeMenuOptions = {},
 ): UseContextMenu => {
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;

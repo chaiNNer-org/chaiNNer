@@ -126,7 +126,7 @@ const getButtons = (
     { type, buttons, defaultId = 0, cancelId }: InternalMessage,
     onClose: (button: number) => void,
     cancelRef: React.Ref<HTMLButtonElement>,
-    focusId: string
+    focusId: string,
 ): JSX.Element => {
     const buttonElements: JSX.Element[] = [];
 
@@ -148,7 +148,7 @@ const getButtons = (
                     onClick={() => onClose(i)}
                 >
                     {button}
-                </Button>
+                </Button>,
             );
         }
     } else {
@@ -164,7 +164,7 @@ const getButtons = (
                         onClick={() => onClose(0)}
                     >
                         OK
-                    </Button>
+                    </Button>,
                 );
                 break;
             case AlertType.CRIT_ERROR:
@@ -189,7 +189,7 @@ const getButtons = (
                         }}
                     >
                         Open Logs Folder
-                    </Button>
+                    </Button>,
                 );
                 buttonElements.push(
                     <Button
@@ -204,7 +204,7 @@ const getButtons = (
                         }}
                     >
                         Exit Application
-                    </Button>
+                    </Button>,
                 );
                 break;
             default:
@@ -239,11 +239,11 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
                 push({ ...message, id, title: message.title ?? message.type, resolve });
             });
         },
-        [push, closeContextMenu]
+        [push, closeContextMenu],
     );
     const showAlert = useCallback(
         (message: AlertOptions) => showAlertInternal(message, newAlertId()),
-        [showAlertInternal]
+        [showAlertInternal],
     );
     const sendAlert = useCallback(
         (message: AlertOptions): AlertId => {
@@ -251,7 +251,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             showAlertInternal(message, id).catch(log.error);
             return id;
         },
-        [showAlertInternal]
+        [showAlertInternal],
     );
 
     const { isOpen, onOpen, onClose: onDisclosureClose } = useDisclosure();
@@ -280,7 +280,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             setDone((prev) => prev + 1);
             current?.resolve(button);
         },
-        [current]
+        [current],
     );
 
     const buttons = useMemo(() => {
@@ -300,7 +300,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
             }
             toast(options);
         },
-        [toast]
+        [toast],
     );
 
     const value = useMemoObject<AlertBox>({ sendAlert, forgetAlert, showAlert, sendToast });

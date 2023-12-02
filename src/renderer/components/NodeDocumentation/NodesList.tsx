@@ -111,7 +111,7 @@ export const NodesList = memo(
                                     ? [...categoryNodes].sort(
                                           (a, b) =>
                                               (searchScores.get(b.schemaId) ?? 0) -
-                                              (searchScores.get(a.schemaId) ?? 0)
+                                              (searchScores.get(a.schemaId) ?? 0),
                                       )
                                     : categoryNodes;
 
@@ -178,5 +178,5 @@ export const NodesList = memo(
                 </Box>
             </Box>
         );
-    }
+    },
 );

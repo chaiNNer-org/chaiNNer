@@ -15,7 +15,7 @@ export const getPlatform = (): SupportedPlatform => {
             return platform;
         default:
             throw new Error(
-                `Unsupported platform: ${platform}. Please report this to us and we may add support.`
+                `Unsupported platform: ${platform}. Please report this to us and we may add support.`,
             );
     }
 };

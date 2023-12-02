@@ -41,5 +41,5 @@ export const GroupElement = memo(
                 nodeState={nodeState}
             />
         );
-    }
+    },
 );

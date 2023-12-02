@@ -13,7 +13,7 @@ import type { Edge, Node } from 'reactflow';
 
 const assignmentErrorEquals = (
     a: FunctionInputAssignmentError,
-    b: FunctionInputAssignmentError
+    b: FunctionInputAssignmentError,
 ): boolean => {
     return (
         a.inputId === b.inputId &&
@@ -52,7 +52,7 @@ export class TypeState {
     private constructor(
         functions: TypeState['functions'],
         evaluationErrors: TypeState['evaluationErrors'],
-        edges: TypeState['edges']
+        edges: TypeState['edges'],
     ) {
         this.functions = functions;
         this.evaluationErrors = evaluationErrors;
@@ -66,7 +66,7 @@ export class TypeState {
         rawEdges: readonly Edge<EdgeData>[],
         outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
         functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
-        previousTypeState?: TypeState
+        previousTypeState?: TypeState,
     ): TypeState {
         const edges = EdgeState.create(rawEdges);
 
@@ -120,7 +120,7 @@ export class TypeState {
 
                         return undefined;
                     },
-                    outputNarrowing.get(n.id)
+                    outputNarrowing.get(n.id),
                 );
             } catch (error) {
                 if (error instanceof EvaluationError) {

@@ -42,7 +42,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
         recentFiles: readonly string[],
         window: BrowserWindowWithSafeIpc,
         isMacPlatform: boolean,
-        isEnabled: boolean
+        isEnabled: boolean,
     ) => {
         const submenu: MenuItemConstructorOptions[] =
             recentFiles.length === 0
@@ -71,7 +71,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                         window.webContents.send('clear-open-recent');
                     },
                     enabled: isEnabled,
-                }
+                },
             );
         }
 
@@ -393,7 +393,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     label: "Open chaiNNer's GitHub page",
                     click: async () => {
                         await shell.openExternal(
-                            'https://github.com/chaiNNer-org/chaiNNer/blob/main/README.md'
+                            'https://github.com/chaiNNer-org/chaiNNer/blob/main/README.md',
                         );
                     },
                 },
@@ -409,7 +409,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     label: 'Release Notes',
                     click: async () => {
                         await shell.openExternal(
-                            `https://github.com/chaiNNer-org/chaiNNer/releases/tag/v${app.getVersion()}`
+                            `https://github.com/chaiNNer-org/chaiNNer/releases/tag/v${app.getVersion()}`,
                         );
                     },
                 },
@@ -455,7 +455,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     label: 'Report a Bug or Feature Request',
                     click: async () => {
                         await shell.openExternal(
-                            'https://github.com/chaiNNer-org/chaiNNer/issues/new/choose'
+                            'https://github.com/chaiNNer-org/chaiNNer/issues/new/choose',
                         );
                     },
                 },

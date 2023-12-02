@@ -36,5 +36,5 @@ export const SettingContainer = memo(
                 <HStack>{children}</HStack>
             </Flex>
         );
-    }
+    },
 );

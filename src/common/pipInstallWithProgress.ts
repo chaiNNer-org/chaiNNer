@@ -32,7 +32,7 @@ const downloadWheelAndInstall = async (
     url: string,
     fileName: string,
     onProgress?: (percent: number) => void,
-    onStdio: OnStdio = {}
+    onStdio: OnStdio = {},
 ) =>
     new Promise<void>((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,7 +59,7 @@ const downloadWheelAndInstall = async (
                 const installProcess = spawn(
                     pythonPath,
                     ['-m', 'pip', 'install', path.join(tempDir, fileName), '--no-cache-dir'],
-                    { env: sanitizedEnv }
+                    { env: sanitizedEnv },
                 );
                 installProcess.stdout.on('data', (data) => {
                     onStdout(String(data));
@@ -82,7 +82,7 @@ export const pipInstallWithProgress = async (
     python: string,
     pkg: PyPiPackage,
     onProgress?: (percentage: number) => void,
-    onStdio: OnStdio = {}
+    onStdio: OnStdio = {},
 ) =>
     new Promise<Buffer | void>((resolve, reject) => {
         const { onStdout = noop, onStderr = (data) => log.error(data) } = onStdio;
@@ -119,7 +119,7 @@ export const pipInstallWithProgress = async (
                         wheelFileName,
                         wheelName,
                         onProgress,
-                        onStdio
+                        onStdio,
                     ).then(() => {
                         resolve();
                     });
@@ -138,11 +138,11 @@ export const pipInstallWithProgress = async (
                                 };
                                 const releases = Array.from(releaseData.releases[pkg.version]);
                                 const find = releases.find(
-                                    (file) => file.filename === wheelFileName
+                                    (file) => file.filename === wheelFileName,
                                 );
                                 if (!find)
                                     throw new Error(
-                                        `Unable for find correct file for ${pkg.pypiName}==${pkg.version}`
+                                        `Unable for find correct file for ${pkg.pypiName}==${pkg.version}`,
                                     );
                                 const { url } = find;
                                 onStdout(`Downloading package from PyPi at: ${url}\n`);
@@ -151,7 +151,7 @@ export const pipInstallWithProgress = async (
                                     url,
                                     wheelFileName,
                                     onProgress,
-                                    onStdio
+                                    onStdio,
                                 ).then(() => resolve(), reject);
                             }
                         });

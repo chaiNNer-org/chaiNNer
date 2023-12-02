@@ -34,14 +34,14 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
             e.preventDefault();
             openContextMenu(id, e.pageX, e.pageY);
         },
-        [openContextMenu, id]
+        [openContextMenu, id],
     );
 
     const manuallyOpenContextMenu = useCallback(
         (pageX: number, pageY: number): void => {
             openContextMenu(id, pageX, pageY);
         },
-        [openContextMenu, id]
+        [openContextMenu, id],
     );
 
     const onClick = useCallback(
@@ -54,7 +54,7 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
 
             openContextMenu(id, e.pageX - x + rect.width, e.pageY - y + rect.height);
         },
-        [openContextMenu, id]
+        [openContextMenu, id],
     );
 
     return useMemoObject<UseContextMenu>({

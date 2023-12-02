@@ -21,7 +21,7 @@ const version = app.getVersion() as Version;
 
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
-    args: OpenArguments
+    args: OpenArguments,
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDirSync());
@@ -47,7 +47,7 @@ const registerEventHandlerPreSetup = (
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
             properties: ['openDirectory', 'createDirectory'],
-        })
+        }),
     );
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
@@ -55,7 +55,7 @@ const registerEventHandlerPreSetup = (
             filters: [...filters, { name: 'All Files', extensions: ['*'] }],
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
-        })
+        }),
     );
 
     // file IO
@@ -172,7 +172,7 @@ const registerEventHandlerPreSetup = (
 
 const registerEventHandlerPostSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
-    backend: BackendProcess
+    backend: BackendProcess,
 ) => {
     ipcMain.handle('owns-backend', () => backend.owned);
     ipcMain.handle('get-backend-url', () => backend.url);
@@ -184,7 +184,7 @@ const registerEventHandlerPostSetup = (
                 type: 'error',
                 title: 'Unexpected Error',
                 message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
-                    error
+                    error,
                 )}`,
             });
             app.exit(1);
@@ -227,7 +227,7 @@ const registerEventHandlerPostSetup = (
     const handleUnsavedChanges = (
         event: Electron.Event,
         onSave: () => void,
-        onDontSave?: () => void
+        onDontSave?: () => void,
     ) => {
         const choice = dialog.showMessageBoxSync(mainWindow, {
             type: 'question',
@@ -263,7 +263,7 @@ const registerEventHandlerPostSetup = (
                 },
                 () => {
                     restartChainner();
-                }
+                },
             );
         } else {
             restartChainner();
@@ -294,13 +294,13 @@ const createBackend = async (token: ProgressToken, args: OpenArguments) => {
         useSystemPython,
         systemPythonLocation,
         getRootDirSync(),
-        args.remoteBackend
+        args.remoteBackend,
     );
 };
 
 export const createMainWindow = async (args: OpenArguments) => {
     const lastWindowSize = JSON.parse(
-        settingStorage.getItem('use-last-window-size') || 'null'
+        settingStorage.getItem('use-last-window-size') || 'null',
     ) as WindowSize | null;
 
     // Create the browser window.

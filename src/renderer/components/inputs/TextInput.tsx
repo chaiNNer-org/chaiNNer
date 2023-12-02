@@ -64,14 +64,14 @@ export const TextInput = memo(
                     resetValue();
                 }
             },
-            [minLength, maxLength, allowEmptyString, setValue, resetValue]
+            [minLength, maxLength, allowEmptyString, setValue, resetValue],
         );
 
         const handleChange = useDebouncedCallback(
             (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                 inputValue(event.target.value, true);
             },
-            500
+            500,
         );
 
         const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
@@ -215,5 +215,5 @@ export const TextInput = memo(
         }
 
         return <MaybeLabel input={input}>{inputElement}</MaybeLabel>;
-    }
+    },
 );

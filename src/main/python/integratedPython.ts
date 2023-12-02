@@ -39,7 +39,7 @@ const downloads: Record<SupportedPlatform, PythonDownload> = {
 const extractPython = async (
     directory: string,
     tarPath: string,
-    onProgress: (percent: number) => void
+    onProgress: (percent: number) => void,
 ) => {
     const files = await decompress(tarPath);
     const totalFiles = files.length;
@@ -53,7 +53,7 @@ const extractPython = async (
             const percentageComplete = (doneCounter / totalFiles) * 100;
             doneCounter += 1;
             onProgress(percentageComplete);
-        })
+        }),
     );
 };
 
@@ -64,7 +64,7 @@ const extractPython = async (
  */
 export const getIntegratedPython = async (
     directory: string,
-    onProgress: (percentage: number, stage: 'download' | 'extract') => void
+    onProgress: (percentage: number, stage: 'download' | 'extract') => void,
 ): Promise<PythonInfo> => {
     const platform = getPlatform();
     const { url, version, path: relativePath } = downloads[platform];

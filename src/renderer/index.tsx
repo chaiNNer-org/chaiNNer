@@ -31,5 +31,5 @@ const root = createRoot(container!);
 root.render(
     <QueryClientProvider client={queryClient}>
         <App />
-    </QueryClientProvider>
+    </QueryClientProvider>,
 );

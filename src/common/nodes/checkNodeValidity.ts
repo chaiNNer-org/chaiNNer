@@ -38,7 +38,7 @@ export const checkNodeValidity = ({
             condition,
             inputData,
             (id) => functionInstance?.inputs.get(id),
-            (id) => connectedInputs.has(id)
+            (id) => connectedInputs.has(id),
         );
     };
 
@@ -67,7 +67,7 @@ export const checkNodeValidity = ({
             const error = simpleError(assignedType, withoutNull(inputType));
             if (error) {
                 return invalid(
-                    `Input ${input.label} requires ${error.definition} but was connected with ${error.assigned}.`
+                    `Input ${input.label} requires ${error.definition} but was connected with ${error.assigned}.`,
                 );
             }
         }
@@ -79,7 +79,7 @@ export const checkNodeValidity = ({
             if (!traceTree) throw new Error('Cannot determine assignment error');
             const trace = printErrorTrace(traceTree);
             return invalid(
-                `Input ${input.label} was connected with an incompatible value. ${trace.join(' ')}`
+                `Input ${input.label} was connected with an incompatible value. ${trace.join(' ')}`,
             );
         }
 
@@ -88,7 +88,7 @@ export const checkNodeValidity = ({
             const output = schema.outputs.find((o) => o.id === outputId)!;
 
             return invalid(
-                `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`
+                `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`,
             );
         }
     }

@@ -61,7 +61,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
-        c.functionDefinitions.get(schemaId)
+        c.functionDefinitions.get(schemaId),
     );
     const definitionType = functionDefinition?.inputDefaults.get(inputId) ?? NeverType.instance;
     const connectableType =
@@ -72,7 +72,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         (newValue: NonNullable<InputValue>) => {
             setInputValue(inputId, newValue);
         },
-        [inputId, setInputValue]
+        [inputId, setInputValue],
     );
     const resetValue = useCallback(() => {
         setInputValue(inputId, undefined);
@@ -87,7 +87,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             setInputHeight(inputId, newSize.height);
             setWidth(newSize.width);
         },
-        [inputId, setInputHeight, setWidth]
+        [inputId, setInputHeight, setWidth],
     );
 
     const inputType = type.instance?.inputs.get(inputId) ?? NeverType.instance;

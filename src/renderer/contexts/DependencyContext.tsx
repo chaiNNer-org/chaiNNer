@@ -113,7 +113,7 @@ const PackageDependencyView = memo(
                 <Spacer />
             </HStack>
         );
-    }
+    },
 );
 
 const PackageView = memo(
@@ -276,7 +276,7 @@ const PackageView = memo(
                 </AccordionPanel>
             </AccordionItem>
         );
-    }
+    },
 );
 
 interface FeaturesAccordionProps {
@@ -411,7 +411,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         (data: string) => {
             setShellOutput((prev) => (prev + data).slice(-10_000));
         },
-        [setShellOutput]
+        [setShellOutput],
     );
     const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
@@ -451,8 +451,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 pythonInfo,
                 p.dependencies,
                 usePipDirectly ? undefined : setProgress,
-                onStdio
-            )
+                onStdio,
+            ),
         );
     };
 
@@ -463,8 +463,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 pythonInfo,
                 p.dependencies,
                 usePipDirectly ? undefined : setProgress,
-                onStdio
-            )
+                onStdio,
+            ),
         );
     };
 
@@ -487,7 +487,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     return true;
                 }
                 return versionGt(version, installed);
-            })
+            }),
         ).length;
     }, [packages, installedPyPi]);
 

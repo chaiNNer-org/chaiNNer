@@ -3,7 +3,7 @@ import { lazyKeyed } from '../util';
 
 const analyseInputs = lazyKeyed(
     (
-        schema: NodeSchema
+        schema: NodeSchema,
     ): readonly [ReadonlyMap<InputId, Condition>, ReadonlyMap<GroupId, Condition>] => {
         const byInput = new Map<InputId, Condition>();
         const byGroup = new Map<GroupId, Condition>();
@@ -36,12 +36,12 @@ const analyseInputs = lazyKeyed(
         recurse(schema.groupLayout);
 
         return [byInput, byGroup];
-    }
+    },
 );
 
 export const getRequireCondition = (
     schema: NodeSchema,
-    group: OfKind<Group, 'required'>
+    group: OfKind<Group, 'required'>,
 ): Condition => {
     const result = analyseInputs(schema)[1].get(group.id);
     if (!result) {

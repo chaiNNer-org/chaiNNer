@@ -43,7 +43,7 @@ const MenuRenderer = memo(
                 </Menu>
             </Portal>
         );
-    }
+    },
 );
 
 interface ContentMenu {

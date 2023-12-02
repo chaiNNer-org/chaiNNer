@@ -75,7 +75,7 @@ const createBackend = async (token: ProgressToken, args: RunArguments) => {
         useSystemPython,
         systemPythonLocation,
         getRootDirSync(),
-        args.remoteBackend
+        args.remoteBackend,
     );
 };
 
@@ -141,13 +141,13 @@ interface Chain {
 const ensureStaticCorrectness = (
     { nodes, edges }: Readonly<Chain>,
     schemata: SchemaMap,
-    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
 ): void => {
     const unknown = nodes.filter((n) => !schemata.has(n.data.schemaId));
     if (unknown.length > 0) {
         log.error(
             `There are ${unknown.length} unknown node(s) in the chain.` +
-                ` This means that either (1) the chain was produces by a newer version of chainner, (2) the node was deprecated and has been removed, or (3) a third-party plugin is not installed.`
+                ` This means that either (1) the chain was produces by a newer version of chainner, (2) the node was deprecated and has been removed, or (3) a third-party plugin is not installed.`,
         );
         throw new Exit(1);
     }
@@ -173,7 +173,7 @@ const ensureStaticCorrectness = (
     if (invalidNodes.length > 0) {
         const reasons = invalidNodes.join('\n');
         log.error(
-            `There are invalid nodes in the chain. Please fix them before running.\n${reasons}`
+            `There are invalid nodes in the chain. Please fix them before running.\n${reasons}`,
         );
         throw new Exit(1);
     }
@@ -182,7 +182,7 @@ const ensureStaticCorrectness = (
 const addEventListener = <K extends keyof BackendEventMap>(
     eventSource: EventSource,
     type: K,
-    listener: (data: BackendEventMap[K]) => void
+    listener: (data: BackendEventMap[K]) => void,
 ) => {
     eventSource.addEventListener(type, (event) => {
         const data = JSON.parse(event.data as string) as BackendEventMap[K];
@@ -199,22 +199,21 @@ export const runChainInCli = async (args: RunArguments) => {
         backendProcess.addErrorListener((error) => {
             log.error(
                 `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
-                    error
-                )}`
+                    error,
+                )}`,
             );
             app.exit(1);
         });
     }
 
-    const { backend, schemata, functionDefinitions, eventSource } = await connectToBackend(
-        backendProcess
-    );
+    const { backend, schemata, functionDefinitions, eventSource } =
+        await connectToBackend(backendProcess);
 
     log.info(`Read chain file ${args.file}`);
     const saveFile = await SaveFile.read(args.file);
     if (saveFile.tamperedWith) {
         log.warn(
-            `The save file has been tampered with. This might lead to errors in the execution of this chain.`
+            `The save file has been tampered with. This might lead to errors in the execution of this chain.`,
         );
     }
 
@@ -225,7 +224,7 @@ export const runChainInCli = async (args: RunArguments) => {
     }
 
     const disabledNodes = new Set(
-        getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id)
+        getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id),
     );
     const nodesToOptimize = saveFile.nodes.filter((n) => !disabledNodes.has(n.id));
     const nodes = getNodesWithSideEffects(nodesToOptimize, saveFile.edges, schemata);

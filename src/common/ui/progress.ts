@@ -40,7 +40,7 @@ const callListeners = <T>(listeners: Iterable<(value: T) => void>, value: T) => 
 
 export const updateProgress = (
     progress: Progress,
-    { status, totalProgress, statusProgress }: Partial<Readonly<Progress>>
+    { status, totalProgress, statusProgress }: Partial<Readonly<Progress>>,
 ): boolean => {
     let changed = false;
 
@@ -109,7 +109,7 @@ export class ProgressController implements ProgressMonitor, ProgressToken {
 export class SubProgress implements ProgressToken {
     constructor(
         private readonly token: ProgressToken,
-        private readonly mapFn: (totalProgress: number) => number
+        private readonly mapFn: (totalProgress: number) => number,
     ) {}
 
     static slice(token: ProgressToken, start = 0, end = 1) {

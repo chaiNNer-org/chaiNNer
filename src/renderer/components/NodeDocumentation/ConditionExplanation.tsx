@@ -113,7 +113,7 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
 const renderCondition = (
     condition: Condition,
     prefix: JSX.Element | undefined,
-    options: RenderOptions
+    options: RenderOptions,
 ): JSX.Element => {
     // Since we want to construct a natural language sentence, we can't just recursively render
     // the condition. Instead, we need to do some analysis of the condition to determine how to
@@ -179,6 +179,6 @@ export const ConditionExplanation = memo(({ condition, schema }: CEProps) => {
         >
             Condition:
         </Text>,
-        { schema }
+        { schema },
     );
 });

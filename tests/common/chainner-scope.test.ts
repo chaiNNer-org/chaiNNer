@@ -18,9 +18,9 @@ test(`Chainner scope is correct`, () => {
                 evaluate(
                     new FunctionCallExpression(
                         name,
-                        def.definition.parameters.map((p) => p.type)
+                        def.definition.parameters.map((p) => p.type),
                     ),
-                    scope
+                    scope,
                 );
                 break;
             default:

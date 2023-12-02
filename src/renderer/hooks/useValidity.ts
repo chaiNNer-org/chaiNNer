@@ -18,7 +18,7 @@ export interface UseValidity {
 export const useValidity = (id: string, schema: NodeSchema, inputData: InputData): UseValidity => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
+        c.typeState.functions.get(id),
     );
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -26,11 +26,11 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
 
     const guaranteedMissingInputs = useMemo(
         (): Validity => checkRequiredInputs(schema, inputData),
-        [schema, inputData]
+        [schema, inputData],
     );
 
     const [fullValidity, setFullValidity] = useState<Validity>(
-        alwaysValid ? VALID : STARTING_VALIDITY
+        alwaysValid ? VALID : STARTING_VALIDITY,
     );
     useEffect(() => {
         if (!alwaysValid) {
@@ -40,7 +40,7 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
                     inputData,
                     connectedInputs: getConnectedInputs(id, getEdges()),
                     functionInstance,
-                })
+                }),
             );
         }
     }, [alwaysValid, id, schema, inputData, edgeChanges, getEdges, functionInstance]);
