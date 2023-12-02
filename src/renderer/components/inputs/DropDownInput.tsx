@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { Checkbox } from './elements/Checkbox';
 import { DropDown } from './elements/Dropdown';
+import { TabList } from './elements/TabList';
 import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -16,11 +17,26 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
         return (
             <WithoutLabel>
                 <Checkbox
+                    isDisabled={isLocked}
                     label={label}
                     no={options[1]}
                     reset={reset}
                     value={value}
                     yes={options[0]}
+                    onChange={setValue}
+                />
+            </WithoutLabel>
+        );
+    }
+
+    if (preferredStyle === 'tabs') {
+        return (
+            <WithoutLabel>
+                <TabList
+                    isDisabled={isLocked}
+                    options={input.options}
+                    reset={reset}
+                    value={value}
                     onChange={setValue}
                 />
             </WithoutLabel>

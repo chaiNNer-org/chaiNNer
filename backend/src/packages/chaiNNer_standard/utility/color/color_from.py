@@ -11,7 +11,7 @@ from .. import color_group
 
 
 class ColorType(Enum):
-    GRAYSCALE = 0
+    GRAY = 0
     RGB = 1
     RGBA = 2
 
@@ -22,8 +22,8 @@ class ColorType(Enum):
     description="Create a new color value from individual channels.",
     icon="MdColorLens",
     inputs=[
-        EnumInput(ColorType, "Color Type", ColorType.RGBA),
-        if_enum_group(0, ColorType.GRAYSCALE)(
+        EnumInput(ColorType, "Color Type", ColorType.RGBA, preferred_style="tabs"),
+        if_enum_group(0, ColorType.GRAY)(
             SliderInput(
                 "Luma",
                 minimum=0,
@@ -88,7 +88,7 @@ class ColorType(Enum):
         ColorOutput(
             color_type="""
                 let channels = match Input0 {
-                    ColorType::Grayscale => 1,
+                    ColorType::Gray => 1,
                     ColorType::Rgb => 3,
                     ColorType::Rgba => 4,
                 };
@@ -105,7 +105,7 @@ def color_from_node(
     blue: float,
     alpha: float,
 ) -> Color:
-    if color_type == ColorType.GRAYSCALE:
+    if color_type == ColorType.GRAY:
         return Color.gray(gray / 255)
     if color_type == ColorType.RGB:
         return Color.bgr([blue / 255, green / 255, red / 255])

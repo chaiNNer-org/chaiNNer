@@ -23,7 +23,7 @@ def _stretch(img: np.ndarray, range_min: float, range_max: float) -> np.ndarray:
 
 
 class StretchMode(Enum):
-    AUTOMATIC = 0
+    AUTO = 0
     PERCENTILE = 1
     MANUAL = 2
 
@@ -35,8 +35,8 @@ class StretchMode(Enum):
     icon="ImContrast",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        EnumInput(StretchMode).with_id(1),
-        if_enum_group(1, [StretchMode.AUTOMATIC, StretchMode.PERCENTILE])(
+        EnumInput(StretchMode, preferred_style="tabs").with_id(1),
+        if_enum_group(1, [StretchMode.AUTO, StretchMode.PERCENTILE])(
             BoolInput("Keep Colors", default=True),
         ),
         if_enum_group(1, StretchMode.PERCENTILE)(
@@ -71,7 +71,7 @@ def stretch_contrast_node(
     manual_max: float,
 ) -> np.ndarray:
     def get_range_of(i: np.ndarray) -> tuple[float, float]:
-        if mode == StretchMode.AUTOMATIC:
+        if mode == StretchMode.AUTO:
             return float(np.min(i)), float(np.max(i))
         elif mode == StretchMode.PERCENTILE:
             return float(np.percentile(i, percentile)), float(

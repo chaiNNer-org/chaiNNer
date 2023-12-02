@@ -66,7 +66,7 @@ export interface InputOption {
     type?: ExpressionJson;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export type DropDownStyle = 'dropdown' | 'checkbox';
+export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs';
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';

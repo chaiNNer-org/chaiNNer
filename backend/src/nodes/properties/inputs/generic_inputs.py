@@ -40,13 +40,14 @@ class TypedOption(TypedDict):
 
 DropDownOption = Union[UntypedOption, TypedOption]
 
-DropDownStyle = Literal["dropdown", "checkbox"]
+DropDownStyle = Literal["dropdown", "checkbox", "tabs"]
 """
 This specified the preferred style in which the frontend may display the dropdown.
 
 - `dropdown`: This is the default style. The dropdown will simply be displayed as a dropdown.
 - `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
   The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
+- `tabs`: The options are displayed as tab list. The label of the input itself will *not* be displayed.
 """
 
 
@@ -155,6 +156,7 @@ class EnumInput(Generic[T], DropDownInput):
         type_name: str | None = None,
         option_labels: dict[T, str] | None = None,
         extra_definitions: str | None = None,
+        preferred_style: DropDownStyle = "dropdown",
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -186,6 +188,7 @@ class EnumInput(Generic[T], DropDownInput):
             label=label,
             options=options,
             default_value=default.value if default is not None else None,
+            preferred_style=preferred_style,
         )
 
         self.type_definitions = (
