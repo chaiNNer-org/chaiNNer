@@ -10,7 +10,7 @@ from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import NumberOutput
 from nodes.utils.utils import get_h_w_c
 
-from .. import adjustments_group
+from .. import threshold_group
 
 
 class AutoThreshold(Enum):
@@ -24,7 +24,7 @@ _AUTO_THRESHOLD_LABELS: dict[AutoThreshold, str] = {
 }
 
 
-@adjustments_group.register(
+@threshold_group.register(
     schema_id="chainner:image:generate_threshold",
     name="Generate Threshold",
     description="Automatically determines an optimal threshold value for the given image.",
