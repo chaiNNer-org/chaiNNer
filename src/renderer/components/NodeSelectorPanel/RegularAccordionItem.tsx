@@ -26,7 +26,10 @@ interface RegularAccordionItemProps {
 export const RegularAccordionItem = memo(
     ({ children, category, collapsed }: React.PropsWithChildren<RegularAccordionItemProps>) => {
         return (
-            <AccordionItem key={category.name}>
+            <AccordionItem
+                cursor="pointer"
+                key={category.name}
+            >
                 <Tooltip
                     closeOnMouseDown
                     hasArrow
@@ -38,14 +41,15 @@ export const RegularAccordionItem = memo(
                     px={2}
                     py={1}
                 >
-                    <AccordionButton>
+                    <AccordionButton cursor="pointer">
                         <HStack
+                            cursor="pointer"
                             flex="1"
                             h={6}
                             textAlign="left"
                             verticalAlign="center"
                         >
-                            <Center>
+                            <Center cursor="pointer">
                                 <IconFactory
                                     accentColor={category.color}
                                     icon={category.icon}
@@ -53,6 +57,7 @@ export const RegularAccordionItem = memo(
                             </Center>
                             {!collapsed && (
                                 <Heading
+                                    cursor="pointer"
                                     size="5xl"
                                     textOverflow="clip"
                                     whiteSpace="nowrap"
