@@ -98,7 +98,11 @@ export const InputHandle = memo(
         }, [connectedEdge, functionDefinitions, typeState, getNode]);
 
         return (
-            <HStack h="full">
+            <HStack
+                h="full"
+                pl={2}
+                spacing={0}
+            >
                 <Center
                     className="chainner-handle"
                     left="-6px"

@@ -109,8 +109,8 @@
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@chainner/navi": "^0.6.2",
-    "@chakra-ui/icons": "^2.0.11",
-    "@chakra-ui/react": "^2.3.5",
+    "@chakra-ui/icons": "^2.1.1",
+    "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.10",

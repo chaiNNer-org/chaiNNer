@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo } from 'react';
 import { areApproximatelyEqual, noop, stopPropagation } from '../../../../common/util';
+import './AdvancedNumberInput.scss';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
     if (min != null && value < min) return min;
@@ -147,7 +148,10 @@ export const AdvancedNumberInput = memo(
                             w={inputWidth}
                             onKeyDown={onKeyDown}
                         />
-                        <NumberInputStepper w={4}>
+                        <NumberInputStepper
+                            className="small-stepper"
+                            w={4}
+                        >
                             <NumberIncrementStepper />
                             <NumberDecrementStepper />
                         </NumberInputStepper>
@@ -195,7 +199,7 @@ export const AdvancedNumberInput = memo(
                         w={inputWidth}
                         onKeyDown={onKeyDown}
                     />
-                    <NumberInputStepper>
+                    <NumberInputStepper className="small-stepper">
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
                     </NumberInputStepper>
