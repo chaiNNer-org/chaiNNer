@@ -63,7 +63,7 @@ def upscale(
 
         img_out = pytorch_auto_split(
             img,
-            model=model.model,
+            model=model,
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),

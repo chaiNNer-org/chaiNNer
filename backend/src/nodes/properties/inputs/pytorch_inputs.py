@@ -90,7 +90,7 @@ class InpaintModelInput(ModelInput):
     def __init__(
         self, label: str = "Model", input_type: navi.ExpressionJson = "PyTorchModel"
     ):
-        self.purpose: set[Purpose] = {"Inpaint"}
+        self.purpose: set[Purpose] = {"Inpainting"}
 
         super().__init__(
             label,
