@@ -105,15 +105,15 @@ export const parseArgs = (args: readonly string[]): ParsedArguments => {
         case 'open':
             return {
                 command: 'open',
-                file: parsed.file,
-                devtools: parsed.devtools,
+                file: parsed.file ? String(parsed.file) : undefined,
+                devtools: Boolean(parsed.devtools),
                 ...options,
             };
         case 'run':
             return {
                 command: 'run',
-                file: parsed.file!,
-                overrideFile: parsed.override,
+                file: String(parsed.file!),
+                overrideFile: parsed.override ? String(parsed.override) : undefined,
                 ...options,
             };
         default:
