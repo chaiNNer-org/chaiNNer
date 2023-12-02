@@ -10,6 +10,7 @@ def convert_to_onnx_impl(
     use_half: bool = False,
     input_name: str = "input",
     output_name: str = "output",
+    opset_version: int = 14,
 ) -> bytes:
     # https://github.com/onnx/onnx/issues/654
     dynamic_axes = {
@@ -37,7 +38,7 @@ def convert_to_onnx_impl(
             model.model,
             dummy_input,
             f,
-            opset_version=14,
+            opset_version=opset_version,
             verbose=False,
             input_names=[input_name],
             output_names=[output_name],
