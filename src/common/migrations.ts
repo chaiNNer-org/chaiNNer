@@ -6,6 +6,7 @@ import semver from 'semver';
 import {
     ColorJson,
     EdgeData,
+    InputData,
     InputId,
     InputValue,
     Mutable,
@@ -1699,6 +1700,107 @@ const removeZIndexes: ModernMigration = (data) => {
     return data;
 };
 
+const createBorderEdgesTileFillToPad: ModernMigration = (data) => {
+    interface EdgeMapping {
+        nodeId: string;
+        from: InputId | number;
+        to: InputId | number;
+    }
+    const edgeChanges: EdgeMapping[] = [];
+
+    const BORDER = 0;
+    const EDGES = 1;
+    const OFFSETS = 2;
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === ('chainner:image:create_border' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 3, to: 2 }, // color
+                { nodeId: node.id, from: 2, to: 4 } // amount
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: oldData[1],
+                2: oldData[3],
+                3: BORDER,
+                4: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:create_edges' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 6, to: 2 }, // color
+                { nodeId: node.id, from: 2, to: 6 }, // top
+                { nodeId: node.id, from: 3, to: 5 }, // left
+                { nodeId: node.id, from: 4, to: 7 }, // right
+                { nodeId: node.id, from: 5, to: 8 } // bottom
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: oldData[1],
+                2: oldData[6],
+                3: EDGES,
+                6: oldData[2],
+                5: oldData[3],
+                7: oldData[4],
+                8: oldData[5],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:tile_fill' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 9 }, // width
+                { nodeId: node.id, from: 2, to: 10 } // height
+            );
+
+            const tileMode = node.data.inputData[3] ?? 0;
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                // eslint-disable-next-line eqeqeq
+                1: tileMode == 0 ? 3 : 4,
+                3: OFFSETS,
+                5: 0,
+                6: 0,
+                9: oldData[1],
+                10: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+    });
+
+    const byNode = new Map<string, EdgeMapping[]>();
+    for (const mapping of edgeChanges) {
+        if (!byNode.has(mapping.nodeId)) {
+            byNode.set(mapping.nodeId, []);
+        }
+        byNode.get(mapping.nodeId)?.push(mapping);
+    }
+
+    data.edges.forEach((edge) => {
+        const mappings = byNode.get(edge.target) ?? [];
+        for (const mapping of mappings) {
+            const nodeId = mapping.nodeId;
+            const from = mapping.from as InputId;
+            const to = mapping.to as InputId;
+
+            if (edge.targetHandle === stringifyTargetHandle({ nodeId, inputId: from })) {
+                edge.targetHandle = stringifyTargetHandle({ nodeId, inputId: to });
+                break;
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1753,6 +1855,7 @@ const migrations = [
     separateNodeWidthAndInputHeight,
     oldToNewIterators,
     removeZIndexes,
+    createBorderEdgesTileFillToPad,
 ];
 
 export const currentMigration = migrations.length;
