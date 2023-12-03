@@ -97,3 +97,37 @@ def add_normals(
         return __angles(xyz1, xyz2, f1, f2)
     else:
         raise AssertionError(f"Invalid normal addition method {method}")
+
+
+def strengthen_normals(method: AdditionMethod, n: np.ndarray, f: float) -> XYZ:
+    """
+    Same as `add_normals`, but with `n2` being the same as `n1` and `f2=0`.
+    """
+    # Convert BGR to XY
+    x = n[:, :, 2] * 2 - 1
+    y = n[:, :, 1] * 2 - 1
+
+    x, y, z = normalize_normals(x, y)
+
+    if method is AdditionMethod.PARTIAL_DERIVATIVES:
+        # Slopes aren't defined for z=0, so set to near-zero decimal
+        z = np.maximum(z, 0.001, out=z)
+
+        n_f = f / z
+
+        x = x * n_f
+        y = y * n_f
+
+        l_r = 1 / np.sqrt(np.square(x) + np.square(y) + 1)
+        x *= l_r
+        y *= l_r
+        z = l_r
+
+        return x, y, z
+    elif method is AdditionMethod.ANGLES:
+        return normalize_normals(
+            np.sin(__clamp_angles(np.arcsin(x) * f)),
+            np.sin(__clamp_angles(np.arcsin(y) * f)),
+        )
+    else:
+        raise AssertionError(f"Invalid normal addition method {method}")
