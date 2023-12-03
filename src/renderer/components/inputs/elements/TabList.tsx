@@ -39,6 +39,7 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
             mx="-0.5rem"
             pb={1}
             position="relative"
+            pt={1}
             size="sm"
             variant="unstyled"
             onChange={handleChange}
