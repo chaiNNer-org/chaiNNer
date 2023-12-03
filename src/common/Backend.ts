@@ -1,4 +1,3 @@
-import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
@@ -147,15 +146,15 @@ export class Backend {
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        const options: RequestInit & undici.RequestInit = isRenderer
+        const options: RequestInit = isRenderer
             ? { method, cache: 'no-cache' }
             : {
                   method,
                   cache: 'no-cache',
-                  dispatcher: new undici.Agent({
-                      bodyTimeout: 0,
-                      headersTimeout: 0,
-                  }),
+                  //   dispatcher: new Agent({
+                  //       bodyTimeout: 0,
+                  //       headersTimeout: 0,
+                  //   }),
               };
         const { signal } = this.abortController;
         if (json !== undefined) {
@@ -165,7 +164,7 @@ export class Backend {
             };
             options.signal = signal;
         }
-        const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
+        const resp = await fetch(`${this.url}${path}`, options);
         const result = (await resp.json()) as T;
         if (ServerError.isJson(result)) {
             throw ServerError.fromJson(result);

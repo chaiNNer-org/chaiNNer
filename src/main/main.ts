@@ -1,29 +1,29 @@
 import { app } from 'electron';
-import electronLog from 'electron-log';
+// import electronLog from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import './i18n';
-import { LEVEL_NAME, log } from '../common/log';
+// import { LEVEL_NAME, log } from '../common/log';
 import { parseArgs } from './arguments';
 import { createCli } from './cli/create';
 import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
-import { getLogsFolder, getRootDirSync } from './platform';
+import { getRootDirSync } from './platform';
 
 const startApp = () => {
     const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
-    electronLog.transports.file.resolvePath = (variables) =>
-        path.join(getLogsFolder(), variables.fileName!);
-    electronLog.transports.file.level = 'info';
-    electronLog.transports.console.level = 'debug';
+    // electronLog.transports.file.resolvePath = (variables) =>
+    //     path.join(getLogsFolder(), variables.fileName!);
+    // electronLog.transports.file.level = 'info';
+    // electronLog.transports.console.level = 'debug';
 
-    log.addTransport({
-        log: ({ level, message, additional }) => {
-            electronLog[LEVEL_NAME[level]](message, ...additional);
-        },
-    });
+    // log.addTransport({
+    //     log: ({ level, message, additional }) => {
+    //         electronLog[LEVEL_NAME[level]](message, ...additional);
+    //     },
+    // });
 
     process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
@@ -37,7 +37,7 @@ const startApp = () => {
     });
 
     app.on('quit', () => {
-        log.info('Cleaning up temp folders...');
+        // log.info('Cleaning up temp folders...');
         const tempDir = os.tmpdir();
         // find all the folders starting with 'chaiNNer-'
         const tempFolders = readdirSync(tempDir, { withFileTypes: true })
@@ -48,7 +48,7 @@ const startApp = () => {
             try {
                 rmSync(path.join(tempDir, folder), { force: true, recursive: true });
             } catch (error) {
-                log.error(`Error removing temp folder. ${String(error)}`);
+                // log.error(`Error removing temp folder. ${String(error)}`);
             }
         });
     });

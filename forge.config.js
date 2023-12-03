@@ -123,28 +123,53 @@ const config = {
         },
     ],
     plugins: [
+        // {
+        //     name: '@electron-forge/plugin-webpack',
+        //     config: {
+        //         mainConfig: './webpack.main.config.js',
+        //         renderer: {
+        //             config: './webpack.renderer.config.js',
+        //             nodeIntegration: true,
+        //             contextIsolation: false,
+        //             entryPoints: [
+        //                 {
+        //                     html: './src/renderer/index.html',
+        //                     js: './src/renderer/renderer.js',
+        //                     name: 'main_window',
+        //                 },
+        //                 {
+        //                     html: './src/renderer/splash.html',
+        //                     js: './src/renderer/splash_renderer.js',
+        //                     name: 'splash_screen',
+        //                 },
+        //             ],
+        //         },
+        //         devContentSecurityPolicy: '',
+        //     },
+        // },
         {
-            name: '@electron-forge/plugin-webpack',
+            name: '@electron-forge/plugin-vite',
             config: {
-                mainConfig: './webpack.main.config.js',
-                renderer: {
-                    config: './webpack.renderer.config.js',
-                    nodeIntegration: true,
-                    contextIsolation: false,
-                    entryPoints: [
-                        {
-                            html: './src/renderer/index.html',
-                            js: './src/renderer/renderer.js',
-                            name: 'main_window',
-                        },
-                        {
-                            html: './src/renderer/splash.html',
-                            js: './src/renderer/splash_renderer.js',
-                            name: 'splash_screen',
-                        },
-                    ],
-                },
-                devContentSecurityPolicy: '',
+                // `build` can specify multiple entry builds, which can be
+                // Main process, Preload scripts, Worker process, etc.
+                build: [
+                    {
+                        // `entry` is an alias for `build.lib.entry`
+                        // in the corresponding file of `config`.
+                        entry: 'src/main/main.ts',
+                        config: 'vite.main.config.ts',
+                    },
+                    {
+                        entry: 'src/main/preload.js',
+                        config: 'vite.preload.config.ts',
+                    },
+                ],
+                renderer: [
+                    {
+                        name: 'main_window',
+                        config: 'vite.renderer.config.ts',
+                    },
+                ],
             },
         },
     ],

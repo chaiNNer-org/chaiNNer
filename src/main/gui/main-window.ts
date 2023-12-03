@@ -1,6 +1,7 @@
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
 import { t } from 'i18next';
+import path from 'path';
 import { BackendEventMap } from '../../common/Backend';
 import { Version, WindowSize } from '../../common/common-types';
 import { isMac } from '../../common/env';
@@ -15,7 +16,6 @@ import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
 import { settingStorage, settingStorageLocation } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
-import { addSplashScreen } from './splash';
 
 const version = app.getVersion() as Version;
 
@@ -319,7 +319,7 @@ export const createMainWindow = async (args: OpenArguments) => {
             contextIsolation: false,
         },
         icon: `${__dirname}/../public/icons/cross_platform/icon`,
-        show: false,
+        show: true,
     }) as BrowserWindowWithSafeIpc;
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -328,7 +328,8 @@ export const createMainWindow = async (args: OpenArguments) => {
     });
 
     const progressController = new ProgressController();
-    addSplashScreen(progressController);
+    // addSplashScreen(progressController);
+    progressController.submitProgress({ totalProgress: 1, statusProgress: 1 });
 
     try {
         registerEventHandlerPreSetup(mainWindow, args);
@@ -389,7 +390,14 @@ export const createMainWindow = async (args: OpenArguments) => {
         }
 
         // and load the index.html of the app.
-        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
+        // mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
+        if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+            await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+        } else {
+            await mainWindow.loadFile(
+                path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+            );
+        }
     } catch (error) {
         if (error instanceof CriticalError) {
             await progressController.submitInterrupt(error.interrupt);

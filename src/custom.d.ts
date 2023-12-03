@@ -23,3 +23,6 @@ declare module '*.jpeg' {
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const SPLASH_SCREEN_WEBPACK_ENTRY: string;
+
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
