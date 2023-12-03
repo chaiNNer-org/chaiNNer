@@ -1719,9 +1719,11 @@ exports[`Read save file big ol test.chn 1`] = `
         "id": "79dbff25-fde6-4c5c-9214-26a5d5cc1632",
         "inputData": {
           "1": 0,
-          "2": 10,
+          "2": undefined,
+          "3": 0,
+          "4": 10,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "dragging": true,
       "extent": [
@@ -5411,10 +5413,11 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "id": "88f4e9c0-c376-46e5-a871-f871ed6bffcf",
         "inputData": {
           "1": 7,
-          "2": 4,
-          "3": "{"kind":"rgba","values":[0.8,0.4,0.2,1]}",
+          "2": "{"kind":"rgba","values":[0.8,0.4,0.2,1]}",
+          "3": 0,
+          "4": 4,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "height": 284,
       "id": "88f4e9c0-c376-46e5-a871-f871ed6bffcf",
@@ -8049,6 +8052,282 @@ exports[`Read save file copy-to-clipboard.chn 1`] = `
 }
 `;
 
+exports[`Read save file create-border-migration.chn 1`] = `
+{
+  "edges": [
+    {
+      "animated": false,
+      "data": {},
+      "id": "04f84b5a-c393-4aff-8578-03ef9414451a",
+      "source": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+      "sourceHandle": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8-0",
+      "target": "a6e72580-2c5d-5323-8341-8edd2389a271",
+      "targetHandle": "a6e72580-2c5d-5323-8341-8edd2389a271-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "11c49c20-8c1d-4fba-a114-5878f9c2251f",
+      "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+      "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+      "target": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+      "targetHandle": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "2f86b9f5-facc-4c9c-8c5e-4c958b009ded",
+      "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+      "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+      "target": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+      "targetHandle": "c2e3d583-56b6-4340-8607-c0d260fd4458-0",
+      "type": "main",
+    },
+    {
+      "animated": true,
+      "data": {},
+      "id": "383ad45e-211b-463e-873d-4845e913f6c8",
+      "selected": false,
+      "source": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+      "sourceHandle": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd-0",
+      "target": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+      "targetHandle": "2f69af66-70d3-4f9e-adcc-cc78b317b37d-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "9c80d917-2ffe-4485-88cc-a1a2c6d8ddcb",
+      "selected": false,
+      "source": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+      "sourceHandle": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378-0",
+      "target": "949f6973-b947-42a2-aa87-00626ee3f666",
+      "targetHandle": "949f6973-b947-42a2-aa87-00626ee3f666-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "b0c09148-7f37-4dbb-9e69-b6e85f5ea59b",
+      "selected": false,
+      "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+      "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+      "target": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+      "targetHandle": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "b6482bef-9e92-456e-961a-c3b50c790af0",
+      "selected": false,
+      "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+      "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+      "target": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+      "targetHandle": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "be1ce204-d18f-4733-9eef-6640595096d1",
+      "source": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+      "sourceHandle": "c2e3d583-56b6-4340-8607-c0d260fd4458-0",
+      "target": "74c774ea-2bae-5664-a072-826af5a6b969",
+      "targetHandle": "74c774ea-2bae-5664-a072-826af5a6b969-0",
+      "type": "main",
+    },
+  ],
+  "nodes": [
+    {
+      "data": {
+        "id": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+      "position": {
+        "x": 864,
+        "y": 160,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "74c774ea-2bae-5664-a072-826af5a6b969",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "74c774ea-2bae-5664-a072-826af5a6b969",
+      "position": {
+        "x": 1040,
+        "y": 1696,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "inputData": {
+          "0": "C:\\Users\\micha\\Desktop\\face.png",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 436,
+      "id": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+      "position": {
+        "x": 160,
+        "y": 416,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "949f6973-b947-42a2-aa87-00626ee3f666",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "949f6973-b947-42a2-aa87-00626ee3f666",
+      "position": {
+        "x": 1040,
+        "y": 816,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "a6e72580-2c5d-5323-8341-8edd2389a271",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "a6e72580-2c5d-5323-8341-8edd2389a271",
+      "position": {
+        "x": 1040,
+        "y": 1184,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+        "inputData": {
+          "1": 1,
+          "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+          "3": 0,
+          "4": 100,
+        },
+        "schemaId": "chainner:image:pad",
+      },
+      "height": 252,
+      "id": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+      "position": {
+        "x": 752,
+        "y": 816,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+        "inputData": {
+          "1": 3,
+          "10": 1000,
+          "3": 2,
+          "5": 0,
+          "6": 0,
+          "9": 200,
+        },
+        "schemaId": "chainner:image:pad",
+      },
+      "height": 308,
+      "id": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+      "position": {
+        "x": 752,
+        "y": 1696,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+        "inputData": {
+          "1": 3,
+          "10": 1000,
+          "2": "{"kind":"grayscale","values":[0.7098039215686275]}",
+          "3": 1,
+          "4": 100,
+          "5": 100,
+          "6": 100,
+          "7": 0,
+          "8": 0,
+          "9": 1000,
+        },
+        "schemaId": "chainner:image:pad",
+      },
+      "height": 462,
+      "id": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+      "position": {
+        "x": 576,
+        "y": 160,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+        "inputData": {
+          "1": 6,
+          "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+          "3": 1,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+        },
+        "schemaId": "chainner:image:pad",
+      },
+      "height": 420,
+      "id": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+      "position": {
+        "x": 752,
+        "y": 1184,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": {
+    "x": -19.099784951781203,
+    "y": -142.42731491506345,
+    "zoom": 0.6597539832982271,
+  },
+}
+`;
+
 exports[`Read save file create-color-old.chn 1`] = `
 {
   "edges": [
@@ -8404,9 +8683,11 @@ exports[`Read save file create-edges.chn 1`] = `
         "id": "870aea58-e427-4546-a060-5945d6c03f88",
         "inputData": {
           "1": 0,
-          "2": 100,
+          "2": undefined,
+          "3": 0,
+          "4": 100,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "height": 328,
       "id": "870aea58-e427-4546-a060-5945d6c03f88",
@@ -8423,12 +8704,14 @@ exports[`Read save file create-edges.chn 1`] = `
         "id": "a9449ffa-52c3-4a22-b824-659358f2a9fb",
         "inputData": {
           "1": 0,
-          "2": 100,
-          "3": 200,
-          "4": 30,
-          "5": 0,
+          "2": undefined,
+          "3": 1,
+          "5": 200,
+          "6": 100,
+          "7": 30,
+          "8": 0,
         },
-        "schemaId": "chainner:image:create_edges",
+        "schemaId": "chainner:image:pad",
       },
       "height": 556,
       "id": "a9449ffa-52c3-4a22-b824-659358f2a9fb",
@@ -8445,9 +8728,11 @@ exports[`Read save file create-edges.chn 1`] = `
         "id": "bb851127-3fa8-43d2-802d-681adfac4b2a",
         "inputData": {
           "1": 5,
-          "2": 100,
+          "2": undefined,
+          "3": 0,
+          "4": 100,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "height": 328,
       "id": "bb851127-3fa8-43d2-802d-681adfac4b2a",
@@ -10717,7 +11002,7 @@ exports[`Read save file image-dim.chn 1`] = `
       "source": "4bf814f8-2ede-4465-9fb3-10a40e7543fa",
       "sourceHandle": "4bf814f8-2ede-4465-9fb3-10a40e7543fa-1",
       "target": "2c77b070-2d17-418e-9a68-c9c0f1651619",
-      "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-2",
+      "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-10",
       "type": "main",
     },
     {
@@ -10727,7 +11012,7 @@ exports[`Read save file image-dim.chn 1`] = `
       "source": "4bf814f8-2ede-4465-9fb3-10a40e7543fa",
       "sourceHandle": "4bf814f8-2ede-4465-9fb3-10a40e7543fa-0",
       "target": "2c77b070-2d17-418e-9a68-c9c0f1651619",
-      "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-1",
+      "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-9",
       "type": "main",
     },
     {
@@ -10776,10 +11061,14 @@ exports[`Read save file image-dim.chn 1`] = `
       "data": {
         "id": "2c77b070-2d17-418e-9a68-c9c0f1651619",
         "inputData": {
-          "1": 1024,
-          "2": 2048,
+          "1": 3,
+          "10": 2048,
+          "3": 2,
+          "5": 0,
+          "6": 0,
+          "9": 1024,
         },
-        "schemaId": "chainner:image:tile_fill",
+        "schemaId": "chainner:image:pad",
       },
       "height": 342,
       "id": "2c77b070-2d17-418e-9a68-c9c0f1651619",
@@ -11440,9 +11729,11 @@ exports[`Read save file image-utilities.chn 1`] = `
         "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
         "inputData": {
           "1": 1,
-          "2": 34,
+          "2": undefined,
+          "3": 0,
+          "4": 34,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "height": 342,
       "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
@@ -14304,10 +14595,11 @@ consectetur adipiscing...",
         "id": "51826397-e502-485a-9109-f4ec326fb7b8",
         "inputData": {
           "1": 5,
-          "2": 20,
-          "3": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+          "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+          "3": 0,
+          "4": 20,
         },
-        "schemaId": "chainner:image:create_border",
+        "schemaId": "chainner:image:pad",
       },
       "height": 252,
       "id": "51826397-e502-485a-9109-f4ec326fb7b8",
@@ -18916,7 +19208,7 @@ exports[`Write save file add noise with seed edge.chn 1`] = `
 
 exports[`Write save file big ol test.chn 1`] = `
 {
-  "checksum": "ce2733e06fe7fe6efcba5b8c8cfeda43",
+  "checksum": "3e70a27c79e52bc7943d58c4248dacee",
   "content": {
     "edges": [
       {
@@ -19333,9 +19625,10 @@ exports[`Write save file big ol test.chn 1`] = `
           "id": "79dbff25-fde6-4c5c-9214-26a5d5cc1632",
           "inputData": {
             "1": 0,
-            "2": 10,
+            "3": 0,
+            "4": 10,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 341,
         "id": "79dbff25-fde6-4c5c-9214-26a5d5cc1632",
@@ -19534,7 +19827,7 @@ exports[`Write save file big ol test.chn 1`] = `
 
 exports[`Write save file blend-images.chn 1`] = `
 {
-  "checksum": "44e5e492b142e45532fe921035f63936",
+  "checksum": "7c8a15dc3456becb3d73d46df3db686b",
   "content": {
     "edges": [
       {
@@ -22949,10 +23242,11 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
           "id": "88f4e9c0-c376-46e5-a871-f871ed6bffcf",
           "inputData": {
             "1": 7,
-            "2": 4,
-            "3": "{"kind":"rgba","values":[0.8,0.4,0.2,1]}",
+            "2": "{"kind":"rgba","values":[0.8,0.4,0.2,1]}",
+            "3": 0,
+            "4": 4,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 284,
         "id": "88f4e9c0-c376-46e5-a871-f871ed6bffcf",
@@ -25609,6 +25903,285 @@ exports[`Write save file copy-to-clipboard.chn 1`] = `
 }
 `;
 
+exports[`Write save file create-border-migration.chn 1`] = `
+{
+  "checksum": "aadf8d9b0690bf08d5f3b7b6cd417182",
+  "content": {
+    "edges": [
+      {
+        "animated": false,
+        "data": {},
+        "id": "04f84b5a-c393-4aff-8578-03ef9414451a",
+        "source": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+        "sourceHandle": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8-0",
+        "target": "a6e72580-2c5d-5323-8341-8edd2389a271",
+        "targetHandle": "a6e72580-2c5d-5323-8341-8edd2389a271-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "11c49c20-8c1d-4fba-a114-5878f9c2251f",
+        "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+        "target": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+        "targetHandle": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "2f86b9f5-facc-4c9c-8c5e-4c958b009ded",
+        "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+        "target": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+        "targetHandle": "c2e3d583-56b6-4340-8607-c0d260fd4458-0",
+        "type": "main",
+      },
+      {
+        "animated": true,
+        "data": {},
+        "id": "383ad45e-211b-463e-873d-4845e913f6c8",
+        "selected": false,
+        "source": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+        "sourceHandle": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd-0",
+        "target": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+        "targetHandle": "2f69af66-70d3-4f9e-adcc-cc78b317b37d-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "9c80d917-2ffe-4485-88cc-a1a2c6d8ddcb",
+        "selected": false,
+        "source": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+        "sourceHandle": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378-0",
+        "target": "949f6973-b947-42a2-aa87-00626ee3f666",
+        "targetHandle": "949f6973-b947-42a2-aa87-00626ee3f666-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "b0c09148-7f37-4dbb-9e69-b6e85f5ea59b",
+        "selected": false,
+        "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+        "target": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+        "targetHandle": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "b6482bef-9e92-456e-961a-c3b50c790af0",
+        "selected": false,
+        "source": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "sourceHandle": "8bbfd36a-c466-41f3-bbbc-f74b53fef570-0",
+        "target": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+        "targetHandle": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "be1ce204-d18f-4733-9eef-6640595096d1",
+        "source": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+        "sourceHandle": "c2e3d583-56b6-4340-8607-c0d260fd4458-0",
+        "target": "74c774ea-2bae-5664-a072-826af5a6b969",
+        "targetHandle": "74c774ea-2bae-5664-a072-826af5a6b969-0",
+        "type": "main",
+      },
+    ],
+    "nodes": [
+      {
+        "data": {
+          "id": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "2f69af66-70d3-4f9e-adcc-cc78b317b37d",
+        "position": {
+          "x": 864,
+          "y": 160,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "74c774ea-2bae-5664-a072-826af5a6b969",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "74c774ea-2bae-5664-a072-826af5a6b969",
+        "position": {
+          "x": 1040,
+          "y": 1696,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+          "inputData": {
+            "0": "C:\\Users\\micha\\Desktop\\face.png",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 436,
+        "id": "8bbfd36a-c466-41f3-bbbc-f74b53fef570",
+        "position": {
+          "x": 160,
+          "y": 416,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "949f6973-b947-42a2-aa87-00626ee3f666",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "949f6973-b947-42a2-aa87-00626ee3f666",
+        "position": {
+          "x": 1040,
+          "y": 816,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "a6e72580-2c5d-5323-8341-8edd2389a271",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "a6e72580-2c5d-5323-8341-8edd2389a271",
+        "position": {
+          "x": 1040,
+          "y": 1184,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+          "inputData": {
+            "1": 1,
+            "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+            "3": 0,
+            "4": 100,
+          },
+          "schemaId": "chainner:image:pad",
+        },
+        "height": 252,
+        "id": "ab82b2ee-77b9-41b5-b6b4-0da9074d7378",
+        "position": {
+          "x": 752,
+          "y": 816,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+          "inputData": {
+            "1": 3,
+            "10": 1000,
+            "3": 2,
+            "5": 0,
+            "6": 0,
+            "9": 200,
+          },
+          "schemaId": "chainner:image:pad",
+        },
+        "height": 308,
+        "id": "c2e3d583-56b6-4340-8607-c0d260fd4458",
+        "position": {
+          "x": 752,
+          "y": 1696,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+          "inputData": {
+            "1": 3,
+            "10": 1000,
+            "2": "{"kind":"grayscale","values":[0.7098039215686275]}",
+            "3": 1,
+            "4": 100,
+            "5": 100,
+            "6": 100,
+            "7": 0,
+            "8": 0,
+            "9": 1000,
+          },
+          "schemaId": "chainner:image:pad",
+        },
+        "height": 462,
+        "id": "dac479ac-2a2f-4ca5-a7f6-6033f33e42dd",
+        "position": {
+          "x": 576,
+          "y": 160,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+          "inputData": {
+            "1": 6,
+            "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+            "3": 1,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+          },
+          "schemaId": "chainner:image:pad",
+        },
+        "height": 420,
+        "id": "ddfbd923-5ccc-4fd8-84e0-4e899563f2f8",
+        "position": {
+          "x": 752,
+          "y": 1184,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+    ],
+    "viewport": {
+      "x": -19.099784951781203,
+      "y": -142.42731491506345,
+      "zoom": 0.6597539832982271,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
 exports[`Write save file create-color-old.chn 1`] = `
 {
   "checksum": "6dd5eccfd7b5e69342ccadab0c349d26",
@@ -25844,7 +26417,7 @@ exports[`Write save file create-color-old.chn 1`] = `
 
 exports[`Write save file create-edges.chn 1`] = `
 {
-  "checksum": "4ec2af8d0435a95f35d2aa7b16d8b2a6",
+  "checksum": "921d4c3acc8d2c864861f3719356ce8a",
   "content": {
     "edges": [
       {
@@ -25964,9 +26537,10 @@ exports[`Write save file create-edges.chn 1`] = `
           "id": "870aea58-e427-4546-a060-5945d6c03f88",
           "inputData": {
             "1": 0,
-            "2": 100,
+            "3": 0,
+            "4": 100,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 328,
         "id": "870aea58-e427-4546-a060-5945d6c03f88",
@@ -25983,12 +26557,13 @@ exports[`Write save file create-edges.chn 1`] = `
           "id": "a9449ffa-52c3-4a22-b824-659358f2a9fb",
           "inputData": {
             "1": 0,
-            "2": 100,
-            "3": 200,
-            "4": 30,
-            "5": 0,
+            "3": 1,
+            "5": 200,
+            "6": 100,
+            "7": 30,
+            "8": 0,
           },
-          "schemaId": "chainner:image:create_edges",
+          "schemaId": "chainner:image:pad",
         },
         "height": 556,
         "id": "a9449ffa-52c3-4a22-b824-659358f2a9fb",
@@ -26005,9 +26580,10 @@ exports[`Write save file create-edges.chn 1`] = `
           "id": "bb851127-3fa8-43d2-802d-681adfac4b2a",
           "inputData": {
             "1": 5,
-            "2": 100,
+            "3": 0,
+            "4": 100,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 328,
         "id": "bb851127-3fa8-43d2-802d-681adfac4b2a",
@@ -28290,7 +28866,7 @@ exports[`Write save file image-channels.chn 1`] = `
 
 exports[`Write save file image-dim.chn 1`] = `
 {
-  "checksum": "0099508cd26663d5c7b97fbbfc862326",
+  "checksum": "2cc2fc50df58be2dc18f9c36d1af3d10",
   "content": {
     "edges": [
       {
@@ -28300,7 +28876,7 @@ exports[`Write save file image-dim.chn 1`] = `
         "source": "4bf814f8-2ede-4465-9fb3-10a40e7543fa",
         "sourceHandle": "4bf814f8-2ede-4465-9fb3-10a40e7543fa-1",
         "target": "2c77b070-2d17-418e-9a68-c9c0f1651619",
-        "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-2",
+        "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-10",
         "type": "main",
       },
       {
@@ -28310,7 +28886,7 @@ exports[`Write save file image-dim.chn 1`] = `
         "source": "4bf814f8-2ede-4465-9fb3-10a40e7543fa",
         "sourceHandle": "4bf814f8-2ede-4465-9fb3-10a40e7543fa-0",
         "target": "2c77b070-2d17-418e-9a68-c9c0f1651619",
-        "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-1",
+        "targetHandle": "2c77b070-2d17-418e-9a68-c9c0f1651619-9",
         "type": "main",
       },
       {
@@ -28359,10 +28935,14 @@ exports[`Write save file image-dim.chn 1`] = `
         "data": {
           "id": "2c77b070-2d17-418e-9a68-c9c0f1651619",
           "inputData": {
-            "1": 1024,
-            "2": 2048,
+            "1": 3,
+            "10": 2048,
+            "3": 2,
+            "5": 0,
+            "6": 0,
+            "9": 1024,
           },
-          "schemaId": "chainner:image:tile_fill",
+          "schemaId": "chainner:image:pad",
         },
         "height": 342,
         "id": "2c77b070-2d17-418e-9a68-c9c0f1651619",
@@ -28873,7 +29453,7 @@ exports[`Write save file image-metrics.chn 1`] = `
 
 exports[`Write save file image-utilities.chn 1`] = `
 {
-  "checksum": "45a276e058f4e7145173c4c430ed2ef3",
+  "checksum": "571fda58aaccfee915b7fda4d0a17032",
   "content": {
     "edges": [
       {
@@ -29032,9 +29612,10 @@ exports[`Write save file image-utilities.chn 1`] = `
           "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
           "inputData": {
             "1": 1,
-            "2": 34,
+            "3": 0,
+            "4": 34,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 342,
         "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
@@ -30923,7 +31504,7 @@ exports[`Write save file save-image-webp-lossless.chn 1`] = `
 
 exports[`Write save file text-as-image.chn 1`] = `
 {
-  "checksum": "b43905206ef21031c87471b2f7fb9328",
+  "checksum": "bd32dd2564b8902f14dea2637b0da7e0",
   "content": {
     "edges": [
       {
@@ -31932,10 +32513,11 @@ consectetur adipiscing...",
           "id": "51826397-e502-485a-9109-f4ec326fb7b8",
           "inputData": {
             "1": 5,
-            "2": 20,
-            "3": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+            "2": "{"kind": "rgb", "values": [0.5, 0.5, 0.5]}",
+            "3": 0,
+            "4": 20,
           },
-          "schemaId": "chainner:image:create_border",
+          "schemaId": "chainner:image:pad",
         },
         "height": 252,
         "id": "51826397-e502-485a-9109-f4ec326fb7b8",
