@@ -4,7 +4,6 @@ import gc
 
 import numpy as np
 import torch
-from sanic.log import logger
 from spandrel import ImageModelDescriptor
 
 from ..upscale.auto_split import Split, Tiler, auto_split
@@ -34,7 +33,6 @@ def pytorch_auto_split(
             d_img = d_img.half() if use_fp16 else d_img.float()
 
             result = model(d_img)
-            logger.info(result)
             result = tensor2np(
                 result.detach().cpu().detach(),
                 change_range=False,
