@@ -493,12 +493,20 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         ) as Node<NodeData>[];
                         return notUndefined;
                     });
+                    const minX = Math.min(...layoutedNodes.map((n) => n.position.x || Infinity));
+                    const minY = Math.min(...layoutedNodes.map((n) => n.position.y || Infinity));
+
+                    reactFlowInstance.setViewport({
+                        x: minX,
+                        y: minY,
+                        zoom: reactFlowInstance.getZoom(),
+                    });
                 }
             })
             .catch((error) => {
                 log.error(error);
             });
-    }, [nodes, edges, changeNodes]);
+    }, [nodes, edges, changeNodes, reactFlowInstance]);
 
     useHotkeys('ctrl+shift+f, cmd+shift+f', onLayout);
     useIpcRendererListener('format-chain', onLayout);
