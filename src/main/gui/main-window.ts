@@ -314,7 +314,7 @@ export const createMainWindow = async (args: OpenArguments) => {
         roundedCorners: true,
         webPreferences: {
             webSecurity: false,
-            nodeIntegration: true,
+            nodeIntegration: false,
             nodeIntegrationInWorker: true,
             contextIsolation: false,
         },
