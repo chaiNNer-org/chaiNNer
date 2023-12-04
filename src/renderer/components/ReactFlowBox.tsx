@@ -475,29 +475,29 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         getLayoutedElements(nodes, edges)
             .then((response) => {
                 const { nodes: layoutedNodes } = response;
-
                 if (layoutedNodes) {
-                    const nodesWithTheirPositionsModified = layoutedNodes.map((node) => {
-                        const originalNode = nodes.find((n) => n.id === node.id);
-                        if (!originalNode) {
-                            return undefined;
-                        }
-                        return {
-                            ...originalNode,
-                            position: node.position,
-                        };
+                    changeNodes((nds) => {
+                        const nodesWithTheirPositionsModified = layoutedNodes.map((node) => {
+                            const originalNode = nds.find((n) => n.id === node.id);
+                            if (!originalNode) {
+                                return undefined;
+                            }
+                            return {
+                                ...originalNode,
+                                position: node.position,
+                            };
+                        });
+                        const notUndefined = nodesWithTheirPositionsModified.filter(
+                            (n) => n !== undefined
+                        ) as Node<NodeData>[];
+                        return notUndefined;
                     });
-                    const notUndefined = nodesWithTheirPositionsModified.filter(
-                        (n) => n !== undefined
-                    ) as Node<NodeData>[];
-
-                    setNodes(notUndefined);
                 }
             })
             .catch((error) => {
                 log.error(error);
             });
-    }, [nodes, edges, setNodes]);
+    }, [nodes, edges, changeNodes]);
 
     useHotkeys('ctrl+f, cmd+f', onLayout);
 
