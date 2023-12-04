@@ -44,6 +44,7 @@ import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers
 import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useHotkeys } from '../hooks/useHotkeys';
+import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
@@ -499,7 +500,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             });
     }, [nodes, edges, changeNodes]);
 
-    useHotkeys('ctrl+f, cmd+f', onLayout);
+    useHotkeys('ctrl+shift+f, cmd+shift+f', onLayout);
+    useIpcRendererListener('format-chain', onLayout);
 
     return (
         <Box
