@@ -1801,6 +1801,78 @@ const createBorderEdgesTileFillToPad: ModernMigration = (data) => {
     return data;
 };
 
+const unifiedResizeNode: ModernMigration = (data) => {
+    interface EdgeMapping {
+        nodeId: string;
+        from: InputId | number;
+        to: InputId | number;
+    }
+    const edgeChanges: EdgeMapping[] = [];
+
+    const PERCENTAGE = 0;
+    const ABSOLUTE = 1;
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === ('chainner:image:resize_resolution' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 3 }, // width
+                { nodeId: node.id, from: 2, to: 4 }, // height
+                { nodeId: node.id, from: 3, to: 5 } // interpolation
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: ABSOLUTE,
+                3: oldData[1],
+                4: oldData[2],
+                5: oldData[3],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:resize' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:resize_factor' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 2 }, // scale
+                { nodeId: node.id, from: 2, to: 5 } // interpolation
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: PERCENTAGE,
+                2: oldData[1],
+                5: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:resize' as SchemaId;
+        }
+    });
+
+    const byNode = new Map<string, EdgeMapping[]>();
+    for (const mapping of edgeChanges) {
+        if (!byNode.has(mapping.nodeId)) {
+            byNode.set(mapping.nodeId, []);
+        }
+        byNode.get(mapping.nodeId)?.push(mapping);
+    }
+
+    data.edges.forEach((edge) => {
+        const mappings = byNode.get(edge.target) ?? [];
+        for (const mapping of mappings) {
+            const nodeId = mapping.nodeId;
+            const from = mapping.from as InputId;
+            const to = mapping.to as InputId;
+
+            if (edge.targetHandle === stringifyTargetHandle({ nodeId, inputId: from })) {
+                edge.targetHandle = stringifyTargetHandle({ nodeId, inputId: to });
+                break;
+            }
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1856,6 +1928,7 @@ const migrations = [
     oldToNewIterators,
     removeZIndexes,
     createBorderEdgesTileFillToPad,
+    unifiedResizeNode,
 ];
 
 export const currentMigration = migrations.length;
