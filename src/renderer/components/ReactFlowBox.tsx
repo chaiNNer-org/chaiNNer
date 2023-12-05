@@ -44,7 +44,7 @@ import {
     AABB,
     Point,
     getBezierPathValues,
-    getLayoutedElements,
+    getLayoutedPositionMap,
     pointDist,
 } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
@@ -431,7 +431,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     );
 
     const onLayout = useCallback(() => {
-        getLayoutedElements(nodes, edges)
+        getLayoutedPositionMap(nodes, edges)
             .then((positionMap) => {
                 changeNodes((nds) => {
                     return nds.map((node) => {

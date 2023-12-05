@@ -179,7 +179,7 @@ const elkOptions = {
     'elk.direction': 'RIGHT',
 };
 
-export const getLayoutedElements = async (nodes: Node<NodeData>[], edges: Edge<EdgeData>[]) => {
+export const getLayoutedPositionMap = async (nodes: Node<NodeData>[], edges: Edge<EdgeData>[]) => {
     const isHorizontal = elkOptions['elk.direction'] === 'RIGHT';
     const graph: ElkNode = {
         id: 'root',
