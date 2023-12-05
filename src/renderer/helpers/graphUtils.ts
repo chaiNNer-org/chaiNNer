@@ -1,5 +1,7 @@
 import { Bezier } from 'bezier-js';
-import { Position } from 'reactflow';
+import ELK, { ElkNode } from 'elkjs';
+import { Edge, Node, Position } from 'reactflow';
+import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
 
 export interface Point {
@@ -166,4 +168,54 @@ export const getBezierPathValues = ({
         targetX,
         targetY,
     ];
+};
+
+const elk = new ELK();
+
+const elkOptions = {
+    'elk.algorithm': 'layered',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+    'elk.spacing.nodeNode': '80',
+    'elk.direction': 'RIGHT',
+};
+
+export const getLayoutedElements = async (nodes: Node<NodeData>[], edges: Edge<EdgeData>[]) => {
+    const isHorizontal = elkOptions['elk.direction'] === 'RIGHT';
+    const graph: ElkNode = {
+        id: 'root',
+        layoutOptions: elkOptions,
+        children: nodes.map((node) => ({
+            ...node,
+            // Adjust the target and source handle positions based on the layout
+            // direction.
+            targetPosition: isHorizontal ? 'left' : 'top',
+            sourcePosition: isHorizontal ? 'right' : 'bottom',
+
+            width: node.width || 150,
+            height: node.height || 50,
+        })),
+        edges: edges.map((edge) => ({
+            ...edge,
+            sources: [edge.source],
+            targets: [edge.target],
+        })),
+    };
+
+    const layoutedGraph = await elk.layout(graph);
+    const positionMap = new Map<string, Point>();
+    const layoutedNodes = layoutedGraph.children || [];
+
+    const minLayoutedX = Math.min(...layoutedNodes.map((n) => n.x ?? Infinity));
+    const minLayoutedY = Math.min(...layoutedNodes.map((n) => n.y ?? Infinity));
+    const minOriginalX = Math.min(...nodes.map((n) => n.position.x));
+    const minOriginalY = Math.min(...nodes.map((n) => n.position.y));
+
+    const offsetX = minOriginalX - minLayoutedX;
+    const offsetY = minOriginalY - minLayoutedY;
+
+    layoutedNodes.forEach((n) => {
+        positionMap.set(n.id, { x: (n.x || 0) + offsetX, y: (n.y || 0) + offsetY });
+    });
+
+    return positionMap;
 };

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
 import { Bezier } from 'bezier-js';
-import ELK, { ElkNode } from 'elkjs';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -41,60 +40,19 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
+import {
+    AABB,
+    Point,
+    getBezierPathValues,
+    getLayoutedElements,
+    pointDist,
+} from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
-
-const elk = new ELK();
-
-const elkOptions = {
-    'elk.algorithm': 'layered',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-    'elk.spacing.nodeNode': '80',
-    'elk.direction': 'RIGHT',
-};
-
-// This is basically just copypasta'd from the RF docs
-// I just modified it a bit
-const getLayoutedElements = async (nodes: Node<NodeData>[], edges: Edge<EdgeData>[]) => {
-    const isHorizontal = elkOptions['elk.direction'] === 'RIGHT';
-    const graph: ElkNode = {
-        id: 'root',
-        layoutOptions: elkOptions,
-        children: nodes.map((node) => ({
-            ...node,
-            // Adjust the target and source handle positions based on the layout
-            // direction.
-            targetPosition: isHorizontal ? 'left' : 'top',
-            sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-            // Hardcode a width and height for elk to use when layouting.
-            width: node.width || 150,
-            height: node.height || 50,
-        })),
-        edges: edges.map((edge) => ({
-            ...edge,
-            sources: [edge.source],
-            targets: [edge.target],
-        })),
-    };
-
-    const layoutedGraph = await elk.layout(graph);
-    return {
-        nodes: layoutedGraph.children?.map((node) => ({
-            ...node,
-            // React Flow expects a position property on the node instead of `x`
-            // and `y` fields.
-            position: { x: node.x, y: node.y },
-        })),
-
-        edges: layoutedGraph.edges,
-    };
-};
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
 
@@ -474,39 +432,21 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const onLayout = useCallback(() => {
         getLayoutedElements(nodes, edges)
-            .then((response) => {
-                const { nodes: layoutedNodes } = response;
-                if (layoutedNodes) {
-                    changeNodes((nds) => {
-                        const nodesWithTheirPositionsModified = layoutedNodes.map((node) => {
-                            const originalNode = nds.find((n) => n.id === node.id);
-                            if (!originalNode) {
-                                return undefined;
-                            }
-                            return {
-                                ...originalNode,
-                                position: node.position,
-                            };
-                        });
-                        const notUndefined = nodesWithTheirPositionsModified.filter(
-                            (n) => n !== undefined
-                        ) as Node<NodeData>[];
-                        return notUndefined;
+            .then((positionMap) => {
+                changeNodes((nds) => {
+                    return nds.map((node) => {
+                        const newPosition = positionMap.get(node.id);
+                        return {
+                            ...node,
+                            position: newPosition ?? node.position,
+                        };
                     });
-                    const minX = Math.min(...layoutedNodes.map((n) => n.position.x || Infinity));
-                    const minY = Math.min(...layoutedNodes.map((n) => n.position.y || Infinity));
-
-                    reactFlowInstance.setViewport({
-                        x: minX,
-                        y: minY,
-                        zoom: reactFlowInstance.getZoom(),
-                    });
-                }
+                });
             })
             .catch((error) => {
                 log.error(error);
             });
-    }, [nodes, edges, changeNodes, reactFlowInstance]);
+    }, [nodes, edges, changeNodes]);
 
     useHotkeys('ctrl+shift+f, cmd+shift+f', onLayout);
     useIpcRendererListener('format-chain', onLayout);
