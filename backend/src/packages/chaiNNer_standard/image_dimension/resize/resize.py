@@ -88,7 +88,7 @@ def resize_node(
     height: int,
     interpolation: InterpolationMethod,
 ) -> np.ndarray:
-    h, w, c = get_h_w_c(img)
+    h, w, _ = get_h_w_c(img)
 
     out_dims: tuple[int, int]
     if mode == ImageResizeMode.PERCENTAGE:
@@ -98,11 +98,5 @@ def resize_node(
         )
     else:
         out_dims = (width, height)
-
-    # check that the output image fits into memory
-    out_bytes = out_dims[0] * out_dims[1] * c * 4
-    assert (
-        out_bytes < 16 * 2**30
-    ), f"Output image is too large ({out_bytes} bytes). Only images up to 16 GB are allowed."
 
     return resize(img, out_dims, interpolation)
