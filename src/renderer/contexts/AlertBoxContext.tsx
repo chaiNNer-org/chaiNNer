@@ -323,7 +323,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         <AlertBoxContext.Provider value={value}>
             <AlertDialog
                 isCentered
-                isOpen={isOpen}
+                isOpen={isOpen && current !== undefined}
                 leastDestructiveRef={cancelRef}
                 scrollBehavior="inside"
                 onClose={() => cancelRef.current?.click()}
