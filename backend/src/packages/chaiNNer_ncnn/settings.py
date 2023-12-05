@@ -77,6 +77,17 @@ if not use_gpu:
         )
     )
 
+package.add_setting(
+    NumberSetting(
+        label="Memory Budget Limit (GiB)",
+        key="budget_limit",
+        description="Maximum memory to use for NCNN inference. 0 means no limit. Memory usage measurement is not completely accurate yet; you may need to significantly adjust this budget limit via trial-and-error if it's not having the effect you want.",
+        default=0,
+        min=0,
+        max=1024**2,
+    )
+)
+
 
 @dataclass(frozen=True)
 class NcnnSettings:
@@ -85,6 +96,7 @@ class NcnnSettings:
     sgemm: bool
     threads: int
     blocktime: int
+    budget_limit: int
 
 
 def get_settings() -> NcnnSettings:
@@ -102,4 +114,5 @@ def get_settings() -> NcnnSettings:
         blocktime=settings.get_int(
             "blocktime", default_net_opt.openmp_blocktime, parse_str=True
         ),
+        budget_limit=settings.get_int("budget_limit", 0, parse_str=True),
     )
