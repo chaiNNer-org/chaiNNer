@@ -32,6 +32,7 @@ class KeyMethod(Enum):
     name="Chroma Key",
     description=[
         "Removes a color from an image and replaces it with transparency.",
+        "To set he key color, either define a constant color with the `chainner:utility:color` node or pick a color from the image with the `chainner:image:pick_color` node.",
         "This nodes offers multiple strategies to key the image:",
         "- **Binary**:",
         "    A simple binary thresholding method is used to determine the whether a pixel in the image is transparent or not. This method is mostly useful images *without anti-aliasing*.",
