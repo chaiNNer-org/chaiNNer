@@ -81,7 +81,7 @@ package.add_setting(
     NumberSetting(
         label="Memory Budget Limit (GiB)",
         key="budget_limit",
-        description="Maximum memory to use for NCNN inference. 0 means no limit.",
+        description="Maximum memory to use for NCNN inference. 0 means no limit. Memory usage measurement is not completely accurate yet; you may need to significantly adjust this budget limit via trial-and-error if it's not having the effect you want.",
         default=0,
         min=0,
         max=1024**2,
