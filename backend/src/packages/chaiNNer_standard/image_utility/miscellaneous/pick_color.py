@@ -38,7 +38,6 @@ class CoordinateType(Enum):
                 "X",
                 maximum=100,
                 default=0,
-                precision=2,
                 controls_step=1,
                 unit="%",
             )
@@ -48,7 +47,6 @@ class CoordinateType(Enum):
                 "Y",
                 maximum=100,
                 default=0,
-                precision=2,
                 controls_step=1,
                 unit="%",
             )
@@ -100,8 +98,8 @@ class CoordinateType(Enum):
 def pick_color_node(
     orig_img: np.ndarray,
     coord_type: CoordinateType,
-    x_rel: float,
-    y_rel: float,
+    x_rel: int,
+    y_rel: int,
     x: int,
     y: int,
 ) -> Color:
