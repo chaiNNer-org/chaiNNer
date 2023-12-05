@@ -1660,10 +1660,11 @@ exports[`Read save file big ol test.chn 1`] = `
       "data": {
         "id": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed",
         "inputData": {
-          "1": 200,
-          "2": 0,
+          "1": 0,
+          "2": 200,
+          "5": 0,
         },
-        "schemaId": "chainner:image:resize_factor",
+        "schemaId": "chainner:image:resize",
       },
       "dragging": true,
       "extent": [
@@ -1690,10 +1691,11 @@ exports[`Read save file big ol test.chn 1`] = `
       "data": {
         "id": "bd114a6b-1c75-4009-8989-b35fc4ba1f74",
         "inputData": {
-          "1": 50,
-          "2": 3,
+          "1": 0,
+          "2": 50,
+          "5": 3,
         },
-        "schemaId": "chainner:image:resize_factor",
+        "schemaId": "chainner:image:resize",
       },
       "dragging": true,
       "extent": [
@@ -4165,12 +4167,13 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
       "data": {
         "id": "08e62602-bb44-4a6b-9ffc-8a3e3b0a0b6b",
         "inputData": {
-          "1": 256,
-          "2": 255,
-          "3": -1,
+          "1": 1,
+          "3": 256,
+          "4": 255,
+          "5": -1,
         },
         "isDisabled": false,
-        "schemaId": "chainner:image:resize_resolution",
+        "schemaId": "chainner:image:resize",
       },
       "height": 308,
       "id": "08e62602-bb44-4a6b-9ffc-8a3e3b0a0b6b",
@@ -5587,11 +5590,12 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
       "data": {
         "id": "943b61e5-4141-52bc-a453-381fd1a25b7e",
         "inputData": {
-          "1": 1023,
-          "2": 1024,
-          "3": -1,
+          "1": 1,
+          "3": 1023,
+          "4": 1024,
+          "5": -1,
         },
-        "schemaId": "chainner:image:resize_resolution",
+        "schemaId": "chainner:image:resize",
       },
       "height": 308,
       "id": "943b61e5-4141-52bc-a453-381fd1a25b7e",
@@ -6814,10 +6818,11 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
       "data": {
         "id": "f746c97c-9479-5981-aee9-3e7a2e36b89e",
         "inputData": {
-          "1": 300,
-          "2": -1,
+          "1": 0,
+          "2": 300,
+          "5": -1,
         },
-        "schemaId": "chainner:image:resize_factor",
+        "schemaId": "chainner:image:resize",
       },
       "height": 252,
       "id": "f746c97c-9479-5981-aee9-3e7a2e36b89e",
@@ -11041,11 +11046,12 @@ exports[`Read save file image-dim.chn 1`] = `
       "data": {
         "id": "14203edf-1335-4d4f-8174-a86ce0f53bcb",
         "inputData": {
-          "1": 120,
-          "2": 340,
-          "3": 4,
+          "1": 1,
+          "3": 120,
+          "4": 340,
+          "5": 4,
         },
-        "schemaId": "chainner:image:resize_resolution",
+        "schemaId": "chainner:image:resize",
       },
       "height": 424,
       "id": "14203edf-1335-4d4f-8174-a86ce0f53bcb",
@@ -11100,10 +11106,11 @@ exports[`Read save file image-dim.chn 1`] = `
       "data": {
         "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
         "inputData": {
-          "1": 350,
-          "2": 3,
+          "1": 0,
+          "2": 350,
+          "5": 3,
         },
-        "schemaId": "chainner:image:resize_factor",
+        "schemaId": "chainner:image:resize",
       },
       "height": 342,
       "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
@@ -13227,11 +13234,12 @@ exports[`Read save file pytorch-scunet.chn 1`] = `
       "data": {
         "id": "b2fdb48a-ed8c-4cd9-a881-f98d2dcc29a0",
         "inputData": {
-          "1": 256,
-          "2": 257,
-          "3": -1,
+          "1": 1,
+          "3": 256,
+          "4": 257,
+          "5": -1,
         },
-        "schemaId": "chainner:image:resize_resolution",
+        "schemaId": "chainner:image:resize",
       },
       "height": 308,
       "id": "b2fdb48a-ed8c-4cd9-a881-f98d2dcc29a0",
@@ -15875,6 +15883,216 @@ exports[`Read save file text-pattern.chn 1`] = `
     "x": 0,
     "y": 0,
     "zoom": 1,
+  },
+}
+`;
+
+exports[`Read save file unified-resize.chn 1`] = `
+{
+  "edges": [
+    {
+      "animated": false,
+      "data": {},
+      "id": "02e6d6d7-1cb1-4ecb-a025-4d1580c82505",
+      "source": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+      "sourceHandle": "f585d7ab-2de4-48b4-bbaa-366af3a1c169-0",
+      "target": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+      "targetHandle": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "4179a414-77fb-4c3c-bc73-4d7dd9ea8e72",
+      "source": "b765147d-c221-4020-a284-8b81460a2c9f",
+      "sourceHandle": "b765147d-c221-4020-a284-8b81460a2c9f-0",
+      "target": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+      "targetHandle": "214d84da-3a9b-4fc2-9ab1-cbe093424601-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "82b8a803-3b05-4e46-9c9a-98cdfaa8acda",
+      "source": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+      "sourceHandle": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4-0",
+      "target": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+      "targetHandle": "473392ac-7495-4fb0-9aca-beae3d0d609e-0",
+      "type": "main",
+    },
+    {
+      "animated": true,
+      "data": {},
+      "id": "96f21289-4d13-4467-a7e2-01d42b9b7a07",
+      "source": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+      "sourceHandle": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a-0",
+      "target": "b765147d-c221-4020-a284-8b81460a2c9f",
+      "targetHandle": "b765147d-c221-4020-a284-8b81460a2c9f-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "ea996a53-1156-4a66-a177-13d86bc1062d",
+      "source": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+      "sourceHandle": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87-0",
+      "target": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+      "targetHandle": "f585d7ab-2de4-48b4-bbaa-366af3a1c169-0",
+      "type": "main",
+    },
+    {
+      "animated": false,
+      "data": {},
+      "id": "fc0b9046-5df6-4f0c-9c99-3828403c5fe0",
+      "source": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+      "sourceHandle": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87-0",
+      "target": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+      "targetHandle": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a-0",
+      "type": "main",
+    },
+  ],
+  "nodes": [
+    {
+      "data": {
+        "id": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+      "position": {
+        "x": 976,
+        "y": 464,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+        "inputData": {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 348,
+      "id": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+      "position": {
+        "x": 976,
+        "y": 128,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+        "inputData": {
+          "1": 1,
+          "3": 100,
+          "4": 200,
+          "5": 1,
+        },
+        "schemaId": "chainner:image:resize",
+      },
+      "height": 308,
+      "id": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+      "position": {
+        "x": 672,
+        "y": 128,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 243,
+    },
+    {
+      "data": {
+        "id": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+        "inputData": {
+          "1": 0,
+          "2": 50,
+          "3": 1,
+          "4": 1,
+          "5": 2,
+        },
+        "schemaId": "chainner:image:resize",
+      },
+      "height": 278,
+      "id": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+      "position": {
+        "x": 400,
+        "y": 464,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "b765147d-c221-4020-a284-8b81460a2c9f",
+        "inputData": {
+          "1": 1,
+          "2": 400,
+          "3": 100,
+          "4": 200,
+          "5": 1,
+        },
+        "schemaId": "chainner:image:resize",
+      },
+      "height": 350,
+      "id": "b765147d-c221-4020-a284-8b81460a2c9f",
+      "position": {
+        "x": 672,
+        "y": 464,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+        "inputData": {
+          "0": "C:\\Users\\micha\\Git\\chaiNNer-rs\\data\\portrait.png",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 436,
+      "id": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+      "position": {
+        "x": 96,
+        "y": 240,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 240,
+    },
+    {
+      "data": {
+        "id": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+        "inputData": {
+          "1": 0,
+          "2": 50,
+          "5": 2,
+        },
+        "schemaId": "chainner:image:resize",
+      },
+      "height": 252,
+      "id": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+      "position": {
+        "x": 400,
+        "y": 128,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 240,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": {
+    "x": -19.430483009979582,
+    "y": 184.27807182744428,
+    "zoom": 1.148698403594267,
   },
 }
 `;
@@ -19208,7 +19426,7 @@ exports[`Write save file add noise with seed edge.chn 1`] = `
 
 exports[`Write save file big ol test.chn 1`] = `
 {
-  "checksum": "3e70a27c79e52bc7943d58c4248dacee",
+  "checksum": "769c4801d536496e1ac53e5b78a6e686",
   "content": {
     "edges": [
       {
@@ -19588,10 +19806,11 @@ exports[`Write save file big ol test.chn 1`] = `
         "data": {
           "id": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed",
           "inputData": {
-            "1": 200,
-            "2": 0,
+            "1": 0,
+            "2": 200,
+            "5": 0,
           },
-          "schemaId": "chainner:image:resize_factor",
+          "schemaId": "chainner:image:resize",
         },
         "height": 341,
         "id": "6091ce37-2a1b-4f6d-b5a8-0c7ad0c1caed",
@@ -19607,10 +19826,11 @@ exports[`Write save file big ol test.chn 1`] = `
         "data": {
           "id": "bd114a6b-1c75-4009-8989-b35fc4ba1f74",
           "inputData": {
-            "1": 50,
-            "2": 3,
+            "1": 0,
+            "2": 50,
+            "5": 3,
           },
-          "schemaId": "chainner:image:resize_factor",
+          "schemaId": "chainner:image:resize",
         },
         "id": "bd114a6b-1c75-4009-8989-b35fc4ba1f74",
         "position": {
@@ -19827,7 +20047,7 @@ exports[`Write save file big ol test.chn 1`] = `
 
 exports[`Write save file blend-images.chn 1`] = `
 {
-  "checksum": "7c8a15dc3456becb3d73d46df3db686b",
+  "checksum": "571a257752c201494740d9155f706025",
   "content": {
     "edges": [
       {
@@ -21994,12 +22214,13 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "data": {
           "id": "08e62602-bb44-4a6b-9ffc-8a3e3b0a0b6b",
           "inputData": {
-            "1": 256,
-            "2": 255,
-            "3": -1,
+            "1": 1,
+            "3": 256,
+            "4": 255,
+            "5": -1,
           },
           "isDisabled": false,
-          "schemaId": "chainner:image:resize_resolution",
+          "schemaId": "chainner:image:resize",
         },
         "height": 308,
         "id": "08e62602-bb44-4a6b-9ffc-8a3e3b0a0b6b",
@@ -23416,11 +23637,12 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "data": {
           "id": "943b61e5-4141-52bc-a453-381fd1a25b7e",
           "inputData": {
-            "1": 1023,
-            "2": 1024,
-            "3": -1,
+            "1": 1,
+            "3": 1023,
+            "4": 1024,
+            "5": -1,
           },
-          "schemaId": "chainner:image:resize_resolution",
+          "schemaId": "chainner:image:resize",
         },
         "height": 308,
         "id": "943b61e5-4141-52bc-a453-381fd1a25b7e",
@@ -24643,10 +24865,11 @@ https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/png/512x512.
         "data": {
           "id": "f746c97c-9479-5981-aee9-3e7a2e36b89e",
           "inputData": {
-            "1": 300,
-            "2": -1,
+            "1": 0,
+            "2": 300,
+            "5": -1,
           },
-          "schemaId": "chainner:image:resize_factor",
+          "schemaId": "chainner:image:resize",
         },
         "height": 252,
         "id": "f746c97c-9479-5981-aee9-3e7a2e36b89e",
@@ -28866,7 +29089,7 @@ exports[`Write save file image-channels.chn 1`] = `
 
 exports[`Write save file image-dim.chn 1`] = `
 {
-  "checksum": "2cc2fc50df58be2dc18f9c36d1af3d10",
+  "checksum": "8854f8d831a7f213d9e3683251b9fbdf",
   "content": {
     "edges": [
       {
@@ -28915,11 +29138,12 @@ exports[`Write save file image-dim.chn 1`] = `
         "data": {
           "id": "14203edf-1335-4d4f-8174-a86ce0f53bcb",
           "inputData": {
-            "1": 120,
-            "2": 340,
-            "3": 4,
+            "1": 1,
+            "3": 120,
+            "4": 340,
+            "5": 4,
           },
-          "schemaId": "chainner:image:resize_resolution",
+          "schemaId": "chainner:image:resize",
         },
         "height": 424,
         "id": "14203edf-1335-4d4f-8174-a86ce0f53bcb",
@@ -28974,10 +29198,11 @@ exports[`Write save file image-dim.chn 1`] = `
         "data": {
           "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
           "inputData": {
-            "1": 350,
-            "2": 3,
+            "1": 0,
+            "2": 350,
+            "5": 3,
           },
-          "schemaId": "chainner:image:resize_factor",
+          "schemaId": "chainner:image:resize",
         },
         "height": 342,
         "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
@@ -30877,7 +31102,7 @@ exports[`Write save file pytorch.chn 1`] = `
 
 exports[`Write save file pytorch-scunet.chn 1`] = `
 {
-  "checksum": "8f85f13ad69c8193ada4a5df523a2b7e",
+  "checksum": "f0f5705acd9ad9a5f740c8f8ffa19a71",
   "content": {
     "edges": [
       {
@@ -31134,11 +31359,12 @@ exports[`Write save file pytorch-scunet.chn 1`] = `
         "data": {
           "id": "b2fdb48a-ed8c-4cd9-a881-f98d2dcc29a0",
           "inputData": {
-            "1": 256,
-            "2": 257,
-            "3": -1,
+            "1": 1,
+            "3": 256,
+            "4": 257,
+            "5": -1,
           },
-          "schemaId": "chainner:image:resize_resolution",
+          "schemaId": "chainner:image:resize",
         },
         "height": 308,
         "id": "b2fdb48a-ed8c-4cd9-a881-f98d2dcc29a0",
@@ -33795,6 +34021,219 @@ exports[`Write save file text-pattern.chn 1`] = `
       "x": 0,
       "y": 0,
       "zoom": 1,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
+exports[`Write save file unified-resize.chn 1`] = `
+{
+  "checksum": "baa923466a9ed5817f57439f9217465b",
+  "content": {
+    "edges": [
+      {
+        "animated": false,
+        "data": {},
+        "id": "02e6d6d7-1cb1-4ecb-a025-4d1580c82505",
+        "source": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+        "sourceHandle": "f585d7ab-2de4-48b4-bbaa-366af3a1c169-0",
+        "target": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+        "targetHandle": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "4179a414-77fb-4c3c-bc73-4d7dd9ea8e72",
+        "source": "b765147d-c221-4020-a284-8b81460a2c9f",
+        "sourceHandle": "b765147d-c221-4020-a284-8b81460a2c9f-0",
+        "target": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+        "targetHandle": "214d84da-3a9b-4fc2-9ab1-cbe093424601-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "82b8a803-3b05-4e46-9c9a-98cdfaa8acda",
+        "source": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+        "sourceHandle": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4-0",
+        "target": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+        "targetHandle": "473392ac-7495-4fb0-9aca-beae3d0d609e-0",
+        "type": "main",
+      },
+      {
+        "animated": true,
+        "data": {},
+        "id": "96f21289-4d13-4467-a7e2-01d42b9b7a07",
+        "source": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+        "sourceHandle": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a-0",
+        "target": "b765147d-c221-4020-a284-8b81460a2c9f",
+        "targetHandle": "b765147d-c221-4020-a284-8b81460a2c9f-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "ea996a53-1156-4a66-a177-13d86bc1062d",
+        "source": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+        "sourceHandle": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87-0",
+        "target": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+        "targetHandle": "f585d7ab-2de4-48b4-bbaa-366af3a1c169-0",
+        "type": "main",
+      },
+      {
+        "animated": false,
+        "data": {},
+        "id": "fc0b9046-5df6-4f0c-9c99-3828403c5fe0",
+        "source": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+        "sourceHandle": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87-0",
+        "target": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+        "targetHandle": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a-0",
+        "type": "main",
+      },
+    ],
+    "nodes": [
+      {
+        "data": {
+          "id": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "214d84da-3a9b-4fc2-9ab1-cbe093424601",
+        "position": {
+          "x": 976,
+          "y": 464,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+          "inputData": {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 348,
+        "id": "473392ac-7495-4fb0-9aca-beae3d0d609e",
+        "position": {
+          "x": 976,
+          "y": 128,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+          "inputData": {
+            "1": 1,
+            "3": 100,
+            "4": 200,
+            "5": 1,
+          },
+          "schemaId": "chainner:image:resize",
+        },
+        "height": 308,
+        "id": "844ef00a-3777-42e9-aa1b-ee4d718a6cd4",
+        "position": {
+          "x": 672,
+          "y": 128,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 243,
+      },
+      {
+        "data": {
+          "id": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+          "inputData": {
+            "1": 0,
+            "2": 50,
+            "3": 1,
+            "4": 1,
+            "5": 2,
+          },
+          "schemaId": "chainner:image:resize",
+        },
+        "height": 278,
+        "id": "a1fc9f46-cc42-4fef-a5d9-5cdbdadb0c4a",
+        "position": {
+          "x": 400,
+          "y": 464,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "b765147d-c221-4020-a284-8b81460a2c9f",
+          "inputData": {
+            "1": 1,
+            "2": 400,
+            "3": 100,
+            "4": 200,
+            "5": 1,
+          },
+          "schemaId": "chainner:image:resize",
+        },
+        "height": 350,
+        "id": "b765147d-c221-4020-a284-8b81460a2c9f",
+        "position": {
+          "x": 672,
+          "y": 464,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+          "inputData": {
+            "0": "C:\\Users\\micha\\Git\\chaiNNer-rs\\data\\portrait.png",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 436,
+        "id": "d3a7f52e-b2d8-4e6c-9a43-2d6bf4f19f87",
+        "position": {
+          "x": 96,
+          "y": 240,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 240,
+      },
+      {
+        "data": {
+          "id": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+          "inputData": {
+            "1": 0,
+            "2": 50,
+            "5": 2,
+          },
+          "schemaId": "chainner:image:resize",
+        },
+        "height": 252,
+        "id": "f585d7ab-2de4-48b4-bbaa-366af3a1c169",
+        "position": {
+          "x": 400,
+          "y": 128,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 240,
+      },
+    ],
+    "viewport": {
+      "x": -19.430483009979582,
+      "y": 184.27807182744428,
+      "zoom": 1.148698403594267,
     },
   },
   "version": "0.0.0-test",
