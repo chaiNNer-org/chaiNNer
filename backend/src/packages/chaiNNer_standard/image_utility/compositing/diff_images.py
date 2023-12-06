@@ -25,7 +25,7 @@ from .. import compositing_group
     outputs=[ImageOutput(image_type="Input0")],
     limited_to_8bpc=True,
 )
-def diff_images_node(
+def add_image_diff_node(
     input_img: np.ndarray,
     ref_init_img: np.ndarray,
     ref_goal_img: np.ndarray,
