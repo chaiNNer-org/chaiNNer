@@ -19,6 +19,8 @@ def matrix_sqrt(x: np.ndarray):
 def linear_histogram_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
+    valid_indices: np.ndarray,
+    ref_valid_indices: np.ndarray,
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image
@@ -34,11 +36,14 @@ def linear_histogram_transfer(
     content = img.reshape(-1, shape[-1])
     reference = ref_img.reshape(-1, shape[-1])
 
-    mu_content = np.mean(content, axis=0)
-    mu_reference = np.mean(reference, axis=0)
+    valid_content = img[valid_indices]
+    valid_reference = ref_img[ref_valid_indices]
 
-    cov_content = np.cov(content, rowvar=False)
-    cov_reference = np.cov(reference, rowvar=False)
+    mu_content = np.mean(valid_content, axis=0)
+    mu_reference = np.mean(valid_reference, axis=0)
+
+    cov_content = np.cov(valid_content, rowvar=False)
+    cov_reference = np.cov(valid_reference, rowvar=False)
 
     transfer = matrix_sqrt(cov_reference)
     sqrt_cov_content = matrix_sqrt(cov_content)
