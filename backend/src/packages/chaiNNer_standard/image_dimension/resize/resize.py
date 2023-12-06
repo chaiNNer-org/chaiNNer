@@ -5,12 +5,12 @@ from enum import Enum
 import numpy as np
 
 from nodes.groups import if_enum_group
-from nodes.impl.pil_utils import InterpolationMethod, resize
+from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import (
     EnumInput,
     ImageInput,
-    InterpolationInput,
     NumberInput,
+    ResizeFilterInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
@@ -50,7 +50,7 @@ class ImageResizeMode(Enum):
             NumberInput("Width", minimum=1, default=1, unit="px").with_id(3),
             NumberInput("Height", minimum=1, default=1, unit="px").with_id(4),
         ),
-        InterpolationInput().with_id(5),
+        ResizeFilterInput().with_id(5),
     ],
     outputs=[
         ImageOutput(
@@ -78,7 +78,6 @@ class ImageResizeMode(Enum):
             assume_normalized=True,
         )
     ],
-    limited_to_8bpc=True,
 )
 def resize_node(
     img: np.ndarray,
@@ -86,7 +85,7 @@ def resize_node(
     scale: float,
     width: int,
     height: int,
-    interpolation: InterpolationMethod,
+    filter: ResizeFilter,
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
 
@@ -99,4 +98,10 @@ def resize_node(
     else:
         out_dims = (width, height)
 
-    return resize(img, out_dims, interpolation)
+    return resize(
+        img,
+        out_dims,
+        filter,
+        separate_alpha=False,
+        gamma_correction=False,
+    )

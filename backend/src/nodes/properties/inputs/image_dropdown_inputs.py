@@ -9,7 +9,8 @@ from ...impl.color.convert_data import (
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
-from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
+from ...impl.pil_utils import RotationInterpolationMethod
+from ...impl.resize import ResizeFilter
 from .generic_inputs import DropDownInput, EnumInput
 
 
@@ -50,13 +51,14 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
     )
 
 
-def InterpolationInput() -> DropDownInput:
-    """Resize interpolation dropdown"""
+def ResizeFilterInput() -> DropDownInput:
     return EnumInput(
-        InterpolationMethod,
+        ResizeFilter,
+        label="Interpolation Method",
         option_labels={
-            InterpolationMethod.NEAREST: "Nearest Neighbor",
-            InterpolationMethod.BOX: "Area (Box)",
+            ResizeFilter.NEAREST: "Nearest Neighbor",
+            ResizeFilter.BOX: "Area (Box)",
+            ResizeFilter.CATROM: "Cubic",
         },
     )
 
