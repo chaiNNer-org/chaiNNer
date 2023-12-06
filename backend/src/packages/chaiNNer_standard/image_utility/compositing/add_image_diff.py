@@ -53,7 +53,7 @@ def add_image_diff_node(
         ref_goal_b, ref_goal_g, ref_goal_r, ref_goal_alpha = cv2.split(ref_goal_img)
 
         # For pixels that are fully transparent in input image, pass-through the goal pixel.
-        invalid_mask = result_alpha <= 0 # type: ignore
+        invalid_mask = result_alpha <= 0  # type: ignore
         invalid_indices = np.nonzero(invalid_mask)
         result_b[invalid_indices] = ref_goal_b[invalid_indices]
         result_g[invalid_indices] = ref_goal_g[invalid_indices]
