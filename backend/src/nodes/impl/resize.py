@@ -68,6 +68,10 @@ def resize(
         else:
             filter = ResizeFilter.BOX
 
+    if (w, h) == out_dims and (filter in (ResizeFilter.NEAREST, ResizeFilter.BOX)):
+        # no resize needed
+        return img.copy()
+
     native_filter = _FILTER_MAP[filter]
 
     if not separate_alpha and c == 4:
