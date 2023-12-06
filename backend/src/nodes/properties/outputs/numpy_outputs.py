@@ -9,7 +9,7 @@ import navi
 from api import BaseOutput, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8
-from ...impl.pil_utils import InterpolationMethod, resize
+from ...impl.resize import ResizeFilter, resize
 from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c, round_half_up
 
@@ -131,11 +131,7 @@ def preview_encode(
     if w > max_size or h > max_size:
         f = max(w / target_size, h / target_size)
         t = (max(1, round_half_up(w / f)), max(1, round_half_up(h / f)))
-        if c == 4:
-            # https://github.com/chaiNNer-org/chaiNNer/issues/1321
-            img = resize(img, t, InterpolationMethod.BOX)
-        else:
-            img = cv2.resize(img, t, interpolation=cv2.INTER_AREA)
+        img = resize(img, t, ResizeFilter.BOX)
 
     image_format = "png" if c > 3 or lossless else "jpg"
 

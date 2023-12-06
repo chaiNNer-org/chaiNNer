@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
-from nodes.impl.pil_utils import InterpolationMethod, resize
+from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -34,13 +34,13 @@ def metal_to_spec(
     if metal_size == albedo_size:
         metal3_inv_scaled = metal3_inv
     else:
-        metal3_inv_scaled = resize(metal3_inv, albedo_size, InterpolationMethod.LANCZOS)
+        metal3_inv_scaled = resize(metal3_inv, albedo_size, ResizeFilter.LANCZOS)
     diff = albedo * metal3_inv_scaled
 
     if metal_size == albedo_size:
         scaled_albedo = albedo
     else:
-        scaled_albedo = resize(albedo, metal_size, InterpolationMethod.LANCZOS)
+        scaled_albedo = resize(albedo, metal_size, ResizeFilter.LANCZOS)
     spec = metal3 * scaled_albedo + metal3_inv * 0.22
 
     if roughness is None:
@@ -79,7 +79,6 @@ def metal_to_spec(
             channels=1,
         ),
     ],
-    limited_to_8bpc=True,
 )
 def metal_to_specular_node(
     albedo: np.ndarray,
