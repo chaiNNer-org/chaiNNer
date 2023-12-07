@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
-
 import numpy as np
 
 __author__ = "Daniel Steinberg"
@@ -21,8 +19,8 @@ def matrix_sqrt(x: np.ndarray):
 def linear_histogram_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
-    valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]],
-    ref_valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]],
+    valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    ref_valid_indices: np.ndarray | tuple[np.ndarray, ...],
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image
@@ -36,7 +34,7 @@ def linear_histogram_transfer(
 
     # Convert HxWxC image to a (H*W)xC matrix.
     content = img.reshape(-1, shape[-1])
-    reference = ref_img.reshape(-1, shape[-1])
+    ref_img.reshape(-1, shape[-1])
 
     valid_content = img[valid_indices]
     valid_reference = ref_img[ref_valid_indices]

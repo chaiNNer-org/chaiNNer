@@ -84,7 +84,6 @@ def color_transfer_node(
         ref_alpha = ref_img[:, :, 3]
     bgr_ref_img = ref_img[:, :, :3]
 
-
     # Don't process RGB data if the pixel is fully transparent, since
     # such RGB data is indeterminate.
     valid_rgb_indices = np.ones(img.shape[:-1], dtype=bool)
@@ -100,12 +99,22 @@ def color_transfer_node(
     transfer = bgr_img
     if algorithm == TransferColorAlgorithm.MEAN_STD:
         transfer = mean_std_transfer(
-            bgr_img, bgr_ref_img, colorspace, overflow_method, reciprocal_scale=reciprocal_scale, valid_indices=valid_rgb_indices, ref_valid_indices=ref_valid_rgb_indices
+            bgr_img,
+            bgr_ref_img,
+            colorspace,
+            overflow_method,
+            reciprocal_scale=reciprocal_scale,
+            valid_indices=valid_rgb_indices,
+            ref_valid_indices=ref_valid_rgb_indices,
         )
     elif algorithm == TransferColorAlgorithm.LINEAR_HISTOGRAM:
-        transfer = linear_histogram_transfer(bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices)
+        transfer = linear_histogram_transfer(
+            bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices
+        )
     elif algorithm == TransferColorAlgorithm.PRINCIPAL_COLOR:
-        transfer = principal_color_transfer(bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices)
+        transfer = principal_color_transfer(
+            bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices
+        )
 
     if alpha is not None:
         transfer = np.dstack((transfer, alpha))

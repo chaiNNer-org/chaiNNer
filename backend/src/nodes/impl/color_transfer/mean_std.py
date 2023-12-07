@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -40,7 +39,11 @@ def image_stats(img: np.ndarray):
     return a_mean, a_std, b_mean, b_std, c_mean, c_std
 
 
-def min_max_scale(img: np.ndarray, valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]], new_range: tuple[float, float] = (0, 255)):
+def min_max_scale(
+    img: np.ndarray,
+    valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    new_range: tuple[float, float] = (0, 255),
+):
     """Perform min-max scaling to a NumPy array"""
 
     # Get arrays current min and max
@@ -62,7 +65,7 @@ def min_max_scale(img: np.ndarray, valid_indices: Union[np.ndarray, Tuple[np.nda
 def scale_array(
     arr: np.ndarray,
     overflow_method: OverflowMethod,
-    valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]],
+    valid_indices: np.ndarray | tuple[np.ndarray, ...],
     clip_min: int = 0,
     clip_max: int = 255,
 ) -> np.ndarray:
@@ -74,7 +77,10 @@ def scale_array(
     if overflow_method == OverflowMethod.CLIP:
         scaled = np.clip(arr, clip_min, clip_max)
     else:
-        scale_range = (max([arr[valid_indices].min(), clip_min]), min([arr[valid_indices].max(), clip_max]))
+        scale_range = (
+            max([arr[valid_indices].min(), clip_min]),
+            min([arr[valid_indices].max(), clip_max]),
+        )
         scaled = min_max_scale(arr, new_range=scale_range, valid_indices=valid_indices)
 
     return scaled
@@ -85,8 +91,8 @@ def mean_std_transfer(
     ref_img: np.ndarray,
     colorspace: TransferColorSpace,
     overflow_method: OverflowMethod,
-    valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]],
-    ref_valid_indices: Union[np.ndarray, Tuple[np.ndarray, ...]],
+    valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    ref_valid_indices: np.ndarray | tuple[np.ndarray, ...],
     reciprocal_scale: bool = True,
 ) -> np.ndarray:
     """
@@ -163,9 +169,15 @@ def mean_std_transfer(
 
     # Clip/scale the pixel intensities to [clip_min, clip_max] if they fall
     # outside this range
-    channel_a = scale_array(channel_a, overflow_method, valid_indices, a_clip_min, a_clip_max)
-    channel_b = scale_array(channel_b, overflow_method, valid_indices, b_clip_min, b_clip_max)
-    channel_c = scale_array(channel_c, overflow_method, valid_indices, c_clip_min, c_clip_max)
+    channel_a = scale_array(
+        channel_a, overflow_method, valid_indices, a_clip_min, a_clip_max
+    )
+    channel_b = scale_array(
+        channel_b, overflow_method, valid_indices, b_clip_min, b_clip_max
+    )
+    channel_c = scale_array(
+        channel_c, overflow_method, valid_indices, c_clip_min, c_clip_max
+    )
 
     # Merge the channels together, then convert back to the RGB color
     # space if necessary
