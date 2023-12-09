@@ -72,6 +72,10 @@ def resize(
         # no resize needed
         return img.copy()
 
+    if filter == ResizeFilter.NEAREST:
+        # we don't need premultiplied alpha for NN
+        separate_alpha = True
+
     native_filter = _FILTER_MAP[filter]
 
     if not separate_alpha and c == 4:
