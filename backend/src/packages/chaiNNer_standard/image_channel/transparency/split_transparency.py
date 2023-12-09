@@ -6,6 +6,7 @@ import navi
 from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
 
 from . import node_group
 
@@ -33,6 +34,14 @@ from . import node_group
 )
 def split_transparency_node(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Split a multi-channel image into separate channels"""
+
+    c = get_h_w_c(img)[2]
+    if c == 3:
+        # Performance optimization:
+        # Subsequent operations will be faster since the underlying array will
+        # be contiguous in memory. The speed up can anything from nothing to
+        # 5x faster depending on the operation.
+        return img, np.ones(img.shape[:2], dtype=img.dtype)
 
     img = as_target_channels(img, 4)
 
