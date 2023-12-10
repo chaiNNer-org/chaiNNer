@@ -95,8 +95,8 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.1.1",
-            size_estimate=180.7 * KB,
+            version="0.1.2",
+            size_estimate=250 * KB,
         ),
     ],
     icon="PyTorch",
