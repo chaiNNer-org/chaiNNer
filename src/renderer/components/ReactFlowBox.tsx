@@ -431,7 +431,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     );
 
     const onLayout = useCallback(() => {
-        getLayoutedPositionMap(nodes, edges)
+        getLayoutedPositionMap(nodes, edges, isSnapToGrid ? snapToGridAmount : undefined)
             .then((positionMap) => {
                 changeNodes((nds) => {
                     return nds.map((node) => {
@@ -446,7 +446,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             .catch((error) => {
                 log.error(error);
             });
-    }, [nodes, edges, changeNodes]);
+    }, [nodes, edges, isSnapToGrid, snapToGridAmount, changeNodes]);
 
     useHotkeys('ctrl+shift+f, cmd+shift+f', onLayout);
     useIpcRendererListener('format-chain', onLayout);

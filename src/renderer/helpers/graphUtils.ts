@@ -1,5 +1,5 @@
 import { Bezier } from 'bezier-js';
-import ELK, { ElkNode } from 'elkjs';
+import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs';
 import { Edge, Node, Position } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
@@ -174,31 +174,58 @@ const elk = new ELK();
 
 const elkOptions = {
     'elk.algorithm': 'layered',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-    'elk.spacing.nodeNode': '80',
+    'elk.layered.wrapping.additionalEdgeSpacing': '0',
+    'elk.spacing.componentComponent': '80',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '64',
+    'elk.spacing.nodeNode': '32',
+    'elk.layered.spacing.edgeEdgeBetweenLayers': '0',
+    'elk.layered.spacing.edgeNodeBetweenLayers': '0',
+    'elk.spacing.edgeNode': '0',
+    'elk.spacing.edgeEdge': '0',
     'elk.direction': 'RIGHT',
+    'elk.edgeRouting': 'SPLINES',
+    'elk.layered.thoroughness': '30',
 };
 
-export const getLayoutedPositionMap = async (nodes: Node<NodeData>[], edges: Edge<EdgeData>[]) => {
-    const isHorizontal = elkOptions['elk.direction'] === 'RIGHT';
+export const getLayoutedPositionMap = async (
+    nodes: Node<NodeData>[],
+    edges: Edge<EdgeData>[],
+    gridSize?: number
+): Promise<Map<string, Point>> => {
+    const alignToGrid = (n: number) => {
+        if (!gridSize) return n;
+        return Math.round(n / gridSize) * gridSize;
+    };
+
+    const options = { ...elkOptions };
+
+    // set sizes to nearest multiple
+    const sizeKeys = [
+        'elk.spacing.componentComponent',
+        'elk.layered.spacing.nodeNodeBetweenLayers',
+        'elk.spacing.nodeNode',
+    ] as const;
+    for (const key of sizeKeys) {
+        options[key] = alignToGrid(Number(options[key])).toString();
+    }
+
     const graph: ElkNode = {
         id: 'root',
-        layoutOptions: elkOptions,
-        children: nodes.map((node) => ({
-            ...node,
-            // Adjust the target and source handle positions based on the layout
-            // direction.
-            targetPosition: isHorizontal ? 'left' : 'top',
-            sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-            width: node.width || 150,
-            height: node.height || 50,
-        })),
-        edges: edges.map((edge) => ({
-            ...edge,
-            sources: [edge.source],
-            targets: [edge.target],
-        })),
+        layoutOptions: options,
+        children: nodes.map((node): ElkNode => {
+            return {
+                id: node.id,
+                width: alignToGrid(node.width || 240),
+                height: alignToGrid(node.height || 50),
+            };
+        }),
+        edges: edges.map((edge): ElkExtendedEdge => {
+            return {
+                id: edge.id,
+                sources: [edge.source],
+                targets: [edge.target],
+            };
+        }),
     };
 
     const layoutedGraph = await elk.layout(graph);
@@ -214,7 +241,10 @@ export const getLayoutedPositionMap = async (nodes: Node<NodeData>[], edges: Edg
     const offsetY = minOriginalY - minLayoutedY;
 
     layoutedNodes.forEach((n) => {
-        positionMap.set(n.id, { x: (n.x || 0) + offsetX, y: (n.y || 0) + offsetY });
+        positionMap.set(n.id, {
+            x: alignToGrid((n.x || 0) + offsetX),
+            y: alignToGrid((n.y || 0) + offsetY),
+        });
     });
 
     return positionMap;
