@@ -51,11 +51,23 @@ OPSET_LABELS: dict[Opset, str] = {
     outputs=[
         OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
+        TextOutput(
+            "Opset",
+            """
+                let opset = Input2;
+                match opset {
+                    Opset::Opset14 => "opset14",
+                    Opset::Opset15 => "opset15",
+                    Opset::Opset16 => "opset16",
+                    Opset::Opset17 => "opset17",
+                }
+            """,
+        ),
     ],
 )
 def convert_to_onnx_node(
     model: ImageModelDescriptor, is_fp16: int, opset: Opset
-) -> tuple[OnnxGeneric, str]:
+) -> tuple[OnnxGeneric, str, str]:
     assert not isinstance(
         model.model, SCUNet
     ), "SCUNet is not supported for ONNX conversion at this time."
@@ -80,4 +92,4 @@ def convert_to_onnx_node(
 
     fp_mode = "fp16" if use_half else "fp32"
 
-    return OnnxGeneric(onnx_model_bytes), fp_mode
+    return OnnxGeneric(onnx_model_bytes), fp_mode, f"opset{opset.value}"
