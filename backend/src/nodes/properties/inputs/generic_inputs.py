@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Generic, Literal, TypedDict, TypeVar, Union
 
@@ -51,6 +52,22 @@ This specified the preferred style in which the frontend may display the dropdow
 """
 
 
+@dataclass
+class DropDownGroup:
+    label: str | None
+    start_at: str | int | Enum
+
+    @staticmethod
+    def divider(start_at: str | int | Enum):
+        return DropDownGroup(None, start_at)
+
+    def to_dict(self):
+        start_at = self.start_at
+        if isinstance(start_at, Enum):
+            start_at = start_at.value
+        return {"label": self.label, "startAt": start_at}
+
+
 class DropDownInput(BaseInput):
     """Input for a dropdown"""
 
@@ -61,6 +78,7 @@ class DropDownInput(BaseInput):
         options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        groups: list[DropDownGroup] | None = None,
         associated_type: Any = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
@@ -70,6 +88,7 @@ class DropDownInput(BaseInput):
             default_value if default_value is not None else options[0]["value"]
         )
         self.preferred_style: DropDownStyle = preferred_style
+        self.groups: list[DropDownGroup] = groups or []
 
         if self.default not in self.accepted_values:
             logger.error(
@@ -87,6 +106,7 @@ class DropDownInput(BaseInput):
             "options": self.options,
             "def": self.default,
             "preferredStyle": self.preferred_style,
+            "groups": [c.to_dict() for c in self.groups],
         }
 
     def make_optional(self):
@@ -157,6 +177,7 @@ class EnumInput(Generic[T], DropDownInput):
         option_labels: dict[T, str] | None = None,
         extra_definitions: str | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        categories: list[DropDownGroup] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -189,6 +210,7 @@ class EnumInput(Generic[T], DropDownInput):
             options=options,
             default_value=default.value if default is not None else None,
             preferred_style=preferred_style,
+            groups=categories,
         )
 
         self.type_definitions = (
@@ -558,6 +580,12 @@ def BlendModeDropdown() -> DropDownInput:
         option_labels={
             BlendMode.ADD: "Linear Dodge (Add)",
         },
+        categories=[
+            DropDownGroup.divider(start_at=BlendMode.DARKEN),
+            DropDownGroup.divider(start_at=BlendMode.LIGHTEN),
+            DropDownGroup.divider(start_at=BlendMode.OVERLAY),
+            DropDownGroup.divider(start_at=BlendMode.DIFFERENCE),
+        ],
     )
 
 
@@ -609,9 +637,9 @@ SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
     ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
     ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
     ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
-    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha, Legacy)"),
-    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha, Legacy)"),
-    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha, Legacy)"),
+    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha)"),
+    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha)"),
+    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha)"),
     ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
     ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
     ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
@@ -631,6 +659,11 @@ def DdsFormatDropdown() -> DropDownInput:
         label="DDS Format",
         options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
         associated_type=DDSFormat,
+        groups=[
+            DropDownGroup("Compressed", start_at="BC1_UNORM_SRGB"),
+            DropDownGroup("Uncompressed", start_at="R8G8B8A8_UNORM_SRGB"),
+            DropDownGroup("Legacy Compressed", start_at="DXT1"),
+        ],
     )
 
 
