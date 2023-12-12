@@ -4,9 +4,10 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.groups import if_enum_group
+from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import (
+    BoolInput,
     EnumInput,
     ImageInput,
     NumberInput,
@@ -51,6 +52,15 @@ class ImageResizeMode(Enum):
             NumberInput("Height", minimum=1, default=1, unit="px").with_id(4),
         ),
         ResizeFilterInput().with_id(5),
+        if_group(Condition.type(0, "Image { channels: 4 } "))(
+            BoolInput("Separate Alpha", default=False)
+            .with_docs(
+                "Resize alpha separately from color. Enable this option of the alpha channel of the image is not transparency.",
+                "To resize images with transparency correctly, the alpha channels must be multiplied with the color channels before resizing. While this will produce correct color values, it will also set the color of fully transparent pixels to black. This is an issue if the alpha channel isn't transparency. E.g. games often use the alpha channel of textures for other purposes, such as height maps or edge maps. For such images, the alpha channel has to be resized separately or else it will corrupt the color channels.",
+                hint=True,
+            )
+            .with_id(6)
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -86,6 +96,7 @@ def resize_node(
     width: int,
     height: int,
     filter: ResizeFilter,
+    separate_alpha: bool,
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
 
@@ -102,6 +113,6 @@ def resize_node(
         img,
         out_dims,
         filter,
-        separate_alpha=False,
+        separate_alpha=separate_alpha,
         gamma_correction=False,
     )
