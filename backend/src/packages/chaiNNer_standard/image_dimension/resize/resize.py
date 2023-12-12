@@ -55,8 +55,9 @@ class ImageResizeMode(Enum):
         if_group(Condition.type(0, "Image { channels: 4 } "))(
             BoolInput("Separate Alpha", default=False)
             .with_docs(
-                "Resize alpha separately from color. Enable this option of the alpha channel of the image is not transparency.",
+                "Resize alpha separately from color. Enable this option of the alpha channel of the image is **not** transparency.",
                 "To resize images with transparency correctly, the alpha channels must be multiplied with the color channels before resizing. While this will produce correct color values, it will also set the color of fully transparent pixels to black. This is an issue if the alpha channel isn't transparency. E.g. games often use the alpha channel of textures for other purposes, such as height maps or edge maps. For such images, the alpha channel has to be resized separately or else it will corrupt the color channels.",
+                "For images where the alpha channel is transparency (most transparent images), this option should be **disabled**.",
                 hint=True,
             )
             .with_id(6)
