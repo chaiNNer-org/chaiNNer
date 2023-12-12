@@ -11,7 +11,7 @@ from ...impl.color.convert_data import (
 from ...impl.image_utils import BorderType
 from ...impl.pil_utils import RotationInterpolationMethod
 from ...impl.resize import ResizeFilter
-from .generic_inputs import DropDownInput, EnumInput
+from .generic_inputs import DropDownGroup, DropDownInput, EnumInput
 
 
 def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
@@ -55,10 +55,15 @@ def ResizeFilterInput() -> DropDownInput:
     return EnumInput(
         ResizeFilter,
         label="Interpolation Method",
+        categories=[
+            DropDownGroup("Basic", start_at=ResizeFilter.AUTO),
+            DropDownGroup("Advanced", start_at=ResizeFilter.HERMITE),
+        ],
         option_labels={
             ResizeFilter.NEAREST: "Nearest Neighbor",
             ResizeFilter.BOX: "Area (Box)",
             ResizeFilter.CATROM: "Cubic",
+            ResizeFilter.BSPLINE: "B-Spline",
         },
     )
 

@@ -67,6 +67,10 @@ export interface InputOption {
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs';
+export interface DropdownGroup {
+    readonly label?: string | null;
+    readonly startAt: InputSchemaValue;
+}
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';
@@ -76,6 +80,7 @@ export interface DropDownInput extends InputBase {
     readonly def: string | number;
     readonly options: readonly InputOption[];
     readonly preferredStyle: DropDownStyle;
+    readonly groups: readonly DropdownGroup[];
 }
 export interface FileInput extends InputBase {
     readonly kind: 'file';

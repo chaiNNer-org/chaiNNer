@@ -17,13 +17,13 @@ class ResizeFilter(Enum):
     CATROM = 3
     LANCZOS = 1
 
-    # HERMITE = 5
-    # MITCHELL = 6
-    # BSPLINE = 7
-    # HAMMING = 8
-    # HANN = 9
-    # LAGRANGE = 10
-    # GAUSS = 11
+    HERMITE = 5
+    MITCHELL = 6
+    BSPLINE = 7
+    HAMMING = 8
+    HANN = 9
+    LAGRANGE = 10
+    GAUSS = 11
 
 
 _FILTER_MAP: dict[ResizeFilter, NavtiveResizeFilter] = {
@@ -32,13 +32,13 @@ _FILTER_MAP: dict[ResizeFilter, NavtiveResizeFilter] = {
     ResizeFilter.LINEAR: NavtiveResizeFilter.Linear,
     ResizeFilter.CATROM: NavtiveResizeFilter.CubicCatrom,
     ResizeFilter.LANCZOS: NavtiveResizeFilter.Lanczos,
-    # ResizeFilter.HERMITE: NavtiveResizeFilter.Hermite,
-    # ResizeFilter.MITCHELL: NavtiveResizeFilter.CubicMitchell,
-    # ResizeFilter.BSPLINE: NavtiveResizeFilter.CubicBSpline,
-    # ResizeFilter.HAMMING: NavtiveResizeFilter.Hamming,
-    # ResizeFilter.HANN: NavtiveResizeFilter.Hann,
-    # ResizeFilter.LAGRANGE: NavtiveResizeFilter.Lagrange,
-    # ResizeFilter.GAUSS: NavtiveResizeFilter.Gauss,
+    ResizeFilter.HERMITE: NavtiveResizeFilter.Hermite,
+    ResizeFilter.MITCHELL: NavtiveResizeFilter.CubicMitchell,
+    ResizeFilter.BSPLINE: NavtiveResizeFilter.CubicBSpline,
+    ResizeFilter.HAMMING: NavtiveResizeFilter.Hamming,
+    ResizeFilter.HANN: NavtiveResizeFilter.Hann,
+    ResizeFilter.LAGRANGE: NavtiveResizeFilter.Lagrange,
+    ResizeFilter.GAUSS: NavtiveResizeFilter.Gauss,
 }
 
 

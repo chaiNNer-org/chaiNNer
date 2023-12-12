@@ -8,7 +8,7 @@ import { InputProps } from './props';
 type DropDownInputProps = InputProps<'dropdown', string | number>;
 
 export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDownInputProps) => {
-    const { options, def, label, preferredStyle } = input;
+    const { options, def, label, preferredStyle, groups } = input;
 
     const reset = useCallback(() => setValue(def), [setValue, def]);
 
@@ -46,6 +46,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
     return (
         <WithLabel input={input}>
             <DropDown
+                groups={groups}
                 isDisabled={isLocked}
                 options={input.options}
                 reset={reset}
