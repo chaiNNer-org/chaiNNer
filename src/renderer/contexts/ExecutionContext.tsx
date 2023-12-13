@@ -42,6 +42,25 @@ export enum ExecutionStatus {
     KILLING,
 }
 
+export enum NodeExecutionStatus {
+    /**
+     * The node has not been run yet and is awaiting execution.
+     */
+    YET_TO_RUN,
+    /**
+     * The node is currently running.
+     */
+    RUNNING,
+    /**
+     * The node has finished running successfully.
+     */
+    FINISHED,
+    /**
+     * The is not part of the current execution. It has not and will not be executed.
+     */
+    NOT_EXECUTING,
+}
+
 interface ExecutionStatusContextValue {
     status: ExecutionStatus;
     paused: boolean;
@@ -59,7 +78,9 @@ interface ExecutionContextValue {
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
+    paused: boolean;
     getNodeProgress: (nodeId: string) => NodeProgress | undefined;
+    getNodeStatus: (nodeId: string) => NodeExecutionStatus;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -110,8 +131,6 @@ const useRegisterNodeEvents = (
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
-        animate,
-        unAnimate,
         typeStateRef,
         outputDataActions,
         getInputHash,
@@ -136,15 +155,31 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const totalChainProgress = useMemo(() => getTotalProgress(chainProgress), [chainProgress]);
 
     const [nodeProgress, setNodeProgress] = useState<Record<string, NodeProgress | undefined>>({});
-
     const setNodeProgressImpl = useCallback(
         (nodeId: string, progress: NodeProgress) => {
             setNodeProgress((prev) => ({ ...prev, [nodeId]: progress }));
         },
         [setNodeProgress]
     );
-
     const getNodeProgress = useCallback((nodeId: string) => nodeProgress[nodeId], [nodeProgress]);
+
+    type ActiveStatus = Exclude<NodeExecutionStatus, NodeExecutionStatus.NOT_EXECUTING>;
+    const [nodeStatusMap, setNodeStatusMap] =
+        useState<ReadonlyMap<string, ActiveStatus>>(EMPTY_MAP);
+    const clearNodeStatusMap = useCallback(() => setNodeStatusMap(EMPTY_MAP), []);
+    const setNodeStatus = useCallback((executionStatus: ActiveStatus, nodes: Iterable<string>) => {
+        setNodeStatusMap((prev) => {
+            const newMap = new Map(prev);
+            for (const nodeId of nodes) {
+                newMap.set(nodeId, executionStatus);
+            }
+            return newMap;
+        });
+    }, []);
+    const getNodeStatus = useCallback(
+        (nodeId: string) => nodeStatusMap.get(nodeId) ?? NodeExecutionStatus.NOT_EXECUTING,
+        [nodeStatusMap]
+    );
 
     useEffect(() => {
         if (status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED) {
@@ -161,26 +196,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             ipcRenderer.send('stop-sleep-blocker');
             setChainProgress(EMPTY_MAP);
             setNodeProgress({});
-            unAnimate();
+            clearNodeStatusMap();
         }
-    }, [status, unAnimate]);
+    }, [status, clearNodeStatusMap]);
 
     const executingIteratorNodesRef = useRef<ReadonlySet<string>>(EMPTY_SET);
 
     const processSingleNode = (nodeId: string, events: NodeEvents[]) => {
-        let animated;
+        let executionStatus;
         let executionTime;
         let broadcastData;
         let types;
         let progress;
-        let finished = false;
 
         for (const { type, data } of events) {
             if (type === 'node-start') {
-                animated = true;
+                executionStatus = NodeExecutionStatus.RUNNING as const;
             } else if (type === 'node-finish') {
-                animated = false;
-                finished = true;
+                executionStatus = NodeExecutionStatus.FINISHED as const;
                 executionTime = data.executionTime;
             } else if (type === 'node-broadcast') {
                 broadcastData = data.data;
@@ -190,10 +223,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             }
         }
 
-        if (animated === true) {
-            animate([nodeId]);
-        } else if (animated === false) {
-            unAnimate([nodeId]);
+        if (executionStatus !== undefined) {
+            setNodeStatus(executionStatus, [nodeId]);
         }
 
         if (executionTime !== undefined || broadcastData !== undefined || types !== undefined) {
@@ -210,7 +241,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setNodeProgressImpl(nodeId, progress);
         }
 
-        if (finished || progress) {
+        if (executionStatus === NodeExecutionStatus.FINISHED || progress) {
             const p = progress?.progress ?? 1;
             setChainProgress((prev) => withNodeProgress(prev, nodeId, p));
         }
@@ -252,15 +283,15 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     (label, value) => `• ${label}: ${value}`
                 ),
             });
-            unAnimate();
+            clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
         }
     });
 
     useBackendEventSourceListener(eventSource, 'chain-start', (data) => {
         if (data) {
-            unAnimate();
-            animate(data.nodes);
+            clearNodeStatusMap();
+            setNodeStatus(NodeExecutionStatus.YET_TO_RUN, data.nodes);
 
             // the backend might have optimized away some nodes and we have to
             // take that into account for progress
@@ -278,10 +309,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     useEffect(() => {
         if (ownsBackend && !restartingRef.current && eventSourceStatus === 'error') {
             log.warn('The backend event source errored.');
-            unAnimate();
+            clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimate, restartingRef, ownsBackend]);
+    }, [eventSourceStatus, clearNodeStatusMap, restartingRef, ownsBackend]);
 
     const lastChangesRef = useRef(`${nodeChanges} ${edgeChanges}`);
     useEffect(() => {
@@ -399,12 +430,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     message: `An unexpected error occurred: ${String(err)}`,
                 });
                 setTimeout(() => {
-                    unAnimate();
+                    clearNodeStatusMap();
                 }, 1000);
             }
         } finally {
             nodeEventBacklog.processAll();
-            unAnimate();
+            clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
             clearManualOutputTypes(iteratorNodeIds);
         }
@@ -416,7 +447,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         typeStateRef,
         backend,
         options,
-        unAnimate,
+        clearNodeStatusMap,
         features,
         featureStates,
         nodeEventBacklog,
@@ -547,7 +578,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         pause,
         kill,
         status,
+        paused: status === ExecutionStatus.PAUSED,
         getNodeProgress,
+        getNodeStatus,
     });
 
     return (

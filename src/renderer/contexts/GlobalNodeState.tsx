@@ -105,7 +105,6 @@ interface GlobalVolatile {
     zoom: number;
     collidingEdge: string | undefined;
     collidingNode: string | undefined;
-    isAnimated: (nodeId: string) => boolean;
     isIndividuallyRunning: (node: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
@@ -120,8 +119,6 @@ interface Global {
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
     selectNode: (nodeId: string) => void;
-    animate: (nodeIdsToAnimate: Iterable<string>) => void;
-    unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
     addIndividuallyRunning: (node: string) => void;
     removeIndividuallyRunning: (node: string) => void;
     createNode: (proto: NodeProto) => void;
@@ -1031,38 +1028,6 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
-        const animate = useCallback(
-            (nodes: Iterable<string>): void => {
-                const ids = new Set(nodes);
-                setAnimatedNodes((prev) => {
-                    const newSet = new Set(prev);
-                    for (const id of ids) {
-                        newSet.add(id);
-                    }
-                    return newSet;
-                });
-            },
-            [setAnimatedNodes]
-        );
-        const unAnimate = useCallback(
-            (nodes?: Iterable<string>): void => {
-                if (nodes) {
-                    const ids = new Set(nodes);
-                    setAnimatedNodes((prev) => {
-                        const newSet = new Set(prev);
-                        for (const id of ids) {
-                            newSet.delete(id);
-                        }
-                        return newSet;
-                    });
-                } else {
-                    setAnimatedNodes(EMPTY_SET);
-                }
-            },
-            [setAnimatedNodes]
-        );
-
         const [individuallyRunning, setIndividuallyRunning] =
             useState<ReadonlySet<string>>(EMPTY_SET);
         const addIndividuallyRunning = useCallback((node: string): void => {
@@ -1334,7 +1299,6 @@ export const GlobalProvider = memo(
             zoom,
             collidingEdge,
             collidingNode,
-            isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
             isIndividuallyRunning,
             inputHashes: inputHashesRef.current,
             outputDataMap,
@@ -1350,8 +1314,6 @@ export const GlobalProvider = memo(
             changeNodes,
             changeEdges,
             selectNode,
-            animate,
-            unAnimate,
             addIndividuallyRunning,
             removeIndividuallyRunning,
             createNode,

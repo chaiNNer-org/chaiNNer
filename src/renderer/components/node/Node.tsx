@@ -13,7 +13,7 @@ import {
 } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
-import { ExecutionContext } from '../../contexts/ExecutionContext';
+import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
@@ -63,15 +63,19 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const { sendToast } = useContext(AlertBoxContext);
     const { categories } = useContext(BackendContext);
-    const { getNodeProgress } = useContext(ExecutionContext);
+    const { getNodeProgress, getNodeStatus } = useContext(ExecutionContext);
 
     const { id, inputData } = data;
     const nodeProgress = getNodeProgress(id);
 
-    const animated = useContextSelector(
-        GlobalVolatileContext,
-        (c) => c.isAnimated(id) || c.isIndividuallyRunning(id)
+    const individuallyRunning = useContextSelector(GlobalVolatileContext, (c) =>
+        c.isIndividuallyRunning(id)
     );
+    const executionStatus = getNodeStatus(id);
+    const animated =
+        executionStatus === NodeExecutionStatus.RUNNING ||
+        executionStatus === NodeExecutionStatus.YET_TO_RUN ||
+        individuallyRunning;
 
     const { getEdge } = useReactFlow();
 
