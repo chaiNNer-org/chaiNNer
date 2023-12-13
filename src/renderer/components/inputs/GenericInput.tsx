@@ -1,6 +1,8 @@
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useContext } from 'use-context-selector';
+import { InputContext } from '../../contexts/InputContext';
 import { Markdown } from '../Markdown';
 import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
@@ -8,6 +10,8 @@ import { InputProps } from './props';
 
 export const GenericInput = memo(({ input, definitionType }: InputProps<'generic'>) => {
     const { label, optional, hint, description } = input;
+
+    const { conditionallyInactive } = useContext(InputContext);
 
     return (
         <WithoutLabel>
@@ -30,7 +34,12 @@ export const GenericInput = memo(({ input, definitionType }: InputProps<'generic
                         p={0}
                         spacing={0}
                     >
-                        <Text>{label}</Text>
+                        <Text
+                            opacity={conditionallyInactive ? 0.7 : undefined}
+                            textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                        >
+                            {label}
+                        </Text>
                         {hint && (
                             <Center
                                 h="auto"

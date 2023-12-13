@@ -84,6 +84,7 @@ interface OldLabelStyle {
 interface LabelStyle {
     readonly type: 'label';
     readonly label: string;
+    readonly unused?: boolean;
     readonly gradient?: readonly string[];
 }
 interface GradientStyle {
@@ -240,8 +241,10 @@ export const StyledSlider = memo(
                                     cursor="pointer"
                                     fontSize="14px"
                                     lineHeight="1.4em"
+                                    opacity={style.unused ? 0.7 : undefined}
                                     overflow="hidden"
                                     pl={2}
+                                    textDecoration={style.unused ? 'line-through' : undefined}
                                     textOverflow="ellipsis"
                                     userSelect="none"
                                     w="full"

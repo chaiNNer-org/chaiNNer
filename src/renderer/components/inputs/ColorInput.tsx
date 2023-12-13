@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RgbColor } from 'react-colorful';
+import { useContext } from 'use-context-selector';
 import { toCssColor, toKind, toRgb } from '../../../common/color-json-util';
 import {
     ColorJson,
@@ -23,6 +24,7 @@ import {
     RgbaColorJson,
 } from '../../../common/common-types';
 import { log } from '../../../common/log';
+import { InputContext } from '../../contexts/InputContext';
 import { useColorModels } from '../../hooks/useColorModels';
 import { TypeTags } from '../TypeTag';
 import { ColorBoxButton } from './elements/ColorBoxButton';
@@ -298,6 +300,7 @@ const ColorPickerPopover = memo(({ color, onChange, kinds }: ColorPickerProps) =
 export const ColorInput = memo(
     ({ value, setValue, input, definitionType, isConnected }: InputProps<'color', string>) => {
         const { label, optional, def, channels } = input;
+        const { conditionallyInactive } = useContext(InputContext);
 
         const noValue = value === undefined;
         useEffect(() => {
@@ -348,7 +351,12 @@ export const ColorInput = memo(
                     display="flex"
                     flexDirection="row"
                 >
-                    <Text>{label}</Text>
+                    <Text
+                        opacity={conditionallyInactive ? 0.7 : undefined}
+                        textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                    >
+                        {label}
+                    </Text>
                     <Center>
                         <TypeTags
                             isOptional={optional}
