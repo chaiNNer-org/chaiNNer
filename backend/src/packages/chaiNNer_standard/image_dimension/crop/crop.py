@@ -38,8 +38,8 @@ class CropMode(Enum):
             NumberInput("Bottom", unit="px").with_id(5),
         ),
         if_enum_group(1, CropMode.OFFSETS)(
-            NumberInput("Width", unit="px", minimum=1, default=1).with_id(8),
-            NumberInput("Height", unit="px", minimum=1, default=1).with_id(7),
+            NumberInput("Width", unit="px", minimum=1, default=100).with_id(8),
+            NumberInput("Height", unit="px", minimum=1, default=100).with_id(7),
         ),
     ],
     outputs=[
