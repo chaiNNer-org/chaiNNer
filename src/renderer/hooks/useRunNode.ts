@@ -19,7 +19,7 @@ export const useRunNode = (
     shouldRun: boolean
 ): (() => void) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { animate, unAnimate } = useContext(GlobalContext);
+    const { addIndividuallyRunning, removeIndividuallyRunning } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
     const { useBackendSettings } = useContext(SettingsContext);
 
@@ -54,17 +54,17 @@ export const useRunNode = (
 
             if (shouldRun) {
                 didEverRun.current = true;
-                animate([id], false);
 
+                addIndividuallyRunning(id);
                 const result = await backend.runIndividual({
                     schemaId,
                     id,
                     inputs,
                     options,
                 });
+                removeIndividuallyRunning(id);
 
                 if (!result.success) {
-                    unAnimate([id]);
                     sendToast({
                         status: 'error',
                         title: 'Error',

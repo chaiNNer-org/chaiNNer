@@ -8,7 +8,6 @@ from process import NodeExecutionError
 
 class SuccessResponse(TypedDict):
     type: Literal["success"]
-    message: str
 
 
 class ErrorResponse(TypedDict):
@@ -20,7 +19,6 @@ class ErrorResponse(TypedDict):
 
 class NoExecutorResponse(TypedDict):
     type: Literal["no-executor"]
-    message: str
 
 
 class AlreadyRunningResponse(TypedDict):
@@ -28,8 +26,8 @@ class AlreadyRunningResponse(TypedDict):
     message: str
 
 
-def success_response(message: str) -> SuccessResponse:
-    return {"type": "success", "message": message}
+def success_response() -> SuccessResponse:
+    return {"type": "success"}
 
 
 def error_response(
@@ -51,8 +49,8 @@ def error_response(
     }
 
 
-def no_executor_response(message: str) -> NoExecutorResponse:
-    return {"type": "no-executor", "message": message}
+def no_executor_response() -> NoExecutorResponse:
+    return {"type": "no-executor"}
 
 
 def already_running_response(message: str) -> AlreadyRunningResponse:

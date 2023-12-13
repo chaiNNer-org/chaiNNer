@@ -8,7 +8,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { ExecutionStatusContext } from '../../contexts/ExecutionContext';
+import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
@@ -20,6 +20,7 @@ export const CustomEdge = memo(
     ({
         id,
         source,
+        target,
         sourceX: _sourceX,
         sourceY,
         targetX: _targetX,
@@ -28,7 +29,6 @@ export const CustomEdge = memo(
         targetPosition,
         selected,
         sourceHandleId,
-        animated,
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
@@ -39,9 +39,16 @@ export const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
+        const { paused, getNodeStatus } = useContext(ExecutionContext);
         const { useAnimateChain } = useContext(SettingsContext);
-        const { paused } = useContext(ExecutionStatusContext);
         const [animateChain] = useAnimateChain;
+
+        const sourceStatus = getNodeStatus(source);
+        const targetStatus = getNodeStatus(target);
+        const animated =
+            (sourceStatus === NodeExecutionStatus.RUNNING ||
+                sourceStatus === NodeExecutionStatus.YET_TO_RUN) &&
+            targetStatus !== NodeExecutionStatus.NOT_EXECUTING;
 
         const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
             () =>

@@ -191,10 +191,7 @@ async def run(request: Request):
             ctx.executor = None
             gc.collect()
 
-        await ctx.queue.put(
-            {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
-        )
-        return json(success_response("Successfully ran nodes!"), status=200)
+        return json(success_response(), status=200)
     except Exception as exception:
         logger.error(exception, exc_info=True)
         logger.error(traceback.format_exc())
@@ -236,14 +233,17 @@ async def run_individual(request: Request):
         exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
 
+        node = FunctionNode(node_id, full_data["schemaId"])
         chain = Chain()
-        chain.add_node(FunctionNode(node_id, full_data["schemaId"]))
+        chain.add_node(node)
 
         input_map = InputMap()
         input_map.set_values(node_id, full_data["inputs"])
 
         # only yield certain types of events
-        queue = EventConsumer.filter(ctx.queue, {"node-finish", "execution-error"})
+        queue = EventConsumer.filter(
+            ctx.queue, {"node-finish", "node-broadcast", "execution-error"}
+        )
 
         executor = Executor(
             chain=chain,
@@ -256,7 +256,7 @@ async def run_individual(request: Request):
 
         with run_individual_counter:
             try:
-                output = await executor.process_regular_node(node_id)
+                output = await executor.process_regular_node(node)
                 ctx.cache[node_id] = output
             except Aborted:
                 pass
@@ -289,15 +289,16 @@ async def pause(request: Request):
     await nodes_available()
     ctx = AppContext.get(request.app)
 
+    logger.info("Attempting to pause executor...")
+
     if not ctx.executor:
-        message = "No executor to pause"
-        logger.warning(message)
-        return json(no_executor_response(message), status=400)
+        logger.warning("No executor to pause.")
+        return json(no_executor_response(), status=400)
 
     try:
-        logger.info("Executor found. Attempting to pause...")
         ctx.executor.pause()
-        return json(success_response("Successfully paused execution!"), status=200)
+        logger.info("Paused executor.")
+        return json(success_response(), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
         return json(error_response("Error pausing execution!", exception), status=500)
@@ -309,15 +310,16 @@ async def resume(request: Request):
     await nodes_available()
     ctx = AppContext.get(request.app)
 
+    logger.info("Attempting to resume executor...")
+
     if not ctx.executor:
-        message = "No executor to resume"
-        logger.warning(message)
-        return json(no_executor_response(message), status=400)
+        logger.warning("No executor to resume.")
+        return json(no_executor_response(), status=400)
 
     try:
-        logger.info("Executor found. Attempting to resume...")
         ctx.executor.resume()
-        return json(success_response("Successfully resumed execution!"), status=200)
+        logger.info("Resumed executor.")
+        return json(success_response(), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
         return json(error_response("Error resuming execution!", exception), status=500)
@@ -329,17 +331,18 @@ async def kill(request: Request):
     await nodes_available()
     ctx = AppContext.get(request.app)
 
+    logger.info("Attempting to kill executor...")
+
     if not ctx.executor:
-        message = "No executor to kill"
-        logger.warning("No executor to kill")
-        return json(no_executor_response(message), status=400)
+        logger.warning("No executor to kill.")
+        return json(no_executor_response(), status=400)
 
     try:
-        logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
         while ctx.executor:
             await asyncio.sleep(0.0001)
-        return json(success_response("Successfully killed execution!"), status=200)
+        logger.info("Killed executor.")
+        return json(success_response(), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
         return json(error_response("Error killing execution!", exception), status=500)

@@ -7,11 +7,29 @@ from typing import Dict, Literal, TypedDict, Union
 
 from api import ErrorValue, InputId, NodeId, OutputId
 
-# Data of events
+# General events
 
 
-class FinishData(TypedDict):
+class BackendStatusData(TypedDict):
     message: str
+    progress: float
+    statusProgress: float | None
+
+
+class BackendStatusEvent(TypedDict):
+    event: Literal["backend-status"]
+    data: BackendStatusData
+
+
+class BackendStateEvent(TypedDict):
+    event: Literal["backend-ready"] | Literal["backend-started"]
+    data: None
+
+
+BackendEvent = Union[BackendStatusEvent, BackendStateEvent]
+
+
+# Execution events
 
 
 InputsDict = Dict[InputId, ErrorValue]
@@ -29,48 +47,22 @@ class ExecutionErrorData(TypedDict):
     source: ExecutionErrorSource | None
 
 
-class NodeFinishData(TypedDict):
-    nodeId: NodeId
-    executionTime: float | None
-    data: dict[OutputId, object] | None
-    types: dict[OutputId, object] | None
-    progressPercent: float | None
-
-
-class NodeStartData(TypedDict):
-    nodeId: NodeId
-
-
-class NodeProgressUpdateData(TypedDict):
-    percent: float
-    index: int
-    total: int
-    eta: float
-    nodeId: NodeId
-
-
-class BackendStatusData(TypedDict):
-    message: str
-    progress: float
-    statusProgress: float | None
-
-
-# Events
-
-
-class FinishEvent(TypedDict):
-    event: Literal["finish"]
-    data: FinishData
-
-
 class ExecutionErrorEvent(TypedDict):
     event: Literal["execution-error"]
     data: ExecutionErrorData
 
 
-class NodeFinishEvent(TypedDict):
-    event: Literal["node-finish"]
-    data: NodeFinishData
+class ChainStartData(TypedDict):
+    nodes: list[str]
+
+
+class ChainStartEvent(TypedDict):
+    event: Literal["chain-start"]
+    data: ChainStartData
+
+
+class NodeStartData(TypedDict):
+    nodeId: NodeId
 
 
 class NodeStartEvent(TypedDict):
@@ -78,30 +70,52 @@ class NodeStartEvent(TypedDict):
     data: NodeStartData
 
 
+class NodeProgressData(TypedDict):
+    nodeId: NodeId
+    progress: float
+    """A number between 0 and 1"""
+    index: int
+    total: int
+    eta: float
+
+
 class NodeProgressUpdateEvent(TypedDict):
-    event: Literal["node-progress-update"]
-    data: NodeProgressUpdateData
+    event: Literal["node-progress"]
+    data: NodeProgressData
 
 
-class BackendStatusEvent(TypedDict):
-    event: Literal["backend-status"]
-    data: BackendStatusData
+class NodeBroadcastData(TypedDict):
+    nodeId: NodeId
+    data: dict[OutputId, object]
+    types: dict[OutputId, object]
 
 
-class BackendStateEvent(TypedDict):
-    event: Literal["backend-ready"] | Literal["backend-started"]
-    data: None
+class NodeBroadcastEvent(TypedDict):
+    event: Literal["node-broadcast"]
+    data: NodeBroadcastData
 
 
-Event = Union[
-    FinishEvent,
+class NodeFinishData(TypedDict):
+    nodeId: NodeId
+    executionTime: float
+
+
+class NodeFinishEvent(TypedDict):
+    event: Literal["node-finish"]
+    data: NodeFinishData
+
+
+ExecutionEvent = Union[
     ExecutionErrorEvent,
-    NodeFinishEvent,
+    ChainStartEvent,
     NodeStartEvent,
     NodeProgressUpdateEvent,
-    BackendStatusEvent,
-    BackendStateEvent,
+    NodeBroadcastEvent,
+    NodeFinishEvent,
 ]
+
+
+Event = Union[ExecutionEvent, BackendEvent]
 
 
 class EventConsumer(ABC):
