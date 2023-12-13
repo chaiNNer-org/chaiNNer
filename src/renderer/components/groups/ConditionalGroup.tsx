@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { InputItem, getUniqueKey } from '../../../common/group-inputs';
+import { getUniqueKey } from '../../../common/group-inputs';
+import { WithInputContext } from '../../contexts/InputContext';
 import { GroupProps } from './props';
 import { someInput } from './util';
 
@@ -10,22 +11,39 @@ export const ConditionalGroup = memo(
 
         const isEnabled = useMemo(() => testCondition(condition), [condition, testCondition]);
 
-        const showInput = (input: InputItem): boolean => {
-            if (isEnabled) return true;
-
-            // input or some input of the group is connected to another node
-            return someInput(input, ({ id }) => nodeState.connectedInputs.has(id));
-        };
+        if (isEnabled) {
+            return (
+                <>
+                    {inputs.map((item) => (
+                        <ItemRenderer
+                            item={item}
+                            key={getUniqueKey(item)}
+                            nodeState={nodeState}
+                        />
+                    ))}
+                </>
+            );
+        }
 
         return (
             <>
-                {inputs.filter(showInput).map((item) => (
-                    <ItemRenderer
-                        item={item}
-                        key={getUniqueKey(item)}
-                        nodeState={nodeState}
-                    />
-                ))}
+                {inputs.map((item) => {
+                    // input or some input of the group is connected to another node
+                    const show = someInput(item, ({ id }) => nodeState.connectedInputs.has(id));
+                    if (!show) return null;
+
+                    return (
+                        <WithInputContext
+                            conditionallyInactive
+                            key={getUniqueKey(item)}
+                        >
+                            <ItemRenderer
+                                item={item}
+                                nodeState={nodeState}
+                            />
+                        </WithInputContext>
+                    );
+                })}
             </>
         );
     }

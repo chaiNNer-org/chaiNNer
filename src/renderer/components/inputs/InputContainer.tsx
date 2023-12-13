@@ -9,6 +9,7 @@ import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../
 import { VALID, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { InputContext } from '../../contexts/InputContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { Handle } from '../Handle';
 import { Markdown } from '../Markdown';
@@ -159,6 +160,8 @@ export const WithLabel = memo(
         input: { label, optional, hint, description },
         children,
     }: React.PropsWithChildren<WithLabelProps>) => {
+        const { conditionallyInactive } = useContext(InputContext);
+
         return (
             <Box
                 className="with-label"
@@ -190,7 +193,9 @@ export const WithLabel = memo(
                             <Text
                                 fontSize="xs"
                                 lineHeight="0.9rem"
+                                opacity={conditionallyInactive ? 0.7 : undefined}
                                 textAlign="center"
+                                textDecoration={conditionallyInactive ? 'line-through' : undefined}
                             >
                                 {label}
                             </Text>
