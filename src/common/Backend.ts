@@ -20,7 +20,6 @@ import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
     type: 'success';
-    message: string;
 }
 
 export interface BackendLiteralErrorValue {
@@ -54,7 +53,6 @@ export interface BackendExceptionResponse {
 }
 export interface BackendNoExecutorResponse {
     type: 'no-executor';
-    message: string;
 }
 export interface BackendAlreadyRunningResponse {
     type: 'already-running';
@@ -261,30 +259,32 @@ export const getBackend = (url: string): Backend => {
  * All possible events emitted by backend SSE along with the data layout of the event data.
  */
 export interface BackendEventMap {
-    finish: {
-        message: string;
-    };
     'execution-error': {
         message: string;
         source?: BackendExceptionSource | null;
         exception: string;
     };
-    'node-finish': {
-        nodeId: string;
-        executionTime?: number | null;
-        data?: OutputData | null;
-        types?: OutputTypes | null;
-        progressPercent?: number | null;
+    'chain-start': {
+        nodes: string[];
     };
     'node-start': {
         nodeId: string;
     };
-    'node-progress-update': {
+    'node-progress': {
         nodeId: string;
-        percent: number;
+        progress: number;
         index: number;
         total: number;
         eta: number;
+    };
+    'node-finish': {
+        nodeId: string;
+        executionTime: number;
+    };
+    'node-broadcast': {
+        nodeId: string;
+        data: OutputData;
+        types: OutputTypes;
     };
     'backend-status': {
         message: string;

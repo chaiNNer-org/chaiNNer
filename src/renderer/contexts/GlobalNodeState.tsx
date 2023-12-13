@@ -106,6 +106,7 @@ interface GlobalVolatile {
     collidingEdge: string | undefined;
     collidingNode: string | undefined;
     isAnimated: (nodeId: string) => boolean;
+    isIndividuallyRunning: (node: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
     useConnectingFrom: GetSetState<OnConnectStartParams | null>;
@@ -119,8 +120,10 @@ interface Global {
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
     selectNode: (nodeId: string) => void;
-    animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
+    animate: (nodeIdsToAnimate: Iterable<string>) => void;
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
+    addIndividuallyRunning: (node: string) => void;
+    removeIndividuallyRunning: (node: string) => void;
     createNode: (proto: NodeProto) => void;
     createEdge: (from: ParsedSourceHandle, to: ParsedTargetHandle) => void;
     createConnection: (connection: Connection) => void;
@@ -140,6 +143,7 @@ interface Global {
     exportViewportScreenshot: () => void;
     exportViewportScreenshotToClipboard: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
+    clearManualOutputTypes: (nodes: Iterable<string>) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
@@ -233,6 +237,17 @@ export const GlobalProvider = memo(
                 });
             },
             [setManualOutputTypes, scope]
+        );
+        const clearManualOutputTypes = useCallback(
+            (nodes: Iterable<string>): void => {
+                setManualOutputTypes(({ map }) => {
+                    for (const nodeId of nodes) {
+                        map.delete(nodeId);
+                    }
+                    return { map };
+                });
+            },
+            [setManualOutputTypes]
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
@@ -1018,7 +1033,7 @@ export const GlobalProvider = memo(
 
         const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
         const animate = useCallback(
-            (nodes: Iterable<string>, animateEdges = true): void => {
+            (nodes: Iterable<string>): void => {
                 const ids = new Set(nodes);
                 setAnimatedNodes((prev) => {
                     const newSet = new Set(prev);
@@ -1027,14 +1042,6 @@ export const GlobalProvider = memo(
                     }
                     return newSet;
                 });
-                if (animateEdges) {
-                    setEdgesRef.current((edges) => {
-                        return edges.map((e) => {
-                            if (!ids.has(e.source)) return e;
-                            return e.animated ? e : { ...e, animated: true };
-                        });
-                    });
-                }
             },
             [setAnimatedNodes]
         );
@@ -1049,20 +1056,28 @@ export const GlobalProvider = memo(
                         }
                         return newSet;
                     });
-                    setEdgesRef.current((edges) => {
-                        return edges.map((e) => {
-                            if (!ids.has(e.source)) return e;
-                            return e.animated ? { ...e, animated: false } : e;
-                        });
-                    });
                 } else {
                     setAnimatedNodes(EMPTY_SET);
-                    setEdgesRef.current((edges) =>
-                        edges.map((e) => (e.animated ? { ...e, animated: false } : e))
-                    );
                 }
             },
             [setAnimatedNodes]
+        );
+
+        const [individuallyRunning, setIndividuallyRunning] =
+            useState<ReadonlySet<string>>(EMPTY_SET);
+        const addIndividuallyRunning = useCallback((node: string): void => {
+            setIndividuallyRunning((prev) => new Set(prev).add(node));
+        }, []);
+        const removeIndividuallyRunning = useCallback((node: string): void => {
+            setIndividuallyRunning((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(node);
+                return newSet;
+            });
+        }, []);
+        const isIndividuallyRunning = useCallback(
+            (node: string): boolean => individuallyRunning.has(node),
+            [individuallyRunning]
         );
 
         const toggleNodeLock = useCallback(
@@ -1320,6 +1335,7 @@ export const GlobalProvider = memo(
             collidingEdge,
             collidingNode,
             isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
+            isIndividuallyRunning,
             inputHashes: inputHashesRef.current,
             outputDataMap,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
@@ -1336,6 +1352,8 @@ export const GlobalProvider = memo(
             selectNode,
             animate,
             unAnimate,
+            addIndividuallyRunning,
+            removeIndividuallyRunning,
             createNode,
             createEdge,
             createConnection,
@@ -1355,6 +1373,7 @@ export const GlobalProvider = memo(
             exportViewportScreenshot,
             exportViewportScreenshotToClipboard,
             setManualOutputType,
+            clearManualOutputTypes,
             typeStateRef,
             outputDataActions,
             getInputHash,

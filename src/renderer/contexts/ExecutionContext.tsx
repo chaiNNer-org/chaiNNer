@@ -1,8 +1,9 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { evaluate } from '@chainner/navi';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
-import { useThrottledCallback } from 'use-debounce';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { BackendEventMap } from '../../common/Backend';
+import { EdgeData, NodeData, OutputId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { log } from '../../common/log';
 import { checkFeatures } from '../../common/nodes/checkFeatures';
@@ -12,14 +13,22 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
-import { assertNever, delay } from '../../common/util';
+import { getChainnerScope } from '../../common/types/chainner-scope';
+import { fromJson } from '../../common/types/json';
+import { EMPTY_MAP, EMPTY_SET, assertNever, delay, groupBy } from '../../common/util';
 import { bothValid } from '../../common/Validity';
 import {
-    BackendEventSourceListener,
+    ChainProgress,
+    getInitialChainProgress,
+    getTotalProgress,
+    withNodeProgress,
+} from '../helpers/chainProgress';
+import {
+    BackendEventSource,
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
-import { useBatchedCallback } from '../hooks/useBatchedCallback';
+import { EventBacklog, useEventBacklog } from '../hooks/useEventBacklog';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -39,10 +48,10 @@ interface ExecutionStatusContextValue {
 }
 
 export interface NodeProgress {
-    percent?: number;
-    eta?: number;
-    index?: number;
-    total?: number;
+    progress: number;
+    eta: number;
+    index: number;
+    total: number;
 }
 
 interface ExecutionContextValue {
@@ -62,10 +71,53 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
 
+interface BackloggedEvent<K extends keyof BackendEventMap> {
+    type: K;
+    data: BackendEventMap[K];
+}
+type NodeEvents =
+    | BackloggedEvent<'node-start'>
+    | BackloggedEvent<'node-progress'>
+    | BackloggedEvent<'node-broadcast'>
+    | BackloggedEvent<'node-finish'>;
+
+const useRegisterNodeEvents = (
+    eventSource: BackendEventSource | null,
+    backlog: EventBacklog<NodeEvents>
+) => {
+    useBackendEventSourceListener(
+        eventSource,
+        'node-start',
+        (f) => f && backlog.push({ type: 'node-start', data: f })
+    );
+    useBackendEventSourceListener(
+        eventSource,
+        'node-progress',
+        (f) => f && backlog.push({ type: 'node-progress', data: f })
+    );
+    useBackendEventSourceListener(
+        eventSource,
+        'node-broadcast',
+        (f) => f && backlog.push({ type: 'node-broadcast', data: f })
+    );
+    useBackendEventSourceListener(
+        eventSource,
+        'node-finish',
+        (f) => f && backlog.push({ type: 'node-finish', data: f })
+    );
+};
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { animate, unAnimate, typeStateRef, outputDataActions, getInputHash } =
-        useContext(GlobalContext);
+    const {
+        animate,
+        unAnimate,
+        typeStateRef,
+        outputDataActions,
+        getInputHash,
+        setManualOutputType,
+        clearManualOutputTypes,
+    } = useContext(GlobalContext);
     const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
         useContext(BackendContext);
     const { useBackendSettings } = useContext(SettingsContext);
@@ -80,49 +132,115 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
 
-    const [percentComplete, setPercentComplete] = useState<number | undefined>(undefined);
+    const [chainProgress, setChainProgress] = useState<ChainProgress>(EMPTY_MAP);
+    const totalChainProgress = useMemo(() => getTotalProgress(chainProgress), [chainProgress]);
 
     const [nodeProgress, setNodeProgress] = useState<Record<string, NodeProgress | undefined>>({});
 
     const setNodeProgressImpl = useCallback(
         (nodeId: string, progress: NodeProgress) => {
-            setNodeProgress((prev) => ({
-                ...prev,
-                [nodeId]: progress,
-            }));
+            setNodeProgress((prev) => ({ ...prev, [nodeId]: progress }));
         },
         [setNodeProgress]
     );
 
-    const getNodeProgress = useCallback(
-        (nodeId: string) => {
-            return nodeProgress[nodeId];
-        },
-        [nodeProgress]
-    );
+    const getNodeProgress = useCallback((nodeId: string) => nodeProgress[nodeId], [nodeProgress]);
 
     useEffect(() => {
-        const displayProgress = status === ExecutionStatus.RUNNING ? percentComplete : undefined;
-        ipcRenderer.send('set-progress-bar', displayProgress ?? null);
-    }, [status, percentComplete]);
+        if (status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED) {
+            ipcRenderer.send('set-progress-bar', totalChainProgress);
+        } else {
+            ipcRenderer.send('set-progress-bar', null);
+        }
+    }, [status, totalChainProgress]);
 
     useEffect(() => {
         if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
-            setPercentComplete(undefined);
+            setChainProgress(EMPTY_MAP);
             setNodeProgress({});
             unAnimate();
         }
     }, [status, unAnimate]);
 
-    const [eventSource, eventSourceStatus] = useBackendEventSource(url);
+    const executingIteratorNodesRef = useRef<ReadonlySet<string>>(EMPTY_SET);
 
-    useBackendEventSourceListener(eventSource, 'finish', () => {
-        setStatus(ExecutionStatus.READY);
-        unAnimate();
+    const processSingleNode = (nodeId: string, events: NodeEvents[]) => {
+        let animated;
+        let executionTime;
+        let broadcastData;
+        let types;
+        let progress;
+        let finished = false;
+
+        for (const { type, data } of events) {
+            if (type === 'node-start') {
+                animated = true;
+            } else if (type === 'node-finish') {
+                animated = false;
+                finished = true;
+                executionTime = data.executionTime;
+            } else if (type === 'node-broadcast') {
+                broadcastData = data.data;
+                types = data.types;
+            } else {
+                progress = data;
+            }
+        }
+
+        if (animated === true) {
+            animate([nodeId]);
+        } else if (animated === false) {
+            unAnimate([nodeId]);
+        }
+
+        if (executionTime !== undefined || broadcastData !== undefined || types !== undefined) {
+            // TODO: This is incorrect. The inputs of the node might have changed since
+            // the chain started running. However, sending the then current input hashes
+            // of the chain to the backend along with the rest of its data and then making
+            // the backend send us those hashes is incorrect too because of iterators, I
+            // think.
+            const inputHash = getInputHash(nodeId);
+            outputDataActions.set(nodeId, executionTime, inputHash, broadcastData, types);
+        }
+
+        if (progress) {
+            setNodeProgressImpl(nodeId, progress);
+        }
+
+        if (finished || progress) {
+            const p = progress?.progress ?? 1;
+            setChainProgress((prev) => withNodeProgress(prev, nodeId, p));
+        }
+
+        if (executingIteratorNodesRef.current.has(nodeId) && types) {
+            // we want to update the output types of the iterator nodes
+            for (const [outputId, typeExpr] of Object.entries(types)) {
+                if (typeExpr) {
+                    try {
+                        const type = evaluate(fromJson(typeExpr), getChainnerScope());
+                        setManualOutputType(nodeId, Number(outputId) as OutputId, type);
+                    } catch (error) {
+                        log.error(error);
+                    }
+                }
+            }
+        }
+    };
+    const nodeEventBacklog = useEventBacklog({
+        process: (events: NodeEvents[]) => {
+            const byNodeId = groupBy(events, (e) => e.data.nodeId);
+            for (const [nodeId, nodeEvents] of byNodeId) {
+                processSingleNode(nodeId, nodeEvents);
+            }
+        },
+        interval: 100,
     });
+
+    const [eventSource, eventSourceStatus] = useBackendEventSource(url);
+    useRegisterNodeEvents(eventSource, nodeEventBacklog);
 
     useBackendEventSourceListener(eventSource, 'execution-error', (data) => {
         if (data) {
@@ -139,76 +257,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     });
 
-    const updateNodeFinish = useBatchedCallback<
-        Parameters<BackendEventSourceListener<'node-finish'>>
-    >(
-        useCallback(
-            (eventData) => {
-                if (eventData) {
-                    const { nodeId, executionTime, data, types, progressPercent } = eventData;
+    useBackendEventSourceListener(eventSource, 'chain-start', (data) => {
+        if (data) {
+            unAnimate();
+            animate(data.nodes);
 
-                    // TODO: This is incorrect. The inputs of the node might have changed since
-                    // the chain started running. However, sending the then current input hashes
-                    // of the chain to the backend along with the rest of its data and then making
-                    // the backend send us those hashes is incorrect too because of iterators, I
-                    // think.
-                    const inputHash = getInputHash(nodeId);
-                    outputDataActions.set(
-                        nodeId,
-                        executionTime ?? undefined,
-                        inputHash,
-                        data ?? undefined,
-                        types ?? undefined
-                    );
-                    if (progressPercent != null) {
-                        if (progressPercent === 1) {
-                            setPercentComplete(undefined);
-                        } else {
-                            setPercentComplete(progressPercent);
-                        }
-                    }
-
-                    unAnimate([nodeId]);
+            // the backend might have optimized away some nodes and we have to
+            // take that into account for progress
+            setChainProgress((prev) => {
+                const newProgress = new Map(prev);
+                const allowed = new Set(data.nodes);
+                for (const key of [...newProgress.keys()].filter((k) => !allowed.has(k))) {
+                    newProgress.delete(key);
                 }
-            },
-            [unAnimate, outputDataActions, getInputHash]
-        ),
-        500
-    );
-    useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish);
-
-    const updateNodeStart = useBatchedCallback<
-        Parameters<BackendEventSourceListener<'node-start'>>
-    >(
-        useCallback(
-            (eventData) => {
-                if (eventData && status === ExecutionStatus.RUNNING) {
-                    const { nodeId } = eventData;
-                    animate([nodeId]);
-                }
-            },
-            [status, animate]
-        ),
-        500
-    );
-    useBackendEventSourceListener(eventSource, 'node-start', updateNodeStart);
-
-    const updateNodeProgress = useThrottledCallback<
-        BackendEventSourceListener<'node-progress-update'>
-    >(
-        useCallback(
-            (data) => {
-                if (data) {
-                    const { percent, index, total, eta, nodeId } = data;
-                    setNodeProgressImpl(nodeId, { percent, eta, index, total });
-                }
-            },
-            [setNodeProgressImpl]
-        ),
-        100,
-        { trailing: true }
-    );
-    useBackendEventSourceListener(eventSource, 'node-progress-update', updateNodeProgress);
+                return newProgress;
+            });
+        }
+    });
 
     useEffect(() => {
         if (ownsBackend && !restartingRef.current && eventSourceStatus === 'error') {
@@ -300,9 +365,17 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             return;
         }
 
+        // find iterator nodes for later
+        const iteratorNodeIds = new Set(
+            nodes
+                .filter((n) => schemata.get(n.data.schemaId).nodeType === 'newIterator')
+                .map((n) => n.data.id)
+        );
+        executingIteratorNodesRef.current = iteratorNodeIds;
+        setChainProgress(getInitialChainProgress(nodes, edges, schemata));
+
         try {
             setStatus(ExecutionStatus.RUNNING);
-            animate(nodes.map((n) => n.id));
 
             const data = toBackendJson(nodes, edges, schemata);
             const response = await backend.run({
@@ -330,8 +403,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 }, 1000);
             }
         } finally {
+            nodeEventBacklog.processAll();
             unAnimate();
             setStatus(ExecutionStatus.READY);
+            clearManualOutputTypes(iteratorNodeIds);
         }
     }, [
         getNodes,
@@ -339,12 +414,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         schemata,
         sendAlert,
         typeStateRef,
-        animate,
         backend,
         options,
         unAnimate,
         features,
         featureStates,
+        nodeEventBacklog,
+        clearManualOutputTypes,
     ]);
 
     const resume = useCallback(async () => {
@@ -479,7 +555,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             <ExecutionStatusContext.Provider value={statusValue}>
                 {children}
                 <div style={{ display: 'none' }}>
-                    {status};{percentComplete}
+                    {status};{totalChainProgress}
                 </div>
             </ExecutionStatusContext.Provider>
         </ExecutionContext.Provider>

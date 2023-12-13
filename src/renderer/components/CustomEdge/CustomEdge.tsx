@@ -28,7 +28,6 @@ export const CustomEdge = memo(
         targetPosition,
         selected,
         sourceHandleId,
-        animated,
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
@@ -39,6 +38,7 @@ export const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
+        const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(source));
         const { useAnimateChain } = useContext(SettingsContext);
         const { paused } = useContext(ExecutionStatusContext);
         const [animateChain] = useAnimateChain;

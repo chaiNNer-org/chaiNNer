@@ -68,7 +68,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { id, inputData } = data;
     const nodeProgress = getNodeProgress(id);
 
-    const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
+    const animated = useContextSelector(
+        GlobalVolatileContext,
+        (c) => c.isAnimated(id) || c.isIndividuallyRunning(id)
+    );
 
     const { getEdge } = useReactFlow();
 

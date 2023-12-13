@@ -17,8 +17,9 @@ interface NodeFooterProps {
 
 export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFooterProps) => {
     const { canDisable } = useDisable ?? { canDisable: false };
-    const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
-        c.outputDataMap.get(id)
+    const lastExecutionTime = useContextSelector(
+        GlobalVolatileContext,
+        (c) => c.outputDataMap.get(id)?.lastExecutionTime
     );
 
     return (
@@ -45,9 +46,7 @@ export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFoot
                 </Center>
 
                 <Center marginLeft="auto">
-                    {outputDataEntry?.lastExecutionTime !== undefined && (
-                        <Timer time={outputDataEntry.lastExecutionTime} />
-                    )}
+                    {lastExecutionTime !== undefined && <Timer time={lastExecutionTime} />}
                 </Center>
             </SimpleGrid>
         </Center>
