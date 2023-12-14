@@ -134,6 +134,7 @@ def _max_split(
     # and we only get to know this factor after the first successful upscale.
     result: TileBlender | None = None
     scale: int = 0
+    out_channels: int = 0
 
     restart = True
     while restart:
@@ -192,7 +193,7 @@ def _max_split(
                     break
 
                 # figure out by how much the image was upscaled by
-                up_h, up_w, _ = get_h_w_c(upscale_result)
+                up_h, up_w, up_c = get_h_w_c(upscale_result)
                 current_scale = up_h // padded_tile.height
                 assert current_scale > 0
                 assert padded_tile.height * current_scale == up_h
@@ -201,10 +202,11 @@ def _max_split(
                 if row_result is None:
                     # allocate the result image
                     scale = current_scale
+                    out_channels = up_c
                     row_result = TileBlender(
                         width=w * scale,
                         height=padded_tile.height * scale,
-                        channels=c,
+                        channels=out_channels,
                         direction=BlendDirection.X,
                         blend_fn=half_sin_blend_fn,
                         _prev=prev_row_result,
@@ -229,7 +231,7 @@ def _max_split(
                 result = TileBlender(
                     width=w * scale,
                     height=h * scale,
-                    channels=c,
+                    channels=out_channels,
                     direction=BlendDirection.Y,
                     blend_fn=half_sin_blend_fn,
                 )
