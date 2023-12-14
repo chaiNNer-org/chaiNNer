@@ -158,7 +158,7 @@ const regexReplaceImpl = (
     regexPattern: string,
     replacementPattern: string,
     count: number
-): string | undefined => {
+): string => {
     // parse and validate before doing actual work
     const regex = new RRegex(regexPattern);
     const replacement = new ReplacementString(replacementPattern);
@@ -231,9 +231,7 @@ export const regexReplace = wrapQuaternary<
                 replacementPattern.value,
                 count.value
             );
-            if (result !== undefined) {
-                return new StringLiteralType(result);
-            }
+            return new StringLiteralType(result);
         } catch (error) {
             log.debug('regexReplaceImpl', error);
             return NeverType.instance;
