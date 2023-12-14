@@ -34,6 +34,7 @@ def convenient_upscale(
     model_out_nc: int,
     upscale: ImageOp,
     separate_alpha: bool = False,
+    clip: bool = True,
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
@@ -47,7 +48,8 @@ def convenient_upscale(
     """
     in_img_c = get_h_w_c(img)[2]
 
-    upscale = clipped(upscale)
+    if clip:
+        upscale = clipped(upscale)
 
     if model_in_nc != model_out_nc:
         return upscale(as_target_channels(img, model_in_nc, True))

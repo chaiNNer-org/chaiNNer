@@ -125,6 +125,7 @@ def upscale(
         ImageOutput(
             "Image",
             image_type="""convenientUpscale(Input0, Input1)""",
+            assume_normalized=True,  # pytorch_auto_split already does clipping internally
         )
     ],
 )
@@ -156,4 +157,5 @@ def upscale_image_node(
         out_nc,
         lambda i: upscale(i, model, tile_size, exec_options),
         separate_alpha,
+        clip=False,  # pytorch_auto_split already does clipping internally
     )
