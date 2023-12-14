@@ -22,8 +22,6 @@ import path from 'path';
 import { ColorJson } from '../common-types';
 import { log } from '../log';
 import { RRegex } from '../rust-regex';
-import { assertNever } from '../util';
-import type { Group, Hir } from 'rregex';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -155,77 +153,20 @@ export const formatTextPattern = (
     return Intrinsic.concat(...concatArgs);
 };
 
-/**
- * Iterates over all groups in the given hir in order.
- */
-function* iterGroups(hir: Hir): Iterable<Group> {
-    const { kind } = hir;
-    if (kind['@variant'] === 'Group') {
-        yield kind['@values'][0];
-    }
-
-    switch (kind['@variant']) {
-        case 'Anchor':
-        case 'Class':
-        case 'Empty':
-        case 'Literal':
-        case 'WordBoundary': {
-            break;
-        }
-        case 'Group':
-        case 'Repetition': {
-            yield* iterGroups(kind['@values'][0].hir);
-            break;
-        }
-        case 'Alternation':
-        case 'Concat': {
-            for (const h of kind['@values'][0]) {
-                yield* iterGroups(h);
-            }
-            break;
-        }
-
-        default:
-            return assertNever(kind);
-    }
-}
-interface CapturingGroupInfo {
-    count: number;
-    names: string[];
-}
-const getCapturingGroupInfo = (regex: RRegex): CapturingGroupInfo => {
-    let count = 0;
-    const names: string[] = [];
-
-    for (const { kind } of iterGroups(regex.syntax())) {
-        if (kind['@variant'] === 'NonCapturing') {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-        if (kind['@variant'] === 'CaptureName') {
-            names.push(kind.name);
-        }
-        count += 1;
-    }
-
-    return { count, names };
-};
 const regexReplaceImpl = (
     text: string,
     regexPattern: string,
     replacementPattern: string,
     count: number
-): string | undefined => {
+): string => {
     // parse and validate before doing actual work
     const regex = new RRegex(regexPattern);
     const replacement = new ReplacementString(replacementPattern);
 
     // check replacement keys
-    const captures = getCapturingGroupInfo(regex);
     const availableNames = new Set<string>([
-        ...captures.names,
-        '0',
-        ...Array.from({ length: captures.count }, (_, i) => String(i + 1)),
+        ...regex.captureNames(),
+        ...Array.from({ length: regex.capturesLength() }, (_, i) => String(i)),
     ]);
     for (const name of replacement.names) {
         if (!availableNames.has(name)) {
@@ -241,18 +182,9 @@ const regexReplaceImpl = (
     if (count === 0) {
         return text;
     }
-    const matches = regex.findAll(text).slice(0, Math.max(0, count || 0));
+    const matches = regex.capturesAll(text).slice(0, Math.max(0, count || 0));
     if (matches.length === 0) {
         return text;
-    }
-
-    // rregex doesn't support captures right now, so we can only support {0}
-    // https://github.com/2fd/rregex/issues/32
-    if (replacement.names.size > 0) {
-        const [first] = replacement.names;
-        if (replacement.names.size > 1 || first !== '0') {
-            return undefined;
-        }
     }
 
     // rregex currently only supports byte offsets in matches. So we have to
@@ -265,13 +197,15 @@ const regexReplaceImpl = (
     let result = '';
     let lastIndex = 0;
     for (const match of matches) {
-        result += text.slice(lastIndex, toUTF16(match.start));
+        const full = match.get[0];
+        result += text.slice(lastIndex, toUTF16(full.start));
 
         const replacements = new Map<string, string>();
-        replacements.set('0', match.value);
+        match.get.forEach((m, i) => replacements.set(String(i), m.value));
+        Object.entries(match.name).forEach(([name, m]) => replacements.set(name, m.value));
         result += replacement.replace(replacements);
 
-        lastIndex = toUTF16(match.end);
+        lastIndex = toUTF16(full.end);
     }
     result += text.slice(lastIndex);
 
@@ -297,9 +231,7 @@ export const regexReplace = wrapQuaternary<
                 replacementPattern.value,
                 count.value
             );
-            if (result !== undefined) {
-                return new StringLiteralType(result);
-            }
+            return new StringLiteralType(result);
         } catch (error) {
             log.debug('regexReplaceImpl', error);
             return NeverType.instance;
