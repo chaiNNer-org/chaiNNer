@@ -189,25 +189,23 @@ const regexReplaceImpl = (
 
     // rregex currently only supports byte offsets in matches. So we have to
     // match spans on UTF8 and then convert it back to Unicode.
-    const utf8 = Buffer.from(text, 'utf8');
-    const toUTF16 = (offset: number) => {
-        return utf8.toString('utf8', 0, offset).length;
-    };
+    const utf8 = new TextEncoder().encode(text);
+    const decoder = new TextDecoder();
 
     let result = '';
-    let lastIndex = 0;
+    let lastByteIndex = 0;
     for (const match of matches) {
         const full = match.get[0];
-        result += text.slice(lastIndex, toUTF16(full.start));
+        result += decoder.decode(utf8.slice(lastByteIndex, full.start));
 
         const replacements = new Map<string, string>();
         match.get.forEach((m, i) => replacements.set(String(i), m.value));
         Object.entries(match.name).forEach(([name, m]) => replacements.set(name, m.value));
         result += replacement.replace(replacements);
 
-        lastIndex = toUTF16(full.end);
+        lastByteIndex = full.end;
     }
-    result += text.slice(lastIndex);
+    result += decoder.decode(utf8.slice(lastByteIndex));
 
     return result;
 };
