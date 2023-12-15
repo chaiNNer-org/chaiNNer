@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import traceback
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
@@ -36,7 +37,7 @@ from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
-from process import Executor, NodeExecutionError, NodeOutput
+from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
     already_running_response,
@@ -52,6 +53,7 @@ class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
         self.executor: Executor | None = None
+        self.individual_executors: dict[ExecutionId, Executor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
@@ -174,6 +176,7 @@ async def run(request: Request):
         exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
         executor = Executor(
+            id=ExecutionId("main-executor " + uuid.uuid4().hex),
             chain=chain,
             inputs=inputs,
             send_broadcast_data=full_data["sendBroadcastData"],
@@ -226,10 +229,11 @@ async def run_individual(request: Request):
     ctx = AppContext.get(request.app)
     try:
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
-        node_id = full_data["id"]
-        if ctx.cache.get(node_id, None) is not None:
-            del ctx.cache[node_id]
         logger.debug(full_data)
+
+        node_id = full_data["id"]
+        ctx.cache.pop(node_id, None)
+
         exec_opts = ExecutionOptions.parse(full_data["options"])
         set_execution_options(exec_opts)
 
@@ -245,7 +249,9 @@ async def run_individual(request: Request):
             ctx.queue, {"node-finish", "node-broadcast", "execution-error"}
         )
 
+        execution_id = ExecutionId("individual-executor " + node_id)
         executor = Executor(
+            id=execution_id,
             chain=chain,
             inputs=input_map,
             send_broadcast_data=True,
@@ -256,11 +262,19 @@ async def run_individual(request: Request):
 
         with run_individual_counter:
             try:
+                if execution_id in ctx.individual_executors:
+                    # kill the previous executor (if any)
+                    old_executor = ctx.individual_executors[execution_id]
+                    old_executor.kill()
+
+                ctx.individual_executors[execution_id] = executor
                 output = await executor.process_regular_node(node)
                 ctx.cache[node_id] = output
             except Aborted:
                 pass
             finally:
+                if ctx.individual_executors.get(execution_id, None) == executor:
+                    ctx.individual_executors.pop(execution_id, None)
                 gc.collect()
 
         return json({"success": True, "data": None})
