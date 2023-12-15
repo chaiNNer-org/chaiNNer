@@ -1,7 +1,7 @@
 from io import BytesIO
 
 import torch
-from spandrel import ModelDescriptor
+from spandrel import ImageModelDescriptor, ModelDescriptor
 
 
 def convert_to_onnx_impl(
@@ -33,9 +33,23 @@ def convert_to_onnx_impl(
         model.model.float()
         dummy_input = dummy_input.float()
 
+    m = model.model
+
+    if isinstance(model, ImageModelDescriptor):
+
+        class FakeModel(torch.nn.Module):
+            def __init__(self, model: ImageModelDescriptor):
+                super().__init__()
+                self.model = model
+
+            def forward(self, x: torch.Tensor):
+                return self.model(x)
+
+        m = FakeModel(model)
+
     with BytesIO() as f:
         torch.onnx.export(
-            model.model,
+            m,
             dummy_input,
             f,
             opset_version=opset_version,
