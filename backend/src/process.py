@@ -4,11 +4,10 @@ import asyncio
 import functools
 import gc
 import time
-import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, List, Union
+from typing import Iterable, List, NewType, Union
 
 from sanic.log import logger
 
@@ -263,6 +262,8 @@ class CollectorOutput:
 
 NodeOutput = Union[RegularOutput, IteratorOutput]
 
+ExecutionId = NewType("ExecutionId", str)
+
 
 class Executor:
     """
@@ -271,6 +272,7 @@ class Executor:
 
     def __init__(
         self,
+        id: ExecutionId,
         chain: Chain,
         inputs: InputMap,
         send_broadcast_data: bool,
@@ -279,7 +281,7 @@ class Executor:
         pool: ThreadPoolExecutor,
         parent_cache: OutputCache[NodeOutput] | None = None,
     ):
-        self.execution_id: str = uuid.uuid4().hex
+        self.id: ExecutionId = id
         self.chain = chain
         self.inputs = inputs
         self.send_broadcast_data: bool = send_broadcast_data
@@ -658,23 +660,23 @@ class Executor:
             await task
 
     async def run(self):
-        logger.debug(f"Running executor {self.execution_id}")
+        logger.debug(f"Running executor {self.id}")
         try:
             await self.__process_nodes()
         finally:
             gc.collect()
 
     def resume(self):
-        logger.debug(f"Resuming executor {self.execution_id}")
+        logger.debug(f"Resuming executor {self.id}")
         self.progress.resume()
 
     def pause(self):
-        logger.debug(f"Pausing executor {self.execution_id}")
+        logger.debug(f"Pausing executor {self.id}")
         self.progress.pause()
         gc.collect()
 
     def kill(self):
-        logger.debug(f"Killing executor {self.execution_id}")
+        logger.debug(f"Killing executor {self.id}")
         self.progress.abort()
 
     # events
