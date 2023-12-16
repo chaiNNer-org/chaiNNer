@@ -89,20 +89,28 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         SrModelInput().with_id(0),
-        TileSizeDropdown()
-        .with_id(2)
-        .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without"
-            " hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling"
-            " each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for"
-            " best performance (with the ideal scenario being no tiling at all),"
-            " but depending on the model and image size, this may not be possible.",
-            "If you are having issues with the automatic mode, you can manually"
-            " select a tile size. Sometimes, a manually selected tile size may be"
-            " faster than what the automatic mode picks.",
-            hint=True,
+        if_group(
+            Condition.type(
+                0,
+                "PyTorchModel { tiling: ModelTiling::Supported | ModelTiling::Discouraged } ",
+                if_not_connected=True,
+            )
+        )(
+            TileSizeDropdown()
+            .with_id(2)
+            .with_docs(
+                "Tiled upscaling is used to allow large images to be upscaled without"
+                " hitting memory limits.",
+                "This works by splitting the image into tiles (with overlap), upscaling"
+                " each tile individually, and seamlessly recombining them.",
+                "Generally it's recommended to use the largest tile size possible for"
+                " best performance (with the ideal scenario being no tiling at all),"
+                " but depending on the model and image size, this may not be possible.",
+                "If you are having issues with the automatic mode, you can manually"
+                " select a tile size. Sometimes, a manually selected tile size may be"
+                " faster than what the automatic mode picks.",
+                hint=True,
+            ),
         ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")

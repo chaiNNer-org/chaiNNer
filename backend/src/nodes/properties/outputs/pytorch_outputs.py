@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from spandrel import (
-    ModelDescriptor,
-)
+from spandrel import ModelDescriptor, ModelTiling
 
 import navi
 from api import BaseOutput, OutputKind
@@ -29,6 +27,12 @@ class ModelOutput(BaseOutput):
         }
 
     def get_broadcast_type(self, value: ModelDescriptor):
+        tiling_map: dict[ModelTiling, str] = {
+            ModelTiling.SUPPORTED: "ModelTiling::Supported",
+            ModelTiling.DISCOURAGED: "ModelTiling::Discouraged",
+            ModelTiling.INTERNAL: "ModelTiling::Internal",
+        }
+
         return navi.named(
             "PyTorchModel",
             {
@@ -38,6 +42,7 @@ class ModelOutput(BaseOutput):
                 "arch": navi.literal(value.architecture),
                 "subType": navi.literal(value.purpose),
                 "size": navi.literal("x".join(value.tags)),
+                "tiling": tiling_map[value.tiling],
             },
         )
 
