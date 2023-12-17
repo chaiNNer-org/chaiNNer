@@ -95,13 +95,15 @@ def high_pass_node(
         img = img[:, :, :3]
 
     if mode == BlurMode.GAUSSIAN:
-        img = contrast * (img - fast_gaussian_blur(img, radius)) + 0.5
-    else:
+        blurred = fast_gaussian_blur(img, radius)
+    elif mode == BlurMode.CUSTOM:
         assert blurred is not None, "Expected a blurred image to be given."
-        assert (
-            blurred.shape == img.shape
-        ), "Expected blurred image to have same shape as the input image."
-        img = contrast * (img - blurred) + 0.5
+
+    assert (
+        blurred.shape == img.shape
+    ), "Expected blurred image to have same shape as the input image."
+
+    img = contrast * (img - blurred) + 0.5
 
     if alpha is not None:
         img = np.dstack((img, alpha))
