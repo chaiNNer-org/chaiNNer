@@ -170,8 +170,8 @@ def resize_to_side_node(
     img: np.ndarray,
     target: int,
     side: SideSelection,
-    filter: ResizeFilter,
     condition: ResizeCondition,
+    filter: ResizeFilter,
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
     out_dims = resize_to_side_conditional(w, h, target, side, condition)
