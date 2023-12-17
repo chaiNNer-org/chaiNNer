@@ -98,7 +98,6 @@ def resize_to_side_conditional(
             unit="px",
         ),
         EnumInput(SideSelection, label="Resize To"),
-        ResizeFilterInput(),
         EnumInput(
             ResizeCondition,
             option_labels={
@@ -106,7 +105,8 @@ def resize_to_side_conditional(
                 ResizeCondition.UPSCALE: "Upscale Only",
                 ResizeCondition.DOWNSCALE: "Downscale Only",
             },
-        ),
+        ).with_id(4),
+        ResizeFilterInput().with_id(3),
     ],
     outputs=[
         ImageOutput(
