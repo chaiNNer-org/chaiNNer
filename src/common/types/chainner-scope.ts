@@ -51,7 +51,9 @@ struct PyTorchModel {
     arch: string,
     size: string,
     subType: string,
+    tiling: ModelTiling,
 }
+enum ModelTiling { Supported, Discouraged, Internal }
 
 struct NcnnBinFile { path: string }
 struct NcnnParamFile { path: string }
