@@ -137,8 +137,39 @@ def to_uint16(img: np.ndarray, normalized: bool = False) -> np.ndarray:
     return (img * 65535).round().astype(np.uint16)
 
 
-def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
-    c = get_h_w_c(img)[2]
+class ShiftFill(Enum):
+    AUTO = -1
+    BLACK = 0
+    TRANSPARENT = 1
+    WRAP = 2
+
+    def to_fill_color(self) -> FillColor:
+        if self == ShiftFill.AUTO:
+            return FillColor.AUTO
+        elif self == ShiftFill.BLACK:
+            return FillColor.BLACK
+        elif self == ShiftFill.TRANSPARENT:
+            return FillColor.TRANSPARENT
+        raise ValueError(f"Cannot get color for {self}")
+
+
+def shift(
+    img: np.ndarray, amount_x: int, amount_y: int, shift_fill: ShiftFill
+) -> np.ndarray:
+    h, w, c = get_h_w_c(img)
+
+    if shift_fill == ShiftFill.WRAP:
+        amount_x %= w
+        amount_y %= h
+
+        if amount_x != 0:
+            img = np.roll(img, amount_x, axis=1)
+        if amount_y != 0:
+            img = np.roll(img, amount_y, axis=0)
+
+        return img
+
+    fill = shift_fill.to_fill_color()
     if fill == FillColor.TRANSPARENT:
         img = convert_to_bgra(img, c)
     fill_color = fill.get_color(c)
