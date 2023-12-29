@@ -429,11 +429,10 @@ class Executor:
         logger.debug(f"node: {node}")
         logger.debug(f"Running node {node.id}")
 
-        await self.__send_node_start(node)
-        await self.progress.suspend()
-
         inputs = await self.__gather_inputs(node)
 
+        await self.progress.suspend()
+        await self.__send_node_start(node)
         await self.progress.suspend()
 
         output, execution_time = await self.loop.run_in_executor(

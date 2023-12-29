@@ -2,7 +2,7 @@
 
 @keyframes dashdraw-chain {
     from {
-        stroke-dashoffset: 13;
+        stroke-dashoffset: 20;
     }
 }
 
@@ -14,50 +14,68 @@
     animation: none !important;
 }
 
-.edge-chain-links {
+// .edge-chain-links {
+//     stroke-width: 2px;
+//     transition-duration: 0.15s;
+//     transition-property: stroke-width, stroke;
+//     transition-timing-function: ease-in-out;
+//     cursor: pointer;
+//     stroke-dasharray: 0 !important;
+
+//     &.hovered {
+//         stroke-width: 4px;
+//     }
+
+//     &.animated {
+//         stroke-dasharray: 0 !important;
+//     }
+
+//     &.colliding {
+//         stroke-width: 8px;
+//     }
+// }
+
+.edge-chain-behind {
+    stroke-width: 2px;
+    transition-duration: 0.15s;
+    transition-property: stroke-width, stroke;
+    transition-timing-function: ease-in-out;
+    stroke: var(--bg-700);
+
+    &.hovered {
+        stroke-width: 4px;
+    }
+}
+
+.edge-chain {
     stroke-width: 2px;
     transition-duration: 0.15s;
     transition-property: stroke-width, stroke;
     transition-timing-function: ease-in-out;
     cursor: pointer;
     stroke-dasharray: 0 !important;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    animation: 'none';
+    opacity: 100%;
+
+    // &.animated {
+    //     stroke-dasharray: 5 10 !important;
+    //     animation: 'dashdraw-chain 0.5s linear infinite';
+    // }
 
     &.hovered {
         stroke-width: 4px;
     }
 
-    &.animated {
-        stroke-dasharray: 0 !important;
-    }
-
-    &.colliding {
-        stroke-width: 8px;
-    }
-}
-
-.edge-chain {
-    stroke-width: 6px;
-    transition-duration: 0.15s;
-    transition-property: stroke-width, stroke;
-    transition-timing-function: ease-in-out;
-    cursor: pointer;
-    stroke-dasharray: 1 10 !important;
-    stroke-dashoffset: 2;
-    stroke-linecap: round;
-    animation: 'none';
-    opacity: 0;
-
-    &.animated {
-        stroke-dasharray: 1 10 !important;
-    }
-
-    &.hovered {
-        stroke-width: 8px;
-    }
-
     &.running {
+        stroke-dasharray: 10 !important;
         animation: 'dashdraw-chain 0.5s linear infinite';
-        opacity: 1;
+    }
+
+    &.yet-to-run {
+        stroke: var(--fg-000);
+        opacity: 50%;
     }
 
     &.colliding {

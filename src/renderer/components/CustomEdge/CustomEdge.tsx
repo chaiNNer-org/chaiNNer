@@ -6,7 +6,7 @@ import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
-import { parseSourceHandle } from '../../../common/util';
+import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -15,6 +15,41 @@ import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
+
+const getHoveredClass = (isHovered: boolean) => {
+    if (isHovered) {
+        return 'hovered';
+    }
+    return '';
+};
+
+const getCollidingClass = (isColliding: boolean) => {
+    if (isColliding) {
+        return 'colliding';
+    }
+    return '';
+};
+
+const getRunningStateClass = (
+    sourceStatus: NodeExecutionStatus,
+    targetStatus: NodeExecutionStatus
+) => {
+    if (targetStatus === NodeExecutionStatus.NOT_EXECUTING) {
+        return '';
+    }
+    switch (sourceStatus) {
+        case NodeExecutionStatus.NOT_EXECUTING:
+        case NodeExecutionStatus.FINISHED:
+            return '';
+        case NodeExecutionStatus.RUNNING:
+            return 'running';
+        case NodeExecutionStatus.YET_TO_RUN:
+            return 'yet-to-run';
+        default:
+            assertNever(sourceStatus);
+    }
+    return '';
+};
 
 export const CustomEdge = memo(
     ({
@@ -97,9 +132,14 @@ export const CustomEdge = memo(
             (c) => c.collidingEdge === id
         );
 
-        const classModifier = `${isHovered ? 'hovered' : ''} ${
-            showRunning && animateChain ? 'running' : ''
-        } ${isColliding ? 'colliding' : ''}`;
+        const classModifier = useMemo(
+            () =>
+                `${getHoveredClass(isHovered)} ${getRunningStateClass(
+                    sourceStatus,
+                    targetStatus
+                )} ${getCollidingClass(isColliding)}`,
+            [isHovered, sourceStatus, targetStatus, isColliding]
+        );
 
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
@@ -136,14 +176,25 @@ export const CustomEdge = memo(
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
+                {showRunning && (
+                    <path
+                        className={`edge-chain-behind ${classModifier}`}
+                        d={edgePath}
+                        fill="none"
+                        id={id}
+                    />
+                )}
                 <path
-                    className={`edge-chain-links ${classModifier}`}
+                    className={`edge-chain ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
                     stroke={currentColor}
+                    // strokeDasharray={50}
+                    // strokeDashoffset={50} // percent
+                    // style={{ transition: 'stroke-dashoffset ease-in-out 0.25s' }}
                 />
-                <path
+                {/* <path
                     className={`edge-chain ${classModifier}`}
                     d={edgePath}
                     fill="none"
@@ -155,7 +206,7 @@ export const CustomEdge = memo(
                     d={edgePath}
                     fill="none"
                     id={id}
-                />
+                /> */}
                 <path
                     d={edgePath}
                     style={{
