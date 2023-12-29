@@ -14,27 +14,6 @@
     animation: none !important;
 }
 
-// .edge-chain-links {
-//     stroke-width: 2px;
-//     transition-duration: 0.15s;
-//     transition-property: stroke-width, stroke;
-//     transition-timing-function: ease-in-out;
-//     cursor: pointer;
-//     stroke-dasharray: 0 !important;
-
-//     &.hovered {
-//         stroke-width: 4px;
-//     }
-
-//     &.animated {
-//         stroke-dasharray: 0 !important;
-//     }
-
-//     &.colliding {
-//         stroke-width: 8px;
-//     }
-// }
-
 .edge-chain-behind {
     stroke-width: 2px;
     transition-duration: 0.15s;
@@ -58,11 +37,6 @@
     stroke-linecap: round;
     animation: 'none';
     opacity: 100%;
-
-    // &.animated {
-    //     stroke-dasharray: 5 10 !important;
-    //     animation: 'dashdraw-chain 0.5s linear infinite';
-    // }
 
     &.hovered {
         stroke-width: 4px;
