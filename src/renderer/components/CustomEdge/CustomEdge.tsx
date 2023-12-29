@@ -32,7 +32,8 @@ const getCollidingClass = (isColliding: boolean) => {
 
 const getRunningStateClass = (
     sourceStatus: NodeExecutionStatus,
-    targetStatus: NodeExecutionStatus
+    targetStatus: NodeExecutionStatus,
+    animateChain?: boolean
 ) => {
     if (targetStatus === NodeExecutionStatus.NOT_EXECUTING) {
         return '';
@@ -42,7 +43,7 @@ const getRunningStateClass = (
         case NodeExecutionStatus.FINISHED:
             return '';
         case NodeExecutionStatus.RUNNING:
-            return 'running';
+            return animateChain ? '' : 'running';
         case NodeExecutionStatus.YET_TO_RUN:
             return 'yet-to-run';
         default:
@@ -136,9 +137,10 @@ export const CustomEdge = memo(
             () =>
                 `${getHoveredClass(isHovered)} ${getRunningStateClass(
                     sourceStatus,
-                    targetStatus
+                    targetStatus,
+                    animateChain
                 )} ${getCollidingClass(isColliding)}`,
-            [isHovered, sourceStatus, targetStatus, isColliding]
+            [isHovered, sourceStatus, targetStatus, isColliding, animateChain]
         );
 
         // NOTE: I know that technically speaking this is bad
