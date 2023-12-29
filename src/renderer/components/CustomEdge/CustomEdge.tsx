@@ -190,23 +190,7 @@ export const CustomEdge = memo(
                     fill="none"
                     id={id}
                     stroke={currentColor}
-                    // strokeDasharray={50}
-                    // strokeDashoffset={50} // percent
-                    // style={{ transition: 'stroke-dashoffset ease-in-out 0.25s' }}
                 />
-                {/* <path
-                    className={`edge-chain ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
-                    stroke={currentColor}
-                />
-                <path
-                    className={`edge-chain dot ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
-                /> */}
                 <path
                     d={edgePath}
                     style={{
