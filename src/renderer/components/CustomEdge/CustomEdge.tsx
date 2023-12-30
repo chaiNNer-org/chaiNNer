@@ -16,18 +16,26 @@ import { shadeColor } from '../../helpers/colorTools';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
+const EDGE_CLASS = {
+    RUNNING: 'running',
+    YET_TO_RUN: 'yet-to-run',
+    HOVERED: 'hovered',
+    COLLIDING: 'colliding',
+    NONE: '',
+};
+
 const getHoveredClass = (isHovered: boolean) => {
     if (isHovered) {
-        return 'hovered';
+        return EDGE_CLASS.HOVERED;
     }
-    return '';
+    return EDGE_CLASS.NONE;
 };
 
 const getCollidingClass = (isColliding: boolean) => {
     if (isColliding) {
-        return 'colliding';
+        return EDGE_CLASS.COLLIDING;
     }
-    return '';
+    return EDGE_CLASS.NONE;
 };
 
 const getRunningStateClass = (
@@ -36,20 +44,20 @@ const getRunningStateClass = (
     animateChain?: boolean
 ) => {
     if (targetStatus === NodeExecutionStatus.NOT_EXECUTING) {
-        return '';
+        return EDGE_CLASS.NONE;
     }
     switch (sourceStatus) {
         case NodeExecutionStatus.NOT_EXECUTING:
         case NodeExecutionStatus.FINISHED:
-            return '';
+            return EDGE_CLASS.NONE;
         case NodeExecutionStatus.RUNNING:
-            return animateChain ? 'running' : '';
+            return animateChain ? EDGE_CLASS.RUNNING : EDGE_CLASS.NONE;
         case NodeExecutionStatus.YET_TO_RUN:
-            return 'yet-to-run';
+            return EDGE_CLASS.YET_TO_RUN;
         default:
             assertNever(sourceStatus);
     }
-    return '';
+    return EDGE_CLASS.NONE;
 };
 
 export const CustomEdge = memo(
