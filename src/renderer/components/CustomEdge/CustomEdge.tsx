@@ -43,7 +43,7 @@ const getRunningStateClass = (
         case NodeExecutionStatus.FINISHED:
             return '';
         case NodeExecutionStatus.RUNNING:
-            return animateChain ? '' : 'running';
+            return animateChain ? 'running' : '';
         case NodeExecutionStatus.YET_TO_RUN:
             return 'yet-to-run';
         default:
