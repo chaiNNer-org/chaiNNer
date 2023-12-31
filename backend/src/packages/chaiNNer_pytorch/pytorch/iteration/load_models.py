@@ -7,6 +7,7 @@ from spandrel import ModelDescriptor
 
 from api import Iterator, IteratorOutputInfo
 from nodes.properties.inputs import DirectoryInput
+from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
 from nodes.properties.outputs.pytorch_outputs import ModelOutput
 from nodes.utils.utils import list_all_files_sorted
@@ -26,6 +27,10 @@ from ..io.load_model import load_model_node
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
+        BoolInput("Defer errors", default=True).with_docs(
+            "Ignore errors that occur during iteration and throw them after processing. Use this if you want to make sure one bad model doesn't interrupt your batch.",
+            hint=True,
+        ),
     ],
     outputs=[
         ModelOutput(),
@@ -41,6 +46,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
+    defer_errors: bool,
 ) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
@@ -53,4 +59,4 @@ def load_models_node(
     supported_filetypes = [".pt", ".pth", ".ckpt"]
     model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model), directory
+    return Iterator.from_list(model_files, load_model, defer_errors), directory

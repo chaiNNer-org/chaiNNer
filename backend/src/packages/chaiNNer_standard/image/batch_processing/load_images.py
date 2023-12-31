@@ -70,6 +70,10 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),
+        BoolInput("Defer errors", default=True).with_docs(
+            "Ignore errors that occur during iteration and throw them after processing. Use this if you want to make sure one bad image doesn't interrupt your batch.",
+            hint=True,
+        ),
     ],
     outputs=[
         ImageOutput(),
@@ -91,6 +95,7 @@ def load_images_node(
     glob_str: str,
     use_limit: bool,
     limit: int,
+    defer_errors: bool,
 ) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], str]:
     def load_image(path: str, index: int):
         img, img_dir, basename = load_image_node(path)
@@ -110,4 +115,4 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Iterator.from_list(just_image_files, load_image), directory
+    return Iterator.from_list(just_image_files, load_image, defer_errors), directory
