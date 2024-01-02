@@ -50,7 +50,7 @@ def get_pytorch():
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
             ),
             Dependency(
@@ -61,7 +61,7 @@ def get_pytorch():
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
             ),
         ]
