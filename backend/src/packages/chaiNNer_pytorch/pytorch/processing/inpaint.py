@@ -27,18 +27,13 @@ def ceil_modulo(x: int, mod: int) -> int:
 def pad_img_to_modulo(
     img: np.ndarray,
     mod: int,
-    square: bool = False,
-    min_size: int | None = None,
+    square: bool,
+    min_size: int,
 ):
     img = as_3d(img)
     h, w, _ = get_h_w_c(img)
-    out_h = ceil_modulo(h, mod)
-    out_w = ceil_modulo(w, mod)
-
-    if min_size is not None:
-        assert min_size % mod == 0
-        out_w = max(min_size, out_w)
-        out_h = max(min_size, out_h)
+    out_h = ceil_modulo(max(h, min_size), mod)
+    out_w = ceil_modulo(max(w, min_size), mod)
 
     if square:
         max_size = max(out_h, out_w)
@@ -66,13 +61,13 @@ def inpaint(
 
         img = pad_img_to_modulo(
             img,
-            model.size_requirements.multiple_of or 1,
+            model.size_requirements.multiple_of,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )
         mask = pad_img_to_modulo(
             mask,
-            model.size_requirements.multiple_of or 1,
+            model.size_requirements.multiple_of,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )
@@ -154,8 +149,6 @@ def inpaint_node(
     mask: np.ndarray,
     model: MaskedImageModelDescriptor,
 ) -> np.ndarray:
-    """Inpaint an image"""
-
     assert (
         img.shape[:2] == mask.shape[:2]
     ), "Input image and mask must have the same resolution"
