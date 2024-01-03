@@ -48,8 +48,8 @@
     }
 
     &.yet-to-run {
-        stroke: var(--fg-000);
-        opacity: 50%;
+        stroke-dasharray: 10 !important;
+        animation: none;
     }
 
     &.colliding {
