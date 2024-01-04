@@ -16,7 +16,7 @@ def as_int(value: object) -> int | None:
 
 
 def parse_onnx_shape(
-    shape: tuple[int | str, str | int, str | int, str | int]
+    shape: tuple[int | str, str | int, str | int, str | int],
 ) -> tuple[OnnxInputShape, int, int | None, int | None]:
     if isinstance(shape[1], int) and shape[1] <= 4:
         return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
