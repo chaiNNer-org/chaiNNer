@@ -8,7 +8,7 @@ import { CategoryId, NodeGroupId, NodeSchema, OutputId, SchemaId } from '../comm
 
 export const executionNumberNode: NodeSchema = {
     schemaId: 'chainner:builtin:execution_number' as SchemaId,
-    name: 'Get Execution Number',
+    name: 'Execution Number',
     category: 'utility' as CategoryId,
     nodeGroup: 'utility/value' as NodeGroupId,
     inputs: [],
