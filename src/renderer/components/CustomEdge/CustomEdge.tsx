@@ -51,7 +51,7 @@ const getRunningStateClass = (
         case NodeExecutionStatus.FINISHED:
             return EDGE_CLASS.NONE;
         case NodeExecutionStatus.RUNNING:
-            return animateChain ? EDGE_CLASS.RUNNING : EDGE_CLASS.NONE;
+            return animateChain ? EDGE_CLASS.RUNNING : EDGE_CLASS.YET_TO_RUN;
         case NodeExecutionStatus.YET_TO_RUN:
             return EDGE_CLASS.YET_TO_RUN;
         default:
