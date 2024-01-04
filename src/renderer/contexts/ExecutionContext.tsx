@@ -81,6 +81,7 @@ interface ExecutionContextValue {
     paused: boolean;
     getNodeProgress: (nodeId: string) => NodeProgress | undefined;
     getNodeStatus: (nodeId: string) => NodeExecutionStatus;
+    executionNumber: number;
 }
 
 export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
@@ -150,6 +151,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
+
+    const [executionNumber, setExecutionNumber] = useState(1);
 
     const [chainProgress, setChainProgress] = useState<ChainProgress>(EMPTY_MAP);
     const totalChainProgress = useMemo(() => getTotalProgress(chainProgress), [chainProgress]);
@@ -408,7 +411,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         try {
             setStatus(ExecutionStatus.RUNNING);
 
-            const data = toBackendJson(nodes, edges, schemata);
+            const data = toBackendJson(nodes, edges, schemata, {
+                executionNumber,
+            });
             const response = await backend.run({
                 data,
                 options,
@@ -445,11 +450,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         schemata,
         sendAlert,
         typeStateRef,
+        features,
+        featureStates,
+        executionNumber,
         backend,
         options,
         clearNodeStatusMap,
-        features,
-        featureStates,
         nodeEventBacklog,
         clearManualOutputTypes,
     ]);
@@ -476,7 +482,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         } else {
             await runNodes();
         }
-    }, [resume, runNodes, status]);
+        setExecutionNumber((prev) => prev + 1);
+    }, [resume, runNodes, status, setExecutionNumber]);
 
     const pause = useCallback(async () => {
         try {
@@ -581,6 +588,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         paused: status === ExecutionStatus.PAUSED,
         getNodeProgress,
         getNodeStatus,
+        executionNumber,
     });
 
     return (

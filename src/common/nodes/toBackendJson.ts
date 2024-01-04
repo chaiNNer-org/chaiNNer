@@ -19,10 +19,15 @@ import {
 import { builtInNodeSchemaIds, executionNumberNode } from './builtInNodes';
 import type { Edge, Node } from 'reactflow';
 
+interface ExtraBackendDataContext {
+    executionNumber: number;
+}
+
 export const toBackendJson = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
-    schemata: SchemaMap
+    schemata: SchemaMap,
+    context: ExtraBackendDataContext
 ): BackendJsonNode[] => {
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
     const convertSourceHandle = (handle: ParsedSourceHandle): BackendJsonEdgeInput => {
@@ -65,8 +70,6 @@ export const toBackendJson = (
     const builtInNodes = nodes.filter((n) => builtInNodeSchemaIds.includes(n.data.schemaId));
     const notBuiltInNodes = nodes.filter((n) => !builtInNodeSchemaIds.includes(n.data.schemaId));
 
-    const tempExecutionNumber = 5;
-
     const extraInputData: Record<string, Record<InputId, InputValue> | undefined> = {};
     builtInNodes.forEach((node) => {
         const attachedNodes = outputHandles[node.id];
@@ -79,7 +82,7 @@ export const toBackendJson = (
         switch (schemaId) {
             case executionNumberNode.schemaId:
                 attachedNodes[0 as OutputId]?.forEach((a) => {
-                    (extraInputData[a.nodeId] ??= {})[a.inputId] = tempExecutionNumber;
+                    (extraInputData[a.nodeId] ??= {})[a.inputId] = context.executionNumber;
                     delete inputHandles[a.nodeId]?.[a.inputId];
                 });
                 break;
