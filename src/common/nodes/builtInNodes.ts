@@ -34,7 +34,5 @@ export const executionNumberNode: NodeSchema = {
     features: [],
 };
 
-// const currentDateTimeNode = {};
-
 export const builtInNodes: NodeSchema[] = [executionNumberNode];
 export const builtInNodeSchemaIds = builtInNodes.map((n) => n.schemaId);
