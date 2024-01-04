@@ -24,6 +24,7 @@ import {
     SchemaId,
 } from '../../common/common-types';
 import { log } from '../../common/log';
+import { builtInNodes } from '../../common/nodes/builtInNodes';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
 import { sortNodes } from '../../common/nodes/sort';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -80,11 +81,13 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
     const categoryMap = new CategoryMap(categories);
 
+    const combinedNodes = [...nodes, ...builtInNodes];
+
     return {
         rawResponse,
-        schemata: new SchemaMap(sortNodes(nodes, categoryMap)),
+        schemata: new SchemaMap(sortNodes(combinedNodes, categoryMap)),
         categories: categoryMap,
-        functionDefinitions: parseFunctionDefinitions(nodes),
+        functionDefinitions: parseFunctionDefinitions(combinedNodes),
         categoriesMissingNodes,
         packages: rawResponse[1],
     };
