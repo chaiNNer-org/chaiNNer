@@ -55,9 +55,8 @@ const getRunningStateClass = (
         case NodeExecutionStatus.YET_TO_RUN:
             return EDGE_CLASS.YET_TO_RUN;
         default:
-            assertNever(sourceStatus);
+            return assertNever(sourceStatus);
     }
-    return EDGE_CLASS.NONE;
 };
 
 export const CustomEdge = memo(
