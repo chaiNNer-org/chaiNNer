@@ -1,11 +1,24 @@
-import { Box, Center, HStack, Heading, Textarea, VStack } from '@chakra-ui/react';
+import {
+    Box,
+    Center,
+    HStack,
+    Heading,
+    MenuItem,
+    MenuList,
+    Textarea,
+    VStack,
+} from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { InputId, NodeData, Size } from '../../../../common/common-types';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { useNodeStateFromData } from '../../../helpers/nodeState';
+import { useContextMenu } from '../../../hooks/useContextMenu';
 import { useDisabled } from '../../../hooks/useDisabled';
 import { useNodeMenu } from '../../../hooks/useNodeMenu';
 import { DragHandleSVG, IconFactory } from '../../CustomIcons';
@@ -66,6 +79,36 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
         },
         500
     );
+
+    const { t } = useTranslation();
+
+    const textAreaContextMenu = useContextMenu(() => (
+        <MenuList className="nodrag">
+            <MenuItem
+                icon={<MdContentCopy />}
+                onClick={() => {
+                    if (value !== undefined) {
+                        clipboard.writeText(value.toString());
+                    }
+                }}
+            >
+                {t('inputs.text.copyText', 'Copy Text')}
+            </MenuItem>
+            <MenuItem
+                icon={<MdContentPaste />}
+                onClick={() => {
+                    let text = clipboard.readText();
+                    // replace new lines
+                    text = text.replace(/\r?\n|\r/g, '\n');
+                    if (text) {
+                        setInputValue(inputId, text);
+                    }
+                }}
+            >
+                {t('inputs.text.paste', 'Paste')}
+            </MenuItem>
+        </MenuList>
+    ));
 
     return (
         <Center
@@ -211,9 +254,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                             setTempText(event.target.value);
                             handleChange(event);
                         }}
-                        // onContextMenu={(e: React.MouseEvent<HTMLTextAreaElement>) => {
-                        //     e.stopPropagation();
-                        // }}
+                        onContextMenu={textAreaContextMenu.onContextMenu}
                         onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                             e.stopPropagation();
                         }}

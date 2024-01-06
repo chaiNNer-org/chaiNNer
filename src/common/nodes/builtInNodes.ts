@@ -4,7 +4,7 @@
 // static values prior to being run. If you are editing this file and you don't know what you're doing,
 // please refer to this document on how to properly add nodes: https://github.com/chaiNNer-org/chaiNNer/blob/main/docs/nodes.md
 
-import { CategoryId, NodeGroupId, NodeSchema, OutputId, SchemaId } from '../common-types';
+import { CategoryId, InputId, NodeGroupId, NodeSchema, OutputId, SchemaId } from '../common-types';
 
 export const executionNumberNode: NodeSchema = {
     schemaId: 'chainner:builtin:execution_number' as SchemaId,
@@ -39,7 +39,21 @@ export const notesNode: NodeSchema = {
     name: 'Note',
     category: 'utility' as CategoryId,
     nodeGroup: 'utility/text' as NodeGroupId,
-    inputs: [],
+    inputs: [
+        {
+            id: 0 as InputId,
+            type: 'string',
+            label: 'Note Text',
+            kind: 'text',
+            hasHandle: false,
+            multiline: true,
+            hideLabel: true,
+            description: undefined,
+            conversions: [],
+            optional: true,
+            hint: false,
+        },
+    ],
     outputs: [],
     groupLayout: [],
     description:
