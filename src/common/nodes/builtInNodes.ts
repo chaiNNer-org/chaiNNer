@@ -34,5 +34,23 @@ export const executionNumberNode: NodeSchema = {
     features: [],
 };
 
-export const builtInNodes: NodeSchema[] = [executionNumberNode];
+export const notesNode: NodeSchema = {
+    schemaId: 'chainner:builtin:note' as SchemaId,
+    name: 'Note',
+    category: 'utility' as CategoryId,
+    nodeGroup: 'utility/text' as NodeGroupId,
+    inputs: [],
+    outputs: [],
+    groupLayout: [],
+    description:
+        'Make a sticky note for whatever notes or comments you want to leave in the chain.',
+    seeAlso: [],
+    icon: 'MdOutlineStickyNote2',
+    nodeType: 'note',
+    hasSideEffects: false,
+    deprecated: false,
+    features: [],
+};
+
+export const builtInNodes: NodeSchema[] = [executionNumberNode, notesNode];
 export const builtInNodeSchemaIds = builtInNodes.map((n) => n.schemaId);
