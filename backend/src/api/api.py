@@ -605,17 +605,22 @@ L = TypeVar("L")
 
 @dataclass
 class Iterator(Generic[I]):
-    iter_supplier: Callable[[], Iterable[I]]
+    iter_supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
+    defer_errors: bool = False
 
     @staticmethod
     def from_iter(
-        iter_supplier: Callable[[], Iterable[I]], expected_length: int
+        iter_supplier: Callable[[], Iterable[I | Exception]],
+        expected_length: int,
+        defer_errors: bool = False,
     ) -> Iterator[I]:
-        return Iterator(iter_supplier, expected_length)
+        return Iterator(iter_supplier, expected_length, defer_errors=defer_errors)
 
     @staticmethod
-    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Iterator[I]:
+    def from_list(
+        l: list[L], map_fn: Callable[[L, int], I], defer_errors: bool = False
+    ) -> Iterator[I]:
         """
         Creates a new iterator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
@@ -623,12 +628,17 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i, x in enumerate(l):
-                yield map_fn(x, i)
+                try:
+                    yield map_fn(x, i)
+                except Exception as e:
+                    yield e
 
-        return Iterator(supplier, len(l))
+        return Iterator(supplier, len(l), defer_errors=defer_errors)
 
     @staticmethod
-    def from_range(count: int, map_fn: Callable[[int], I]) -> Iterator[I]:
+    def from_range(
+        count: int, map_fn: Callable[[int], I], defer_errors: bool = False
+    ) -> Iterator[I]:
         """
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
@@ -637,9 +647,12 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i in range(count):
-                yield map_fn(i)
+                try:
+                    yield map_fn(i)
+                except Exception as e:
+                    yield e
 
-        return Iterator(supplier, count)
+        return Iterator(supplier, count, defer_errors=defer_errors)
 
 
 N = TypeVar("N")
