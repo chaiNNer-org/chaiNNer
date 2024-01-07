@@ -605,13 +605,13 @@ L = TypeVar("L")
 
 @dataclass
 class Iterator(Generic[I]):
-    iter_supplier: Callable[[], Iterable[I]]
+    iter_supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
     defer_errors: bool = False
 
     @staticmethod
     def from_iter(
-        iter_supplier: Callable[[], Iterable[I]],
+        iter_supplier: Callable[[], Iterable[I | Exception]],
         expected_length: int,
         defer_errors: bool = False,
     ) -> Iterator[I]:
@@ -628,7 +628,10 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i, x in enumerate(l):
-                yield map_fn(x, i)
+                try:
+                    yield map_fn(x, i)
+                except Exception as e:
+                    yield e
 
         return Iterator(supplier, len(l), defer_errors=defer_errors)
 
@@ -644,7 +647,10 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i in range(count):
-                yield map_fn(i)
+                try:
+                    yield map_fn(i)
+                except Exception as e:
+                    yield e
 
         return Iterator(supplier, count, defer_errors=defer_errors)
 

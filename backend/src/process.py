@@ -571,10 +571,10 @@ class Executor:
         await self.__send_node_progress(node, times, 0, expected_length)
 
         errors: list[str] = []
-        iterable = iterator_output.iterator.iter_supplier()
-        while True:
+        for values in iterator_output.iterator.iter_supplier():
             try:
-                values = next(iterable)  # type: ignore
+                if isinstance(values, Exception):
+                    raise values
 
                 # write current values to cache
                 iter_output = fill_partial_output(values)
@@ -603,10 +603,7 @@ class Executor:
                 await self.progress.suspend()
                 await update_progress()
                 await self.progress.suspend()
-            except StopIteration:
-                break
-            except StopAsyncIteration:
-                break
+
             except Exception as e:
                 if iterator_output.iterator.defer_errors:
                     errors.append(str(e))
