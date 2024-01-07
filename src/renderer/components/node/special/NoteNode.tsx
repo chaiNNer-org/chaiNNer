@@ -231,11 +231,12 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                         _selected={{
                             borderWidth: 0,
                         }}
+                        backgroundAttachment="local"
                         backgroundImage="linear-gradient(transparent, transparent calc(3ch - 1px), green.200 0px)"
                         backgroundSize="100% 3ch"
                         borderRadius={0}
                         borderWidth={0}
-                        className="nodrag"
+                        className="nodrag nowheel"
                         color="gray.800"
                         disabled={isLocked}
                         draggable={false}
@@ -247,6 +248,23 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                         px={2}
                         py={1}
                         resize="none"
+                        sx={{
+                            '::-webkit-scrollbar': {
+                                width: '6px',
+                                borderRadius: '8px',
+                                backgroundColor: 'transparent',
+                            },
+                            '::-webkit-scrollbar-track': {
+                                borderRadius: '8px',
+                                width: '4px',
+                                marginRight: '2px',
+                            },
+                            '::-webkit-scrollbar-thumb': {
+                                borderRadius: '8px',
+                                backgroundColor: 'yellow.500',
+                                border: '2px solid transparent',
+                            },
+                        }}
                         textColor="gray.800"
                         value={tempText}
                         w="full"
