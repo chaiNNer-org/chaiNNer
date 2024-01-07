@@ -570,7 +570,7 @@ class Executor:
         # iterate
         await self.__send_node_progress(node, times, 0, expected_length)
 
-        errors: list[str] = []
+        deferred_errors: list[str] = []
         for values in iterator_output.iterator.iter_supplier():
             try:
                 if isinstance(values, Exception):
@@ -607,7 +607,7 @@ class Executor:
                 raise
             except Exception as e:
                 if iterator_output.iterator.defer_errors:
-                    errors.append(str(e))
+                    deferred_errors.append(str(e))
                 else:
                     raise e
 
@@ -642,8 +642,8 @@ class Executor:
                 self.cache_strategy[collector_node.id],
             )
 
-        if iterator_output.iterator.defer_errors and len(errors) > 0:
-            error_string = "- " + "\n- ".join(errors)
+        if len(deferred_errors) > 0:
+            error_string = "- " + "\n- ".join(deferred_errors)
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
     async def __process_nodes(self):
