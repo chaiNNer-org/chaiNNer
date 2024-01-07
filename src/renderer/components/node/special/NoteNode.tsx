@@ -136,7 +136,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                     onContextMenu={menu.onContextMenu}
                 >
                     <HStack
-                        px={6}
+                        px={4}
                         py={2}
                         verticalAlign="middle"
                     >
