@@ -570,32 +570,41 @@ class Executor:
         # iterate
         await self.__send_node_progress(node, times, 0, expected_length)
 
-        for values in iterator_output.iterator.iter_supplier():
-            # write current values to cache
-            iter_output = fill_partial_output(values)
-            self.cache.set(node.id, iter_output, StaticCaching)
+        error = None
+        try:
+            for values in iterator_output.iterator.iter_supplier():
+                # write current values to cache
+                iter_output = fill_partial_output(values)
+                self.cache.set(node.id, iter_output, StaticCaching)
 
-            # broadcast
-            await self.__send_node_broadcast(node, iter_output.output)
+                # broadcast
+                await self.__send_node_broadcast(node, iter_output.output)
 
-            # run each of the output nodes
-            for output_node in output_nodes:
-                await self.process_regular_node(output_node)
+                # run each of the output nodes
+                for output_node in output_nodes:
+                    await self.process_regular_node(output_node)
 
-            # run each of the collector nodes
-            for collector, timer, collector_node in collectors:
+                # run each of the collector nodes
+                for collector, timer, collector_node in collectors:
+                    await self.progress.suspend()
+                    iterate_inputs = await self.__gather_collector_inputs(
+                        collector_node
+                    )
+                    await self.progress.suspend()
+                    with timer.run():
+                        run_collector_iterate(collector_node, iterate_inputs, collector)
+
+                # clear cache for next iteration
+                self.cache.delete_many(all_iterated_nodes)
+
                 await self.progress.suspend()
-                iterate_inputs = await self.__gather_collector_inputs(collector_node)
+                await update_progress()
                 await self.progress.suspend()
-                with timer.run():
-                    run_collector_iterate(collector_node, iterate_inputs, collector)
-
-            # clear cache for next iteration
-            self.cache.delete_many(all_iterated_nodes)
-
-            await self.progress.suspend()
-            await update_progress()
-            await self.progress.suspend()
+        except Exception as e:
+            if iterator_output.iterator.defer_errors:
+                error = e
+            else:
+                raise e
 
         # reset cached value
         self.cache.delete_many(all_iterated_nodes)
@@ -627,6 +636,9 @@ class Executor:
                 collector_output,
                 self.cache_strategy[collector_node.id],
             )
+
+        if iterator_output.iterator.defer_errors and error is not None:
+            raise error
 
     async def __process_nodes(self):
         await self.__send_chain_start()

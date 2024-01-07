@@ -607,12 +607,27 @@ L = TypeVar("L")
 class Iterator(Generic[I]):
     iter_supplier: Callable[[], Iterable[I]]
     expected_length: int
+    defer_errors: bool = False
 
     @staticmethod
     def from_iter(
-        iter_supplier: Callable[[], Iterable[I]], expected_length: int
+        iter_supplier: Callable[[], Iterable[I]],
+        expected_length: int,
+        defer_errors: bool = False,
     ) -> Iterator[I]:
-        return Iterator(iter_supplier, expected_length)
+        def wrapped_supplier():
+            errors = []
+            for x in iter_supplier():
+                try:
+                    yield x
+                except Exception as e:
+                    if defer_errors:
+                        errors.append(str(e))
+                    else:
+                        raise e
+            Iterator.__throw_errors(errors)
+
+        return Iterator(wrapped_supplier, expected_length, defer_errors=defer_errors)
 
     @staticmethod
     def from_list(
@@ -622,43 +637,52 @@ class Iterator(Generic[I]):
         Creates a new iterator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
         """
+
         errors = []
 
         def supplier():
-            # for i, x in enumerate(l):
-            #     yield map_fn(x, i)
-            iterable = enumerate(l)
-            while True:
+            for i, x in enumerate(l):
                 try:
-                    i, x = next(iterable)
-                    logger.info(f"Processing {i}/{len(l)}: {x}")
                     yield map_fn(x, i)
-                except StopIteration:
-                    break
                 except Exception as e:
                     if defer_errors:
                         errors.append(str(e))
                     else:
                         raise e
-            if len(errors) > 0:
-                error_string = ", \n".join(errors)
-                raise Exception(f"Errors occurred during iteration: {error_string}")
+            Iterator.__throw_errors(errors)
 
-        return Iterator(supplier, len(l))
+        return Iterator(supplier, len(l), defer_errors=defer_errors)
 
     @staticmethod
-    def from_range(count: int, map_fn: Callable[[int], I]) -> Iterator[I]:
+    def from_range(
+        count: int, map_fn: Callable[[int], I], defer_errors: bool = False
+    ) -> Iterator[I]:
         """
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
         """
         assert count >= 0
 
+        errors = []
+
         def supplier():
             for i in range(count):
-                yield map_fn(i)
+                try:
+                    yield map_fn(i)
+                except Exception as e:
+                    if defer_errors:
+                        errors.append(str(e))
+                    else:
+                        raise e
+            Iterator.__throw_errors(errors)
 
-        return Iterator(supplier, count)
+        return Iterator(supplier, count, defer_errors=defer_errors)
+
+    @staticmethod
+    def __throw_errors(errors: list[str]):
+        if len(errors) > 0:
+            error_string = "- " + "\n- ".join(errors)
+            raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
 
 N = TypeVar("N")
