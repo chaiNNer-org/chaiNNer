@@ -570,9 +570,12 @@ class Executor:
         # iterate
         await self.__send_node_progress(node, times, 0, expected_length)
 
-        error = None
-        try:
-            for values in iterator_output.iterator.iter_supplier():
+        errors: list[str] = []
+        iterable = iterator_output.iterator.iter_supplier()
+        while True:
+            try:
+                values = next(iterable)  # type: ignore
+
                 # write current values to cache
                 iter_output = fill_partial_output(values)
                 self.cache.set(node.id, iter_output, StaticCaching)
@@ -600,11 +603,15 @@ class Executor:
                 await self.progress.suspend()
                 await update_progress()
                 await self.progress.suspend()
-        except Exception as e:
-            if iterator_output.iterator.defer_errors:
-                error = e
-            else:
-                raise e
+            except StopIteration:
+                break
+            except StopAsyncIteration:
+                break
+            except Exception as e:
+                if iterator_output.iterator.defer_errors:
+                    errors.append(str(e))
+                else:
+                    raise e
 
         # reset cached value
         self.cache.delete_many(all_iterated_nodes)
@@ -637,8 +644,9 @@ class Executor:
                 self.cache_strategy[collector_node.id],
             )
 
-        if iterator_output.iterator.defer_errors and error is not None:
-            raise error
+        if iterator_output.iterator.defer_errors and len(errors) > 0:
+            error_string = "- " + "\n- ".join(errors)
+            raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
     async def __process_nodes(self):
         await self.__send_chain_start()

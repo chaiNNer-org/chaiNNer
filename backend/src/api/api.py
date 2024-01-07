@@ -615,19 +615,7 @@ class Iterator(Generic[I]):
         expected_length: int,
         defer_errors: bool = False,
     ) -> Iterator[I]:
-        def wrapped_supplier():
-            errors = []
-            for x in iter_supplier():
-                try:
-                    yield x
-                except Exception as e:
-                    if defer_errors:
-                        errors.append(str(e))
-                    else:
-                        raise e
-            Iterator.__throw_errors(errors)
-
-        return Iterator(wrapped_supplier, expected_length, defer_errors=defer_errors)
+        return Iterator(iter_supplier, expected_length, defer_errors=defer_errors)
 
     @staticmethod
     def from_list(
@@ -638,18 +626,9 @@ class Iterator(Generic[I]):
         function. The iterable will be equivalent to `map(map_fn, l)`.
         """
 
-        errors = []
-
         def supplier():
             for i, x in enumerate(l):
-                try:
-                    yield map_fn(x, i)
-                except Exception as e:
-                    if defer_errors:
-                        errors.append(str(e))
-                    else:
-                        raise e
-            Iterator.__throw_errors(errors)
+                yield map_fn(x, i)
 
         return Iterator(supplier, len(l), defer_errors=defer_errors)
 
@@ -663,26 +642,11 @@ class Iterator(Generic[I]):
         """
         assert count >= 0
 
-        errors = []
-
         def supplier():
             for i in range(count):
-                try:
-                    yield map_fn(i)
-                except Exception as e:
-                    if defer_errors:
-                        errors.append(str(e))
-                    else:
-                        raise e
-            Iterator.__throw_errors(errors)
+                yield map_fn(i)
 
         return Iterator(supplier, count, defer_errors=defer_errors)
-
-    @staticmethod
-    def __throw_errors(errors: list[str]):
-        if len(errors) > 0:
-            error_string = "- " + "\n- ".join(errors)
-            raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
 
 N = TypeVar("N")
