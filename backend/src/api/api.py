@@ -615,15 +615,34 @@ class Iterator(Generic[I]):
         return Iterator(iter_supplier, expected_length)
 
     @staticmethod
-    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Iterator[I]:
+    def from_list(
+        l: list[L], map_fn: Callable[[L, int], I], defer_errors: bool = False
+    ) -> Iterator[I]:
         """
         Creates a new iterator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
         """
+        errors = []
 
         def supplier():
-            for i, x in enumerate(l):
-                yield map_fn(x, i)
+            # for i, x in enumerate(l):
+            #     yield map_fn(x, i)
+            iterable = enumerate(l)
+            while True:
+                try:
+                    i, x = next(iterable)
+                    logger.info(f"Processing {i}/{len(l)}: {x}")
+                    yield map_fn(x, i)
+                except StopIteration:
+                    break
+                except Exception as e:
+                    if defer_errors:
+                        errors.append(str(e))
+                    else:
+                        raise e
+            if len(errors) > 0:
+                error_string = ", \n".join(errors)
+                raise Exception(f"Errors occurred during iteration: {error_string}")
 
         return Iterator(supplier, len(l))
 
