@@ -108,6 +108,30 @@ class InpaintModelInput(ModelInput):
         return value
 
 
+class GuidedModelInput(ModelInput):
+    def __init__(
+        self,
+        label: str = "Model",
+        input_type: navi.ExpressionJson = "PyTorchModel",
+    ):
+        self.purpose: set[Purpose] = {"GuidedSR"}
+
+        super().__init__(
+            label,
+            navi.intersect(input_type, _model_with_purpose(self.purpose)),
+        )
+        if spandrel is not None:
+            self.associated_type = spandrel.GuidedImageModelDescriptor
+
+    def enforce(self, value: object):
+        if spandrel is not None:
+            assert isinstance(
+                value, spandrel.GuidedImageModelDescriptor
+            ), "Expected a supported single image PyTorch model."
+            assert value.purpose in self.purpose, "Expected a guided upscale model."
+        return value
+
+
 class TorchScriptInput(BaseInput):
     """Input a JIT traced model"""
 
