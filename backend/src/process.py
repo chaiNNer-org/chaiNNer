@@ -603,7 +603,8 @@ class Executor:
                 await self.progress.suspend()
                 await update_progress()
                 await self.progress.suspend()
-
+            except Aborted:
+                raise
             except Exception as e:
                 if iterator_output.iterator.defer_errors:
                     errors.append(str(e))
