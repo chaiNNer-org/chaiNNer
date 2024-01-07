@@ -50,7 +50,7 @@ def load_models_node(
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 
-    supported_filetypes = [".pt", ".pth", ".ckpt"]
+    supported_filetypes = [".pt", ".pth", ".ckpt", ".safetensors"]
     model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
 
     return Iterator.from_list(model_files, load_model), directory
