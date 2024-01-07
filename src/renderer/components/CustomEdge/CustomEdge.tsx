@@ -6,7 +6,7 @@ import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
-import { parseSourceHandle } from '../../../common/util';
+import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -15,6 +15,49 @@ import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
+
+const EDGE_CLASS = {
+    RUNNING: 'running',
+    YET_TO_RUN: 'yet-to-run',
+    HOVERED: 'hovered',
+    COLLIDING: 'colliding',
+    NONE: '',
+};
+
+const getHoveredClass = (isHovered: boolean) => {
+    if (isHovered) {
+        return EDGE_CLASS.HOVERED;
+    }
+    return EDGE_CLASS.NONE;
+};
+
+const getCollidingClass = (isColliding: boolean) => {
+    if (isColliding) {
+        return EDGE_CLASS.COLLIDING;
+    }
+    return EDGE_CLASS.NONE;
+};
+
+const getRunningStateClass = (
+    sourceStatus: NodeExecutionStatus,
+    targetStatus: NodeExecutionStatus,
+    animateChain?: boolean
+) => {
+    if (targetStatus === NodeExecutionStatus.NOT_EXECUTING) {
+        return EDGE_CLASS.NONE;
+    }
+    switch (sourceStatus) {
+        case NodeExecutionStatus.NOT_EXECUTING:
+        case NodeExecutionStatus.FINISHED:
+            return EDGE_CLASS.NONE;
+        case NodeExecutionStatus.RUNNING:
+            return animateChain ? EDGE_CLASS.RUNNING : EDGE_CLASS.YET_TO_RUN;
+        case NodeExecutionStatus.YET_TO_RUN:
+            return EDGE_CLASS.YET_TO_RUN;
+        default:
+            return assertNever(sourceStatus);
+    }
+};
 
 export const CustomEdge = memo(
     ({
@@ -97,9 +140,15 @@ export const CustomEdge = memo(
             (c) => c.collidingEdge === id
         );
 
-        const classModifier = `${isHovered ? 'hovered' : ''} ${
-            showRunning && animateChain ? 'running' : ''
-        } ${isColliding ? 'colliding' : ''}`;
+        const classModifier = useMemo(
+            () =>
+                `${getHoveredClass(isHovered)} ${getRunningStateClass(
+                    sourceStatus,
+                    targetStatus,
+                    animateChain
+                )} ${getCollidingClass(isColliding)}`,
+            [isHovered, sourceStatus, targetStatus, isColliding, animateChain]
+        );
 
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
@@ -136,25 +185,20 @@ export const CustomEdge = memo(
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
-                <path
-                    className={`edge-chain-links ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
-                    stroke={currentColor}
-                />
+                {showRunning && (
+                    <path
+                        className={`edge-chain-behind ${classModifier}`}
+                        d={edgePath}
+                        fill="none"
+                        id={id}
+                    />
+                )}
                 <path
                     className={`edge-chain ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
                     stroke={currentColor}
-                />
-                <path
-                    className={`edge-chain dot ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
                 />
                 <path
                     d={edgePath}
