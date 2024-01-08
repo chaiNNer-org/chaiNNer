@@ -9,6 +9,7 @@ from spandrel.architectures.SRFormer import SRFormer
 from spandrel.architectures.Swin2SR import Swin2SR
 from spandrel.architectures.SwinIR import SwinIR
 
+from api import NodeContext
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
@@ -43,9 +44,10 @@ except Exception:
         NcnnModelOutput(label="NCNN Model"),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
     ],
+    node_context=True,
 )
 def convert_to_ncnn_node(
-    model: ImageModelDescriptor, is_fp16: int
+    context: NodeContext, model: ImageModelDescriptor, is_fp16: int
 ) -> tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
@@ -58,7 +60,7 @@ def convert_to_ncnn_node(
         model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
     ), f"{model.architecture} is not supported for NCNN conversions at this time."
 
-    exec_options = get_settings()
+    exec_options = get_settings(context)
     device = exec_options.device
 
     # Intermediate conversion to ONNX is always fp32

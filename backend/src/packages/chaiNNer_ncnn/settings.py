@@ -9,7 +9,7 @@ except ImportError:
 
     use_gpu = False
 
-from api import DropdownSetting, NumberSetting, ToggleSetting
+from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from system import is_arm_mac
 
 from . import package
@@ -99,8 +99,8 @@ class NcnnSettings:
     budget_limit: int
 
 
-def get_settings() -> NcnnSettings:
-    settings = package.get_settings()
+def get_settings(context: NodeContext) -> NcnnSettings:
+    settings = context.settings
 
     return NcnnSettings(
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
