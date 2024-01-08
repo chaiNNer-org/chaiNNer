@@ -40,14 +40,6 @@
     }
 }
 
-.selectable {
-    user-select: text;
-
-    * {
-        user-select: text;
-    }
-}
-
 body {
     overflow: hidden;
 }

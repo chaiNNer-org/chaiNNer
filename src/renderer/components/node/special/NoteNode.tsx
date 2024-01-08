@@ -175,7 +175,6 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                         <HStack
                             px={2}
                             py={2}
-                            userSelect="none"
                             verticalAlign="middle"
                         >
                             <HStack
@@ -206,7 +205,6 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                         size="sm"
                                         textAlign="center"
                                         textTransform="uppercase"
-                                        userSelect="none"
                                         verticalAlign="middle"
                                         whiteSpace="nowrap"
                                     >
@@ -373,7 +371,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                             />
                         ) : (
                             <Box
-                                className="nodrag nowheel selectable"
+                                className="nodrag nowheel"
                                 color="gray.800"
                                 h="100%"
                                 overflow="scroll"
@@ -384,7 +382,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                 w="full"
                                 onContextMenu={textAreaContextMenu.onContextMenu}
                             >
-                                <Markdown>{tempText.toString()}</Markdown>
+                                <Markdown selectable={false}>{tempText.toString()}</Markdown>
                             </Box>
                         )}
                     </Resizable>
