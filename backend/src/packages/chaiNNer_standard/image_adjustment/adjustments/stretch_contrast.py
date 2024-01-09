@@ -52,14 +52,18 @@ class StretchMode(Enum):
     outputs=[
         ImageOutput(
             image_type="""
-                let valid: bool = match Input1 {
+                let minMaxRangeValid: bool = match Input1 {
                     StretchMode::Manual => Input4 < Input5,
                     _ => true,
                 };
 
-                if valid { Input0 } else { never }
+                if minMaxRangeValid {
+                    Input0
+                } else {
+                    error("Minimum must be less than Maximum.")
+                }
             """,
-        ).with_never_reason("Minimum must be less than the Maximum."),
+        ),
     ],
 )
 def stretch_contrast_node(

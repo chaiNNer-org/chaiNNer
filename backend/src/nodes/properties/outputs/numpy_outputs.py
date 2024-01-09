@@ -53,7 +53,7 @@ class ImageOutput(NumPyOutput):
         assume_normalized: bool = False,
     ):
         super().__init__(
-            navi.intersect(image_type, navi.Image(channels=channels)),
+            navi.intersect_with_error(image_type, navi.Image(channels=channels)),
             label,
             kind=kind,
             has_handle=has_handle,
