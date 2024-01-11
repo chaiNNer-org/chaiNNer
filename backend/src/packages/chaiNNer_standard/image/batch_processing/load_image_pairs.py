@@ -34,8 +34,8 @@ from ..io.load_image import load_image_node
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),
-        BoolInput("Defer errors", default=True).with_docs(
-            "Ignore errors that occur during iteration and throw them after processing. Use this if you want to make sure one bad image doesn't interrupt your batch.",
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
             hint=True,
         ),
     ],
@@ -60,7 +60,7 @@ def load_image_pairs_node(
     directory_b: str,
     use_limit: bool,
     limit: int,
-    defer_errors: bool,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
     def load_images(filepaths: tuple[str, str], index: int):
         path_a, path_b = filepaths
@@ -90,7 +90,7 @@ def load_image_pairs_node(
     image_files = list(zip(image_files_a, image_files_b))
 
     return (
-        Iterator.from_list(image_files, load_images, defer_errors),
+        Iterator.from_list(image_files, load_images, fail_fast),
         directory_a,
         directory_b,
     )
