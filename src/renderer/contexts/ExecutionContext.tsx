@@ -411,9 +411,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         try {
             setStatus(ExecutionStatus.RUNNING);
 
-            const data = toBackendJson(nodes, edges, schemata, {
-                executionNumber,
-            });
+            const data = toBackendJson(nodes, edges, schemata);
             const response = await backend.run({
                 data,
                 options,

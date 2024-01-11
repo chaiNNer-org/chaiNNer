@@ -263,7 +263,7 @@ export const runChainInCli = async (args: RunArguments) => {
         }
     });
 
-    const data = toBackendJson(nodes, edges, schemata, { executionNumber: 0 });
+    const data = toBackendJson(nodes, edges, schemata);
     const options = getExecutionOptions();
     const response = await backend.run({
         data,

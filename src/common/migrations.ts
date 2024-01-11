@@ -1876,7 +1876,7 @@ const unifiedResizeNode: ModernMigration = (data) => {
 const newNoteNode: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         if (node.data.schemaId === 'chainner:utility:note') {
-            node.data.schemaId = 'chainner:builtin:note' as SchemaId;
+            // node.data.schemaId = 'chainner:builtin:note' as SchemaId;
             node.type = 'note';
         }
     });
