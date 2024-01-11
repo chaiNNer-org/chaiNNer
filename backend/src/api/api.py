@@ -607,19 +607,19 @@ L = TypeVar("L")
 class Iterator(Generic[I]):
     iter_supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
-    throw_early: bool = True
+    fail_fast: bool = True
 
     @staticmethod
     def from_iter(
         iter_supplier: Callable[[], Iterable[I | Exception]],
         expected_length: int,
-        throw_early: bool = True,
+        fail_fast: bool = True,
     ) -> Iterator[I]:
-        return Iterator(iter_supplier, expected_length, throw_early=throw_early)
+        return Iterator(iter_supplier, expected_length, fail_fast=fail_fast)
 
     @staticmethod
     def from_list(
-        l: list[L], map_fn: Callable[[L, int], I], throw_early: bool = True
+        l: list[L], map_fn: Callable[[L, int], I], fail_fast: bool = True
     ) -> Iterator[I]:
         """
         Creates a new iterator from a list that is mapped using the given
@@ -633,11 +633,11 @@ class Iterator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Iterator(supplier, len(l), throw_early=throw_early)
+        return Iterator(supplier, len(l), fail_fast=fail_fast)
 
     @staticmethod
     def from_range(
-        count: int, map_fn: Callable[[int], I], throw_early: bool = True
+        count: int, map_fn: Callable[[int], I], fail_fast: bool = True
     ) -> Iterator[I]:
         """
         Creates a new iterator the given number of items where each item is
@@ -652,7 +652,7 @@ class Iterator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Iterator(supplier, count, throw_early=throw_early)
+        return Iterator(supplier, count, fail_fast=fail_fast)
 
 
 N = TypeVar("N")

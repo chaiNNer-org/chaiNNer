@@ -60,7 +60,7 @@ def load_image_pairs_node(
     directory_b: str,
     use_limit: bool,
     limit: int,
-    throw_early: bool,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
     def load_images(filepaths: tuple[str, str], index: int):
         path_a, path_b = filepaths
@@ -90,7 +90,7 @@ def load_image_pairs_node(
     image_files = list(zip(image_files_a, image_files_b))
 
     return (
-        Iterator.from_list(image_files, load_images, throw_early),
+        Iterator.from_list(image_files, load_images, fail_fast),
         directory_a,
         directory_b,
     )

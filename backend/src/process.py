@@ -606,7 +606,7 @@ class Executor:
             except Aborted:
                 raise
             except Exception as e:
-                if iterator_output.iterator.throw_early:
+                if iterator_output.iterator.fail_fast:
                     raise e
                 else:
                     deferred_errors.append(str(e))

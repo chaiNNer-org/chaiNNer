@@ -49,7 +49,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-    throw_early: bool,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
@@ -62,4 +62,4 @@ def load_models_node(
     supported_filetypes = [".onnx"]
     model_files = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model, throw_early), directory
+    return Iterator.from_list(model_files, load_model, fail_fast), directory

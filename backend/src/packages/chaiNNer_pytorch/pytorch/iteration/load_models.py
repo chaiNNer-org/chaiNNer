@@ -46,7 +46,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-    throw_early: bool,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
@@ -59,4 +59,4 @@ def load_models_node(
     supported_filetypes = [".pt", ".pth", ".ckpt", ".safetensors"]
     model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model, throw_early), directory
+    return Iterator.from_list(model_files, load_model, fail_fast), directory

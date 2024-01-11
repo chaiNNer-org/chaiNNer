@@ -95,7 +95,7 @@ def load_images_node(
     glob_str: str,
     use_limit: bool,
     limit: int,
-    throw_early: bool,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], str]:
     def load_image(path: str, index: int):
         img, img_dir, basename = load_image_node(path)
@@ -115,4 +115,4 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Iterator.from_list(just_image_files, load_image, throw_early), directory
+    return Iterator.from_list(just_image_files, load_image, fail_fast), directory
