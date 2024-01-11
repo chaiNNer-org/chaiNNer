@@ -30,8 +30,8 @@ from ..io.load_model import load_model_node
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
-        BoolInput("Defer errors", default=True).with_docs(
-            "Ignore errors that occur during iteration and throw them after processing. Use this if you want to make sure one bad model doesn't interrupt your batch.",
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
             hint=True,
         ),
     ],
@@ -49,7 +49,7 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     directory: str,
-    defer_errors: bool,
+    throw_early: bool,
 ) -> tuple[Iterator[tuple[NcnnModelWrapper, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
@@ -81,4 +81,4 @@ def load_models_node(
 
     model_files = list(zip(param_files, bin_files))
 
-    return Iterator.from_list(model_files, load_model, defer_errors), directory
+    return Iterator.from_list(model_files, load_model, throw_early), directory

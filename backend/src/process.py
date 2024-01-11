@@ -606,10 +606,10 @@ class Executor:
             except Aborted:
                 raise
             except Exception as e:
-                if iterator_output.iterator.defer_errors:
-                    deferred_errors.append(str(e))
-                else:
+                if iterator_output.iterator.throw_early:
                     raise e
+                else:
+                    deferred_errors.append(str(e))
 
         # reset cached value
         self.cache.delete_many(all_iterated_nodes)
