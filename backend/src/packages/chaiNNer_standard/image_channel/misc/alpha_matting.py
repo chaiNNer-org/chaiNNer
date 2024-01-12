@@ -47,22 +47,15 @@ from . import node_group
                 let fg = Input2;
                 let bg = Input3;
 
-                let valid = bool::and(
-                    fg > bg,
-                    image.width == trimap.width,
-                    image.height == trimap.height,
-                );
-
-                if valid {
-                    Image { width: image.width, height: image.height }
+                if fg <= bg {
+                    error("The foreground threshold must be greater than the background threshold.")
+                } else if bool::or(image.width != trimap.width, image.height != trimap.height) {
+                    error("The image and trimap must have the same size.")
                 } else {
-                    never
+                    Image { width: image.width, height: image.height }
                 }
             """,
             channels=4,
-        ).with_never_reason(
-            "The image and trimap must have the same size,"
-            " and the foreground threshold must be greater than the background threshold."
         ),
     ],
 )

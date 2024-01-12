@@ -23,6 +23,11 @@ import {
 const code = `
 struct null;
 
+struct Error { message: string }
+def error(message: invStrSet("")): Error {
+    Error { message: message }
+}
+
 struct Seed;
 
 struct Directory { path: string }
