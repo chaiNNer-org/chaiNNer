@@ -393,7 +393,7 @@ export const usePaneNodeSearchMenu = (
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
     const [, setGlobalConnectingFrom] = useConnectingFrom;
 
-    const { getNode, project, getNodes, getEdges } = useReactFlow();
+    const { getNode, screenToFlowPosition, getNodes, getEdges } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
@@ -428,12 +428,8 @@ export const usePaneNodeSearchMenu = (
 
     const onSchemaSelect = useCallback(
         (schema: NodeSchema, target: ConnectionTarget) => {
-            const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
             const { x, y } = mousePosition;
-            const projPosition = project({
-                x: x - reactFlowBounds.left,
-                y: y - reactFlowBounds.top,
-            });
+            const projPosition = screenToFlowPosition({ x, y });
             const nodeId = createUniqueId();
             createNode({
                 id: nodeId,
@@ -483,9 +479,8 @@ export const usePaneNodeSearchMenu = (
             createNode,
             functionDefinitions,
             mousePosition,
-            project,
+            screenToFlowPosition,
             setGlobalConnectingFrom,
-            wrapperRef,
         ]
     );
 
