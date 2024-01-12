@@ -61,7 +61,7 @@ Don't forget, there are plenty of non-upscaling tasks you can do with chaiNNer a
 
 To select multiple nodes, hold down shift and drag around all the nodes you want to be selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
 
-To batch upscale, use a "Load Images" node. For video, a "Load Video" node. You can't combine "Load Images" and "Load Video" together, but you _can_ use "Save Image" with "Load Video", and "Save Video" with "Load Images".
+To perform batch processing on a folder of images, use the "Load Images" node. To process videos, use the "Load Video" node. It's important to note however that you cannot use both "Load Images" and "Load Video" nodes (or any two nodes that perform batch iteration) together in a chain. You can however combine the output (collector) nodes in the chain, for example using "Save Image" with "Load Video", and "Save Video" with "Load Images".
 
 You can right-click in the editor viewport to show an inline nodes list to select from. You also can get this menu by dragging a connection out to the editor rather than making an actual connection, and it will show compatible nodes to automatically create a connection with.
 
