@@ -26,7 +26,6 @@ from api import (
     Group,
     JsonExecutionOptions,
     NodeId,
-    set_execution_options,
 )
 from chain.cache import OutputCache
 from chain.chain import Chain, FunctionNode
@@ -173,13 +172,12 @@ async def run(request: Request):
         optimize(chain)
 
         logger.info("Running new executor...")
-        exec_opts = ExecutionOptions.parse(full_data["options"])
-        set_execution_options(exec_opts)
         executor = Executor(
             id=ExecutionId("main-executor " + uuid.uuid4().hex),
             chain=chain,
             inputs=inputs,
             send_broadcast_data=full_data["sendBroadcastData"],
+            options=ExecutionOptions.parse(full_data["options"]),
             loop=app.loop,
             queue=ctx.queue,
             pool=ctx.pool,
@@ -234,9 +232,6 @@ async def run_individual(request: Request):
         node_id = full_data["id"]
         ctx.cache.pop(node_id, None)
 
-        exec_opts = ExecutionOptions.parse(full_data["options"])
-        set_execution_options(exec_opts)
-
         node = FunctionNode(node_id, full_data["schemaId"])
         chain = Chain()
         chain.add_node(node)
@@ -255,6 +250,7 @@ async def run_individual(request: Request):
             chain=chain,
             inputs=input_map,
             send_broadcast_data=True,
+            options=ExecutionOptions.parse(full_data["options"]),
             loop=app.loop,
             queue=queue,
             pool=ctx.pool,

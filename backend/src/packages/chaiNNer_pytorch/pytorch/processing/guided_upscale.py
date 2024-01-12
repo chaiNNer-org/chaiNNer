@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from api import NodeContext
 from nodes.impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
 from nodes.impl.pytorch.pix_transform.pix_transform import Params
 from nodes.impl.upscale.grayscale import SplitMode
@@ -66,8 +67,10 @@ from .. import processing_group
             "The guide image must be larger than the source image, and the size of the guide image must be an integer multiple of the size of the source image (e.g. 2x, 3x, 4x, ...)."
         ),
     ],
+    node_context=True,
 )
 def guided_upscale_node(
+    context: NodeContext,
     source: np.ndarray,
     guide: np.ndarray,
     iterations: float,
@@ -76,7 +79,7 @@ def guided_upscale_node(
     return pix_transform_auto_split(
         source=source,
         guide=guide,
-        device=get_settings().device,
+        device=get_settings(context).device,
         params=Params(iteration=int(iterations * 1000)),
         split_mode=split_mode,
     )

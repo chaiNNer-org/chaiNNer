@@ -5,6 +5,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
+from api import NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -141,8 +142,10 @@ def upscale(
             assume_normalized=True,  # pytorch_auto_split already does clipping internally
         )
     ],
+    node_context=True,
 )
 def upscale_image_node(
+    context: NodeContext,
     img: np.ndarray,
     model: ImageModelDescriptor,
     tile_size: TileSize,
@@ -150,7 +153,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
 
-    exec_options = get_settings()
+    exec_options = get_settings(context)
 
     logger.debug("Upscaling image...")
 

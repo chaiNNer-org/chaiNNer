@@ -8,10 +8,8 @@ from typing import (
     Callable,
     Generic,
     Iterable,
-    NewType,
     TypedDict,
     TypeVar,
-    Union,
 )
 
 from sanic.log import logger
@@ -29,8 +27,8 @@ from .node_check import (
     check_schema_types,
 )
 from .output import BaseOutput
-from .settings import SettingsJson, get_execution_options
-from .types import InputId, NodeId, NodeType, OutputId, RunFn
+from .settings import Setting
+from .types import FeatureId, InputId, NodeId, NodeType, OutputId, RunFn
 
 KB = 1024**1
 MB = 1024**2
@@ -124,6 +122,7 @@ class NodeData:
 
     side_effects: bool
     deprecated: bool
+    node_context: bool
     features: list[FeatureId]
 
     run: RunFn
@@ -180,6 +179,7 @@ class NodeGroup:
         limited_to_8bpc: bool | str = False,
         iterator_inputs: list[IteratorInputInfo] | IteratorInputInfo | None = None,
         iterator_outputs: list[IteratorOutputInfo] | IteratorOutputInfo | None = None,
+        node_context: bool = False,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -233,7 +233,9 @@ class NodeGroup:
             if node_type == "regularNode":
                 run_check(
                     TYPE_CHECK_LEVEL,
-                    lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
+                    lambda _: check_schema_types(
+                        wrapped_func, p_inputs, p_outputs, node_context
+                    ),
                 )
             run_check(
                 NAME_CHECK_LEVEL,
@@ -258,6 +260,7 @@ class NodeGroup:
                 iterator_outputs=iterator_outputs,
                 side_effects=side_effects,
                 deprecated=deprecated,
+                node_context=node_context,
                 features=features,
                 run=wrapped_func,
             )
@@ -322,9 +325,6 @@ class Dependency:
         }
 
 
-FeatureId = NewType("FeatureId", str)
-
-
 @dataclass
 class Feature:
     id: str
@@ -364,89 +364,6 @@ class FeatureState:
     @staticmethod
     def disabled(details: str | None = None) -> FeatureState:
         return FeatureState(is_enabled=False, details=details)
-
-
-@dataclass
-class ToggleSetting:
-    label: str
-    key: str
-    description: str
-    default: bool = False
-    disabled: bool = False
-    type: str = "toggle"
-
-
-class DropdownOption(TypedDict):
-    label: str
-    value: str
-
-
-@dataclass
-class DropdownSetting:
-    label: str
-    key: str
-    description: str
-    options: list[DropdownOption]
-    default: str
-    disabled: bool = False
-    type: str = "dropdown"
-
-
-@dataclass
-class NumberSetting:
-    label: str
-    key: str
-    description: str
-    min: float
-    max: float
-    default: float = 0
-    disabled: bool = False
-    type: str = "number"
-
-
-@dataclass
-class CacheSetting:
-    label: str
-    key: str
-    description: str
-    directory: str
-    default: str = ""
-    disabled: bool = False
-    type: str = "cache"
-
-
-Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
-
-
-class SettingsParser:
-    def __init__(self, raw: SettingsJson) -> None:
-        self.__settings = raw
-
-    def get_bool(self, key: str, default: bool) -> bool:
-        value = self.__settings.get(key, default)
-        if isinstance(value, bool):
-            return value
-        raise ValueError(f"Invalid bool value for {key}: {value}")
-
-    def get_int(self, key: str, default: int, parse_str: bool = False) -> int:
-        value = self.__settings.get(key, default)
-        if parse_str and isinstance(value, str):
-            return int(value)
-        if isinstance(value, int) and not isinstance(value, bool):
-            return value
-        raise ValueError(f"Invalid str value for {key}: {value}")
-
-    def get_str(self, key: str, default: str) -> str:
-        value = self.__settings.get(key, default)
-        if isinstance(value, str):
-            return value
-        raise ValueError(f"Invalid str value for {key}: {value}")
-
-    def get_cache_location(self, key: str) -> str | None:
-        value = self.__settings.get(key)
-        if isinstance(value, str) or value is None:
-            return value or None
-        raise ValueError(f"Invalid cache location value for {key}: {value}")
 
 
 @dataclass
@@ -501,9 +418,6 @@ class Package:
         self.features.append(feature)
         return feature
 
-    def get_settings(self) -> SettingsParser:
-        return SettingsParser(get_execution_options().get_package_settings(self.id))
-
 
 def _iter_py_files(directory: str):
     for root, _, files in os.walk(directory):
@@ -527,6 +441,9 @@ class PackageRegistry:
 
     def get_node(self, schema_id: str) -> NodeData:
         return self.nodes[schema_id][0]
+
+    def get_package(self, schema_id: str) -> Package:
+        return self.nodes[schema_id][1].category.package
 
     def add(self, package: Package) -> Package:
         # assert package.where not in self.packages
