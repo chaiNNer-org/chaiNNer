@@ -3,7 +3,7 @@
   "productName": "chaiNNer",
   "appId": "app.chainner",
   "desktopName": "chainner.desktop",
-  "version": "0.20.2",
+  "version": "0.21.0",
   "description": "A flowchart-based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
