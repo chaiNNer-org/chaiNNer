@@ -379,9 +379,7 @@ interface Position {
     readonly y: number;
 }
 
-export const usePaneNodeSearchMenu = (
-    wrapperRef: React.RefObject<HTMLDivElement>
-): UsePaneNodeSearchMenuValue => {
+export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
     const { createNode, createConnection } = useContext(GlobalContext);
