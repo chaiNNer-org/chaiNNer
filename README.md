@@ -61,30 +61,30 @@ Don't forget, there are plenty of non-upscaling tasks you can do with chaiNNer a
 
 To select multiple nodes, hold down shift and drag around all the nodes you want to be selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
 
-To batch upscale, use a "Load Images" node, or maybe even a "Load Video" node for video.
+To batch upscale, use a "Load Images" node. For video, a "Load Video" node. You can't combine "Load Images" and "Load Video" together, but you _can_ use "Save Image" with "Load Video", and "Save Video" with "Load Images".
 
 You can right-click in the editor viewport to show an inline nodes list to select from. You also can get this menu by dragging a connection out to the editor rather than making an actual connection, and it will show compatible nodes to automatically create a connection with.
 
 ### Helpful Resources
 
-- [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
-  - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
-- [OpenModelDB Model Database](https://openmodeldb.info/)
-  - A nice collection of Super-Resolution models that have been trained by the community.
-- [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
-  - An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
+-   [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
+    -   A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
+-   [OpenModelDB Model Database](https://openmodeldb.info/)
+    -   A nice collection of Super-Resolution models that have been trained by the community.
+-   [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
+    -   An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
 
 ## Compatibility Notes
 
-- MacOS versions 10.x and below are not supported.
+-   MacOS versions 10.x and below are not supported.
 
-- Windows versions 8.1 and below are also not supported.
+-   Windows versions 8.1 and below are also not supported.
 
-- Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
+-   Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
 
-- Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
+-   Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
-- To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
+-   To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
 
 ## GPU Support
 
@@ -108,18 +108,18 @@ As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.co
 
 #### Single Image Super Resolution
 
-- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN (and its variants) and with Waifu2x.
+-   Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN (and its variants) and with Waifu2x.
 
 ### ONNX
 
 #### Single Image Super Resolution
 
-- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN.
+-   Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN.
 
 #### Background Removal
 
-- [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
-- [isnet](https://github.com/xuebinqin/DIS) | [isnet](https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx)
+-   [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
+-   [isnet](https://github.com/xuebinqin/DIS) | [isnet](https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx)
 
 ## Troubleshooting
 
