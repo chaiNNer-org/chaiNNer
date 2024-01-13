@@ -21,16 +21,18 @@ import {
     ModalHeader,
     ModalOverlay,
     Progress,
+    Select,
     Spacer,
     Spinner,
-    Switch,
     Tag,
     Text,
     Textarea,
     Tooltip,
     VStack,
     useDisclosure,
+    useToast,
 } from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';
@@ -46,7 +48,7 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
+import { OnStdio, getFindLinks, runPipInstall, runPipUninstall } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
@@ -55,6 +57,12 @@ import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
+
+const installModes = {
+    NORMAL: 'Normal Install',
+    DIRECT_PIP: 'Direct Pip',
+    MANUAL_COPY: 'Manual/Copy',
+};
 
 export interface DependencyContextValue {
     openDependencyManager: () => void;
@@ -382,7 +390,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [isSystemPython] = useIsSystemPython;
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-    const [usePipDirectly, setUsePipDirectly] = useState(false);
+    const [installMode, setInstallMode] = useState(installModes.NORMAL);
 
     const { data: installedPyPi, refetch: refetchInstalledPyPi } = useQuery({
         queryKey: 'dependencies',
@@ -415,6 +423,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     );
     const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
+    const toast = useToast();
+
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
@@ -444,25 +454,65 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             });
     };
 
-    const installPackage = (p: Package) => {
-        setInstallingPackage(p);
+    const copyCommandToClipboard = (command: string) => {
+        clipboard.writeText(command);
+        toast({
+            title: 'Command copied to clipboard.',
+            description:
+                'Open up anm external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.',
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+        });
+    };
+
+    const installPackage = (pkg: Package) => {
+        if (installMode === installModes.MANUAL_COPY) {
+            const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
+            const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => [
+                '--extra-index-url',
+                l,
+            ]);
+            const args = [
+                pythonInfo.python,
+                '-m',
+                'pip',
+                'install',
+                '--upgrade',
+                ...deps,
+                ...findLinks,
+                '--no-cache-dir',
+                '--disable-pip-version-check',
+            ];
+            const cmd = args.join(' ');
+            copyCommandToClipboard(cmd);
+            return;
+        }
+        setInstallingPackage(pkg);
         changePackages(() =>
             runPipInstall(
                 pythonInfo,
-                p.dependencies,
-                usePipDirectly ? undefined : setProgress,
+                pkg.dependencies,
+                installMode === installModes.NORMAL ? setProgress : undefined,
                 onStdio
             )
         );
     };
 
-    const uninstallPackage = (p: Package) => {
-        setUninstallingPackage(p);
+    const uninstallPackage = (pkg: Package) => {
+        if (installMode === installModes.MANUAL_COPY) {
+            const deps = pkg.dependencies.map((p) => p.pypiName);
+            const args = [pythonInfo.python, '-m', 'pip', 'uninstall', ...deps];
+            const cmd = args.join(' ');
+            copyCommandToClipboard(cmd);
+            return;
+        }
+        setUninstallingPackage(pkg);
         changePackages(() =>
             runPipUninstall(
                 pythonInfo,
-                p.dependencies,
-                usePipDirectly ? undefined : setProgress,
+                pkg.dependencies,
+                installMode === installModes.NORMAL ? setProgress : undefined,
                 onStdio
             )
         );
@@ -531,29 +581,34 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     Python ({pythonInfo.version}) [
                                     {isSystemPython ? 'System' : 'Integrated'}]
                                 </Text>
-                                <HStack>
+                                <HStack gap={2}>
                                     <HStack>
-                                        <Switch
-                                            isChecked={usePipDirectly}
-                                            isDisabled={isRunningShell}
-                                            onChange={() => {
-                                                setUsePipDirectly(!usePipDirectly);
-                                            }}
-                                        />
-                                        <Text>Use Pip Directly</Text>
-                                        <Tooltip
-                                            hasArrow
-                                            borderRadius={8}
-                                            label="Disable progress bars and use pip to directly download and install the packages. Use this setting if you are having issues installing normally."
-                                            maxW="auto"
-                                            openDelay={500}
-                                            px={2}
-                                            py={0}
-                                        >
-                                            <Center>
-                                                <Icon as={BsQuestionCircle} />
-                                            </Center>
-                                        </Tooltip>
+                                        <HStack>
+                                            <Select
+                                                isDisabled={isRunningShell}
+                                                size="md"
+                                                value={installMode}
+                                                onChange={(e) => {
+                                                    setInstallMode(e.target.value);
+                                                }}
+                                            >
+                                                <option>{installModes.NORMAL}</option>
+                                                <option>{installModes.DIRECT_PIP}</option>
+                                                <option>{installModes.MANUAL_COPY}</option>
+                                            </Select>
+                                            <Tooltip
+                                                hasArrow
+                                                borderRadius={8}
+                                                label="Change the dependency install mode. Normal Install is recommended, but if you are having issues, you can try using the Direct Pip mode (which will not show progress), or Manual/Copy mode, which will copy the correct install command to your clipboard for you to run in your own terminal."
+                                                openDelay={500}
+                                                px={2}
+                                                py={0}
+                                            >
+                                                <Center>
+                                                    <Icon as={BsQuestionCircle} />
+                                                </Center>
+                                            </Tooltip>
+                                        </HStack>
                                     </HStack>
                                     <Button
                                         aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
@@ -615,7 +670,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 key={p.id}
                                                 p={p}
                                                 progress={
-                                                    !usePipDirectly &&
+                                                    installMode === installModes.NORMAL &&
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
                                                         ?.id === p.id
