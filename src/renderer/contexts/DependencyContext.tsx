@@ -599,7 +599,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                             <Tooltip
                                                 hasArrow
                                                 borderRadius={8}
-                                                label="Change the dependency install mode. Normal Install is recommended, but if you are having issues, you can try using the Direct Pip mode (which will not show progress), or Manual/Copy mode, which will copy the correct install command to your clipboard for you to run in your own terminal."
+                                                label="Change the dependency install mode. Normal Install is recommended, but if you are having issues, you can try using the Direct Pip mode (which will not show progress), or Manual/Copy mode, which will copy the correct install command to your clipboard for you to run in your own terminal (restart chaiNNer manually after)."
                                                 openDelay={500}
                                                 px={2}
                                                 py={0}
