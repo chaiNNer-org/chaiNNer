@@ -95,16 +95,19 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
 
     output: Output
     if l == 0:
-        assert raw_output is None, f"Expected all {node.name} nodes to return None."
+        if raw_output is not None:
+            raise ValueError(f"Expected all {node.name} nodes to return None.")
         output = []
     elif l == 1:
         output = [raw_output]
     else:
-        assert isinstance(raw_output, (tuple, list))
+        if not isinstance(raw_output, (tuple, list)):
+            raise ValueError(f"Expected {node.name} nodes to return a tuple or list.")
         output = list(raw_output)
-        assert (
-            len(output) == l
-        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        if len(output) != l:
+            raise ValueError(
+                f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+            )
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
@@ -120,17 +123,26 @@ def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutpu
     partial: list[object] = [None] * l
 
     if l == len(iterator_output.outputs):
-        assert isinstance(raw_output, Iterator), "Expected the output to be an iterator"
+        if not isinstance(raw_output, Iterator):
+            raise ValueError(
+                f"Expected the output to be an iterator, but got {type(raw_output)}"
+            )
         return IteratorOutput(iterator=raw_output, partial_output=partial)
 
-    assert l > len(iterator_output.outputs)
-    assert isinstance(raw_output, (tuple, list))
+    if not l > len(iterator_output.outputs):
+        raise ValueError(
+            f"Expected the output to have at least {l} values, but got {len(iterator_output.outputs)}"
+        )
+    if not isinstance(raw_output, (tuple, list)):
+        raise ValueError(
+            f"Expected the output to be a tuple or list, but got {type(raw_output)}"
+        )
 
     iterator, *rest = raw_output
-    assert isinstance(
-        iterator, Iterator
-    ), "Expected the first tuple element to be an iterator"
-    assert len(rest) == l - len(iterator_output.outputs)
+    if not isinstance(iterator, Iterator):
+        raise ValueError("Expected the first tuple element to be an iterator")
+    if len(rest) != l - len(iterator_output.outputs):
+        raise ValueError(f"Expected the output to have {l} values, but got {len(rest)}")
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
@@ -157,12 +169,15 @@ def run_node(
             raw_output = node.run(*enforced_inputs)
 
         if node.type == "collector":
-            assert isinstance(raw_output, Collector)
+            if not isinstance(raw_output, Collector):
+                raise ValueError(
+                    f"Expected a {node.type} to return a collector, but got {type(raw_output)}"
+                )
             return CollectorOutput(raw_output)
         if node.type == "newIterator":
             return enforce_iterator_output(raw_output, node)
 
-        assert node.type == "regularNode"
+        assert node.type == "regularNode"  # noqa: S101
         return enforce_output(raw_output, node)
     except Aborted:
         raise
@@ -207,7 +222,10 @@ def run_collector_iterate(
 
     try:
         raw_output = collector.on_iterate(input_value)
-        assert raw_output is None
+        if raw_output is not None:
+            raise ValueError(
+                "Expected collector.on_iterate to return None, but got a value."
+            )
     except Exception as e:
         input_dict = collect_input_information(
             node.data, get_partial_inputs(enforced_inputs)
@@ -361,7 +379,8 @@ class Executor:
         This will run all necessary node events.
         """
         result = await self.process(node.id)
-        assert isinstance(result, RegularOutput)
+        if not isinstance(result, RegularOutput):
+            raise ValueError("Expected result to be a regular output")
         return result
 
     async def process_iterator_node(self, node: NewIteratorNode) -> IteratorOutput:
@@ -372,7 +391,8 @@ class Executor:
         `node-broadcast` events will be sent.
         """
         result = await self.process(node.id)
-        assert isinstance(result, IteratorOutput)
+        if not isinstance(result, IteratorOutput):
+            raise ValueError("Expected result to be an iterator output")
         return result
 
     async def process_collector_node(self, node: CollectorNode) -> CollectorOutput:
@@ -383,7 +403,8 @@ class Executor:
         will be sent.
         """
         result = await self.process(node.id)
-        assert isinstance(result, CollectorOutput)
+        if not isinstance(result, CollectorOutput):
+            raise ValueError("Expected result to be a collector output")
         return result
 
     async def __get_node_output(self, node_id: NodeId, output_index: int) -> object:
@@ -402,10 +423,13 @@ class Executor:
 
         if isinstance(output, IteratorOutput):
             value = output.partial_output[output_index]
-            assert value is not None, "An iterator output was not assigned correctly"
+            if value is None:
+                raise ValueError("An iterator output was not assigned correctly")
             return value
 
-        assert isinstance(output, RegularOutput)
+        assert isinstance(  # noqa: S101
+            output, RegularOutput
+        ), "Expected output to be a regular output"
         return output.output[output_index]
 
     async def __resolve_node_input(self, node_input: Input) -> object:
@@ -431,7 +455,10 @@ class Executor:
                     ignore.add(input_index)
 
         assigned_inputs = self.inputs.get(node.id)
-        assert len(assigned_inputs) == len(node.data.inputs)
+        if len(assigned_inputs) != len(node.data.inputs):
+            raise ValueError(
+                f"Expected {len(node.data.inputs)} inputs, but got {len(assigned_inputs)}"
+            )
 
         inputs = []
         for input_index, node_input in enumerate(assigned_inputs):
@@ -450,7 +477,10 @@ class Executor:
         iterator_input = node.data.single_iterator_input
 
         assigned_inputs = self.inputs.get(node.id)
-        assert len(assigned_inputs) == len(node.data.inputs)
+        if len(assigned_inputs) != len(node.data.inputs):
+            raise ValueError(
+                f"Expected {len(node.data.inputs)} inputs, but got {len(assigned_inputs)}"
+            )
 
         inputs = []
         for input_index, node_input in enumerate(assigned_inputs):
@@ -533,7 +563,7 @@ class Executor:
             elif isinstance(n, NewIteratorNode):
                 raise ValueError("Nested iterators are not supported")
             else:
-                assert isinstance(n, FunctionNode)
+                assert isinstance(n, FunctionNode)  # noqa: S101
 
                 if n.has_side_effects():
                     output_nodes.add(n)
@@ -561,10 +591,16 @@ class Executor:
         if len(iterator_output.outputs) == 1:
             values_list.append(values)
         else:
-            assert isinstance(values, (tuple, list))
+            if not isinstance(values, (tuple, list)):
+                raise ValueError(
+                    f"Expected values to be a tuple or list, but got {type(values)}"
+                )
             values_list.extend(values)
 
-        assert len(values_list) == len(iterator_output.outputs)
+        if len(values_list) != len(iterator_output.outputs):
+            raise ValueError(
+                f"Expected values_list to have {len(iterator_output.outputs)} values, but got {len(values_list)}"
+            )
 
         output: Output = partial_output.copy()
         for index, o in enumerate(node.data.outputs):
@@ -603,7 +639,6 @@ class Executor:
             timer = _Timer()
             with timer.run():
                 collector_output = await self.process_collector_node(collector_node)
-            assert isinstance(collector_output, CollectorOutput)
             collectors.append((collector_output.collector, timer, collector_node))
 
         # timing iterations

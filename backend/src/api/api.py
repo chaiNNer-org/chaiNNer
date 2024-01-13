@@ -129,12 +129,18 @@ class NodeData:
 
     @property
     def single_iterator_input(self) -> IteratorInputInfo:
-        assert len(self.iterator_inputs) == 1
+        if len(self.iterator_inputs[0].inputs) != 1:
+            raise ValueError(
+                "Expected exactly one input for single iterator input node"
+            )
         return self.iterator_inputs[0]
 
     @property
     def single_iterator_output(self) -> IteratorOutputInfo:
-        assert len(self.iterator_outputs) == 1
+        if len(self.iterator_outputs[0].outputs) != 1:
+            raise ValueError(
+                "Expected exactly one output for single iterator output node"
+            )
         return self.iterator_outputs[0]
 
 
@@ -207,12 +213,22 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if node_type == "collector":
-            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        elif node_type == "newIterator":
-            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
-        else:
-            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
+        if node_type == "collector" and not (
+            len(iterator_inputs) == 1 and len(iterator_outputs) == 0
+        ):
+            raise ValueError(
+                "Collector nodes must have exactly one iterator input and zero iterator outputs"
+            )
+        elif node_type == "newIterator" and not (
+            len(iterator_inputs) == 0 and len(iterator_outputs) == 1
+        ):
+            raise ValueError(
+                "Iterator nodes must have exactly zero iterator inputs and one iterator output"
+            )
+        elif not (len(iterator_inputs) == 0 and len(iterator_outputs) == 0):
+            raise ValueError(
+                "Regular nodes must have exactly zero iterator inputs and zero iterator outputs"
+            )
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
