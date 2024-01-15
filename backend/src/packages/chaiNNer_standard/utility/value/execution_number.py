@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from nodes.properties.inputs.__system_inputs import StaticValueInput
-from nodes.properties.inputs.numeric_inputs import get_number_type
 from nodes.properties.outputs import NumberOutput
 
 from .. import value_group
@@ -9,7 +8,7 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:execution_number",
-    name="Get Execution Number",
+    name="Execution Number",
     description="Get the current execution number of this session. Increments by 1 every time you press the play button.",
     icon="MdNumbers",
     inputs=[
@@ -24,5 +23,5 @@ from .. import value_group
         NumberOutput("Execution Number", output_type="Input0"),
     ],
 )
-def get_execution_number_node(number: int) -> int:
+def execution_number_node(number: int) -> int:
     return number
