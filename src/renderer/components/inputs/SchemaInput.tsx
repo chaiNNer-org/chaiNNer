@@ -17,6 +17,7 @@ import { InputContainer, InputHandle } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
+import { StaticValueInput } from './StaticValueInput';
 import { TextInput } from './TextInput';
 
 const InputComponents: {
@@ -33,6 +34,7 @@ const InputComponents: {
     slider: SliderInput,
     color: ColorInput,
     generic: GenericInput,
+    static: StaticValueInput,
 };
 
 export interface SingleInputProps {

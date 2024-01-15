@@ -134,6 +134,12 @@ export interface ColorInput extends InputBase {
     readonly def: string;
     readonly channels?: readonly number[] | null;
 }
+
+export interface StaticValueInput extends InputBase {
+    readonly kind: 'static';
+    readonly valueOf: 'execution_number' | 'datetime' | 'auto';
+}
+
 export type InputKind = Input['kind'];
 export type Input =
     | GenericInput
@@ -143,7 +149,8 @@ export type Input =
     | DropDownInput
     | SliderInput
     | NumberInput
-    | ColorInput;
+    | ColorInput
+    | StaticValueInput;
 
 export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
