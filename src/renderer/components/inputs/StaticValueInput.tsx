@@ -22,7 +22,7 @@ export const StaticValueInput = memo(
                     setValue(0);
                     break;
             }
-        }, [value, setValue, valueOf, executionNumber]);
+        }, [setValue, valueOf, executionNumber]);
 
         return (
             <WithoutLabel>
