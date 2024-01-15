@@ -47,8 +47,8 @@ export interface NodeProps {
 }
 
 enum EditorMode {
-    Md,
     Text,
+    Md,
 }
 
 const noteScrollbarStyle = {

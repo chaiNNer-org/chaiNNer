@@ -1873,16 +1873,6 @@ const unifiedResizeNode: ModernMigration = (data) => {
     return data;
 };
 
-const newNoteNode: ModernMigration = (data) => {
-    data.nodes.forEach((node) => {
-        if (node.data.schemaId === 'chainner:utility:note') {
-            // node.data.schemaId = 'chainner:builtin:note' as SchemaId;
-            node.type = 'note';
-        }
-    });
-    return data;
-};
-
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1939,7 +1929,6 @@ const migrations = [
     removeZIndexes,
     createBorderEdgesTileFillToPad,
     unifiedResizeNode,
-    newNoteNode,
 ];
 
 export const currentMigration = migrations.length;
