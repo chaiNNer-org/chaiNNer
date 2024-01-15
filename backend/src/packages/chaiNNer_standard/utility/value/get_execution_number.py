@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from nodes.properties.inputs.__system_inputs import StaticValueInput
+from nodes.properties.inputs.numeric_inputs import get_number_type
 from nodes.properties.outputs import NumberOutput
 
 from .. import value_group
@@ -15,7 +16,11 @@ from .. import value_group
         StaticValueInput(
             label="Execution Number",
             value_of="execution_number",
-            navi_type="number",
+            navi_type=get_number_type(
+                1,
+                None,
+                0,
+            ),
             py_type=int,
         ).make_fused(),
     ],
