@@ -450,7 +450,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         typeStateRef,
         features,
         featureStates,
-        executionNumber,
         backend,
         options,
         clearNodeStatusMap,
