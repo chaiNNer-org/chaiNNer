@@ -16,11 +16,7 @@ from .. import value_group
         StaticValueInput(
             label="Execution Number",
             value_of="execution_number",
-            navi_type=get_number_type(
-                1,
-                None,
-                0,
-            ),
+            navi_type="int(1..)",
             py_type=int,
         ).make_fused(),
     ],
