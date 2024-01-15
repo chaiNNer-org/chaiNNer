@@ -9,6 +9,7 @@ from onnx import numpy_helper as onph
 from onnx.onnx_pb import TensorProto
 from sanic.log import logger
 
+from api import NodeContext
 from nodes.impl.onnx.model import OnnxModel, load_onnx_model
 from nodes.impl.onnx.utils import safely_optimize_onnx_model
 from nodes.impl.upscale.auto_split_tiles import NO_TILING
@@ -46,9 +47,9 @@ def perform_interp(
     return interp_weights_list
 
 
-def check_will_upscale(model: OnnxModel):
+def check_will_upscale(context: NodeContext, model: OnnxModel):
     fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-    result = upscale_image_node(fake_img, model, NO_TILING, False)
+    result = upscale_image_node(context, fake_img, model, NO_TILING, False)
 
     mean_color = np.mean(result)
     del result
@@ -81,8 +82,10 @@ def check_will_upscale(model: OnnxModel):
         NumberOutput("Amount A", output_type="100 - Input2"),
         NumberOutput("Amount B", output_type="Input2"),
     ],
+    node_context=True,
 )
 def interpolate_models_node(
+    context: NodeContext,
     a: OnnxModel,
     b: OnnxModel,
     amount: int,
@@ -116,7 +119,7 @@ def interpolate_models_node(
     model_interp = model_proto_interp.SerializeToString()  # type: ignore
 
     model = load_onnx_model(model_interp)
-    if not check_will_upscale(model):
+    if not check_will_upscale(context, model):
         raise ValueError(
             "These models are not compatible and not able to be interpolated together"
         )

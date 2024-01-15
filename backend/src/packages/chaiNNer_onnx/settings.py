@@ -7,7 +7,7 @@ from typing import List, cast
 import onnxruntime as ort
 from sanic.log import logger
 
-from api import CacheSetting, DropdownSetting, ToggleSetting
+from api import CacheSetting, DropdownSetting, NodeContext, ToggleSetting
 from gpu import get_nvidia_helper
 from system import is_arm_mac
 
@@ -90,8 +90,8 @@ class OnnxSettings:
     tensorrt_fp16_mode: bool
 
 
-def get_settings() -> OnnxSettings:
-    settings = package.get_settings()
+def get_settings(context: NodeContext) -> OnnxSettings:
+    settings = context.settings
 
     tensorrt_cache_path = settings.get_cache_location("onnx_tensorrt_cache")
     logger.info(f"TensorRT cache location: {tensorrt_cache_path}")

@@ -5,7 +5,9 @@
     }
   },
   "dependencyManager": {
-    "manageDependencies": "Manage Dependencies"
+    "manageDependencies": "Manage Dependencies",
+    "updatesAvailable": "Updates Available",
+    "updatesAvailableDescription": "There are {{count}} updates available for your dependencies."
   },
   "error": {
     "error": "Error",

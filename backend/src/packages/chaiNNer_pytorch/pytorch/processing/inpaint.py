@@ -7,6 +7,7 @@ import torch
 from spandrel import MaskedImageModelDescriptor
 
 import navi
+from api import NodeContext
 from nodes.impl.image_utils import as_3d
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import ImageInput
@@ -143,8 +144,10 @@ def inpaint(
             channels=3,
         ).with_never_reason("The given image and mask must have the same resolution.")
     ],
+    node_context=True,
 )
 def inpaint_node(
+    context: NodeContext,
     img: np.ndarray,
     mask: np.ndarray,
     model: MaskedImageModelDescriptor,
@@ -153,6 +156,6 @@ def inpaint_node(
         img.shape[:2] == mask.shape[:2]
     ), "Input image and mask must have the same resolution"
 
-    exec_options = get_settings()
+    exec_options = get_settings(context)
 
     return inpaint(img, mask, model, exec_options)

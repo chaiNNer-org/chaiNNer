@@ -5,6 +5,7 @@ import os
 from sanic.log import logger
 from spandrel import ModelDescriptor, ModelLoader
 
+from api import NodeContext
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.utils import split_file_path
@@ -56,11 +57,14 @@ def parse_ckpt_state_dict(checkpoint: dict):
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
+    node_context=True,
     see_also=[
         "chainner:pytorch:load_models",
     ],
 )
-def load_model_node(path: str) -> tuple[ModelDescriptor, str, str]:
+def load_model_node(
+    context: NodeContext, path: str
+) -> tuple[ModelDescriptor, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 
@@ -68,7 +72,7 @@ def load_model_node(path: str) -> tuple[ModelDescriptor, str, str]:
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
-    exec_options = get_settings()
+    exec_options = get_settings(context)
     pytorch_device = exec_options.device
 
     try:

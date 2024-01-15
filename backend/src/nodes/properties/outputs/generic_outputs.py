@@ -17,7 +17,7 @@ class NumberOutput(BaseOutput):
         output_type: navi.ExpressionJson = "number",
     ):
         super().__init__(
-            navi.intersect("number", output_type),
+            navi.intersect_with_error("number", output_type),
             label,
             associated_type=Union[int, float],
         )
@@ -36,7 +36,7 @@ class TextOutput(BaseOutput):
         label: str,
         output_type: navi.ExpressionJson = "string",
     ):
-        super().__init__(navi.intersect("string", output_type), label)
+        super().__init__(navi.intersect_with_error("string", output_type), label)
 
     def get_broadcast_type(self, value: str):
         return navi.literal(value)
@@ -73,7 +73,9 @@ class ColorOutput(BaseOutput):
         channels: int | None = None,
     ):
         super().__init__(
-            output_type=navi.intersect(color_type, navi.Color(channels=channels)),
+            output_type=navi.intersect_with_error(
+                color_type, navi.Color(channels=channels)
+            ),
             label=label,
             kind="generic",
         )

@@ -25,7 +25,7 @@ def denoise_and_flatten_alpha(img: np.ndarray) -> np.ndarray:
     alpha_max = np.max(img, axis=2)
     alpha_mean = np.mean(img, axis=2)
     alpha = alpha_max * alpha_mean + alpha_min * (1 - alpha_mean)
-    return alpha
+    return alpha.clip(0, 1)
 
 
 def convenient_upscale(
