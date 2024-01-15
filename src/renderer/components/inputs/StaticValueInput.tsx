@@ -8,7 +8,7 @@ import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const StaticValueInput = memo(
-    ({ value, setValue, input, definitionType }: InputProps<'static', number>) => {
+    ({ value, setValue, input, definitionType }: InputProps<'static', number | string>) => {
         const { valueOf } = input;
         const { executionNumber } = useContext(ExecutionContext);
         const { conditionallyInactive } = useContext(InputContext);
