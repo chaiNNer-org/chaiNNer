@@ -137,7 +137,7 @@ export interface ColorInput extends InputBase {
 
 export interface StaticValueInput extends InputBase {
     readonly kind: 'static';
-    readonly valueOf: 'execution_number' | 'datetime' | 'auto';
+    readonly valueOf: 'execution_number';
 }
 
 export type InputKind = Input['kind'];
