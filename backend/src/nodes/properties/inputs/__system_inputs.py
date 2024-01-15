@@ -3,8 +3,6 @@ from __future__ import annotations
 import math
 from typing import Literal
 
-from sanic.log import logger
-
 from api import BaseInput
 from navi import ExpressionJson
 
@@ -33,14 +31,8 @@ class StaticValueInput(BaseInput):
 
     def enforce(self, value: object):
         return_value = value
-        logger.info(f"wtf: {value}")
         if not isinstance(value, self.associated_type):
-            if self.associated_type == int:
-                return_value = int(value)  # type: ignore
-            elif self.associated_type == float:
-                return_value = float(value)  # type: ignore
-            elif self.associated_type == str:
-                return_value = str(value)
+            return_value = self.associated_type(value)
 
         if isinstance(value, (float, int)) and math.isnan(value):
             raise ValueError("NaN is not a valid number")
