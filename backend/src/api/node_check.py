@@ -4,10 +4,12 @@ import ast
 import inspect
 import os
 import pathlib
+from collections import OrderedDict
 from enum import Enum
 from typing import Any, Callable, NewType, Tuple, Union, cast, get_args
 
 from .input import BaseInput
+from .node_context import NodeContext
 from .output import BaseOutput
 
 _Ty = NewType("_Ty", object)
@@ -190,23 +192,37 @@ def check_schema_types(
     wrapped_func: Callable,
     inputs: list[BaseInput],
     outputs: list[BaseOutput],
+    node_context: bool,
 ):
     """
     Runtime validation for the number of inputs/outputs compared to the type args
     """
 
-    ann = get_type_annotations(wrapped_func)
+    ann = OrderedDict(get_type_annotations(wrapped_func))
 
     # check return type
     if "return" in ann:
         validate_return_type(ann.pop("return"), outputs)
 
-    # check inputs
-
+    # check arguments
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
         if arg not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg}'")
+
+    if node_context:
+        first = arg_spec.args[0]
+        if first != "context":
+            raise CheckFailedError(
+                f"Expected the first parameter to be 'context: NodeContext' but found '{first}'."
+            )
+        context_type = ann.pop(first)
+        if context_type != NodeContext:  # type: ignore
+            raise CheckFailedError(
+                f"Expected type of 'context' to be 'api.NodeContext' but found '{context_type}'"
+            )
+
+    # check inputs
 
     if arg_spec.varargs is not None:
         if arg_spec.varargs not in ann:

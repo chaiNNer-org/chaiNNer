@@ -412,7 +412,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     //     [setEdges]
     // );
 
-    const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
+    const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu();
 
     const [selectedNodes, setSelectedNodes] = useState<Node<NodeData>[]>([]);
     const selectionMenu = useNodesMenu(selectedNodes);

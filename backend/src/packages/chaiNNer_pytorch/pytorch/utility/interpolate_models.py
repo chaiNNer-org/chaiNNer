@@ -16,7 +16,6 @@ from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
 
-from ...settings import get_settings
 from .. import utility_group
 
 
@@ -119,7 +118,6 @@ def interpolate_models_node(
 
     state_dict = perform_interp(state_a, state_b, amount)
 
-    get_settings()
     model = ModelLoader().load_from_state_dict(state_dict)
 
     return model, 100 - amount, amount

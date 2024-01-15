@@ -4,6 +4,7 @@ import numpy as np
 import onnxruntime as ort
 from sanic.log import logger
 
+from api import NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxModel
@@ -89,15 +90,17 @@ def upscale(
     outputs=[ImageOutput("Image")],
     name="Upscale Image",
     icon="ONNX",
+    node_context=True,
 )
 def upscale_image_node(
+    context: NodeContext,
     img: np.ndarray,
     model: OnnxModel,
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
     """Upscales an image with a pretrained model"""
-    settings = get_settings()
+    settings = get_settings(context)
     session = get_onnx_session(
         model,
         settings.gpu_index,
