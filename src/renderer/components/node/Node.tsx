@@ -154,10 +154,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const startingNode = isStartingNode(schema);
     const isNewIterator = schema.nodeType === 'newIterator';
-    const isBuiltInNode = schema.schemaId.startsWith('chainner:builtin');
+    const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
     const reload = useRunNode(
         data,
-        validity.isValid && startingNode && !isNewIterator && !isBuiltInNode
+        validity.isValid && startingNode && !isNewIterator && !hasStaticValueInput
     );
     const filesToWatch = useMemo(() => {
         if (!startingNode) return EMPTY_ARRAY;
