@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
+from api import NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.model import OnnxRemBg
 from nodes.impl.onnx.session import get_onnx_session
@@ -53,8 +54,10 @@ from .. import processing_group
         ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
     limited_to_8bpc=True,
+    node_context=True,
 )
 def remove_background_node(
+    context: NodeContext,
     img: np.ndarray,
     model: OnnxRemBg,
     post_process_mask: bool,
@@ -65,7 +68,7 @@ def remove_background_node(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Removes background from image"""
 
-    settings = get_settings()
+    settings = get_settings(context)
     session = get_onnx_session(
         model,
         settings.gpu_index,

@@ -30,13 +30,13 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.1",
+                version="2.1.2",
                 size_estimate=55.8 * MB,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.16.1",
+                version="0.16.2",
                 size_estimate=1.3 * MB,
             ),
         ]
@@ -45,23 +45,23 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.1+cu121" if nvidia_is_available else "2.1.1",
+                version="2.1.2+cu121" if nvidia_is_available else "2.1.2",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.16.1+cu121" if nvidia_is_available else "0.16.1",
+                version="0.16.2+cu121" if nvidia_is_available else "0.16.2",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
             ),
         ]
@@ -95,8 +95,8 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.1.5",
-            size_estimate=250 * KB,
+            version="0.1.7",
+            size_estimate=287 * KB,
         ),
     ],
     icon="PyTorch",

@@ -15,6 +15,7 @@ except ImportError:
     use_gpu = False
 from sanic.log import logger
 
+from api import NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper
@@ -36,7 +37,7 @@ from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 from system import is_mac
 
-from ...settings import get_settings
+from ...settings import NcnnSettings, get_settings
 from .. import processing_group
 
 
@@ -66,13 +67,13 @@ def ncnn_allocators(vkdev: ncnn.VulkanDevice):
 
 
 def upscale_impl(
+    settings: NcnnSettings,
     img: np.ndarray,
     model: NcnnModelWrapper,
     input_name: str,
     output_name: str,
     tile_size: TileSize,
 ):
-    settings = get_settings()
     net = get_ncnn_net(model, settings=settings)
     # Try/except block to catch errors
     try:
@@ -181,10 +182,17 @@ def upscale_impl(
         ImageOutput(image_type="""convenientUpscale(Input0, Input1)"""),
     ],
     limited_to_8bpc=True,
+    node_context=True,
 )
 def upscale_image_node(
-    img: np.ndarray, model: NcnnModelWrapper, tile_size: TileSize, separate_alpha: bool
+    context: NodeContext,
+    img: np.ndarray,
+    model: NcnnModelWrapper,
+    tile_size: TileSize,
+    separate_alpha: bool,
 ) -> np.ndarray:
+    settings = get_settings(context)
+
     def upscale(i: np.ndarray) -> np.ndarray:
         ic = get_h_w_c(i)[2]
         if ic == 3:
@@ -192,6 +200,7 @@ def upscale_image_node(
         elif ic == 4:
             i = cv2.cvtColor(i, cv2.COLOR_BGRA2RGBA)
         i = upscale_impl(
+            settings,
             i,
             model,
             model.model.layers[0].outputs[0],

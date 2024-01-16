@@ -1,5 +1,6 @@
 import {
     Expression,
+    NamedExpression,
     NeverType,
     NonNeverType,
     NumberType,
@@ -17,7 +18,8 @@ import {
     without,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, lazyKeyed, topologicalSort } from '../util';
+import { EMPTY_MAP, lazy, lazyKeyed, topologicalSort } from '../util';
+import { getChainnerScope } from './chainner-scope';
 import { fromJson } from './json';
 
 const getConversionScope = lazyKeyed((parentScope: Scope) => {
@@ -116,6 +118,48 @@ const evaluateInputs = (
     }
 
     return { ordered, defaults };
+};
+
+const getErrorType = lazy(() => {
+    const scope = getChainnerScope();
+    const errorType = evaluate(new NamedExpression('Error'), scope);
+    if (errorType.underlying !== 'struct' || errorType.type !== 'instance') {
+        throw new Error('Error type is not a struct');
+    }
+    return errorType;
+});
+
+const splitOutputTypeAndError = (
+    definition: FunctionDefinition,
+    type: Type
+): [Type, string | undefined] => {
+    const errorType = getErrorType();
+    const error = intersect(type, errorType);
+    if (error.type === 'never') {
+        // no error
+        return [type, undefined];
+    }
+
+    const pureType = without(type, errorType);
+
+    // get the error message
+    if (error.underlying !== 'struct' || error.type !== 'instance') {
+        throw new Error('Error type is not a struct');
+    }
+
+    const messageType = error.getField('message')!;
+    const messageItems = messageType.underlying === 'union' ? messageType.items : [messageType];
+    const messages: string[] = [];
+    for (const item of messageItems) {
+        if (item.underlying === 'string' && item.type === 'literal') {
+            messages.push(item.value);
+        }
+    }
+    if (messages.length === 0) {
+        messages.push('Unknown error');
+    }
+
+    return [pureType, messages.join(' ')];
 };
 
 interface OutputInfo {
@@ -459,6 +503,7 @@ export interface FunctionInputAssignmentError {
 }
 export interface FunctionOutputError {
     outputId: OutputId;
+    message: string | undefined;
 }
 export class FunctionInstance {
     readonly definition: FunctionDefinition;
@@ -563,8 +608,18 @@ export class FunctionInstance {
             let type: Type;
             if (definition.outputGenerics.has(id)) {
                 type = evaluate(definition.outputExpressions.get(id)!, scope);
+
                 if (type.type === 'never') {
-                    outputErrors.push({ outputId: id });
+                    const message =
+                        definition.schema.outputs.find((o) => o.id === id)?.neverReason ??
+                        undefined;
+                    outputErrors.push({ outputId: id, message });
+                } else {
+                    let message;
+                    [type, message] = splitOutputTypeAndError(definition, type);
+                    if (type.type === 'never') {
+                        outputErrors.push({ outputId: id, message });
+                    }
                 }
             } else {
                 type = definition.outputDefaults.get(id)!;

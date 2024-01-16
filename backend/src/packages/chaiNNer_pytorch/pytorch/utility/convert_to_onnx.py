@@ -5,6 +5,7 @@ from enum import Enum
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.SCUNet import SCUNet
 
+from api import NodeContext
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
 from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
@@ -64,16 +65,17 @@ OPSET_LABELS: dict[Opset, str] = {
             """,
         ),
     ],
+    node_context=True,
 )
 def convert_to_onnx_node(
-    model: ImageModelDescriptor, is_fp16: int, opset: Opset
+    context: NodeContext, model: ImageModelDescriptor, is_fp16: int, opset: Opset
 ) -> tuple[OnnxGeneric, str, str]:
     assert not isinstance(
         model.model, SCUNet
     ), "SCUNet is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
-    exec_options = get_settings()
+    exec_options = get_settings(context)
     device = exec_options.device
     if fp16:
         assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."

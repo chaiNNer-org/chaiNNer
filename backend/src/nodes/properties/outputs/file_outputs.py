@@ -18,7 +18,7 @@ class DirectoryOutput(BaseOutput):
             if of_input is None
             else f"splitFilePath(Input{of_input}.path).dir"
         )
-        directory_type = navi.intersect(directory_type, output_type)
+        directory_type = navi.intersect_with_error(directory_type, output_type)
         super().__init__(directory_type, label, associated_type=str)
 
     def get_broadcast_type(self, value: str):

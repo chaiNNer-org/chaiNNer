@@ -5,8 +5,9 @@ import os
 from sanic.log import logger
 from spandrel import ModelDescriptor
 
-from api import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo, NodeContext
 from nodes.properties.inputs import DirectoryInput
+from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
 from nodes.properties.outputs.pytorch_outputs import ModelOutput
 from nodes.utils.utils import list_all_files_sorted
@@ -26,6 +27,10 @@ from ..io.load_model import load_model_node
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            hint=True,
+        ),
     ],
     outputs=[
         ModelOutput(),
@@ -38,19 +43,22 @@ from ..io.load_model import load_model_node
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
     node_type="newIterator",
+    node_context=True,
 )
 def load_models_node(
+    context: NodeContext,
     directory: str,
+    fail_fast: bool,
 ) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], str]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: str, index: int):
-        model, dirname, basename = load_model_node(path)
+        model, dirname, basename = load_model_node(context, path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 
-    supported_filetypes = [".pt", ".pth", ".ckpt"]
+    supported_filetypes = [".pt", ".pth", ".ckpt", ".safetensors"]
     model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model), directory
+    return Iterator.from_list(model_files, load_model, fail_fast), directory

@@ -103,11 +103,16 @@ export const RepresentativeNodeWrapper = memo(
         const createNodeFromSelector = useCallback(() => {
             if (!reactFlowWrapper.current) return;
 
-            const { height: wHeight, width } = reactFlowWrapper.current.getBoundingClientRect();
+            const {
+                height: wHeight,
+                width,
+                x,
+                y,
+            } = reactFlowWrapper.current.getBoundingClientRect();
 
-            const position = reactFlowInstance.project({
-                x: width / 2,
-                y: wHeight / 2,
+            const position = reactFlowInstance.screenToFlowPosition({
+                x: (width + x) / 2,
+                y: (wHeight + y) / 2,
             });
 
             createNode({

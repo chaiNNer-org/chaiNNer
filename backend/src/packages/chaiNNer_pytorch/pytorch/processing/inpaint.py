@@ -7,6 +7,7 @@ import torch
 from spandrel import MaskedImageModelDescriptor
 
 import navi
+from api import NodeContext
 from nodes.impl.image_utils import as_3d
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.properties.inputs import ImageInput
@@ -27,18 +28,13 @@ def ceil_modulo(x: int, mod: int) -> int:
 def pad_img_to_modulo(
     img: np.ndarray,
     mod: int,
-    square: bool = False,
-    min_size: int | None = None,
+    square: bool,
+    min_size: int,
 ):
     img = as_3d(img)
     h, w, _ = get_h_w_c(img)
-    out_h = ceil_modulo(h, mod)
-    out_w = ceil_modulo(w, mod)
-
-    if min_size is not None:
-        assert min_size % mod == 0
-        out_w = max(min_size, out_w)
-        out_h = max(min_size, out_h)
+    out_h = ceil_modulo(max(h, min_size), mod)
+    out_w = ceil_modulo(max(w, min_size), mod)
 
     if square:
         max_size = max(out_h, out_w)
@@ -66,13 +62,13 @@ def inpaint(
 
         img = pad_img_to_modulo(
             img,
-            model.size_requirements.multiple_of or 1,
+            model.size_requirements.multiple_of,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )
         mask = pad_img_to_modulo(
             mask,
-            model.size_requirements.multiple_of or 1,
+            model.size_requirements.multiple_of,
             model.size_requirements.square,
             model.size_requirements.minimum,
         )
@@ -148,18 +144,18 @@ def inpaint(
             channels=3,
         ).with_never_reason("The given image and mask must have the same resolution.")
     ],
+    node_context=True,
 )
 def inpaint_node(
+    context: NodeContext,
     img: np.ndarray,
     mask: np.ndarray,
     model: MaskedImageModelDescriptor,
 ) -> np.ndarray:
-    """Inpaint an image"""
-
     assert (
         img.shape[:2] == mask.shape[:2]
     ), "Input image and mask must have the same resolution"
 
-    exec_options = get_settings()
+    exec_options = get_settings(context)
 
     return inpaint(img, mask, model, exec_options)
