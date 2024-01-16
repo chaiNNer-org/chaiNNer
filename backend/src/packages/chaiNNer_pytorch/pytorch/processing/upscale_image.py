@@ -157,7 +157,6 @@ def upscale_image_node(
 
     logger.debug("Upscaling image...")
 
-    # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
     in_nc = model.input_channels
     out_nc = model.output_channels
     scale = model.scale
