@@ -80,15 +80,9 @@ def onnx_auto_split(
             lr_img = img.astype(np.float16) if is_fp16_model else img
             lr_img = _flip_r_b_channels(lr_img)
             lr_img = _into_batched_form(lr_img, change_shape)
-            if change_shape:
-                # Transpose from BCHW to BHWC
-                lr_img = np.transpose(lr_img, (0, 2, 3, 1))
 
             output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
 
-            if change_shape:
-                # Transpose back to BCHW
-                output = np.transpose(output, (0, 2, 3, 1))
             output = _into_standard_image_form(output, change_shape)
             output = _flip_r_b_channels(output)
             return output.astype(np.float32)
