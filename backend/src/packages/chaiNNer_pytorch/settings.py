@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import torch
 from sanic.log import logger
 
-from api import DropdownSetting, NodeContext, ToggleSetting
+from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from gpu import get_nvidia_helper
 from system import is_arm_mac
 
@@ -66,12 +66,24 @@ package.add_setting(
     ),
 )
 
+package.add_setting(
+    NumberSetting(
+        label="Memory Budget Limit (GiB)",
+        key="budget_limit",
+        description="Maximum memory to use for PyTorch inference. 0 means no limit. Memory usage measurement is not completely accurate yet; you may need to significantly adjust this budget limit via trial-and-error if it's not having the effect you want.",
+        default=0,
+        min=0,
+        max=1024**2,
+    )
+)
+
 
 @dataclass(frozen=True)
 class PyTorchSettings:
     use_cpu: bool
     use_fp16: bool
     gpu_index: int
+    budget_limit: int
 
     # PyTorch 2.0 does not support FP16 when using CPU
     def __post_init__(self):
@@ -111,4 +123,5 @@ def get_settings(context: NodeContext) -> PyTorchSettings:
         use_cpu=settings.get_bool("use_cpu", False),
         use_fp16=settings.get_bool("use_fp16", False),
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
+        budget_limit=settings.get_int("budget_limit", 0, parse_str=True),
     )
