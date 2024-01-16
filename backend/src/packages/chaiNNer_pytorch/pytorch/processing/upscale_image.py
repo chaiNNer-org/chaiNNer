@@ -55,6 +55,8 @@ def upscale(
                 model_bytes = sum(
                     p.numel() * element_size for p in model.model.parameters()
                 )
+                if options.budget_limit > 0:
+                    free = min(int(options.budget_limit * 1024**3), free)
                 budget = int(free * 0.8)
 
                 return MaxTileSize(
