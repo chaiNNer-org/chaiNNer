@@ -17,7 +17,7 @@ export const toBackendJson = (
     schemata: SchemaMap
 ): BackendJsonNode[] => {
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertSourceHandle = (handle: ParsedSourceHandle): BackendJsonEdgeInput => {
+    const convertHandle = (handle: ParsedSourceHandle): BackendJsonEdgeInput => {
         const schema = nodeSchemaMap.get(handle.nodeId);
         if (!schema) {
             throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
@@ -45,7 +45,7 @@ export const toBackendJson = (
         const sourceH = parseSourceHandle(sourceHandle);
         const targetH = parseTargetHandle(targetHandle);
 
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertSourceHandle(sourceH);
+        (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertHandle(sourceH);
     });
 
     const runnableNodeTypes = ['regularNode', 'newIterator', 'collector'];
