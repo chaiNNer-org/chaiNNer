@@ -22,7 +22,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
     backend-tests:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         strategy:
             matrix:
                 python-version: ['3.8', '3.9', '3.10', '3.11']
@@ -36,7 +36,7 @@ jobs:
             - run: pytest ./backend/tests
 
     backend-type-check-test:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
@@ -47,7 +47,7 @@ jobs:
                   TYPE_CHECK_LEVEL: 'error'
 
     backend-name-check-test:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
@@ -58,7 +58,7 @@ jobs:
                   NAME_CHECK_LEVEL: 'error'
 
     backend-bootstrap:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         strategy:
             matrix:
                 python-version: ['3.8', '3.9', '3.10', '3.11']
