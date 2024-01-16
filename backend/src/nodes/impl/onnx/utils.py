@@ -17,25 +17,20 @@ def as_int(value: object) -> int | None:
 
 def parse_onnx_shape(
     shape: tuple[int | str, str | int, str | int, str | int]
-) -> tuple[int, int | None, int | None]:
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     if isinstance(shape[1], int) and shape[1] <= 4:
-        # BCHW
-        return shape[1], as_int(shape[3]), as_int(shape[2])
+        return "BCHW", shape[1], as_int(shape[3]), as_int(shape[2])
     elif isinstance(shape[3], int) and shape[3] <= 4:
-        # BHWC
-        # Keep this code for validation: change order has always to be done
-        # return shape[3], as_int(shape[2]), as_int(shape[1])
-        raise ValueError("Unsupported image shape order")
+        return "BHWC", shape[3], as_int(shape[2]), as_int(shape[1])
     else:
-        # BCHW
-        return 3, as_int(shape[3]), as_int(shape[2])
+        return "BCHW", 3, as_int(shape[3]), as_int(shape[2])
 
 
 def get_input_shape(
     session: ort.InferenceSession,
-) -> tuple[int, int | None, int | None]:
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     """
-    Returns the input channels, input width (optional), and input height (optional).
+    Returns the input shape, input channels, input width (optional), and input height (optional).
     """
 
     return parse_onnx_shape(session.get_inputs()[0].shape)
@@ -43,9 +38,9 @@ def get_input_shape(
 
 def get_output_shape(
     session: ort.InferenceSession,
-) -> tuple[int, int | None, int | None]:
+) -> tuple[OnnxInputShape, int, int | None, int | None]:
     """
-    Returns the output channels, output width (optional), and output height (optional).
+    Returns the output shape, output channels, output width (optional), and output height (optional).
     """
 
     return parse_onnx_shape(session.get_outputs()[0].shape)

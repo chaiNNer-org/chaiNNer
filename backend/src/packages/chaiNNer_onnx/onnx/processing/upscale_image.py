@@ -33,6 +33,7 @@ def upscale(
     img: np.ndarray,
     session: ort.InferenceSession,
     tile_size: TileSize,
+    change_shape: bool,
     exact_size: tuple[int, int] | None,
 ) -> np.ndarray:
     logger.debug("Upscaling image")
@@ -46,7 +47,7 @@ def upscale(
     else:
         tiler = ExactTileSize(exact_size)
 
-    return onnx_auto_split(img, session, tiler=tiler)
+    return onnx_auto_split(img, session, change_shape=change_shape, tiler=tiler)
 
 
 @processing_group.register(
@@ -105,8 +106,9 @@ def upscale_image_node(
         settings.tensorrt_cache_path,
     )
 
-    in_nc, req_width, req_height = get_input_shape(session)
-    out_nc, _, _ = get_output_shape(session)
+    input_shape, in_nc, req_width, req_height = get_input_shape(session)
+    _, out_nc, _, _ = get_output_shape(session)
+    change_shape = input_shape == "BHWC"
 
     exact_size = None
     if req_width is not None:
@@ -121,6 +123,6 @@ def upscale_image_node(
         img,
         in_nc,
         out_nc,
-        lambda i: upscale(i, session, tile_size, exact_size),
+        lambda i: upscale(i, session, tile_size, change_shape, exact_size),
         separate_alpha,
     )
