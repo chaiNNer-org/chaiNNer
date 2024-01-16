@@ -13,9 +13,6 @@ class StaticValueInput(BaseInput):
         label: str,
         py_type: type = str,
         navi_type: ExpressionJson = "string",
-        # TODO: Add support for "auto" and "datetime"
-        # The idea here is that we can figure out what value to use here based on this, rather than looking for the node's schema id
-        # I kinda don't like this, but i can't see another way to do this
         value_of: Literal["execution_number"] = "execution_number",
     ):
         super().__init__(navi_type, label, kind="static", has_handle=False)
