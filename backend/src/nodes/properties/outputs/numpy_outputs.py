@@ -33,7 +33,8 @@ class NumPyOutput(BaseOutput):
         )
 
     def enforce(self, value: object) -> np.ndarray:
-        assert isinstance(value, np.ndarray)
+        if not isinstance(value, np.ndarray):
+            raise TypeError(f"Expected a np.ndarray, but got {type(value)}")
         return value
 
 
@@ -75,7 +76,8 @@ class ImageOutput(NumPyOutput):
         return navi.Image(width=w, height=h, channels=c)
 
     def enforce(self, value: object) -> np.ndarray:
-        assert isinstance(value, np.ndarray)
+        if not isinstance(value, np.ndarray):
+            raise TypeError(f"Expected a np.ndarray, but got {type(value)}")
 
         h, w, c = get_h_w_c(value)
 
@@ -102,12 +104,13 @@ class ImageOutput(NumPyOutput):
         if not self.assume_normalized:
             value = normalize(value)
 
-        assert value.dtype == np.float32, (
-            f"The output {self.label} did not return a normalized image."
-            f" This is a bug in the implementation of the node."
-            f" Please report this bug."
-            f"\n\nTo the author of this node: Either use `normalize` or remove `assume_normalized=True` from this output."
-        )
+        if value.dtype != np.float32:
+            raise RuntimeError(
+                f"The output {self.label} did not return a normalized image."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+                f"\n\nTo the author of this node: Either use `normalize` or remove `assume_normalized=True` from this output."
+            )
 
         # make image readonly
         value.setflags(write=False)
