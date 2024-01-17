@@ -88,10 +88,9 @@ ALGORITHM_LABEL: dict[ResizeAlgorithm, str] = {
                     ResizeAlgorithm::SuperEagle2X => 2,
                     ResizeAlgorithm::Sai2X => 2,
                     ResizeAlgorithm::SuperSai2X => 2,
-                    ResizeAlgorithm::AdvMane2X => 2,
+                    ResizeAlgorithm::Hq2X => 2,
                     ResizeAlgorithm::Hq3X => 3,
                     ResizeAlgorithm::Hq4X => 4,
-                    _ => 4
                 };
 
                 Image {
