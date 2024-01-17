@@ -69,7 +69,8 @@ def change_colorspace_node(
 
     alpha_cs = get_alpha_partner(to_cs)
     if alpha and alpha_cs is not None:
-        assert alpha_cs.channels == 4
+        if alpha_cs.channels != 4:
+            raise ValueError("Image must have 4 channels to convert with alpha")
         to_cs = alpha_cs
 
     return convert(img, from_cs, to_cs)

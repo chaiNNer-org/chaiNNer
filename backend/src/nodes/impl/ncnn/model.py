@@ -401,9 +401,10 @@ class NcnnModel:
         layer_bytes = b""
 
         if weights_a:
-            assert len(weights_a) == len(
-                weights_b
-            ), "All corresponding nodes must have same number of weights"
+            if len(weights_a) != len(weights_b):
+                raise ValueError(
+                    "All corresponding nodes must have same number of weights"
+                )
 
             layer_bytes_list = []
             for weight_name, weight_a in weights_a.items():
@@ -415,13 +416,15 @@ class NcnnModel:
                     )
                     raise
 
-                assert (
-                    weight_a.shape == weight_b.shape
-                ), "Corresponding weights must have the same size and shape"
+                if weight_a.shape != weight_b.shape:
+                    raise ValueError(
+                        "Corresponding weights must have the same size and shape"
+                    )
 
-                assert len(weight_a.quantize_tag) == len(
-                    weight_b.quantize_tag
-                ), "Weights must either both have or both not have a quantize tag"
+                if len(weight_a.quantize_tag) != len(weight_b.quantize_tag):
+                    raise ValueError(
+                        "Weights must either both have or both not have a quantize tag"
+                    )
 
                 if (
                     weight_a.quantize_tag == DTYPE_FP16
