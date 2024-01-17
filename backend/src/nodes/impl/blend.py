@@ -196,13 +196,13 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: BlendMode):
     o_shape = get_h_w_c(overlay)
     b_shape = get_h_w_c(base)
 
-    assert (
-        o_shape[:2] == b_shape[:2]
-    ), "The overlay and the base image must have the same size"
+    if not (o_shape[:2] == b_shape[:2]):
+        raise ValueError("The overlay and the base image must have the same size")
 
     def assert_sane(c: int, name: str):
         sane = c in (1, 3, 4)
-        assert sane, f"The {name} has to be a grayscale, RGB, or RGBA image"
+        if not sane:
+            raise ValueError(f"The {name} has to be a grayscale, RGB, or RGBA image")
 
     o_channels = o_shape[2]
     b_channels = b_shape[2]

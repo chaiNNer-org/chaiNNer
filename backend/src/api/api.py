@@ -576,7 +576,8 @@ class Iterator(Generic[I]):
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
         """
-        assert count >= 0
+        if count < 0:
+            raise ValueError("count must be >= 0")
 
         def supplier():
             for i in range(count):
