@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable, TypeVar, Union
-
-from attr import dataclass
 
 from api import InputId, NodeData, NodeId, OutputId, registry
 
