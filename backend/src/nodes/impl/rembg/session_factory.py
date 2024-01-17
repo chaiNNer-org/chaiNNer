@@ -11,7 +11,7 @@ from .session_simple import SimpleSession
 def new_session(session: ort.InferenceSession) -> BaseSession:
     session_class: type[BaseSession]
 
-    input_width = get_input_shape(session)[1]
+    input_width = get_input_shape(session)[2]
 
     # Using size to determine session type and norm parameters is fragile,
     # but at the moment I don't know a better way to detect architecture due
