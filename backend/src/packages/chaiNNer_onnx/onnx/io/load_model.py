@@ -36,9 +36,11 @@ def load_model_node(path: str) -> tuple[OnnxModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 
-    assert os.path.exists(path), f"Model file at location {path} does not exist"
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Model file at location {path} does not exist")
 
-    assert os.path.isfile(path), f"Path {path} is not a file"
+    if not os.path.isfile(path):
+        raise ValueError(f"Path {path} is not a file")
 
     logger.debug(f"Reading onnx model from path: {path}")
     model = onnx.load_model(path)

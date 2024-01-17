@@ -95,20 +95,26 @@ def crop_node(
         if amount == 0:
             return img
 
-        assert 2 * amount < h, "Cropped area would result in an image with no height"
-        assert 2 * amount < w, "Cropped area would result in an image with no width"
+        if 2 * amount >= h:
+            raise ValueError("Cropped area would result in an image with no height")
+        if 2 * amount >= w:
+            raise ValueError("Cropped area would result in an image with no width")
 
         return img[amount : h - amount, amount : w - amount]
     elif mode == CropMode.EDGES:
         if top == bottom == left == right == 0:
             return img
 
-        assert top + bottom < h, "Cropped area would result in an image with no height"
-        assert left + right < w, "Cropped area would result in an image with no width"
+        if top + bottom >= h:
+            raise ValueError("Cropped area would result in an image with no height")
+        if left + right >= w:
+            raise ValueError("Cropped area would result in an image with no width")
 
         return img[top : h - bottom, left : w - right]
     elif mode == CropMode.OFFSETS:
-        assert top < h, "Cropped area would result in an image with no height"
-        assert left < w, "Cropped area would result in an image with no width"
+        if top <= h:
+            raise ValueError("Cropped area would result in an image with no height")
+        if left <= w:
+            raise ValueError("Cropped area would result in an image with no width")
 
         return img[top : top + height, left : left + width]

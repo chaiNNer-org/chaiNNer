@@ -53,9 +53,8 @@ def average_color_fix_node(
     input_h, input_w, input_c = get_h_w_c(input_img)
     ref_h, ref_w, ref_c = get_h_w_c(ref_img)
 
-    assert (
-        ref_w < input_w and ref_h < input_h
-    ), "Image must be larger than Reference Image"
+    if not (ref_w < input_w and ref_h < input_h):
+        raise ValueError("Image must be larger than Reference Image")
 
     # Find the diff of both images
 

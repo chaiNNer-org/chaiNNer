@@ -58,9 +58,8 @@ def merge_channels_node(
 
     for im in im2, im3, im4:
         if im is not None:
-            assert (
-                im.shape[:2] == start_shape
-            ), "All images to be merged must be the same resolution"
+            if im.shape[:2] != start_shape:
+                raise ValueError("All images to be merged must be the same resolution")
 
     imgs = []
     for img in im1, im2, im3, im4:

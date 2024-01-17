@@ -178,11 +178,12 @@ def inpaint_node(
     h, w, _ = get_h_w_c(result)
     if inpaint_area == InpaintArea.ONLY_MASKED:
         in_h, in_w, _ = get_h_w_c(image)
-        assert (
-            (w, h) == (in_w, in_h)
-        ), f"Expected the returned image to be {in_w}x{in_h}px but found {w}x{h}px instead "
-    else:
-        assert (
-            (w, h) == (width, height)
-        ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+        if (w, h) != (in_w, in_h):
+            raise RuntimeError(
+                f"Expected the returned image to be {in_w}x{in_h}px but found {w}x{h}px instead "
+            )
+    elif (w, h) != (width, height):
+        raise RuntimeError(
+            f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+        )
     return result
