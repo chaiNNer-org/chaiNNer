@@ -9,7 +9,7 @@ from .. import value_group
 @value_group.register(
     schema_id="chainner:utility:execution_number",
     name="Execution Number",
-    description="Get the current execution number of this session. Increments by 1 every time you press the play button.",
+    description="Get the current execution number of this session. Increments by 1 every time you press the run button.",
     icon="MdNumbers",
     inputs=[
         StaticValueInput(
