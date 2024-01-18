@@ -1,6 +1,7 @@
 import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
+import { assertNever } from '../../../common/util';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { InputContext } from '../../contexts/InputContext';
 import { TypeTags } from '../TypeTag';
@@ -19,8 +20,7 @@ export const StaticValueInput = memo(
                     setValue(executionNumber);
                     break;
                 default:
-                    setValue(0);
-                    break;
+                    assertNever(valueOf);
             }
         }, [setValue, valueOf, executionNumber]);
 

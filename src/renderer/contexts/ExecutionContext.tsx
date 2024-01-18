@@ -478,8 +478,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             await resume();
         } else {
             await runNodes();
+            setExecutionNumber((prev) => prev + 1);
         }
-        setExecutionNumber((prev) => prev + 1);
     }, [resume, runNodes, status, setExecutionNumber]);
 
     const pause = useCallback(async () => {
