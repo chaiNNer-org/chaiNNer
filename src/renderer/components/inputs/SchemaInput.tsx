@@ -159,7 +159,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 >
                     {inputElement}
                 </Box>
-                {input.kind === 'generic' && outputType && (
+                {(input.kind === 'generic' || input.kind === 'static') && outputType && (
                     <Center pr="0.5em">
                         <TypeTags
                             isOptional={false}

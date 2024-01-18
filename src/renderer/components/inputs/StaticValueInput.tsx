@@ -1,10 +1,9 @@
-import { Box, Center, HStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { assertNever } from '../../../common/util';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { InputContext } from '../../contexts/InputContext';
-import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -39,14 +38,8 @@ export const StaticValueInput = memo(
                             opacity={conditionallyInactive ? 0.7 : undefined}
                             textDecoration={conditionallyInactive ? 'line-through' : undefined}
                         >
-                            {value}
+                            {input.label}
                         </Text>
-                        <Center>
-                            <TypeTags
-                                isOptional={false}
-                                type={definitionType}
-                            />
-                        </Center>
                     </HStack>
                 </Box>
             </WithoutLabel>
