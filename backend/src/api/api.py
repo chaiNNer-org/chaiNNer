@@ -462,7 +462,6 @@ class PackageRegistry:
         return self.nodes[schema_id][1].category.package
 
     def add(self, package: Package) -> Package:
-        # assert package.where not in self.packages
         self.packages[package.where] = package
         return package
 

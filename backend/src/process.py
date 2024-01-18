@@ -177,7 +177,9 @@ def run_node(
         if node.type == "newIterator":
             return enforce_iterator_output(raw_output, node)
 
-        assert node.type == "regularNode"  # noqa: S101
+        if node.type != "regularNode":
+            raise ValueError(f"Unknown node type: {node.type}. Expected regularNode.")
+
         return enforce_output(raw_output, node)
     except Aborted:
         raise
@@ -430,6 +432,7 @@ class Executor:
         assert isinstance(  # noqa: S101
             output, RegularOutput
         ), "Expected output to be a regular output"
+
         return output.output[output_index]
 
     async def __resolve_node_input(self, node_input: Input) -> object:
@@ -563,7 +566,9 @@ class Executor:
             elif isinstance(n, NewIteratorNode):
                 raise ValueError("Nested iterators are not supported")
             else:
-                assert isinstance(n, FunctionNode)  # noqa: S101
+                assert isinstance(  # noqa: S101
+                    n, FunctionNode
+                ), "Expected n to be an instance of FunctionNode"
 
                 if n.has_side_effects():
                     output_nodes.add(n)
