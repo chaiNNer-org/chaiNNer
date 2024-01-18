@@ -13,7 +13,7 @@ from .. import value_group
     icon="MdNumbers",
     inputs=[
         StaticValueInput(
-            label="Execution Number",
+            label="Value",
             value_of="execution_number",
             navi_type="int(1..)",
             py_type=int,
