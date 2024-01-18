@@ -22,7 +22,8 @@ def get_height_map(img: np.ndarray, source: HeightSource) -> np.ndarray:
     """
     h, w, c = get_h_w_c(img)
 
-    assert c in (1, 3, 4), "Only grayscale, RGB, and RGBA images are supported"
+    if c not in (1, 3, 4):
+        raise ValueError("Only grayscale, RGB, and RGBA images are supported")
 
     if source == HeightSource.ALPHA:
         if c < 4:

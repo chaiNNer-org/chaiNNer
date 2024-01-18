@@ -117,23 +117,32 @@ class TileBlender:
 
     def add_tile(self, tile: np.ndarray, overlap: TileOverlap) -> None:
         h, w, c = get_h_w_c(tile)
-        assert c == self.channels
+        if c != self.channels:
+            raise ValueError(f"Expected {self.channels} channels, but got {c} channels")
         o = overlap
 
         if self.direction == BlendDirection.X:
-            assert h == self.height
-            assert w > o.total
+            if h != self.height:
+                raise ValueError(f"Expected {self.height} pixels, but got {h} pixels")
+            if w <= o.total:
+                raise ValueError(
+                    f"Expected at least {o.total} pixels, but got {w} pixels"
+                )
 
             if self.offset == 0:
                 # the first tile is copied in as is
                 self.result[:, :w, ...] = tile
 
-                assert o.start == 0
+                if o.start != 0:
+                    raise ValueError(
+                        f"Expected the first tile to have an overlap of 0, but got {o.start}"
+                    )
                 self.offset += w - o.end
                 self.last_end_overlap = o.end
 
             else:
-                assert self.offset < self.width, "All tiles were filled in already"
+                if self.offset >= self.width:
+                    raise ValueError("All tiles were filled in already")
 
                 if self.last_end_overlap < o.start:
                     # we can't use all the overlap of the current tile, so we have to cut it off
@@ -163,19 +172,27 @@ class TileBlender:
                 self.offset += w - o.total
                 self.last_end_overlap = o.end
         else:
-            assert w == self.width
-            assert h > o.total
+            if w != self.width:
+                raise ValueError(f"Expected {self.width} pixels, but got {w} pixels")
+            if h <= o.total:
+                raise ValueError(
+                    f"Expected at least {o.total} pixels, but got {h} pixels"
+                )
 
             if self.offset == 0:
                 # the first tile is copied in as is
                 self.result[:h, :, ...] = tile
 
-                assert o.start == 0
+                if o.start != 0:
+                    raise ValueError(
+                        f"Expected the first tile to have an overlap of 0, but got {o.start}"
+                    )
                 self.offset += h - o.end
                 self.last_end_overlap = o.end
 
             else:
-                assert self.offset < self.height, "All tiles were filled in already"
+                if self.offset >= self.height:
+                    raise RuntimeError("All tiles were filled in already")
 
                 if self.last_end_overlap < o.start:
                     # we can't use all the overlap of the current tile, so we have to cut it off
@@ -206,9 +223,13 @@ class TileBlender:
                 self.last_end_overlap = o.end
 
     def get_result(self) -> np.ndarray:
-        if self.direction == BlendDirection.X:
-            assert self.offset == self.width
-        else:
-            assert self.offset == self.height
+        if self.direction == BlendDirection.X and self.offset != self.width:
+            raise ValueError(
+                f"Expected {self.width} pixels, but got {self.offset} pixels"
+            )
+        elif self.offset != self.height:
+            raise ValueError(
+                f"Expected {self.height} pixels, but got {self.offset} pixels"
+            )
 
         return self.result

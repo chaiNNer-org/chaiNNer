@@ -93,7 +93,8 @@ class SimplexNoise:
 
     def evaluate(self, points: np.ndarray):
         n_points = points.shape[0]
-        assert points.shape == (n_points, self.dimensions)
+        if points.shape != (n_points, self.dimensions):
+            raise ValueError("points.shape must be equal to (n_points, dimensions)")
 
         skewed_points = points + (points.sum(axis=1) * self.F).reshape((n_points, 1))
         skewed_bases, skewed_points_remainder = np.divmod(skewed_points, 1)
