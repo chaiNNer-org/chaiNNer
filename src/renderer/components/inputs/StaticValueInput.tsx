@@ -8,20 +8,20 @@ import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const StaticValueInput = memo(
-    ({ value, setValue, input, definitionType }: InputProps<'static', number | string>) => {
-        const { valueOf } = input;
+    ({ setValue, input }: InputProps<'static', number | string>) => {
+        const { value } = input;
         const { executionNumber } = useContext(ExecutionContext);
         const { conditionallyInactive } = useContext(InputContext);
 
         useEffect(() => {
-            switch (valueOf) {
+            switch (value) {
                 case 'execution_number':
                     setValue(executionNumber);
                     break;
                 default:
-                    assertNever(valueOf);
+                    assertNever(value);
             }
-        }, [setValue, valueOf, executionNumber]);
+        }, [setValue, value, executionNumber]);
 
         return (
             <WithoutLabel>

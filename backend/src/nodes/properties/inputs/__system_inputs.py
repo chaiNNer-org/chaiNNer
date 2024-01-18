@@ -13,17 +13,17 @@ class StaticValueInput(BaseInput):
         label: str,
         py_type: type = str,
         navi_type: ExpressionJson = "string",
-        value_of: Literal["execution_number"] = "execution_number",
+        value: Literal["execution_number"] = "execution_number",
     ):
         super().__init__(navi_type, label, kind="static", has_handle=False)
 
         self.associated_type = py_type
-        self.value_of = value_of
+        self.value = value
 
     def to_dict(self):
         return {
             **super().to_dict(),
-            "valueOf": self.value_of,
+            "value": self.value,
         }
 
     def enforce(self, value: object):

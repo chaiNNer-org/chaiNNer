@@ -14,7 +14,7 @@ from .. import value_group
     inputs=[
         StaticValueInput(
             label="Value",
-            value_of="execution_number",
+            value="execution_number",
             navi_type="int(1..)",
             py_type=int,
         ).make_fused(),
