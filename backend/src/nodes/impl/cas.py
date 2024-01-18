@@ -32,7 +32,7 @@ def create_cas_mask(img: np.ndarray, kernel: np.ndarray, bias: float = 2) -> np.
     https://www.shadertoy.com/view/wtlSWB#
     """
     if bias <= 0:
-        raise ValueError("Bias must be greater than or equal to 0.")
+        raise ValueError("Bias must be >0.")
 
     l = _luminance(img)
     min_l = cv2.erode(l, kernel)
