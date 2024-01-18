@@ -213,22 +213,22 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if node_type == "collector" and not (
-            len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        ):
-            raise ValueError(
-                "Collector nodes must have exactly one iterator input and zero iterator outputs"
-            )
-        elif node_type == "newIterator" and not (
-            len(iterator_inputs) == 0 and len(iterator_outputs) == 1
-        ):
-            raise ValueError(
-                "Iterator nodes must have exactly zero iterator inputs and one iterator output"
-            )
-        elif not (len(iterator_inputs) == 0 and len(iterator_outputs) == 0):
-            raise ValueError(
-                "Regular nodes must have exactly zero iterator inputs and zero iterator outputs"
-            )
+        if node_type == "collector":
+            if not (len(iterator_inputs) == 1 and len(iterator_outputs) == 0):
+                raise ValueError(
+                    "Collector nodes must have exactly one iterator input and zero iterator outputs"
+                )
+        elif node_type == "newIterator":
+            if not (len(iterator_inputs) == 0 and len(iterator_outputs) == 1):
+                raise ValueError(
+                    "Iterator nodes must have exactly zero iterator inputs and one iterator output"
+                )
+        else:  # noqa: PLR5501
+            if not (len(iterator_inputs) == 0 and len(iterator_outputs) == 0):
+                raise ValueError(
+                    "Regular nodes must have exactly zero iterator inputs and zero iterator outputs",
+                    f"Got {len(iterator_inputs)} iterator inputs and {len(iterator_outputs)} iterator outputs",
+                )
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
