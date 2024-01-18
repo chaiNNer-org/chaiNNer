@@ -17,6 +17,7 @@ import { InputContainer, InputHandle } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
+import { StaticValueInput } from './StaticValueInput';
 import { TextInput } from './TextInput';
 
 const InputComponents: {
@@ -33,6 +34,7 @@ const InputComponents: {
     slider: SliderInput,
     color: ColorInput,
     generic: GenericInput,
+    static: StaticValueInput,
 };
 
 export interface SingleInputProps {
@@ -157,7 +159,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 >
                     {inputElement}
                 </Box>
-                {input.kind === 'generic' && outputType && (
+                {(input.kind === 'generic' || input.kind === 'static') && outputType && (
                     <Center pr="0.5em">
                         <TypeTags
                             isOptional={false}

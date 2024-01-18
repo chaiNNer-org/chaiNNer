@@ -18,7 +18,7 @@ import {
     without,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, lazy, lazyKeyed, topologicalSort } from '../util';
+import { EMPTY_MAP, assertNever, lazy, lazyKeyed, topologicalSort } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { fromJson } from './json';
 
@@ -274,7 +274,8 @@ const getInputDataAdapters = (
             switch (input.kind) {
                 case 'number':
                 case 'slider':
-                case 'text': {
+                case 'text':
+                case 'static': {
                     adapters.set(input.id, (value) => literal(value as never));
                     break;
                 }
@@ -304,8 +305,14 @@ const getInputDataAdapters = (
                     break;
                 }
 
-                default:
+                case 'generic':
+                case 'file':
+                case 'directory':
+                case 'color':
                     break;
+
+                default:
+                    assertNever(input);
             }
         }
     }
