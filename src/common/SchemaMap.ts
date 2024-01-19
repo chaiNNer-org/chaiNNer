@@ -13,6 +13,8 @@ const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
     outputs: [],
     groupLayout: [],
+    iteratorInputs: [],
+    iteratorOutputs: [],
     icon: '',
     category: '' as CategoryId,
     nodeGroup: '' as NodeGroupId,
