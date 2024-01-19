@@ -132,7 +132,8 @@ async def get_verified_api() -> Api | None:
 
     # check all apis in parallel
     apis = ApiConfig.from_env().list_apis()
-    assert len(apis) > 0
+    if len(apis) == 0:
+        raise RuntimeError("No stable diffusion API found")
     tasks = [
         api.get_async(STABLE_DIFFUSION_OPTIONS_PATH, timeout=timeout) for api in apis
     ]

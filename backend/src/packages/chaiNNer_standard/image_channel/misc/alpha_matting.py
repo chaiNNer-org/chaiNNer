@@ -65,12 +65,14 @@ def alpha_matting_node(
     fg_threshold: int,
     bg_threshold: int,
 ) -> np.ndarray:
-    assert (
-        fg_threshold > bg_threshold
-    ), "The foreground threshold must be greater than the background threshold."
+    if fg_threshold <= bg_threshold:
+        raise ValueError(
+            "The foreground threshold must be greater than the background threshold."
+        )
 
     h, w, c = get_h_w_c(img)
-    assert (h, w) == trimap.shape[:2], "The image and trimap must have the same size."
+    if (h, w) != trimap.shape[:2]:
+        raise ValueError("The image and trimap must have the same size.")
 
     # apply thresholding to trimap
     trimap = np.where(trimap > fg_threshold / 255, 1, trimap)
@@ -84,11 +86,14 @@ def alpha_matting_node(
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float64)
 
-    assert img.dtype == np.float64
-    assert trimap.dtype == np.float64
+    if img.dtype != np.float64:
+        raise ValueError(f"Image must be float64, got {img.dtype}")
+    if trimap.dtype != np.float64:
+        raise ValueError(f"Trimap must be float64, got {trimap.dtype}")
     alpha = pymatting.estimate_alpha_cf(img, trimap)
     foreground = pymatting.estimate_foreground_ml(img, alpha)
-    assert isinstance(foreground, np.ndarray)
+    if not isinstance(foreground, np.ndarray):
+        raise AssertionError(f"Foreground must be np.ndarray, got {type(foreground)}")
 
     # convert to bgr
     foreground = cv2.cvtColor(foreground, cv2.COLOR_RGB2BGR)

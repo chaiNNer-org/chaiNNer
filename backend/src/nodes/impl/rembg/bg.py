@@ -126,7 +126,8 @@ def remove_bg(
     masks = session.predict(pimg)
     cutouts = []
 
-    assert len(masks) > 0, "Model failed to generate masks"
+    if len(masks) == 0:
+        raise RuntimeError("Model failed to generate masks")
 
     for mask in masks:
         if post_process_mask:

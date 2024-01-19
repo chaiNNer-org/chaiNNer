@@ -23,8 +23,10 @@ def spec_to_metal(
     metallic_min: float,
     metallic_max: float,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    assert get_h_w_c(diff)[2] == 3, "Expected the diffuse map to be an RGB image"
-    assert get_h_w_c(spec)[2] == 3, "Expected the specular map to be an RGB image"
+    if get_h_w_c(diff)[2] != 3:
+        raise ValueError("Expected the diffuse map to be an RGB image")
+    if get_h_w_c(spec)[2] != 3:
+        raise ValueError("Expected the specular map to be an RGB image")
 
     metallic_diff = (
         0.0001 if metallic_min == metallic_max else metallic_max - metallic_min

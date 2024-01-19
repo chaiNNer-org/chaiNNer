@@ -21,7 +21,8 @@ def metal_to_spec(
     metal: np.ndarray,
     roughness: np.ndarray | None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    assert get_h_w_c(albedo)[2] == 3, "Expected the albedo map to be an RGB image"
+    if get_h_w_c(albedo)[2] != 3:
+        raise ValueError("Expected the albedo map to be an RGB image")
 
     # This uses the conversion method described here:
     # https://marmoset.co/posts/pbr-texture-conversion/

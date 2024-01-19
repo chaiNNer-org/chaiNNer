@@ -26,7 +26,8 @@ class NumberOutput(BaseOutput):
         return navi.literal(value)
 
     def enforce(self, value: object) -> int | float:
-        assert isinstance(value, (int, float))
+        if not isinstance(value, (int, float)):
+            raise TypeError(f"Expected a number, but got {type(value)}")
         return value
 
 
@@ -42,7 +43,8 @@ class TextOutput(BaseOutput):
         return navi.literal(value)
 
     def enforce(self, value: object) -> str:
-        assert isinstance(value, str)
+        if not isinstance(value, str):
+            raise TypeError(f"Expected a string, but got {type(value)}")
         return value
 
 
@@ -61,7 +63,8 @@ class SeedOutput(BaseOutput):
         super().__init__(output_type="Seed", label=label, kind="generic")
 
     def enforce(self, value: object) -> Seed:
-        assert isinstance(value, Seed)
+        if not isinstance(value, Seed):
+            raise TypeError(f"Expected a Seed, but got {type(value)}")
         return value
 
 
@@ -83,7 +86,8 @@ class ColorOutput(BaseOutput):
         self.channels = channels
 
     def enforce(self, value: object) -> Color:
-        assert isinstance(value, Color)
+        if not isinstance(value, Color):
+            raise TypeError(f"Expected a Color, but got {type(value)}")
 
         if self.channels is not None and value.channels != self.channels:
             expected = format_color_with_channels([self.channels])

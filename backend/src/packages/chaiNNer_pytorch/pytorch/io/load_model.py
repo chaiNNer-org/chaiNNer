@@ -68,10 +68,6 @@ def load_model_node(
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
 
-    assert os.path.exists(path), f"Model file at location {path} does not exist"
-
-    assert os.path.isfile(path), f"Path {path} is not a file"
-
     exec_options = get_settings(context)
     pytorch_device = exec_options.device
 

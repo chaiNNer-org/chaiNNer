@@ -80,9 +80,8 @@ def combine_rgba_node(
     # check same size
     for i in inputs:
         if isinstance(i, np.ndarray):
-            assert (
-                i.shape[:2] == start_shape
-            ), "All channel images must have the same resolution"
+            if i.shape[:2] != start_shape:
+                raise ValueError("All channel images must have the same resolution")
 
     channels = [
         (

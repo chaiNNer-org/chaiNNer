@@ -195,9 +195,14 @@ def _max_split(
                 # figure out by how much the image was upscaled by
                 up_h, up_w, up_c = get_h_w_c(upscale_result)
                 current_scale = up_h // padded_tile.height
-                assert current_scale > 0
-                assert padded_tile.height * current_scale == up_h
-                assert padded_tile.width * current_scale == up_w
+                if current_scale <= 0:
+                    raise ValueError(
+                        "Upscale factor must be positive and greater than zero."
+                    )
+                if padded_tile.height * current_scale != up_h:
+                    raise ValueError("Result height did not match expected dimensions.")
+                if padded_tile.width * current_scale != up_w:
+                    raise ValueError("Result width did not match expected dimensions.")
 
                 if row_result is None:
                     # allocate the result image
@@ -214,7 +219,10 @@ def _max_split(
                     prev_row_result = row_result
                     row_overlap = TileOverlap(pad.top * scale, pad.bottom * scale)
 
-                assert current_scale == scale
+                if current_scale != scale:
+                    raise ValueError(
+                        "Upscale factor must be the same for all tiles in a row."
+                    )
 
                 # add to row
                 row_result.add_tile(
@@ -224,8 +232,10 @@ def _max_split(
             if restart:
                 break
 
-            assert row_result is not None
-            assert row_overlap is not None
+            if row_result is None:
+                raise RuntimeError("No row result was created.")
+            if row_overlap is None:
+                raise RuntimeError("No row overlap was created.")
 
             if result is None:
                 result = TileBlender(
@@ -239,5 +249,6 @@ def _max_split(
             # add row
             result.add_tile(row_result.get_result(), row_overlap)
 
-    assert result is not None
+    if result is None:
+        raise RuntimeError("No result was created.")
     return result.get_result()

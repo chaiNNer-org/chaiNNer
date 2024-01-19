@@ -267,9 +267,10 @@ def save_video_node(
 
             # Verify some parameters
             if encoder in [VideoEncoder.H264, VideoEncoder.H265]:
-                assert (
-                    h % 2 == 0 and w % 2 == 0
-                ), f'The "{encoder.value}" encoder requires an even-number frame resolution.'
+                if not (h % 2 == 0 and w % 2 == 0):
+                    raise ValueError(
+                        f'The "{encoder.value}" encoder requires an even-number frame resolution.'
+                    )
 
             try:
                 writer.out = (

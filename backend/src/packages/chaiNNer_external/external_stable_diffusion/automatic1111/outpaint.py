@@ -256,7 +256,8 @@ def outpaint_node(
     )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
-    assert (
-        (w, h) == (expected_output_width, expected_output_height)
-    ), f"Expected the returned image to be {expected_output_width}x{expected_output_height}px but found {w}x{h}px instead "
+    if (w, h) != (expected_output_width, expected_output_height):
+        raise RuntimeError(
+            f"Expected the returned image to be {expected_output_width}x{expected_output_height}px but found {w}x{h}px instead "
+        )
     return result

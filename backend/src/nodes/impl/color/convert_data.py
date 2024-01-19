@@ -86,7 +86,8 @@ color_spaces_or_detectors: list[ColorSpace | ColorSpaceDetector] = [
 
 def __rev3(image: np.ndarray) -> np.ndarray:
     c = get_h_w_c(image)[2]
-    assert c == 3, "Expected a 3-channel image"
+    if c != 3:
+        raise ValueError("Expected a 3-channel image")
     return np.stack([image[:, :, 2], image[:, :, 1], image[:, :, 0]], axis=2)
 
 
@@ -320,8 +321,10 @@ conversions: list[Conversion] = [
 
 # Add conversions that can be generated because only alpha is different
 for dir_3, dir_4 in ALPHA_PAIRS.items():
-    assert dir_3.channels == 3
-    assert dir_4.channels == 4
+    if dir_3.channels != 3:
+        raise ValueError(f"Expected a 3-channel color space, got {dir_3}")
+    if dir_4.channels != 4:
+        raise ValueError(f"Expected a 4-channel color space, got {dir_4}")
 
     # Add and remove the alpha channel
     conversions.append(

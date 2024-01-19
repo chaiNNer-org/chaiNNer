@@ -10,7 +10,8 @@ from ...utils.utils import get_h_w_c
 
 class ColorSpace:
     def __init__(self, id_: int, name: str, channels: int):
-        assert 0 <= id_ and id_ < 256
+        if not (0 <= id_ and id_ < 256):
+            raise ValueError(f"Invalid color space id {id_}.")
         self.id = id_
         self.name = name
         self.channels = channels
@@ -18,12 +19,16 @@ class ColorSpace:
 
 class ColorSpaceDetector:
     def __init__(self, id_: int, name: str, color_spaces: Iterable[ColorSpace]) -> None:
-        assert 1000 <= id_ and id_ < 2000
+        if not (1000 <= id_ and id_ < 2000):
+            raise ValueError(f"Invalid color space detector id {id_}.")
         self.id = id_
         self.name = name
         self.channel_map: dict[int, ColorSpace] = {}
         for cs in color_spaces:
-            assert cs.channels not in self.channel_map
+            if cs.channels in self.channel_map:
+                raise ValueError(
+                    f"Duplicate color space {cs.name} with {cs.channels} channels."
+                )
             self.channel_map[cs.channels] = cs
         self.channels = list(self.channel_map.keys())
 
@@ -73,11 +78,18 @@ class Conversion:
         cost: int = 1,
     ):
         input_, output = direction
-        assert input_ != output
+        if input_ == output:
+            raise ValueError(
+                f"Invalid conversion from {input_.name} to {output.name}."
+                f" The input and output color spaces must be different."
+            )
         self.input: ColorSpace = input_
         self.output: ColorSpace = output
         self.__convert = convert
-        assert cost >= 1
+        if cost < 1:
+            raise ValueError(
+                f"Invalid conversion cost {cost}. The cost must be at least 1."
+            )
         self.cost: int = cost
 
     def convert(self, img: np.ndarray) -> np.ndarray:

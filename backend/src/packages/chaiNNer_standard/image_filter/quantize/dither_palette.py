@@ -75,9 +75,8 @@ def dither_palette_node(
     error_diffusion_map: ErrorDiffusionMap,
     history_length: int,
 ) -> np.ndarray:
-    assert (
-        get_h_w_c(img)[2] == get_h_w_c(palette)[2]
-    ), "Image and palette must have the same number of channels."
+    if get_h_w_c(img)[2] != get_h_w_c(palette)[2]:
+        raise ValueError("Image and palette must have the same number of channels.")
 
     palette = palette[:1, ...]
     quant = PaletteQuantization(palette)

@@ -16,10 +16,12 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
 
     The type of the integers in the returned array will be the smallest unsigned integer type that can fit `levels` many values. E.g. uint8 is used for 256, and uint16 is used for 257 levels.
     """
-    assert levels >= 1
-    assert (
-        levels <= 2**24
-    ), "Quantizing float32 values with more than 2**24 levels doesn't make sense, because only integers up to 2**24 can be represented exactly using float32."
+    if levels < 1:
+        raise ValueError("levels must be at least 1")
+    if levels > 2**24:
+        raise ValueError(
+            "Quantizing float32 values with more than 2**24 levels doesn't make sense, because only integers up to 2**24 can be represented exactly using float32."
+        )
 
     q: np.ndarray = np.round(img * (levels - 1))
 

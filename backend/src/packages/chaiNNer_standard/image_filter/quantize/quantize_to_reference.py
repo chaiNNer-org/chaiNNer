@@ -100,11 +100,18 @@ def quantize_to_reference_node(
 ) -> np.ndarray:
     i_h, i_w, i_c = get_h_w_c(img)
     r_h, r_w, r_c = get_h_w_c(reference_img)
-    assert i_c == r_c, "Image and reference image must have the same number of channels"
-    assert i_h >= r_h, "Image height must be larger than reference image height"
-    assert i_h % r_h == 0, "Image height must be a multiple of reference image height"
-    assert i_w >= r_w, "Image width must be larger than reference image width"
-    assert i_w % r_w == 0, "Image width must be a multiple of reference image width"
+    if i_c != r_c:
+        raise ValueError(
+            "Image and reference image must have the same number of channels"
+        )
+    if i_h < r_h:
+        raise ValueError("Image height must be larger than reference image height")
+    if i_h % r_h != 0:
+        raise ValueError("Image height must be a multiple of reference image height")
+    if i_w < r_w:
+        raise ValueError("Image width must be larger than reference image width")
+    if i_w % r_w != 0:
+        raise ValueError("Image width must be a multiple of reference image width")
 
     spatial_scale = spatial_scale / 100
     spatial_scale = spatial_scale * spatial_scale

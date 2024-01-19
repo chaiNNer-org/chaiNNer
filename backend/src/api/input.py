@@ -109,10 +109,11 @@ class BaseInput:
     def enforce_(self, value: object | None):
         if self.optional and value is None:
             return None
-        assert value is not None, (
-            f"Expected value to exist, "
-            f"but does not exist for {self.kind} input with type {self.input_type} and label {self.label}"
-        )
+        if value is None:
+            raise ValueError(
+                f"Expected value to exist, "
+                f"but does not exist for {self.kind} input with type {self.input_type} and label {self.label}"
+            )
         return self.enforce(value)
 
     def get_error_value(self, value: object) -> ErrorValue:
