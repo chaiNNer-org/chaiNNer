@@ -151,11 +151,14 @@ def trimap_matting_keying(
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float64)
 
-    assert img.dtype == np.float64
-    assert trimap.dtype == np.float64
+    if img.dtype != np.float64:
+        raise ValueError(f"Image must be float64, got {img.dtype}")
+    if trimap.dtype != np.float64:
+        raise ValueError(f"Trimap must be float64, got {trimap.dtype}")
     alpha = pymatting.estimate_alpha_cf(img, trimap)
     foreground = pymatting.estimate_foreground_ml(img, alpha)
-    assert isinstance(foreground, np.ndarray)
+    if not isinstance(foreground, np.ndarray):
+        raise AssertionError(f"Foreground must be np.ndarray, got {type(foreground)}")
 
     # convert to bgr
     foreground = cv2.cvtColor(foreground, cv2.COLOR_RGB2BGR)

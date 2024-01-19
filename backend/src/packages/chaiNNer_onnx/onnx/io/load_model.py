@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import onnx
 from sanic.log import logger
 
@@ -35,10 +33,6 @@ from .. import io_group
 def load_model_node(path: str) -> tuple[OnnxModel, str, str]:
     """Read a pth file from the specified path and return it as a state dict
     and loaded model after finding arch config"""
-
-    assert os.path.exists(path), f"Model file at location {path} does not exist"
-
-    assert os.path.isfile(path), f"Path {path} is not a file"
 
     logger.debug(f"Reading onnx model from path: {path}")
     model = onnx.load_model(path)

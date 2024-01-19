@@ -231,8 +231,16 @@ class Region:
 
     def write_into(self, lhs: np.ndarray, rhs: np.ndarray):
         h, w, c = get_h_w_c(rhs)
-        assert (w, h) == self.size
-        assert c == get_h_w_c(lhs)[2]
+        if (w, h) != self.size:
+            raise ValueError(
+                f"The image to write into must have the same size as the region. "
+                f"Expected {self.size}, got {(w, h)}"
+            )
+        if c != get_h_w_c(lhs)[2]:
+            raise ValueError(
+                f"The image to write into must have the same number of channels as the region. "
+                f"Expected {get_h_w_c(lhs)[2]}, got {c}"
+            )
 
         if c == 1:
             if lhs.ndim == 2 and rhs.ndim == 3:

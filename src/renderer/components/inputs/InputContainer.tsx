@@ -4,7 +4,7 @@ import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData, NodeType } from '../../../common/common-types';
+import { InputId, NodeData } from '../../../common/common-types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -19,7 +19,7 @@ export interface InputHandleProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
-    nodeType: NodeType;
+    isIterated: boolean;
 }
 
 export const InputHandle = memo(
@@ -28,7 +28,7 @@ export const InputHandle = memo(
         id,
         inputId,
         connectableType,
-        nodeType,
+        isIterated,
     }: React.PropsWithChildren<InputHandleProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
@@ -115,8 +115,8 @@ export const InputHandle = memo(
                         }
                         handleColors={handleColors}
                         id={targetHandle}
+                        isIterated={isIterated}
                         isValidConnection={isValidConnectionForRf}
-                        nodeType={nodeType}
                         type="input"
                         validity={validity}
                     />

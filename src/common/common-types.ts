@@ -134,6 +134,12 @@ export interface ColorInput extends InputBase {
     readonly def: string;
     readonly channels?: readonly number[] | null;
 }
+
+export interface StaticValueInput extends InputBase {
+    readonly kind: 'static';
+    readonly value: 'execution_number';
+}
+
 export type InputKind = Input['kind'];
 export type Input =
     | GenericInput
@@ -143,7 +149,8 @@ export type Input =
     | DropDownInput
     | SliderInput
     | NumberInput
-    | ColorInput;
+    | ColorInput
+    | StaticValueInput;
 
 export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
@@ -252,6 +259,15 @@ export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 export type GroupState = Readonly<Record<GroupId, unknown>>;
 
+export interface IteratorInputInfo {
+    readonly inputs: readonly InputId[];
+    readonly lengthType: ExpressionJson;
+}
+export interface IteratorOutputInfo {
+    readonly outputs: readonly OutputId[];
+    readonly lengthType: ExpressionJson;
+}
+
 export interface NodeSchema {
     readonly name: string;
     readonly category: CategoryId;
@@ -263,6 +279,8 @@ export interface NodeSchema {
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
     readonly groupLayout: readonly (InputId | Group)[];
+    readonly iteratorInputs: readonly IteratorInputInfo[];
+    readonly iteratorOutputs: readonly IteratorOutputInfo[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;

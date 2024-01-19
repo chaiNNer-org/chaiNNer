@@ -84,8 +84,8 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Output Video Directory", has_handle=True),
-        TextInput("Output Video Name"),
+        DirectoryInput("Directory", has_handle=True),
+        TextInput("Video Name"),
         VideoEncoderDropdown().with_docs("Encoder").with_id(3),
         if_enum_group(3, VideoEncoder.H264)(
             VideoH264ContainerDropdown().with_docs("Container").with_id(4)
@@ -267,9 +267,10 @@ def save_video_node(
 
             # Verify some parameters
             if encoder in [VideoEncoder.H264, VideoEncoder.H265]:
-                assert (
-                    h % 2 == 0 and w % 2 == 0
-                ), f'The "{encoder.value}" encoder requires an even-number frame resolution.'
+                if not (h % 2 == 0 and w % 2 == 0):
+                    raise ValueError(
+                        f'The "{encoder.value}" encoder requires an even-number frame resolution.'
+                    )
 
             try:
                 writer.out = (

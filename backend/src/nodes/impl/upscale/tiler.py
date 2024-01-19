@@ -23,7 +23,8 @@ class Tiler(ABC):
 
     def split(self, tile_size: Size) -> Size:
         w, h = tile_size
-        assert w >= 16 and h >= 16
+        if not (w >= 16 and h >= 16):
+            raise ValueError("Tile size must be at least 16x16px.")
         return max(16, w // 2), max(16, h // 2)
 
 

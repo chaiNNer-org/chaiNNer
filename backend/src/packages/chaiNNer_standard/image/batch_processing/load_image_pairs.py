@@ -77,11 +77,12 @@ def load_image_pairs_node(
     image_files_a: list[str] = list_all_files_sorted(directory_a, supported_filetypes)
     image_files_b: list[str] = list_all_files_sorted(directory_b, supported_filetypes)
 
-    assert len(image_files_a) == len(image_files_b), (
-        "Number of images in directories A and B must be equal. "
-        f"Directory A: {directory_a} has {len(image_files_a)} images. "
-        f"Directory B: {directory_b} has {len(image_files_b)} images."
-    )
+    if len(image_files_a) != len(image_files_b):
+        raise ValueError(
+            "Number of images in directories A and B must be equal. "
+            f"Directory A: {directory_a} has {len(image_files_a)} images. "
+            f"Directory B: {directory_b} has {len(image_files_b)} images."
+        )
 
     if use_limit:
         image_files_a = image_files_a[:limit]

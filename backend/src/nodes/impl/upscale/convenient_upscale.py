@@ -9,7 +9,8 @@ from ..image_utils import as_target_channels
 
 def with_black_and_white_backgrounds(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     c = get_h_w_c(img)[2]
-    assert c == 4
+    if c != 4:
+        raise ValueError("Image must be RGBA")
 
     black = np.copy(img[:, :, :3])
     white = np.copy(img[:, :, :3])

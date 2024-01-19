@@ -103,7 +103,8 @@ class NumberInput(BaseInput):
         raise ValueError("NumberInput and SliderInput cannot be made optional")
 
     def enforce(self, value: object):
-        assert isinstance(value, (int, float))
+        if not isinstance(value, (int, float)):
+            raise TypeError(f"Expected a number, but got {type(value)}")
 
         if math.isnan(value):
             raise ValueError("NaN is not a valid number")

@@ -29,17 +29,16 @@ const colorList = lazy(() => {
 const defaultColorList = [defaultColor] as const;
 
 export const getTypeAccentColors = (inputType: Type): readonly [string, ...string[]] => {
-    if (inputType.type === 'any') {
-        return defaultColorList;
-    }
-
     const colors: string[] = [];
-    for (const { type, color } of colorList()) {
+    const allColors = colorList();
+    for (const { type, color } of allColors) {
         if (!isDisjointWith(type, inputType)) {
             colors.push(color);
         }
     }
-    return colors.length > 0 ? (colors as [string, ...string[]]) : defaultColorList;
+    return colors.length > 0 && colors.length < allColors.length
+        ? (colors as [string, ...string[]])
+        : defaultColorList;
 };
 
 export const getCategoryAccentColor = (categories: CategoryMap, category: CategoryId) => {

@@ -142,6 +142,13 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         functionInstance: typeInfo.instance,
     });
 
+    const { iteratedInputs, iteratedOutputs } = useMemo(() => {
+        return {
+            iteratedInputs: new Set(selectedSchema.iteratorInputs.flatMap((i) => i.inputs)),
+            iteratedOutputs: new Set(selectedSchema.iteratorOutputs.flatMap((i) => i.outputs)),
+        };
+    }, [selectedSchema]);
+
     return (
         <Center key={selectedSchema.schemaId}>
             <FakeNodeProvider isFake>
@@ -187,6 +194,8 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     isLocked: false,
                                     connectedInputs: EMPTY_SET,
                                     connectedOutputs: EMPTY_SET,
+                                    iteratedInputs,
+                                    iteratedOutputs,
                                     type: typeInfo,
                                     testCondition: (condition: Condition): boolean =>
                                         testInputConditionTypeInfo(condition, inputData, typeInfo),

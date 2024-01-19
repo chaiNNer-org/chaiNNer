@@ -109,7 +109,8 @@ def save_as_dds(
     """
     target_dir, name, ext = split_file_path(path)
 
-    assert ext == ".dds", "The file to save must end with '.dds'"
+    if ext != ".dds":
+        raise ValueError("The file to save must end with '.dds'")
 
     temp_dir = mkdtemp(prefix="chaiNNer-")
 

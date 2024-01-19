@@ -14,7 +14,8 @@ class CacheStrategy:
     STATIC_HITS_TO_LIVE = 1_000_000_000
 
     def __init__(self, hits_to_live: int) -> None:
-        assert hits_to_live >= 0
+        if hits_to_live <= 0:
+            raise ValueError("hits_to_live must be greater than 0")
         self.hits_to_live = hits_to_live
 
     @property
@@ -79,7 +80,8 @@ T = TypeVar("T")
 
 class _CacheEntry(Generic[T]):
     def __init__(self, value: T, hits_to_live: int):
-        assert hits_to_live > 0
+        if hits_to_live <= 0:
+            raise ValueError("hits_to_live must be greater than 0")
         self.value: T = value
         self.hits_to_live: int = hits_to_live
 

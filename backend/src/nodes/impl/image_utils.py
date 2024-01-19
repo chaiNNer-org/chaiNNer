@@ -74,7 +74,8 @@ class NormalMapType(Enum):
 
 
 def convert_to_bgra(img: np.ndarray, in_c: int) -> np.ndarray:
-    assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
+    if in_c not in (1, 3, 4):
+        raise ValueError(f"Number of channels ({in_c}) unexpected")
     if in_c == 1:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
     elif in_c == 3:
@@ -223,9 +224,10 @@ def as_target_channels(
         return img
 
     if not narrowing:
-        assert (
-            c < target_c
-        ), f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"
+        if c >= target_c:
+            raise ValueError(
+                f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"
+            )
 
     if c == 1:
         if target_c == 3:
@@ -276,9 +278,10 @@ def create_border(
         cv_border_type = cv2.BORDER_CONSTANT
         value = (1.0,) * c
     elif border_type == BorderType.CUSTOM_COLOR:
-        assert (
-            color is not None
-        ), "Creating a border with a custom color requires supplying a custom color."
+        if color is None:
+            raise ValueError(
+                "Creating a border with a custom color requires supplying a custom color."
+            )
 
         # widen image or color to make them compatible
         if color.channels > c:

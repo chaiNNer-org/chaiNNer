@@ -2,7 +2,6 @@ import { Box, Tooltip, chakra } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeType } from '../../common/common-types';
 import { Validity } from '../../common/Validity';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { noContextMenu } from '../hooks/useContextMenu';
@@ -15,7 +14,7 @@ interface HandleElementProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     validity: Validity;
     id: string;
-    nodeType: NodeType;
+    isIterated: boolean;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
@@ -26,16 +25,12 @@ const HandleElement = memo(
         validity,
         type,
         id,
-        nodeType,
+        isIterated,
         ...props
     }: React.PropsWithChildren<HandleElementProps>) => {
         const { isFake } = useContext(FakeNodeContext);
 
-        const isIterator = nodeType === 'newIterator';
-        const isCollector = nodeType === 'collector';
-
-        const squaredHandle =
-            (isIterator && type === 'output') || (isCollector && type === 'input');
+        const squaredHandle = isIterated;
 
         return (
             <Tooltip
@@ -101,7 +96,7 @@ export interface HandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
     connectedColor: string | undefined;
-    nodeType: NodeType;
+    isIterated: boolean;
 }
 
 const getBackground = (colors: readonly string[]): string => {
@@ -125,7 +120,7 @@ export const Handle = memo(
         isValidConnection,
         handleColors,
         connectedColor,
-        nodeType,
+        isIterated,
     }: HandleProps) => {
         const isConnected = !!connectedColor;
 
@@ -154,8 +149,8 @@ export const Handle = memo(
                 as={HandleElement}
                 className={`${type}-handle`}
                 id={id}
+                isIterated={isIterated}
                 isValidConnection={isValidConnection}
-                nodeType={nodeType}
                 sx={{
                     width: '16px',
                     height: '16px',
