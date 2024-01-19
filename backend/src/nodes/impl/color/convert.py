@@ -58,8 +58,7 @@ def get_shortest_path(
                 best = x
             elif x.cost < best.cost:
                 best = x
-        if best is None:
-            raise ValueError("Could not find best item in front.")
+        assert best is not None
 
         current = best.path[-1]
         del front[current]
@@ -124,8 +123,7 @@ def convert(
             if c.output == curr_out:
                 conv = c
                 break
-        if conv is None:
-            raise ValueError("Could not find conversion.")
+        assert conv is not None
 
         img = conv.convert(img)
 

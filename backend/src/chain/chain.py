@@ -22,10 +22,7 @@ class FunctionNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        if self.data.type != "regularNode":
-            raise ValueError(
-                f"Invalid node type {self.data.type}. Expected regularNode."
-            )
+        assert self.data.type == "regularNode"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects
@@ -36,10 +33,7 @@ class NewIteratorNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        if self.data.type != "newIterator":
-            raise ValueError(
-                f"Invalid node type {self.data.type}. Expected newIterator."
-            )
+        assert self.data.type == "newIterator"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects
@@ -50,8 +44,7 @@ class CollectorNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        if self.data.type != "collector":
-            raise ValueError(f"Invalid node type {self.data.type}. Expected collector.")
+        assert self.data.type == "collector"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects
@@ -100,8 +93,7 @@ class Chain:
         self.__edges_by_target: dict[NodeId, list[Edge]] = {}
 
     def add_node(self, node: Node):
-        if node.id in self.nodes:
-            raise ValueError(f"Duplicate node id {node.id}")
+        assert node.id not in self.nodes, f"Duplicate node id {node.id}"
         self.nodes[node.id] = node
 
     def add_edge(self, edge: Edge):

@@ -67,8 +67,9 @@ def inpaint_node(
 ) -> np.ndarray:
     """Inpaint an image"""
 
-    if img.shape[:2] != mask.shape[:2]:
-        raise ValueError("Input image and mask must have the same resolution")
+    assert (
+        img.shape[:2] == mask.shape[:2]
+    ), "Input image and mask must have the same resolution"
 
     img = to_uint8(img, normalized=True)
     mask = to_uint8(mask, normalized=True)

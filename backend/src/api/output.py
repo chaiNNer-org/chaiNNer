@@ -66,6 +66,5 @@ class BaseOutput:
         return None
 
     def enforce(self, value: object) -> object:
-        if value is None:
-            raise ValueError("Value cannot be None")
+        assert value is not None
         return value

@@ -160,8 +160,7 @@ def get_filter_kernels(
     filter_x = FILTERS_X.get(edge_filter, None)
     if edge_filter == EdgeFilter.MULTI_GAUSS:
         filter_x = create_gauss_kernel(gauss_parameter)
-    if filter_x is None:
-        raise ValueError(f"Unknown filter '{edge_filter}'")
+    assert filter_x is not None, f"Unknown filter '{edge_filter}'"
 
     if edge_filter != EdgeFilter.MULTI_GAUSS:
         # normalize filter

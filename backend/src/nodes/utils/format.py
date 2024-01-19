@@ -14,8 +14,7 @@ def join_english(
     s = list(map(to_str, items))
 
     l = len(s)
-    if l == 0:
-        raise ValueError("Must have at least one item")
+    assert l > 0
 
     if l == 1:
         return s[0]
@@ -29,8 +28,7 @@ def format_image_with_channels(
     conj: Conj = "and",
     plural: bool = False,
 ) -> str:
-    if len(channels) == 0:
-        raise ValueError("Must have at least one channel")
+    assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
     if all(x in named for x in channels):
@@ -52,8 +50,7 @@ def format_color_with_channels(
     conj: Conj = "and",
     plural: bool = False,
 ) -> str:
-    if len(channels) == 0:
-        raise ValueError("Must have at least one channel")
+    assert len(channels) > 0
 
     named = {1: "grayscale", 3: "RGB", 4: "RGBA"}
     if all(x in named for x in channels):

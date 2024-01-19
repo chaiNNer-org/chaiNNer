@@ -106,8 +106,7 @@ def eval_type(t: str | _Ty, __globals: dict[str, Any]):
 
 
 def union_types(types: list[_Ty]) -> _Ty:
-    if len(types) == 0:
-        raise ValueError("Cannot union zero types")
+    assert len(types) > 0
     t: Any = types[0]
     for t2 in types[1:]:
         t = Union[t, cast(Any, t2)]

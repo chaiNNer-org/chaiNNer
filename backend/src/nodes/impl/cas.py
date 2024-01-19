@@ -31,8 +31,7 @@ def create_cas_mask(img: np.ndarray, kernel: np.ndarray, bias: float = 2) -> np.
     Lou Kramer, FidelityFX CAS, AMD Developer Day 2019, https://gpuopen.com/wp-content/uploads/2019/07/FidelityFX-CAS.pptx
     https://www.shadertoy.com/view/wtlSWB#
     """
-    if bias <= 0:
-        raise ValueError("Bias must be >0.")
+    assert bias > 0, "Bias must be greater than or equal to 0."
 
     l = _luminance(img)
     min_l = cv2.erode(l, kernel)

@@ -59,14 +59,12 @@ def split_spritesheet_node(
     columns: int,
 ) -> Iterator[tuple[np.ndarray, int]]:
     h, w, _ = get_h_w_c(sprite_sheet)
-    if h % rows != 0:
-        raise ValueError(
-            "Height of sprite sheet must be a multiple of the number of rows"
-        )
-    if w % columns != 0:
-        raise ValueError(
-            "Width of sprite sheet must be a multiple of the number of columns"
-        )
+    assert (
+        h % rows == 0
+    ), "Height of sprite sheet must be a multiple of the number of rows"
+    assert (
+        w % columns == 0
+    ), "Width of sprite sheet must be a multiple of the number of columns"
 
     individual_h = h // rows
     individual_w = w // columns
