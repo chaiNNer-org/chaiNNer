@@ -48,7 +48,16 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
-    const { id, schema, schemaId, outputHeight, setOutputHeight, nodeWidth, setWidth } = nodeState;
+    const {
+        id,
+        schema,
+        schemaId,
+        outputHeight,
+        setOutputHeight,
+        nodeWidth,
+        setWidth,
+        iteratedOutputs,
+    } = nodeState;
 
     const { functionDefinitions } = useContext(BackendContext);
     const { setManualOutputType } = useContext(GlobalContext);
@@ -110,8 +119,8 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                         generic={OutputIsGeneric[output.kind]}
                         id={id}
                         isConnected={nodeState.connectedOutputs.has(output.id)}
+                        isIterated={iteratedOutputs.has(output.id)}
                         key={`${id}-${output.id}`}
-                        nodeType={schema.nodeType}
                         output={output}
                         type={type}
                     >

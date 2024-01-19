@@ -58,8 +58,9 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         setWidth,
         isLocked,
         connectedInputs,
+        iteratedInputs,
+        iteratedOutputs,
         type,
-        schema,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -128,7 +129,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 connectableType={connectableType}
                 id={nodeId}
                 inputId={inputId}
-                nodeType={schema.nodeType}
+                isIterated={iteratedInputs.has(inputId)}
             >
                 {inputElement}
             </InputHandle>
@@ -145,7 +146,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 }
                 id={nodeId}
                 isConnected={nodeState.connectedOutputs.has(fused.outputId)}
-                nodeType={schema.nodeType}
+                isIterated={iteratedOutputs.has(fused.outputId)}
                 outputId={fused.outputId}
                 type={outputType}
             />

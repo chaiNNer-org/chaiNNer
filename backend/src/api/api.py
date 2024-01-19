@@ -89,6 +89,12 @@ class IteratorInputInfo:
         )
         self.length_type: navi.ExpressionJson = length_type
 
+    def to_dict(self):
+        return {
+            "inputs": self.inputs,
+            "lengthType": self.length_type,
+        }
+
 
 class IteratorOutputInfo:
     def __init__(
@@ -102,6 +108,12 @@ class IteratorOutputInfo:
             else [OutputId(outputs)]
         )
         self.length_type: navi.ExpressionJson = length_type
+
+    def to_dict(self):
+        return {
+            "outputs": self.outputs,
+            "lengthType": self.length_type,
+        }
 
 
 @dataclass(frozen=True)
