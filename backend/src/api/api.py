@@ -141,18 +141,12 @@ class NodeData:
 
     @property
     def single_iterator_input(self) -> IteratorInputInfo:
-        if len(self.iterator_inputs[0].inputs) != 1:
-            raise ValueError(
-                "Expected exactly one input for single iterator input node"
-            )
+        assert len(self.iterator_inputs) == 1
         return self.iterator_inputs[0]
 
     @property
     def single_iterator_output(self) -> IteratorOutputInfo:
-        if len(self.iterator_outputs[0].outputs) != 1:
-            raise ValueError(
-                "Expected exactly one output for single iterator output node"
-            )
+        assert len(self.iterator_outputs) == 1
         return self.iterator_outputs[0]
 
 
@@ -226,21 +220,11 @@ class NodeGroup:
         iterator_outputs = to_list(iterator_outputs)
 
         if node_type == "collector":
-            if not (len(iterator_inputs) == 1 and len(iterator_outputs) == 0):
-                raise ValueError(
-                    "Collector nodes must have exactly one iterator input and zero iterator outputs"
-                )
+            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
         elif node_type == "newIterator":
-            if not (len(iterator_inputs) == 0 and len(iterator_outputs) == 1):
-                raise ValueError(
-                    "Iterator nodes must have exactly zero iterator inputs and one iterator output"
-                )
-        else:  # noqa: PLR5501
-            if not (len(iterator_inputs) == 0 and len(iterator_outputs) == 0):
-                raise ValueError(
-                    "Regular nodes must have exactly zero iterator inputs and zero iterator outputs",
-                    f"Got {len(iterator_inputs)} iterator inputs and {len(iterator_outputs)} iterator outputs",
-                )
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
+        else:
+            assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
 
         def run_check(level: CheckLevel, run: Callable[[bool], None]):
             if level == CheckLevel.NONE:
@@ -474,6 +458,7 @@ class PackageRegistry:
         return self.nodes[schema_id][1].category.package
 
     def add(self, package: Package) -> Package:
+        # assert package.where not in self.packages
         self.packages[package.where] = package
         return package
 
@@ -587,8 +572,7 @@ class Iterator(Generic[I]):
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
         """
-        if count < 0:
-            raise ValueError("count must be >= 0")
+        assert count >= 0
 
         def supplier():
             for i in range(count):

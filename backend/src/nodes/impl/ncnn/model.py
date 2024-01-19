@@ -401,10 +401,9 @@ class NcnnModel:
         layer_bytes = b""
 
         if weights_a:
-            if len(weights_a) != len(weights_b):
-                raise ValueError(
-                    "All corresponding nodes must have same number of weights"
-                )
+            assert len(weights_a) == len(
+                weights_b
+            ), "All corresponding nodes must have same number of weights"
 
             layer_bytes_list = []
             for weight_name, weight_a in weights_a.items():
@@ -416,15 +415,13 @@ class NcnnModel:
                     )
                     raise
 
-                if weight_a.shape != weight_b.shape:
-                    raise ValueError(
-                        "Corresponding weights must have the same size and shape"
-                    )
+                assert (
+                    weight_a.shape == weight_b.shape
+                ), "Corresponding weights must have the same size and shape"
 
-                if len(weight_a.quantize_tag) != len(weight_b.quantize_tag):
-                    raise ValueError(
-                        "Weights must either both have or both not have a quantize tag"
-                    )
+                assert len(weight_a.quantize_tag) == len(
+                    weight_b.quantize_tag
+                ), "Weights must either both have or both not have a quantize tag"
 
                 if (
                     weight_a.quantize_tag == DTYPE_FP16
@@ -471,8 +468,7 @@ class NcnnModel:
     def parse_param_layer(self, layer_str: str) -> tuple[str, NcnnLayer]:
         param_list = layer_str.strip().split()
         op_type, name = param_list[:2]
-        if op_type == "MemoryData":
-            raise ValueError("This NCNN param file contains invalid layers")
+        assert op_type != "MemoryData", "This NCNN param file contains invalid layers"
 
         num_inputs = int(param_list[2])
         num_outputs = int(param_list[3])
@@ -599,8 +595,7 @@ class NcnnModel:
             quantize_tag = binf.read(4)
             dtype = DTYPE_DICT[quantize_tag]
             weight_data_length = layer.params[2].value
-            if not isinstance(weight_data_length, int):
-                raise TypeError("Weight data size must be int")
+            assert isinstance(weight_data_length, int), "Weight data size must be int"
             weight_data_size = (
                 weight_data_length * 2
                 if quantize_tag == DTYPE_FP16
@@ -608,8 +603,7 @@ class NcnnModel:
             )
             weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
             num_output = layer.params[0].value
-            if not isinstance(num_output, int):
-                raise TypeError("Num output must be int")
+            assert isinstance(num_output, int), "Num output must be int"
             num_input = weight_data_length // num_output
             weight_data = weight_data.reshape((num_input, num_output))
             weight_dict["weight"] = NcnnWeight(weight_data, quantize_tag)
@@ -621,15 +615,13 @@ class NcnnModel:
                 weight_dict["bias"] = NcnnWeight(bias_data)
         elif op_type == "PReLU":
             num_slope = layer.params[0].value
-            if not isinstance(num_slope, int):
-                raise TypeError("Num slopes must be int")
+            assert isinstance(num_slope, int), "Num slopes must be int"
             slope_data_size = num_slope * 4
             slope_data = np.frombuffer(binf.read(slope_data_size), np.float32)
             weight_dict["slope"] = NcnnWeight(slope_data)
         elif op_type == "Scale":
             scale_data_length = layer.params[0].value
-            if not isinstance(scale_data_length, int):
-                raise TypeError("Scale data size must be int")
+            assert isinstance(scale_data_length, int), "Scale data size must be int"
             if scale_data_length != -233:
                 quantize_tag = binf.read(4)
                 dtype = DTYPE_DICT[quantize_tag]
@@ -706,10 +698,9 @@ class NcnnModel:
             (i, l) for i, l in enumerate(model_b.layers) if l.weight_data
         ]
 
-        if len(layer_a_weights) != len(layer_b_weights):
-            raise ValueError(
-                "Models must have same number of layers containing weights"
-            )
+        assert len(layer_a_weights) == len(
+            layer_b_weights
+        ), "Models must have same number of layers containing weights"
 
         weight_bytes_list = []
         for layer_a, layer_b in zip(layer_a_weights, layer_b_weights):
@@ -781,15 +772,14 @@ class NcnnModelWrapper:
                 scale *= checked_cast(int, layer.params[3].value)
                 current_conv = layer
 
-        if current_conv is None:
-            raise ValueError("Cannot broadcast; model has no Convolution layers")
+        assert (
+            current_conv is not None
+        ), "Cannot broadcast; model has no Convolution layers"
 
         out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
 
-        if scale < 1:
-            raise ValueError("Models with scale less than 1x not supported")
-        if scale % 1 != 0:
-            raise ValueError(f"Model not supported, scale {scale} is not an integer")
+        assert scale >= 1, "Models with scale less than 1x not supported"
+        assert scale % 1 == 0, f"Model not supported, scale {scale} is not an integer"
 
         return int(scale), in_nc, out_nc, nf, fp
 
@@ -803,15 +793,12 @@ class NcnnModelWrapper:
             kernel_h = kernel_w
         weight_data_size = layer.params[6].value
 
-        if not (
+        assert (
             isinstance(nf, int)
             and isinstance(kernel_w, int)
             and isinstance(kernel_h, int)
             and isinstance(weight_data_size, int)
-        ):
-            raise TypeError(
-                "Out nc, kernel width and height, and weight data size must all be ints"
-            )
+        ), "Out nc, kernel width and height, and weight data size must all be ints"
         in_nc = weight_data_size // nf // kernel_w // kernel_h
 
         return nf, in_nc

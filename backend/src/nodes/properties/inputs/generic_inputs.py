@@ -113,8 +113,7 @@ class DropDownInput(BaseInput):
         raise ValueError("DropDownInput cannot be made optional")
 
     def enforce(self, value: object):
-        if value not in self.accepted_values:
-            raise ValueError(f"{value} is not a valid option")
+        assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
 
@@ -191,14 +190,10 @@ class EnumInput(Generic[T], DropDownInput):
         variant_types: list[str] = []
         for variant in enum:
             value = variant.value
-            if not isinstance(value, (int, str)):
-                raise ValueError(
-                    f"Expected the value of {enum.__name__}.{variant.name} to be an int or str, but got {type(value)}."
-                )
-            if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is None:
-                raise ValueError(
-                    f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
-                )
+            assert isinstance(value, (int, str))
+            assert (
+                re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None
+            ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
 
             name = split_snake_case(variant.name)
             variant_type = f"{type_name}::{join_pascal_case(name)}"
@@ -264,16 +259,9 @@ class TextInput(BaseInput):
         self.allow_empty_string = allow_empty_string
 
         if default is not None:
-            if default == "":
-                raise ValueError("Default value cannot be an empty string.")
-            if min_length >= len(default):
-                raise ValueError(
-                    f"Default value '{default}' must be at least {min_length} characters long."
-                )
-            if not (max_length is None or len(default) < max_length):
-                raise ValueError(
-                    f"Default value '{default}' must be less than {max_length} characters long."
-                )
+            assert default != ""
+            assert min_length < len(default)
+            assert max_length is None or len(default) < max_length
 
         self.associated_type = str
 
@@ -401,8 +389,7 @@ class ColorInput(BaseInput):
             if default is None:
                 default = Color.bgr((0.5, 0.5, 0.5))
         else:
-            if len(self.channels) == 0:
-                raise ValueError("The input channels cannot be empty.")
+            assert len(self.channels) >= 0
             if default is None:
                 if 3 in self.channels:
                     default = Color.bgr((0.5, 0.5, 0.5))
@@ -412,8 +399,10 @@ class ColorInput(BaseInput):
                     default = Color.gray(0.5)
                 else:
                     raise ValueError("Cannot find default color value")
-            elif default.channels not in self.channels:
-                raise ValueError("The default color is not accepted.")
+            else:
+                assert (
+                    default.channels in self.channels
+                ), "The default color is not accepted."
 
         self.default: Color = default
 
@@ -424,8 +413,7 @@ class ColorInput(BaseInput):
             # decode color JSON strings from the frontend
             value = Color.from_json(json.loads(value))
 
-        if not isinstance(value, Color):
-            raise TypeError(f"Expected a Color, but got {type(value)}")
+        assert isinstance(value, Color)
 
         if self.channels is not None and value.channels not in self.channels:
             expected = format_color_with_channels(self.channels, plural=True)

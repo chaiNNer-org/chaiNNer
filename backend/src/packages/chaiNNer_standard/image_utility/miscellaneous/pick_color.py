@@ -109,11 +109,10 @@ def pick_color_node(
         x = round_half_up((w - 1) * x_rel / 100)
         y = round_half_up((h - 1) * y_rel / 100)
 
-    if not (x < w and y < h):
-        raise ValueError(
-            "The given coordinates (X, Y) are outside the image."
-            f" Expect X={x} to be to 0 to {w-1} and Y={y} to be to 0 to {h-1}."
-        )
+    assert x < w and y < h, (
+        "The given coordinates (X, Y) are outside the image."
+        f" Expect X={x} to be to 0 to {w-1} and Y={y} to be to 0 to {h-1}."
+    )
 
     if c == 1:
         return Color.gray(orig_img[y, x])

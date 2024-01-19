@@ -56,10 +56,9 @@ def convert_to_ncnn_node(
                 manager to use this node."
         )
 
-    if isinstance(model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)):
-        raise ValueError(
-            f"{model.architecture} is not supported for NCNN conversions at this time."
-        )
+    assert not isinstance(
+        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
+    ), f"{model.architecture} is not supported for NCNN conversions at this time."
 
     exec_options = get_settings(context)
     device = exec_options.device

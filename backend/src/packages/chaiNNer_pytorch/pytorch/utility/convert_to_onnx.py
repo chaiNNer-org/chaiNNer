@@ -70,17 +70,15 @@ OPSET_LABELS: dict[Opset, str] = {
 def convert_to_onnx_node(
     context: NodeContext, model: ImageModelDescriptor, is_fp16: int, opset: Opset
 ) -> tuple[OnnxGeneric, str, str]:
-    if isinstance(model.model, SCUNet):
-        raise ValueError("SCUNet is not supported for ONNX conversion at this time.")
+    assert not isinstance(
+        model.model, SCUNet
+    ), "SCUNet is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
     exec_options = get_settings(context)
     device = exec_options.device
     if fp16:
-        if not exec_options.use_fp16:
-            raise RuntimeError(
-                "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
-            )
+        assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
     model.model.eval()
     model = model.to(device)

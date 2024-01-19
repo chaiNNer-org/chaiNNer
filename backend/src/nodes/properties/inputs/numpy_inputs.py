@@ -62,8 +62,7 @@ class ImageInput(BaseInput):
 
             return value
 
-        if not isinstance(value, np.ndarray):
-            raise TypeError(f"Expected a np.ndarray, but got {type(value)}")
+        assert isinstance(value, np.ndarray)
         _, _, c = get_h_w_c(value)
 
         if self.channels is not None and c not in self.channels:
@@ -73,8 +72,7 @@ class ImageInput(BaseInput):
                 f"The input {self.label} only supports {expected} but was given {actual}."
             )
 
-        if value.dtype != np.float32:
-            raise ValueError("Expected the input image to be normalized.")
+        assert value.dtype == np.float32, "Expected the input image to be normalized."
 
         if c == 1 and value.ndim == 3:
             value = value[:, :, 0]

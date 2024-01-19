@@ -54,12 +54,9 @@ class FileInput(BaseInput):
         }
 
     def enforce(self, value: object) -> str:
-        if not isinstance(value, str):
-            raise TypeError("value must be a string")
-        if not os.path.exists(value):
-            raise FileNotFoundError(f"File {value} does not exist")
-        if not os.path.isfile(value):
-            raise ValueError(f"The path {value} is not a file")
+        assert isinstance(value, str)
+        assert os.path.exists(value), f"File {value} does not exist"
+        assert os.path.isfile(value), f"The path {value} is not a file"
         return value
 
 
@@ -141,10 +138,9 @@ class DirectoryInput(BaseInput):
         }
 
     def enforce(self, value: object):
-        if not isinstance(value, str):
-            raise TypeError("value must be a string")
-        if self.must_exist and not os.path.exists(value):
-            raise FileNotFoundError(f"Directory {value} does not exist")
+        assert isinstance(value, str)
+        if self.must_exist:
+            assert os.path.exists(value), f"Directory {value} does not exist"
         return value
 
 

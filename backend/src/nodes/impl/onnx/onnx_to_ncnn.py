@@ -3726,8 +3726,7 @@ class Onnx2NcnnConverter:
                     else:
                         steps = np.empty(0, np.int32)
 
-                if not np.all(steps != 1):
-                    raise ValueError(f"Unsupported Slice step {steps}")
+                assert np.all(steps != 1), f"Unsupported Slice step {steps}"
 
                 # Filter out N-dim axis
                 if axes.size:
@@ -3741,8 +3740,9 @@ class Onnx2NcnnConverter:
                 layer.add_param(9, [starts.size, *list(starts)])
                 layer.add_param(10, [ends.size, *list(ends)])
                 if axes.size:
-                    if not np.all(axes != 0 and axes <= 3 and axes >= -3):
-                        raise ValueError(f"Unsupported Slice axes {axes}")
+                    assert np.all(
+                        axes != 0 and axes <= 3 and axes >= -3
+                    ), f"Unsupported Slice axes {axes}"
                     layer.add_param(
                         11, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
                     )
@@ -3754,8 +3754,7 @@ class Onnx2NcnnConverter:
                 axis = get_node_attr_i(node, "axis", 0)
                 splits = get_node_attr_ai(node, "split")
 
-                if axis < 1:
-                    raise ValueError(f"Unsupported axis {axis} in Split")
+                assert axis >= 1, f"Unsupported axis {axis} in Split"
 
                 if splits.size:
                     layer.add_param(0, [output_size, *list(splits[:-1]), -233])
@@ -3770,8 +3769,9 @@ class Onnx2NcnnConverter:
                 axes = get_node_attr_ai(node, "axes")
 
                 if axes.size:
-                    if not np.all(axes != 0 and axes <= 4 and axes >= -3):
-                        raise ValueError(f"Unsupported Squeeze axes {axes}")
+                    assert np.all(
+                        axes != 0 and axes <= 4 and axes >= -3
+                    ), f"Unsupported Squeeze axes {axes}"
 
                     layer.add_param(
                         3, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
@@ -3880,8 +3880,9 @@ class Onnx2NcnnConverter:
             elif op == "Unsqueeze":
                 axes = get_node_attr_ai(node, "axes")
 
-                if not (np.all(axes != 0) and np.all(axes <= 4) and np.all(axes >= -4)):
-                    raise ValueError(f"Unsupported axes {axes} in Unsqueeze")
+                assert (
+                    np.all(axes != 0) and np.all(axes <= 4) and np.all(axes >= -4)
+                ), f"Unsupported axes {axes} in Unsqueeze"
 
                 layer.add_param(
                     3, [axes.size, *[axis - 1 if axis > 0 else axis for axis in axes]]

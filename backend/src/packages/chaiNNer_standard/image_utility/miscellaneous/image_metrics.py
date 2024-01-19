@@ -35,8 +35,9 @@ def image_metrics_node(
 ) -> tuple[float, float, float]:
     """Compute MSE, PSNR, and SSIM"""
 
-    if orig_img.shape != comp_img.shape:
-        raise ValueError("Images must have same dimensions and color depth")
+    assert (
+        orig_img.shape == comp_img.shape
+    ), "Images must have same dimensions and color depth"
 
     # If an image is not grayscale, convert to YCrCb and compute metrics
     # on luma channel only

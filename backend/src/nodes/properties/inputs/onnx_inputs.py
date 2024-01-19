@@ -24,10 +24,8 @@ class OnnxGenericModelInput(OnnxModelInput):
         super().__init__(label, navi.intersect(input_type, "OnnxGenericModel"))
 
     def enforce(self, value: object):
-        if not isinstance(value, OnnxModels):
-            raise TypeError("Expected an Onnx Model")
-        if is_rembg_model(value.bytes):
-            raise ValueError("Expected a non-rembg model")
+        assert isinstance(value, OnnxModels)
+        assert not is_rembg_model(value.bytes), "Expected a non-rembg model"
         return value
 
 
@@ -41,10 +39,8 @@ class OnnxRemBgModelInput(OnnxModelInput):
         self.associated_type = OnnxRemBg
 
     def enforce(self, value: object):
-        if not isinstance(value, OnnxModels):
-            raise TypeError("Expected an Onnx Model")
-        if not is_rembg_model(value.bytes):
-            raise ValueError("Expected a rembg model")
+        assert isinstance(value, OnnxModels)
+        assert is_rembg_model(value.bytes), "Expected a rembg model"
         return value
 
 

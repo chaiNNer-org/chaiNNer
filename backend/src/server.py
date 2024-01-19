@@ -61,8 +61,7 @@ class AppContext:
 
     @staticmethod
     def get(app_instance: Sanic) -> AppContext:
-        if not isinstance(app_instance.ctx, AppContext):
-            raise ValueError("AppContext is not set!")
+        assert isinstance(app_instance.ctx, AppContext)
         return app_instance.ctx
 
 

@@ -25,6 +25,5 @@ class DirectoryOutput(BaseOutput):
         return navi.named("Directory", {"path": navi.literal(value)})
 
     def enforce(self, value: object) -> str:
-        if not isinstance(value, str):
-            raise TypeError(f"Expected a string, but got {type(value)}")
+        assert isinstance(value, str)
         return value

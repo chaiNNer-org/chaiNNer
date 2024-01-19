@@ -16,22 +16,19 @@ def __add_noises(
 ) -> np.ndarray:
     img = image
     h, w, c = get_h_w_c(img)
-    if c == 2:
-        raise ValueError("Noise cannot be added to 2-channel images.")
+    assert c != 2, "Noise cannot be added to 2-channel images."
 
     if c > 3:
         img = img[:, :, :3]
 
     noises = noise_gen(h, w)
 
-    if len(noises) == 0:
-        raise RuntimeError("No noise was generated.")
+    assert len(noises) > 0
 
     max_channels = min(c, 3)
     for n in noises:
         noise_channels = get_h_w_c(n)[2]
-        if noise_channels not in (1, 3):
-            raise ValueError("Noise must be a grayscale or RGB image.")
+        assert noise_channels in (1, 3), "Noise must be a grayscale or RGB image."
         max_channels = max(max_channels, noise_channels)
 
     noises = [as_target_channels(n, max_channels) for n in noises]

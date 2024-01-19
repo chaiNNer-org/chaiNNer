@@ -248,7 +248,7 @@ def blend_images_node(
         base = cv2.copyMakeBorder(
             base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0.0,)
         )
-        assert isinstance(base, np.ndarray)  # noqa: S101
+        assert isinstance(base, np.ndarray)
     else:  # Make sure cached image not being worked on regardless
         base = base.copy()
 
