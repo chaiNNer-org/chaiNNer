@@ -333,7 +333,6 @@ class Executor:
         self,
         id: ExecutionId,
         chain: Chain,
-        inputs: InputMap,
         send_broadcast_data: bool,
         options: ExecutionOptions,
         loop: asyncio.AbstractEventLoop,
@@ -343,7 +342,7 @@ class Executor:
     ):
         self.id: ExecutionId = id
         self.chain = chain
-        self.inputs = inputs
+        self.inputs: InputMap = InputMap.from_chain(chain)
         self.send_broadcast_data: bool = send_broadcast_data
         self.options: ExecutionOptions = options
         self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)

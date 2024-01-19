@@ -29,7 +29,6 @@ from api import (
 )
 from chain.cache import OutputCache
 from chain.chain import Chain, FunctionNode
-from chain.input import InputMap
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from custom_types import UpdateProgressFn
@@ -171,14 +170,13 @@ async def run(request: Request):
 
         full_data: RunRequest = dict(request.json)  # type: ignore
         logger.debug(full_data)
-        chain, inputs = parse_json(full_data["data"])
+        chain = parse_json(full_data["data"])
         optimize(chain)
 
         logger.info("Running new executor...")
         executor = Executor(
             id=ExecutionId("main-executor " + uuid.uuid4().hex),
             chain=chain,
-            inputs=inputs,
             send_broadcast_data=full_data["sendBroadcastData"],
             options=ExecutionOptions.parse(full_data["options"]),
             loop=app.loop,
@@ -239,8 +237,8 @@ async def run_individual(request: Request):
         chain = Chain()
         chain.add_node(node)
 
-        input_map = InputMap()
-        input_map.set_values(node_id, full_data["inputs"])
+        for index, i in enumerate(full_data["inputs"]):
+            chain.inputs.set(node_id, node.data.inputs[index].id, i)
 
         # only yield certain types of events
         queue = EventConsumer.filter(
@@ -251,7 +249,6 @@ async def run_individual(request: Request):
         executor = Executor(
             id=execution_id,
             chain=chain,
-            inputs=input_map,
             send_broadcast_data=True,
             options=ExecutionOptions.parse(full_data["options"]),
             loop=app.loop,
