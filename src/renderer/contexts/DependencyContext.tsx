@@ -59,7 +59,7 @@ import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 const installModes = {
-    NORMAL: 'Normal Install',
+    NORMAL: 'Normal',
     DIRECT_PIP: 'Direct Pip',
     MANUAL_COPY: 'Manual/Copy',
 };
