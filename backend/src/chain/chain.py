@@ -22,7 +22,7 @@ class FunctionNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        assert self.data.type == "regularNode"
+        assert self.data.kind == "regularNode"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects
@@ -33,7 +33,7 @@ class NewIteratorNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        assert self.data.type == "newIterator"
+        assert self.data.kind == "newIterator"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects
@@ -44,7 +44,7 @@ class CollectorNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        assert self.data.type == "collector"
+        assert self.data.kind == "collector"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects

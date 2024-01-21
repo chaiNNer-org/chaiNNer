@@ -116,13 +116,12 @@ export const RepresentativeNodeWrapper = memo(
             });
 
             createNode({
-                nodeType: node.nodeType,
                 position,
                 data: {
                     schemaId: node.schemaId,
                 },
             });
-        }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper]);
+        }, [createNode, node.schemaId, reactFlowInstance, reactFlowWrapper]);
 
         const featureDetails = node.features.map((feature) => {
             const featureState = featureStates.get(feature);
@@ -194,7 +193,6 @@ export const RepresentativeNodeWrapper = memo(
                                     createNodeFromSelector={createNodeFromSelector}
                                     icon={node.icon}
                                     name={node.name}
-                                    nodeType={node.nodeType}
                                     schemaId={node.schemaId}
                                 />
                             </Center>

@@ -45,7 +45,7 @@ from ..io.load_model import load_model_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_models_node(
     directory: str,

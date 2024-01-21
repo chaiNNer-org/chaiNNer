@@ -115,7 +115,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
 
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
     const [iteratedInputs, iteratedOutputs] = useMemo(() => {
-        if (schema.nodeType === 'regularNode') {
+        if (schema.kind === 'regularNode') {
             // eslint-disable-next-line @typescript-eslint/no-shadow
             const iteratedInputs = new Set<InputId>();
             for (const input of schema.inputs) {

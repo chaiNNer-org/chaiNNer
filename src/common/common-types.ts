@@ -250,7 +250,7 @@ export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> 
     ? T
     : never;
 
-export type NodeType = 'regularNode' | 'newIterator' | 'collector';
+export type NodeKind = 'regularNode' | 'newIterator' | 'collector';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputHeight = Readonly<Record<InputId, number>>;
@@ -275,7 +275,7 @@ export interface NodeSchema {
     readonly description: string;
     readonly seeAlso: readonly SchemaId[];
     readonly icon: string;
-    readonly nodeType: NodeType;
+    readonly kind: NodeKind;
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
     readonly groupLayout: readonly (InputId | Group)[];

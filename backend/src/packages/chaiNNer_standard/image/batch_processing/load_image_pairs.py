@@ -53,7 +53,7 @@ from ..io.load_image import load_image_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_image_pairs_node(
     directory_a: str,

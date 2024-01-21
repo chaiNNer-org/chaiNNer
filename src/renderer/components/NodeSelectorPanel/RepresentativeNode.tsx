@@ -2,7 +2,7 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { CategoryId, NodeType, SchemaId } from '../../../common/common-types';
+import { CategoryId, SchemaId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor } from '../../helpers/accentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
@@ -14,21 +14,20 @@ interface RepresentativeNodeProps {
     name: string;
     collapsed?: boolean;
     schemaId: SchemaId;
-    nodeType: NodeType;
     createNodeFromSelector: () => void;
 }
 
 export const RepresentativeNode = memo(
     ({
         category,
-        nodeType,
         name,
         icon,
         schemaId,
         collapsed = false,
         createNodeFromSelector,
     }: RepresentativeNodeProps) => {
-        const { categories } = useContext(BackendContext);
+        const { categories, schemata } = useContext(BackendContext);
+        const schema = schemata.get(schemaId);
 
         const bgColor = 'var(--selector-node-bg)';
         const accentColor = getCategoryAccentColor(categories, category);
@@ -38,7 +37,7 @@ export const RepresentativeNode = memo(
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(schemaId);
 
-        const isIterator = nodeType === 'newIterator' || nodeType === 'collector';
+        const isIterator = schema.kind === 'newIterator' || schema.kind === 'collector';
         let bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 100%)`;
         if (isIterator) {
             bgGradient = `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`;

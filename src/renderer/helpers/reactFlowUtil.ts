@@ -1,5 +1,5 @@
 import { Edge, Node, XYPosition } from 'reactflow';
-import { EdgeData, InputData, Mutable, NodeData, NodeType } from '../../common/common-types';
+import { EdgeData, InputData, Mutable, NodeData } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deepCopy } from '../../common/util';
 
@@ -7,16 +7,17 @@ export interface NodeProto {
     id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
-    nodeType: NodeType;
 }
 
 export const createNode = (
-    { id = createUniqueId(), position, data, nodeType }: NodeProto,
+    { id = createUniqueId(), position, data }: NodeProto,
     schemata: SchemaMap,
     selected = false
 ): Node<NodeData> => {
+    const schema = schemata.get(data.schemaId);
+
     const newNode: Node<Mutable<NodeData>> = {
-        type: nodeType,
+        type: schema.kind,
         id,
         position: { ...position },
         data: {

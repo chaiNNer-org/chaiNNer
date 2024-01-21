@@ -56,7 +56,7 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
         AudioStreamOutput(),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_video_node(
     path: str,

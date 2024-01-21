@@ -48,7 +48,7 @@ from .. import batch_processing_group
             }"""
         )
     ],
-    node_type="collector",
+    kind="collector",
 )
 def merge_spritesheet_node(
     _: None,
