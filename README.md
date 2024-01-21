@@ -102,7 +102,7 @@ ChaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### PyTorch
 
-As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.com/chaiNNer-org/spandrel) to support Pytorch model architectures. For a list of what's supported, [check out the list there](https://github.com/chaiNNer-org/spandrel/tree/main?tab=readme-ov-file#model-architecture-support).
+As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.com/chaiNNer-org/spandrel) to support Pytorch model architectures. For a list of what's supported, [check out the list there](https://github.com/chaiNNer-org/spandrel#model-architecture-support).
 
 ### NCNN
 
