@@ -20,6 +20,13 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverHeader,
+    PopoverTrigger,
     Progress,
     Select,
     Spacer,
@@ -30,7 +37,6 @@ import {
     Tooltip,
     VStack,
     useDisclosure,
-    useToast,
 } from '@chakra-ui/react';
 import { clipboard } from 'electron';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -423,8 +429,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     );
     const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
-    const toast = useToast();
-
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
@@ -454,16 +458,17 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             });
     };
 
+    const {
+        isOpen: isPopoverOpen,
+        onToggle: onPopoverToggle,
+        onClose: onPopoverClose,
+    } = useDisclosure();
     const copyCommandToClipboard = (command: string) => {
         clipboard.writeText(command);
-        toast({
-            title: 'Command copied to clipboard.',
-            description:
-                'Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.',
-            status: 'success',
-            duration: 9000,
-            isClosable: true,
-        });
+        onPopoverToggle();
+        setTimeout(() => {
+            onPopoverClose();
+        }, 5000);
     };
 
     const installPackage = (pkg: Package) => {
@@ -582,18 +587,42 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 <HStack gap={2}>
                                     <HStack>
                                         <HStack>
-                                            <Select
-                                                isDisabled={isRunningShell}
-                                                size="md"
-                                                value={installMode}
-                                                onChange={(e) => {
-                                                    setInstallMode(e.target.value);
-                                                }}
+                                            <Popover
+                                                closeOnBlur={false}
+                                                colorScheme="green"
+                                                isOpen={isPopoverOpen}
+                                                placement="top"
+                                                returnFocusOnClose={false}
+                                                onClose={onPopoverClose}
                                             >
-                                                <option>{installModes.NORMAL}</option>
-                                                <option>{installModes.DIRECT_PIP}</option>
-                                                <option>{installModes.MANUAL_COPY}</option>
-                                            </Select>
+                                                <PopoverTrigger>
+                                                    <Select
+                                                        isDisabled={isRunningShell}
+                                                        size="md"
+                                                        value={installMode}
+                                                        onChange={(e) => {
+                                                            setInstallMode(e.target.value);
+                                                        }}
+                                                    >
+                                                        <option>{installModes.NORMAL}</option>
+                                                        <option>{installModes.DIRECT_PIP}</option>
+                                                        <option>{installModes.MANUAL_COPY}</option>
+                                                    </Select>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <PopoverHeader fontWeight="semibold">
+                                                        Command copied to clipboard.
+                                                    </PopoverHeader>
+                                                    <PopoverArrow />
+                                                    <PopoverCloseButton />
+                                                    <PopoverBody>
+                                                        Open up an external terminal, paste the
+                                                        command, and run it. When it is done
+                                                        running, manually restart chaiNNer.
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Popover>
+
                                             <Tooltip
                                                 hasArrow
                                                 borderRadius={8}
