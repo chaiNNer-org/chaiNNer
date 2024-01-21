@@ -70,9 +70,10 @@ def upscale(
                         element_size,
                     )
                 )
-            elif options.budget_limit > 0:
+            elif device.type == "cpu":
                 free = psutil.virtual_memory().available
-                free = min(options.budget_limit * 1024**3, free)
+                if options.budget_limit > 0:
+                    free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
                 return MaxTileSize(
                     estimate_tile_size(
