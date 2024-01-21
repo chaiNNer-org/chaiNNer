@@ -1873,6 +1873,13 @@ const unifiedResizeNode: ModernMigration = (data) => {
     return data;
 };
 
+const updateNodeTypesToKinds: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        node.type = 'backendNode';
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1929,6 +1936,7 @@ const migrations = [
     removeZIndexes,
     createBorderEdgesTileFillToPad,
     unifiedResizeNode,
+    updateNodeTypesToKinds,
 ];
 
 export const currentMigration = migrations.length;
