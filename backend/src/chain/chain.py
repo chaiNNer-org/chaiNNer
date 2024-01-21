@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable, TypeVar, Union
 
 from api import InputId, NodeData, NodeId, OutputId, registry
@@ -52,27 +53,42 @@ class CollectorNode:
 Node = Union[FunctionNode, NewIteratorNode, CollectorNode]
 
 
+@dataclass(frozen=True)
 class EdgeSource:
-    def __init__(self, node_id: NodeId, output_id: OutputId):
-        self.id: NodeId = node_id
-        self.output_id: OutputId = output_id
+    id: NodeId
+    output_id: OutputId
 
 
+@dataclass(frozen=True)
 class EdgeTarget:
-    def __init__(self, node_id: NodeId, input_id: InputId):
-        self.id: NodeId = node_id
-        self.input_id: InputId = input_id
+    id: NodeId
+    input_id: InputId
 
 
+@dataclass(frozen=True)
 class Edge:
-    def __init__(self, source: EdgeSource, target: EdgeTarget):
-        self.source = source
-        self.target = target
+    source: EdgeSource
+    target: EdgeTarget
+
+
+class ChainInputs:
+    def __init__(self) -> None:
+        self.inputs: dict[NodeId, dict[InputId, object]] = {}
+
+    def get(self, node_id: NodeId, input_id: InputId) -> object | None:
+        node = self.inputs.get(node_id)
+        if node is None:
+            return None
+        return node.get(input_id)
+
+    def set(self, node_id: NodeId, input_id: InputId, value: object) -> None:
+        get_or_add(self.inputs, node_id, dict)[input_id] = value
 
 
 class Chain:
     def __init__(self):
         self.nodes: dict[NodeId, Node] = {}
+        self.inputs: ChainInputs = ChainInputs()
         self.__edges_by_source: dict[NodeId, list[Edge]] = {}
         self.__edges_by_target: dict[NodeId, list[Edge]] = {}
 
@@ -90,12 +106,24 @@ class Chain:
     def edges_to(self, target: NodeId) -> list[Edge]:
         return self.__edges_by_target.get(target, [])
 
+    def edge_to(self, target: NodeId, input_id: InputId) -> Edge | None:
+        """
+        Returns the edge connected to the given input (if any).
+        """
+        edges = self.__edges_by_target.get(target)
+        if edges is not None:
+            for e in edges:
+                if e.target.input_id == input_id:
+                    return e
+        return None
+
     def remove_node(self, node_id: NodeId):
         """
         Removes the node with the given id.
         If the node is an iterator node, then all of its children will also be removed.
         """
 
+        self.inputs.inputs.pop(node_id, None)
         node = self.nodes.pop(node_id, None)
         if node is None:
             return
@@ -104,6 +132,17 @@ class Chain:
             self.__edges_by_target[e.target.id].remove(e)
         for e in self.__edges_by_target.pop(node_id, []):
             self.__edges_by_source[e.source.id].remove(e)
+
+    def remove_edge(self, edge: Edge) -> None:
+        """
+        Removes the edge connected to the given input (if any).
+        """
+        edges_target = self.__edges_by_target.get(edge.target.id)
+        if edges_target is not None:
+            edges_target.remove(edge)
+        edges_source = self.__edges_by_source.get(edge.source.id)
+        if edges_source is not None:
+            edges_source.remove(edge)
 
     def topological_order(self) -> list[NodeId]:
         """

@@ -25,6 +25,7 @@ import {
 import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
@@ -102,6 +103,7 @@ interface GlobalVolatile {
     getConnected: (id: string) => readonly [IdSet<InputId>, IdSet<OutputId>];
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
+    chainLineage: ChainLineage;
     zoom: number;
     collidingEdge: string | undefined;
     collidingNode: string | undefined;
@@ -325,6 +327,11 @@ export const GlobalProvider = memo(
                 return new Set(newEffectivelyDisabled);
             });
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
+
+        const [chainLineage, setChainLineage] = useState(ChainLineage.EMPTY);
+        useEffect(() => {
+            setChainLineage(new ChainLineage(schemata, getNodes(), getEdges()));
+        }, [edgeChanges, getNodes, getEdges, schemata]);
 
         const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
@@ -1301,6 +1308,7 @@ export const GlobalProvider = memo(
             typeState,
             getConnected,
             effectivelyDisabledNodes,
+            chainLineage,
             isValidConnection,
             zoom,
             collidingEdge,

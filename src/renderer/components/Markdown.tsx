@@ -15,7 +15,6 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
             return (
                 <SupportHighlighting>
                     <Text
-                        fontSize="md"
                         my={2}
                         userSelect="text"
                     >
