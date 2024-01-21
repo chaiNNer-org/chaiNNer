@@ -4,7 +4,7 @@ import gc
 
 import numpy as np
 import torch
-from spandrel import ImageModelDescriptor, SizeRequirements
+from spandrel import ImageModelDescriptor
 
 from ..upscale.auto_split import Split, Tiler, auto_split
 from .utils import safe_cuda_cache_empty
@@ -46,26 +46,6 @@ def _rgb_to_bgr(t: torch.Tensor) -> torch.Tensor:
         return t
 
 
-def _pad(t: torch.Tensor, req: SizeRequirements):
-    _, _, h, w = t.shape
-
-    minimum = req.minimum
-    multiple_of = req.multiple_of
-
-    pad_h = (multiple_of - (h % multiple_of)) % multiple_of
-    if h + pad_h < minimum:
-        pad_h = minimum - h
-
-    pad_w = (multiple_of - (w % multiple_of)) % multiple_of
-    if w + pad_w < minimum:
-        pad_w = minimum - w
-
-    if pad_w or pad_h:
-        return True, torch.nn.functional.pad(t, (0, pad_w, 0, pad_h), "reflect")
-    else:
-        return False, t
-
-
 @torch.inference_mode()
 def pytorch_auto_split(
     img: np.ndarray,
@@ -74,38 +54,23 @@ def pytorch_auto_split(
     use_fp16: bool,
     tiler: Tiler,
 ) -> np.ndarray:
-    model = model.to(device)
-    if use_fp16:
-        model.model.half()
-    else:
-        model.model.float()
+    dtype = torch.float16 if use_fp16 else torch.float32
+    model = model.to(device, dtype)
 
     def upscale(img: np.ndarray, _: object):
         input_tensor = None
         try:
             # convert to tensor
-            input_tensor = torch.from_numpy(np.ascontiguousarray(img)).to(device)
-            input_tensor = input_tensor.half() if use_fp16 else input_tensor.float()
+            input_tensor = torch.from_numpy(np.ascontiguousarray(img)).to(device, dtype)
             input_tensor = _rgb_to_bgr(input_tensor)
             input_tensor = _into_batched_form(input_tensor)
-
-            # pad to meat size requirements
-            _, _, org_h, org_w = input_tensor.shape
-            did_pad, input_tensor = _pad(input_tensor, model.size_requirements)
 
             # inference
             output_tensor = model(input_tensor)
 
-            if did_pad:
-                # crop to original (scaled) size
-                output_tensor = output_tensor[
-                    :, :, : (org_h * model.scale), : (org_w * model.scale)
-                ]
-
             # convert back to numpy
             output_tensor = _into_standard_image_form(output_tensor)
             output_tensor = _rgb_to_bgr(output_tensor)
-            output_tensor = output_tensor.clip_(0, 1)
             result = output_tensor.detach().cpu().detach().float().numpy()
 
             return result
