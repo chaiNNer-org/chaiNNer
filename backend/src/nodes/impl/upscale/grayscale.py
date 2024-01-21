@@ -17,9 +17,7 @@ class SplitMode(Enum):
         if img.ndim == 2:
             return [img]
 
-        if img.ndim != 3:
-            raise ValueError("Image must be 2D or 3D in order to be split.")
-
+        assert img.ndim == 3
         c = img.shape[2]
 
         if c == 1:
@@ -43,8 +41,7 @@ class SplitMode(Enum):
 
     def combine(self, channels: list[np.ndarray]) -> np.ndarray:
         l = len(channels)
-        if l == 0:
-            raise ValueError("Cannot combine 0 channels")
+        assert l > 0
 
         if l == 1:
             return channels[0]

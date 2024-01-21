@@ -84,10 +84,7 @@ class Condition:
                 v.append(value)
             else:
                 enum_value = value.value
-                if not isinstance(enum_value, (int, str)):
-                    raise ValueError(
-                        f"Enum value {value} has invalid value {enum_value} of type {type(enum_value)}."
-                    )
+                assert isinstance(enum_value, (int, str))
                 v.append(enum_value)
 
         if isinstance(values, (int, str, Enum)):

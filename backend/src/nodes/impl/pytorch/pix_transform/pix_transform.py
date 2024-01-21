@@ -36,12 +36,9 @@ def pix_transform(
     source_img = source_img.squeeze()
     lr_height, lr_width = source_img.shape
 
-    if hr_height != hr_width:
-        raise ValueError("Guide image must be square")
-    if lr_height != lr_width:
-        raise ValueError("Source image must be square")
-    if hr_height % lr_height != 0:
-        raise ValueError("Guide image must be a multiple of source image")
+    assert hr_height == hr_width
+    assert lr_height == lr_width
+    assert hr_height % lr_height == 0
 
     d = hr_height // lr_height
     m = lr_height

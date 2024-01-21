@@ -49,16 +49,13 @@ def _exact_split_into_segments(length: int, exact: int, overlap: int) -> list[_S
         # trivial
         return [_Segment(0, exact, 0, 0)]
 
-    if length <= exact:
-        raise ValueError("Length must be greater than exact size.")
-    if exact <= overlap * 2:
-        raise ValueError("Exact size must be greater than overlap * 2.")
+    assert length > exact
+    assert exact > overlap * 2
 
     result: list[_Segment] = []
 
     def add(s: _Segment):
-        if s.padded_length != exact:
-            raise ValueError("Segment must have exact size.")
+        assert s.padded_length == exact
         result.append(s)
 
     # The current strategy is to go from left to right and to align segments
@@ -133,8 +130,7 @@ def _exact_split_without_padding(
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
     exact_w, exact_h = exact_size
-    if not (w >= exact_w and h >= exact_h):
-        raise ValueError("Image must be larger than the exact size.")
+    assert w >= exact_w and h >= exact_h
 
     if (w, h) == exact_size:
         return upscale(img, Region(0, 0, w, h))
@@ -152,22 +148,16 @@ def _exact_split_without_padding(
 
         for tile, pad in row:
             padded_tile = tile.add_padding(pad)
-            if padded_tile.size != exact_size:
-                raise RuntimeError("Padded tile size must be exactly the given size.")
+            assert padded_tile.size == exact_size
 
             upscale_result = upscale(padded_tile.read_from(img), padded_tile)
 
             # figure out by how much the image was upscaled by
             up_h, up_w, up_c = get_h_w_c(upscale_result)
             current_scale = up_h // exact_h
-            if current_scale <= 0:
-                raise ValueError(
-                    "Upscale factor must be positive and greater than zero."
-                )
-            if exact_h * current_scale != up_h:
-                raise ValueError("Result height did not match expected dimensions.")
-            if exact_w * current_scale != up_w:
-                raise ValueError("Result width did not match expected dimensions.")
+            assert current_scale > 0
+            assert exact_h * current_scale == up_h
+            assert exact_w * current_scale == up_w
 
             if row_result is None:
                 # allocate the result image
@@ -182,20 +172,14 @@ def _exact_split_without_padding(
                 )
                 row_overlap = TileOverlap(pad.top * scale, pad.bottom * scale)
 
-            if current_scale != scale:
-                raise ValueError(
-                    "Upscale factor must be the same for all tiles in a row."
-                )
+            assert current_scale == scale
 
             row_result.add_tile(
                 upscale_result, TileOverlap(pad.left * scale, pad.right * scale)
             )
 
-        if row_result is None:
-            raise RuntimeError("No row result was created.")
-        if row_overlap is None:
-            raise RuntimeError("No row overlap was created.")
-
+        assert row_result is not None
+        assert row_overlap is not None
         if result is None:
             result = TileBlender(
                 width=w * scale,
@@ -207,8 +191,7 @@ def _exact_split_without_padding(
 
         result.add_tile(row_result.get_result(), row_overlap)
 
-    if result is None:
-        raise RuntimeError("No result was created.")
+    assert result is not None
 
     # remove initially added padding
     return result.get_result()

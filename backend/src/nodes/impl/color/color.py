@@ -24,8 +24,7 @@ class ColorJson(TypedDict):
 
 class Color:
     def __init__(self, value: tuple[float, ...]) -> None:
-        if len(value) == 0:
-            raise ValueError("Colors must have at least one channel.")
+        assert len(value) >= 1
         self.value: tuple[float, ...] = value
 
     @property
@@ -39,22 +38,19 @@ class Color:
     @staticmethod
     def bgr(value: Iterable[FloatLike]) -> Color:
         t = tuple(map(_norm, value))
-        if len(t) != 3:
-            raise ValueError("RGB colors must have 3 channels.")
+        assert len(t) == 3
         return Color(t)
 
     @staticmethod
     def bgra(value: Iterable[FloatLike]) -> Color:
         t = tuple(map(_norm, value))
-        if len(t) != 4:
-            raise ValueError("RGBA colors must have 4 channels.")
+        assert len(t) == 4
         return Color(t)
 
     @staticmethod
     def from_1x1_image(img: np.ndarray) -> Color:
         h, w, c = get_h_w_c(img)
-        if not (h == w == 1):
-            raise ValueError("The image must be 1x1.")
+        assert h == w == 1
 
         if c == 1:
             return Color.gray(img.flat[0])
@@ -73,16 +69,13 @@ class Color:
         values = color_json["values"]
 
         if kind == "grayscale":
-            if len(values) != 1:
-                raise ValueError("Grayscale colors must have 1 channel.")
+            assert len(values) == 1
             return Color.gray(values[0])
         elif kind == "rgb":
-            if len(values) != 3:
-                raise ValueError("RGB colors must have 3 channels.")
+            assert len(values) == 3
             return Color.bgr([values[2], values[1], values[0]])
         elif kind == "rgba":
-            if len(values) != 4:
-                raise ValueError("RGBA colors must have 4 channels.")
+            assert len(values) == 4
             return Color.bgra([values[2], values[1], values[0], values[3]])
         else:
             raise AssertionError(f"Unknown color kind {kind}")

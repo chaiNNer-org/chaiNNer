@@ -29,11 +29,10 @@ class ModelInput(BaseInput):
 
     def enforce(self, value: object):
         if spandrel is not None:
-            if not isinstance(
+            assert isinstance(
                 value,
                 (spandrel.ImageModelDescriptor, spandrel.MaskedImageModelDescriptor),
-            ):
-                raise TypeError("Expected a supported PyTorch model.")
+            ), "Expected a supported PyTorch model."
         return value
 
 
@@ -54,10 +53,12 @@ class SrModelInput(ModelInput):
 
     def enforce(self, value: object):
         if spandrel is not None:
-            if not isinstance(value, spandrel.ImageModelDescriptor):
-                raise TypeError("Expected a supported single image PyTorch model.")
-            if value.purpose not in self.purpose:
-                raise ValueError("Expected a Super-Resolution or Restoration model.")
+            assert isinstance(
+                value, spandrel.ImageModelDescriptor
+            ), "Expected a supported single image PyTorch model."
+            assert (
+                value.purpose in self.purpose
+            ), "Expected a Super-Resolution or Restoration model."
         return value
 
 
@@ -76,10 +77,12 @@ class FaceModelInput(ModelInput):
 
     def enforce(self, value: object):
         if spandrel is not None:
-            if not isinstance(value, spandrel.ImageModelDescriptor):
-                raise TypeError("Expected a supported single image PyTorch model.")
-            if value.purpose not in self.purpose:
-                raise ValueError("Expected a Face Super-Resolution model.")
+            assert isinstance(
+                value, spandrel.ImageModelDescriptor
+            ), "Expected a supported single image PyTorch model."
+            assert (
+                value.purpose in self.purpose
+            ), "Expected a Face Super-Resolution model."
         return value
 
 
@@ -98,10 +101,10 @@ class InpaintModelInput(ModelInput):
 
     def enforce(self, value: object):
         if spandrel is not None:
-            if not isinstance(value, spandrel.MaskedImageModelDescriptor):
-                raise TypeError("Expected a supported masked-image PyTorch model.")
-            if value.purpose not in self.purpose:
-                raise ValueError("Expected an Inpainting model.")
+            assert isinstance(
+                value, spandrel.MaskedImageModelDescriptor
+            ), "Expected a supported masked-image PyTorch model."
+            assert value.purpose in self.purpose, "Expected an Inpainting model."
         return value
 
 
