@@ -600,9 +600,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 label={
                                                     <Markdown nonInteractive>
                                                         {'The dependency install mode. ChaiNNer supports 3 ways of installing packages:\n\n' +
-                                                            '- Normal: This is the default installation mode. If you are having issues, you can try using the Direct Pip mode.\n' +
-                                                            '- Direct Pip: This will invoke pip more directly, which can fix some issues, but also makes it impossible to show installation progress.\n' +
-                                                            '- Manual/Copy: Copy the pip install command to your clipboard for you to run in your own terminal. You have to manually restart chaiNner afterwards.'}
+                                                            '- Normal: This is the default installation mode. This mode manually downloads packages in order to display download progress.\n' +
+                                                            '- Direct Pip: This will invoke pip more directly, like installing python packages normally. Use this setting when having issues with Normal. Note: this makes it impossible to show installation progress.\n' +
+                                                            '- Manual/Copy: Copy the pip install command to your clipboard for you to run in your own terminal. You will have to manually restart chaiNner afterwards.'}
                                                     </Markdown>
                                                 }
                                                 openDelay={500}
