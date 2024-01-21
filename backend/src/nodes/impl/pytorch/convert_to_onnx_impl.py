@@ -27,10 +27,10 @@ def convert_to_onnx_impl(
             raise ValueError(
                 f"Model of arch {model.architecture} does not support half precision."
             )
-        model.model.half()
+        model.half()
         dummy_input = dummy_input.half()
     else:
-        model.model.float()
+        model.float()
         dummy_input = dummy_input.float()
 
     m = model.model
