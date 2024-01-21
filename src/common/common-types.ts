@@ -251,6 +251,7 @@ export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> 
     : never;
 
 export type NodeKind = 'regularNode' | 'newIterator' | 'collector';
+export type NodeType = 'backendNode';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputHeight = Readonly<Record<InputId, number>>;

@@ -3,7 +3,7 @@ import { memo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeKind } from '../common/common-types';
+import { NodeType } from '../common/common-types';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
@@ -22,10 +22,8 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
-const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
-    regularNode: Node,
-    newIterator: Node,
-    collector: Node,
+const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
+    backendNode: Node,
 };
 const edgeTypes: EdgeTypes = {
     main: CustomEdge,
