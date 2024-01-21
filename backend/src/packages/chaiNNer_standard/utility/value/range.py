@@ -30,7 +30,7 @@ from .. import value_group
         ).with_never_reason("The range is empty."),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=0),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def range_node(
     start: int,

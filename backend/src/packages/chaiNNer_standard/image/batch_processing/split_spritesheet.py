@@ -51,7 +51,7 @@ from .. import batch_processing_group
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="Input1 * Input2"),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def split_spritesheet_node(
     sprite_sheet: np.ndarray,

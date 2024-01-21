@@ -17,6 +17,7 @@ InputKind = Literal[
     "file",
     "color",
     "generic",
+    "static",
 ]
 
 

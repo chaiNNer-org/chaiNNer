@@ -143,7 +143,7 @@ def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutpu
 def run_node(
     node: NodeData, context: NodeContext, inputs: list[object], node_id: NodeId
 ) -> NodeOutput | CollectorOutput:
-    if node.type == "collector":
+    if node.kind == "collector":
         ignored_inputs = node.single_iterator_input.inputs
     else:
         ignored_inputs = []
@@ -156,13 +156,13 @@ def run_node(
         else:
             raw_output = node.run(*enforced_inputs)
 
-        if node.type == "collector":
+        if node.kind == "collector":
             assert isinstance(raw_output, Collector)
             return CollectorOutput(raw_output)
-        if node.type == "newIterator":
+        if node.kind == "newIterator":
             return enforce_iterator_output(raw_output, node)
 
-        assert node.type == "regularNode"
+        assert node.kind == "regularNode"
         return enforce_output(raw_output, node)
     except Aborted:
         raise
@@ -313,7 +313,6 @@ class Executor:
         self,
         id: ExecutionId,
         chain: Chain,
-        inputs: InputMap,
         send_broadcast_data: bool,
         options: ExecutionOptions,
         loop: asyncio.AbstractEventLoop,
@@ -323,7 +322,7 @@ class Executor:
     ):
         self.id: ExecutionId = id
         self.chain = chain
-        self.inputs = inputs
+        self.inputs: InputMap = InputMap.from_chain(chain)
         self.send_broadcast_data: bool = send_broadcast_data
         self.options: ExecutionOptions = options
         self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)

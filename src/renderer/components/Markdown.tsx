@@ -15,7 +15,6 @@ const getDocsMarkdownComponents = (interactive: boolean, selectable: boolean): C
             return (
                 <SupportHighlighting>
                     <Text
-                        fontSize="md"
                         my={2}
                         userSelect={selectable ? 'text' : 'none'}
                     >

@@ -317,7 +317,7 @@ const getConnectionTarget = (
                 downstreamIters.size > 0 ||
                 upstreamIters.size > 0 ||
                 sourceNode?.type === 'newIterator';
-            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
+            if (hasIteratorLineage && schema.kind === 'newIterator') {
                 return undefined;
             }
 
@@ -354,7 +354,7 @@ const getConnectionTarget = (
                 downstreamIters.size > 0 ||
                 upstreamIters.size > 0 ||
                 sourceNode.type === 'newIterator';
-            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
+            if (hasIteratorLineage && schema.kind === 'newIterator') {
                 return undefined;
             }
 
@@ -435,7 +435,6 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
                 data: {
                     schemaId: schema.schemaId,
                 },
-                nodeType: schema.nodeType,
             });
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (connectingFrom && targetFn && target.type !== 'none') {

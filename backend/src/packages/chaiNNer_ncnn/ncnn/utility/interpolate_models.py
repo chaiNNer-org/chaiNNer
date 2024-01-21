@@ -46,6 +46,7 @@ def check_will_upscale(context: NodeContext, interp: NcnnModelWrapper):
         NumberOutput("Amount A", output_type="100 - Input2"),
         NumberOutput("Amount B", output_type="Input2"),
     ],
+    node_context=True,
 )
 def interpolate_models_node(
     context: NodeContext,

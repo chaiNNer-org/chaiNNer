@@ -54,7 +54,7 @@ export type DataTransferProcessor = (
 
 const chainnerSchemaProcessor: DataTransferProcessor = (
     dataTransfer,
-    { getNodePosition, createNode, schemata }
+    { getNodePosition, createNode }
 ) => {
     if (!dataTransfer.getData(TransferTypes.ChainnerSchema)) return false;
 
@@ -62,12 +62,9 @@ const chainnerSchemaProcessor: DataTransferProcessor = (
         dataTransfer.getData(TransferTypes.ChainnerSchema)
     ) as ChainnerDragData;
 
-    const nodeSchema = schemata.get(schemaId);
-
     createNode({
         position: getNodePosition(offsetX, offsetY),
         data: { schemaId },
-        nodeType: nodeSchema.nodeType,
     });
     return true;
 };
@@ -148,7 +145,6 @@ const openFileProcessor: DataTransferProcessor = (
                             schemaId: schema.schemaId,
                             inputData: { [input.id]: path },
                         },
-                        nodeType: schema.nodeType,
                     });
 
                     return true;

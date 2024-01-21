@@ -84,8 +84,8 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Output Video Directory", has_handle=True),
-        TextInput("Output Video Name"),
+        DirectoryInput("Directory", has_handle=True),
+        TextInput("Video Name"),
         VideoEncoderDropdown().with_docs("Encoder").with_id(3),
         if_enum_group(3, VideoEncoder.H264)(
             VideoH264ContainerDropdown().with_docs("Container").with_id(4)
@@ -172,7 +172,7 @@ class Writer:
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
-    node_type="collector",
+    kind="collector",
     side_effects=True,
 )
 def save_video_node(

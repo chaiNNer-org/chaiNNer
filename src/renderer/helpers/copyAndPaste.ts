@@ -120,7 +120,6 @@ export const pasteFromClipboard = (
                                 positionY = (height + y) / 2;
                             }
                             createNode({
-                                nodeType: 'regularNode',
                                 position: screenToFlowPosition({ x: positionX, y: positionY }),
                                 data: {
                                     schemaId: 'chainner:image:load' as SchemaId,

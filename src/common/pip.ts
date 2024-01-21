@@ -57,7 +57,7 @@ export const runPip = async (
     });
 };
 
-const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
+export const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
     const links = new Set<string>();
     for (const p of dependencies) {
         if (p.findLink) {

@@ -42,7 +42,11 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                   python-version: '3.9'
-            - run: python ./backend/src/run.py --close-after-start
+            - uses: actions/cache@v3
+              with:
+                  path: ~/.cache/chainner_pip
+                  key: chainner-pip-cache-3.9
+            - run: python ./backend/src/run.py --close-after-start --install-builtin-packages
               env:
                   TYPE_CHECK_LEVEL: 'error'
 
@@ -53,7 +57,11 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                   python-version: '3.9'
-            - run: python ./backend/src/run.py --close-after-start
+            - uses: actions/cache@v3
+              with:
+                  path: ~/.cache/chainner_pip
+                  key: chainner-pip-cache-3.9
+            - run: python ./backend/src/run.py --close-after-start --install-builtin-packages
               env:
                   NAME_CHECK_LEVEL: 'error'
 

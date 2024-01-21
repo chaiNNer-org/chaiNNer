@@ -9,10 +9,12 @@ import {
 import { MenuDivider, MenuItem, MenuList } from '@chakra-ui/react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
+import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeData } from '../../common/common-types';
+import { EdgeData, NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
+import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
 
@@ -33,8 +35,24 @@ export const useNodeMenu = (
         useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
+    const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
+
     return useContextMenu(() => (
         <MenuList className="nodrag">
+            <MenuItem
+                icon={<CopyIcon />}
+                onClick={() => {
+                    const node = getNode(id);
+                    if (node && !node.selected) {
+                        const nodeCopy = { ...node, selected: true };
+                        copyToClipboard([nodeCopy], []);
+                    } else {
+                        copyToClipboard(getNodes(), getEdges());
+                    }
+                }}
+            >
+                Copy
+            </MenuItem>
             <MenuItem
                 icon={<CopyIcon />}
                 onClick={() => {
@@ -43,6 +61,7 @@ export const useNodeMenu = (
             >
                 Duplicate
             </MenuItem>
+            <MenuDivider />
             <MenuItem
                 icon={<CloseIcon />}
                 onClick={() => {
