@@ -72,7 +72,7 @@ export class ChainLineage {
         const schema = this.nodeSchemata.get(nodeId);
         if (!schema) return null;
 
-        switch (schema.nodeType) {
+        switch (schema.kind) {
             case 'newIterator': {
                 // iterator source nodes do not support iterated inputs
                 return null;
@@ -129,7 +129,7 @@ export class ChainLineage {
                 return lineage;
             }
             default:
-                return assertNever(schema.nodeType);
+                return assertNever(schema.kind);
         }
     }
 
@@ -140,7 +140,7 @@ export class ChainLineage {
         const schema = this.nodeSchemata.get(nodeId);
         if (!schema) return null;
 
-        switch (schema.nodeType) {
+        switch (schema.kind) {
             case 'regularNode': {
                 // for regular nodes, the lineage of all outputs is equal to
                 // the lineage of the first iterated input (if any).
@@ -161,7 +161,7 @@ export class ChainLineage {
                 return null;
             }
             default:
-                return assertNever(schema.nodeType);
+                return assertNever(schema.kind);
         }
     }
 }

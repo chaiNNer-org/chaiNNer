@@ -130,7 +130,7 @@ async def nodes(_request: Request):
             "description": node.description,
             "seeAlso": node.see_also,
             "icon": node.icon,
-            "nodeType": node.type,
+            "kind": node.kind,
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
             "features": node.features,

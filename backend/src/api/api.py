@@ -28,7 +28,7 @@ from .node_check import (
 )
 from .output import BaseOutput
 from .settings import Setting
-from .types import FeatureId, InputId, NodeId, NodeType, OutputId, RunFn
+from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
 
 KB = 1024**1
 MB = 1024**2
@@ -123,7 +123,7 @@ class NodeData:
     see_also: list[str]
     name: str
     icon: str
-    type: NodeType
+    kind: NodeKind
 
     inputs: list[BaseInput]
     outputs: list[BaseOutput]
@@ -182,7 +182,7 @@ class NodeGroup:
         inputs: list[BaseInput | NestedGroup],
         outputs: list[BaseOutput],
         icon: str = "BsQuestionCircleFill",
-        node_type: NodeType = "regularNode",
+        kind: NodeKind = "regularNode",
         side_effects: bool = False,
         deprecated: bool = False,
         decorators: list[Callable] | None = None,
@@ -219,9 +219,9 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if node_type == "collector":
+        if kind == "collector":
             assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        elif node_type == "newIterator":
+        elif kind == "newIterator":
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
         else:
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
@@ -242,7 +242,7 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            if node_type == "regularNode":
+            if kind == "regularNode":
                 run_check(
                     TYPE_CHECK_LEVEL,
                     lambda _: check_schema_types(
@@ -264,7 +264,7 @@ class NodeGroup:
                 description=description,
                 see_also=see_also,
                 icon=icon,
-                type=node_type,
+                kind=kind,
                 inputs=p_inputs,
                 group_layout=group_layout,
                 outputs=p_outputs,

@@ -21,7 +21,7 @@ const BLANK_SCHEMA: NodeSchema = {
     name: '',
     description: '',
     seeAlso: [],
-    nodeType: 'regularNode',
+    kind: 'regularNode',
     schemaId: '' as SchemaId,
     hasSideEffects: false,
     deprecated: false,

@@ -172,7 +172,7 @@ class Writer:
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
-    node_type="collector",
+    kind="collector",
     side_effects=True,
 )
 def save_video_node(
