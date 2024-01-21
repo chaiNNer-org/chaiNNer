@@ -481,8 +481,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 '--upgrade',
                 ...deps,
                 ...findLinks,
-                '--no-cache-dir',
-                '--disable-pip-version-check',
             ];
             const cmd = args.join(' ');
             copyCommandToClipboard(cmd);
