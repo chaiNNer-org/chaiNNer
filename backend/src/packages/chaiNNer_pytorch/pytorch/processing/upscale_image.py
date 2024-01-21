@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import psutil
 import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
@@ -48,17 +49,31 @@ def upscale(
             tile_size = NO_TILING
 
         def estimate():
+            element_size = 2 if use_fp16 else 4
+            model_bytes = sum(
+                p.numel() * element_size for p in model.model.parameters()
+            )
+
             if "cuda" in device.type:
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
-                model_bytes = sum(
-                    p.numel() * element_size for p in model.model.parameters()
-                )
                 if options.budget_limit > 0:
-                    free = min(int(options.budget_limit * 1024**3), free)
+                    free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
 
+                return MaxTileSize(
+                    estimate_tile_size(
+                        budget,
+                        model_bytes,
+                        img,
+                        element_size,
+                    )
+                )
+            elif options.budget_limit > 0:
+                free = psutil.virtual_memory().available
+                free = min(options.budget_limit * 1024**3, free)
+                budget = int(free * 0.8)
                 return MaxTileSize(
                     estimate_tile_size(
                         budget,
