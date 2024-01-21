@@ -459,7 +459,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         toast({
             title: 'Command copied to clipboard.',
             description:
-                'Open up anm external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.',
+                'Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.',
             status: 'success',
             duration: 9000,
             isClosable: true,
