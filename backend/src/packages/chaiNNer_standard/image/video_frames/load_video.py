@@ -38,7 +38,7 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
         VideoFileInput(primary_input=True),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(1, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of frames to iterate over. This can be useful for testing the iterator without having to iterate over all frames of the video."
                 " Will not copy audio if limit is used."
             )
