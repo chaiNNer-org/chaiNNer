@@ -158,6 +158,10 @@ export const checkAssignedLineage = (
 ): Validity => {
     const input = schema.inputs.find((i) => i.id === inputId)!;
 
+    const differentLineage = () =>
+        invalid('Cannot connect node to 2 different sequence of different origin.');
+    const nonIteratorInput = () => invalid(`Input ${input.label} cannot be connect to a sequence.`);
+
     switch (schema.kind) {
         case 'regularNode': {
             // regular is auto-iterated, so it has to be treated separately
@@ -166,7 +170,7 @@ export const checkAssignedLineage = (
                     exclude: new Set([inputId]),
                 });
                 if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return invalid('Cannot connect node to 2 different iterators.');
+                    return differentLineage();
                 }
             } else {
                 // it's always valid connect a node with no lineage
@@ -175,7 +179,7 @@ export const checkAssignedLineage = (
         }
         case 'newIterator': {
             if (sourceLineage) {
-                return invalid(`Input ${input.label} cannot be connect to an iterator.`);
+                return nonIteratorInput();
             }
             break;
         }
@@ -183,17 +187,17 @@ export const checkAssignedLineage = (
             const isIterated = schema.iteratorInputs[0].inputs.includes(inputId);
             if (isIterated) {
                 if (!sourceLineage) {
-                    return invalid(`Input ${input.label} expects an iterator.`);
+                    return invalid(`Input ${input.label} expects a sequence.`);
                 }
 
                 const targetLineage = chainLineage.getInputLineage(nodeId, {
                     exclude: new Set([inputId]),
                 });
                 if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return invalid('Cannot connect node to 2 different iterators.');
+                    return differentLineage();
                 }
             } else if (sourceLineage) {
-                return invalid(`Input ${input.label} cannot be connect to an iterator.`);
+                return nonIteratorInput();
             }
             break;
         }
