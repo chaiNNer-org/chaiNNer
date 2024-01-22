@@ -159,7 +159,7 @@ export const checkAssignedLineage = (
     const input = schema.inputs.find((i) => i.id === inputId)!;
 
     const differentLineage = () =>
-        invalid('Cannot connect node to 2 different sequences of different origin.');
+        invalid("Cannot connect node to 2 sequences that don't share the same source node.");
     const nonIteratorInput = () =>
         invalid(`Input ${input.label} cannot be connected to a sequence.`);
 
