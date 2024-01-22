@@ -17,7 +17,7 @@ export interface CheckNodeValidityOptions {
     inputData: InputData;
     connectedInputs: ReadonlySet<InputId>;
     functionInstance: FunctionInstance | undefined;
-    chainLineage: ChainLineage;
+    chainLineage: ChainLineage | undefined;
     nodeId: string;
 }
 export const checkNodeValidity = ({
@@ -97,22 +97,24 @@ export const checkNodeValidity = ({
     }
 
     // Lineage check
-    for (const input of schema.inputs) {
-        const sourceLineage = chainLineage.getConnectedOutputLineage({
-            nodeId,
-            inputId: input.id,
-        });
-        if (sourceLineage !== undefined) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            const lineageValid = checkAssignedLineage(
-                sourceLineage,
+    if (chainLineage) {
+        for (const input of schema.inputs) {
+            const sourceLineage = chainLineage.getConnectedOutputLineage({
                 nodeId,
-                input.id,
-                schema,
-                chainLineage
-            );
-            if (!lineageValid.isValid) {
-                return lineageValid;
+                inputId: input.id,
+            });
+            if (sourceLineage !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                const lineageValid = checkAssignedLineage(
+                    sourceLineage,
+                    nodeId,
+                    input.id,
+                    schema,
+                    chainLineage
+                );
+                if (!lineageValid.isValid) {
+                    return lineageValid;
+                }
             }
         }
     }
