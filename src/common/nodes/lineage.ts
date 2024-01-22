@@ -1,13 +1,15 @@
 import { Edge, Node } from 'reactflow';
-import { EdgeData, NodeData, NodeSchema } from '../common-types';
+import { EdgeData, InputId, NodeData, NodeSchema } from '../common-types';
 import { SchemaMap } from '../SchemaMap';
 import {
     EMPTY_ARRAY,
+    EMPTY_SET,
     ParsedSourceHandle,
     ParsedTargetHandle,
     assertNever,
     groupBy,
     parseSourceHandle,
+    parseTargetHandle,
     stringifyTargetHandle,
 } from '../util';
 
@@ -57,8 +59,77 @@ export class ChainLineage {
 
     static readonly EMPTY: ChainLineage = new ChainLineage(SchemaMap.EMPTY, [], []);
 
-    getEdgeByTarget(handle: ParsedTargetHandle): Edge<EdgeData> | undefined {
+    private getEdgeByTarget(handle: ParsedTargetHandle): Edge<EdgeData> | undefined {
         return this.byTargetHandle.get(stringifyTargetHandle(handle));
+    }
+
+    private getInputLineageImpl(
+        nodeId: string,
+        schema: NodeSchema,
+        exclude: ReadonlySet<InputId>
+    ): Lineage | null {
+        switch (schema.kind) {
+            case 'newIterator': {
+                // iterator source nodes do not support iterated inputs
+                return null;
+            }
+            case 'regularNode': {
+                // regular nodes are auto-iterated, so their lineage is that of the first iterated input
+                let lineage: Lineage | null = null;
+
+                const edges = this.byTargetNode.get(nodeId) ?? EMPTY_ARRAY;
+                for (const edge of edges) {
+                    if (
+                        exclude.size > 0 &&
+                        exclude.has(parseTargetHandle(edge.targetHandle!).inputId)
+                    ) {
+                        // eslint-disable-next-line no-continue
+                        continue;
+                    }
+
+                    const inputLineage = this.getOutputLineage(
+                        parseSourceHandle(edge.sourceHandle!)
+                    );
+                    if (inputLineage !== null) {
+                        lineage = inputLineage;
+                        break;
+                    }
+                }
+
+                return lineage;
+            }
+            case 'collector': {
+                // collectors already return non-iterator outputs
+                let lineage: Lineage | null = null;
+
+                if (schema.iteratorInputs.length !== 1) {
+                    throw new Error(
+                        `Collector nodes should have exactly 1 iterator input info (${schema.schemaId})`
+                    );
+                }
+                const info = schema.iteratorInputs[0];
+
+                for (const inputId of info.inputs) {
+                    // eslint-disable-next-line no-continue
+                    if (exclude.has(inputId)) continue;
+
+                    const edge = this.getEdgeByTarget({ nodeId, inputId });
+                    // eslint-disable-next-line no-continue
+                    if (!edge) continue;
+
+                    const handle = parseSourceHandle(edge.sourceHandle!);
+                    const inputLineage = this.getOutputLineage(handle);
+                    if (inputLineage !== null) {
+                        lineage = inputLineage;
+                        break;
+                    }
+                }
+
+                return lineage;
+            }
+            default:
+                return assertNever(schema.kind);
+        }
     }
 
     /**
@@ -68,69 +139,25 @@ export class ChainLineage {
      *
      * Note: the input lineage of collector nodes is `null` if there are no connected iterated inputs (invalid chain).
      */
-    getInputLineage(nodeId: string): Lineage | null {
+    getInputLineage(
+        nodeId: string,
+        { exclude }: { exclude?: ReadonlySet<InputId> } = {}
+    ): Lineage | null {
         const schema = this.nodeSchemata.get(nodeId);
         if (!schema) return null;
 
-        switch (schema.kind) {
-            case 'newIterator': {
-                // iterator source nodes do not support iterated inputs
-                return null;
-            }
-            case 'regularNode': {
-                // regular nodes are auto-iterated, so their lineage is that of the first iterated input
-                let lineage = this.nodeLineageCache.get(nodeId);
-                if (lineage === undefined) {
-                    lineage = null;
+        const useCache = exclude === undefined || exclude.size === 0;
 
-                    const edges = this.byTargetNode.get(nodeId) ?? EMPTY_ARRAY;
-                    for (const edge of edges) {
-                        const inputLineage = this.getOutputLineage(
-                            parseSourceHandle(edge.sourceHandle!)
-                        );
-                        if (inputLineage !== null) {
-                            lineage = inputLineage;
-                            break;
-                        }
-                    }
-
-                    this.nodeLineageCache.set(nodeId, lineage);
-                }
-                return lineage;
-            }
-            case 'collector': {
-                // collectors already return non-iterator outputs
-                let lineage = this.nodeLineageCache.get(nodeId);
-                if (lineage === undefined) {
-                    lineage = null;
-
-                    if (schema.iteratorInputs.length !== 1) {
-                        throw new Error(
-                            `Collector nodes should have exactly 1 iterator input info (${schema.schemaId})`
-                        );
-                    }
-                    const info = schema.iteratorInputs[0];
-
-                    for (const inputId of info.inputs) {
-                        const edge = this.getEdgeByTarget({ nodeId, inputId });
-                        // eslint-disable-next-line no-continue
-                        if (!edge) continue;
-
-                        const handle = parseSourceHandle(edge.sourceHandle!);
-                        const inputLineage = this.getOutputLineage(handle);
-                        if (inputLineage !== null) {
-                            lineage = inputLineage;
-                            break;
-                        }
-                    }
-
-                    this.nodeLineageCache.set(nodeId, lineage);
-                }
-                return lineage;
-            }
-            default:
-                return assertNever(schema.kind);
+        if (!useCache) {
+            return this.getInputLineageImpl(nodeId, schema, exclude);
         }
+
+        let lineage = this.nodeLineageCache.get(nodeId);
+        if (lineage === undefined) {
+            lineage = this.getInputLineageImpl(nodeId, schema, EMPTY_SET);
+            this.nodeLineageCache.set(nodeId, lineage);
+        }
+        return lineage;
     }
 
     /**
@@ -163,5 +190,16 @@ export class ChainLineage {
             default:
                 return assertNever(schema.kind);
         }
+    }
+
+    /**
+     * Returns `getOutputLineage` for the source handle connected to the given target handle.
+     * If no such connection exists, returns `undefined`.
+     *
+     */
+    getConnectedOutputLineage(target: ParsedTargetHandle): Lineage | null | undefined {
+        const edge = this.getEdgeByTarget(target);
+        if (!edge) return undefined;
+        return this.getOutputLineage(parseSourceHandle(edge.sourceHandle!));
     }
 }

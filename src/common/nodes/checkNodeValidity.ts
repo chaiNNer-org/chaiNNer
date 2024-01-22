@@ -2,8 +2,10 @@ import { Input, InputData, InputId, NodeSchema } from '../common-types';
 import { FunctionInstance } from '../types/function';
 import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from '../types/mismatch';
 import { withoutNull } from '../types/util';
+import { assertNever } from '../util';
 import { VALID, Validity, invalid } from '../Validity';
 import { testInputCondition } from './condition';
+import { ChainLineage, Lineage } from './lineage';
 import { getRequireConditions } from './required';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
@@ -15,12 +17,16 @@ export interface CheckNodeValidityOptions {
     inputData: InputData;
     connectedInputs: ReadonlySet<InputId>;
     functionInstance: FunctionInstance | undefined;
+    chainLineage?: ChainLineage;
+    nodeId?: string;
 }
 export const checkNodeValidity = ({
     schema,
     inputData,
     connectedInputs,
     functionInstance,
+    chainLineage,
+    nodeId,
 }: CheckNodeValidityOptions): Validity => {
     const isOptional = (input: Input): boolean => {
         if (input.kind !== 'generic' || !input.optional) {
@@ -60,6 +66,7 @@ export const checkNodeValidity = ({
         return invalid(formatMissingInputs(missingInputs));
     }
 
+    // Type check
     if (functionInstance) {
         for (const { inputId, assignedType, inputType } of functionInstance.inputErrors) {
             const input = schema.inputs.find((i) => i.id === inputId)!;
@@ -86,6 +93,29 @@ export const checkNodeValidity = ({
         // eslint-disable-next-line no-unreachable-loop
         for (const { message } of functionInstance.outputErrors) {
             return invalid(`Some inputs are incompatible with each other. ${message ?? ''}`);
+        }
+    }
+
+    // Lineage check
+    if (chainLineage && nodeId) {
+        for (const input of schema.inputs) {
+            const sourceLineage = chainLineage.getConnectedOutputLineage({
+                nodeId,
+                inputId: input.id,
+            });
+            if (sourceLineage !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                const lineageValid = checkAssignedLineage(
+                    sourceLineage,
+                    nodeId,
+                    input.id,
+                    schema,
+                    chainLineage
+                );
+                if (!lineageValid.isValid) {
+                    return lineageValid;
+                }
+            }
         }
     }
 
@@ -117,4 +147,59 @@ export const checkRequiredInputs = (schema: NodeSchema, inputData: InputData): V
         isValid: false,
         reason: formatMissingInputs(missingInputs),
     };
+};
+
+export const checkAssignedLineage = (
+    sourceLineage: Lineage | null,
+    nodeId: string,
+    inputId: InputId,
+    schema: NodeSchema,
+    chainLineage: ChainLineage
+): Validity => {
+    const input = schema.inputs.find((i) => i.id === inputId)!;
+
+    switch (schema.kind) {
+        case 'regularNode': {
+            // regular is auto-iterated, so it has to be treated separately
+            if (sourceLineage) {
+                const targetLineage = chainLineage.getInputLineage(nodeId, {
+                    exclude: new Set([inputId]),
+                });
+                if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                    return invalid('Cannot connect node to 2 different iterators.');
+                }
+            } else {
+                // it's always valid connect a node with no lineage
+            }
+            break;
+        }
+        case 'newIterator': {
+            if (sourceLineage) {
+                return invalid(`Input ${input.label} cannot be connect to an iterator.`);
+            }
+            break;
+        }
+        case 'collector': {
+            const isIterated = schema.iteratorInputs[0].inputs.includes(inputId);
+            if (isIterated) {
+                if (!sourceLineage) {
+                    return invalid(`Input ${input.label} expects an iterator.`);
+                }
+
+                const targetLineage = chainLineage.getInputLineage(nodeId, {
+                    exclude: new Set([inputId]),
+                });
+                if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                    return invalid('Cannot connect node to 2 different iterators.');
+                }
+            } else if (sourceLineage) {
+                return invalid(`Input ${input.label} cannot be connect to an iterator.`);
+            }
+            break;
+        }
+        default:
+            return assertNever(schema.kind);
+    }
+
+    return VALID;
 };
