@@ -20,6 +20,7 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
     const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)
     );
+    const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const alwaysValid = schema.inputs.length === 0;
@@ -40,10 +41,12 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
                     inputData,
                     connectedInputs: getConnectedInputs(id, getEdges()),
                     functionInstance,
+                    chainLineage,
+                    nodeId: id,
                 })
             );
         }
-    }, [alwaysValid, id, schema, inputData, edgeChanges, getEdges, functionInstance]);
+    }, [alwaysValid, id, schema, inputData, edgeChanges, getEdges, functionInstance, chainLineage]);
 
     // The problem with `checkNodeValidity` is that is must be computed with a delay due to
     // `getEdges`. This means that the full validity we return here might be outdated. This is a

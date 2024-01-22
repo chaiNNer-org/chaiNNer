@@ -7,7 +7,6 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
-    getOutgoers,
     useReactFlow,
     useViewport,
 } from 'reactflow';
@@ -29,12 +28,7 @@ import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
-import {
-    generateAssignmentErrorTrace,
-    printErrorTrace,
-    simpleError,
-} from '../../common/types/mismatch';
-import { withoutNull } from '../../common/types/util';
+
 import {
     EMPTY_SET,
     ParsedSourceHandle,
@@ -47,16 +41,14 @@ import {
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
-import { VALID, Validity, invalid } from '../../common/Validity';
+import { Validity, invalid } from '../../common/Validity';
+import { canConnect } from '../helpers/canConnect';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
-import {
-    gatherDownstreamIteratorNodes,
-    gatherUpstreamIteratorNodes,
-} from '../helpers/nodeGathering';
+
 import {
     PngDataUrl,
     saveDataUrlAsFile,
@@ -144,6 +136,7 @@ interface Global {
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     clearManualOutputTypes: (nodes: Iterable<string>) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
+    chainLineageRef: Readonly<React.MutableRefObject<ChainLineage>>;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
@@ -251,6 +244,8 @@ export const GlobalProvider = memo(
 
         const [typeState, setTypeState] = useState(TypeState.empty);
         const typeStateRef = useRef(typeState);
+        const [chainLineage, setChainLineage] = useState(ChainLineage.EMPTY);
+        const chainLineageRef = useRef(chainLineage);
         useEffect(() => {
             const timerId = setTimeout(() => {
                 const nodeMap = new Map(getNodes().map((n) => [n.id, n]));
@@ -273,9 +268,21 @@ export const GlobalProvider = memo(
                 );
                 setTypeState(types);
                 typeStateRef.current = types;
+
+                const newLineage = new ChainLineage(schemata, getNodes(), getEdges());
+                setChainLineage(newLineage);
+                chainLineageRef.current = newLineage;
             }, 100);
             return () => clearTimeout(timerId);
-        }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions, getEdges, getNodes]);
+        }, [
+            nodeChanges,
+            edgeChanges,
+            manualOutputTypes,
+            functionDefinitions,
+            schemata,
+            getEdges,
+            getNodes,
+        ]);
 
         const [outputDataMap, outputDataActions] = useOutputDataStore();
 
@@ -327,11 +334,6 @@ export const GlobalProvider = memo(
                 return new Set(newEffectivelyDisabled);
             });
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
-
-        const [chainLineage, setChainLineage] = useState(ChainLineage.EMPTY);
-        useEffect(() => {
-            setChainLineage(new ChainLineage(schemata, getNodes(), getEdges()));
-        }, [edgeChanges, getNodes, getEdges, schemata]);
 
         const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
@@ -826,148 +828,18 @@ export const GlobalProvider = memo(
 
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>): Validity => {
-                if (source === target) {
-                    return invalid('Cannot connect a node to itself.');
-                }
-
                 if (!source || !target || !sourceHandle || !targetHandle) {
                     return invalid('Invalid connection data.');
                 }
-                const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
-                const targetHandleId = parseTargetHandle(targetHandle).inputId;
 
-                const sourceFn = typeState.functions.get(source);
-                const targetFn = typeState.functions.get(target);
-
-                if (!sourceFn || !targetFn) {
-                    return invalid('Invalid connection data.');
-                }
-
-                const sourceNode = getNode(source);
-                const targetNode = getNode(target);
-                if (!sourceNode || !targetNode) {
-                    return invalid('Invalid node data.');
-                }
-
-                const outputType = sourceFn.outputs.get(sourceHandleId);
-                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
-                    const schema = schemata.get(targetNode.data.schemaId);
-                    const input = schema.inputs.find((i) => i.id === targetHandleId)!;
-                    const inputType = withoutNull(
-                        targetFn.definition.inputDefaults.get(targetHandleId)!
-                    );
-
-                    const error = simpleError(outputType, inputType);
-                    if (error) {
-                        return invalid(
-                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
-                        );
-                    }
-
-                    const traceTree = generateAssignmentErrorTrace(outputType, inputType);
-                    if (!traceTree) throw new Error('Cannot determine assignment error');
-                    const trace = printErrorTrace(traceTree);
-                    return invalid(
-                        `Input ${
-                            input.label
-                        } cannot be connected with an incompatible value. ${trace.join(' ')}`
-                    );
-                }
-
-                const nodes = getNodes();
-                const edges = getEdges();
-
-                const checkTargetChildren = (startNode: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(startNode, nodes, edges);
-                    if (!targetChildren.length) {
-                        return false;
-                    }
-                    return targetChildren.some((childNode) => {
-                        if (childNode.id === sourceNode.id) {
-                            return true;
-                        }
-                        return checkTargetChildren(childNode);
-                    });
-                };
-                const isLoop = checkTargetChildren(targetNode);
-                if (isLoop) return invalid('Connection would create an infinite loop.');
-
-                if (sourceNode.type === 'newIterator' && targetNode.type === 'newIterator') {
-                    return invalid('Cannot connect two iterators.');
-                }
-
-                // Connections cannot be made if:
-                // - The source has iterator lineage AND the target has iterator lineage
-                // Connections CAN be made if:
-                // - the source has iterator lineage AND the target does not
-                // - the target has iterator lineage AND the source does not
-                // - neither the source nor the target have iterator lineage
-                // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
-
-                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(
-                    sourceNode,
-                    nodes,
-                    edges
+                return canConnect(
+                    parseSourceHandle(sourceHandle),
+                    parseTargetHandle(targetHandle),
+                    typeState,
+                    chainLineage
                 );
-                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(
-                    sourceNode,
-                    nodes,
-                    edges
-                );
-
-                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(
-                    targetNode,
-                    nodes,
-                    edges
-                );
-                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(
-                    targetNode,
-                    nodes,
-                    edges
-                );
-
-                const sourceHasIteratorLineage =
-                    sourceDownstreamIterNodes.size > 0 ||
-                    sourceUpstreamIterNodes.size > 0 ||
-                    sourceNode.type === 'newIterator';
-                const targetHasIteratorLineage =
-                    targetDownstreamIterNodes.size > 0 ||
-                    targetUpstreamIterNodes.size > 0 ||
-                    targetNode.type === 'newIterator';
-
-                const sourceIters = new Set([
-                    ...sourceDownstreamIterNodes,
-                    ...sourceUpstreamIterNodes,
-                    ...(sourceNode.type === 'newIterator' ? [sourceNode.id] : []),
-                ]);
-
-                const targetIters = new Set([
-                    ...targetDownstreamIterNodes,
-                    ...targetUpstreamIterNodes,
-                    ...(targetNode.type === 'newIterator' ? [targetNode.id] : []),
-                ]);
-
-                const intersectionSource = new Set(
-                    [...sourceIters].filter((x) => targetIters.has(x))
-                );
-                const intersectionTarget = new Set(
-                    [...targetIters].filter((x) => sourceIters.has(x))
-                );
-
-                const sourceAndTargetShareSameLineage =
-                    intersectionSource.size > 0 && intersectionTarget.size > 0;
-
-                if (
-                    sourceHasIteratorLineage &&
-                    targetHasIteratorLineage &&
-                    !sourceAndTargetShareSameLineage
-                ) {
-                    return invalid('Cannot connect two nodes with unrelated iterator lineage.');
-                }
-
-                return VALID;
             },
-            [typeState.functions, getNode, getNodes, getEdges, schemata]
+            [typeState, chainLineage]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();
@@ -1351,6 +1223,7 @@ export const GlobalProvider = memo(
             setManualOutputType,
             clearManualOutputTypes,
             typeStateRef,
+            chainLineageRef,
             outputDataActions,
             getInputHash,
             hasRelevantUnsavedChangesRef,

@@ -15,7 +15,7 @@ import {
 import { IdSet } from '../../common/IdSet';
 import { testInputCondition } from '../../common/nodes/condition';
 import { FunctionInstance } from '../../common/types/function';
-import { EMPTY_ARRAY, EMPTY_SET, parseSourceHandle } from '../../common/util';
+import { EMPTY_ARRAY, EMPTY_SET } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { useMemoObject } from '../hooks/useMemo';
@@ -119,14 +119,11 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
             // eslint-disable-next-line @typescript-eslint/no-shadow
             const iteratedInputs = new Set<InputId>();
             for (const input of schema.inputs) {
-                const edge = chainLineage.getEdgeByTarget({ nodeId: id, inputId: input.id });
-                // eslint-disable-next-line no-continue
-                if (!edge) continue;
-
-                const inputLineage = chainLineage.getOutputLineage(
-                    parseSourceHandle(edge.sourceHandle!)
-                );
-                if (inputLineage !== null) {
+                const inputLineage = chainLineage.getConnectedOutputLineage({
+                    nodeId: id,
+                    inputId: input.id,
+                });
+                if (inputLineage != null) {
                     iteratedInputs.add(input.id);
                 }
             }

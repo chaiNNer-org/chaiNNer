@@ -140,6 +140,8 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         connectedInputs: requiredGenericInputs,
         inputData,
         functionInstance: typeInfo.instance,
+        chainLineage: undefined,
+        nodeId,
     });
 
     const { iteratedInputs, iteratedOutputs } = useMemo(() => {
