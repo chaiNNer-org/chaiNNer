@@ -25,5 +25,5 @@ from .. import text_group
     ],
     outputs=[],
 )
-def note_node(_text: str | None, display_markdown: bool | None) -> None:
+def note_node(_text: str | None, display_markdown: bool) -> None:
     return
