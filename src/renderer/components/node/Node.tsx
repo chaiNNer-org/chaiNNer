@@ -27,6 +27,7 @@ import { useWatchFiles } from '../../hooks/useWatchFiles';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
+import { NoteNode } from './special/NoteNode';
 
 /**
  * If there is only one file input, then this input will be returned. `undefined` otherwise.
@@ -44,13 +45,24 @@ const getSingleFileInput = (inputs: readonly Input[]): Input | undefined => {
     return fileInputs.length === 1 ? fileInputs[0] : undefined;
 };
 
-export const Node = memo(({ data, selected }: NodeProps) => (
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    <NodeInner
-        data={data}
-        selected={selected}
-    />
-));
+export const Node = memo(({ data, selected }: NodeProps) => {
+    if (data.schemaId === 'chainner:utility:note') {
+        return (
+            <NoteNode
+                data={data}
+                selected={selected}
+            />
+        );
+    }
+
+    return (
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        <NodeInner
+            data={data}
+            selected={selected}
+        />
+    );
+});
 
 export interface NodeProps {
     data: NodeData;

@@ -24,7 +24,6 @@ from .. import text_group
         ),
     ],
     outputs=[],
-    node_type="note",  # type: ignore -- this is not part of the public API
 )
 def note_node(_text: str | None, display_markdown: bool | None) -> None:
     return

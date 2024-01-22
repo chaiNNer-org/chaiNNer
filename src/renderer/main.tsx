@@ -10,7 +10,6 @@ import { CustomEdge } from './components/CustomEdge/CustomEdge';
 import { Header } from './components/Header/Header';
 import { HistoryProvider } from './components/HistoryProvider';
 import { Node } from './components/node/Node';
-import { NoteNode } from './components/node/special/NoteNode';
 import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
 import { ReactFlowBox } from './components/ReactFlowBox';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
@@ -27,7 +26,6 @@ const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
     regularNode: Node,
     newIterator: Node,
     collector: Node,
-    note: NoteNode,
 };
 const edgeTypes: EdgeTypes = {
     main: CustomEdge,
