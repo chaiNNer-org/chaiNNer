@@ -3,7 +3,7 @@ import path from 'path';
 import { DragEvent, memo, useMemo, useRef } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Input, NodeData, runnableNodeTypes } from '../../../common/common-types';
+import { Input, NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import {
     EMPTY_ARRAY,
@@ -167,10 +167,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const startingNode = isStartingNode(schema);
     const isNewIterator = schema.kind === 'newIterator';
     const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
-    const isRunnable = runnableNodeTypes.includes(schema.kind);
     const reload = useRunNode(
         data,
-        validity.isValid && startingNode && !isNewIterator && !hasStaticValueInput && isRunnable
+        validity.isValid && startingNode && !isNewIterator && !hasStaticValueInput
     );
     const filesToWatch = useMemo(() => {
         if (!startingNode) return EMPTY_ARRAY;

@@ -5,9 +5,7 @@ import {
     EdgeData,
     InputId,
     NodeData,
-    NodeType,
     OutputId,
-    runnableNodeTypes,
 } from '../common-types';
 import { SchemaMap } from '../SchemaMap';
 import { ParsedSourceHandle, mapInputValues, parseSourceHandle, parseTargetHandle } from '../util';
@@ -50,14 +48,10 @@ export const toBackendJson = (
         (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertHandle(sourceH);
     });
 
-    const runnableNodes = nodes.filter(
-        (n) => n.type && runnableNodeTypes.includes(n.type as NodeType) // I think we'll be able to remove this "as" after RF v12 is released
-    );
-
     const result: BackendJsonNode[] = [];
 
     // Set up each node in the result
-    runnableNodes.forEach((element) => {
+    nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
         const { schemaId, inputData } = data;
         const schema = schemata.get(schemaId);
