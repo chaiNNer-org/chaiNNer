@@ -155,7 +155,7 @@ const InputOutputItem = memo(
                                     w="0.5rem"
                                 />
                             ))}
-                        {isIterated && <Text>(List)</Text>}
+                        {isIterated && <Text>(Sequenced)</Text>}
                     </HStack>
                     <VStack
                         alignItems="start"
