@@ -160,7 +160,8 @@ export const checkAssignedLineage = (
 
     const differentLineage = () =>
         invalid('Cannot connect node to 2 different sequences of different origin.');
-    const nonIteratorInput = () => invalid(`Input ${input.label} cannot be connected to a sequence.`);
+    const nonIteratorInput = () =>
+        invalid(`Input ${input.label} cannot be connected to a sequence.`);
 
     switch (schema.kind) {
         case 'regularNode': {
