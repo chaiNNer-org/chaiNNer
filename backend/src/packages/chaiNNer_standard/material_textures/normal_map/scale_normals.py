@@ -13,9 +13,9 @@ from .. import normal_map_group
 
 @normal_map_group.register(
     schema_id="chainner:image:strengthen_normals",
-    name="Strengthen Normals",
+    name="Scale Normals",
     description=[
-        "Strengths and weakens the normals in the given normal map. Only the R and G channels of the input image will be used. The output normal map is guaranteed to be normalized.",
+        "Strengths or weakens the normals in the given normal map. Only the R and G channels of the input image will be used. The output normal map is guaranteed to be normalized.",
         "Conceptually, this node is equivalent to `chainner:image:add_normals` with the strength of the second normal map set to 0.",
     ],
     icon="MdExpand",
@@ -36,7 +36,7 @@ from .. import normal_map_group
         ),
     ],
 )
-def strengthen_normals_node(
+def scale_normals_node(
     n: np.ndarray, strength: int, method: AdditionMethod
 ) -> np.ndarray:
     return xyz_to_bgr(strengthen_normals(method, n, strength / 100))
