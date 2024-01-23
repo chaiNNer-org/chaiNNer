@@ -32,6 +32,7 @@ from .. import normal_map_group
         EnumInput(
             NormalMapType,
             label="From",
+            label_style="inline",
             default=NormalMapType.DIRECTX,
             option_labels={
                 NormalMapType.DIRECTX: "DirectX",
@@ -41,6 +42,7 @@ from .. import normal_map_group
         EnumInput(
             NormalMapType,
             label="To",
+            label_style="inline",
             default=NormalMapType.OPENGL,
             option_labels={
                 NormalMapType.DIRECTX: "DirectX",

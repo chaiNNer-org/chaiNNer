@@ -30,7 +30,9 @@ class BChannel(Enum):
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput("Normal Map", channels=[3, 4]),
-        EnumInput(BChannel, "Output B", default=BChannel.Z).with_docs(
+        EnumInput(
+            BChannel, "Output B", label_style="inline", default=BChannel.Z
+        ).with_docs(
             "Determines the content of the B channel of the output normal map.",
             "- `Z`: Unlike the X and Y components which are in range [-1, 1], the Z component is guaranteed to be in the range [0, 1]. This allows us to directly use the Z component as the B channel.",
             "- `Z Mapped`: Just like the X and Y components, the Z component will be mapped to [0, 1] and stored as the B channel. Since the Z component is always >= 0, the B channel will be in the range [0.5, 1] ([128, 255])",

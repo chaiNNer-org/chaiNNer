@@ -134,7 +134,7 @@ class Writer:
             TextInput(
                 "Additional parameters",
                 multiline=True,
-                hide_label=True,
+                label_style="hidden",
                 allow_empty_string=True,
                 has_handle=False,
             )
