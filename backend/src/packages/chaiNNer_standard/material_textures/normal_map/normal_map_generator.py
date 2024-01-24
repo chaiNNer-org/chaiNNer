@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from enum import Enum
 
 import cv2
@@ -7,17 +8,18 @@ import numpy as np
 
 import navi
 from nodes.groups import if_enum_group
-from nodes.impl.image_utils import fast_gaussian_blur
+from nodes.impl.image_utils import BorderType, create_border, fast_gaussian_blur
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels
 from nodes.impl.normals.height import HeightSource, get_height_map
 from nodes.properties.inputs import (
+    BoolInput,
     EnumInput,
     ImageInput,
     NormalChannelInvertInput,
     SliderInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import Padding, get_h_w_c
 
 from .. import normal_map_group
 
@@ -64,11 +66,18 @@ def normalize(x: np.ndarray, y: np.ndarray):
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput("Image", channels=[1, 3, 4]),
+        BoolInput("Tileable", default=False)
+        .with_docs(
+            "If enabled, the input texture will be treated as tileable and a tileable normal map will be created.",
+            hint=True,
+        )
+        .with_id(16),
         EnumInput(
             HeightSource,
             label="Height Source",
             default=HeightSource.AVERAGE_RGB,
-        ).with_docs(
+        )
+        .with_docs(
             "Given the R, G, B, A channels of the input image, a height map will be calculated as follows:",
             "- Average RGB: `Height = (R + G + B) / 3`",
             "- Max RGB: `Height = max(R, G, B)`",
@@ -77,16 +86,19 @@ def normalize(x: np.ndarray, y: np.ndarray):
             "- Green: `Height = G`",
             "- Blue: `Height = B`",
             "- Alpha: `Height = A`",
-        ),
+        )
+        .with_id(1),
         SliderInput(
             "Blur/Sharp",
             minimum=-20,
             maximum=20,
             default=0,
             precision=1,
-        ).with_docs(
+        )
+        .with_docs(
             "A quick way to blur or sharpen the height map. Negative values blur, positive values sharpen."
-        ),
+        )
+        .with_id(2),
         SliderInput(
             "Min Z",
             minimum=0,
@@ -95,10 +107,12 @@ def normalize(x: np.ndarray, y: np.ndarray):
             precision=3,
             slider_step=0.01,
             controls_step=0.05,
-        ).with_docs(
+        )
+        .with_docs(
             "A minimum height that can be used to cut off low height values.",
             "This value is generally only useful in specific circumstances, so it's usually best to leave it at 0.",
-        ),
+        )
+        .with_id(3),
         SliderInput(
             "Scale",
             minimum=0,
@@ -107,10 +121,12 @@ def normalize(x: np.ndarray, y: np.ndarray):
             precision=3,
             controls_step=0.1,
             scale="log-offset",
-        ).with_docs(
+        )
+        .with_docs(
             "A factor applied to the height map.",
             "The smaller the scale, the most flat the output normal map will be. The large the scale, the more pronounced the normal map will be.",
-        ),
+        )
+        .with_id(4),
         EnumInput(
             EdgeFilter,
             label="Filter",
@@ -230,6 +246,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
 )
 def normal_map_generator_node(
     img: np.ndarray,
+    tileable: bool,
     height_source: HeightSource,
     blur_sharp: float,
     min_z: float,
@@ -249,19 +266,6 @@ def normal_map_generator_node(
     h, w, c = get_h_w_c(img)
     height = get_height_map(img, height_source)
 
-    if blur_sharp < 0:
-        # blur
-        height = fast_gaussian_blur(height, -blur_sharp)
-    elif blur_sharp > 0:
-        # sharpen
-        blurred = fast_gaussian_blur(height, blur_sharp)
-        height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
-
-    if min_z > 0:
-        height = np.maximum(min_z, height)
-    if scale != 0:
-        height = height * scale  # type: ignore
-
     filter_x, filter_y = get_filter_kernels(
         edge_filter,
         gauss_parameter=[
@@ -276,8 +280,31 @@ def normal_map_generator_node(
         ],
     )
 
+    padding = 0
+    if tileable:
+        padding = max(1, filter_x.shape[0] // 2, math.ceil(abs(blur_sharp) * 2))
+        height = create_border(height, BorderType.WRAP, Padding.all(padding))
+
+    if blur_sharp < 0:
+        # blur
+        height = fast_gaussian_blur(height, -blur_sharp)
+    elif blur_sharp > 0:
+        # sharpen
+        blurred = fast_gaussian_blur(height, blur_sharp)
+        height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
+
+    if min_z > 0:
+        height = np.maximum(min_z, height)
+    if scale != 0:
+        height = height * scale  # type: ignore
+
     dx = cv2.filter2D(height, -1, filter_x)
     dy = cv2.filter2D(height, -1, filter_y)
+
+    if padding > 0:
+        dx = dx[padding:-padding, padding:-padding]
+        dy = dy[padding:-padding, padding:-padding]
+        height = height[padding:-padding, padding:-padding]
 
     x, y, z = normalize(dx, dy)
 
