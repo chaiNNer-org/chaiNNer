@@ -169,10 +169,10 @@ def edge_detection_node(
         filter_x = FILTER_X[algorithm]
         filter_y = FILTER_Y.get(algorithm)
 
-        def g_x():
+        def g_x() -> np.ndarray:
             return cv2.filter2D(img, -1, filter_x)
 
-        def g_y():
+        def g_y() -> np.ndarray:
             filter = filter_y or np.rot90(filter_x, 1)
             return cv2.filter2D(img, -1, filter)
 
@@ -192,7 +192,7 @@ def edge_detection_node(
         img = prewitt_compass(img) * (amount / 2)
 
     elif algorithm == Algorithm.LAPLACIAN:
-        img = cv2.filter2D(img, -1, LAPLACE_KERNEL) * amount
+        img = cv2.filter2D(img, -1, LAPLACE_KERNEL) * amount  # type: ignore
 
     elif algorithm == Algorithm.LAPLACIAN_DENOISE:
         img = laplacian_denoise(img) * amount
@@ -202,7 +202,7 @@ def edge_detection_node(
         g2 = fast_gaussian_blur(img, radius_2)
         img = (g1 - g2) * amount
 
-    img = img.clip(0, 1)
+    img = np.clip(img, 0, 1)  # type: ignore
 
     if alpha is not None:
         img = np.dstack((img, alpha))
@@ -243,4 +243,4 @@ def laplacian_denoise(img: np.ndarray) -> np.ndarray:
     max_val = cv2.dilate(img, cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)))
     min_val = cv2.erode(img, cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)))
     laplace = cv2.filter2D(img, -1, LAPLACE_KERNEL)
-    return np.maximum(max_val - img, img - min_val) * np.clip(laplace * 10, -0.75, 0.75)
+    return np.maximum(max_val - img, img - min_val) * np.clip(laplace * 10, -0.75, 0.75)  # type: ignore
