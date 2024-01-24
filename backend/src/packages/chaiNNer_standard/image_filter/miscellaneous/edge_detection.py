@@ -123,9 +123,12 @@ LAPLACE_KERNEL = 0.25 * np.array(
     icon="MdAutoFixHigh",
     inputs=[
         ImageInput(),
-        EnumInput(Algorithm).with_id(1),
+        SliderInput(
+            "Amount", minimum=0, default=1, maximum=10, precision=2, scale="log"
+        ),
+        EnumInput(Algorithm).with_id(2),
         if_enum_group(
-            1,
+            2,
             (
                 Algorithm.SOBEL,
                 Algorithm.SCHARR,
@@ -135,23 +138,20 @@ LAPLACE_KERNEL = 0.25 * np.array(
         )(
             EnumInput(GradientComponent),
         ),
-        if_enum_group(1, Algorithm.DIFFERENCE_OF_GAUSSIAN)(
+        if_enum_group(2, Algorithm.DIFFERENCE_OF_GAUSSIAN)(
             SliderInput("Radius 1", minimum=0, default=1, maximum=10, precision=3),
             SliderInput("Radius 2", minimum=0, default=2, maximum=20, precision=3),
-        ),
-        SliderInput(
-            "Amount", minimum=0, default=1, maximum=10, precision=2, scale="log"
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
 def edge_detection_node(
     img: np.ndarray,
+    amount: float,
     algorithm: Algorithm,
     gradient_component: GradientComponent,
     radius_1: float,
     radius_2: float,
-    amount: float,
 ) -> np.ndarray:
     c = get_h_w_c(img)[2]
     alpha = None
