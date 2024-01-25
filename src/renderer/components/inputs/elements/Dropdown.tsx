@@ -1,6 +1,12 @@
 import { Select } from '@chakra-ui/react';
-import { ChangeEvent, memo, useEffect } from 'react';
-import { DropDownInput, DropdownGroup, InputSchemaValue } from '../../../../common/common-types';
+import { ChangeEvent, memo, useEffect, useMemo } from 'react';
+import {
+    Condition,
+    DropDownInput,
+    DropdownGroup,
+    InputSchemaValue,
+} from '../../../../common/common-types';
+import { EMPTY_ARRAY } from '../../../../common/util';
 
 export interface DropDownProps {
     value: InputSchemaValue | undefined;
@@ -9,10 +15,11 @@ export interface DropDownProps {
     isDisabled?: boolean;
     options: DropDownInput['options'];
     groups?: readonly DropdownGroup[];
+    testCondition?: (condition: Condition) => boolean;
 }
 
 export const DropDown = memo(
-    ({ value, onChange, reset, isDisabled, options, groups }: DropDownProps) => {
+    ({ value, onChange, reset, isDisabled, options, groups, testCondition }: DropDownProps) => {
         // reset invalid values to default
         useEffect(() => {
             if (value === undefined || options.every((o) => o.value !== value)) {
@@ -32,6 +39,27 @@ export const DropDown = memo(
                 onChange(selectedValue);
             }
         };
+
+        const unavailableOptions = useMemo((): readonly InputSchemaValue[] => {
+            if (!testCondition) return EMPTY_ARRAY;
+            const unavailable = options
+                .filter((o) => o.condition != null && !testCondition(o.condition))
+                .map((o) => o.value);
+            return unavailable.length === 0 ? EMPTY_ARRAY : unavailable;
+        }, [options, testCondition]);
+
+        useEffect(() => {
+            if (value !== undefined && unavailableOptions.includes(value)) {
+                // we can't use reset since the default value might be unavailable too
+                // so we search for the first available option
+                const firstAvailable = options.find((o) => !unavailableOptions.includes(o.value));
+                if (firstAvailable) {
+                    onChange(firstAvailable.value);
+                } else {
+                    // well, can't do anything then ¯\_(ツ)_/¯
+                }
+            }
+        }, [value, onChange, options, unavailableOptions]);
 
         const optionElements: JSX.Element[] = [];
         // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -82,6 +110,7 @@ export const DropDown = memo(
 
             optionElements.push(
                 <option
+                    disabled={unavailableOptions.includes(o.value)}
                     key={optionElements.length}
                     style={{ fontSize: '120%' }}
                     value={index}

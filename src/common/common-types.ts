@@ -64,6 +64,7 @@ export interface InputOption {
     option: string;
     value: InputSchemaValue;
     type?: ExpressionJson;
+    condition?: Condition | null;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs';
@@ -183,7 +184,7 @@ export interface NotCondition {
 export interface EnumCondition {
     readonly kind: 'enum';
     readonly enum: InputId;
-    readonly values: readonly InputSchemaValue[] | InputSchemaValue;
+    readonly values: readonly InputSchemaValue[];
 }
 export interface TypeCondition {
     readonly kind: 'type';

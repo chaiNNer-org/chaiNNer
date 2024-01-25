@@ -5,8 +5,8 @@ import { withoutNull } from '../types/util';
 import { assertNever } from '../util';
 import { VALID, Validity, invalid } from '../Validity';
 import { testInputCondition } from './condition';
+import { getRequireConditions } from './groupStacks';
 import { ChainLineage, Lineage } from './lineage';
-import { getRequireConditions } from './required';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
@@ -43,6 +43,7 @@ export const checkNodeValidity = ({
         return !testInputCondition(
             condition,
             inputData,
+            schema,
             (id) => functionInstance?.inputs.get(id),
             (id) => connectedInputs.has(id)
         );
