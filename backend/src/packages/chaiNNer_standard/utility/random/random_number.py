@@ -15,12 +15,12 @@ from .. import random_group
     icon="MdCalculate",
     inputs=[
         NumberInput(
-            "Minimum Value",
+            "Min",
             minimum=None,
             maximum=None,
         ),
         NumberInput(
-            "Maximum Value",
+            "Max",
             minimum=None,
             maximum=None,
             default=100,
