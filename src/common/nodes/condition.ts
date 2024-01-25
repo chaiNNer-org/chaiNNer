@@ -1,5 +1,15 @@
 import { Type, evaluate, isDisjointWith } from '@chainner/navi';
-import { Condition, InputData, InputId, NodeSchema, OfKind } from '../common-types';
+import {
+    AndCondition,
+    Condition,
+    EnumCondition,
+    InputData,
+    InputId,
+    NodeSchema,
+    OfKind,
+    OrCondition,
+    TypeCondition,
+} from '../common-types';
 import { getChainnerScope } from '../types/chainner-scope';
 import { ExpressionJson, fromJson } from '../types/json';
 import { EMPTY_ARRAY, getInputValue, lazyKeyed } from '../util';
@@ -114,6 +124,84 @@ export const isTautology = (condition: Condition): boolean => {
     );
 };
 
+const unionEnumConditions = (a: EnumCondition, b: EnumCondition): EnumCondition => {
+    const values = [...new Set([...a.values, ...b.values])];
+    return { kind: 'enum', enum: a.enum, values };
+};
+
+const intersectEnumConditions = (a: EnumCondition, b: EnumCondition): EnumCondition => {
+    const values = a.values.filter((v) => b.values.includes(v));
+    return { kind: 'enum', enum: a.enum, values };
+};
+
+const unionTypeConditions = (a: TypeCondition, b: TypeCondition): TypeCondition => {
+    return {
+        kind: 'type',
+        input: a.input,
+        condition: { type: 'union', items: [a.condition, b.condition] },
+        ifNotConnected: a.ifNotConnected || b.ifNotConnected,
+    };
+};
+const intersectTypeConditions = (a: TypeCondition, b: TypeCondition): TypeCondition => {
+    return {
+        kind: 'type',
+        input: a.input,
+        condition: { type: 'intersection', items: [a.condition, b.condition] },
+        ifNotConnected: a.ifNotConnected && b.ifNotConnected,
+    };
+};
+
+const mergePrimitives = (condition: AndCondition | OrCondition): Condition => {
+    if (condition.items.length < 2) {
+        return condition;
+    }
+
+    const { kind, items } = condition;
+
+    const newItems: Condition[] = [];
+    const enums = new Map<InputId, [number, EnumCondition]>();
+    const types = new Map<InputId, [number, TypeCondition]>();
+
+    const enumOperation = kind === 'and' ? intersectEnumConditions : unionEnumConditions;
+    const typeOperation = kind === 'and' ? intersectTypeConditions : unionTypeConditions;
+
+    for (const item of items) {
+        if (item.kind === 'enum') {
+            const existing = enums.get(item.enum);
+            if (existing) {
+                const [index, c] = existing;
+                const newCondition = enumOperation(c, item);
+                existing[1] = newCondition;
+                newItems[index] = newCondition;
+            } else {
+                newItems.push(item);
+                enums.set(item.enum, [newItems.length - 1, item]);
+            }
+        } else if (item.kind === 'type') {
+            const existing = types.get(item.input);
+            if (existing) {
+                const [index, c] = existing;
+                const newCondition = typeOperation(c, item);
+                existing[1] = newCondition;
+                newItems[index] = newCondition;
+            } else {
+                newItems.push(item);
+                types.set(item.input, [newItems.length - 1, item]);
+            }
+        } else {
+            newItems.push(item);
+        }
+    }
+
+    if (newItems.length === 1) {
+        return newItems[0];
+    }
+    if (newItems.length === items.length) {
+        return condition;
+    }
+    return { kind, items: newItems };
+};
+
 const AND_OR_OTHER = {
     and: 'or',
     or: 'and',
@@ -125,7 +213,8 @@ export const simplifyCondition = (condition: Condition): Condition => {
         if (inner.kind === 'not') {
             return inner.condition;
         }
-        if (inner.kind === 'and' || inner.kind === 'or') {
+        if ((inner.kind === 'and' || inner.kind === 'or') && inner.items.length === 0) {
+            // negate constant
             return { kind: AND_OR_OTHER[inner.kind], items: inner.items };
         }
         return { kind: 'not', condition: inner };
@@ -150,7 +239,7 @@ export const simplifyCondition = (condition: Condition): Condition => {
         if (items.length === 1) {
             return items[0];
         }
-        return { kind: condition.kind, items };
+        return mergePrimitives({ kind: condition.kind, items });
     }
 
     return condition;
