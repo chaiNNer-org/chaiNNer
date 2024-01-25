@@ -13,6 +13,7 @@ import {
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { TestFn, testForInputCondition } from '../../common/nodes/condition';
+import { isAutoIterable } from '../../common/nodes/lineage';
 import { FunctionInstance } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_SET } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
@@ -114,7 +115,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
 
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
     const [iteratedInputs, iteratedOutputs] = useMemo(() => {
-        if (schema.kind === 'regularNode') {
+        if (isAutoIterable(schema)) {
             // eslint-disable-next-line @typescript-eslint/no-shadow
             const iteratedInputs = new Set<InputId>();
             for (const input of schema.inputs) {
