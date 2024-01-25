@@ -13,7 +13,7 @@ from .. import value_group
     icon="MdTextFields",
     inputs=[
         TextInput(
-            "Text", min_length=0, hide_label=True, allow_empty_string=True
+            "Text", min_length=0, label_style="hidden", allow_empty_string=True
         ).make_fused(),
     ],
     outputs=[

@@ -25,6 +25,7 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
+from .label import LabelStyle
 from .numeric_inputs import NumberInput
 
 
@@ -78,6 +79,7 @@ class DropDownInput(BaseInput):
         options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        label_style: LabelStyle = "default",
         groups: list[DropDownGroup] | None = None,
         associated_type: Any = None,
     ):
@@ -88,6 +90,7 @@ class DropDownInput(BaseInput):
             default_value if default_value is not None else options[0]["value"]
         )
         self.preferred_style: DropDownStyle = preferred_style
+        self.label_style: LabelStyle = label_style
         self.groups: list[DropDownGroup] = groups or []
 
         if self.default not in self.accepted_values:
@@ -106,6 +109,7 @@ class DropDownInput(BaseInput):
             "options": self.options,
             "def": self.default,
             "preferredStyle": self.preferred_style,
+            "labelStyle": self.label_style,
             "groups": [c.to_dict() for c in self.groups],
         }
 
@@ -177,6 +181,7 @@ class EnumInput(Generic[T], DropDownInput):
         option_labels: dict[T, str] | None = None,
         extra_definitions: str | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
     ):
         if type_name is None:
@@ -210,6 +215,7 @@ class EnumInput(Generic[T], DropDownInput):
             options=options,
             default_value=default.value if default is not None else None,
             preferred_style=preferred_style,
+            label_style=label_style,
             groups=categories,
         )
 
@@ -241,7 +247,7 @@ class TextInput(BaseInput):
         multiline: bool = False,
         allow_numbers: bool = True,
         default: str | None = None,
-        hide_label: bool = False,
+        label_style: LabelStyle = "default",
         allow_empty_string: bool = False,
     ):
         super().__init__(
@@ -255,7 +261,7 @@ class TextInput(BaseInput):
         self.placeholder = placeholder
         self.default = default
         self.multiline = multiline
-        self.hide_label = hide_label
+        self.label_style: LabelStyle = label_style
         self.allow_empty_string = allow_empty_string
 
         if default is not None:
@@ -294,7 +300,7 @@ class TextInput(BaseInput):
             "placeholder": self.placeholder,
             "multiline": self.multiline,
             "def": self.default,
-            "hideLabel": self.hide_label,
+            "labelStyle": self.label_style,
             "allowEmptyString": self.allow_empty_string,
         }
 
@@ -335,6 +341,7 @@ class SeedInput(NumberInput):
             maximum=None,
             precision=0,
             default=0,
+            label_style="default",
         )
         self.has_handle = has_handle
 
@@ -461,6 +468,7 @@ def VideoFfv1ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
+        label_style="inline",
         options=[
             {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
             for vc in VIDEO_FFV1_CONTAINERS
@@ -480,6 +488,7 @@ def VideoVp9ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
+        label_style="inline",
         options=[
             {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
             for vc in VIDEO_VP9_CONTAINERS
@@ -500,6 +509,7 @@ def VideoH264ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
+        label_style="inline",
         options=[
             {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
             for vc in VIDEO_H264_CONTAINERS
@@ -519,6 +529,7 @@ def VideoH265ContainerDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoContainer",
         label="Container",
+        label_style="inline",
         options=[
             {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
             for vc in VIDEO_H265_CONTAINERS
@@ -546,6 +557,7 @@ def VideoEncoderDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoEncoder",
         label="Encoder",
+        label_style="inline",
         options=[
             {"option": label, "value": vc.value}
             for vc, label in VIDEO_ENCODER_LABELS.items()
@@ -560,6 +572,7 @@ def VideoPresetDropdown() -> DropDownInput:
     return DropDownInput(
         input_type="VideoPreset",
         label="Preset",
+        label_style="inline",
         options=[
             {"option": "ultrafast", "value": "ultrafast"},
             {"option": "superfast", "value": "superfast"},

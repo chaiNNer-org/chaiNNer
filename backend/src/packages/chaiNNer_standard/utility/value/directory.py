@@ -13,7 +13,7 @@ from .. import value_group
     icon="BsFolder",
     inputs=[
         DirectoryInput(
-            "Directory", must_exist=False, hide_label=True, has_handle=True
+            "Directory", must_exist=False, label_style="hidden", has_handle=True
         ).make_fused(),
     ],
     outputs=[

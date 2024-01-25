@@ -12,7 +12,7 @@ from .. import value_group
     description="Parses text to base-10.",
     icon="MdCalculate",
     inputs=[
-        TextInput("Text"),
+        TextInput("Text", label_style="inline"),
         NumberInput("Base", default=10, minimum=2, maximum=36),
     ],
     outputs=[

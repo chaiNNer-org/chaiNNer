@@ -5,7 +5,7 @@ import { Markdown } from '../Markdown';
 import { Checkbox } from './elements/Checkbox';
 import { DropDown } from './elements/Dropdown';
 import { TabList } from './elements/TabList';
-import { WithLabel, WithoutLabel } from './InputContainer';
+import { AutoLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 type DropDownInputProps = InputProps<'dropdown', string | number>;
@@ -68,7 +68,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
     }
 
     return (
-        <WithLabel input={input}>
+        <AutoLabel input={input}>
             <DropDown
                 groups={groups}
                 isDisabled={isLocked}
@@ -77,6 +77,6 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
                 value={value}
                 onChange={setValue}
             />
-        </WithLabel>
+        </AutoLabel>
     );
 });

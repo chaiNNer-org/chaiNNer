@@ -8,7 +8,7 @@ import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { MaybeLabel } from './InputContainer';
+import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
 export const NumberInput = memo(
@@ -83,7 +83,7 @@ export const NumberInput = memo(
         ));
 
         return (
-            <MaybeLabel input={input}>
+            <AutoLabel input={input}>
                 <HStack w="full">
                     <AdvancedNumberInput
                         controlsStep={controlsStep}
@@ -100,7 +100,7 @@ export const NumberInput = memo(
                         onContextMenu={menu.onContextMenu}
                     />
                 </HStack>
-            </MaybeLabel>
+            </AutoLabel>
         );
     }
 );

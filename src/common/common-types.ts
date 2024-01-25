@@ -71,6 +71,7 @@ export interface DropdownGroup {
     readonly label?: string | null;
     readonly startAt: InputSchemaValue;
 }
+export type LabelStyle = 'default' | 'inline' | 'hidden';
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';
@@ -80,6 +81,7 @@ export interface DropDownInput extends InputBase {
     readonly def: string | number;
     readonly options: readonly InputOption[];
     readonly preferredStyle: DropDownStyle;
+    readonly labelStyle: LabelStyle;
     readonly groups: readonly DropdownGroup[];
 }
 export interface FileInput extends InputBase {
@@ -90,7 +92,7 @@ export interface FileInput extends InputBase {
 }
 export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle;
 }
 export interface TextInput extends InputBase {
     readonly kind: 'text';
@@ -100,7 +102,7 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
     readonly allowEmptyString?: boolean;
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle | undefined;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
@@ -112,7 +114,7 @@ export interface NumberInput extends InputBase {
     readonly unit?: string | null;
     readonly noteExpression?: string | null;
     readonly hideTrailingZeros: boolean;
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle;
 }
 export interface SliderInput extends InputBase {
     readonly kind: 'slider';

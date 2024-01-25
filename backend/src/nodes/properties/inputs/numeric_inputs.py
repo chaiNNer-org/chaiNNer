@@ -7,6 +7,7 @@ import navi
 from api import BaseInput, InputConversion, InputKind
 
 from ...utils.utils import round_half_up
+from .label import LabelStyle, get_default_label_style
 
 
 def clamp_number(
@@ -57,7 +58,7 @@ class NumberInput(BaseInput):
         note_expression: str | None = None,
         kind: InputKind = "number",
         hide_trailing_zeros: bool = True,
-        hide_label: bool = False,
+        label_style: LabelStyle | None = None,
         has_handle: bool = True,
     ):
         super().__init__("number", label, kind=kind, has_handle=has_handle)
@@ -72,7 +73,7 @@ class NumberInput(BaseInput):
         self.unit = unit
         self.note_expression = note_expression
         self.hide_trailing_zeros = hide_trailing_zeros
-        self.hide_label = hide_label
+        self.label_style: LabelStyle = label_style or get_default_label_style(label)
 
         self.associated_type = float if precision > 0 else int
 
@@ -95,7 +96,7 @@ class NumberInput(BaseInput):
             "controlsStep": self.controls_step,
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
-            "hideLabel": self.hide_label,
+            "labelStyle": self.label_style,
             "hasHandle": self.has_handle,
         }
 
