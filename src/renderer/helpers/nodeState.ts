@@ -1,7 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
-    Condition,
     InputData,
     InputHeight,
     InputId,
@@ -13,7 +12,7 @@ import {
     SchemaId,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
-import { testInputCondition } from '../../common/nodes/condition';
+import { TestFn, testForInputCondition } from '../../common/nodes/condition';
 import { FunctionInstance } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_SET } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
@@ -45,14 +44,14 @@ const useTypeInfo = (id: string): TypeInfo => {
     });
 };
 
-export const testInputConditionTypeInfo = (
-    condition: Condition,
+export const testForInputConditionTypeInfo = (
     inputData: InputData,
+    schema: NodeSchema,
     typeInfo: TypeInfo
-): boolean => {
-    return testInputCondition(
-        condition,
+): TestFn => {
+    return testForInputCondition(
         inputData,
+        schema,
         (id) => typeInfo.instance?.inputs.get(id),
         (id) => typeInfo.connectedInputs.has(id)
     );
@@ -76,7 +75,7 @@ export interface NodeState {
     readonly iteratedInputs: ReadonlySet<InputId>;
     readonly iteratedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
-    readonly testCondition: (condition: Condition) => boolean;
+    readonly testCondition: TestFn;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
@@ -144,9 +143,9 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
 
     const type = useTypeInfo(id);
 
-    const testCondition = useCallback(
-        (condition: Condition) => testInputConditionTypeInfo(condition, inputData, type),
-        [inputData, type]
+    const testCondition = useMemo(
+        () => testForInputConditionTypeInfo(inputData, schema, type),
+        [inputData, schema, type]
     );
 
     return useMemoObject<NodeState>({

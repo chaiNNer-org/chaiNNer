@@ -75,11 +75,13 @@ const checkCondition = (condition: Condition, schema: NodeSchema): string | unde
                 if (dropdown.hasHandle) return 'The first dropdown must not have a handle';
                 const allowed = new Set(dropdown.options.map((o) => o.value));
 
-                const value = typeof values === 'object' ? values : [values];
-                if (value.length === 0) return 'All items must have at least one condition value';
-                const invalidValue = value.find((v) => !allowed.has(v));
+                if (values.length === 0) return 'All items must have at least one condition value';
+                const invalidValue = values.find((v) => !allowed.has(v));
                 if (invalidValue !== undefined)
-                    return `Invalid condition value ${JSON.stringify(invalidValue)}`;
+                    return (
+                        `Invalid condition value ${JSON.stringify(invalidValue)}.` +
+                        ` Allowed values: ${[...allowed].map((x) => JSON.stringify(x)).join(', ')}`
+                    );
                 break;
             }
             case 'type': {

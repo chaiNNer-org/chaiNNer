@@ -1,5 +1,13 @@
 import { Type } from '@chainner/navi';
-import { Input, InputKind, OfKind, PartialBy, SchemaId, Size } from '../../../common/common-types';
+import {
+    Condition,
+    Input,
+    InputKind,
+    OfKind,
+    PartialBy,
+    SchemaId,
+    Size,
+} from '../../../common/common-types';
 
 export interface InputProps<Kind extends InputKind, Value extends string | number = never> {
     readonly value: Value | undefined;
@@ -15,4 +23,5 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly inputType: Type;
     readonly nodeId?: string;
     readonly nodeSchemaId?: SchemaId;
+    readonly testCondition: (condition: Condition) => boolean;
 }

@@ -1,28 +1,35 @@
 import { Type, evaluate, isDisjointWith } from '@chainner/navi';
-import { Condition, InputData, InputId, OfKind } from '../common-types';
+import { Condition, InputData, InputId, NodeSchema, OfKind } from '../common-types';
 import { getChainnerScope } from '../types/chainner-scope';
 import { ExpressionJson, fromJson } from '../types/json';
-import { getInputValue } from '../util';
-import { TypeState } from './TypeState';
+import { EMPTY_ARRAY, getInputValue, lazyKeyed } from '../util';
+import { getGroupStacks } from './groupStacks';
+
+export type TestFn = (condition: Condition) => boolean;
 
 type Primitives = {
     [K in Exclude<Condition['kind'], 'and' | 'or' | 'not'>]: (
-        condition: OfKind<Condition, K>
+        condition: OfKind<Condition, K>,
+        test: TestFn
     ) => boolean;
 };
 
-const testCondition = (condition: Condition, primitives: Primitives): boolean => {
-    if (condition.kind === 'and') {
-        return condition.items.every((c) => testCondition(c, primitives));
-    }
-    if (condition.kind === 'or') {
-        return condition.items.some((c) => testCondition(c, primitives));
-    }
-    if (condition.kind === 'not') {
-        return !testCondition(condition.condition, primitives);
-    }
+const createTest = (primitives: Primitives): TestFn => {
+    const test = lazyKeyed((condition: Condition): boolean => {
+        if (condition.kind === 'and') {
+            return condition.items.every(test);
+        }
+        if (condition.kind === 'or') {
+            return condition.items.some(test);
+        }
+        if (condition.kind === 'not') {
+            return !test(condition.condition);
+        }
 
-    return primitives[condition.kind](condition as never);
+        return primitives[condition.kind](condition as never, test);
+    });
+
+    return test;
 };
 
 const typeExpressionCache = new Map<ExpressionJson, Type>();
@@ -35,17 +42,29 @@ const getTypeFromExpression = (expression: ExpressionJson): Type => {
     return cached;
 };
 
-export const testInputCondition = (
-    condition: Condition,
+export const testForInputCondition = (
     inputData: InputData,
+    schema: NodeSchema,
     getInputType: (inputId: InputId) => Type | undefined,
     isConnected: (inputId: InputId) => boolean
-): boolean => {
-    return testCondition(condition, {
-        enum: (c) => {
+): TestFn => {
+    const { inputConditions } = getGroupStacks(schema);
+
+    return createTest({
+        enum: (c, test) => {
             const { values } = c;
             const value = getInputValue(c.enum, inputData);
-            return Array.isArray(values) ? values.includes(value) : values === value;
+
+            // no value, so let's return false
+            if (value === undefined) return false;
+            // the value is not selected
+            if (!values.includes(value)) return false;
+
+            // the value of an input is only defined if its conditions are met
+            const conditions = inputConditions.get(c.enum) ?? EMPTY_ARRAY;
+            if (!conditions.every(test)) return false;
+
+            return true;
         },
         type: ({ input, condition: type, ifNotConnected }) => {
             const inputType = getInputType(input);
@@ -71,31 +90,27 @@ export const testInputCondition = (
     });
 };
 
-export const testInputConditionTypeState = (
+export const testInputCondition = (
     condition: Condition,
     inputData: InputData,
-    nodeId: string,
-    typeState: TypeState
+    schema: NodeSchema,
+    getInputType: (inputId: InputId) => Type | undefined,
+    isConnected: (inputId: InputId) => boolean
 ): boolean => {
-    return testInputCondition(
-        condition,
-        inputData,
-        (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-        (id) => typeState.edges.isInputConnected(nodeId, id)
-    );
+    return testForInputCondition(inputData, schema, getInputType, isConnected)(condition);
 };
 
 export const isTautology = (condition: Condition): boolean => {
     // This is only an approximation, but it should be good enough for our purposes.
     return (
-        testCondition(condition, {
+        createTest({
             enum: () => false,
             type: () => false,
-        }) &&
-        testCondition(condition, {
+        })(condition) &&
+        createTest({
             enum: () => true,
             type: () => true,
-        })
+        })(condition)
     );
 };
 

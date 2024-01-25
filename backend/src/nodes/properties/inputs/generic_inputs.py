@@ -4,14 +4,16 @@ import json
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Literal, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import numpy as np
 from sanic.log import logger
+from typing_extensions import NotRequired
 
 import navi
-from api import BaseInput, InputConversion
+from api import BaseInput, InputConversion, group
 
+from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
@@ -29,18 +31,12 @@ from .label import LabelStyle
 from .numeric_inputs import NumberInput
 
 
-class UntypedOption(TypedDict):
+class DropDownOption(TypedDict):
     option: str
     value: str | int
+    type: NotRequired[navi.ExpressionJson]
+    condition: NotRequired[ConditionJson | None]
 
-
-class TypedOption(TypedDict):
-    option: str
-    value: str | int
-    type: navi.ExpressionJson
-
-
-DropDownOption = Union[UntypedOption, TypedOption]
 
 DropDownStyle = Literal["dropdown", "checkbox", "tabs"]
 """
@@ -120,6 +116,26 @@ class DropDownInput(BaseInput):
         assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
+    def wrap_with_conditional_group(self):
+        """
+        Adds a conditional group around the dropdown input according to the conditions of its options.
+
+        Note: Calling this method is only valid if all options have a condition.
+        """
+
+        conditions: list[ConditionJson] = []
+        for option in self.options:
+            c = option.get("condition")
+            if c is None:
+                raise ValueError(
+                    f"wrap_with_conditional is unnecessary, because the {option['option']} option has no condition."
+                )
+            conditions.append(c)
+
+        condition: ConditionJson = {"kind": "or", "items": conditions}
+
+        return group("conditional", {"condition": condition})(self)
+
 
 class BoolInput(DropDownInput):
     def __init__(self, label: str, default: bool = True):
@@ -183,6 +199,7 @@ class EnumInput(Generic[T], DropDownInput):
         preferred_style: DropDownStyle = "dropdown",
         label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
+        conditions: dict[T, Condition] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -190,6 +207,8 @@ class EnumInput(Generic[T], DropDownInput):
             label = join_space_case(split_pascal_case(type_name))
         if option_labels is None:
             option_labels = {}
+        if conditions is None:
+            conditions = {}
 
         options: list[DropDownOption] = []
         variant_types: list[str] = []
@@ -203,10 +222,19 @@ class EnumInput(Generic[T], DropDownInput):
             name = split_snake_case(variant.name)
             variant_type = f"{type_name}::{join_pascal_case(name)}"
             option_label = option_labels.get(variant, join_space_case(name))
+            condition = conditions.get(variant)
+            if condition is not None:
+                condition = condition.to_json()
 
             variant_types.append(variant_type)
+
             options.append(
-                {"option": option_label, "value": value, "type": variant_type}
+                {
+                    "option": option_label,
+                    "value": value,
+                    "type": variant_type,
+                    "condition": condition,
+                }
             )
 
         super().__init__(
