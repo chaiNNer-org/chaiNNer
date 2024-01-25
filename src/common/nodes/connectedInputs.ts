@@ -2,6 +2,7 @@ import { Type } from '@chainner/navi';
 import { EdgeData, InputId, OutputId } from '../common-types';
 import { FunctionDefinition } from '../types/function';
 import { parseTargetHandle } from '../util';
+import { isAutoIterable } from './lineage';
 import type { Edge } from 'reactflow';
 
 export const getConnectedInputs = (
@@ -27,7 +28,7 @@ export const getFirstPossibleInput = (
         // check if the input has a handle
         if (!i.hasHandle) return false;
 
-        if (fn.schema.kind !== 'regularNode') {
+        if (!isAutoIterable(fn.schema)) {
             const inputIterated = fn.schema.iteratorInputs.some((info) =>
                 info.inputs.includes(i.id)
             );
@@ -46,7 +47,7 @@ export const getFirstPossibleOutput = (
 
     let allowIterated = false;
     let allowNonIterated = false;
-    if (inputFn.schema.kind === 'regularNode') {
+    if (isAutoIterable(inputFn.schema)) {
         allowIterated = true;
         allowNonIterated = true;
     } else {
@@ -64,8 +65,7 @@ export const getFirstPossibleOutput = (
             info.outputs.includes(o.id)
         );
         if (!allowIterated && outputIterated) return false;
-        if (!allowNonIterated && outputFn.schema.kind !== 'regularNode' && !outputIterated)
-            return false;
+        if (!allowNonIterated && !isAutoIterable(outputFn.schema) && !outputIterated) return false;
 
         // type check
         const type = outputFn.outputDefaults.get(o.id);

@@ -14,6 +14,13 @@ import {
 } from '../util';
 
 /**
+ * Returns whether a node of this schema can be auto iterated.
+ */
+export const isAutoIterable = (schema: NodeSchema): boolean => {
+    return schema.kind === 'regularNode' && schema.inputs.some((i) => i.hasHandle);
+};
+
+/**
  * Represents the iterator lineage of an output.
  *
  * Note: this class only provides a minimal interface to enable future extensions.
