@@ -19,7 +19,7 @@ import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { MaybeLabel } from './InputContainer';
+import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
@@ -101,7 +101,7 @@ export const DirectoryInput = memo(
         ));
 
         return (
-            <MaybeLabel input={input}>
+            <AutoLabel input={input}>
                 <Tooltip
                     borderRadius={8}
                     label={displayDirectory}
@@ -126,6 +126,7 @@ export const DirectoryInput = memo(
                             cursor="pointer"
                             disabled={isLocked || isConnected}
                             draggable={false}
+                            htmlSize={1}
                             placeholder="Click to select..."
                             size="sm"
                             textOverflow="ellipsis"
@@ -135,7 +136,7 @@ export const DirectoryInput = memo(
                         />
                     </InputGroup>
                 </Tooltip>
-            </MaybeLabel>
+            </AutoLabel>
         );
     }
 );

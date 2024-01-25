@@ -3,11 +3,13 @@ from __future__ import annotations
 from enum import Enum
 
 from spandrel import ImageModelDescriptor
-from spandrel.architectures.SCUNet import SCUNet
 
 from api import NodeContext
 from nodes.impl.onnx.model import OnnxGeneric
-from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
+from nodes.impl.pytorch.convert_to_onnx_impl import (
+    convert_to_onnx_impl,
+    is_onnx_supported,
+)
 from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
@@ -70,9 +72,9 @@ OPSET_LABELS: dict[Opset, str] = {
 def convert_to_onnx_node(
     context: NodeContext, model: ImageModelDescriptor, is_fp16: int, opset: Opset
 ) -> tuple[OnnxGeneric, str, str]:
-    assert not isinstance(
-        model.model, SCUNet
-    ), "SCUNet is not supported for ONNX conversion at this time."
+    assert is_onnx_supported(
+        model
+    ), f"{model.architecture} is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
     exec_options = get_settings(context)

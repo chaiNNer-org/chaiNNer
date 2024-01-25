@@ -7,6 +7,7 @@ from api import BaseInput
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
+from .label import LabelStyle
 
 FileInputKind = Union[
     Literal["bin"],
@@ -115,7 +116,7 @@ class DirectoryInput(BaseInput):
         label: str = "Directory",
         has_handle: bool = True,
         must_exist: bool = True,
-        hide_label: bool = False,
+        label_style: LabelStyle = "default",
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
 
@@ -127,14 +128,14 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
-        self.hide_label: bool = hide_label
+        self.label_style: LabelStyle = label_style
 
         self.associated_type = str
 
     def to_dict(self):
         return {
             **super().to_dict(),
-            "hideLabel": self.hide_label,
+            "labelStyle": self.label_style,
         }
 
     def enforce(self, value: object):

@@ -44,7 +44,7 @@ class ImageResizeMode(Enum):
                 controls_step=25.0,
                 default=100.0,
                 unit="%",
-                hide_label=True,
+                label_style="hidden",
             ).with_id(2),
         ),
         if_enum_group(1, ImageResizeMode.ABSOLUTE)(
