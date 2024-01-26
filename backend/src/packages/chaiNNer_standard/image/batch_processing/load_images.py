@@ -28,7 +28,7 @@ def extension_filter(lst: list[str]) -> str:
     return "**/*@(" + "|".join(lst) + ")"
 
 
-def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[str]:
+def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Path]:
     extension_expr = extension_filter(ext_filter)
 
     flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR | glob.NEGATE | glob.DOTGLOB
@@ -41,10 +41,13 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[str
         flags=flags | glob.IGNORECASE,
     )
 
-    return sorted(
-        {str(directory / f) for f in filtered},
-        key=alphanumeric_sort,
-    )
+    return [
+        Path(x)
+        for x in sorted(
+            {str(directory / f) for f in filtered},
+            key=alphanumeric_sort,
+        )
+    ]
 
 
 @batch_processing_group.register(
@@ -99,7 +102,7 @@ def load_images_node(
     limit: int,
     fail_fast: bool,
 ) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], Path]:
-    def load_image(path: str, index: int):
+    def load_image(path: Path, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(img_dir, directory)
@@ -110,7 +113,7 @@ def load_images_node(
     if not use_glob:
         glob_str = "**/*" if is_recursive else "*"
 
-    just_image_files: list[str] = list_glob(directory, glob_str, supported_filetypes)
+    just_image_files = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
 

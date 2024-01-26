@@ -160,7 +160,7 @@ valid_formats = get_available_image_formats()
         FileNameOutput("Name", of_input=0),
     ],
 )
-def load_image_node(path: str) -> tuple[np.ndarray, Path, str]:
+def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
     """Reads an image from the specified path and return it as a numpy array"""
 
     logger.debug(f"Reading image from path: {path}")

@@ -36,9 +36,9 @@ from .. import io_group
     ],
 )
 def load_model_node(
-    param_path: str, bin_path: str
+    param_path: Path, bin_path: Path
 ) -> tuple[NcnnModelWrapper, Path, str]:
-    model = NcnnModel.load_from_file(param_path, bin_path)
+    model = NcnnModel.load_from_file(str(param_path), str(bin_path))
     NcnnOptimizer(model).optimize()
 
     model_dir, model_name, _ = split_file_path(param_path)
