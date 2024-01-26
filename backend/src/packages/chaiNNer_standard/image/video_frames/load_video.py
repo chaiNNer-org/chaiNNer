@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -59,10 +60,10 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
     kind="newIterator",
 )
 def load_video_node(
-    path: str,
+    path: Path,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, int]], str, str, float, Any]:
+) -> tuple[Iterator[tuple[np.ndarray, int]], Path, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
     ffmpeg_reader = (

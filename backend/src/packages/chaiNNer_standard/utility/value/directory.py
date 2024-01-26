@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import DirectoryOutput
 
@@ -20,5 +22,5 @@ from .. import value_group
         DirectoryOutput("Directory", output_type="Input0"),
     ],
 )
-def directory_node(directory: str) -> str:
+def directory_node(directory: Path) -> Path:
     return directory

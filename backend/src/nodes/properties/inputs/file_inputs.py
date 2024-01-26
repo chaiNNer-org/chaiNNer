@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+from pathlib import Path
 from typing import Literal, Union
 
 from api import BaseInput
@@ -44,7 +44,7 @@ class FileInput(BaseInput):
             }}
         """
 
-        self.associated_type = str
+        self.associated_type = Path
 
     def to_dict(self):
         return {
@@ -54,10 +54,12 @@ class FileInput(BaseInput):
             "primaryInput": self.primary_input,
         }
 
-    def enforce(self, value: object) -> str:
-        assert isinstance(value, str)
-        assert os.path.exists(value), f"File {value} does not exist"
-        assert os.path.isfile(value), f"The path {value} is not a file"
+    def enforce(self, value: object) -> Path:
+        if isinstance(value, str):
+            value = Path(value)
+        assert isinstance(value, Path)
+        assert value.exists(), f"File {value} does not exist"
+        assert value.is_file(), f"The path {value} is not a file"
         return value
 
 
@@ -130,7 +132,7 @@ class DirectoryInput(BaseInput):
         self.must_exist: bool = must_exist
         self.label_style: LabelStyle = label_style
 
-        self.associated_type = str
+        self.associated_type = Path
 
     def to_dict(self):
         return {
@@ -139,9 +141,11 @@ class DirectoryInput(BaseInput):
         }
 
     def enforce(self, value: object):
-        assert isinstance(value, str)
+        if isinstance(value, str):
+            value = Path(value)
+        assert isinstance(value, Path)
         if self.must_exist:
-            assert os.path.exists(value), f"Directory {value} does not exist"
+            assert value.exists(), f"Directory {value} does not exist"
         return value
 
 
