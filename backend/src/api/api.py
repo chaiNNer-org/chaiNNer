@@ -8,13 +8,10 @@ from typing import (
     Callable,
     Generic,
     Iterable,
-    TypedDict,
     TypeVar,
 )
 
 from sanic.log import logger
-
-import navi
 
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
@@ -26,6 +23,7 @@ from .node_check import (
     check_naming_conventions,
     check_schema_types,
 )
+from .node_data import IteratorInputInfo, IteratorOutputInfo, NodeData
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
@@ -70,84 +68,6 @@ def _process_outputs(base_outputs: Iterable[BaseOutput]):
             output_value.id = OutputId(i)
         outputs.append(output_value)
     return outputs
-
-
-class DefaultNode(TypedDict):
-    schemaId: str
-
-
-class IteratorInputInfo:
-    def __init__(
-        self,
-        inputs: int | InputId | list[int] | list[InputId] | list[int | InputId],
-        length_type: navi.ExpressionJson = "uint",
-    ) -> None:
-        self.inputs: list[InputId] = (
-            [InputId(x) for x in inputs]
-            if isinstance(inputs, list)
-            else [InputId(inputs)]
-        )
-        self.length_type: navi.ExpressionJson = length_type
-
-    def to_dict(self):
-        return {
-            "inputs": self.inputs,
-            "lengthType": self.length_type,
-        }
-
-
-class IteratorOutputInfo:
-    def __init__(
-        self,
-        outputs: int | OutputId | list[int] | list[OutputId] | list[int | OutputId],
-        length_type: navi.ExpressionJson = "uint",
-    ) -> None:
-        self.outputs: list[OutputId] = (
-            [OutputId(x) for x in outputs]
-            if isinstance(outputs, list)
-            else [OutputId(outputs)]
-        )
-        self.length_type: navi.ExpressionJson = length_type
-
-    def to_dict(self):
-        return {
-            "outputs": self.outputs,
-            "lengthType": self.length_type,
-        }
-
-
-@dataclass(frozen=True)
-class NodeData:
-    schema_id: str
-    description: str
-    see_also: list[str]
-    name: str
-    icon: str
-    kind: NodeKind
-
-    inputs: list[BaseInput]
-    outputs: list[BaseOutput]
-    group_layout: list[InputId | NestedIdGroup]
-
-    iterator_inputs: list[IteratorInputInfo]
-    iterator_outputs: list[IteratorOutputInfo]
-
-    side_effects: bool
-    deprecated: bool
-    node_context: bool
-    features: list[FeatureId]
-
-    run: RunFn
-
-    @property
-    def single_iterator_input(self) -> IteratorInputInfo:
-        assert len(self.iterator_inputs) == 1
-        return self.iterator_inputs[0]
-
-    @property
-    def single_iterator_output(self) -> IteratorOutputInfo:
-        assert len(self.iterator_outputs) == 1
-        return self.iterator_outputs[0]
 
 
 T = TypeVar("T", bound=RunFn)
@@ -242,17 +162,7 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            if kind == "regularNode":
-                run_check(
-                    TYPE_CHECK_LEVEL,
-                    lambda _: check_schema_types(
-                        wrapped_func, p_inputs, p_outputs, node_context
-                    ),
-                )
-            run_check(
-                NAME_CHECK_LEVEL,
-                lambda fix: check_naming_conventions(wrapped_func, name, fix),
-            )
+            original_fn = wrapped_func
 
             if decorators is not None:
                 for decorator in decorators:
@@ -275,6 +185,15 @@ class NodeGroup:
                 node_context=node_context,
                 features=features,
                 run=wrapped_func,
+            )
+
+            run_check(
+                TYPE_CHECK_LEVEL,
+                lambda _: check_schema_types(original_fn, node),
+            )
+            run_check(
+                NAME_CHECK_LEVEL,
+                lambda fix: check_naming_conventions(original_fn, name, fix),
             )
 
             self.add_node(node)
