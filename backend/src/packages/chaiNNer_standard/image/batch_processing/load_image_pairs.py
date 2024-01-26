@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -57,13 +58,15 @@ from ..io.load_image import load_image_node
     kind="newIterator",
 )
 def load_image_pairs_node(
-    directory_a: str,
-    directory_b: str,
+    directory_a: Path,
+    directory_b: Path,
     use_limit: bool,
     limit: int,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
-    def load_images(filepaths: tuple[str, str], index: int):
+) -> tuple[
+    Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], Path, Path
+]:
+    def load_images(filepaths: tuple[Path, Path], index: int):
         path_a, path_b = filepaths
         img_a, img_dir_a, basename_a = load_image_node(path_a)
         img_b, img_dir_b, basename_b = load_image_node(path_b)
@@ -75,8 +78,8 @@ def load_image_pairs_node(
 
     supported_filetypes = get_available_image_formats()
 
-    image_files_a: list[str] = list_all_files_sorted(directory_a, supported_filetypes)
-    image_files_b: list[str] = list_all_files_sorted(directory_b, supported_filetypes)
+    image_files_a: list[Path] = list_all_files_sorted(directory_a, supported_filetypes)
+    image_files_b: list[Path] = list_all_files_sorted(directory_b, supported_filetypes)
 
     assert len(image_files_a) == len(image_files_b), (
         "Number of images in directories A and B must be equal. "

@@ -127,7 +127,7 @@ def save_as_dds(
             str(mipmap_levels),
             # use texconv to directly produce the target file
             "-o",
-            target_dir,
+            str(target_dir),
         ]
 
         bc = ""

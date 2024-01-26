@@ -101,9 +101,9 @@ def walk_error_handler(exception_instance: Exception):
 
 
 def list_all_files_sorted(
-    directory: str, ext_filter: list[str] | None = None
-) -> list[str]:
-    just_files: list[str] = []
+    directory: Path, ext_filter: list[str] | None = None
+) -> list[Path]:
+    just_files: list[Path] = []
     for root, dirs, files in os.walk(
         directory, topdown=True, onerror=walk_error_handler
     ):
@@ -112,7 +112,7 @@ def list_all_files_sorted(
             filepath = os.path.join(root, name)
             _base, ext = os.path.splitext(filepath)
             if ext_filter is None or ext.lower() in ext_filter:
-                just_files.append(filepath)
+                just_files.append(Path(filepath))
     return just_files
 
 
