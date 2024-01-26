@@ -28,7 +28,7 @@ def extension_filter(lst: list[str]) -> str:
     return "**/*@(" + "|".join(lst) + ")"
 
 
-def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]:
+def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[str]:
     extension_expr = extension_filter(ext_filter)
 
     flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR | glob.NEGATE | glob.DOTGLOB
@@ -42,7 +42,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
     )
 
     return sorted(
-        {str(Path(directory) / f) for f in filtered},
+        {str(directory / f) for f in filtered},
         key=alphanumeric_sort,
     )
 
@@ -91,14 +91,14 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
     kind="newIterator",
 )
 def load_images_node(
-    directory: str,
+    directory: Path,
     use_glob: bool,
     is_recursive: bool,
     glob_str: str,
     use_limit: bool,
     limit: int,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], str]:
+) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], Path]:
     def load_image(path: str, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input

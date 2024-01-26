@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from nodes.groups import ncnn_file_inputs_group
 from nodes.impl.ncnn.model import NcnnModel, NcnnModelWrapper
 from nodes.impl.ncnn.optimizer import NcnnOptimizer
@@ -35,7 +37,7 @@ from .. import io_group
 )
 def load_model_node(
     param_path: str, bin_path: str
-) -> tuple[NcnnModelWrapper, str, str]:
+) -> tuple[NcnnModelWrapper, Path, str]:
     model = NcnnModel.load_from_file(param_path, bin_path)
     NcnnOptimizer(model).optimize()
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Literal, Union
 
 from api import BaseInput
@@ -130,7 +131,7 @@ class DirectoryInput(BaseInput):
         self.must_exist: bool = must_exist
         self.label_style: LabelStyle = label_style
 
-        self.associated_type = str
+        self.associated_type = Path
 
     def to_dict(self):
         return {
@@ -139,7 +140,7 @@ class DirectoryInput(BaseInput):
         }
 
     def enforce(self, value: object):
-        assert isinstance(value, str)
+        assert isinstance(value, Path)
         if self.must_exist:
             assert os.path.exists(value), f"Directory {value} does not exist"
         return value

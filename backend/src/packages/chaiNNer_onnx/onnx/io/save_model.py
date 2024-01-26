@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 from sanic.log import logger
 
@@ -23,8 +23,8 @@ from .. import io_group
     outputs=[],
     side_effects=True,
 )
-def save_model_node(model: OnnxModel, directory: str, model_name: str) -> None:
-    full_path = f"{os.path.join(directory, model_name)}.onnx"
+def save_model_node(model: OnnxModel, directory: Path, model_name: str) -> None:
+    full_path = f"{directory / model_name}.onnx"
     logger.debug(f"Writing file to path: {full_path}")
     with open(full_path, "wb") as f:
         f.write(model.bytes)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import Enum
+from pathlib import Path
 from typing import Literal
 
 import cv2
@@ -215,7 +216,7 @@ class TiffColorDepth(Enum):
 )
 def save_image_node(
     img: np.ndarray,
-    base_directory: str,
+    base_directory: Path,
     relative_path: str | None,
     filename: str,
     image_format: ImageFormat,
@@ -323,13 +324,13 @@ def save_image_node(
 
 
 def get_full_path(
-    base_directory: str,
+    base_directory: Path,
     relative_path: str | None,
     filename: str,
     image_format: ImageFormat,
-) -> str:
+) -> Path:
     file = f"{filename}.{image_format.extension}"
     if relative_path and relative_path != ".":
-        base_directory = os.path.join(base_directory, relative_path)
-    full_path = os.path.join(base_directory, file)
+        base_directory = base_directory / relative_path
+    full_path = base_directory / file
     return full_path

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 from enum import Enum
+from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
@@ -44,10 +44,10 @@ class WeightFormat(Enum):
     side_effects=True,
 )
 def save_model_node(
-    model: ModelDescriptor, directory: str, name: str, weight_format: WeightFormat
+    model: ModelDescriptor, directory: Path, name: str, weight_format: WeightFormat
 ) -> None:
     full_file = f"{name}.{weight_format.value}"
-    full_path = os.path.join(directory, full_file)
+    full_path = directory / full_file
     logger.debug(f"Writing model to path: {full_path}")
     if weight_format == WeightFormat.PTH:
         torch.save(model.model.state_dict(), full_path)

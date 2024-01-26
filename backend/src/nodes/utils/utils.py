@@ -5,6 +5,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -84,13 +85,13 @@ def join_space_case(words: list[str]) -> str:
     return " ".join([smart_capitalize(x) for x in words])
 
 
-def split_file_path(path: str) -> tuple[str, str, str]:
+def split_file_path(path: Path | str) -> tuple[Path, str, str]:
     """
     Returns the base directory, file name, and extension of the given file path.
     """
     base, ext = os.path.splitext(path)
     dirname, basename = os.path.split(base)
-    return dirname, basename, ext
+    return Path(dirname), basename, ext
 
 
 def walk_error_handler(exception_instance: Exception):
