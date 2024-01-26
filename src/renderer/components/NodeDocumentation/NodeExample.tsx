@@ -3,7 +3,6 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { Node } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import {
-    Condition,
     InputData,
     InputHeight,
     InputId,
@@ -19,7 +18,7 @@ import { TypeState } from '../../../common/nodes/TypeState';
 import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
-import { TypeInfo, testInputConditionTypeInfo } from '../../helpers/nodeState';
+import { TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
@@ -140,6 +139,8 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         connectedInputs: requiredGenericInputs,
         inputData,
         functionInstance: typeInfo.instance,
+        chainLineage: undefined,
+        nodeId,
     });
 
     const { iteratedInputs, iteratedOutputs } = useMemo(() => {
@@ -197,8 +198,11 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     iteratedInputs,
                                     iteratedOutputs,
                                     type: typeInfo,
-                                    testCondition: (condition: Condition): boolean =>
-                                        testInputConditionTypeInfo(condition, inputData, typeInfo),
+                                    testCondition: testForInputConditionTypeInfo(
+                                        inputData,
+                                        selectedSchema,
+                                        typeInfo
+                                    ),
                                 }}
                             />
                         </VStack>

@@ -61,6 +61,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         iteratedInputs,
         iteratedOutputs,
         type,
+        testCondition,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -110,6 +111,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             setSize={setSize}
             setValue={setValue}
             size={size}
+            testCondition={testCondition}
             value={value}
         />
     );

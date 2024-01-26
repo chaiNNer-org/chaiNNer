@@ -87,6 +87,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
 
     const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
 
@@ -174,17 +175,19 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
                     // Check if the node has valid connections it can make
                     // If it doesn't, we don't need to bother checking collision
-                    const { outputId } = parseSourceHandle(e.sourceHandle);
-                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
-                    if (!edgeType) {
-                        return EMPTY_ARRAY;
-                    }
+                    const sourceHandle = parseSourceHandle(e.sourceHandle);
+                    const { outputId } = sourceHandle;
                     const { inputId } = parseTargetHandle(e.targetHandle);
+                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
                     const targetEdgeDefinition = typeState.functions.get(e.target)?.definition;
-                    if (!targetEdgeDefinition || !targetEdgeDefinition.hasInput(inputId)) {
+                    if (!edgeType || !targetEdgeDefinition) {
                         return EMPTY_ARRAY;
                     }
-                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    const firstPossibleInput = getFirstPossibleInput(
+                        fn,
+                        edgeType,
+                        chainLineage.getOutputLineage(sourceHandle) !== null
+                    );
                     const firstPossibleOutput = getFirstPossibleOutput(
                         fn,
                         targetEdgeDefinition,
@@ -257,7 +260,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 },
             };
         },
-        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
+        [
+            createConnection,
+            edges,
+            functionDefinitions,
+            nodes,
+            removeEdgeById,
+            typeState.functions,
+            chainLineage,
+        ]
     );
 
     const onNodeDrag = useCallback(

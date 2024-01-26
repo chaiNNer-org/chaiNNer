@@ -31,10 +31,12 @@ def extension_filter(lst: list[str]) -> str:
 def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]:
     extension_expr = extension_filter(ext_filter)
 
-    flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR | glob.NEGATE
+    flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR | glob.NEGATE | glob.DOTGLOB
+
+    foo = list(glob.iglob(globexpr, root_dir=directory, flags=flags))
 
     filtered = glob.globfilter(
-        glob.iglob(globexpr, root_dir=directory, flags=flags),
+        foo,
         extension_expr,
         flags=flags | glob.IGNORECASE,
     )
@@ -66,7 +68,7 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
         ),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(4, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),

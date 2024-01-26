@@ -572,8 +572,9 @@ async def import_packages(
         import_errors: list[api.LoadErrorInfo] = []
         for e in load_errors:
             if not isinstance(e.error, ModuleNotFoundError):
-                logger.warning(f"Failed to load {e.module} ({e.file}):")
-                logger.warning(e.error)
+                logger.warning(
+                    f"Failed to load {e.module} ({e.file}):", exc_info=e.error
+                )
             else:
                 import_errors.append(e)
 

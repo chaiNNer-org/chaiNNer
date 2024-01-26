@@ -30,7 +30,7 @@ from ..io.load_image import load_image_node
         DirectoryInput("Directory B"),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(2, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),
@@ -42,15 +42,16 @@ from ..io.load_image import load_image_node
     outputs=[
         ImageOutput("Image A"),
         ImageOutput("Image B"),
-        DirectoryOutput("Directory A"),
-        DirectoryOutput("Directory B"),
+        DirectoryOutput("Directory A", output_type="Input0"),
+        DirectoryOutput("Directory B", output_type="Input1"),
         TextOutput("Subdirectory Path A"),
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
         TextOutput("Image Name B"),
-        NumberOutput("Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each image."
-        ),
+        NumberOutput(
+            "Index",
+            output_type="if Input2 { min(uint, Input3 - 1) } else { uint }",
+        ).with_docs("A counter that starts at 0 and increments by 1 for each image."),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
     kind="newIterator",

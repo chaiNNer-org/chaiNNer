@@ -1,15 +1,17 @@
 import { memo, useMemo } from 'react';
 import { GenericInput } from '../../../common/common-types';
 import { getUniqueKey } from '../../../common/group-inputs';
-import { getRequireCondition } from '../../../common/nodes/required';
+import { getRequireCondition } from '../../../common/nodes/groupStacks';
 import { GroupProps } from './props';
 
 export const RequiredGroup = memo(
     ({ inputs, nodeState, group, ItemRenderer }: GroupProps<'required'>) => {
         const { schema, testCondition } = nodeState;
 
-        const condition = getRequireCondition(schema, group);
-        const isRequired = useMemo(() => testCondition(condition), [condition, testCondition]);
+        const isRequired = useMemo(() => {
+            const condition = getRequireCondition(schema, group);
+            return testCondition(condition);
+        }, [schema, group, testCondition]);
 
         const requiredInputs: GenericInput[] = useMemo(() => {
             return inputs.map((i) => ({ ...i, optional: false }));

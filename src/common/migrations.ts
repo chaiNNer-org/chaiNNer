@@ -1873,6 +1873,54 @@ const unifiedResizeNode: ModernMigration = (data) => {
     return data;
 };
 
+const saveVideoInputPR2514: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            const oldData = node.data.inputData;
+
+            const encoder = oldData[3];
+            const formatH264 = oldData[4];
+            const formatH265 = oldData[5];
+            const formatFFV1 = oldData[6];
+            const formatVP9 = oldData[7];
+            const formatMap: Record<string, InputValue> = {
+                libx264: formatH264,
+                libx265: formatH265,
+                ffv1: formatFFV1,
+                'libvpx-vp9': formatVP9,
+            };
+            const format = formatMap[encoder ?? 'libx264'];
+
+            const oldAudioSettings = oldData[10];
+            const oldReducedAudioSettings = oldData[10];
+            const audioSettings = format === 'webm' ? oldReducedAudioSettings : oldAudioSettings;
+
+            const newData = {
+                // Image Sequence, Directory, Video Name
+                0: oldData[0],
+                1: oldData[1],
+                2: oldData[2],
+                // Video Format, Encoder
+                4: format,
+                3: encoder,
+                // VideoPreset, Quality (CRF), Additional parameters, FPS
+                8: oldData[8],
+                9: oldData[9],
+                12: oldData[12],
+                13: oldData[13],
+                14: oldData[14],
+                // Audio
+                15: oldData[15],
+                10: audioSettings,
+            };
+
+            node.data.inputData = newData;
+        }
+    });
+
+    return data;
+};
+
 const updateNodeTypesToKinds: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
         node.type = 'backendNode';
@@ -1936,6 +1984,7 @@ const migrations = [
     removeZIndexes,
     createBorderEdgesTileFillToPad,
     unifiedResizeNode,
+    saveVideoInputPR2514,
     updateNodeTypesToKinds,
 ];
 

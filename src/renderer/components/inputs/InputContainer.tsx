@@ -4,8 +4,13 @@ import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection, Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData } from '../../../common/common-types';
-import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
+import { InputId, LabelStyle, NodeData } from '../../../common/common-types';
+import {
+    assertNever,
+    parseSourceHandle,
+    parseTargetHandle,
+    stringifyTargetHandle,
+} from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -152,6 +157,7 @@ interface WithLabelProps {
         readonly optional: boolean;
         readonly hint?: boolean;
         readonly description?: string;
+        readonly hasHandle?: boolean;
     };
 }
 
@@ -242,13 +248,57 @@ export const WithoutLabel = memo(
     }
 );
 
-interface MaybeLabelProps {
-    input: WithLabelProps['input'] & { hideLabel: boolean };
+export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
+    const { conditionallyInactive } = useContext(InputContext);
+
+    const hasHandle = input.hasHandle ?? false;
+
+    return (
+        <WithoutLabel>
+            <HStack
+                pl={hasHandle ? 0 : 2}
+                spacing={0}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    flexShrink={0}
+                    w="5.4em"
+                >
+                    <Text
+                        opacity={conditionallyInactive ? 0.7 : undefined}
+                        textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                    >
+                        {input.label}
+                    </Text>
+                    {/* <Center>
+                <TypeTags
+                    isOptional={input.optional}
+                    type={definitionType}
+                />
+            </Center> */}
+                </Box>
+
+                <Box flexGrow={1}>{children}</Box>
+            </HStack>
+        </WithoutLabel>
+    );
+});
+
+interface AutoLabelProps {
+    input: WithLabelProps['input'] & { labelStyle: LabelStyle | undefined };
 }
 
-export const MaybeLabel = memo(({ input, children }: React.PropsWithChildren<MaybeLabelProps>) => {
-    if (input.hideLabel) {
-        return <WithoutLabel>{children}</WithoutLabel>;
+export const AutoLabel = memo(({ input, children }: React.PropsWithChildren<AutoLabelProps>) => {
+    switch (input.labelStyle) {
+        case 'hidden':
+            return <WithoutLabel>{children}</WithoutLabel>;
+        case 'inline':
+            return <InlineLabel input={input}>{children}</InlineLabel>;
+        case 'default':
+        case undefined:
+            return <WithLabel input={input}>{children}</WithLabel>;
+        default:
+            return assertNever(input.labelStyle);
     }
-    return <WithLabel input={input}>{children}</WithLabel>;
 });

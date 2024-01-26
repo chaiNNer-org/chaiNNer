@@ -14,6 +14,7 @@ import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { ChainLineage } from '../../common/nodes/lineage';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
 import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
@@ -154,6 +155,7 @@ const ensureStaticCorrectness = (
 
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions);
+    const chainLineage = new ChainLineage(schemata, nodes, edges);
 
     const invalidNodes = nodes.flatMap((node) => {
         const functionInstance = typeState.functions.get(node.data.id);
@@ -164,6 +166,8 @@ const ensureStaticCorrectness = (
             connectedInputs: getConnectedInputs(node.id, edges),
             schema,
             functionInstance,
+            chainLineage,
+            nodeId: node.id,
         });
         if (validity.isValid) return [];
 

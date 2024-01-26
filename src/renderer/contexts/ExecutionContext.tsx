@@ -133,6 +133,7 @@ const useRegisterNodeEvents = (
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
         typeStateRef,
+        chainLineageRef,
         outputDataActions,
         getInputHash,
         setManualOutputType,
@@ -384,6 +385,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     connectedInputs: getConnectedInputs(node.id, edges),
                     schema,
                     functionInstance,
+                    chainLineage: chainLineageRef.current,
+                    nodeId: node.id,
                 })
             );
             if (validity.isValid) return [];
@@ -448,6 +451,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         schemata,
         sendAlert,
         typeStateRef,
+        chainLineageRef,
         features,
         featureStates,
         backend,
