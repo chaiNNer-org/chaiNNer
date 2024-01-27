@@ -9,14 +9,14 @@ import { BackendContext } from '../contexts/BackendContext';
 import { SupportHighlighting } from './NodeDocumentation/HighlightContainer';
 import { SchemaLink } from './NodeDocumentation/SchemaLink';
 
-const getDocsMarkdownComponents = (interactive: boolean): Components => {
+const getDocsMarkdownComponents = (interactive: boolean, selectable: boolean): Components => {
     return {
         p: ({ children }) => {
             return (
                 <SupportHighlighting>
                     <Text
                         my={2}
-                        userSelect="text"
+                        userSelect={selectable ? 'text' : 'none'}
                     >
                         {children}
                     </Text>
@@ -30,7 +30,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     href={href}
                     textColor={interactive && href ? 'var(--link-color)' : 'inherit'}
                     textDecoration={interactive && href ? 'underline' : 'inherit'}
-                    userSelect="text"
+                    userSelect={selectable ? 'text' : 'none'}
                 >
                     {children}
                 </Link>
@@ -56,7 +56,7 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     className={className}
-                    userSelect="text"
+                    userSelect={selectable ? 'text' : 'none'}
                 >
                     {children}
                 </Code>
@@ -64,25 +64,24 @@ const getDocsMarkdownComponents = (interactive: boolean): Components => {
         }),
     };
 };
-
-const interactiveDocsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(true));
-const docsMarkdown = ChakraUIRenderer(getDocsMarkdownComponents(false));
-
 export interface MarkdownProps {
     children: string;
     nonInteractive?: boolean;
+    selectable?: boolean;
 }
 
-export const Markdown = memo(({ children, nonInteractive = false }: MarkdownProps) => {
-    const components = nonInteractive ? docsMarkdown : interactiveDocsMarkdown;
+export const Markdown = memo(
+    ({ children, nonInteractive = false, selectable = true }: MarkdownProps) => {
+        const components = ChakraUIRenderer(getDocsMarkdownComponents(!nonInteractive, selectable));
 
-    return (
-        <ReactMarkdown
-            skipHtml
-            className="no-child-margin"
-            components={components}
-        >
-            {children}
-        </ReactMarkdown>
-    );
-});
+        return (
+            <ReactMarkdown
+                skipHtml
+                className="no-child-margin"
+                components={components}
+            >
+                {children}
+            </ReactMarkdown>
+        );
+    }
+);
