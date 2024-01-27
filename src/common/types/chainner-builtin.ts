@@ -14,6 +14,7 @@ import {
     handleNumberLiterals,
     intersect,
     literal,
+    wrapBinary,
     wrapQuaternary,
     wrapScopedUnary,
     wrapTernary,
@@ -358,5 +359,23 @@ export const parseColorJson = wrapScopedUnary(
             return NeverType.instance;
         }
         return createInstance(colorDesc);
+    }
+);
+
+export const combinePath = wrapBinary(
+    (dir: StringPrimitive, next: StringPrimitive): Arg<StringPrimitive> => {
+        if (dir.type === 'literal' && next.type === 'literal') {
+            return literal(path.join(dir.value, next.value));
+        }
+        return StringType.instance;
+    }
+);
+
+export const navigateBackPath = wrapBinary(
+    (dir: StringPrimitive, backNum: NumberPrimitive): Arg<StringPrimitive> => {
+        if (dir.type === 'literal' && backNum.type === 'literal') {
+            return literal(path.join(dir.value, '../'.repeat(backNum.value)));
+        }
+        return StringType.instance;
     }
 );

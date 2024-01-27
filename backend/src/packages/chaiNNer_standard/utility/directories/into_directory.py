@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from nodes.properties.inputs import DirectoryInput, TextInput
 from nodes.properties.outputs import DirectoryOutput
 
 from .. import value_group
-
-separator = r"\\" if sys.platform == "win32" else "/"
 
 
 @value_group.register(
@@ -25,9 +22,7 @@ separator = r"\\" if sys.platform == "win32" else "/"
     outputs=[
         DirectoryOutput(
             "Directory",
-            output_type='Directory { path: string::concat(Input0.path, "'
-            + separator
-            + '", Input1) }',
+            output_type="Directory { path: combinePath(Input0.path, Input1) }",
         ),
     ],
 )

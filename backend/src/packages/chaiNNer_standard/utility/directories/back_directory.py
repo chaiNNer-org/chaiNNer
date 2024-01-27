@@ -17,10 +17,13 @@ from .. import value_group
         DirectoryInput(
             "Directory", must_exist=False, label_style="hidden", has_handle=True
         ),
-        NumberInput("Amount back", has_handle=True, minimum=1, precision=0),
+        NumberInput("Amount back", has_handle=True, minimum=1, precision=0, default=1),
     ],
     outputs=[
-        DirectoryOutput("Directory"),
+        DirectoryOutput(
+            "Directory",
+            output_type="Directory { path: navigateBackPath(Input0.path, Input1) }",
+        ),
     ],
 )
 def back_directory_node(directory: Path, amt: int) -> Path:

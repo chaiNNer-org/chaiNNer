@@ -11,7 +11,9 @@ import {
 } from '@chainner/navi';
 import { lazy } from '../util';
 import {
+    combinePath,
     formatTextPattern,
+    navigateBackPath,
     padCenter,
     padEnd,
     padStart,
@@ -127,6 +129,8 @@ intrinsic def padEnd(text: string, width: uint, padding: string): string;
 intrinsic def padCenter(text: string, width: uint, padding: string): string;
 intrinsic def splitFilePath(path: string): SplitFilePath;
 intrinsic def parseColorJson(json: string): Color;
+intrinsic def combinePath(path: string, next: string): string;
+intrinsic def navigateBackPath(path: string, amount: uint): string;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -140,6 +144,8 @@ export const getChainnerScope = lazy((): Scope => {
         padCenter: makeScoped(padCenter),
         splitFilePath,
         parseColorJson,
+        combinePath: makeScoped(combinePath),
+        navigateBackPath: makeScoped(navigateBackPath),
     };
 
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));
