@@ -12,9 +12,11 @@ from spandrel import (
     ModelLoader,
 )
 
+from api.node_context import NodeContext
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
+from packages.chaiNNer_pytorch.settings import get_settings
 
 from .. import utility_group
 
@@ -98,14 +100,25 @@ def check_can_interp(model_a: dict, model_b: dict):
         NumberOutput("Amount A", output_type="100 - Input2"),
         NumberOutput("Amount B", output_type="Input2"),
     ],
+    node_context=True,
 )
 def interpolate_models_node(
-    model_a: ModelDescriptor, model_b: ModelDescriptor, amount: int
+    context: NodeContext,
+    model_a: ModelDescriptor,
+    model_b: ModelDescriptor,
+    amount: int,
 ) -> tuple[ModelDescriptor, int, int]:
+    exec_options = get_settings(context)
+    pytorch_device = exec_options.device
+
     if amount == 0:
         return model_a, 100, 0
     elif amount == 100:
         return model_b, 0, 100
+
+    if model_a.device != model_b.device:
+        model_a.to(pytorch_device)
+        model_b.to(pytorch_device)
 
     state_a = model_a.model.state_dict()
     state_b = model_b.model.state_dict()
@@ -118,6 +131,6 @@ def interpolate_models_node(
 
     state_dict = perform_interp(state_a, state_b, amount)
 
-    model = ModelLoader().load_from_state_dict(state_dict)
+    model = ModelLoader(pytorch_device).load_from_state_dict(state_dict)
 
     return model, 100 - amount, amount
