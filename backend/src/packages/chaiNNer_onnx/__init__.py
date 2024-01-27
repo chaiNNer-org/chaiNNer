@@ -26,6 +26,7 @@ def get_onnx_runtime():
             version="1.15.1",
             size_estimate=120 * MB,
             import_name="onnxruntime",
+            auto_update=True,
         )
     else:
         return Dependency(
@@ -33,6 +34,7 @@ def get_onnx_runtime():
             pypi_name="onnxruntime",
             version="1.15.1",
             size_estimate=6 * MB,
+            auto_update=True,
         )
 
 
@@ -47,12 +49,14 @@ package = add_package(
             pypi_name="onnx",
             version="1.14.1",
             size_estimate=12 * MB,
+            auto_update=True,
         ),
         Dependency(
             display_name="ONNX Optimizer",
             pypi_name="onnxoptimizer",
             version="0.3.13",
             size_estimate=300 * KB,
+            auto_update=True,
         ),
         get_onnx_runtime(),
         Dependency(
@@ -60,6 +64,7 @@ package = add_package(
             pypi_name="protobuf",
             version="4.24.2",
             size_estimate=500 * KB,
+            auto_update=True,
         ),
     ],
     icon="ONNX",
