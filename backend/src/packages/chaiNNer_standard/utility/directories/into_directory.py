@@ -27,4 +27,4 @@ from .. import value_group
     ],
 )
 def into_directory_node(directory: Path, folder: str) -> Path:
-    return directory / folder
+    return (directory / folder).resolve()
