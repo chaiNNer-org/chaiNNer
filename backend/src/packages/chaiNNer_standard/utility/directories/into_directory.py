@@ -8,7 +8,7 @@ from nodes.properties.outputs import DirectoryOutput
 
 from .. import value_group
 
-separator = "/" if sys.platform == "linux" else r"\\"
+separator = r"\\" if sys.platform == "win32" else "/"
 
 
 @value_group.register(
