@@ -25,16 +25,12 @@ import { getMatchingNodes } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { SearchBar } from '../SearchBar';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
-import { PresetComponent } from './Preset';
-import { presets } from './presets';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 export const NodeSelector = memo(() => {
     const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
-    const { useExperimentalFeatures } = useContext(SettingsContext);
-    const [isExperimentalFeatures] = useExperimentalFeatures;
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -94,14 +90,7 @@ export const NodeSelector = memo(() => {
                         h="100%"
                         w="100%"
                     >
-                        <TabList h="42px">
-                            {!collapsed && (
-                                <>
-                                    <Tab>Nodes</Tab>
-                                    {isExperimentalFeatures && <Tab>Presets</Tab>}
-                                </>
-                            )}
-                        </TabList>
+                        <TabList h="42px">{!collapsed && <Tab>Nodes</Tab>}</TabList>
                         <TabPanels>
                             <TabPanel
                                 m={0}
@@ -213,34 +202,6 @@ export const NodeSelector = memo(() => {
                                         </AccordionItem>
                                     </Accordion>
                                 </Box>
-                            </TabPanel>
-                            <TabPanel
-                                m={0}
-                                overflowX="hidden"
-                                p={0}
-                            >
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        setSearchQuery(e.target.value);
-                                        setCollapsed(false);
-                                    }}
-                                    onClick={() => setCollapsed(false)}
-                                    onClose={() => setSearchQuery('')}
-                                />
-                                {presets
-                                    .filter((preset) =>
-                                        `${preset.name} ${preset.author} ${preset.description}`
-                                            .toLowerCase()
-                                            .includes(searchQuery.toLowerCase())
-                                    )
-                                    .map((preset) => (
-                                        <PresetComponent
-                                            collapsed={collapsed}
-                                            key={preset.name}
-                                            preset={preset}
-                                        />
-                                    ))}
                             </TabPanel>
                         </TabPanels>
                     </Tabs>
