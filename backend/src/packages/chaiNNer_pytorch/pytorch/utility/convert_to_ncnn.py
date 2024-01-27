@@ -12,7 +12,10 @@ from spandrel.architectures.SwinIR import SwinIR
 from api import NodeContext
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.onnx.model import OnnxGeneric
-from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
+from nodes.impl.pytorch.convert_to_onnx_impl import (
+    convert_to_onnx_impl,
+    is_onnx_supported,
+)
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
@@ -56,7 +59,7 @@ def convert_to_ncnn_node(
                 manager to use this node."
         )
 
-    assert not isinstance(
+    assert is_onnx_supported(model) and not isinstance(
         model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
     ), f"{model.architecture} is not supported for NCNN conversions at this time."
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -38,7 +39,7 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
         VideoFileInput(primary_input=True),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(1, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of frames to iterate over. This can be useful for testing the iterator without having to iterate over all frames of the video."
                 " Will not copy audio if limit is used."
             )
@@ -59,10 +60,10 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
     kind="newIterator",
 )
 def load_video_node(
-    path: str,
+    path: Path,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, int]], str, str, float, Any]:
+) -> tuple[Iterator[tuple[np.ndarray, int]], Path, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
     ffmpeg_reader = (

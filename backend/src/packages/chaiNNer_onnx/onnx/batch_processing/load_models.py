@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from sanic.log import logger
 
@@ -48,12 +49,12 @@ from ..io.load_model import load_model_node
     kind="newIterator",
 )
 def load_models_node(
-    directory: str,
+    directory: Path,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], str]:
+) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    def load_model(path: str, index: int):
+    def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)

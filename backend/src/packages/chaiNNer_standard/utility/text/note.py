@@ -16,7 +16,7 @@ from .. import text_group
             label="Note Text",
             multiline=True,
             has_handle=False,
-            hide_label=True,
+            label_style="hidden",
         ).make_optional(),
         BoolInput(
             label="Display Markdown",

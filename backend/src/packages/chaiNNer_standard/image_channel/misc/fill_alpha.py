@@ -25,10 +25,10 @@ class AlphaFillMethod(Enum):
 @node_group.register(
     schema_id="chainner:image:fill_alpha",
     name="Fill Alpha",
-    description=("Fills the transparent pixels of an image with nearby colors."),
+    description="Splits the image into color and transparency, and fills the transparent pixels of an image with nearby colors.",
     icon="MdOutlineFormatColorFill",
     inputs=[
-        ImageInput("RGBA", channels=4),
+        ImageInput(channels=4),
         EnumInput(AlphaFillMethod, label="Fill Method"),
     ],
     outputs=[
@@ -37,10 +37,19 @@ class AlphaFillMethod(Enum):
             image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
+        ImageOutput(
+            "Alpha",
+            image_type=navi.Image(size_as="Input0"),
+            channels=1,
+        ),
     ],
 )
-def fill_alpha_node(img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
+def fill_alpha_node(
+    img: np.ndarray, method: AlphaFillMethod
+) -> tuple[np.ndarray, np.ndarray]:
     """Fills transparent holes in the given image"""
+
+    alpha = img[:, :, 3]
 
     if method == AlphaFillMethod.EXTEND_TEXTURE:
         img = fill_alpha_fragment_blur(
@@ -62,4 +71,4 @@ def fill_alpha_node(img: np.ndarray, method: AlphaFillMethod) -> np.ndarray:
     else:
         raise AssertionError(f"Invalid alpha fill method {method}")
 
-    return img[:, :, :3]
+    return img[:, :, :3], alpha

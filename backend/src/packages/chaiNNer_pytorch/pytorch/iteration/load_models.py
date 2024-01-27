@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from sanic.log import logger
 from spandrel import ModelDescriptor
@@ -47,18 +48,18 @@ from ..io.load_model import load_model_node
 )
 def load_models_node(
     context: NodeContext,
-    directory: str,
+    directory: Path,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], str]:
+) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    def load_model(path: str, index: int):
+    def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(context, path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 
     supported_filetypes = [".pt", ".pth", ".ckpt", ".safetensors"]
-    model_files: list[str] = list_all_files_sorted(directory, supported_filetypes)
+    model_files: list[Path] = list_all_files_sorted(directory, supported_filetypes)
 
     return Iterator.from_list(model_files, load_model, fail_fast), directory

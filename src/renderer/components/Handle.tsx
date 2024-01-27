@@ -31,6 +31,7 @@ const HandleElement = memo(
         const { isFake } = useContext(FakeNodeContext);
 
         const squaredHandle = isIterated;
+        const borderRadius = squaredHandle ? '15%' : '100%';
 
         return (
             <Tooltip
@@ -54,7 +55,7 @@ const HandleElement = memo(
                     <Box
                         bg="#1a192b"
                         border="1px solid white"
-                        borderRadius={squaredHandle ? '25%' : '100%'}
+                        borderRadius={borderRadius}
                         className={`${type}-handle react-flow__handle react-flow__handle-${
                             type === 'input' ? 'left' : 'right'
                         }`}
@@ -73,9 +74,7 @@ const HandleElement = memo(
                         type={type === 'input' ? 'target' : 'source'}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        style={{
-                            borderRadius: squaredHandle ? '25%' : '100%',
-                        }}
+                        style={{ borderRadius }}
                     >
                         {children}
                     </RFHandle>

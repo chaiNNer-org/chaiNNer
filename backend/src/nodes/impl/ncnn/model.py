@@ -4,6 +4,7 @@ import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
 from json import load as jload
+from pathlib import Path
 
 import numpy as np
 from sanic.log import logger
@@ -645,7 +646,7 @@ class NcnnModel:
 
         return weight_dict
 
-    def write_param(self, filename: str = "") -> str:
+    def write_param(self, filename: Path | str = "") -> str:
         with StringIO() as p:
             p.write(f"{self.magic}\n{self.node_count} {self.blob_count}\n")
 
@@ -686,7 +687,7 @@ class NcnnModel:
 
         return b"".join(layer_weights)
 
-    def write_bin(self, filename: str) -> None:
+    def write_bin(self, filename: Path | str) -> None:
         with open(filename, "wb") as f:
             f.write(self.serialize_weights())
 

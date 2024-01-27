@@ -1,28 +1,45 @@
 import { Type, evaluate, isDisjointWith } from '@chainner/navi';
-import { Condition, InputData, InputId, OfKind } from '../common-types';
+import {
+    AndCondition,
+    Condition,
+    EnumCondition,
+    InputData,
+    InputId,
+    NodeSchema,
+    OfKind,
+    OrCondition,
+    TypeCondition,
+} from '../common-types';
 import { getChainnerScope } from '../types/chainner-scope';
 import { ExpressionJson, fromJson } from '../types/json';
-import { getInputValue } from '../util';
-import { TypeState } from './TypeState';
+import { EMPTY_ARRAY, getInputValue, lazyKeyed } from '../util';
+import { getGroupStacks } from './groupStacks';
+
+export type TestFn = (condition: Condition) => boolean;
 
 type Primitives = {
     [K in Exclude<Condition['kind'], 'and' | 'or' | 'not'>]: (
-        condition: OfKind<Condition, K>
+        condition: OfKind<Condition, K>,
+        test: TestFn
     ) => boolean;
 };
 
-const testCondition = (condition: Condition, primitives: Primitives): boolean => {
-    if (condition.kind === 'and') {
-        return condition.items.every((c) => testCondition(c, primitives));
-    }
-    if (condition.kind === 'or') {
-        return condition.items.some((c) => testCondition(c, primitives));
-    }
-    if (condition.kind === 'not') {
-        return !testCondition(condition.condition, primitives);
-    }
+const createTest = (primitives: Primitives): TestFn => {
+    const test = lazyKeyed((condition: Condition): boolean => {
+        if (condition.kind === 'and') {
+            return condition.items.every(test);
+        }
+        if (condition.kind === 'or') {
+            return condition.items.some(test);
+        }
+        if (condition.kind === 'not') {
+            return !test(condition.condition);
+        }
 
-    return primitives[condition.kind](condition as never);
+        return primitives[condition.kind](condition as never, test);
+    });
+
+    return test;
 };
 
 const typeExpressionCache = new Map<ExpressionJson, Type>();
@@ -35,17 +52,29 @@ const getTypeFromExpression = (expression: ExpressionJson): Type => {
     return cached;
 };
 
-export const testInputCondition = (
-    condition: Condition,
+export const testForInputCondition = (
     inputData: InputData,
+    schema: NodeSchema,
     getInputType: (inputId: InputId) => Type | undefined,
     isConnected: (inputId: InputId) => boolean
-): boolean => {
-    return testCondition(condition, {
-        enum: (c) => {
+): TestFn => {
+    const { inputConditions } = getGroupStacks(schema);
+
+    return createTest({
+        enum: (c, test) => {
             const { values } = c;
             const value = getInputValue(c.enum, inputData);
-            return Array.isArray(values) ? values.includes(value) : values === value;
+
+            // no value, so let's return false
+            if (value === undefined) return false;
+            // the value is not selected
+            if (!values.includes(value)) return false;
+
+            // the value of an input is only defined if its conditions are met
+            const conditions = inputConditions.get(c.enum) ?? EMPTY_ARRAY;
+            if (!conditions.every(test)) return false;
+
+            return true;
         },
         type: ({ input, condition: type, ifNotConnected }) => {
             const inputType = getInputType(input);
@@ -71,32 +100,106 @@ export const testInputCondition = (
     });
 };
 
-export const testInputConditionTypeState = (
+export const testInputCondition = (
     condition: Condition,
     inputData: InputData,
-    nodeId: string,
-    typeState: TypeState
+    schema: NodeSchema,
+    getInputType: (inputId: InputId) => Type | undefined,
+    isConnected: (inputId: InputId) => boolean
 ): boolean => {
-    return testInputCondition(
-        condition,
-        inputData,
-        (id) => typeState.functions.get(nodeId)?.inputs.get(id),
-        (id) => typeState.edges.isInputConnected(nodeId, id)
-    );
+    return testForInputCondition(inputData, schema, getInputType, isConnected)(condition);
 };
 
 export const isTautology = (condition: Condition): boolean => {
     // This is only an approximation, but it should be good enough for our purposes.
     return (
-        testCondition(condition, {
+        createTest({
             enum: () => false,
             type: () => false,
-        }) &&
-        testCondition(condition, {
+        })(condition) &&
+        createTest({
             enum: () => true,
             type: () => true,
-        })
+        })(condition)
     );
+};
+
+const unionEnumConditions = (a: EnumCondition, b: EnumCondition): EnumCondition => {
+    const values = [...new Set([...a.values, ...b.values])];
+    return { kind: 'enum', enum: a.enum, values };
+};
+
+const intersectEnumConditions = (a: EnumCondition, b: EnumCondition): EnumCondition => {
+    const values = a.values.filter((v) => b.values.includes(v));
+    return { kind: 'enum', enum: a.enum, values };
+};
+
+const unionTypeConditions = (a: TypeCondition, b: TypeCondition): TypeCondition => {
+    return {
+        kind: 'type',
+        input: a.input,
+        condition: { type: 'union', items: [a.condition, b.condition] },
+        ifNotConnected: a.ifNotConnected || b.ifNotConnected,
+    };
+};
+const intersectTypeConditions = (a: TypeCondition, b: TypeCondition): TypeCondition => {
+    return {
+        kind: 'type',
+        input: a.input,
+        condition: { type: 'intersection', items: [a.condition, b.condition] },
+        ifNotConnected: a.ifNotConnected && b.ifNotConnected,
+    };
+};
+
+const mergePrimitives = (condition: AndCondition | OrCondition): Condition => {
+    if (condition.items.length < 2) {
+        return condition;
+    }
+
+    const { kind, items } = condition;
+
+    const newItems: Condition[] = [];
+    const enums = new Map<InputId, [number, EnumCondition]>();
+    const types = new Map<InputId, [number, TypeCondition]>();
+
+    const enumOperation = kind === 'and' ? intersectEnumConditions : unionEnumConditions;
+    const typeOperation = kind === 'and' ? intersectTypeConditions : unionTypeConditions;
+
+    for (const item of items) {
+        if (item.kind === 'enum') {
+            const existing = enums.get(item.enum);
+            if (existing) {
+                const [index, c] = existing;
+                const newCondition = enumOperation(c, item);
+                existing[1] = newCondition;
+                newItems[index] = newCondition;
+            } else {
+                newItems.push(item);
+                enums.set(item.enum, [newItems.length - 1, item]);
+            }
+        } else if (item.kind === 'type') {
+            const existing = types.get(item.input);
+            if (existing) {
+                const [index, c] = existing;
+                const newCondition = typeOperation(c, item);
+                existing[1] = newCondition;
+                newItems[index] = newCondition;
+            } else {
+                newItems.push(item);
+                types.set(item.input, [newItems.length - 1, item]);
+            }
+        } else {
+            newItems.push(item);
+        }
+    }
+
+    if (newItems.length === 1) {
+        return newItems[0];
+    }
+    if (newItems.length === items.length) {
+        return condition;
+    }
+    return { kind, items: newItems };
 };
 
 const AND_OR_OTHER = {
@@ -110,7 +213,8 @@ export const simplifyCondition = (condition: Condition): Condition => {
         if (inner.kind === 'not') {
             return inner.condition;
         }
-        if (inner.kind === 'and' || inner.kind === 'or') {
+        if ((inner.kind === 'and' || inner.kind === 'or') && inner.items.length === 0) {
+            // negate constant
             return { kind: AND_OR_OTHER[inner.kind], items: inner.items };
         }
         return { kind: 'not', condition: inner };
@@ -135,7 +239,7 @@ export const simplifyCondition = (condition: Condition): Condition => {
         if (items.length === 1) {
             return items[0];
         }
-        return { kind: condition.kind, items };
+        return mergePrimitives({ kind: condition.kind, items });
     }
 
     return condition;
