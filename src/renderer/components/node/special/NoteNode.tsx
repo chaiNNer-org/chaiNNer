@@ -66,6 +66,10 @@ const noteScrollbarStyle = {
         borderRadius: '8px',
         backgroundColor: 'yellow.500',
         border: '2px solid transparent',
+        cursor: 'pointer',
+    },
+    '::-webkit-scrollbar-corner': {
+        background: ' rgba(0,0,0,0)',
     },
 };
 
@@ -284,8 +288,8 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                         defaultSize={size}
                         enable={{
                             top: false,
-                            right: !isLocked,
-                            bottom: !isLocked,
+                            right: false,
+                            bottom: false,
                             left: false,
                             topRight: false,
                             bottomRight: !isLocked,
@@ -373,8 +377,8 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                             <Box
                                 className="nodrag nowheel"
                                 color="gray.800"
-                                h="100%"
-                                overflow="scroll"
+                                h="full"
+                                overflowY="scroll"
                                 px={2}
                                 py={1}
                                 sx={noteScrollbarStyle}
