@@ -32,12 +32,14 @@ def get_pytorch():
                 pypi_name="torch",
                 version="2.1.2",
                 size_estimate=55.8 * MB,
+                auto_update=True,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
                 version="0.16.2",
                 size_estimate=1.3 * MB,
+                auto_update=True,
             ),
         ]
     else:
@@ -52,6 +54,7 @@ def get_pytorch():
                     if nvidia_is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Too large to auto-update
             ),
             Dependency(
                 display_name="TorchVision",
@@ -63,6 +66,7 @@ def get_pytorch():
                     if nvidia_is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Needs to match PyTorch version
             ),
         ]
 
@@ -79,28 +83,24 @@ package = add_package(
             pypi_name="facexlib",
             version="0.3.0",
             size_estimate=59.6 * KB,
-            auto_update=True,
         ),
         Dependency(
             display_name="Einops",
             pypi_name="einops",
             version="0.6.1",
             size_estimate=42.2 * KB,
-            auto_update=True,
         ),
         Dependency(
             display_name="safetensors",
             pypi_name="safetensors",
             version="0.4.0",
             size_estimate=1 * MB,
-            auto_update=True,
         ),
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
             version="0.2.1",
             size_estimate=287 * KB,
-            auto_update=True,
         ),
     ],
     icon="PyTorch",
