@@ -38,8 +38,6 @@ from .. import adjustments_group
 def brightness_and_contrast_node(
     img: np.ndarray, brightness: float, contrast: float
 ) -> np.ndarray:
-    """Adjusts the brightness and contrast of an image"""
-
     brightness /= 100
     contrast /= 100
 

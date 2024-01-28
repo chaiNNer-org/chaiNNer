@@ -33,8 +33,6 @@ from .. import miscellaneous_group
 def image_metrics_node(
     orig_img: np.ndarray, comp_img: np.ndarray
 ) -> tuple[float, float, float]:
-    """Compute MSE, PSNR, and SSIM"""
-
     assert (
         orig_img.shape == comp_img.shape
     ), "Images must have same dimensions and color depth"

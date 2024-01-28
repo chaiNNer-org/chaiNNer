@@ -57,8 +57,6 @@ def erode_node(
     radius: int,
     iterations: int,
 ) -> np.ndarray:
-    """Erode an image"""
-
     if radius == 0 or iterations == 0:
         return img
 

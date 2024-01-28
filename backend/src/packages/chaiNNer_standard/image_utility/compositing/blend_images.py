@@ -202,8 +202,6 @@ def blend_images_node(
     y_px: int,
     crop_to_fit: bool,
 ) -> np.ndarray:
-    """Blend images together"""
-
     # Convert colors to images
     do_crop_to_fit = crop_to_fit
     if isinstance(base, Color):

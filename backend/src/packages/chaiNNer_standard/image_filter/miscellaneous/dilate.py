@@ -57,8 +57,6 @@ def dilate_node(
     radius: int,
     iterations: int,
 ) -> np.ndarray:
-    """Dilate an image"""
-
     if radius == 0 or iterations == 0:
         return img
 
