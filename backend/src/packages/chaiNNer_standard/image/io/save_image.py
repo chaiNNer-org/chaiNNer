@@ -233,8 +233,6 @@ def save_image_node(
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
 ) -> None:
-    """Write an image to the specified path and return write status"""
-
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
     logger.debug(f"Writing image to path: {full_path}")
 

@@ -63,8 +63,6 @@ def z_stack_images_node(
     expression: Expression,
     *inputs: np.ndarray | None,
 ) -> np.ndarray:
-    """Align and evaluate images"""
-
     images = [x for x in inputs if x is not None]
     assert (
         2 <= len(images) <= 15

@@ -99,7 +99,6 @@ def upscale_image_node(
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
-    """Upscales an image with a pretrained model"""
     settings = get_settings(context)
     session = get_onnx_session(
         model,

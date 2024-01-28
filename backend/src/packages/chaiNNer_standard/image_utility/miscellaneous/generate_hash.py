@@ -26,6 +26,8 @@ from .. import miscellaneous_group
             default=8,
             precision=0,
             controls_step=1,
+        ).with_docs(
+            "The digest size determines the length of the hash that is returned."
         ),
     ],
     outputs=[
@@ -34,7 +36,6 @@ from .. import miscellaneous_group
     ],
 )
 def generate_hash_node(img: np.ndarray, size: int) -> tuple[str, str]:
-    """Generate a hash from the input image. The digest size determines the length of the hash that is output."""
     img = np.ascontiguousarray(to_uint8(img))
     h = hashlib.blake2b(img, digest_size=size)  # type: ignore
     return h.hexdigest(), base64.urlsafe_b64encode(h.digest()).decode("utf-8")

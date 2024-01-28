@@ -66,8 +66,6 @@ def remove_background_node(
     background_threshold: int,
     kernel_size: int,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Removes background from image"""
-
     settings = get_settings(context)
     session = get_onnx_session(
         model,

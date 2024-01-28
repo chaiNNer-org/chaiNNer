@@ -39,6 +39,4 @@ from .. import compositing_group
 def add_caption_node(
     img: np.ndarray, caption: str, size: int, position: CaptionPosition
 ) -> np.ndarray:
-    """Add caption an image"""
-
     return add_caption(img, caption, size, position)

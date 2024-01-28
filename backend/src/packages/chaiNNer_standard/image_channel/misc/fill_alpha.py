@@ -47,8 +47,6 @@ class AlphaFillMethod(Enum):
 def fill_alpha_node(
     img: np.ndarray, method: AlphaFillMethod
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Fills transparent holes in the given image"""
-
     alpha = img[:, :, 3]
 
     if method == AlphaFillMethod.EXTEND_TEXTURE:

@@ -169,8 +169,6 @@ def upscale_image_node(
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
-    """Upscales an image with a pretrained model"""
-
     exec_options = get_settings(context)
 
     logger.debug("Upscaling image...")

@@ -62,8 +62,6 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
 def change_colorspace_node(
     img: np.ndarray, input_: int, output: int, alpha: bool
 ) -> np.ndarray:
-    """Takes an image and changes the color mode it"""
-
     from_cs = color_space_or_detector_from_id(input_)
     to_cs = color_space_from_id(output)
 

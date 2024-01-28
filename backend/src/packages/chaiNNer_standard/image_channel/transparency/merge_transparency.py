@@ -46,8 +46,6 @@ def merge_transparency_node(
     rgb: np.ndarray | Color,
     a: np.ndarray | Color,
 ) -> np.ndarray:
-    """Combine separate channels into a multi-chanel image"""
-
     start_shape = None
 
     # determine shape

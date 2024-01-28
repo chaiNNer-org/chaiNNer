@@ -66,9 +66,6 @@ def parse_ckpt_state_dict(checkpoint: dict):
 def load_model_node(
     context: NodeContext, path: Path
 ) -> tuple[ModelDescriptor, Path, str]:
-    """Read a pth file from the specified path and return it as a state dict
-    and loaded model after finding arch config"""
-
     assert os.path.exists(path), f"Model file at location {path} does not exist"
 
     assert os.path.isfile(path), f"Path {path} is not a file"

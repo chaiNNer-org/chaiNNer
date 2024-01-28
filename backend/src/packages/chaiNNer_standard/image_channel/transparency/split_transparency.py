@@ -14,7 +14,7 @@ from . import node_group
 @node_group.register(
     schema_id="chainner:image:split_transparency",
     name="Split Transparency",
-    description=("Split image channels into RGB and Alpha (transparency) channels."),
+    description="Split image channels into RGB and Alpha (transparency) channels.",
     icon="MdCallSplit",
     inputs=[ImageInput(channels=[1, 3, 4])],
     outputs=[
@@ -33,8 +33,6 @@ from . import node_group
     ],
 )
 def split_transparency_node(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Split a multi-channel image into separate channels"""
-
     c = get_h_w_c(img)[2]
     if c == 3:
         # Performance optimization:

@@ -38,8 +38,6 @@ from .. import correction_group
 def average_color_fix_node(
     input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
 ) -> np.ndarray:
-    """Fixes the average color of the input image"""
-
     if scale_factor != 100.0:
         # Make sure reference image dims are not resized to 0
         h, w, _ = get_h_w_c(ref_img)
