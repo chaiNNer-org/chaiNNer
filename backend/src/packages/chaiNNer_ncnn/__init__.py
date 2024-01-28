@@ -32,7 +32,6 @@ package = add_package(
             pypi_name="ncnn-vulkan",
             version="2023.6.18",
             size_estimate=7 * MB if is_mac else 4 * MB,
-            auto_update=True,
             import_name="ncnn_vulkan",
         ),
     ],

@@ -32,12 +32,14 @@ def get_pytorch():
                 pypi_name="torch",
                 version="2.1.2",
                 size_estimate=55.8 * MB,
+                auto_update=True,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
                 version="0.16.2",
                 size_estimate=1.3 * MB,
+                auto_update=True,
             ),
         ]
     else:
@@ -52,6 +54,7 @@ def get_pytorch():
                     if nvidia_is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Too large to auto-update
             ),
             Dependency(
                 display_name="TorchVision",
@@ -63,6 +66,7 @@ def get_pytorch():
                     if nvidia_is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Needs to match PyTorch version
             ),
         ]
 

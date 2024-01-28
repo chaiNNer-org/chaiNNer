@@ -240,7 +240,7 @@ class Dependency:
     pypi_name: str
     version: str
     size_estimate: int | float
-    auto_update: bool = False
+    auto_update: bool = True
     extra_index_url: str | None = None
 
     import_name: str | None = None
