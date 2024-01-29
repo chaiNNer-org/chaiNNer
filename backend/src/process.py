@@ -657,6 +657,9 @@ class Executor:
 
                 await self.progress.suspend()
                 await update_progress()
+                # cooperative yield so the event loop can run
+                # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
+                await asyncio.sleep(0)
                 await self.progress.suspend()
             except Aborted:
                 raise
