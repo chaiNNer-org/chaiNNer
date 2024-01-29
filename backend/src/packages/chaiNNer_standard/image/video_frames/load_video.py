@@ -67,7 +67,12 @@ def load_video_node(
 
     ffmpeg_reader = (
         ffmpeg.input(path)
-        .output("pipe:", format="rawvideo", pix_fmt="bgr24", sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact")
+        .output(
+            "pipe:",
+            format="rawvideo",
+            pix_fmt="bgr24",
+            sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact",
+        )
         .run_async(pipe_stdout=True, cmd=ffmpeg_path)
     )
 
