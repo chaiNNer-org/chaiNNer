@@ -3,11 +3,9 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from subprocess import Popen
 from typing import Any, Literal
 
-import cv2
-import ffmpeg
+import av
 import numpy as np
 from sanic.log import logger
 
@@ -27,6 +25,9 @@ from nodes.properties.inputs.numeric_inputs import NumberInput
 from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
+
+# logging.getLogger("libav").setLevel(logging.FATAL)
+# av.logging.set_level(av.logging.PANIC)
 
 
 class VideoFormat(Enum):
@@ -117,7 +118,8 @@ class Writer:
     save_path: str
     output_params: dict[str, str | float]
     global_params: list[str]
-    out: Popen | None = None
+    out: Any | None = None
+    out_stream: Any | None = None
 
     def start(self, width: int, height: int):
         # Create the writer and run process
@@ -129,19 +131,38 @@ class Writer:
                 ), f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
 
             try:
-                self.out = (
-                    ffmpeg.input(
-                        "pipe:",
-                        format="rawvideo",
-                        pix_fmt="rgb24",
-                        s=f"{width}x{height}",
-                        r=self.fps,
-                    )
-                    .output(**self.output_params)
-                    .overwrite_output()
-                    .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
+                # self.out = (
+                #     ffmpeg.input(
+                #         "pipe:",
+                #         format="rawvideo",
+                #         pix_fmt="rgb24",
+                #         s=f"{width}x{height}",
+                #         r=self.fps,
+                #     )
+                #     .output(**self.output_params)
+                #     .overwrite_output()
+                #     .global_args(*self.global_params)
+                #     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
+                # )
+                self.out = av.open(
+                    self.save_path,
+                    mode="w",
                 )
+                if self.encoder is not None:
+                    self.out_stream = self.out.add_stream(
+                        self.encoder.value, rate=str(self.fps)
+                    )
+                    self.out_stream.width = width
+                    self.out_stream.height = height
+                    self.out_stream.pix_fmt = (
+                        "rgb8" if self.container == VideoFormat.GIF else "yuv420p"
+                    )
+                    self.out_stream.thread_type = "AUTO"
+                    # self.out_stream.options = self.output_params
+                    string_output_params = {
+                        key: str(value) for key, value in self.output_params.items()
+                    }
+                    self.out_stream.options = string_output_params
 
             except Exception as e:
                 logger.warning("Failed to open video writer", exc_info=e)
@@ -152,59 +173,67 @@ class Writer:
             h, w, _ = get_h_w_c(img)
             self.start(w, h)
 
-        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
-        if self.out is not None and self.out.stdin is not None:
-            self.out.stdin.write(out_frame.tobytes())
+        out_frame = av.VideoFrame.from_ndarray(
+            to_uint8(img, normalized=True), format="bgr24"
+        )
+        if self.out is not None and self.out_stream is not None:
+            for packet in self.out_stream.encode(out_frame):
+                self.out.mux(packet)
         else:
             raise RuntimeError("Failed to open video writer")
 
     def close(self):
         if self.out is not None:
-            if self.out.stdin is not None:
-                self.out.stdin.close()
-            self.out.wait()
+            if self.out_stream is not None:
+                for packet in self.out_stream.encode():
+                    self.out.mux(packet)
 
-        if self.audio is not None:
-            video_path = self.save_path
-            base, ext = os.path.splitext(video_path)
-            audio_video_path = f"{base}_av{ext}"
+            # if self.out.stdin is not None:
+            #     self.out.stdin.close()
+            # self.out.wait()
+            self.out.close()
 
-            # Default and auto -> copy
-            output_params = {
-                "vcodec": "copy",
-                "acodec": "copy",
-            }
-            if self.container == VideoFormat.WEBM:
-                if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
-                    output_params["acodec"] = "libopus"
-                    output_params["b:a"] = "320k"
-                else:
-                    raise ValueError(f"WebM does not support {self.audio_settings}")
-            elif self.audio_settings == AudioSettings.TRANSCODE:
-                output_params["acodec"] = "aac"
-                output_params["b:a"] = "320k"
+        # if self.audio is not None:
+        #     video_path = self.save_path
+        #     base, ext = os.path.splitext(video_path)
+        #     audio_video_path = f"{base}_av{ext}"
 
-            try:
-                video_stream = ffmpeg.input(video_path)
-                output_video = ffmpeg.output(
-                    self.audio,
-                    video_stream,
-                    audio_video_path,
-                    **output_params,
-                ).overwrite_output()
-                ffmpeg.run(output_video)
-                # delete original, rename new
-                os.remove(video_path)
-                os.rename(audio_video_path, video_path)
-            except Exception:
-                logger.warning(
-                    "Failed to copy audio to video, input file probably contains "
-                    "no audio or audio stream is supported by this container. Ignoring audio settings."
-                )
-                try:
-                    os.remove(audio_video_path)
-                except Exception:
-                    pass
+        #     # Default and auto -> copy
+        #     output_params = {
+        #         "vcodec": "copy",
+        #         "acodec": "copy",
+        #     }
+        #     if self.container == VideoFormat.WEBM:
+        #         if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
+        #             output_params["acodec"] = "libopus"
+        #             output_params["b:a"] = "320k"
+        #         else:
+        #             raise ValueError(f"WebM does not support {self.audio_settings}")
+        #     elif self.audio_settings == AudioSettings.TRANSCODE:
+        #         output_params["acodec"] = "aac"
+        #         output_params["b:a"] = "320k"
+
+        #     try:
+        #         video_stream = ffmpeg.input(video_path)
+        #         output_video = ffmpeg.output(
+        #             self.audio,
+        #             video_stream,
+        #             audio_video_path,
+        #             **output_params,
+        #         ).overwrite_output()
+        #         ffmpeg.run(output_video)
+        #         # delete original, rename new
+        #         os.remove(video_path)
+        #         os.rename(audio_video_path, video_path)
+        #     except Exception:
+        #         logger.warning(
+        #             "Failed to copy audio to video, input file probably contains "
+        #             "no audio or audio stream is supported by this container. Ignoring audio settings."
+        #         )
+        #         try:
+        #             os.remove(audio_video_path)
+        #         except Exception:
+        #             pass
 
 
 @video_frames_group.register(

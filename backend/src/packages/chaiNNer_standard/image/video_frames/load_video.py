@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import os
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
-import ffmpeg
+import av
 import numpy as np
+from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
@@ -20,9 +21,6 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import split_file_path
 
 from .. import video_frames_group
-
-ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
 
 @video_frames_group.register(
@@ -65,68 +63,61 @@ def load_video_node(
 ) -> tuple[Iterator[tuple[np.ndarray, int]], Path, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
-    ffmpeg_reader = (
-        ffmpeg.input(path)
-        .output(
-            "pipe:",
-            format="rawvideo",
-            pix_fmt="bgr24",
-            sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact",
-        )
-        .run_async(pipe_stdout=True, cmd=ffmpeg_path)
+    container = av.open(
+        str(path),
+        options={  # TODO: check if this is the right way to pass these flags.
+            "sws_flags": "lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact"
+        },
     )
+    container.streams.video[0].thread_type = "AUTO"
 
-    probe = ffmpeg.probe(path, cmd=ffprobe_path)
-    video_format = probe.get("format", None)
-    if video_format is None:
-        raise RuntimeError("Failed to get video format. Please report.")
-    video_stream = next(
-        (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
-        None,
-    )
+    codec_context = container.streams.video[0].codec_context
 
-    if video_stream is None:
-        raise RuntimeError("No video stream found in file")
+    fps = codec_context.framerate or codec_context.rate
+    average_rate: Fraction = container.streams.video[0].average_rate
+    guessed_rate: Fraction = container.streams.video[0].guessed_rate
+    base_rate: Fraction = container.streams.video[0].base_rate
 
-    width = video_stream.get("width", None)
-    if width is None:
-        raise RuntimeError("No width found in video stream")
-    width = int(width)
-    height = video_stream.get("height", None)
-    if height is None:
-        raise RuntimeError("No height found in video stream")
-    height = int(height)
-    fps = video_stream.get("r_frame_rate", None)
-    if fps is None:
-        raise RuntimeError("No fps found in video stream")
-    fps = int(fps.split("/")[0]) / int(fps.split("/")[1])
-    frame_count = video_stream.get("nb_frames", None)
-    if frame_count is None:
-        duration = video_stream.get("duration", None)
-        if duration is None:
-            duration = video_format.get("duration", None)
-        if duration is not None:
-            frame_count = float(duration) * fps
-        else:
-            raise RuntimeError(
-                "No frame count or duration found in video stream. Unable to determine video length. Please report."
-            )
-    frame_count = int(frame_count)
+    rate = average_rate or guessed_rate or base_rate
+
+    if fps is None and rate is None:
+        raise RuntimeError("Failed to get video fps")
+
+    fps = fps or (rate.as_integer_ratio()[0] / rate.as_integer_ratio()[1])
+
+    frame_count = codec_context.encoded_frame_count
+
+    duration = container.duration  # microseconds
+    logger.info(f"Duration: {duration}")
+    duration = duration / 1000000  # seconds
+    duration_minutes = duration / 60
+    logger.info(f"Duration: {duration_minutes} minutes")
+
+    if frame_count is None or frame_count == 0:
+        frame_count = int(duration * fps)
+
+    frames_iterable = container.decode(video=0)
+
     if use_limit:
         frame_count = min(frame_count, limit)
 
-    audio_stream = ffmpeg.input(path).audio
+    logger.info(f"Frame count: {frame_count}")
+    logger.info(f"FPS: {fps}")
+
+    audio_stream = container.streams.audio[0] if container.streams.audio else None
+
+    logger.info(f"video_dir: {video_dir}")
+    logger.info(f"video_name: {video_name}")
 
     def iterator():
         index = 0
-        while True:
+        for frame in frames_iterable:
             if use_limit and index >= limit:
                 break
-            in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
-            if not in_bytes:
+            in_frame = frame.to_ndarray(format="bgr24")
+            if in_frame is None:
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
-            in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
             yield in_frame, index
             index += 1
 
