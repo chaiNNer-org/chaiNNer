@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Iterable, Literal
 
 import av
 import numpy as np
@@ -113,7 +113,8 @@ class Writer:
     container: VideoFormat
     encoder: VideoEncoder | None
     fps: float
-    audio: object | None
+    # audio: object | None
+    audio: tuple[Iterable, Any]
     audio_settings: AudioSettings
     save_path: str
     output_params: dict[str, str | float]
@@ -144,9 +145,14 @@ class Writer:
                 #     .global_args(*self.global_params)
                 #     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
                 # )
+                string_output_params = {
+                    key: str(value) for key, value in self.output_params.items()
+                }
                 self.out = av.open(
                     self.save_path,
                     mode="w",
+                    options=string_output_params,
+                    # stream_options=self.global_params,
                 )
                 if self.encoder is not None:
                     self.out_stream = self.out.add_stream(
@@ -159,10 +165,8 @@ class Writer:
                     )
                     self.out_stream.thread_type = "AUTO"
                     # self.out_stream.options = self.output_params
-                    string_output_params = {
-                        key: str(value) for key, value in self.output_params.items()
-                    }
-                    self.out_stream.options = string_output_params
+
+                    # self.out_stream.options = string_output_params
 
             except Exception as e:
                 logger.warning("Failed to open video writer", exc_info=e)
@@ -185,6 +189,14 @@ class Writer:
     def close(self):
         if self.out is not None:
             if self.out_stream is not None:
+                if self.audio:
+                    decoded_steam, audio_stream = self.audio
+                    self.out.add_stream(template=audio_stream)
+                    for frame in decoded_steam:
+                        # frame.pts = None
+                        for packet in self.out_stream.encode(frame):
+                            self.out_stream.mux(packet)
+
                 for packet in self.out_stream.encode():
                     self.out.mux(packet)
 

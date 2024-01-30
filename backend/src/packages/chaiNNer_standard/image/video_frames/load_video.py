@@ -104,7 +104,14 @@ def load_video_node(
     logger.info(f"Frame count: {frame_count}")
     logger.info(f"FPS: {fps}")
 
-    audio_stream = container.streams.audio[0] if container.streams.audio else None
+    if container.streams.audio:
+        audio_stream = (
+            iter(container.decode(container.streams.audio[0])),
+            container.streams.audio[0],
+        )
+
+    else:
+        audio_stream = None
 
     logger.info(f"video_dir: {video_dir}")
     logger.info(f"video_name: {video_name}")
