@@ -121,6 +121,7 @@ class Writer:
     global_params: list[str]
     out: Any | None = None
     out_stream: Any | None = None
+    audio_stream: Any | None = None
 
     def start(self, width: int, height: int):
         # Create the writer and run process
@@ -171,7 +172,7 @@ class Writer:
             except Exception as e:
                 logger.warning("Failed to open video writer", exc_info=e)
 
-    def write_frame(self, img: np.ndarray):
+    def write_frame(self, img: np.ndarray, audio: list[Any]):
         # Create the writer and run process
         if self.out is None:
             h, w, _ = get_h_w_c(img)
@@ -185,6 +186,23 @@ class Writer:
                 self.out.mux(packet)
         else:
             raise RuntimeError("Failed to open video writer")
+
+        for audio_frame in audio:
+            if self.audio_stream is None:
+                logger.info(
+                    f"audio_frame.layout.channels: {audio_frame.layout.channels}"
+                )
+                logger.info(f"audio_frame.sample_rate: {audio_frame.sample_rate}")
+                self.audio_stream = self.out.add_stream(
+                    "aac",
+                    channels=len(audio_frame.layout.channels),
+                    sample_rate=audio_frame.sample_rate,
+                )
+            if self.out is not None and self.audio_stream is not None:
+                for packet in self.audio_stream.encode(audio_frame):
+                    self.out.mux(packet)
+            else:
+                raise RuntimeError("Failed to open audio writer")
 
     def close(self):
         if self.out is not None:
@@ -354,7 +372,7 @@ class Writer:
             ),
         ),
     ],
-    iterator_inputs=IteratorInputInfo(inputs=0),
+    iterator_inputs=IteratorInputInfo(inputs=[0, 15]),
     outputs=[],
     kind="collector",
     side_effects=True,
@@ -372,7 +390,7 @@ def save_video_node(
     fps: float,
     audio: Any,
     audio_settings: AudioSettings,
-) -> Collector[np.ndarray, None]:
+) -> Collector[tuple[np.ndarray, np.ndarray], None]:
     save_path = os.path.join(save_dir, f"{video_name}.{container.ext}")
 
     # Common output settings
@@ -430,8 +448,9 @@ def save_video_node(
         global_params=global_params,
     )
 
-    def on_iterate(img: np.ndarray):
-        writer.write_frame(img)
+    def on_iterate(inputs: tuple[np.ndarray, np.ndarray]):
+        img, audio = inputs
+        writer.write_frame(img, audio)
 
     def on_complete():
         writer.close()
