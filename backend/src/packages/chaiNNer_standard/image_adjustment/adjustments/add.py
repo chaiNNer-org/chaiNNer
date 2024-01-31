@@ -30,26 +30,10 @@ from .. import adjustments_group
 def add_node(
     img: np.ndarray, add: float
 ) -> np.ndarray:
-    """Add values to an image"""
-
-    add /= 100
 
     if add == 0:
         return img
-
-    _, _, c = get_h_w_c(img)
-
-    add: float = add
-
-    if c <= 3:
-        img = img + add
-    else:
-        img = np.concatenate(
-            [
-                img[:, :, :3] + add,
-                img[:, :, 3:],
-            ],
-            axis=2,
-        )
+    
+    img = img + add
 
     return img
