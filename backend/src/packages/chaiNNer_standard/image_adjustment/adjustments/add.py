@@ -32,7 +32,7 @@ def add_node(
 
     if add == 0:
         return img
-    
+
     img = img + add
 
     return img
