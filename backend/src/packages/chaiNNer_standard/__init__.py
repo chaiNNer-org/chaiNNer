@@ -35,11 +35,11 @@ package = add_package(
             size_estimate=13.5 * KB,
         ),
         Dependency(
-            display_name="FFMPEG",
-            pypi_name="ffmpeg-python",
-            version="0.2.0",
-            size_estimate=25 * KB,
-            import_name="ffmpeg",
+            display_name="PyAV",
+            pypi_name="av",
+            version="11.0.0",
+            size_estimate=25 * MB,
+            import_name="av",
         ),
         Dependency(
             display_name="Requests",
