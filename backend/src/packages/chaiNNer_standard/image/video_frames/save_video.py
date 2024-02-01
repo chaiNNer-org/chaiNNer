@@ -111,10 +111,9 @@ PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
 @dataclass
 class Writer:
     container: VideoFormat
-    encoder: VideoEncoder | None
+    encoder: VideoEncoder | Literal[VideoFormat.GIF] | None
     fps: float
-    # audio: object | None
-    audio: tuple[Iterable, Any]
+    audio: tuple[Iterable, Any] | None
     audio_settings: AudioSettings
     save_path: str
     output_params: dict[str, str | float]
@@ -133,19 +132,6 @@ class Writer:
                 ), f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
 
             try:
-                # self.out = (
-                #     ffmpeg.input(
-                #         "pipe:",
-                #         format="rawvideo",
-                #         pix_fmt="rgb24",
-                #         s=f"{width}x{height}",
-                #         r=self.fps,
-                #     )
-                #     .output(**self.output_params)
-                #     .overwrite_output()
-                #     .global_args(*self.global_params)
-                #     .run_async(pipe_stdin=True, cmd=ffmpeg_path)
-                # )
                 string_output_params = {
                     key: str(value) for key, value in self.output_params.items()
                 }
@@ -156,23 +142,25 @@ class Writer:
                     # stream_options=self.global_params,
                 )
                 if self.encoder is not None:
+                    logger.info(f"Encoder: {self.encoder.value}")
+                    logger.info(f"Container: {self.container.value}")
                     self.out_stream = self.out.add_stream(
                         self.encoder.value, rate=str(self.fps)
                     )
+                    self.out_stream.options = string_output_params
+                    self.out_stream.crf = self.output_params.get("crf", 23)
+                    self.out_stream.preset = self.output_params.get("preset", "medium")
                     self.out_stream.width = width
                     self.out_stream.height = height
                     self.out_stream.pix_fmt = (
                         "rgb8" if self.container == VideoFormat.GIF else "yuv420p"
                     )
                     self.out_stream.thread_type = "AUTO"
-                    # self.out_stream.options = self.output_params
-
-                    # self.out_stream.options = string_output_params
 
             except Exception as e:
                 logger.warning("Failed to open video writer", exc_info=e)
 
-    def write_frame(self, img: np.ndarray, audio: list[Any]):
+    def write_frame(self, img: np.ndarray, audio_data: tuple[list[Any], str] | None):
         # Create the writer and run process
         if self.out is None:
             h, w, _ = get_h_w_c(img)
@@ -187,22 +175,35 @@ class Writer:
         else:
             raise RuntimeError("Failed to open video writer")
 
-        for audio_frame in audio:
-            if self.audio_stream is None:
-                logger.info(
-                    f"audio_frame.layout.channels: {audio_frame.layout.channels}"
-                )
-                logger.info(f"audio_frame.sample_rate: {audio_frame.sample_rate}")
-                self.audio_stream = self.out.add_stream(
-                    "aac",
-                    channels=len(audio_frame.layout.channels),
-                    sample_rate=audio_frame.sample_rate,
-                )
-            if self.out is not None and self.audio_stream is not None:
-                for packet in self.audio_stream.encode(audio_frame):
-                    self.out.mux(packet)
-            else:
-                raise RuntimeError("Failed to open audio writer")
+        if audio_data is not None and self.container != VideoFormat.GIF:
+            audio, codec = audio_data
+
+            audio_codec = None
+            audio_rate = None
+            if self.container == VideoFormat.WEBM:
+                if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
+                    audio_codec = "libopus"
+                    audio_rate = 48000
+                else:
+                    raise ValueError(f"WebM does not support {self.audio_settings}")
+            elif self.audio_settings == AudioSettings.TRANSCODE:
+                audio_codec = "aac"
+                audio_rate = 320000
+            elif self.audio_settings in (AudioSettings.COPY, AudioSettings.AUTO):
+                audio_codec = codec or "aac"
+
+            for audio_frame in audio:
+                if self.audio_stream is None:
+                    self.audio_stream = self.out.add_stream(
+                        audio_codec,
+                        channels=len(audio_frame.layout.channels),
+                        sample_rate=audio_rate or audio_frame.sample_rate,
+                    )
+                if self.out is not None and self.audio_stream is not None:
+                    for packet in self.audio_stream.encode(audio_frame):
+                        self.out.mux(packet)
+                else:
+                    raise RuntimeError("Failed to open audio writer")
 
     def close(self):
         if self.out is not None:
@@ -217,53 +218,7 @@ class Writer:
 
                 for packet in self.out_stream.encode():
                     self.out.mux(packet)
-
-            # if self.out.stdin is not None:
-            #     self.out.stdin.close()
-            # self.out.wait()
             self.out.close()
-
-        # if self.audio is not None:
-        #     video_path = self.save_path
-        #     base, ext = os.path.splitext(video_path)
-        #     audio_video_path = f"{base}_av{ext}"
-
-        #     # Default and auto -> copy
-        #     output_params = {
-        #         "vcodec": "copy",
-        #         "acodec": "copy",
-        #     }
-        #     if self.container == VideoFormat.WEBM:
-        #         if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
-        #             output_params["acodec"] = "libopus"
-        #             output_params["b:a"] = "320k"
-        #         else:
-        #             raise ValueError(f"WebM does not support {self.audio_settings}")
-        #     elif self.audio_settings == AudioSettings.TRANSCODE:
-        #         output_params["acodec"] = "aac"
-        #         output_params["b:a"] = "320k"
-
-        #     try:
-        #         video_stream = ffmpeg.input(video_path)
-        #         output_video = ffmpeg.output(
-        #             self.audio,
-        #             video_stream,
-        #             audio_video_path,
-        #             **output_params,
-        #         ).overwrite_output()
-        #         ffmpeg.run(output_video)
-        #         # delete original, rename new
-        #         os.remove(video_path)
-        #         os.rename(audio_video_path, video_path)
-        #     except Exception:
-        #         logger.warning(
-        #             "Failed to copy audio to video, input file probably contains "
-        #             "no audio or audio stream is supported by this container. Ignoring audio settings."
-        #         )
-        #         try:
-        #             os.remove(audio_video_path)
-        #         except Exception:
-        #             pass
 
 
 @video_frames_group.register(
@@ -439,7 +394,7 @@ def save_video_node(
 
     writer = Writer(
         container=container,
-        encoder=encoder,
+        encoder=VideoFormat.GIF if container == VideoFormat.GIF else encoder,
         fps=fps,
         audio=audio,
         audio_settings=audio_settings,
@@ -448,7 +403,7 @@ def save_video_node(
         global_params=global_params,
     )
 
-    def on_iterate(inputs: tuple[np.ndarray, np.ndarray]):
+    def on_iterate(inputs: tuple[np.ndarray, tuple[list[Any], str] | None]):
         img, audio = inputs
         writer.write_frame(img, audio)
 

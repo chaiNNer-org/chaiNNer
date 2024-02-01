@@ -60,7 +60,7 @@ def load_video_node(
     path: Path,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, int, list[Any]]], Path, str, float]:
+) -> tuple[Iterator[tuple[np.ndarray, int, tuple[list[Any], str]]], Path, str, float]:
     video_dir, video_name, _ = split_file_path(path)
 
     container = av.open(
@@ -84,6 +84,8 @@ def load_video_node(
         raise RuntimeError("Failed to get video fps")
 
     fps = fps or (rate.as_integer_ratio()[0] / rate.as_integer_ratio()[1])
+
+    fps = round(fps, 2)
 
     frame_count = codec_context.encoded_frame_count
 
@@ -141,16 +143,16 @@ def load_video_node(
             for frame in packet.decode():
                 if packet_type == "video":
                     in_frame = frame.to_ndarray(format="bgr24")
-                    logger.info(f"video frame: {in_frame.shape}")
-                    yield in_frame, index, audio_arr
+                    # logger.info(f"video frame: {in_frame.shape}")
+                    yield in_frame, index, (audio_arr, in_stream_a.codec.name)
                     index += 1
                     audio_arr = []
                 elif packet_type == "audio":
                     # audio_in_frame = frame.to_ndarray(format="fltp")
                     # logger.info(f"audio frame: {audio_in_frame.shape}")
-                    logger.info(
-                        f"frame: {frame}, format: {frame.format}, layout: {frame.layout}, rate: {frame.rate}"
-                    )
+                    # logger.info(
+                    #     f"frame: {frame}, format: {frame.format}, layout: {frame.layout}, rate: {frame.rate}"
+                    # )
                     audio_arr.append(frame)
 
             # if last_frame is not None and len(last_audio) != 0:
