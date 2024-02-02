@@ -26,9 +26,6 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
 
-# logging.getLogger("libav").setLevel(logging.FATAL)
-# av.logging.set_level(av.logging.PANIC)
-
 
 class VideoFormat(Enum):
     MKV = "mkv"
@@ -139,7 +136,7 @@ class Writer:
                     self.save_path,
                     mode="w",
                     options=string_output_params,
-                    # stream_options=self.global_params,
+                    stream_options=self.global_params,
                 )
                 if self.encoder is not None:
                     logger.info(f"Encoder: {self.encoder.value}")

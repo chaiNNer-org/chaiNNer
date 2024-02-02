@@ -6,7 +6,6 @@ from typing import Any
 
 import av
 import numpy as np
-from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
@@ -63,10 +62,11 @@ def load_video_node(
 ) -> tuple[Iterator[tuple[np.ndarray, int, tuple[list[Any], str]]], Path, str, float]:
     video_dir, video_name, _ = split_file_path(path)
 
+    input_sws_flags = "lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact"
     container = av.open(
         str(path),
         options={  # TODO: check if this is the right way to pass these flags.
-            "sws_flags": "lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact"
+            "sws_flags": input_sws_flags
         },
     )
     container.streams.video[0].thread_type = "AUTO"
@@ -84,48 +84,20 @@ def load_video_node(
         raise RuntimeError("Failed to get video fps")
 
     fps = fps or (rate.as_integer_ratio()[0] / rate.as_integer_ratio()[1])
-
     fps = round(fps, 2)
-
     frame_count = codec_context.encoded_frame_count
 
     duration = container.duration  # microseconds
-    logger.info(f"Duration: {duration}")
     duration = duration / 1000000  # seconds
-    duration_minutes = duration / 60
-    logger.info(f"Duration: {duration_minutes} minutes")
 
     if frame_count is None or frame_count == 0:
         frame_count = int(duration * fps)
 
-    # frames_iterable = container.decode(video=0)
-    # audio_iterable = container.decode(audio=0)
     in_stream_v = container.streams.video[0]
     in_stream_a = container.streams.audio[0]
 
-    logger.info(f"audio format: {in_stream_a.format}")
-    logger.info(f"audio rate: {in_stream_a.rate}")
-    logger.info(f"audio frame_size: {in_stream_a.frame_size}")
-    logger.info(f"audio codec: {in_stream_a.codec}")
-    logger.info(f"audio codec.name: {in_stream_a.codec.name}")
-
     if use_limit:
         frame_count = min(frame_count, limit)
-
-    logger.info(f"Frame count: {frame_count}")
-    logger.info(f"FPS: {fps}")
-
-    # if container.streams.audio:
-    #     (
-    #         iter(container.decode(container.streams.audio[0])),
-    #         container.streams.audio[0],
-    #     )
-
-    # else:
-    #     pass
-
-    logger.info(f"video_dir: {video_dir}")
-    logger.info(f"video_name: {video_name}")
 
     def iterator():
         index = 0
@@ -143,25 +115,11 @@ def load_video_node(
             for frame in packet.decode():
                 if packet_type == "video":
                     in_frame = frame.to_ndarray(format="bgr24")
-                    # logger.info(f"video frame: {in_frame.shape}")
                     yield in_frame, index, (audio_arr, in_stream_a.codec.name)
                     index += 1
                     audio_arr = []
                 elif packet_type == "audio":
-                    # audio_in_frame = frame.to_ndarray(format="fltp")
-                    # logger.info(f"audio frame: {audio_in_frame.shape}")
-                    # logger.info(
-                    #     f"frame: {frame}, format: {frame.format}, layout: {frame.layout}, rate: {frame.rate}"
-                    # )
                     audio_arr.append(frame)
-
-            # if last_frame is not None and len(last_audio) != 0:
-            #     yield last_frame, index, last_audio
-            #     index += 1
-            #     last_frame = None
-            #     last_audio = []
-            # else:
-            #     continue
 
     return (
         Iterator.from_iter(iter_supplier=iterator, expected_length=frame_count),
