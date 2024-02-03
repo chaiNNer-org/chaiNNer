@@ -17,7 +17,7 @@ from .. import adjustments_group
         ImageInput(),
         SliderInput(
             "Divide",
-            minimum=0.0,
+            minimum=0.0001,
             maximum=4.0,
             default=1.0,
             precision=4,
