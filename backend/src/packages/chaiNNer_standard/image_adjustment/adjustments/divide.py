@@ -27,7 +27,7 @@ from .. import adjustments_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def mult_node(img: np.ndarray, divide: float) -> np.ndarray:
+def divide_node(img: np.ndarray, divide: float) -> np.ndarray:
     if divide == 1.0:
         return img
 
