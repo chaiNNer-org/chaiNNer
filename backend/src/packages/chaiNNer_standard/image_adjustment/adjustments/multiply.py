@@ -27,7 +27,7 @@ from .. import adjustments_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def mult_node(img: np.ndarray, mult: float32) -> np.ndarray:
+def mult_node(img: np.ndarray, mult: float) -> np.ndarray:
     if mult == 1.0:
         return img
 
