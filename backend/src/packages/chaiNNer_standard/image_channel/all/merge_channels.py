@@ -52,8 +52,6 @@ def merge_channels_node(
     im3: np.ndarray | None,
     im4: np.ndarray | None,
 ) -> np.ndarray:
-    """Combine separate channels into a multi-chanel image"""
-
     start_shape = im1.shape[:2]
 
     for im in im2, im3, im4:

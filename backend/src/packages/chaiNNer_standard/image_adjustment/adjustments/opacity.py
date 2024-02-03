@@ -36,8 +36,6 @@ from .. import adjustments_group
     ],
 )
 def opacity_node(img: np.ndarray, opacity: float) -> np.ndarray:
-    """Apply opacity adjustment to alpha channel"""
-
     # Convert inputs
     c = get_h_w_c(img)[2]
     if opacity == 100 and c == 4:

@@ -157,8 +157,6 @@ def upscale_face_node(
     scale: int,
     weight: float,
 ) -> np.ndarray:
-    """Upscales an image with a face model"""
-
     face_helper = None
     try:
         img = denormalize(img)

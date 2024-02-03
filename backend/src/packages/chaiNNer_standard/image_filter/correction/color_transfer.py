@@ -69,9 +69,6 @@ def color_transfer_node(
     overflow_method: OverflowMethod,
     reciprocal_scale: bool,
 ) -> np.ndarray:
-    """
-    Transfers the color distribution from source image to target image.
-    """
     _, _, img_c = get_h_w_c(img)
 
     # Preserve alpha

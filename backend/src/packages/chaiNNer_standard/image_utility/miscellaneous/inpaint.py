@@ -65,8 +65,6 @@ def inpaint_node(
     inpaint_method: InpaintAlgorithm,
     radius: float,
 ) -> np.ndarray:
-    """Inpaint an image"""
-
     assert (
         img.shape[:2] == mask.shape[:2]
     ), "Input image and mask must have the same resolution"

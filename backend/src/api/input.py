@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Literal, Optional, TypedDict, Union
 
 import navi
@@ -126,6 +127,9 @@ class BaseInput:
 
         if isinstance(value, (int, float, str)) or value is None:
             return {"type": "literal", "value": value}
+
+        if isinstance(value, Path):
+            return {"type": "literal", "value": str(value)}
 
         return {
             "type": "unknown",
