@@ -309,6 +309,7 @@ export interface NodeData {
     readonly invalid?: boolean;
     readonly minWidth?: number;
     readonly minHeight?: number;
+    readonly isCollapsed?: boolean;
 }
 export interface EdgeData {
     sourceX?: number;

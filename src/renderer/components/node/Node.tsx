@@ -1,6 +1,6 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useMemo, useRef } from 'react';
+import { DragEvent, memo, useCallback, useMemo, useRef } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
@@ -14,7 +14,7 @@ import {
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
@@ -24,6 +24,7 @@ import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
 import { useValidity } from '../../hooks/useValidity';
 import { useWatchFiles } from '../../hooks/useWatchFiles';
+import { CollapsedHandles } from './CollapsedHandles';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -75,9 +76,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const { sendToast } = useContext(AlertBoxContext);
     const { categories } = useContext(BackendContext);
+    const { setNodeCollapsed } = useContext(GlobalContext);
     const { getNodeProgress, getNodeStatus } = useContext(ExecutionContext);
 
-    const { id, inputData } = data;
+    const { id, inputData, isCollapsed } = data;
     const nodeProgress = getNodeProgress(id);
 
     const individuallyRunning = useContextSelector(GlobalVolatileContext, (c) =>
@@ -192,6 +194,11 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });
 
+    const toggleCollapse = useCallback(() => {
+        setNodeCollapsed(id, !isCollapsed);
+    }, [id, isCollapsed, setNodeCollapsed]);
+    const useCollapse = { isCollapsed: isCollapsed ?? false, toggleCollapse };
+
     return (
         <Center
             bg="var(--node-bg-color)"
@@ -224,11 +231,16 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         name={schema.name}
                         nodeProgress={nodeProgress}
                         selected={selected}
+                        useCollapse={useCollapse}
                     />
-                    <NodeBody
-                        animated={animated}
-                        nodeState={nodeState}
-                    />
+                    {!isCollapsed ? (
+                        <NodeBody
+                            animated={animated}
+                            nodeState={nodeState}
+                        />
+                    ) : (
+                        <CollapsedHandles nodeState={nodeState} />
+                    )}
                 </VStack>
                 <NodeFooter
                     animated={animated}

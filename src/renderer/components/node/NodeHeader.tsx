@@ -1,4 +1,5 @@
-import { Box, Center, HStack, Heading, Text, VStack } from '@chakra-ui/react';
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
@@ -14,15 +15,26 @@ interface NodeHeaderProps {
     selected: boolean;
     disabledStatus: DisabledStatus;
     nodeProgress?: NodeProgress;
+    useCollapse: { isCollapsed: boolean; toggleCollapse: () => void };
 }
 
 export const NodeHeader = memo(
-    ({ name, icon, accentColor, selected, disabledStatus, nodeProgress }: NodeHeaderProps) => {
+    ({
+        name,
+        icon,
+        accentColor,
+        selected,
+        disabledStatus,
+        nodeProgress,
+        useCollapse,
+    }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
 
         const progColor = interpolateColor(accentColor, bgColor, 0.5);
+
+        const { isCollapsed, toggleCollapse } = useCollapse;
 
         let iteratorProcess = null;
         if (nodeProgress) {
@@ -92,18 +104,20 @@ export const NodeHeader = memo(
                     borderBottomColor={accentColor}
                     borderBottomWidth="2px"
                     h="auto"
-                    pt={2}
+                    p={1}
                     verticalAlign="middle"
                     w="full"
                 >
-                    <HStack
-                        mb={-1}
-                        mt={-1}
-                        pb={2}
-                        pl={6}
-                        pr={6}
-                        verticalAlign="middle"
-                    >
+                    {/* // TODO: replace this with something useful */}
+                    <IconButton
+                        aria-label="placeholder"
+                        cursor="default"
+                        icon={<ChevronDownIcon />}
+                        opacity={0}
+                        size="xs"
+                    />
+                    <Spacer />
+                    <HStack verticalAlign="middle">
                         <Center
                             alignContent="center"
                             alignItems="center"
@@ -135,6 +149,13 @@ export const NodeHeader = memo(
                             </Heading>
                         </Center>
                     </HStack>
+                    <Spacer />
+                    <IconButton
+                        aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+                        icon={!isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                        size="xs"
+                        onClick={toggleCollapse}
+                    />
                 </Center>
                 {iteratorProcess}
             </VStack>
