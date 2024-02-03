@@ -41,8 +41,13 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
 
                     const isIterated = iteratedInputs.has(input.id);
 
+                    const handleId = `${nodeId}-${input.id}`;
+
                     return (
-                        <Flex w="full">
+                        <Flex
+                            key={handleId}
+                            w="full"
+                        >
                             <Box
                                 h="6px"
                                 mr="auto"
@@ -51,7 +56,7 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                             >
                                 <Handle
                                     className="input-handle"
-                                    id={`${nodeId}-${input.id}`}
+                                    id={handleId}
                                     isConnectable={false}
                                     position={Position.Left}
                                     style={{
@@ -81,8 +86,13 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
 
                     const isIterated = iteratedOutputs.has(output.id);
 
+                    const handleId = `${nodeId}-${output.id}`;
+
                     return (
-                        <Flex w="full">
+                        <Flex
+                            key={handleId}
+                            w="full"
+                        >
                             <Box
                                 h="6px"
                                 ml="auto"
@@ -91,7 +101,7 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                             >
                                 <Handle
                                     className="output-handle"
-                                    id={`${nodeId}-${output.id}`}
+                                    id={handleId}
                                     isConnectable={false}
                                     position={Position.Right}
                                     style={{
