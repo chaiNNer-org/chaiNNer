@@ -26,10 +26,7 @@ from .. import adjustments_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def add_node(
-    img: np.ndarray, add: float
-) -> np.ndarray:
-
+def add_node(img: np.ndarray, add: float) -> np.ndarray:
     if add == 0:
         return img
 
