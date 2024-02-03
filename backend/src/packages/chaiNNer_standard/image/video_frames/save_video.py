@@ -26,6 +26,8 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
 
+AudioData = tuple[list[Any], str] | None
+
 
 class VideoFormat(Enum):
     MKV = "mkv"
@@ -157,7 +159,7 @@ class Writer:
             except Exception as e:
                 logger.warning("Failed to open video writer", exc_info=e)
 
-    def write_frame(self, img: np.ndarray, audio_data: tuple[list[Any], str] | None):
+    def write_frame(self, img: np.ndarray, audio_data: AudioData):
         # Create the writer and run process
         if self.out is None:
             h, w, _ = get_h_w_c(img)
@@ -342,7 +344,7 @@ def save_video_node(
     fps: float,
     audio: Any,
     audio_settings: AudioSettings,
-) -> Collector[tuple[np.ndarray, np.ndarray], None]:
+) -> Collector[tuple[np.ndarray, AudioData], None]:
     save_path = os.path.join(save_dir, f"{video_name}.{container.ext}")
 
     # Common output settings
@@ -400,7 +402,7 @@ def save_video_node(
         global_params=global_params,
     )
 
-    def on_iterate(inputs: tuple[np.ndarray, tuple[list[Any], str] | None]):
+    def on_iterate(inputs: tuple[np.ndarray, AudioData]):
         img, audio = inputs
         writer.write_frame(img, audio)
 
