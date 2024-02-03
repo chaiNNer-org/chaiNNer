@@ -30,6 +30,6 @@ def add_node(img: np.ndarray, add: float) -> np.ndarray:
     if add == 0:
         return img
 
-    img = img + add
+    img = img + (add/100)
 
     return img
