@@ -107,6 +107,7 @@ export const NodeHeader = memo(
                     p={1}
                     verticalAlign="middle"
                     w="full"
+                    onDoubleClick={toggleCollapse}
                 >
                     {/* // TODO: replace this with something useful */}
                     <IconButton
