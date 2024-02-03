@@ -22,7 +22,10 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
     const { iteratedInputs, iteratedOutputs, id: nodeId } = nodeState;
 
     return (
-        <HStack w="full">
+        <HStack
+            bg="var(--bg-700)"
+            w="full"
+        >
             <Box w="full">
                 {inputs.map((input) => {
                     const isConnected = nodeState.connectedInputs.has(input.id);
