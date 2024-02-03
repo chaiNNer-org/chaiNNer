@@ -31,6 +31,6 @@ def divide_node(img: np.ndarray, divide: float) -> np.ndarray:
     if divide == 1.0:
         return img
 
-    img = img * (1.0/divide)
+    img = img * (1.0 / divide)
 
     return img
