@@ -10,7 +10,7 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:multiply",
-    description="Multiply aall channels in an image by a value.",
+    description="Multiply all channels in an image by a value.",
     name="Multiply",
     icon="ImBrightnessContrast",
     inputs=[
@@ -28,7 +28,6 @@ from .. import adjustments_group
     outputs=[ImageOutput(image_type="Input0")],
 )
 def mult_node(img: np.ndarray, mult: float32) -> np.ndarray:
-    """Multiply all channels in an image with a value"""
 
     if mult == 1.0:
         return img
