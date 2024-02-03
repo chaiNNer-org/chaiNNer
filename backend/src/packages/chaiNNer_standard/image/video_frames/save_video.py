@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Iterable, Literal
+from typing import Any, Iterable, Literal, Union
 
 import av
 import numpy as np
@@ -26,7 +26,7 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
 
-AudioData = tuple[list[Any], str] | None
+AudioData = Union[tuple[list[Any], str], None]
 
 
 class VideoFormat(Enum):
