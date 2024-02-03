@@ -152,6 +152,7 @@ export const NodeHeader = memo(
                     <Spacer />
                     <IconButton
                         aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+                        className="nodrag"
                         icon={!isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
                         size="xs"
                         onClick={toggleCollapse}
