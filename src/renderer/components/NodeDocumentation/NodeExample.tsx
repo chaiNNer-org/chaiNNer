@@ -177,6 +177,10 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 icon={selectedSchema.icon}
                                 name={selectedSchema.name}
                                 selected={false}
+                                useCollapse={{
+                                    isCollapsed: false,
+                                    toggleCollapse: () => {},
+                                }}
                             />
                             <NodeBody
                                 animated={false}
