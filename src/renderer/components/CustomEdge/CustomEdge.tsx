@@ -259,7 +259,7 @@ export const CustomEdge = memo(
                         />
                         {index > 0 && (
                             <foreignObject
-                                className="edgebutton-foreignobject"
+                                className="breakpoint-foreignobject drag"
                                 height={breakPointSize}
                                 requiredExtensions="http://www.w3.org/1999/xhtml"
                                 style={{

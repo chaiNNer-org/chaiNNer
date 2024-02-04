@@ -20,6 +20,7 @@ import {
     Mutable,
     NodeData,
     OutputId,
+    SchemaId,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
@@ -766,26 +767,46 @@ export const GlobalProvider = memo(
 
         const addEdgeBreakpoint = useCallback(
             (id: string, position: [number, number]) => {
-                changeEdges((edges) =>
-                    edges.map((e) => {
-                        if (e.id === id) {
-                            const combinedBreakpoints = [...(e.data?.breakpoints ?? []), position];
-                            const sortedBreakpoints = combinedBreakpoints.sort(
-                                (a, b) => a[0] - b[0]
-                            );
-                            return {
-                                ...e,
-                                data: {
-                                    ...e.data,
-                                    breakpoints: sortedBreakpoints,
-                                },
-                            };
-                        }
-                        return e;
-                    })
-                );
+                const newId = createUniqueId();
+                const newNode = {
+                    type: 'breakPoint',
+                    id: newId,
+                    position: { x: position[0], y: position[1] },
+                    data: {
+                        schemaId: 'chainner:utility:pass_through' as SchemaId,
+                        id: newId,
+                        inputData: {},
+                    },
+                };
+                changeNodes((nodes) => [...nodes, newNode]);
+                changeEdges((edges) => {
+                    const edge = edges.find((e) => e.id === id);
+                    if (!edge) return edges;
+                    const leftEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-left`),
+                        source: edge.source,
+                        sourceHandle: edge.sourceHandle,
+                        target: newId,
+                        targetHandle: `${newId}-0`,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const rightEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-right`),
+                        source: newId,
+                        sourceHandle: `${newId}-0`,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const filteredEdges = edges.filter((e) => e.id !== id);
+                    return [...filteredEdges, leftEdge, rightEdge];
+                });
             },
-            [changeEdges]
+            [changeEdges, changeNodes]
         );
 
         const selectNode = useCallback(
