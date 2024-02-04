@@ -140,6 +140,7 @@ interface Global {
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
+    addEdgeBreakpoint: (id: string, position: [number, number]) => void;
 }
 
 enum SaveResult {
@@ -763,6 +764,30 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const addEdgeBreakpoint = useCallback(
+            (id: string, position: [number, number]) => {
+                changeEdges((edges) =>
+                    edges.map((e) => {
+                        if (e.id === id) {
+                            const combinedBreakpoints = [...(e.data?.breakpoints ?? []), position];
+                            const sortedBreakpoints = combinedBreakpoints.sort(
+                                (a, b) => a[0] - b[0]
+                            );
+                            return {
+                                ...e,
+                                data: {
+                                    ...e.data,
+                                    breakpoints: sortedBreakpoints,
+                                },
+                            };
+                        }
+                        return e;
+                    })
+                );
+            },
+            [changeEdges]
+        );
+
         const selectNode = useCallback(
             (id: string) => {
                 changeNodes((nodes) =>
@@ -1227,6 +1252,7 @@ export const GlobalProvider = memo(
             outputDataActions,
             getInputHash,
             hasRelevantUnsavedChangesRef,
+            addEdgeBreakpoint,
         });
 
         return (

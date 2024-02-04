@@ -315,6 +315,7 @@ export interface EdgeData {
     sourceY?: number;
     targetX?: number;
     targetY?: number;
+    breakpoints?: readonly [number, number][];
 }
 
 export interface PyPiPackage {
