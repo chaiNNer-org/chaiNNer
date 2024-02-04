@@ -47,8 +47,7 @@ from .. import adjustments_group
     outputs=[ImageOutput(image_type="Input0")],
 )
 def log2lin_node(
-    img: np.ndarray, black: float, white: float, gamma: float, invert_log2lin: bool
-) -> np.ndarray:
+    img: np.ndarray, black: float, white: float, gamma: float, invert_log2lin: bool) -> np.ndarray:
     offset = pow(10.0, (black - white) * 0.002 / gamma)
     gain = 1.0 / (1.0 - offset)
 
