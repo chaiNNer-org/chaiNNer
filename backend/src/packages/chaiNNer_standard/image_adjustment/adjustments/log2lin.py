@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nodes.properties.inputs import ImageInput, SliderInput, BoolInput
+from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
 from .. import adjustments_group
