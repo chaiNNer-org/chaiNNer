@@ -41,19 +41,19 @@ from .. import adjustments_group
             scale="log",
         ),
         BoolInput("Invert Log2Lin", default=False).with_docs(
-            "When enabled this will convert the input pixels back to the Cineone Logarithmic encoding"
+            "When checked this will convert the input image back to the Cineon Logarithmic encoding"
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
 def log2lin_node(
-    img: np.ndarray, black: float, white: float, gamma: float, invert_log2lin: bool) -> np.ndarray:
+    img: np.ndarray, black: float, white: float, gamma: float, invert_log2lin: bool
+) -> np.ndarray:
     offset = pow(10.0, (black - white) * 0.002 / gamma)
     gain = 1.0 / (1.0 - offset)
 
     if not invert_log2lin:
         img = gain * (pow(10.0, (1023.0 * img - white) * 0.002 / gamma) - offset)
-        return img
-    elif invert_log2lin:
+    else:
         img = (np.log10(img / gain + offset) / (0.002 / gamma) + white) / 1023.0
-        return img
+    return img
