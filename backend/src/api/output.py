@@ -17,6 +17,7 @@ class BaseOutput:
         kind: OutputKind = "generic",
         has_handle: bool = True,
         associated_type: Any = None,
+        allow_none: bool = False,
     ):
         self.output_type: navi.ExpressionJson = output_type
         self.label: str = label
@@ -26,6 +27,7 @@ class BaseOutput:
         self.has_handle: bool = has_handle
 
         self.associated_type: Any = associated_type
+        self.allow_none: bool = allow_none
 
         # Optional documentation
         self.description: str | None = None
@@ -66,5 +68,6 @@ class BaseOutput:
         return None
 
     def enforce(self, value: object) -> object:
-        assert value is not None
+        if not self.allow_none:
+            assert value is not None
         return value
