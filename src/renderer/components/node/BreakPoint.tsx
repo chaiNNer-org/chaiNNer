@@ -135,7 +135,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                     width="1px"
                 >
                     <Handle
-                        className="absolute-50"
+                        className="absolute-fifty"
                         id={`${id}-0`}
                         isConnectable={false}
                         position={Position.Left}
@@ -149,7 +149,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                         type="target"
                     />
                     <Handle
-                        className="absolute-50"
+                        className="absolute-fifty"
                         id={`${id}-0`}
                         isConnectable={false}
                         position={Position.Right}
