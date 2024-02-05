@@ -1,7 +1,3 @@
-"""
-Nodes that provide various generic utility
-"""
-
 from __future__ import annotations
 
 from nodes.properties.inputs import AnyInput
