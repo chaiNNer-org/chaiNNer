@@ -1,8 +1,8 @@
 import { NeverType } from '@chainner/navi';
-import { Box, Center, Icon, IconButton } from '@chakra-ui/react';
+import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
-import { EdgeProps, Position, getBezierPath, useReactFlow } from 'reactflow';
+import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
@@ -59,18 +59,6 @@ const getRunningStateClass = (
     }
 };
 
-type PathInfo = {
-    path: string;
-    labelX: number;
-    labelY: number;
-    offsetX: number;
-    offsetY: number;
-    breakSourceX: number;
-    breakSourceY: number;
-    breakTargetX: number;
-    breakTargetY: number;
-};
-
 export const CustomEdge = memo(
     ({
         id,
@@ -105,18 +93,18 @@ export const CustomEdge = memo(
                 sourceStatus === NodeExecutionStatus.YET_TO_RUN) &&
             targetStatus !== NodeExecutionStatus.NOT_EXECUTING;
 
-        // const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
-        //     () =>
-        //         getBezierPath({
-        //             sourceX,
-        //             sourceY,
-        //             sourcePosition,
-        //             targetX,
-        //             targetY,
-        //             targetPosition,
-        //         }),
-        //     [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
-        // );
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
+            () =>
+                getBezierPath({
+                    sourceX,
+                    sourceY,
+                    sourcePosition,
+                    targetX,
+                    targetY,
+                    targetPosition,
+                }),
+            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
+        );
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
@@ -139,7 +127,6 @@ export const CustomEdge = memo(
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const buttonSize = 32;
-        const breakPointSize = 8;
 
         // Prevent hovered state from getting stuck
         const hoverTimeout = useDebouncedCallback(() => {
@@ -184,39 +171,6 @@ export const CustomEdge = memo(
 
         const menu = useEdgeMenu(id);
 
-        const paths = useMemo<PathInfo[]>(() => {
-            const breakpoints = [
-                [sourceX, sourceY],
-                ...(data.breakpoints ?? []),
-                [targetX, targetY],
-            ];
-            const pathsToRender: PathInfo[] = [];
-            for (let i = 0; i < breakpoints.length - 1; i += 1) {
-                const [x1, y1] = breakpoints[i];
-                const [x2, y2] = breakpoints[i + 1];
-                const [path, labelX, labelY, offsetX, offsetY] = getBezierPath({
-                    sourceX: x1,
-                    sourceY: y1,
-                    sourcePosition: Position.Right,
-                    targetX: x2,
-                    targetY: y2,
-                    targetPosition: Position.Left,
-                });
-                pathsToRender.push({
-                    path,
-                    labelX,
-                    labelY,
-                    offsetX,
-                    offsetY,
-                    breakSourceX: x1,
-                    breakSourceY: y1,
-                    breakTargetX: x2,
-                    breakTargetY: y2,
-                });
-            }
-            return pathsToRender;
-        }, [sourceX, sourceY, data.breakpoints, targetX, targetY]);
-
         return (
             <g
                 className="edge-chain-group"
@@ -231,102 +185,76 @@ export const CustomEdge = memo(
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
-                {paths.map((pathInfo, index) => (
-                    <g key={pathInfo.path}>
-                        {showRunning && (
-                            <path
-                                className={`edge-chain-behind ${classModifier}`}
-                                d={pathInfo.path}
-                                fill="none"
-                                id={id}
-                            />
-                        )}
-                        <path
-                            className={`edge-chain ${classModifier}`}
-                            d={pathInfo.path}
-                            fill="none"
-                            id={id}
-                            stroke={currentColor}
-                        />
-                        <path
-                            d={pathInfo.path}
-                            style={{
-                                strokeWidth: 18,
-                                fill: 'none',
-                                stroke: 'none',
-                                cursor: 'pointer',
-                            }}
-                        />
-                        {index > 0 && (
-                            <foreignObject
-                                className="breakpoint-foreignobject drag"
-                                height={breakPointSize}
-                                requiredExtensions="http://www.w3.org/1999/xhtml"
-                                style={{
-                                    borderRadius: 100,
-                                    backgroundColor: accentColor,
-                                    borderWidth: 1,
-                                }}
-                                width={breakPointSize}
-                                x={pathInfo.breakSourceX - breakPointSize / 2}
-                                y={pathInfo.breakSourceY - breakPointSize / 2}
-                            >
-                                <Box
-                                    backgroundColor={accentColor}
-                                    borderRadius="full"
-                                    h="full"
-                                    w="full"
+                {showRunning && (
+                    <path
+                        className={`edge-chain-behind ${classModifier}`}
+                        d={edgePath}
+                        fill="none"
+                        id={id}
+                    />
+                )}
+                <path
+                    className={`edge-chain ${classModifier}`}
+                    d={edgePath}
+                    fill="none"
+                    id={id}
+                    stroke={currentColor}
+                />
+                <path
+                    d={edgePath}
+                    style={{
+                        strokeWidth: 18,
+                        fill: 'none',
+                        stroke: 'none',
+                        cursor: 'pointer',
+                    }}
+                />
+                <foreignObject
+                    className="edgebutton-foreignobject"
+                    height={buttonSize}
+                    requiredExtensions="http://www.w3.org/1999/xhtml"
+                    style={{
+                        borderRadius: 100,
+                        opacity: isHovered ? 1 : 0,
+                        transitionDuration: '0.15s',
+                        transitionProperty: 'opacity, background-color',
+                        transitionTimingFunction: 'ease-in-out',
+                    }}
+                    width={buttonSize}
+                    x={edgeCenterX - buttonSize / 2}
+                    y={edgeCenterY - buttonSize / 2}
+                >
+                    <Center
+                        backgroundColor={currentColor}
+                        borderColor="var(--node-border-color)"
+                        borderRadius={100}
+                        borderWidth={2}
+                        h="full"
+                        transitionDuration="0.15s"
+                        transitionProperty="background-color"
+                        transitionTimingFunction="ease-in-out"
+                        w="full"
+                    >
+                        <IconButton
+                            isRound
+                            aria-label="Remove edge button"
+                            borderColor="var(--node-border-color)"
+                            borderRadius={100}
+                            borderWidth={2}
+                            className="edgebutton"
+                            icon={
+                                <Icon
+                                    as={TbUnlink}
+                                    boxSize={5}
                                 />
-                            </foreignObject>
-                        )}
-                        <foreignObject
-                            className="edgebutton-foreignobject"
-                            height={buttonSize}
-                            requiredExtensions="http://www.w3.org/1999/xhtml"
-                            style={{
-                                borderRadius: 100,
-                                opacity: isHovered ? 1 : 0,
-                                transitionDuration: '0.15s',
-                                transitionProperty: 'opacity, background-color',
-                                transitionTimingFunction: 'ease-in-out',
-                            }}
-                            width={buttonSize}
-                            x={pathInfo.labelX - buttonSize / 2}
-                            y={pathInfo.labelY - buttonSize / 2}
+                            }
+                            size="sm"
+                            onClick={() => removeEdgeById(id)}
                         >
-                            <Center
-                                backgroundColor={currentColor}
-                                borderColor="var(--node-border-color)"
-                                borderRadius={100}
-                                borderWidth={2}
-                                h="full"
-                                transitionDuration="0.15s"
-                                transitionProperty="background-color"
-                                transitionTimingFunction="ease-in-out"
-                                w="full"
-                            >
-                                <IconButton
-                                    isRound
-                                    aria-label="Remove edge button"
-                                    borderColor="var(--node-border-color)"
-                                    borderRadius={100}
-                                    borderWidth={2}
-                                    className="edgebutton"
-                                    icon={
-                                        <Icon
-                                            as={TbUnlink}
-                                            boxSize={5}
-                                        />
-                                    }
-                                    size="sm"
-                                    onClick={() => removeEdgeById(id)}
-                                >
-                                    ×
-                                </IconButton>
-                            </Center>
-                        </foreignObject>
-                    </g>
-                ))}
+                            ×
+                        </IconButton>
+                    </Center>
+                </foreignObject>
             </g>
         );
     }
