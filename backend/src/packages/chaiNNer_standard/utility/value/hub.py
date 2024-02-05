@@ -39,5 +39,29 @@ from .. import value_group
         BaseOutput(output_type="Input9", label="Value 10"),
     ],
 )
-def hub_node(value: object) -> object:
-    return value
+def hub_node(
+    value_a: object,
+    value_b: object = None,
+    value_c: object = None,
+    value_d: object = None,
+    value_e: object = None,
+    value_f: object = None,
+    value_g: object = None,
+    value_h: object = None,
+    value_i: object = None,
+    value_j: object = None,
+) -> tuple[
+    object, object, object, object, object, object, object, object, object, object
+]:
+    return (
+        value_a,
+        value_b,
+        value_c,
+        value_d,
+        value_e,
+        value_f,
+        value_g,
+        value_h,
+        value_i,
+        value_j,
+    )
