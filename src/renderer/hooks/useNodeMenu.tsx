@@ -68,7 +68,7 @@ export const useNodeMenu = (
                     clearNodes([id]);
                 }}
             >
-                Clear
+                Reset Node
             </MenuItem>
             {canDisable && (
                 <MenuItem
