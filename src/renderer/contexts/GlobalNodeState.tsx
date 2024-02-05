@@ -7,6 +7,7 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
+    XYPosition,
     useReactFlow,
     useViewport,
 } from 'reactflow';
@@ -141,7 +142,7 @@ interface Global {
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
-    addEdgeBreakpoint: (id: string, position: [number, number]) => void;
+    addEdgeBreakpoint: (id: string, position: XYPosition) => void;
     removeEdgeBreakpoint: (id: string) => void;
 }
 
@@ -767,12 +768,12 @@ export const GlobalProvider = memo(
         );
 
         const addEdgeBreakpoint = useCallback(
-            (id: string, position: [number, number]) => {
+            (id: string, position: XYPosition) => {
                 const newId = createUniqueId();
                 const newNode = {
                     type: 'breakPoint',
                     id: newId,
-                    position: { x: position[0], y: position[1] },
+                    position,
                     data: {
                         schemaId: 'chainner:utility:pass_through' as SchemaId,
                         id: newId,

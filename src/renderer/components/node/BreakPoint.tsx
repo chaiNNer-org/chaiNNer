@@ -35,24 +35,18 @@ const useBreakPointMenu = (id: string): UseContextMenu => {
     ));
 };
 
-export const BreakPoint = memo(({ data, selected, id }: NodeProps) => {
+export const BreakPoint = memo(({ id }: NodeProps) => {
     return (
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        <BreakPointInner
-            data={data}
-            id={id}
-            selected={selected}
-        />
+        <BreakPointInner id={id} />
     );
 });
 
 export interface NodeProps {
-    data: NodeData;
-    selected: boolean;
     id: string;
 }
 
-const BreakPointInner = memo(({ data, selected, id }: NodeProps) => {
+const BreakPointInner = memo(({ id }: NodeProps) => {
     const { getEdges, getNode } = useReactFlow<NodeData, EdgeData>();
     const { edgeChanges } = useContext(GlobalVolatileContext);
     const { removeNodesById } = useContext(GlobalContext);
@@ -110,19 +104,19 @@ const BreakPointInner = memo(({ data, selected, id }: NodeProps) => {
     return (
         <Box
             _hover={{
-                height: 4,
-                width: 4,
-                marginRight: -1,
-                marginLeft: -1,
-                marginTop: -1,
-                marginBottom: -1,
+                height: '22px',
+                width: '22px',
+                marginRight: '-3px',
+                marginLeft: '-3px',
+                marginTop: '-3px',
+                marginBottom: '-3px',
             }}
             backgroundColor={accentColor}
             borderRadius="100%"
-            height={2}
+            height="16px"
             position="relative"
             transition="all 0.2s ease-in-out"
-            width={2}
+            width="16px"
             onContextMenu={menu.onContextMenu}
         >
             <Flex
