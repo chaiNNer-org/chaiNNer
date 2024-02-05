@@ -142,6 +142,7 @@ interface Global {
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
     addEdgeBreakpoint: (id: string, position: [number, number]) => void;
+    removeEdgeBreakpoint: (id: string) => void;
 }
 
 enum SaveResult {
@@ -809,6 +810,37 @@ export const GlobalProvider = memo(
             [changeEdges, changeNodes]
         );
 
+        const removeEdgeBreakpoint = useCallback(
+            (id: string) => {
+                changeEdges((edges) => {
+                    const edgesConnectedToBreakpoint = edges.filter(
+                        (e) => e.source === id || e.target === id
+                    );
+                    if (edgesConnectedToBreakpoint.length !== 2) {
+                        throw new Error('Breakpoint is not connected to exactly two edges');
+                    }
+                    const leftEdge = edgesConnectedToBreakpoint.find((e) => e.target === id);
+                    const rightEdge = edgesConnectedToBreakpoint.find((e) => e.source === id);
+                    if (!leftEdge || !rightEdge) {
+                        throw new Error(
+                            'Unable to find left or right edge connected to breakpoint'
+                        );
+                    }
+                    const combinedEdge = {
+                        ...leftEdge,
+                        target: rightEdge.target,
+                        targetHandle: rightEdge.targetHandle,
+                    };
+                    const filteredEdges = edges.filter(
+                        (e) => e.id !== leftEdge.id && e.id !== rightEdge.id
+                    );
+                    return [...filteredEdges, combinedEdge];
+                });
+                // We don't need to remove the breakpoint, it will handle removing itself once it's orphaned
+            },
+            [changeEdges]
+        );
+
         const selectNode = useCallback(
             (id: string) => {
                 changeNodes((nodes) =>
@@ -1274,6 +1306,7 @@ export const GlobalProvider = memo(
             getInputHash,
             hasRelevantUnsavedChangesRef,
             addEdgeBreakpoint,
+            removeEdgeBreakpoint,
         });
 
         return (
