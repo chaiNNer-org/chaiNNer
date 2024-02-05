@@ -221,3 +221,10 @@ body {
 div[data-popper-placement] {
     z-index: 6500 !important;
 }
+
+.absolute-50 {
+    position:absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}

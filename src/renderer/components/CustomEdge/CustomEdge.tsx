@@ -2,7 +2,7 @@ import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
-import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
+import { EdgeProps, getBezierPath, getStraightPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
@@ -93,21 +93,40 @@ export const CustomEdge = memo(
                 sourceStatus === NodeExecutionStatus.YET_TO_RUN) &&
             targetStatus !== NodeExecutionStatus.NOT_EXECUTING;
 
-        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
-            () =>
-                getBezierPath({
-                    sourceX,
-                    sourceY,
-                    sourcePosition,
-                    targetX,
-                    targetY,
-                    targetPosition,
-                }),
-            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
-        );
-
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
+        const edgeChildNode = useMemo(() => getNode(target)!, [target, getNode]);
+
+        const isAttachedToBreakPoint =
+            edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
+
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
+            if (isAttachedToBreakPoint) {
+                return getStraightPath({
+                    sourceX,
+                    sourceY,
+                    targetX,
+                    targetY,
+                });
+            }
+            return getBezierPath({
+                sourceX,
+                sourceY,
+                sourcePosition,
+                targetX,
+                targetY,
+                targetPosition,
+            });
+        }, [
+            isAttachedToBreakPoint,
+            sourceX,
+            sourceY,
+            sourcePosition,
+            targetX,
+            targetY,
+            targetPosition,
+        ]);
+
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
         const { removeEdgeById } = useContext(GlobalContext);

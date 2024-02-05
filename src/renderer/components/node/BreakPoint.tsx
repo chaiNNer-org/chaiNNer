@@ -104,8 +104,8 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
     return (
         <Box
             _hover={{
-                height: '22px',
-                width: '22px',
+                height: '16px',
+                width: '16px',
                 marginRight: '-3px',
                 marginLeft: '-3px',
                 marginTop: '-3px',
@@ -113,46 +113,56 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
             }}
             backgroundColor={accentColor}
             borderRadius="100%"
-            height="16px"
+            height="12px"
             position="relative"
             transition="all 0.2s ease-in-out"
-            width="16px"
+            width="12px"
             onContextMenu={menu.onContextMenu}
         >
             <Flex
                 align="center"
                 height="full"
+                position="relative"
                 verticalAlign="middle"
                 width="full"
             >
-                <Handle
-                    id={`${id}-0`}
-                    isConnectable={false}
-                    position={Position.Left}
-                    style={{
-                        margin: 'auto',
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        position: 'absolute',
-                        opacity: 0,
-                    }}
-                    type="target"
-                />
-                <Handle
-                    id={`${id}-0`}
-                    isConnectable={false}
-                    position={Position.Right}
-                    style={{
-                        margin: 'auto',
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        position: 'absolute',
-                        opacity: 0,
-                    }}
-                    type="source"
-                />
+                <Flex
+                    align="center"
+                    height="1px"
+                    margin="auto"
+                    position="relative"
+                    verticalAlign="middle"
+                    width="1px"
+                >
+                    <Handle
+                        className="absolute-50"
+                        id={`${id}-0`}
+                        isConnectable={false}
+                        position={Position.Left}
+                        style={{
+                            margin: 'auto',
+                            width: '1px',
+                            height: '1px',
+                            border: 'none',
+                            opacity: 0,
+                        }}
+                        type="target"
+                    />
+                    <Handle
+                        className="absolute-50"
+                        id={`${id}-0`}
+                        isConnectable={false}
+                        position={Position.Right}
+                        style={{
+                            margin: 'auto',
+                            width: '1px',
+                            height: '1px',
+                            border: 'none',
+                            opacity: 0,
+                        }}
+                        type="source"
+                    />
+                </Flex>
             </Flex>
         </Box>
     );
