@@ -173,6 +173,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                         >
                             <NodeHeader
                                 accentColor={accentColor}
+                                animated={false}
                                 disabledStatus={DisabledStatus.Enabled}
                                 icon={selectedSchema.icon}
                                 name={selectedSchema.name}
@@ -181,6 +182,7 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                     isCollapsed: false,
                                     toggleCollapse: () => {},
                                 }}
+                                validity={validity}
                             />
                             <NodeBody
                                 animated={false}
