@@ -50,7 +50,7 @@ export interface NodeProps {
 const BreakPointInner = memo(({ id }: NodeProps) => {
     const { getEdges, getNode } = useReactFlow<NodeData, EdgeData>();
     const { edgeChanges } = useContext(GlobalVolatileContext);
-    const { removeNodesById } = useContext(GlobalContext);
+    const { removeNodesById, removeEdgeBreakpoint } = useContext(GlobalContext);
     const { functionDefinitions } = useContext(BackendContext);
 
     const menu = useBreakPointMenu(id);
@@ -124,6 +124,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                 transition="all 0.2s ease-in-out"
                 width={isHovered ? '16px' : '12px'}
                 onContextMenu={menu.onContextMenu}
+                onDoubleClick={() => removeEdgeBreakpoint(id)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
@@ -187,6 +188,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                 transition="all 0.2s ease-in-out"
                 width="26px"
                 onContextMenu={menu.onContextMenu}
+                onDoubleClick={() => removeEdgeBreakpoint(id)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
