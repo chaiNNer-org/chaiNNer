@@ -4,15 +4,22 @@ import { memo } from 'react';
 import { IconType } from 'react-icons';
 import * as bs from 'react-icons/bs';
 import * as cg from 'react-icons/cg';
-import { FaPaintBrush } from 'react-icons/fa';
+import { FaAlignCenter, FaAlignLeft, FaAlignRight, FaPaintBrush } from 'react-icons/fa';
 import { GiRolledCloth } from 'react-icons/gi';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
 
-const fa = { FaPaintBrush };
+const fa = { FaPaintBrush, FaAlignCenter, FaAlignLeft, FaAlignRight };
 const gi = { GiRolledCloth };
 
-const libraries = { bs, cg, md, im, fa, gi };
+const libraries: Partial<Record<string, Partial<Record<string, IconType>>>> = {
+    bs,
+    cg,
+    md,
+    im,
+    fa,
+    gi,
+};
 
 export const PyTorchIcon = createIcon({
     displayName: 'PyTorchIcon',
@@ -92,98 +99,91 @@ export const NcnnIcon = createIcon({
     ),
 });
 
-export const IconFactory = memo(
-    ({
-        icon,
-        accentColor,
-        boxSize = 4,
-    }: {
-        icon?: string;
-        accentColor?: string;
-        boxSize?: number;
-    }) => {
-        const unknownIcon = (
-            <Icon
-                alignContent="center"
-                alignItems="center"
-                as={bs.BsQuestionDiamond}
-                boxSize={boxSize}
-                color="gray.500"
-                transition="0.15s ease-in-out"
-            />
-        );
-        if (!icon) {
-            return unknownIcon;
-        }
-        switch (icon) {
-            // TODO: Get rid of these hardcoded icons
-            case 'PyTorch':
-                return (
-                    <PyTorchIcon
-                        color={accentColor}
-                        transition="0.15s ease-in-out"
-                    />
-                );
-            case 'ONNX':
-                return (
-                    <OnnxIcon
-                        color={accentColor}
-                        transition="0.15s ease-in-out"
-                    />
-                );
-            case 'NCNN':
-                return (
-                    <NcnnIcon
-                        color={accentColor}
-                        transition="0.15s ease-in-out"
-                    />
-                );
-            default:
-                break;
-        }
-
-        // using segmenter to account for non-latin and emoji characters
-        const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length === 1;
-        if (isSingleCharacter) {
+interface IconFactoryProps {
+    icon?: string | null;
+    accentColor?: string;
+    boxSize?: number;
+}
+export const IconFactory = memo(({ icon, accentColor, boxSize = 4 }: IconFactoryProps) => {
+    const unknownIcon = (
+        <Icon
+            alignContent="center"
+            alignItems="center"
+            as={bs.BsQuestionDiamond}
+            boxSize={boxSize}
+            color="gray.500"
+            transition="0.15s ease-in-out"
+        />
+    );
+    if (!icon) {
+        return unknownIcon;
+    }
+    switch (icon) {
+        // TODO: Get rid of these hardcoded icons
+        case 'PyTorch':
             return (
-                <h5
-                    aria-hidden="true"
-                    className="chakra-heading"
-                    role="presentation"
-                    style={{
-                        color: accentColor,
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        verticalAlign: 'middle',
-                        textRendering: 'geometricPrecision',
-                        fontFamily: 'Noto Emoji, Open Sans, sans-serif',
-                    }}
-                >
-                    {icon}
-                </h5>
+                <PyTorchIcon
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                />
             );
-        }
+        case 'ONNX':
+            return (
+                <OnnxIcon
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                />
+            );
+        case 'NCNN':
+            return (
+                <NcnnIcon
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                />
+            );
+        default:
+            break;
+    }
 
-        const prefix = icon.slice(0, 2).toLowerCase();
-        const library = (libraries as Partial<Record<string, Partial<Record<string, IconType>>>>)[
-            prefix
-        ];
-        if (!library) {
-            return unknownIcon;
-        }
-        const libraryIcon = library[icon];
+    // using segmenter to account for non-latin and emoji characters
+    const isSingleCharacter = [...new Intl.Segmenter().segment(icon)].length === 1;
+    if (isSingleCharacter) {
         return (
-            <Icon
-                alignContent="center"
-                alignItems="center"
-                as={libraryIcon}
-                boxSize={boxSize}
-                color={accentColor}
-                transition="0.15s ease-in-out"
-            />
+            <h5
+                aria-hidden="true"
+                className="chakra-heading"
+                role="presentation"
+                style={{
+                    color: accentColor,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    textRendering: 'geometricPrecision',
+                    fontFamily: 'Noto Emoji, Open Sans, sans-serif',
+                }}
+            >
+                {icon}
+            </h5>
         );
     }
-);
+
+    const prefix = icon.slice(0, 2).toLowerCase();
+    const library = libraries[prefix];
+    if (!library) {
+        return unknownIcon;
+    }
+    const libraryIcon = library[icon];
+    return (
+        <Icon
+            alignContent="center"
+            alignItems="center"
+            as={libraryIcon}
+            boxSize={boxSize}
+            color={accentColor}
+            transition="0.15s ease-in-out"
+        />
+    );
+});
 
 export const DragHandleSVG = createIcon({
     displayName: 'DragHandle',
