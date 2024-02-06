@@ -12,7 +12,14 @@ import * as md from 'react-icons/md';
 const fa = { FaPaintBrush, FaAlignCenter, FaAlignLeft, FaAlignRight };
 const gi = { GiRolledCloth };
 
-const libraries = { bs, cg, md, im, fa, gi };
+const libraries: Partial<Record<string, Partial<Record<string, IconType>>>> = {
+    bs,
+    cg,
+    md,
+    im,
+    fa,
+    gi,
+};
 
 export const PyTorchIcon = createIcon({
     displayName: 'PyTorchIcon',
@@ -161,9 +168,7 @@ export const IconFactory = memo(({ icon, accentColor, boxSize = 4 }: IconFactory
     }
 
     const prefix = icon.slice(0, 2).toLowerCase();
-    const library = (libraries as Partial<Record<string, Partial<Record<string, IconType>>>>)[
-        prefix
-    ];
+    const library = libraries[prefix];
     if (!library) {
         return unknownIcon;
     }

@@ -41,7 +41,7 @@ export const IconList = memo(({ value, onChange, reset, isDisabled, options }: I
                         isDisabled={isDisabled}
                         key={o.value}
                         label={o.option}
-                        openDelay={200}
+                        openDelay={500}
                         placement="top"
                     >
                         <Button
