@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import AnyInput
-from nodes.properties.outputs import BaseOutput
+from nodes.properties.outputs import AnyOutput
 
 from .. import value_group
 
@@ -27,16 +27,16 @@ from .. import value_group
         ),
     ],
     outputs=[
-        BaseOutput(output_type="Input0", label="Value 1"),
-        BaseOutput(output_type="Input1", label="Value 2", allow_none=True),
-        BaseOutput(output_type="Input2", label="Value 3", allow_none=True),
-        BaseOutput(output_type="Input3", label="Value 4", allow_none=True),
-        BaseOutput(output_type="Input4", label="Value 5", allow_none=True),
-        BaseOutput(output_type="Input5", label="Value 6", allow_none=True),
-        BaseOutput(output_type="Input6", label="Value 7", allow_none=True),
-        BaseOutput(output_type="Input7", label="Value 8", allow_none=True),
-        BaseOutput(output_type="Input8", label="Value 9", allow_none=True),
-        BaseOutput(output_type="Input9", label="Value 10", allow_none=True),
+        AnyOutput(output_type="Input0", label="Value 1"),
+        AnyOutput(output_type="Input1", label="Value 2"),
+        AnyOutput(output_type="Input2", label="Value 3"),
+        AnyOutput(output_type="Input3", label="Value 4"),
+        AnyOutput(output_type="Input4", label="Value 5"),
+        AnyOutput(output_type="Input5", label="Value 6"),
+        AnyOutput(output_type="Input6", label="Value 7"),
+        AnyOutput(output_type="Input7", label="Value 8"),
+        AnyOutput(output_type="Input8", label="Value 9"),
+        AnyOutput(output_type="Input9", label="Value 10"),
     ],
 )
 def pass_through_node(
