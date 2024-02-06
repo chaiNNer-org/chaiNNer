@@ -231,6 +231,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         icon={schema.icon}
                         name={schema.name}
                         nodeProgress={nodeProgress}
+                        nodeState={nodeState}
                         selected={selected}
                         useCollapse={useCollapse}
                         validity={validity}

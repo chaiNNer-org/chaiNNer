@@ -6,6 +6,7 @@ import { DisabledStatus } from '../../../common/nodes/disabled';
 import { Validity } from '../../../common/Validity';
 import { NodeProgress } from '../../contexts/ExecutionContext';
 import { interpolateColor } from '../../helpers/colorTools';
+import { NodeState } from '../../helpers/nodeState';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
 import { ValidityIndicator } from './NodeFooter/ValidityIndicator';
@@ -20,6 +21,7 @@ interface NodeHeaderProps {
     validity: Validity;
     nodeProgress?: NodeProgress;
     useCollapse: { isCollapsed: boolean; toggleCollapse: () => void };
+    nodeState: NodeState;
 }
 
 export const NodeHeader = memo(
@@ -33,6 +35,7 @@ export const NodeHeader = memo(
         validity,
         nodeProgress,
         useCollapse,
+        nodeState,
     }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
@@ -100,6 +103,13 @@ export const NodeHeader = memo(
             );
         }
 
+        const maxConnected = Math.max(
+            nodeState.connectedInputs.size,
+            nodeState.connectedOutputs.size
+        );
+        const collapsedHandleHeight = '6px';
+        const minHeight = `calc(${maxConnected} * ${collapsedHandleHeight})`;
+
         return (
             <VStack
                 spacing={0}
@@ -110,6 +120,7 @@ export const NodeHeader = memo(
                     borderBottomColor={accentColor}
                     borderBottomWidth="2px"
                     h="auto"
+                    minHeight={isCollapsed ? minHeight : undefined}
                     p={1}
                     verticalAlign="middle"
                     w="full"
