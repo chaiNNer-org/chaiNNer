@@ -13,9 +13,9 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import { getCustomBezierPath } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
-import { getCustomBezierPath } from '../../helpers/graphUtils';
 
 const EDGE_CLASS = {
     RUNNING: 'running',
@@ -147,7 +147,9 @@ export const CustomEdge = memo(
                 targetPosition,
             });
         }, [
+            edgeParentNode.type,
             isAttachedToBreakPoint,
+            edgeChildNode.type,
             sourceX,
             sourceY,
             sourcePosition,
