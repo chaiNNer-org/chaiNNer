@@ -106,10 +106,10 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
             _hover={{
                 height: '16px',
                 width: '16px',
-                marginRight: '-3px',
-                marginLeft: '-3px',
-                marginTop: '-3px',
-                marginBottom: '-3px',
+                marginRight: '-2px',
+                marginLeft: '-2px',
+                marginTop: '-2px',
+                marginBottom: '-2px',
             }}
             backgroundColor={accentColor}
             borderRadius="100%"
