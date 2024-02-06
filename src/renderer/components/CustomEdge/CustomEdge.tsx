@@ -15,6 +15,7 @@ import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
+import { getCustomBezierPath } from '../../helpers/graphUtils';
 
 const EDGE_CLASS = {
     RUNNING: 'running',
@@ -101,6 +102,34 @@ export const CustomEdge = memo(
             edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
 
         const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
+            if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
+                    sourceX,
+                    sourceY,
+                    sourcePosition,
+                    targetX,
+                    targetY,
+                    targetPosition,
+                    curvatures: {
+                        source: 0.25,
+                        target: 0,
+                    },
+                });
+            }
+            if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
+                    sourceX,
+                    sourceY,
+                    sourcePosition,
+                    targetX,
+                    targetY,
+                    targetPosition,
+                    curvatures: {
+                        source: 0,
+                        target: 0.25,
+                    },
+                });
+            }
             if (isAttachedToBreakPoint) {
                 return getStraightPath({
                     sourceX,

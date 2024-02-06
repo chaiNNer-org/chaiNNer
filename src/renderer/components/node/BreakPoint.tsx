@@ -1,9 +1,10 @@
 import { NeverType } from '@chainner/navi';
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Box, Flex, MenuItem, MenuList } from '@chakra-ui/react';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData, OutputId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -101,69 +102,94 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
         [type, definitionType]
     );
 
+    const [isHovered, setIsHovered] = useState(false);
+    // Prevent hovered state from getting stuck
+    const hoverTimeout = useDebouncedCallback(() => {
+        setIsHovered(false);
+    }, 7500);
+
     return (
-        <Box
-            _hover={{
-                height: '16px',
-                width: '16px',
-                marginRight: '-2px',
-                marginLeft: '-2px',
-                marginTop: '-2px',
-                marginBottom: '-2px',
-            }}
-            backgroundColor={accentColor}
-            borderRadius="100%"
-            height="12px"
-            position="relative"
-            transition="all 0.2s ease-in-out"
-            width="12px"
-            onContextMenu={menu.onContextMenu}
-        >
-            <Flex
-                align="center"
-                height="full"
+        <>
+            <Box
+                _hover={{
+                    height: '16px',
+                    width: '16px',
+                    margin: '-2px',
+                }}
+                backgroundColor={accentColor}
+                borderRadius="100%"
+                height={isHovered ? '16px' : '12px'}
+                margin={isHovered ? '-2px' : '0'}
                 position="relative"
-                verticalAlign="middle"
-                width="full"
+                transition="all 0.2s ease-in-out"
+                width={isHovered ? '16px' : '12px'}
+                onContextMenu={menu.onContextMenu}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onMouseOver={() => hoverTimeout()}
             >
                 <Flex
                     align="center"
-                    height="1px"
-                    margin="auto"
+                    height="full"
                     position="relative"
                     verticalAlign="middle"
-                    width="1px"
+                    width="full"
                 >
-                    <Handle
-                        className="absolute-fifty"
-                        id={`${id}-0`}
-                        isConnectable={false}
-                        position={Position.Left}
-                        style={{
-                            margin: 'auto',
-                            width: '1px',
-                            height: '1px',
-                            border: 'none',
-                            opacity: 0,
-                        }}
-                        type="target"
-                    />
-                    <Handle
-                        className="absolute-fifty"
-                        id={`${id}-0`}
-                        isConnectable={false}
-                        position={Position.Right}
-                        style={{
-                            margin: 'auto',
-                            width: '1px',
-                            height: '1px',
-                            border: 'none',
-                            opacity: 0,
-                        }}
-                        type="source"
-                    />
+                    <Flex
+                        align="center"
+                        height="1px"
+                        margin="auto"
+                        position="relative"
+                        verticalAlign="middle"
+                        width="1px"
+                    >
+                        <Handle
+                            className="absolute-fifty"
+                            id={`${id}-0`}
+                            isConnectable={false}
+                            position={Position.Left}
+                            style={{
+                                margin: 'auto',
+                                width: '1px',
+                                height: '1px',
+                                border: 'none',
+                                opacity: 0,
+                            }}
+                            type="target"
+                        />
+                        <Handle
+                            className="absolute-fifty"
+                            id={`${id}-0`}
+                            isConnectable={false}
+                            position={Position.Right}
+                            style={{
+                                margin: 'auto',
+                                width: '1px',
+                                height: '1px',
+                                border: 'none',
+                                opacity: 0,
+                            }}
+                            type="source"
+                        />
+                    </Flex>
                 </Flex>
-            </Flex>
-        </Box>
+            </Box>
+            <Box
+                backgroundColor="red"
+                borderRadius="100%"
+                height="26px"
+                left="50%"
+                opacity={0}
+                position="absolute"
+                top="50%"
+                transform="translate(-50%, -50%)"
+                transition="all 0.2s ease-in-out"
+                width="26px"
+                onContextMenu={menu.onContextMenu}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onMouseOver={() => hoverTimeout()}
+            />
+        </>
     );
 });
