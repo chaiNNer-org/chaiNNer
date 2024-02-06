@@ -1,8 +1,8 @@
 import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
-import { EdgeProps, getBezierPath, getStraightPath, useReactFlow } from 'reactflow';
+import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
@@ -79,6 +79,7 @@ export const CustomEdge = memo(
         const sourceX = _sourceX - 1; // - 8 <- To align it with the node
         const targetX = _targetX + 1; // + 8
 
+        const { screenToFlowPosition } = useReactFlow();
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
@@ -160,7 +161,7 @@ export const CustomEdge = memo(
 
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById } = useContext(GlobalContext);
+        const { removeEdgeById, addEdgeBreakpoint } = useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
@@ -221,6 +222,20 @@ export const CustomEdge = memo(
 
         const menu = useEdgeMenu(id);
 
+        const altPressed = useKeyPress(['Alt', 'Option']);
+        const onClick = useCallback(
+            (e: React.MouseEvent) => {
+                if (altPressed) {
+                    const adjustedPosition = screenToFlowPosition({
+                        x: e.clientX || 0,
+                        y: e.clientY || 0,
+                    });
+                    addEdgeBreakpoint(id, adjustedPosition);
+                }
+            },
+            [addEdgeBreakpoint, altPressed, id, screenToFlowPosition]
+        );
+
         return (
             <g
                 className="edge-chain-group"
@@ -229,6 +244,7 @@ export const CustomEdge = memo(
                     opacity: isSourceEnabled ? 1 : 0.5,
                     ...style,
                 }}
+                onClick={onClick}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
                 onMouseEnter={() => setIsHovered(true)}
@@ -265,7 +281,8 @@ export const CustomEdge = memo(
                     requiredExtensions="http://www.w3.org/1999/xhtml"
                     style={{
                         borderRadius: 100,
-                        opacity: isHovered ? 1 : 0,
+                        opacity: isHovered && !altPressed ? 1 : 0,
+                        display: altPressed ? 'none' : 'block',
                         transitionDuration: '0.15s',
                         transitionProperty: 'opacity, background-color',
                         transitionTimingFunction: 'ease-in-out',

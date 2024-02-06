@@ -174,6 +174,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                     </Flex>
                 </Flex>
             </Box>
+            {/* This is a ghost circle meant to help increase the hoverable diameter without visually making it look too large */}
             <Box
                 backgroundColor="red"
                 borderRadius="100%"
