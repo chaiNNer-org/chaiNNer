@@ -157,22 +157,14 @@ export const NodeHeader = memo(
                         </Center>
                     </HStack>
                     <Spacer />
-                    {isCollapsed && (animated || !validity.isValid) ? (
-                        <Center w="24px">
+                    <Center w="24px">
+                        {isCollapsed && (animated || !validity.isValid) && (
                             <ValidityIndicator
                                 animated={animated}
                                 validity={validity}
                             />
-                        </Center>
-                    ) : (
-                        <IconButton
-                            aria-label="placeholder"
-                            cursor="default"
-                            icon={<ChevronDownIcon />}
-                            opacity={0}
-                            size="xs"
-                        />
-                    )}
+                        )}
+                    </Center>
                 </Center>
                 {iteratorProcess}
             </VStack>
