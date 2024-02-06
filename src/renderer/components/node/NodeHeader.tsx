@@ -3,10 +3,12 @@ import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { Validity } from '../../../common/Validity';
 import { NodeProgress } from '../../contexts/ExecutionContext';
 import { interpolateColor } from '../../helpers/colorTools';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
+import { ValidityIndicator } from './NodeFooter/ValidityIndicator';
 
 interface NodeHeaderProps {
     name: string;
@@ -14,6 +16,8 @@ interface NodeHeaderProps {
     accentColor: string;
     selected: boolean;
     disabledStatus: DisabledStatus;
+    animated: boolean;
+    validity: Validity;
     nodeProgress?: NodeProgress;
     useCollapse: { isCollapsed: boolean; toggleCollapse: () => void };
 }
@@ -25,6 +29,8 @@ export const NodeHeader = memo(
         accentColor,
         selected,
         disabledStatus,
+        animated,
+        validity,
         nodeProgress,
         useCollapse,
     }: NodeHeaderProps) => {
@@ -109,13 +115,13 @@ export const NodeHeader = memo(
                     w="full"
                     onDoubleClick={toggleCollapse}
                 >
-                    {/* // TODO: replace this with something useful */}
                     <IconButton
-                        aria-label="placeholder"
-                        cursor="default"
-                        icon={<ChevronDownIcon />}
-                        opacity={0}
+                        aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+                        backgroundColor="transparent"
+                        className="nodrag"
+                        icon={!isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
                         size="xs"
+                        onClick={toggleCollapse}
                     />
                     <Spacer />
                     <HStack verticalAlign="middle">
@@ -151,14 +157,22 @@ export const NodeHeader = memo(
                         </Center>
                     </HStack>
                     <Spacer />
-                    <IconButton
-                        aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-                        backgroundColor="transparent"
-                        className="nodrag"
-                        icon={!isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                        size="xs"
-                        onClick={toggleCollapse}
-                    />
+                    {isCollapsed && (animated || !validity.isValid) ? (
+                        <Center w="24px">
+                            <ValidityIndicator
+                                animated={animated}
+                                validity={validity}
+                            />
+                        </Center>
+                    ) : (
+                        <IconButton
+                            aria-label="placeholder"
+                            cursor="default"
+                            icon={<ChevronDownIcon />}
+                            opacity={0}
+                            size="xs"
+                        />
+                    )}
                 </Center>
                 {iteratorProcess}
             </VStack>

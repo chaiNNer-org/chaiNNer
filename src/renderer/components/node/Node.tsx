@@ -226,12 +226,14 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 >
                     <NodeHeader
                         accentColor={accentColor}
+                        animated={animated}
                         disabledStatus={disabled.status}
                         icon={schema.icon}
                         name={schema.name}
                         nodeProgress={nodeProgress}
                         selected={selected}
                         useCollapse={useCollapse}
+                        validity={validity}
                     />
                     {!isCollapsed ? (
                         <NodeBody
@@ -242,12 +244,14 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         <CollapsedHandles nodeState={nodeState} />
                     )}
                 </VStack>
-                <NodeFooter
-                    animated={animated}
-                    id={id}
-                    useDisable={disabled}
-                    validity={validity}
-                />
+                {!isCollapsed && (
+                    <NodeFooter
+                        animated={animated}
+                        id={id}
+                        useDisable={disabled}
+                        validity={validity}
+                    />
+                )}
             </VStack>
         </Center>
     );
