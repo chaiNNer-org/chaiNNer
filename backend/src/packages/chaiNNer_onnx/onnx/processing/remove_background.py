@@ -53,7 +53,6 @@ from .. import processing_group
         ),
         ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
-    limited_to_8bpc=True,
     node_context=True,
 )
 def remove_background_node(
@@ -74,6 +73,10 @@ def remove_background_node(
         settings.tensorrt_fp16_mode,
         settings.tensorrt_cache_path,
     )
+
+    # Remove alpha channel
+    if img.shape[2] == 4:
+        img = img[:, :, :3]
 
     return remove_bg(
         img,
