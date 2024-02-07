@@ -1,8 +1,9 @@
 import { NeverType } from '@chainner/navi';
-import { Box, Flex, HStack } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
+import { stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { NodeState } from '../../helpers/nodeState';
@@ -22,34 +23,36 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
     const { iteratedInputs, iteratedOutputs, id: nodeId } = nodeState;
 
     return (
-        <HStack
-            bg="var(--bg-700)"
-            w="full"
-        >
-            <Box w="full">
-                {inputs.map((input) => {
-                    const isConnected = nodeState.connectedInputs.has(input.id);
+        <>
+            <Box
+                alignItems="center"
+                bottom={0}
+                display="flex"
+                left="-1px"
+                position="absolute"
+                top={0}
+            >
+                <Box>
+                    {inputs.map((input) => {
+                        const isConnected = nodeState.connectedInputs.has(input.id);
 
-                    if (!isConnected) {
-                        return null;
-                    }
+                        if (!isConnected) {
+                            return null;
+                        }
 
-                    const connectableType =
-                        functionDefinition?.inputConvertibleDefaults.get(input.id) ??
-                        NeverType.instance;
-                    const handleColors = getTypeAccentColors(connectableType);
+                        const connectableType =
+                            functionDefinition?.inputConvertibleDefaults.get(input.id) ??
+                            NeverType.instance;
+                        const handleColors = getTypeAccentColors(connectableType);
 
-                    const isIterated = iteratedInputs.has(input.id);
+                        const isIterated = iteratedInputs.has(input.id);
 
-                    const handleId = `${nodeId}-${input.id}`;
+                        const handleId = stringifyTargetHandle({ nodeId, inputId: input.id });
 
-                    return (
-                        <Flex
-                            key={handleId}
-                            w="full"
-                        >
+                        return (
                             <Box
                                 h="6px"
+                                key={handleId}
                                 mr="auto"
                                 position="relative"
                                 w="6px"
@@ -66,35 +69,40 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                                     type="target"
                                 />
                             </Box>
-                        </Flex>
-                    );
-                })}
+                        );
+                    })}
+                </Box>
             </Box>
-            <Box w="full">
-                {outputs.map((output) => {
-                    const functions = functionDefinition?.outputDefaults;
-                    const definitionType = functions?.get(output.id) ?? NeverType.instance;
-                    const type = nodeState.type.instance?.outputs.get(output.id);
+            <Box
+                alignItems="center"
+                bottom={0}
+                display="flex"
+                position="absolute"
+                right="-1px"
+                top={0}
+            >
+                <Box>
+                    {outputs.map((output) => {
+                        const functions = functionDefinition?.outputDefaults;
+                        const definitionType = functions?.get(output.id) ?? NeverType.instance;
+                        const type = nodeState.type.instance?.outputs.get(output.id);
 
-                    const isConnected = nodeState.connectedOutputs.has(output.id);
+                        const isConnected = nodeState.connectedOutputs.has(output.id);
 
-                    if (!isConnected) {
-                        return null;
-                    }
+                        if (!isConnected) {
+                            return null;
+                        }
 
-                    const handleColors = getTypeAccentColors(type || definitionType);
+                        const handleColors = getTypeAccentColors(type || definitionType);
 
-                    const isIterated = iteratedOutputs.has(output.id);
+                        const isIterated = iteratedOutputs.has(output.id);
 
-                    const handleId = `${nodeId}-${output.id}`;
+                        const handleId = stringifySourceHandle({ nodeId, outputId: output.id });
 
-                    return (
-                        <Flex
-                            key={handleId}
-                            w="full"
-                        >
+                        return (
                             <Box
                                 h="6px"
+                                key={handleId}
                                 ml="auto"
                                 position="relative"
                                 w="6px"
@@ -111,10 +119,10 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                                     type="source"
                                 />
                             </Box>
-                        </Flex>
-                    );
-                })}
+                        );
+                    })}
+                </Box>
             </Box>
-        </HStack>
+        </>
     );
 });

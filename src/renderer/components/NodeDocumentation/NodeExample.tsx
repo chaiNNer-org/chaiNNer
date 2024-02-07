@@ -18,7 +18,7 @@ import { TypeState } from '../../../common/nodes/TypeState';
 import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
-import { TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
+import { NodeState, TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
@@ -150,6 +150,27 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         };
     }, [selectedSchema]);
 
+    const nodeState: NodeState = {
+        id: nodeId,
+        schemaId: selectedSchema.schemaId,
+        schema: selectedSchema,
+        inputData,
+        setInputValue,
+        inputHeight,
+        nodeWidth,
+        outputHeight,
+        setOutputHeight: setSingleOutputHeight,
+        setWidth,
+        setInputHeight: setSingleInputHeight,
+        isLocked: false,
+        connectedInputs: EMPTY_SET,
+        connectedOutputs: EMPTY_SET,
+        iteratedInputs,
+        iteratedOutputs,
+        type: typeInfo,
+        testCondition: testForInputConditionTypeInfo(inputData, selectedSchema, typeInfo),
+    };
+
     return (
         <Center key={selectedSchema.schemaId}>
             <FakeNodeProvider isFake>
@@ -173,41 +194,21 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                         >
                             <NodeHeader
                                 accentColor={accentColor}
+                                animated={false}
                                 disabledStatus={DisabledStatus.Enabled}
                                 icon={selectedSchema.icon}
                                 name={selectedSchema.name}
+                                nodeState={nodeState}
                                 selected={false}
                                 useCollapse={{
                                     isCollapsed: false,
                                     toggleCollapse: () => {},
                                 }}
+                                validity={validity}
                             />
                             <NodeBody
                                 animated={false}
-                                nodeState={{
-                                    id: nodeId,
-                                    schemaId: selectedSchema.schemaId,
-                                    schema: selectedSchema,
-                                    inputData,
-                                    setInputValue,
-                                    inputHeight,
-                                    nodeWidth,
-                                    outputHeight,
-                                    setOutputHeight: setSingleOutputHeight,
-                                    setWidth,
-                                    setInputHeight: setSingleInputHeight,
-                                    isLocked: false,
-                                    connectedInputs: EMPTY_SET,
-                                    connectedOutputs: EMPTY_SET,
-                                    iteratedInputs,
-                                    iteratedOutputs,
-                                    type: typeInfo,
-                                    testCondition: testForInputConditionTypeInfo(
-                                        inputData,
-                                        selectedSchema,
-                                        typeInfo
-                                    ),
-                                }}
+                                nodeState={nodeState}
                             />
                         </VStack>
                         <NodeFooter
