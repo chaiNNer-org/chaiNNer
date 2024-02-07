@@ -10,7 +10,7 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:log2lin",
-    description="Convert all channels in an image to a scene linear encoding using the Cineon logarthmic function set.",
+    description="Convert all channels in an image to a scene linear encoding using the Cineon logarithmic function set.",
     name="Log2Lin",
     icon="ImBrightnessContrast",
     inputs=[
