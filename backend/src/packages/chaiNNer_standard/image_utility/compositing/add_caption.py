@@ -17,8 +17,13 @@ from .. import compositing_group
     inputs=[
         ImageInput(),
         TextInput("Caption"),
-        NumberInput("Caption Size", minimum=20, default=42, unit="px"),
-        EnumInput(CaptionPosition, default=CaptionPosition.BOTTOM),
+        NumberInput("Size", minimum=20, default=42, unit="px"),
+        EnumInput(
+            CaptionPosition,
+            "Position",
+            default=CaptionPosition.BOTTOM,
+            label_style="inline",
+        ),
     ],
     outputs=[
         ImageOutput(
@@ -34,7 +39,6 @@ from .. import compositing_group
             assume_normalized=True,
         )
     ],
-    limited_to_8bpc=True,
 )
 def add_caption_node(
     img: np.ndarray, caption: str, size: int, position: CaptionPosition
