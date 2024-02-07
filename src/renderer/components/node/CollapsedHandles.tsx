@@ -20,9 +20,10 @@ interface InputHandleProps {
     nodeId: string;
     inputId: InputId;
     isIterated: boolean;
+    handleId: string;
 }
 
-const InputHandle = memo(({ nodeId, isIterated, inputId }: InputHandleProps) => {
+const InputHandle = memo(({ nodeId, isIterated, inputId, handleId }: InputHandleProps) => {
     const { edgeChanges, typeState } = useContext(GlobalVolatileContext);
     const { getEdges, getNode } = useReactFlow();
 
@@ -57,12 +58,9 @@ const InputHandle = memo(({ nodeId, isIterated, inputId }: InputHandleProps) => 
         return null;
     }, [connectedEdge, functionDefinitions, typeState, getNode]);
 
-    const handleId = stringifyTargetHandle({ nodeId, inputId });
-
     return (
         <Box
             h="6px"
-            key={handleId}
             mr="auto"
             position="relative"
             w="6px"
@@ -115,10 +113,14 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
 
                         const isIterated = iteratedInputs.has(input.id);
 
+                        const handleId = stringifyTargetHandle({ nodeId, inputId: input.id });
+
                         return (
                             <InputHandle
+                                handleId={handleId}
                                 inputId={input.id}
                                 isIterated={isIterated}
+                                key={handleId}
                                 nodeId={nodeId}
                             />
                         );
