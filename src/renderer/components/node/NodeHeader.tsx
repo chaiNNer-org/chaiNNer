@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
@@ -130,7 +130,7 @@ export const NodeHeader = memo(
                         aria-label={isCollapsed ? 'Expand' : 'Collapse'}
                         backgroundColor="transparent"
                         className="nodrag"
-                        icon={!isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                        icon={isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
                         size="xs"
                         onClick={toggleCollapse}
                     />
