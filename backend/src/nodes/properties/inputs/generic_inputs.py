@@ -33,12 +33,13 @@ from .numeric_inputs import NumberInput
 
 class DropDownOption(TypedDict):
     option: str
+    icon: NotRequired[str | None]
     value: str | int
     type: NotRequired[navi.ExpressionJson]
     condition: NotRequired[ConditionJson | None]
 
 
-DropDownStyle = Literal["dropdown", "checkbox", "tabs"]
+DropDownStyle = Literal["dropdown", "checkbox", "tabs", "icons"]
 """
 This specified the preferred style in which the frontend may display the dropdown.
 
@@ -46,6 +47,7 @@ This specified the preferred style in which the frontend may display the dropdow
 - `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
   The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
 - `tabs`: The options are displayed as tab list. The label of the input itself will *not* be displayed.
+- `icons`: The options are displayed as a list of icons. This is only available if all options have icons. Labels are still required for all options.
 """
 
 
@@ -200,6 +202,7 @@ class EnumInput(Generic[T], DropDownInput):
         label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
         conditions: dict[T, Condition] | None = None,
+        icons: dict[T, str] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -209,6 +212,8 @@ class EnumInput(Generic[T], DropDownInput):
             option_labels = {}
         if conditions is None:
             conditions = {}
+        if icons is None:
+            icons = {}
 
         options: list[DropDownOption] = []
         variant_types: list[str] = []
@@ -234,6 +239,7 @@ class EnumInput(Generic[T], DropDownInput):
                     "value": value,
                     "type": variant_type,
                     "condition": condition,
+                    "icon": icons.get(variant),
                 }
             )
 
