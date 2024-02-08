@@ -14,10 +14,8 @@ export const createNode = (
     schemata: SchemaMap,
     selected = false
 ): Node<NodeData> => {
-    const schema = schemata.get(data.schemaId);
-
     const newNode: Node<Mutable<NodeData>> = {
-        type: schema.kind,
+        type: 'backendNode',
         id,
         position: { ...position },
         data: {

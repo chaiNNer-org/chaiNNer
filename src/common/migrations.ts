@@ -1921,6 +1921,13 @@ const saveVideoInputPR2514: ModernMigration = (data) => {
     return data;
 };
 
+const updateNodeTypesToKinds: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        node.type = 'backendNode';
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1978,6 +1985,7 @@ const migrations = [
     createBorderEdgesTileFillToPad,
     unifiedResizeNode,
     saveVideoInputPR2514,
+    updateNodeTypesToKinds,
 ];
 
 export const currentMigration = migrations.length;
