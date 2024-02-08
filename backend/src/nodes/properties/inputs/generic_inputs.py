@@ -17,7 +17,7 @@ from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
-from ...impl.image_utils import FillColor, normalize
+from ...impl.image_utils import FillColor
 from ...impl.upscale.auto_split_tiles import TileSize
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
@@ -346,15 +346,23 @@ class ClipboardInput(BaseInput):
         super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
+        self.label_style: LabelStyle = "hidden"
+
     def enforce(self, value: object):
         if isinstance(value, np.ndarray):
-            return normalize(value)
+            return value
 
         if isinstance(value, float) and int(value) == value:
             # stringify integers values
             return str(int(value))
 
         return str(value)
+
+    def to_dict(self):
+        return {
+            **super().to_dict(),
+            "labelStyle": self.label_style,
+        }
 
 
 class AnyInput(BaseInput):
