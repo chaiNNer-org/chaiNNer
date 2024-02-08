@@ -79,7 +79,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { setNodeCollapsed } = useContext(GlobalContext);
     const { getNodeProgress, getNodeStatus } = useContext(ExecutionContext);
 
-    const { id, inputData, isCollapsed } = data;
+    const { id, inputData, isCollapsed = false } = data;
     const nodeProgress = getNodeProgress(id);
 
     const individuallyRunning = useContextSelector(GlobalVolatileContext, (c) =>
