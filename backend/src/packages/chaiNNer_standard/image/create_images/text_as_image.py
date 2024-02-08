@@ -97,7 +97,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
     description="Create an image using any text.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", multiline=True),
+        TextInput("Text", multiline=True, label_style="hidden"),
         BoolInput("Bold", default=False),
         BoolInput("Italic", default=False),
         ColorInput(channels=[3], default=Color.bgr((0, 0, 0))),
