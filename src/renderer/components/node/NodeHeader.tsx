@@ -1,11 +1,15 @@
-import { Box, Center, HStack, Heading, Text, VStack } from '@chakra-ui/react';
+import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { DisabledStatus } from '../../../common/nodes/disabled';
+import { Validity } from '../../../common/Validity';
 import { NodeProgress } from '../../contexts/ExecutionContext';
 import { interpolateColor } from '../../helpers/colorTools';
+import { NodeState } from '../../helpers/nodeState';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
+import { ValidityIndicator } from './NodeFooter/ValidityIndicator';
 
 interface NodeHeaderProps {
     name: string;
@@ -13,11 +17,28 @@ interface NodeHeaderProps {
     accentColor: string;
     selected: boolean;
     disabledStatus: DisabledStatus;
+    animated: boolean;
+    validity: Validity;
     nodeProgress?: NodeProgress;
+    isCollapsed?: boolean;
+    toggleCollapse?: () => void;
+    nodeState: NodeState;
 }
 
 export const NodeHeader = memo(
-    ({ name, icon, accentColor, selected, disabledStatus, nodeProgress }: NodeHeaderProps) => {
+    ({
+        name,
+        icon,
+        accentColor,
+        selected,
+        disabledStatus,
+        animated,
+        validity,
+        nodeProgress,
+        isCollapsed,
+        toggleCollapse,
+        nodeState,
+    }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
@@ -82,6 +103,13 @@ export const NodeHeader = memo(
             );
         }
 
+        const maxConnected = Math.max(
+            nodeState.connectedInputs.size,
+            nodeState.connectedOutputs.size
+        );
+        const collapsedHandleHeight = '6px';
+        const minHeight = `calc(${maxConnected} * ${collapsedHandleHeight})`;
+
         return (
             <VStack
                 spacing={0}
@@ -92,18 +120,26 @@ export const NodeHeader = memo(
                     borderBottomColor={accentColor}
                     borderBottomWidth="2px"
                     h="auto"
-                    pt={2}
+                    minHeight={isCollapsed ? minHeight : undefined}
+                    p={1}
                     verticalAlign="middle"
                     w="full"
+                    onDoubleClick={toggleCollapse}
                 >
-                    <HStack
-                        mb={-1}
-                        mt={-1}
-                        pb={2}
-                        pl={6}
-                        pr={6}
-                        verticalAlign="middle"
-                    >
+                    <Center w="24px">
+                        {toggleCollapse && (
+                            <IconButton
+                                aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+                                backgroundColor="transparent"
+                                className="nodrag"
+                                icon={isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                                size="xs"
+                                onClick={toggleCollapse}
+                            />
+                        )}
+                    </Center>
+                    <Spacer />
+                    <HStack verticalAlign="middle">
                         <Center
                             alignContent="center"
                             alignItems="center"
@@ -135,6 +171,15 @@ export const NodeHeader = memo(
                             </Heading>
                         </Center>
                     </HStack>
+                    <Spacer />
+                    <Center w="24px">
+                        {isCollapsed && (animated || !validity.isValid) && (
+                            <ValidityIndicator
+                                animated={animated}
+                                validity={validity}
+                            />
+                        )}
+                    </Center>
                 </Center>
                 {iteratorProcess}
             </VStack>
