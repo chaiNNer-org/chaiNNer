@@ -84,7 +84,7 @@ const HandleElement = memo(
     }
 );
 
-export const Div = chakra('div', {
+const Div = chakra('div', {
     baseStyle: {},
 });
 
