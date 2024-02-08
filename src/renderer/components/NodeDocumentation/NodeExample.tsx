@@ -1,4 +1,4 @@
-import { Center, VStack } from '@chakra-ui/react';
+import { Center } from '@chakra-ui/react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Node } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -13,15 +13,12 @@ import {
     OutputId,
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
-import { DisabledStatus } from '../../../common/nodes/disabled';
 import { TypeState } from '../../../common/nodes/TypeState';
 import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
 import { NodeState, TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
-import { NodeBody } from '../node/NodeBody';
-import { NodeFooter } from '../node/NodeFooter/NodeFooter';
-import { NodeHeader } from '../node/NodeHeader';
+import { NodeView } from '../node/Node';
 
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
 const useStateForSchema = function <T>(
@@ -51,10 +48,9 @@ const useStateForSchema = function <T>(
 };
 
 interface NodeExampleProps {
-    accentColor: string;
     selectedSchema: NodeSchema;
 }
-export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExampleProps) => {
+export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
     const defaultInput = useMemo<InputData>(() => {
@@ -174,46 +170,10 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
     return (
         <Center key={selectedSchema.schemaId}>
             <FakeNodeProvider isFake>
-                <Center
-                    bg="var(--node-bg-color)"
-                    borderColor="var(--node-border-color)"
-                    borderRadius="lg"
-                    borderWidth="0.5px"
-                    boxShadow="lg"
-                    minWidth="240px"
-                    overflow="hidden"
-                    transition="0.15s ease-in-out"
-                >
-                    <VStack
-                        spacing={0}
-                        w="full"
-                    >
-                        <VStack
-                            spacing={0}
-                            w="full"
-                        >
-                            <NodeHeader
-                                accentColor={accentColor}
-                                animated={false}
-                                disabledStatus={DisabledStatus.Enabled}
-                                icon={selectedSchema.icon}
-                                name={selectedSchema.name}
-                                nodeState={nodeState}
-                                selected={false}
-                                validity={validity}
-                            />
-                            <NodeBody
-                                animated={false}
-                                nodeState={nodeState}
-                            />
-                        </VStack>
-                        <NodeFooter
-                            animated={false}
-                            id={nodeId}
-                            validity={validity}
-                        />
-                    </VStack>
-                </Center>
+                <NodeView
+                    nodeState={nodeState}
+                    validity={validity}
+                />
             </FakeNodeProvider>
         </Center>
     );
