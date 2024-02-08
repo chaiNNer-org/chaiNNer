@@ -2,7 +2,6 @@ import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
-import { DisabledStatus } from '../../../common/nodes/disabled';
 import { Validity } from '../../../common/Validity';
 import { NodeProgress } from '../../contexts/ExecutionContext';
 import { interpolateColor } from '../../helpers/colorTools';
@@ -74,32 +73,28 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
 });
 
 interface NodeHeaderProps {
-    name: string;
-    icon: string;
+    nodeState: NodeState;
     accentColor: string;
     selected: boolean;
-    disabledStatus: DisabledStatus;
+    isEnabled: boolean;
     animated: boolean;
     validity: Validity;
     nodeProgress?: NodeProgress;
     isCollapsed?: boolean;
     toggleCollapse?: () => void;
-    nodeState: NodeState;
 }
 
 export const NodeHeader = memo(
     ({
-        name,
-        icon,
+        nodeState,
         accentColor,
         selected,
-        disabledStatus,
+        isEnabled,
         animated,
         validity,
         nodeProgress,
         isCollapsed = false,
         toggleCollapse,
-        nodeState,
     }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
@@ -151,7 +146,7 @@ export const NodeHeader = memo(
                         >
                             <IconFactory
                                 accentColor={selected ? accentColor : 'var(--node-icon-color)'}
-                                icon={icon}
+                                icon={nodeState.schema.icon}
                             />
                         </Center>
                         <Center verticalAlign="middle">
@@ -161,7 +156,7 @@ export const NodeHeader = memo(
                                 fontWeight={700}
                                 lineHeight="auto"
                                 m={0}
-                                opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.5}
+                                opacity={isEnabled ? 1 : 0.5}
                                 p={0}
                                 size="sm"
                                 textAlign="center"
@@ -169,7 +164,7 @@ export const NodeHeader = memo(
                                 verticalAlign="middle"
                                 whiteSpace="nowrap"
                             >
-                                {name}
+                                {nodeState.schema.name}
                             </Heading>
                         </Center>
                     </HStack>

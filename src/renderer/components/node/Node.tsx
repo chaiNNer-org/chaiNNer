@@ -1,6 +1,15 @@
 import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useCallback, useMemo, useRef } from 'react';
+import {
+    DragEvent,
+    DragEventHandler,
+    LegacyRef,
+    MouseEventHandler,
+    memo,
+    useCallback,
+    useMemo,
+    useRef,
+} from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
@@ -11,15 +20,20 @@ import {
     isStartingNode,
     parseSourceHandle,
 } from '../../../common/util';
+import { Validity } from '../../../common/Validity';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
-import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
+import {
+    ExecutionContext,
+    NodeExecutionStatus,
+    NodeProgress,
+} from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
-import { useNodeStateFromData } from '../../helpers/nodeState';
-import { useDisabled } from '../../hooks/useDisabled';
+import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
+import { UseDisabled, useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
 import { useValidity } from '../../hooks/useValidity';
@@ -46,36 +60,116 @@ const getSingleFileInput = (inputs: readonly Input[]): Input | undefined => {
     return fileInputs.length === 1 ? fileInputs[0] : undefined;
 };
 
-export const Node = memo(({ data, selected }: NodeProps) => {
-    if (data.schemaId === 'chainner:utility:note') {
+export interface NodeViewProps {
+    nodeState: NodeState;
+    validity: Validity;
+    selected?: boolean;
+    animated?: boolean;
+    isCollapsed?: boolean;
+    toggleCollapse?: () => void;
+    disable?: UseDisabled;
+    nodeProgress?: NodeProgress;
+    borderColor?: string;
+
+    ref?: LegacyRef<HTMLDivElement>;
+    onContextMenu?: MouseEventHandler<HTMLDivElement>;
+    onDragOver?: DragEventHandler<HTMLDivElement>;
+    onDrop?: DragEventHandler<HTMLDivElement>;
+}
+
+export const NodeView = memo(
+    ({
+        nodeState,
+        validity,
+        selected = false,
+        animated = false,
+        isCollapsed = false,
+        toggleCollapse,
+        disable,
+        nodeProgress,
+        borderColor,
+        ref,
+        onContextMenu,
+        onDragOver,
+        onDrop,
+    }: NodeViewProps) => {
+        const { categories } = useContext(BackendContext);
+
+        const { id, schema } = nodeState;
+
+        const accentColor = getCategoryAccentColor(categories, schema.category);
+        const finalBorderColor = useMemo(() => {
+            if (borderColor) return borderColor;
+            const regularBorderColor = 'var(--node-border-color)';
+            return selected ? shadeColor(accentColor, 0) : regularBorderColor;
+        }, [selected, accentColor, borderColor]);
+
+        const isEnabled = disable === undefined || disable.status === DisabledStatus.Enabled;
+
         return (
-            <NoteNode
-                data={data}
-                selected={selected}
-            />
+            <Center
+                bg="var(--node-bg-color)"
+                borderColor={finalBorderColor}
+                borderRadius="lg"
+                borderWidth="0.5px"
+                boxShadow="lg"
+                minWidth="240px"
+                opacity={isEnabled ? 1 : 0.75}
+                overflow="hidden"
+                ref={ref}
+                transition="0.15s ease-in-out"
+                onContextMenu={onContextMenu}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+            >
+                <VStack
+                    opacity={isEnabled ? 1 : 0.75}
+                    spacing={0}
+                    w="full"
+                >
+                    <VStack
+                        spacing={0}
+                        w="full"
+                    >
+                        <NodeHeader
+                            accentColor={accentColor}
+                            animated={animated}
+                            isCollapsed={isCollapsed}
+                            isEnabled={isEnabled}
+                            nodeProgress={nodeProgress}
+                            nodeState={nodeState}
+                            selected={selected}
+                            toggleCollapse={toggleCollapse}
+                            validity={validity}
+                        />
+                        {!isCollapsed ? (
+                            <NodeBody
+                                animated={animated}
+                                nodeState={nodeState}
+                            />
+                        ) : (
+                            <CollapsedHandles nodeState={nodeState} />
+                        )}
+                    </VStack>
+                    {!isCollapsed && (
+                        <NodeFooter
+                            animated={animated}
+                            disable={disable}
+                            id={id}
+                            validity={validity}
+                        />
+                    )}
+                </VStack>
+            </Center>
         );
     }
-
-    return (
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        <NodeInner
-            data={data}
-            selected={selected}
-        />
-    );
-});
-
-export interface NodeProps {
-    data: NodeData;
-    selected: boolean;
-}
+);
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const nodeState = useNodeStateFromData(data);
     const { schema, setInputValue } = nodeState;
 
     const { sendToast } = useContext(AlertBoxContext);
-    const { categories } = useContext(BackendContext);
     const { setNodeCollapsed } = useContext(GlobalContext);
     const { getNodeProgress, getNodeStatus } = useContext(ExecutionContext);
 
@@ -95,16 +189,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const { inputs, category } = schema;
+    const { inputs } = schema;
 
     const { validity } = useValidity(id, schema, inputData);
-
-    const regularBorderColor = 'var(--node-border-color)';
-    const accentColor = getCategoryAccentColor(categories, category);
-    const borderColor = useMemo(
-        () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
-        [selected, accentColor, regularBorderColor]
-    );
 
     const targetRef = useRef<HTMLDivElement>(null);
 
@@ -199,61 +286,43 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     }, [id, isCollapsed, setNodeCollapsed]);
 
     return (
-        <Center
-            bg="var(--node-bg-color)"
-            borderColor={collidingAccentColor || borderColor}
-            borderRadius="lg"
-            borderWidth="0.5px"
-            boxShadow="lg"
-            minWidth="240px"
-            opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
-            overflow="hidden"
+        <NodeView
+            animated={animated}
+            borderColor={collidingAccentColor}
+            disable={disabled}
+            isCollapsed={isCollapsed}
+            nodeProgress={nodeProgress}
+            nodeState={nodeState}
             ref={targetRef}
-            transition="0.15s ease-in-out"
+            selected={selected}
+            toggleCollapse={toggleCollapse}
+            validity={validity}
             onContextMenu={menu.onContextMenu}
             onDragOver={onDragOver}
             onDrop={onDrop}
-        >
-            <VStack
-                opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
-                spacing={0}
-                w="full"
-            >
-                <VStack
-                    spacing={0}
-                    w="full"
-                >
-                    <NodeHeader
-                        accentColor={accentColor}
-                        animated={animated}
-                        disabledStatus={disabled.status}
-                        icon={schema.icon}
-                        isCollapsed={isCollapsed}
-                        name={schema.name}
-                        nodeProgress={nodeProgress}
-                        nodeState={nodeState}
-                        selected={selected}
-                        toggleCollapse={toggleCollapse}
-                        validity={validity}
-                    />
-                    {!isCollapsed ? (
-                        <NodeBody
-                            animated={animated}
-                            nodeState={nodeState}
-                        />
-                    ) : (
-                        <CollapsedHandles nodeState={nodeState} />
-                    )}
-                </VStack>
-                {!isCollapsed && (
-                    <NodeFooter
-                        animated={animated}
-                        id={id}
-                        useDisable={disabled}
-                        validity={validity}
-                    />
-                )}
-            </VStack>
-        </Center>
+        />
+    );
+});
+
+export interface NodeProps {
+    data: NodeData;
+    selected: boolean;
+}
+
+export const Node = memo(({ data, selected }: NodeProps) => {
+    if (data.schemaId === 'chainner:utility:note') {
+        return (
+            <NoteNode
+                data={data}
+                selected={selected}
+            />
+        );
+    }
+
+    return (
+        <NodeInner
+            data={data}
+            selected={selected}
+        />
     );
 });
