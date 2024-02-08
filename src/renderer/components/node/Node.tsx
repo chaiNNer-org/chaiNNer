@@ -197,7 +197,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const toggleCollapse = useCallback(() => {
         setNodeCollapsed(id, !isCollapsed);
     }, [id, isCollapsed, setNodeCollapsed]);
-    const useCollapse = { isCollapsed: isCollapsed ?? false, toggleCollapse };
 
     return (
         <Center
@@ -229,11 +228,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         animated={animated}
                         disabledStatus={disabled.status}
                         icon={schema.icon}
+                        isCollapsed={isCollapsed}
                         name={schema.name}
                         nodeProgress={nodeProgress}
                         nodeState={nodeState}
                         selected={selected}
-                        useCollapse={useCollapse}
+                        toggleCollapse={toggleCollapse}
                         validity={validity}
                     />
                     {!isCollapsed ? (

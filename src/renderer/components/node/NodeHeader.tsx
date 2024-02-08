@@ -20,7 +20,8 @@ interface NodeHeaderProps {
     animated: boolean;
     validity: Validity;
     nodeProgress?: NodeProgress;
-    useCollapse?: { isCollapsed: boolean; toggleCollapse: () => void };
+    isCollapsed?: boolean;
+    toggleCollapse?: () => void;
     nodeState: NodeState;
 }
 
@@ -34,7 +35,8 @@ export const NodeHeader = memo(
         animated,
         validity,
         nodeProgress,
-        useCollapse,
+        isCollapsed,
+        toggleCollapse,
         nodeState,
     }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
@@ -42,8 +44,6 @@ export const NodeHeader = memo(
         const gradR = bgColor;
 
         const progColor = interpolateColor(accentColor, bgColor, 0.5);
-
-        const { isCollapsed = false, toggleCollapse = () => {} } = useCollapse ?? {};
 
         let iteratorProcess = null;
         if (nodeProgress) {
@@ -127,7 +127,7 @@ export const NodeHeader = memo(
                     onDoubleClick={toggleCollapse}
                 >
                     <Center w="24px">
-                        {useCollapse && (
+                        {toggleCollapse && (
                             <IconButton
                                 aria-label={isCollapsed ? 'Expand' : 'Collapse'}
                                 backgroundColor="transparent"
