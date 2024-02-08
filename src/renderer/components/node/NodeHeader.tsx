@@ -11,6 +11,68 @@ import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
 import { ValidityIndicator } from './NodeFooter/ValidityIndicator';
 
+interface IteratorProcessProps {
+    nodeProgress: NodeProgress;
+    progressColor: string;
+}
+
+const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
+    const { progress, eta, index, total } = nodeProgress;
+    const etaDate = new Date();
+    etaDate.setSeconds(etaDate.getSeconds() + eta);
+
+    return (
+        <Box
+            h={6}
+            w="full"
+        >
+            <Center w="full">
+                <HStack
+                    mb="-6"
+                    position="relative"
+                >
+                    <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                    >
+                        {index}/{total} ({(progress * 100).toFixed(0)}
+                        %)
+                    </Text>
+                    <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                    >
+                        ETA:{' '}
+                        {progress === 1 ? (
+                            'Finished'
+                        ) : (
+                            <ReactTimeAgo
+                                future
+                                date={etaDate}
+                                locale="en-US"
+                                timeStyle="round"
+                                tooltip={false}
+                            />
+                        )}
+                    </Text>
+                </HStack>
+            </Center>
+            <Box
+                bgColor="var(--node-bg-color)"
+                h={6}
+                w="full"
+            >
+                <Box
+                    bgColor={progressColor}
+                    h={6}
+                    transition="all 0.15s ease-in-out"
+                    w={`${progress * 100}%`}
+                />
+            </Box>
+        </Box>
+    );
+});
+
 interface NodeHeaderProps {
     name: string;
     icon: string;
@@ -35,73 +97,13 @@ export const NodeHeader = memo(
         animated,
         validity,
         nodeProgress,
-        isCollapsed,
+        isCollapsed = false,
         toggleCollapse,
         nodeState,
     }: NodeHeaderProps) => {
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
-
-        const progColor = interpolateColor(accentColor, bgColor, 0.5);
-
-        let iteratorProcess = null;
-        if (nodeProgress) {
-            const { progress, eta, index, total } = nodeProgress;
-            const etaDate = new Date();
-            etaDate.setSeconds(etaDate.getSeconds() + eta);
-
-            iteratorProcess = (
-                <Box
-                    h={6}
-                    w="full"
-                >
-                    <Center w="full">
-                        <HStack
-                            mb="-6"
-                            position="relative"
-                        >
-                            <Text
-                                fontSize="sm"
-                                fontWeight="medium"
-                            >
-                                {index}/{total} ({(progress * 100).toFixed(0)}
-                                %)
-                            </Text>
-                            <Text
-                                fontSize="sm"
-                                fontWeight="medium"
-                            >
-                                ETA:{' '}
-                                {progress === 1 ? (
-                                    'Finished'
-                                ) : (
-                                    <ReactTimeAgo
-                                        future
-                                        date={etaDate}
-                                        locale="en-US"
-                                        timeStyle="round"
-                                        tooltip={false}
-                                    />
-                                )}
-                            </Text>
-                        </HStack>
-                    </Center>
-                    <Box
-                        bgColor="var(--node-bg-color)"
-                        h={6}
-                        w="full"
-                    >
-                        <Box
-                            bgColor={progColor}
-                            h={6}
-                            transition="all 0.15s ease-in-out"
-                            w={`${progress * 100}%`}
-                        />
-                    </Box>
-                </Box>
-            );
-        }
 
         const maxConnected = Math.max(
             nodeState.connectedInputs.size,
@@ -181,7 +183,12 @@ export const NodeHeader = memo(
                         )}
                     </Center>
                 </Center>
-                {iteratorProcess}
+                {nodeProgress && (
+                    <IteratorProcess
+                        nodeProgress={nodeProgress}
+                        progressColor={interpolateColor(accentColor, bgColor, 0.5)}
+                    />
+                )}
             </VStack>
         );
     }
