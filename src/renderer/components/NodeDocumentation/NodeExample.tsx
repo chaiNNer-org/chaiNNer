@@ -19,7 +19,6 @@ import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
 import { NodeState, TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
-import { CollapsedHandles } from '../node/CollapsedHandles';
 import { NodeBody } from '../node/NodeBody';
 import { NodeFooter } from '../node/NodeFooter/NodeFooter';
 import { NodeHeader } from '../node/NodeHeader';
@@ -172,8 +171,6 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
         testCondition: testForInputConditionTypeInfo(inputData, selectedSchema, typeInfo),
     };
 
-    const [isCollapsed, setIsCollapsed] = useState(false);
-
     return (
         <Center key={selectedSchema.schemaId}>
             <FakeNodeProvider isFake>
@@ -203,30 +200,18 @@ export const NodeExample = memo(({ accentColor, selectedSchema }: NodeExamplePro
                                 name={selectedSchema.name}
                                 nodeState={nodeState}
                                 selected={false}
-                                useCollapse={{
-                                    isCollapsed,
-                                    toggleCollapse: () => {
-                                        setIsCollapsed((prev) => !prev);
-                                    },
-                                }}
                                 validity={validity}
                             />
-                            {!isCollapsed ? (
-                                <NodeBody
-                                    animated={false}
-                                    nodeState={nodeState}
-                                />
-                            ) : (
-                                <CollapsedHandles nodeState={nodeState} />
-                            )}
-                        </VStack>
-                        {!isCollapsed && (
-                            <NodeFooter
+                            <NodeBody
                                 animated={false}
-                                id={nodeId}
-                                validity={validity}
+                                nodeState={nodeState}
                             />
-                        )}
+                        </VStack>
+                        <NodeFooter
+                            animated={false}
+                            id={nodeId}
+                            validity={validity}
+                        />
                     </VStack>
                 </Center>
             </FakeNodeProvider>
