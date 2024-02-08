@@ -2,10 +2,10 @@ import { Type } from '@chainner/navi';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import { Connection, useReactFlow } from 'reactflow';
+import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, LabelStyle } from '../../../common/common-types';
-import { assertNever, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
+import { assertNever, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputContext } from '../../contexts/InputContext';
@@ -20,6 +20,7 @@ export interface InputHandleProps {
     inputId: InputId;
     connectableType: Type;
     isIterated: boolean;
+    isConnected: boolean;
 }
 
 export const InputHandle = memo(
@@ -29,18 +30,9 @@ export const InputHandle = memo(
         inputId,
         connectableType,
         isIterated,
+        isConnected,
     }: React.PropsWithChildren<InputHandleProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFrom } =
-            useContext(GlobalVolatileContext);
-        const { getEdges } = useReactFlow();
-
-        const connectedEdge = useMemo(() => {
-            return getEdges().find(
-                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
-            );
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [edgeChanges, getEdges, id, inputId]);
-        const isConnected = !!connectedEdge;
+        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
@@ -74,7 +66,7 @@ export const InputHandle = memo(
 
         const handleColors = getTypeAccentColors(connectableType);
 
-        const sourceTypeColor = useSourceTypeColor(id, inputId);
+        const sourceTypeColor = useSourceTypeColor(targetHandle);
 
         return (
             <HStack

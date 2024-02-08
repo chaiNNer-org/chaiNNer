@@ -3,7 +3,6 @@ import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
-import { InputId } from '../../../common/common-types';
 import { stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
@@ -12,14 +11,12 @@ import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
 import { getBackground } from '../Handle';
 
 interface InputHandleProps {
-    nodeId: string;
-    inputId: InputId;
     isIterated: boolean;
-    handleId: string;
+    targetHandle: string;
 }
 
-const InputHandle = memo(({ nodeId, isIterated, inputId, handleId }: InputHandleProps) => {
-    const sourceTypeColor = useSourceTypeColor(nodeId, inputId);
+const InputHandle = memo(({ isIterated, targetHandle }: InputHandleProps) => {
+    const sourceTypeColor = useSourceTypeColor(targetHandle);
 
     return (
         <Box
@@ -30,7 +27,7 @@ const InputHandle = memo(({ nodeId, isIterated, inputId, handleId }: InputHandle
         >
             <Handle
                 className="input-handle"
-                id={handleId}
+                id={targetHandle}
                 isConnectable={false}
                 position={Position.Left}
                 style={{
@@ -69,22 +66,19 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                 <Box>
                     {inputs.map((input) => {
                         const isConnected = nodeState.connectedInputs.has(input.id);
-
                         if (!isConnected) {
                             return null;
                         }
 
                         const isIterated = iteratedInputs.has(input.id);
 
-                        const handleId = stringifyTargetHandle({ nodeId, inputId: input.id });
+                        const targetHandle = stringifyTargetHandle({ nodeId, inputId: input.id });
 
                         return (
                             <InputHandle
-                                handleId={handleId}
-                                inputId={input.id}
                                 isIterated={isIterated}
-                                key={handleId}
-                                nodeId={nodeId}
+                                key={targetHandle}
+                                targetHandle={targetHandle}
                             />
                         );
                     })}
@@ -100,33 +94,31 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
             >
                 <Box>
                     {outputs.map((output) => {
-                        const functions = functionDefinition?.outputDefaults;
-                        const definitionType = functions?.get(output.id) ?? NeverType.instance;
-                        const type = nodeState.type.instance?.outputs.get(output.id);
-
                         const isConnected = nodeState.connectedOutputs.has(output.id);
-
                         if (!isConnected) {
                             return null;
                         }
 
+                        const functions = functionDefinition?.outputDefaults;
+                        const definitionType = functions?.get(output.id) ?? NeverType.instance;
+                        const type = nodeState.type.instance?.outputs.get(output.id);
                         const handleColors = getTypeAccentColors(type || definitionType);
 
                         const isIterated = iteratedOutputs.has(output.id);
 
-                        const handleId = stringifySourceHandle({ nodeId, outputId: output.id });
+                        const sourceHandle = stringifySourceHandle({ nodeId, outputId: output.id });
 
                         return (
                             <Box
                                 h="6px"
-                                key={handleId}
+                                key={sourceHandle}
                                 ml="auto"
                                 position="relative"
                                 w="6px"
                             >
                                 <Handle
                                     className="output-handle"
-                                    id={handleId}
+                                    id={sourceHandle}
                                     isConnectable={false}
                                     position={Position.Right}
                                     style={{
