@@ -10,8 +10,8 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:log2lin",
-    description="Convert all channels in an image to a scene linear encoding using the Cineon logarithmic function set.",
-    name="Log2Lin",
+    description="Convert all channels in an image to a scene linear encoding using the Kodak Cineon logarithmic function set.",
+    name="Log To Linear",
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
@@ -40,8 +40,8 @@ from .. import adjustments_group
             controls_step=0.0001,
             scale="log",
         ),
-        BoolInput("Invert Log2Lin", default=False).with_docs(
-            "When checked this will convert the input image back to the Cineon Logarithmic encoding"
+        BoolInput("Invert Log to Linear", default=False).with_docs(
+            "When checked this will convert the input image back to the Kodak Cineon Logarithmic encoding"
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
