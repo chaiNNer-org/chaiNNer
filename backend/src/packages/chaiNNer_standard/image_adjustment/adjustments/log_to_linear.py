@@ -47,7 +47,11 @@ from .. import adjustments_group
     outputs=[ImageOutput(image_type="Input0")],
 )
 def log_to_linear_node(
-    img: np.ndarray, black: float, white: float, gamma: float, invert_log_to_linear: bool
+    img: np.ndarray,
+    black: float,
+    white: float,
+    gamma: float,
+    invert_log_to_linear: bool,
 ) -> np.ndarray:
     offset = pow(10.0, (black - white) * 0.002 / gamma)
     gain = 1.0 / (1.0 - offset)
