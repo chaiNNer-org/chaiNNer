@@ -31,7 +31,7 @@ export const useNodeMenu = (
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;
 
-    const { removeNodesById, clearNodes, duplicateNodes, toggleNodeLock } =
+    const { removeNodesById, resetInputs, resetConnections, duplicateNodes, toggleNodeLock } =
         useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
@@ -65,11 +65,29 @@ export const useNodeMenu = (
             <MenuItem
                 icon={<CloseIcon />}
                 onClick={() => {
-                    clearNodes([id]);
+                    resetInputs([id]);
                 }}
             >
-                Reset Node
+                Reset Inputs
             </MenuItem>
+            <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                    resetConnections([id]);
+                }}
+            >
+                Reset Connections
+            </MenuItem>
+            <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                    resetInputs([id]);
+                    resetConnections([id]);
+                }}
+            >
+                Reset All
+            </MenuItem>
+            <MenuDivider />
             {canDisable && (
                 <MenuItem
                     icon={isDirectlyDisabled ? <MdPlayArrow /> : <MdPlayDisabled />}
