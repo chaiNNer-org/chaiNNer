@@ -211,7 +211,7 @@ export const WithoutLabel = memo(
 export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
     const { conditionallyInactive } = useContext(InputContext);
 
-    const { hasHandle = false } = input;
+    const { hasHandle = false, hint = false, description } = input;
 
     return (
         <WithoutLabel>
@@ -231,12 +231,27 @@ export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<Wi
                     >
                         {input.label}
                     </Text>
-                    {/* <Center>
-                <TypeTags
-                    isOptional={input.optional}
-                    type={definitionType}
-                />
-            </Center> */}
+                    {hint && description && (
+                        <Tooltip
+                            hasArrow
+                            borderRadius={8}
+                            label={<Markdown nonInteractive>{description}</Markdown>}
+                            openDelay={500}
+                            px={2}
+                            py={1}
+                        >
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
+                            >
+                                <QuestionIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        </Tooltip>
+                    )}
                 </Box>
 
                 <Box flexGrow={1}>{children}</Box>
