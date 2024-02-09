@@ -244,6 +244,10 @@ interface IconSetGroup extends GroupBase {
         readonly label: string;
     };
 }
+interface MenuIconRowGroup extends GroupBase {
+    readonly kind: 'menu-icon-row';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
@@ -253,7 +257,8 @@ export type Group =
     | RequiredGroup
     | SeedGroup
     | LinkedInputsGroup
-    | IconSetGroup;
+    | IconSetGroup
+    | MenuIconRowGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;

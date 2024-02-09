@@ -36,6 +36,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     seed: readonly [NumberInput];
     'linked-inputs': readonly [Input, Input, ...Input[]];
     'icon-set': readonly DropDownInput[];
+    'menu-icon-row': readonly InputItem[];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -175,6 +176,9 @@ const groupInputsChecks: {
         ) {
             return `Expected all inputs to checkboxes`;
         }
+    },
+    'menu-icon-row': (inputs) => {
+        if (inputs.length < 1) return 'Expected at least at one input';
     },
 };
 
