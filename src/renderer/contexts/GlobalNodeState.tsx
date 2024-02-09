@@ -142,6 +142,7 @@ interface Global {
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
+    setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
     addEdgeBreakpoint: (id: string, position: XYPosition) => void;
     removeEdgeBreakpoint: (id: string) => void;
 }
@@ -1140,6 +1141,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeCollapsed = useCallback(
+            (id: string, isCollapsed: boolean): void => {
+                modifyNode(id, (n) => {
+                    return withNewData(n, 'isCollapsed', isCollapsed);
+                });
+            },
+            [modifyNode]
+        );
+
         const [viewportExportPadding] = useViewportExportPadding;
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
@@ -1306,6 +1316,7 @@ export const GlobalProvider = memo(
             outputDataActions,
             getInputHash,
             hasRelevantUnsavedChangesRef,
+            setNodeCollapsed,
             addEdgeBreakpoint,
             removeEdgeBreakpoint,
         });

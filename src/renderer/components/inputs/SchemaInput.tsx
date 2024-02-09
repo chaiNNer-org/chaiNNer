@@ -131,6 +131,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 connectableType={connectableType}
                 id={nodeId}
                 inputId={inputId}
+                isConnected={connectedInputs.has(inputId)}
                 isIterated={iteratedInputs.has(inputId)}
             >
                 {inputElement}
