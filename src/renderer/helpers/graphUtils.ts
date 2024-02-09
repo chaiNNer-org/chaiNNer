@@ -3,6 +3,7 @@ import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs';
 import { Edge, Node, Position } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
+import { Circle, getAngleBetweenPoints, getPointOnCircle } from './floatingEdgeUtils';
 
 export interface Point {
     readonly x: number;
@@ -318,6 +319,7 @@ export const getCustomBezierPath = ({
         source: 0.25,
         target: 0.25,
     },
+    radii,
 }: {
     sourceX: number;
     sourceY: number;
@@ -329,28 +331,53 @@ export const getCustomBezierPath = ({
         source: number;
         target: number;
     };
+    radii?: {
+        source: number;
+        target: number;
+    };
 }): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] => {
+    let sx = sourceX;
+    let sy = sourceY;
+    let tx = targetX;
+    let ty = targetY;
+    const sourceCircle: Circle = { x: sourceX, y: sourceY, radius: radii?.source ?? 0 };
+    const targetCircle: Circle = { x: targetX, y: targetY, radius: radii?.target ?? 0 };
+
+    const angle = getAngleBetweenPoints(sourceCircle, targetCircle);
+
+    if (radii?.source) {
+        const sourcePoint = getPointOnCircle(sourceCircle, angle);
+        sx = sourcePoint.x - sourceCircle.radius;
+        sy = sourcePoint.y;
+    }
+    if (radii?.target) {
+        const targetPoint = getPointOnCircle(targetCircle, angle + Math.PI);
+        tx = targetPoint.x + targetCircle.radius;
+        ty = targetPoint.y;
+    }
+
     const [sourceControlX, sourceControlY] = getCustomControlWithCurvature({
         pos: sourcePosition,
-        x1: sourceX,
-        y1: sourceY,
-        x2: targetX,
-        y2: targetY,
+        x1: sx,
+        y1: sy,
+        x2: tx,
+        y2: ty,
         c: curvatures.source,
     });
+
     const [targetControlX, targetControlY] = getCustomControlWithCurvature({
         pos: targetPosition,
-        x1: targetX,
-        y1: targetY,
-        x2: sourceX,
-        y2: sourceY,
+        x1: tx,
+        y1: ty,
+        x2: sx,
+        y2: sy,
         c: curvatures.target,
     });
     const [labelX, labelY, offsetX, offsetY] = getBezierEdgeCenter({
-        sourceX,
-        sourceY,
-        targetX,
-        targetY,
+        sourceX: sx,
+        sourceY: sy,
+        targetX: tx,
+        targetY: ty,
         sourceControlX,
         sourceControlY,
         targetControlX,
@@ -358,7 +385,7 @@ export const getCustomBezierPath = ({
     });
 
     return [
-        `M${sourceX},${sourceY} C${sourceControlX},${sourceControlY} ${targetControlX},${targetControlY} ${targetX},${targetY}`,
+        `M${sx},${sy} C${sourceControlX},${sourceControlY} ${targetControlX},${targetControlY} ${tx},${ty}`,
         labelX,
         labelY,
         offsetX,

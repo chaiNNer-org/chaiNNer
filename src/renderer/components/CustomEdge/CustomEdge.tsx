@@ -13,6 +13,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import { getCircularEdgeParams } from '../../helpers/floatingEdgeUtils';
 import { getCustomBezierPath } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
@@ -115,6 +116,10 @@ export const CustomEdge = memo(
                         source: 0.25,
                         target: 0,
                     },
+                    radii: {
+                        source: 0,
+                        target: 6,
+                    },
                 });
             }
             if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
@@ -129,14 +134,31 @@ export const CustomEdge = memo(
                         source: 0,
                         target: 0.25,
                     },
+                    radii: {
+                        source: 6,
+                        target: 0,
+                    },
                 });
             }
             if (isAttachedToBreakPoint) {
+                const { sx, sy, tx, ty } = getCircularEdgeParams(
+                    {
+                        x: _sourceX,
+                        y: sourceY,
+                        radius: 6,
+                    },
+                    {
+                        x: _targetX,
+                        y: targetY,
+                        radius: 6,
+                    }
+                );
+
                 return getStraightPath({
-                    sourceX,
-                    sourceY,
-                    targetX,
-                    targetY,
+                    sourceX: sx,
+                    sourceY: sy,
+                    targetX: tx,
+                    targetY: ty,
                 });
             }
             return getBezierPath({
@@ -157,6 +179,8 @@ export const CustomEdge = memo(
             targetX,
             targetY,
             targetPosition,
+            _sourceX,
+            _targetX,
         ]);
 
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);

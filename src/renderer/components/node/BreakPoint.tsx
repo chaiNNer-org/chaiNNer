@@ -151,8 +151,8 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                             position={Position.Left}
                             style={{
                                 margin: 'auto',
-                                width: '1px',
-                                height: '1px',
+                                width: '12px',
+                                height: '12px',
                                 border: 'none',
                                 opacity: 0,
                             }}
@@ -165,8 +165,8 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                             position={Position.Right}
                             style={{
                                 margin: 'auto',
-                                width: '1px',
-                                height: '1px',
+                                width: '12px',
+                                height: '12px',
                                 border: 'none',
                                 opacity: 0,
                             }}
