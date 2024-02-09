@@ -71,7 +71,7 @@ export interface NodeViewProps {
     nodeProgress?: NodeProgress;
     borderColor?: string;
 
-    ref?: LegacyRef<HTMLDivElement>;
+    targetRef?: LegacyRef<HTMLDivElement>;
     onContextMenu?: MouseEventHandler<HTMLDivElement>;
     onDragOver?: DragEventHandler<HTMLDivElement>;
     onDrop?: DragEventHandler<HTMLDivElement>;
@@ -88,7 +88,7 @@ export const NodeView = memo(
         disable,
         nodeProgress,
         borderColor,
-        ref,
+        targetRef,
         onContextMenu,
         onDragOver,
         onDrop,
@@ -116,7 +116,7 @@ export const NodeView = memo(
                 minWidth="240px"
                 opacity={isEnabled ? 1 : 0.75}
                 overflow="hidden"
-                ref={ref}
+                ref={targetRef}
                 transition="0.15s ease-in-out"
                 onContextMenu={onContextMenu}
                 onDragOver={onDragOver}
@@ -293,8 +293,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             isCollapsed={isCollapsed}
             nodeProgress={nodeProgress}
             nodeState={nodeState}
-            ref={targetRef}
             selected={selected}
+            targetRef={targetRef}
             toggleCollapse={toggleCollapse}
             validity={validity}
             onContextMenu={menu.onContextMenu}
