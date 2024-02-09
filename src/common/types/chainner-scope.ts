@@ -88,7 +88,6 @@ let OnnxGenericModel = OnnxModel {
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
-struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct TileSize;
 struct AudioStream;
