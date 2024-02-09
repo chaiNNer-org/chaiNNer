@@ -4,12 +4,19 @@ import { memo } from 'react';
 import { IconType } from 'react-icons';
 import * as bs from 'react-icons/bs';
 import * as cg from 'react-icons/cg';
-import { FaAlignCenter, FaAlignLeft, FaAlignRight, FaPaintBrush } from 'react-icons/fa';
+import {
+    FaAlignCenter,
+    FaAlignLeft,
+    FaAlignRight,
+    FaBold,
+    FaItalic,
+    FaPaintBrush,
+} from 'react-icons/fa';
 import { GiRolledCloth } from 'react-icons/gi';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
 
-const fa = { FaPaintBrush, FaAlignCenter, FaAlignLeft, FaAlignRight };
+const fa = { FaPaintBrush, FaAlignCenter, FaAlignLeft, FaAlignRight, FaBold, FaItalic };
 const gi = { GiRolledCloth };
 
 const libraries: Partial<Record<string, Partial<Record<string, IconType>>>> = {
@@ -160,6 +167,7 @@ export const IconFactory = memo(({ icon, accentColor, boxSize = 4 }: IconFactory
                     verticalAlign: 'middle',
                     textRendering: 'geometricPrecision',
                     fontFamily: 'Noto Emoji, Open Sans, sans-serif',
+                    cursor: 'inherit',
                 }}
             >
                 {icon}

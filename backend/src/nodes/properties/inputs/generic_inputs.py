@@ -140,7 +140,7 @@ class DropDownInput(BaseInput):
 
 
 class BoolInput(DropDownInput):
-    def __init__(self, label: str, default: bool = True):
+    def __init__(self, label: str, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
             label=label,
@@ -150,6 +150,7 @@ class BoolInput(DropDownInput):
                     "option": "Yes",
                     "value": int(True),  # 1
                     "type": "true",
+                    "icon": icon,
                 },
                 {
                     "option": "No",

@@ -35,6 +35,7 @@ type DeclaredGroupInputs = InputGuarantees<{
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
     'linked-inputs': readonly [Input, Input, ...Input[]];
+    'icon-set': readonly DropDownInput[];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -163,6 +164,16 @@ const groupInputsChecks: {
                 if (JSON.stringify(value) !== JSON.stringify(ref[key as never]))
                     return `Expected all inputs to have the same ${key} value`;
             }
+        }
+    },
+    'icon-set': (inputs) => {
+        if (inputs.length < 1) return 'Expected at least at one input';
+
+        if (
+            !allInputsOfKind(inputs, 'dropdown') ||
+            !inputs.every((input) => !input.hasHandle && input.preferredStyle === 'checkbox')
+        ) {
+            return `Expected all inputs to checkboxes`;
         }
     },
 };
