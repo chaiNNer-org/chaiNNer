@@ -8,7 +8,8 @@ import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 
 export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
-    const { removeNodesById, clearNodes, duplicateNodes } = useContext(GlobalContext);
+    const { removeNodesById, resetInputs, resetConnections, duplicateNodes } =
+        useContext(GlobalContext);
 
     const nodeIds = nodes.map((n) => n.id);
 
@@ -36,11 +37,29 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
             <MenuItem
                 icon={<CloseIcon />}
                 onClick={() => {
-                    clearNodes(nodeIds);
+                    resetInputs(nodeIds);
                 }}
             >
-                Reset Selected Nodes
+                Reset Inputs
             </MenuItem>
+            <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                    resetConnections(nodeIds);
+                }}
+            >
+                Reset Connections
+            </MenuItem>
+            <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                    resetInputs(nodeIds);
+                    resetConnections(nodeIds);
+                }}
+            >
+                Reset All
+            </MenuItem>
+            <MenuDivider />
             <MenuItem
                 icon={<DeleteIcon />}
                 onClick={() => {
