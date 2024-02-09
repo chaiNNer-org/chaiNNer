@@ -104,6 +104,7 @@ export const CustomEdge = memo(
             edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
 
         const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
+            const BREAKPOINT_RADIUS = 6;
             if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
                 return getCustomBezierPath({
                     sourceX,
@@ -118,7 +119,7 @@ export const CustomEdge = memo(
                     },
                     radii: {
                         source: 0,
-                        target: 6,
+                        target: BREAKPOINT_RADIUS,
                     },
                 });
             }
@@ -135,7 +136,7 @@ export const CustomEdge = memo(
                         target: 0.25,
                     },
                     radii: {
-                        source: 6,
+                        source: BREAKPOINT_RADIUS,
                         target: 0,
                     },
                 });
@@ -145,12 +146,12 @@ export const CustomEdge = memo(
                     {
                         x: _sourceX,
                         y: sourceY,
-                        radius: 6,
+                        radius: BREAKPOINT_RADIUS,
                     },
                     {
                         x: _targetX,
                         y: targetY,
-                        radius: 6,
+                        radius: BREAKPOINT_RADIUS,
                     }
                 );
 

@@ -21,6 +21,12 @@ export const getPointOnCircle = (circle: Circle, angle: number) => {
 
 // Modify getEdgeParams to use circle parameters and get the line that floats around the edge of each circle
 export const getCircularEdgeParams = (sourceCircle: Circle, targetCircle: Circle) => {
+    // Update the sourceX and source Y to be in the center of the circle
+    // eslint-disable-next-line no-param-reassign
+    sourceCircle.x -= sourceCircle.radius;
+    // eslint-disable-next-line no-param-reassign
+    targetCircle.x += targetCircle.radius;
+
     // Calculate the angle between the centers of the circles
     const angle = getAngleBetweenPoints(sourceCircle, targetCircle);
 
@@ -29,9 +35,9 @@ export const getCircularEdgeParams = (sourceCircle: Circle, targetCircle: Circle
     const endEdgePoint = getPointOnCircle(targetCircle, angle + Math.PI);
 
     return {
-        sx: startEdgePoint.x - sourceCircle.radius,
+        sx: startEdgePoint.x,
         sy: startEdgePoint.y,
-        tx: endEdgePoint.x + targetCircle.radius,
+        tx: endEdgePoint.x,
         ty: endEdgePoint.y,
     };
 };
