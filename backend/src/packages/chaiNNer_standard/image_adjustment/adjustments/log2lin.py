@@ -46,13 +46,13 @@ from .. import adjustments_group
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
-def log2lin_node(
+def log_to_linear_node(
     img: np.ndarray, black: float, white: float, gamma: float, invert_log2lin: bool
 ) -> np.ndarray:
     offset = pow(10.0, (black - white) * 0.002 / gamma)
     gain = 1.0 / (1.0 - offset)
 
-    if not invert_log2lin:
+    if not invert_log_to_linear:
         img = gain * (pow(10.0, (1023.0 * img - white) * 0.002 / gamma) - offset)
     else:
         img = (np.log10(img / gain + offset) / (0.002 / gamma) + white) / 1023.0
