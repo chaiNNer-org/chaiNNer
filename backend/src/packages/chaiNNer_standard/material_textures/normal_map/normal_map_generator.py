@@ -239,7 +239,9 @@ def normalize(x: np.ndarray, y: np.ndarray):
             label_style="inline",
             default=AlphaOutput.NONE,
             option_labels={AlphaOutput.ONE: "Set to 1"},
-        ).with_id(7),
+        )
+        .with_docs("Determines the alpha channel of the generated normal map.")
+        .with_id(7),
     ],
     outputs=[
         ImageOutput(
