@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from nodes.groups import icon_set_group
 from nodes.impl.image_utils import as_3d
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -17,10 +18,12 @@ from .. import adjustments_group
     icon="MdOutlineColorLens",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        BoolInput("Red", default=True),
-        BoolInput("Green", default=True),
-        BoolInput("Blue", default=True),
-        BoolInput("Alpha", default=False),
+        icon_set_group("Channels")(
+            BoolInput("Red", default=True),
+            BoolInput("Green", default=True),
+            BoolInput("Blue", default=True),
+            BoolInput("Alpha", default=False),
+        ),
         SliderInput(
             "In Black",
             minimum=0,

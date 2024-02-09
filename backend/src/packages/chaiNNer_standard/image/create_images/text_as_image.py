@@ -7,6 +7,7 @@ from enum import Enum
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from nodes.groups import icon_set_group
 from nodes.impl.caption import get_font_size
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import normalize, to_uint8
@@ -32,7 +33,7 @@ TEXT_AS_IMAGE_FONT_PATH = [
 
 class TextAsImageAlignment(Enum):
     LEFT = "left"
-    CENTERED = "center"
+    CENTER = "center"
     RIGHT = "right"
 
 
@@ -98,25 +99,22 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
     icon="MdTextFields",
     inputs=[
         TextInput("Text", multiline=True, label_style="hidden"),
-        BoolInput("Bold", default=False),
-        BoolInput("Italic", default=False),
-        ColorInput(channels=[3], default=Color.bgr((0, 0, 0))),
+        icon_set_group("Style")(
+            BoolInput("Bold", default=False, icon="FaBold").with_id(1),
+            BoolInput("Italic", default=False, icon="FaItalic").with_id(2),
+        ),
         EnumInput(
             TextAsImageAlignment,
             label="Alignment",
             preferred_style="icons",
-            option_labels={
-                TextAsImageAlignment.LEFT: "Left",
-                TextAsImageAlignment.CENTERED: "Center",
-                TextAsImageAlignment.RIGHT: "Right",
-            },
             icons={
                 TextAsImageAlignment.LEFT: "FaAlignLeft",
-                TextAsImageAlignment.CENTERED: "FaAlignCenter",
+                TextAsImageAlignment.CENTER: "FaAlignCenter",
                 TextAsImageAlignment.RIGHT: "FaAlignRight",
             },
-            default=TextAsImageAlignment.CENTERED,
-        ),
+            default=TextAsImageAlignment.CENTER,
+        ).with_id(4),
+        ColorInput(channels=[3], default=Color.bgr((0, 0, 0))).with_id(3),
         NumberInput(
             "Width",
             minimum=1,
@@ -124,7 +122,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
             controls_step=1,
             precision=0,
             default=500,
-        ),
+        ).with_id(5),
         NumberInput(
             "Height",
             minimum=1,
@@ -132,13 +130,13 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
             controls_step=1,
             precision=0,
             default=100,
-        ),
+        ).with_id(6),
         EnumInput(
             TextAsImagePosition,
             label="Position",
             option_labels=TEXT_AS_IMAGE_POSITION_LABELS,
             default=TextAsImagePosition.CENTERED,
-        ),
+        ).with_id(7),
     ],
     outputs=[
         ImageOutput(
