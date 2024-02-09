@@ -4,8 +4,9 @@ import { memo, useCallback } from 'react';
 import { Markdown } from '../Markdown';
 import { Checkbox } from './elements/Checkbox';
 import { DropDown } from './elements/Dropdown';
+import { IconList } from './elements/IconList';
 import { TabList } from './elements/TabList';
-import { AutoLabel, WithoutLabel } from './InputContainer';
+import { AutoLabel, InlineLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
 type DropDownInputProps = InputProps<'dropdown', string | number>;
@@ -65,6 +66,20 @@ export const DropDownInput = memo(
                         onChange={setValue}
                     />
                 </WithoutLabel>
+            );
+        }
+
+        if (preferredStyle === 'icons') {
+            return (
+                <InlineLabel input={input}>
+                    <IconList
+                        isDisabled={isLocked}
+                        options={input.options}
+                        reset={reset}
+                        value={value}
+                        onChange={setValue}
+                    />
+                </InlineLabel>
             );
         }
 

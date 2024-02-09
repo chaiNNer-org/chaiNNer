@@ -36,13 +36,6 @@ class TextAsImageAlignment(Enum):
     RIGHT = "right"
 
 
-TEXT_AS_IMAGE_ALIGNMENT_LABELS = {
-    TextAsImageAlignment.LEFT: "Left",
-    TextAsImageAlignment.CENTERED: "Centered",
-    TextAsImageAlignment.RIGHT: "Right",
-}
-
-
 class TextAsImagePosition(Enum):
     TOP_LEFT = "top_left"
     TOP_CENTERED = "top_centered"
@@ -104,14 +97,24 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
     description="Create an image using any text.",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", multiline=True),
+        TextInput("Text", multiline=True, label_style="hidden"),
         BoolInput("Bold", default=False),
         BoolInput("Italic", default=False),
         ColorInput(channels=[3], default=Color.bgr((0, 0, 0))),
         EnumInput(
             TextAsImageAlignment,
-            label="Text alignment",
-            option_labels=TEXT_AS_IMAGE_ALIGNMENT_LABELS,
+            label="Alignment",
+            preferred_style="icons",
+            option_labels={
+                TextAsImageAlignment.LEFT: "Left",
+                TextAsImageAlignment.CENTERED: "Center",
+                TextAsImageAlignment.RIGHT: "Right",
+            },
+            icons={
+                TextAsImageAlignment.LEFT: "FaAlignLeft",
+                TextAsImageAlignment.CENTERED: "FaAlignCenter",
+                TextAsImageAlignment.RIGHT: "FaAlignRight",
+            },
             default=TextAsImageAlignment.CENTERED,
         ),
         NumberInput(

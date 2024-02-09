@@ -436,12 +436,10 @@ export const NodeDocs = memo(({ schema }: NodeDocsProps) => {
                         <Flex
                             direction={isLargerThan1200 ? 'row' : 'column'}
                             gap={4}
-                            key={schema.schemaId}
                         >
                             <SingleNodeInfo
                                 accentColor={selectedAccentColor}
                                 functionDefinition={nodeFunctionDefinition}
-                                key={schema.schemaId}
                                 schema={schema}
                             />
                             <Center
@@ -455,11 +453,7 @@ export const NodeDocs = memo(({ schema }: NodeDocsProps) => {
                                     position="relative"
                                     w="auto"
                                 >
-                                    <NodeExample
-                                        accentColor={selectedAccentColor}
-                                        key={schema.schemaId}
-                                        selectedSchema={schema}
-                                    />
+                                    <NodeExample selectedSchema={schema} />
                                 </Box>
                             </Center>
                         </Flex>

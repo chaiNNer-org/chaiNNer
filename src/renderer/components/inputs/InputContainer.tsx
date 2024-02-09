@@ -2,20 +2,15 @@ import { Type } from '@chainner/navi';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import { Connection, Node, useReactFlow } from 'reactflow';
+import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { InputId, LabelStyle, NodeData } from '../../../common/common-types';
-import {
-    assertNever,
-    parseSourceHandle,
-    parseTargetHandle,
-    stringifyTargetHandle,
-} from '../../../common/util';
+import { InputId, LabelStyle } from '../../../common/common-types';
+import { assertNever, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
-import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputContext } from '../../contexts/InputContext';
-import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
+import { getTypeAccentColors } from '../../helpers/accentColors';
+import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
 import { Handle } from '../Handle';
 import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
@@ -25,6 +20,7 @@ export interface InputHandleProps {
     inputId: InputId;
     connectableType: Type;
     isIterated: boolean;
+    isConnected: boolean;
 }
 
 export const InputHandle = memo(
@@ -34,18 +30,9 @@ export const InputHandle = memo(
         inputId,
         connectableType,
         isIterated,
+        isConnected,
     }: React.PropsWithChildren<InputHandleProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
-            useContext(GlobalVolatileContext);
-        const { getEdges, getNode } = useReactFlow();
-
-        const connectedEdge = useMemo(() => {
-            return getEdges().find(
-                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
-            );
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [edgeChanges, getEdges, id, inputId]);
-        const isConnected = !!connectedEdge;
+        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
@@ -77,31 +64,9 @@ export const InputHandle = memo(
             });
         }, [connectingFrom, id, targetHandle, isValidConnection]);
 
-        const { functionDefinitions } = useContext(BackendContext);
-
         const handleColors = getTypeAccentColors(connectableType);
 
-        const sourceTypeColor = useMemo(() => {
-            if (connectedEdge) {
-                const sourceNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
-                const sourceOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
-                if (sourceNode) {
-                    const sourceDef = functionDefinitions.get(sourceNode.data.schemaId);
-                    if (!sourceDef) {
-                        return defaultColor;
-                    }
-                    const sourceType =
-                        typeState.functions.get(sourceNode.id)?.outputs.get(sourceOutputId) ??
-                        sourceDef.outputDefaults.get(sourceOutputId);
-                    if (!sourceType) {
-                        return defaultColor;
-                    }
-                    return getTypeAccentColors(sourceType)[0];
-                }
-                return defaultColor;
-            }
-            return null;
-        }, [connectedEdge, functionDefinitions, typeState, getNode]);
+        const sourceTypeColor = useSourceTypeColor(targetHandle);
 
         return (
             <HStack

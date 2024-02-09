@@ -61,13 +61,14 @@ interface InputBase {
     readonly fused?: IOFusion | null;
 }
 export interface InputOption {
-    option: string;
-    value: InputSchemaValue;
-    type?: ExpressionJson;
-    condition?: Condition | null;
+    readonly option: string;
+    readonly value: InputSchemaValue;
+    readonly icon?: string | null;
+    readonly type?: ExpressionJson;
+    readonly condition?: Condition | null;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs';
+export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs' | 'icons';
 export interface DropdownGroup {
     readonly label?: string | null;
     readonly startAt: InputSchemaValue;
@@ -309,6 +310,7 @@ export interface NodeData {
     readonly invalid?: boolean;
     readonly minWidth?: number;
     readonly minHeight?: number;
+    readonly isCollapsed?: boolean;
 }
 export interface EdgeData {
     sourceX?: number;

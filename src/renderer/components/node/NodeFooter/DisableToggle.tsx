@@ -4,11 +4,11 @@ import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { UseDisabled } from '../../../hooks/useDisabled';
 
 interface DisableToggleProps {
-    useDisable: UseDisabled;
+    disable: UseDisabled;
 }
 
-export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
-    const { isDirectlyDisabled, toggleDirectlyDisabled } = useDisable;
+export const DisableToggle = memo(({ disable }: DisableToggleProps) => {
+    const { isDirectlyDisabled, toggleDirectlyDisabled } = disable;
 
     return (
         <Tooltip

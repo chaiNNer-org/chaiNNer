@@ -39,7 +39,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     clearNodes(nodeIds);
                 }}
             >
-                Clear
+                Reset Selected Nodes
             </MenuItem>
             <MenuItem
                 icon={<DeleteIcon />}

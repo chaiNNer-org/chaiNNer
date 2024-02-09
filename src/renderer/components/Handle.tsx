@@ -98,7 +98,7 @@ export interface HandleProps {
     isIterated: boolean;
 }
 
-const getBackground = (colors: readonly string[]): string => {
+export const getBackground = (colors: readonly string[]): string => {
     if (colors.length === 1) return colors[0];
 
     const handleColorString = colors

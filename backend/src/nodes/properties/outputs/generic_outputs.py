@@ -104,3 +104,15 @@ class AudioStreamOutput(BaseOutput):
             label=label,
             kind="generic",
         )
+
+
+class AnyOutput(BaseOutput):
+    def __init__(self, label: str = "Any", output_type: navi.ExpressionJson = "Any"):
+        super().__init__(
+            output_type=output_type,
+            label=label,
+            kind="generic",
+        )
+
+    def enforce(self, value: object) -> object:
+        return value

@@ -17,7 +17,7 @@ from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
-from ...impl.image_utils import FillColor, normalize
+from ...impl.image_utils import FillColor
 from ...impl.upscale.auto_split_tiles import TileSize
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
@@ -33,12 +33,13 @@ from .numeric_inputs import NumberInput
 
 class DropDownOption(TypedDict):
     option: str
+    icon: NotRequired[str | None]
     value: str | int
     type: NotRequired[navi.ExpressionJson]
     condition: NotRequired[ConditionJson | None]
 
 
-DropDownStyle = Literal["dropdown", "checkbox", "tabs"]
+DropDownStyle = Literal["dropdown", "checkbox", "tabs", "icons"]
 """
 This specified the preferred style in which the frontend may display the dropdown.
 
@@ -46,6 +47,7 @@ This specified the preferred style in which the frontend may display the dropdow
 - `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
   The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
 - `tabs`: The options are displayed as tab list. The label of the input itself will *not* be displayed.
+- `icons`: The options are displayed as a list of icons. This is only available if all options have icons. Labels are still required for all options.
 """
 
 
@@ -200,6 +202,7 @@ class EnumInput(Generic[T], DropDownInput):
         label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
         conditions: dict[T, Condition] | None = None,
+        icons: dict[T, str] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -209,6 +212,8 @@ class EnumInput(Generic[T], DropDownInput):
             option_labels = {}
         if conditions is None:
             conditions = {}
+        if icons is None:
+            icons = {}
 
         options: list[DropDownOption] = []
         variant_types: list[str] = []
@@ -234,6 +239,7 @@ class EnumInput(Generic[T], DropDownInput):
                     "value": value,
                     "type": variant_type,
                     "condition": condition,
+                    "icon": icons.get(variant),
                 }
             )
 
@@ -340,15 +346,23 @@ class ClipboardInput(BaseInput):
         super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
+        self.label_style: LabelStyle = "hidden"
+
     def enforce(self, value: object):
         if isinstance(value, np.ndarray):
-            return normalize(value)
+            return value
 
         if isinstance(value, float) and int(value) == value:
             # stringify integers values
             return str(int(value))
 
         return str(value)
+
+    def to_dict(self):
+        return {
+            **super().to_dict(),
+            "labelStyle": self.label_style,
+        }
 
 
 class AnyInput(BaseInput):
