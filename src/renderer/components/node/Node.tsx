@@ -280,12 +280,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
-    const [forceReloadNumber, setForceReloadNumber] = useState(0);
+    const [memoBustNumber, setMemoBustNumber] = useState(0);
     const menu = useNodeMenu(
         data,
         disabled,
         { reload: startingNode ? reload : undefined },
-        forceReloadNumber
+        memoBustNumber
     );
 
     const toggleCollapse = useCallback(() => {
@@ -305,8 +305,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             toggleCollapse={toggleCollapse}
             validity={validity}
             onContextMenu={(e) => {
+                setMemoBustNumber((n) => n + 1);
                 menu.onContextMenu(e);
-                setForceReloadNumber((n) => n + 1);
             }}
             onDragOver={onDragOver}
             onDrop={onDrop}
