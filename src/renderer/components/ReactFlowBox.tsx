@@ -119,7 +119,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
         if (isSnapToGrid) {
             for (const n of displayNodes) {
-                if (!isSnappedToGrid(n.position, snapToGridAmount)) {
+                if (n.type === 'breakPoint') {
+                    const snapped = snapToGrid(n.position, snapToGridAmount);
+                    const pos = {
+                        x: snapped.x - (n.width ?? 0) / 2,
+                        y: snapped.y - (n.height ?? 0) / 2,
+                    };
+                    n.position = pos;
+                } else if (!isSnappedToGrid(n.position, snapToGridAmount)) {
                     n.position = snapToGrid(n.position, snapToGridAmount);
                 }
             }
