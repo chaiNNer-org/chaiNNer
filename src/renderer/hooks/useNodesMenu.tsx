@@ -1,5 +1,5 @@
-import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
-import { MenuDivider, MenuItem, MenuList } from '@chakra-ui/react';
+import { ChevronRightIcon, CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
+import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -64,7 +64,11 @@ export const useNodesMenu = (nodes: Node<NodeData>[], memoBust?: any): UseContex
                     setShowResetSubMenu(true);
                 }}
             >
-                Reset Node
+                <HStack>
+                    <Text>Reset Nodes</Text>
+                    <Spacer />
+                    <ChevronRightIcon />
+                </HStack>
             </MenuItem>
             {showResetSubMenu && (
                 <MenuList

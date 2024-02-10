@@ -1,4 +1,5 @@
 import {
+    ChevronRightIcon,
     CloseIcon,
     CopyIcon,
     DeleteIcon,
@@ -6,7 +7,7 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import { MenuDivider, MenuItem, MenuList } from '@chakra-ui/react';
+import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
@@ -93,7 +94,11 @@ export const useNodeMenu = (
                     setShowResetSubMenu(true);
                 }}
             >
-                Reset Node
+                <HStack>
+                    <Text>Reset Node</Text>
+                    <Spacer />
+                    <ChevronRightIcon />
+                </HStack>
             </MenuItem>
             {showResetSubMenu && (
                 <MenuList
