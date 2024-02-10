@@ -44,7 +44,7 @@ Metadata is used to define a contract between a node, the rest of the backend, a
 -   **Description** \
     A description of the node. This is currently used in the node's tooltip in the node selector sidebar, as well as the Node Documentation modal. If given an array of strings, only the first string will populate the tooltip, while all strings will populate the modal.
 -   **Icon** \
-    The icon of the node. Use the search bar on [React Icons](https://react-icons.github.io/react-icons) for which icons you want to use. Note that we only support icons from the `Bs`, `Cg`, `Md`, and `Im` families.
+    The icon of the node. Use the search bar on [React Icons](https://react-icons.github.io/react-icons) for which icons you want to use. Note that we only support icons from the [`Bs`](https://react-icons.github.io/react-icons/icons/bs/), [`Cg`](https://react-icons.github.io/react-icons/icons/cg/), [`Md`](https://react-icons.github.io/react-icons/icons/md/), and [`Im`](https://react-icons.github.io/react-icons/icons/im/) families.
 -   **Inputs/Outputs** \
     The inputs and outputs of the node. They describe the name, behavior, and type of the inputs and outputs. See [Input and Output](#inputs-and-outputs) for more information.
 -   **Side effects** \
