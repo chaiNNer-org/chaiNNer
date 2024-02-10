@@ -102,3 +102,11 @@ def from_to_dropdowns_group(from_dd: BaseInput, to_dd: BaseInput):
     `[From] -> [To]` in the UI.
     """
     return group("from-to-dropdowns")(from_dd, to_dd)
+
+
+def icon_set_group(label: str):
+    """
+    This group causes the given boolean inputs to be displayed as a set of icons instead of
+    checkboxes. The icons are specified by the `icons` parameter.
+    """
+    return group("icon-set", {"label": label})

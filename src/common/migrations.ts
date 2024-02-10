@@ -1921,6 +1921,27 @@ const saveVideoInputPR2514: ModernMigration = (data) => {
     return data;
 };
 
+const normalMapGeneratorInvert: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:normal_generator') {
+            const inputData = node.data.inputData;
+
+            const invert = Number(inputData[6] ?? 0);
+            delete inputData[6];
+
+            // eslint-disable-next-line no-bitwise
+            const invertR = (invert & 1) !== 0;
+            // eslint-disable-next-line no-bitwise
+            const invertG = (invert & 2) !== 0;
+
+            inputData[17] = Number(invertR);
+            inputData[18] = Number(invertG);
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1978,6 +1999,7 @@ const migrations = [
     createBorderEdgesTileFillToPad,
     unifiedResizeNode,
     saveVideoInputPR2514,
+    normalMapGeneratorInvert,
 ];
 
 export const currentMigration = migrations.length;

@@ -56,6 +56,7 @@ const getDocsMarkdownComponents = (interactive: boolean, selectable: boolean): C
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     className={className}
+                    color="inherit"
                     userSelect={selectable ? 'text' : 'none'}
                 >
                     {children}

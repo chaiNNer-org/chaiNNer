@@ -363,11 +363,12 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "id": "03dbb26c-b40d-4a18-8837-1e974b274a6a",
         "inputData": {
           "1": 0,
+          "17": 0,
+          "18": 0,
           "2": 0,
           "3": 0,
           "4": 1.609,
           "5": "sobel-like-5",
-          "6": 0,
           "7": "none",
         },
         "schemaId": "chainner:image:normal_generator",
@@ -12498,6 +12499,54 @@ exports[`Read save file ncnn.chn 1`] = `
 }
 `;
 
+exports[`Read save file normal-map-gen-invert.chn 1`] = `
+{
+  "edges": [],
+  "nodes": [
+    {
+      "data": {
+        "id": "ac216866-3f16-46ed-812d-2898f062e479",
+        "inputData": {
+          "1": 0,
+          "10": 0.3,
+          "11": 0.25,
+          "12": 0.2,
+          "13": 0.15,
+          "14": 0.1,
+          "15": 0.1,
+          "16": 0,
+          "17": 1,
+          "18": 0,
+          "2": 0,
+          "3": 0,
+          "4": 1,
+          "5": "sobel",
+          "7": "none",
+          "8": 0.25,
+          "9": 0.5,
+        },
+        "schemaId": "chainner:image:normal_generator",
+      },
+      "height": 440,
+      "id": "ac216866-3f16-46ed-812d-2898f062e479",
+      "position": {
+        "x": 608,
+        "y": 240,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 295,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": {
+    "x": -392.7852907370326,
+    "y": 74.69533137641815,
+    "zoom": 1.1486983549970369,
+  },
+}
+`;
+
 exports[`Read save file normal-map-generator.chn 1`] = `
 {
   "edges": [
@@ -12544,11 +12593,12 @@ exports[`Read save file normal-map-generator.chn 1`] = `
         "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
         "inputData": {
           "1": 0,
+          "17": 0,
+          "18": 0,
           "2": 0,
           "3": 0,
           "4": 1,
           "5": "sobel",
-          "6": 0,
           "7": "none",
         },
         "schemaId": "chainner:image:normal_generator",
@@ -18309,7 +18359,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
 
 exports[`Write save file DiffusePBR.chn 1`] = `
 {
-  "checksum": "452a446346331323f91db42f995f803d",
+  "checksum": "5bf275b7ad3cb6ff2729c963bc815689",
   "content": {
     "edges": [
       {
@@ -18672,11 +18722,12 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "id": "03dbb26c-b40d-4a18-8837-1e974b274a6a",
           "inputData": {
             "1": 0,
+            "17": 0,
+            "18": 0,
             "2": 0,
             "3": 0,
             "4": 1.609,
             "5": "sobel-like-5",
-            "6": 0,
             "7": "none",
           },
           "schemaId": "chainner:image:normal_generator",
@@ -30682,9 +30733,60 @@ exports[`Write save file ncnn.chn 1`] = `
 }
 `;
 
+exports[`Write save file normal-map-gen-invert.chn 1`] = `
+{
+  "checksum": "6d7c4a8e41861f0fcf7777ccd1dd34e5",
+  "content": {
+    "edges": [],
+    "nodes": [
+      {
+        "data": {
+          "id": "ac216866-3f16-46ed-812d-2898f062e479",
+          "inputData": {
+            "1": 0,
+            "10": 0.3,
+            "11": 0.25,
+            "12": 0.2,
+            "13": 0.15,
+            "14": 0.1,
+            "15": 0.1,
+            "16": 0,
+            "17": 1,
+            "18": 0,
+            "2": 0,
+            "3": 0,
+            "4": 1,
+            "5": "sobel",
+            "7": "none",
+            "8": 0.25,
+            "9": 0.5,
+          },
+          "schemaId": "chainner:image:normal_generator",
+        },
+        "height": 440,
+        "id": "ac216866-3f16-46ed-812d-2898f062e479",
+        "position": {
+          "x": 608,
+          "y": 240,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 295,
+      },
+    ],
+    "viewport": {
+      "x": -392.7852907370326,
+      "y": 74.69533137641815,
+      "zoom": 1.1486983549970369,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
 exports[`Write save file normal-map-generator.chn 1`] = `
 {
-  "checksum": "a10e41efc82e75a61af88724d73401fc",
+  "checksum": "50792166dd56ef55c5b42c0507ccbc94",
   "content": {
     "edges": [
       {
@@ -30730,11 +30832,12 @@ exports[`Write save file normal-map-generator.chn 1`] = `
           "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
           "inputData": {
             "1": 0,
+            "17": 0,
+            "18": 0,
             "2": 0,
             "3": 0,
             "4": 1,
             "5": "sobel",
-            "6": 0,
             "7": "none",
           },
           "schemaId": "chainner:image:normal_generator",

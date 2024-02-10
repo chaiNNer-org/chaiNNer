@@ -119,85 +119,80 @@ export const InputContainer = memo(({ children }: React.PropsWithChildren<InputC
 interface WithLabelProps {
     input: {
         readonly label: string;
-        readonly optional: boolean;
+        readonly optional?: boolean;
         readonly hint?: boolean;
         readonly description?: string;
         readonly hasHandle?: boolean;
     };
 }
 
-export const WithLabel = memo(
-    ({
-        input: { label, optional, hint, description },
-        children,
-    }: React.PropsWithChildren<WithLabelProps>) => {
-        const { conditionallyInactive } = useContext(InputContext);
+export const WithLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
+    const { conditionallyInactive } = useContext(InputContext);
 
-        return (
-            <Box
-                className="with-label"
-                w="full"
+    const { label, optional = false, hint = false, description } = input;
+
+    return (
+        <Box
+            className="with-label"
+            w="full"
+        >
+            <Center
+                h="1.25rem"
+                px={1}
+                py={0.5}
+                verticalAlign="middle"
             >
-                <Center
-                    h="1.25rem"
-                    px={1}
-                    py={0.5}
-                    verticalAlign="middle"
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    label={
+                        hint ? <Markdown nonInteractive>{description ?? ''}</Markdown> : undefined
+                    }
+                    openDelay={500}
+                    px={2}
+                    py={1}
                 >
-                    <Tooltip
-                        hasArrow
-                        borderRadius={8}
-                        label={
-                            hint ? (
-                                <Markdown nonInteractive>{description ?? ''}</Markdown>
-                            ) : undefined
-                        }
-                        openDelay={500}
-                        px={2}
-                        py={1}
+                    <HStack
+                        m={0}
+                        p={0}
+                        spacing={0}
                     >
-                        <HStack
-                            m={0}
-                            p={0}
-                            spacing={0}
+                        <Text
+                            fontSize="xs"
+                            lineHeight="0.9rem"
+                            opacity={conditionallyInactive ? 0.7 : undefined}
+                            textAlign="center"
+                            textDecoration={conditionallyInactive ? 'line-through' : undefined}
                         >
-                            <Text
-                                fontSize="xs"
-                                lineHeight="0.9rem"
-                                opacity={conditionallyInactive ? 0.7 : undefined}
-                                textAlign="center"
-                                textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                            {label}
+                        </Text>
+                        {hint && (
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
                             >
-                                {label}
-                            </Text>
-                            {hint && (
-                                <Center
-                                    h="auto"
-                                    m={0}
-                                    p={0}
-                                >
-                                    <QuestionIcon
-                                        boxSize={3}
-                                        ml={1}
-                                    />
-                                </Center>
-                            )}
-                            {optional && (
-                                <Center
-                                    h="1rem"
-                                    verticalAlign="middle"
-                                >
-                                    <TypeTag isOptional>optional</TypeTag>
-                                </Center>
-                            )}
-                        </HStack>
-                    </Tooltip>
-                </Center>
-                <Box pb={1}>{children}</Box>
-            </Box>
-        );
-    }
-);
+                                <QuestionIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        )}
+                        {optional && (
+                            <Center
+                                h="1rem"
+                                verticalAlign="middle"
+                            >
+                                <TypeTag isOptional>optional</TypeTag>
+                            </Center>
+                        )}
+                    </HStack>
+                </Tooltip>
+            </Center>
+            <Box pb={1}>{children}</Box>
+        </Box>
+    );
+});
 
 export const WithoutLabel = memo(
     ({ children }: React.PropsWithChildren<Record<string, unknown>>) => {
@@ -216,7 +211,7 @@ export const WithoutLabel = memo(
 export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
     const { conditionallyInactive } = useContext(InputContext);
 
-    const hasHandle = input.hasHandle ?? false;
+    const { hasHandle = false, hint = false, description } = input;
 
     return (
         <WithoutLabel>
@@ -236,12 +231,27 @@ export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<Wi
                     >
                         {input.label}
                     </Text>
-                    {/* <Center>
-                <TypeTags
-                    isOptional={input.optional}
-                    type={definitionType}
-                />
-            </Center> */}
+                    {hint && description && (
+                        <Tooltip
+                            hasArrow
+                            borderRadius={8}
+                            label={<Markdown nonInteractive>{description}</Markdown>}
+                            openDelay={500}
+                            px={2}
+                            py={1}
+                        >
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
+                            >
+                                <QuestionIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        </Tooltip>
+                    )}
                 </Box>
 
                 <Box flexGrow={1}>{children}</Box>
