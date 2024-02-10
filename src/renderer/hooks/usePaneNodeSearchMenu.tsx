@@ -11,7 +11,7 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
@@ -48,56 +48,64 @@ interface SchemaItemProps {
     isFavorite?: boolean;
     accentColor: string;
     onClick: (schema: NodeSchema) => void;
+    isSelected?: boolean;
 }
-const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
-    const bgColor = useThemeColor('--bg-700');
-    const menuBgColor = useThemeColor('--bg-800');
+const SchemaItem = memo(
+    ({ schema, onClick, isFavorite, accentColor, isSelected }: SchemaItemProps) => {
+        const bgColor = useThemeColor('--bg-700');
+        const menuBgColor = useThemeColor('--bg-800');
 
-    const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
-    const gradR = menuBgColor;
-    const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
-    const hoverGradR = bgColor;
+        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+        const gradR = menuBgColor;
+        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+        const hoverGradR = bgColor;
 
-    return (
-        <HStack
-            _hover={{
-                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
-            }}
-            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
-            borderRadius="md"
-            key={schema.schemaId}
-            mx={1}
-            my={0.5}
-            px={2}
-            py={0.5}
-            onClick={() => onClick(schema)}
-        >
-            <IconFactory
-                accentColor="gray.500"
-                icon={schema.icon}
-            />
-            <Text
-                h="full"
-                verticalAlign="middle"
+        return (
+            <HStack
+                _hover={{
+                    bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
+                }}
+                bgGradient={
+                    isSelected
+                        ? `linear(to-r, ${hoverGradL}, ${hoverGradR})`
+                        : `linear(to-r, ${gradL}, ${gradR})`
+                }
+                borderRadius="md"
+                key={schema.schemaId}
+                mx={1}
+                my={0.5}
+                outline={isSelected ? '1px solid' : undefined}
+                px={2}
+                py={0.5}
+                onClick={() => onClick(schema)}
             >
-                {schema.name}
-            </Text>
-            {isFavorite && (
-                <>
-                    <Spacer />
-                    <StarIcon
-                        aria-label="Favorites"
-                        boxSize={2.5}
-                        color="gray.500"
-                        overflow="hidden"
-                        stroke="gray.500"
-                        verticalAlign="middle"
-                    />
-                </>
-            )}
-        </HStack>
-    );
-});
+                <IconFactory
+                    accentColor="gray.500"
+                    icon={schema.icon}
+                />
+                <Text
+                    h="full"
+                    verticalAlign="middle"
+                >
+                    {schema.name}
+                </Text>
+                {isFavorite && (
+                    <>
+                        <Spacer />
+                        <StarIcon
+                            aria-label="Favorites"
+                            boxSize={2.5}
+                            color="gray.500"
+                            overflow="hidden"
+                            stroke="gray.500"
+                            verticalAlign="middle"
+                        />
+                    </>
+                )}
+            </HStack>
+        );
+    }
+);
 
 interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
@@ -121,6 +129,16 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
     const menuBgColor = useThemeColor('--bg-800');
     const inputColor = 'var(--fg-300)';
 
+    const nodeIndexes = useMemo(() => {
+        const favSchemas = [...favoriteNodes.values()].flat();
+        // .flat()
+        // .map((n) => `fav-${n.schemaId}` as SchemaId);
+        const regSchemas = [...byCategories.values()].flat();
+        const allSchemas = [...favSchemas, ...regSchemas];
+        return new Map(allSchemas.map((schema, i) => [i, schema]));
+    }, [byCategories, favoriteNodes]);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+
     const onClickHandler = useCallback(
         (schema: NodeSchema) => {
             setSearchQuery('');
@@ -129,11 +147,42 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
         [setSearchQuery, onSelect]
     );
     const onEnterHandler = useCallback(() => {
+        if (selectedIndex > -1) {
+            const selectedNode = nodeIndexes.get(selectedIndex);
+            if (selectedNode) {
+                onClickHandler(selectedNode);
+            }
+        }
         const nodes = [...byCategories.values()].flat();
         if (nodes.length === 1) {
             onClickHandler(nodes[0]);
         }
-    }, [byCategories, onClickHandler]);
+    }, [byCategories, nodeIndexes, onClickHandler, selectedIndex]);
+
+    useEffect(() => {
+        setSelectedIndex(-1);
+    }, [searchQuery]);
+
+    const keydownHandler = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                setSelectedIndex((i) =>
+                    Math.min(i + 1, favoriteNodes.length + schemata.length - 1)
+                );
+            } else if (e.key === 'ArrowUp') {
+                setSelectedIndex((i) => Math.max(i - 1, 0));
+            }
+        },
+        [favoriteNodes.length, schemata.length]
+    );
+
+    useEffect(() => {
+        window.addEventListener('keydown', keydownHandler);
+
+        return () => {
+            window.removeEventListener('keydown', keydownHandler);
+        };
+    }, [favoriteNodes.length, keydownHandler, schemata.length]);
 
     return (
         <MenuList
@@ -203,6 +252,10 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                         {favoriteNodes.map((favorite) => (
                             <SchemaItem
                                 accentColor={getCategoryAccentColor(categories, favorite.category)}
+                                isSelected={
+                                    selectedIndex < favoriteNodes.length &&
+                                    nodeIndexes.get(selectedIndex)?.schemaId === favorite.schemaId
+                                }
                                 key={favorite.schemaId}
                                 schema={favorite}
                                 onClick={onClickHandler}
@@ -233,6 +286,11 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                     <SchemaItem
                                         accentColor={accentColor}
                                         isFavorite={favorites.has(schema.schemaId)}
+                                        isSelected={
+                                            selectedIndex >= favoriteNodes.length &&
+                                            nodeIndexes.get(selectedIndex)?.schemaId ===
+                                                schema.schemaId
+                                        }
                                         key={schema.schemaId}
                                         schema={schema}
                                         onClick={onClickHandler}
