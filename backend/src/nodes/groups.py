@@ -110,3 +110,13 @@ def icon_set_group(label: str):
     checkboxes. The icons are specified by the `icons` parameter.
     """
     return group("icon-set", {"label": label})
+
+
+def menu_icon_row_group():
+    """
+    This group displays multiple icon-only inputs and groups as a row of icons. Only a few inputs
+    and groups are supported.
+
+    This group is intended to be used in the "Text As Image" node.
+    """
+    return group("menu-icon-row")
