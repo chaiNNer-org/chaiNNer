@@ -195,7 +195,6 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
     const scrollRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         scrollRef.current?.scrollIntoView({
-            behavior: 'instant',
             block: 'center',
             inline: 'nearest',
         });
