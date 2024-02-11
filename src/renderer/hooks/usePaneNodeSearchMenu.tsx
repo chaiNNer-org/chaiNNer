@@ -188,9 +188,11 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
 
     const scrollRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        if (selectedIndex > 0 && selectedIndex % 12 === 0) {
-            scrollRef.current?.scrollIntoView();
-        }
+        scrollRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+        });
     }, [selectedIndex]);
 
     return (
