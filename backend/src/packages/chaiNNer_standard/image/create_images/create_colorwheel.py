@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
 import cv2
+import numpy as np
 
 import navi
 from nodes.impl.gradients import (
     conic_gradient,
 )
-
 from nodes.properties.inputs import (
     NumberInput,
 )
