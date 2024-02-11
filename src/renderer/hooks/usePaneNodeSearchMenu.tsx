@@ -168,14 +168,12 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
     const keydownHandler = useCallback(
         (e: KeyboardEvent) => {
             if (e.key === 'ArrowDown') {
-                setSelectedIndex((i) =>
-                    Math.min(i + 1, favoriteNodes.length + schemata.length - 1)
-                );
+                setSelectedIndex((i) => Math.min(i + 1, [...nodeIndexes].length - 1));
             } else if (e.key === 'ArrowUp') {
                 setSelectedIndex((i) => Math.max(i - 1, 0));
             }
         },
-        [favoriteNodes.length, schemata.length]
+        [nodeIndexes]
     );
 
     useEffect(() => {
