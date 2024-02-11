@@ -1,0 +1,11 @@
+.useNodeMenu-child {
+    display: none;
+}
+
+.useNodeMenu-container:hover + .useNodeMenu-child {
+    display: block;
+}
+
+.useNodeMenu-child:hover {
+    display: block;
+}

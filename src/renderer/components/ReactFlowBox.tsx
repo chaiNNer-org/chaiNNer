@@ -426,12 +426,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu();
 
     const [selectedNodes, setSelectedNodes] = useState<Node<NodeData>[]>([]);
-    const [memoBustNumber, setMemoBustNumber] = useState(0);
-    const selectionMenu = useNodesMenu(selectedNodes, memoBustNumber);
+    const selectionMenu = useNodesMenu(selectedNodes);
     const onSelectionContextMenu = useCallback(
         (event: React.MouseEvent, nodes: Node<NodeData>[]) => {
             setSelectedNodes(nodes);
-            setMemoBustNumber((n) => n + 1);
             selectionMenu.onContextMenu(event);
         },
         [selectionMenu, setSelectedNodes]

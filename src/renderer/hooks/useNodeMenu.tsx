@@ -8,7 +8,7 @@ import {
     UnlockIcon,
 } from '@chakra-ui/icons';
 import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
@@ -19,6 +19,8 @@ import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
+
+import './useNodeMenu.scss';
 
 export interface UseNodeMenuOptions {
     canLock?: boolean;
@@ -42,11 +44,6 @@ export const useNodeMenu = (
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const resetMenuParentRef = useRef<HTMLButtonElement>(null);
-    const [showResetSubMenu, setShowResetSubMenu] = useState(false);
-
-    useEffect(() => {
-        setShowResetSubMenu(false);
-    }, []);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -74,24 +71,12 @@ export const useNodeMenu = (
             </MenuItem>
             <MenuDivider />
             <MenuItem
+                className="useNodeMenu-container"
                 icon={<CloseIcon />}
                 ref={resetMenuParentRef}
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    setShowResetSubMenu(true);
-                }}
-                onContextMenu={() => {
-                    setShowResetSubMenu(false);
-                }}
-                onMouseEnter={() => {
-                    setShowResetSubMenu(true);
-                }}
-                onMouseLeave={() => {
-                    setShowResetSubMenu(false);
-                }}
-                onMouseOver={() => {
-                    setShowResetSubMenu(true);
                 }}
             >
                 <HStack>
@@ -100,33 +85,16 @@ export const useNodeMenu = (
                     <ChevronRightIcon />
                 </HStack>
             </MenuItem>
-            {showResetSubMenu && (
+            <div className="useNodeMenu-child">
                 <MenuList
-                    className="nodrag"
                     left={resetMenuParentRef.current?.offsetWidth || 0}
                     position="absolute"
                     top={(resetMenuParentRef.current?.offsetHeight || 0) - 12}
-                    onContextMenu={() => {
-                        setShowResetSubMenu(false);
-                    }}
-                    onMouseEnter={() => {
-                        setShowResetSubMenu(true);
-                    }}
-                    onMouseLeave={() => {
-                        setShowResetSubMenu(false);
-                    }}
-                    onMouseOver={() => {
-                        setShowResetSubMenu(true);
-                    }}
                 >
                     <MenuItem
                         icon={<CloseIcon />}
                         onClick={() => {
                             resetInputs([id]);
-                            setShowResetSubMenu(false);
-                        }}
-                        onMouseLeave={() => {
-                            setShowResetSubMenu(false);
                         }}
                     >
                         Reset Inputs
@@ -135,10 +103,6 @@ export const useNodeMenu = (
                         icon={<CloseIcon />}
                         onClick={() => {
                             resetConnections([id]);
-                            setShowResetSubMenu(false);
-                        }}
-                        onMouseLeave={() => {
-                            setShowResetSubMenu(false);
                         }}
                     >
                         Reset Connections
@@ -148,16 +112,12 @@ export const useNodeMenu = (
                         onClick={() => {
                             resetInputs([id]);
                             resetConnections([id]);
-                            setShowResetSubMenu(false);
-                        }}
-                        onMouseLeave={() => {
-                            setShowResetSubMenu(false);
                         }}
                     >
                         Reset All
                     </MenuItem>
                 </MenuList>
-            )}
+            </div>
             <MenuDivider />
             {canDisable && (
                 <MenuItem
