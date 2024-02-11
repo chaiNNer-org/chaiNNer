@@ -28,7 +28,8 @@ from .. import create_images_group
             image_type=navi.Image(  # Creates a square output buffer from scratch and sets it to the width and height defined by the (Number)Input0 defined earlier
                 width="Input0",
                 height="Input0",
-            )
+            ),
+            channels=3,
         )
     ],
 )
