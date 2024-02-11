@@ -69,13 +69,11 @@ export const useNodeMenu = (
             </MenuItem>
             <MenuDivider />
             <MenuItem
+                as="a"
                 className="useNodeMenu-container"
+                closeOnSelect={false}
                 icon={<CloseIcon />}
                 ref={resetMenuParentRef}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                }}
             >
                 <HStack>
                     <Text>Reset Node</Text>
