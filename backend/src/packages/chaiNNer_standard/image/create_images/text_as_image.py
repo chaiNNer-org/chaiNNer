@@ -7,7 +7,7 @@ from enum import Enum
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from nodes.groups import icon_set_group
+from nodes.groups import icon_set_group, menu_icon_row_group
 from nodes.impl.caption import get_font_size
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import normalize, to_uint8
@@ -99,21 +99,23 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
     icon="MdTextFields",
     inputs=[
         TextInput("Text", multiline=True, label_style="hidden"),
-        icon_set_group("Style")(
-            BoolInput("Bold", default=False, icon="FaBold").with_id(1),
-            BoolInput("Italic", default=False, icon="FaItalic").with_id(2),
+        menu_icon_row_group()(
+            icon_set_group("Style")(
+                BoolInput("Bold", default=False, icon="FaBold").with_id(1),
+                BoolInput("Italic", default=False, icon="FaItalic").with_id(2),
+            ),
+            EnumInput(
+                TextAsImageAlignment,
+                label="Alignment",
+                preferred_style="icons",
+                icons={
+                    TextAsImageAlignment.LEFT: "FaAlignLeft",
+                    TextAsImageAlignment.CENTER: "FaAlignCenter",
+                    TextAsImageAlignment.RIGHT: "FaAlignRight",
+                },
+                default=TextAsImageAlignment.CENTER,
+            ).with_id(4),
         ),
-        EnumInput(
-            TextAsImageAlignment,
-            label="Alignment",
-            preferred_style="icons",
-            icons={
-                TextAsImageAlignment.LEFT: "FaAlignLeft",
-                TextAsImageAlignment.CENTER: "FaAlignCenter",
-                TextAsImageAlignment.RIGHT: "FaAlignRight",
-            },
-            default=TextAsImageAlignment.CENTER,
-        ).with_id(4),
         ColorInput(channels=[3], default=Color.bgr((0, 0, 0))).with_id(3),
         NumberInput(
             "Width",

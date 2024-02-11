@@ -61,7 +61,10 @@ def pytorch_auto_split(
         input_tensor = None
         try:
             # convert to tensor
-            input_tensor = torch.from_numpy(np.ascontiguousarray(img)).to(device, dtype)
+            img = np.ascontiguousarray(img)
+            if not img.flags.writeable:
+                img = np.copy(img)
+            input_tensor = torch.from_numpy(img).to(device, dtype)
             input_tensor = _rgb_to_bgr(input_tensor)
             input_tensor = _into_batched_form(input_tensor)
 

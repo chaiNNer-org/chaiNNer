@@ -61,7 +61,7 @@ interface IconSetProps {
     inputs: readonly DropDownInput[];
     nodeState: NodeState;
 }
-const IconSet = memo(({ inputs, nodeState }: IconSetProps) => {
+export const IconSet = memo(({ inputs, nodeState }: IconSetProps) => {
     const { inputData, setInputValue, isLocked } = nodeState;
 
     return (
