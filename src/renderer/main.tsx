@@ -9,6 +9,7 @@ import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
 import { Header } from './components/Header/Header';
 import { HistoryProvider } from './components/HistoryProvider';
+import { BreakPoint } from './components/node/BreakPoint';
 import { Node } from './components/node/Node';
 import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
 import { ReactFlowBox } from './components/ReactFlowBox';
@@ -26,6 +27,7 @@ const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
     regularNode: Node,
     newIterator: Node,
     collector: Node,
+    breakPoint: BreakPoint,
 };
 const edgeTypes: EdgeTypes = {
     main: CustomEdge,
