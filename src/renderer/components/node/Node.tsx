@@ -297,9 +297,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             targetRef={targetRef}
             toggleCollapse={toggleCollapse}
             validity={validity}
-            onContextMenu={(e) => {
-                menu.onContextMenu(e);
-            }}
+            onContextMenu={menu.onContextMenu}
             onDragOver={onDragOver}
             onDrop={onDrop}
         />
