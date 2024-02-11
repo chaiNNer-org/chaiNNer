@@ -155,14 +155,14 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                 onClickHandler(selectedNode);
             }
         }
-        const nodes = [...byCategories.values()].flat();
-        if (nodes.length === 1) {
-            onClickHandler(nodes[0]);
-        }
-    }, [byCategories, nodeIndexes, onClickHandler, selectedIndex]);
+    }, [nodeIndexes, onClickHandler, selectedIndex]);
 
     useEffect(() => {
-        setSelectedIndex(-1);
+        if (searchQuery === '') {
+            setSelectedIndex(-1);
+        } else {
+            setSelectedIndex(0);
+        }
     }, [searchQuery]);
 
     const keydownHandler = useCallback(
