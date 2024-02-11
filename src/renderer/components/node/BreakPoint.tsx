@@ -1,6 +1,6 @@
 import { NeverType } from '@chainner/navi';
 import { DeleteIcon } from '@chakra-ui/icons';
-import { Box, Flex, MenuItem, MenuList } from '@chakra-ui/react';
+import { Box, Center, MenuItem, MenuList } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -109,18 +109,21 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
     }, 7500);
 
     return (
-        <>
-            <Box
+        <Box
+            height="1px"
+            position="relative"
+            width="1px"
+        >
+            <Center
                 _hover={{
                     height: '16px',
                     width: '16px',
-                    margin: '-2px',
                 }}
                 backgroundColor={accentColor}
                 borderRadius="100%"
                 height={isHovered ? '16px' : '12px'}
-                margin={isHovered ? '-2px' : '0'}
-                position="relative"
+                position="absolute"
+                transform="translate(-50%, -50%)"
                 transition="all 0.2s ease-in-out"
                 width={isHovered ? '16px' : '12px'}
                 onContextMenu={menu.onContextMenu}
@@ -129,61 +132,48 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             >
-                <Flex
-                    align="center"
-                    height="full"
+                <Box
+                    height="1px"
                     position="relative"
-                    verticalAlign="middle"
-                    width="full"
+                    width="1px"
                 >
-                    <Flex
-                        align="center"
-                        height="1px"
-                        margin="auto"
-                        position="relative"
-                        verticalAlign="middle"
-                        width="1px"
-                    >
-                        <Handle
-                            className="absolute-fifty"
-                            id={`${id}-0`}
-                            isConnectable={false}
-                            position={Position.Left}
-                            style={{
-                                margin: 'auto',
-                                width: '12px',
-                                height: '12px',
-                                border: 'none',
-                                opacity: 0,
-                            }}
-                            type="target"
-                        />
-                        <Handle
-                            className="absolute-fifty"
-                            id={`${id}-0`}
-                            isConnectable={false}
-                            position={Position.Right}
-                            style={{
-                                margin: 'auto',
-                                width: '12px',
-                                height: '12px',
-                                border: 'none',
-                                opacity: 0,
-                            }}
-                            type="source"
-                        />
-                    </Flex>
-                </Flex>
-            </Box>
+                    <Handle
+                        className="absolute-fifty"
+                        id={`${id}-0`}
+                        isConnectable={false}
+                        position={Position.Left}
+                        style={{
+                            margin: 'auto',
+                            width: '12px',
+                            height: '12px',
+                            border: 'none',
+                            opacity: 0,
+                        }}
+                        type="target"
+                    />
+                    <Handle
+                        className="absolute-fifty"
+                        id={`${id}-0`}
+                        isConnectable={false}
+                        position={Position.Right}
+                        style={{
+                            margin: 'auto',
+                            width: '12px',
+                            height: '12px',
+                            border: 'none',
+                            opacity: 0,
+                        }}
+                        type="source"
+                    />
+                </Box>
+            </Center>
             {/* This is a ghost circle meant to help increase the hoverable diameter without visually making it look too large */}
             <Box
                 backgroundColor="red"
                 borderRadius="100%"
                 height="26px"
-                left="50%"
                 opacity={0}
                 position="absolute"
-                top="50%"
                 transform="translate(-50%, -50%)"
                 transition="all 0.2s ease-in-out"
                 width="26px"
@@ -193,6 +183,6 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseOver={() => hoverTimeout()}
             />
-        </>
+        </Box>
     );
 });
