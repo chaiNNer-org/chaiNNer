@@ -19,7 +19,6 @@ from .. import adjustments_group
     outputs=[ImageOutput(image_type="Input0")],
 )
 def premultiply_node(img: np.ndarray) -> np.ndarray:
-
     rgb = img[..., :3]
     alpha = img[..., 3]
 
