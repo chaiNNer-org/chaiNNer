@@ -50,7 +50,7 @@ def conic_gradient(img: np.ndarray, rotation: float = 0):
     if rotation < -np.pi:
         rotation += 2 * np.pi
 
-    center = np.array(img.shape[:2], dtype="float32") / 2
+    center = (np.array(img.shape[:2], dtype="float32") - 1) / 2
     pixels = np.array(
         [(r, c) for r in range(img.shape[0]) for c in range(img.shape[1])]
     )
