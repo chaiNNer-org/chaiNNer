@@ -11,7 +11,7 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
@@ -49,9 +49,10 @@ interface SchemaItemProps {
     accentColor: string;
     onClick: (schema: NodeSchema) => void;
     isSelected?: boolean;
+    scrollRef?: React.RefObject<HTMLDivElement>;
 }
 const SchemaItem = memo(
-    ({ schema, onClick, isFavorite, accentColor, isSelected }: SchemaItemProps) => {
+    ({ schema, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
         const bgColor = useThemeColor('--bg-700');
         const menuBgColor = useThemeColor('--bg-800');
 
@@ -77,6 +78,7 @@ const SchemaItem = memo(
                 outline={isSelected ? '1px solid' : undefined}
                 px={2}
                 py={0.5}
+                ref={scrollRef}
                 onClick={() => onClick(schema)}
             >
                 <IconFactory
@@ -184,6 +186,13 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
         };
     }, [favoriteNodes.length, keydownHandler, schemata.length]);
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (selectedIndex > 0 && selectedIndex % 12 === 0) {
+            scrollRef.current?.scrollIntoView();
+        }
+    }, [selectedIndex]);
+
     return (
         <MenuList
             bgColor={menuBgColor}
@@ -249,18 +258,24 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                             />
                             <Text fontSize="xs">Favorites</Text>
                         </HStack>
-                        {favoriteNodes.map((favorite) => (
-                            <SchemaItem
-                                accentColor={getCategoryAccentColor(categories, favorite.category)}
-                                isSelected={
-                                    selectedIndex < favoriteNodes.length &&
-                                    nodeIndexes.get(selectedIndex)?.schemaId === favorite.schemaId
-                                }
-                                key={favorite.schemaId}
-                                schema={favorite}
-                                onClick={onClickHandler}
-                            />
-                        ))}
+                        {favoriteNodes.map((favorite) => {
+                            const isSelected =
+                                selectedIndex < favoriteNodes.length &&
+                                nodeIndexes.get(selectedIndex)?.schemaId === favorite.schemaId;
+                            return (
+                                <SchemaItem
+                                    accentColor={getCategoryAccentColor(
+                                        categories,
+                                        favorite.category
+                                    )}
+                                    isSelected={isSelected}
+                                    key={favorite.schemaId}
+                                    schema={favorite}
+                                    scrollRef={isSelected ? scrollRef : undefined}
+                                    onClick={onClickHandler}
+                                />
+                            );
+                        })}
                     </Box>
                 )}
 
@@ -282,20 +297,23 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                     />
                                     <Text fontSize="xs">{category?.name ?? categoryId}</Text>
                                 </HStack>
-                                {categorySchemata.map((schema) => (
-                                    <SchemaItem
-                                        accentColor={accentColor}
-                                        isFavorite={favorites.has(schema.schemaId)}
-                                        isSelected={
-                                            selectedIndex >= favoriteNodes.length &&
-                                            nodeIndexes.get(selectedIndex)?.schemaId ===
-                                                schema.schemaId
-                                        }
-                                        key={schema.schemaId}
-                                        schema={schema}
-                                        onClick={onClickHandler}
-                                    />
-                                ))}
+                                {categorySchemata.map((schema) => {
+                                    const isSelected =
+                                        selectedIndex >= favoriteNodes.length &&
+                                        nodeIndexes.get(selectedIndex)?.schemaId ===
+                                            schema.schemaId;
+                                    return (
+                                        <SchemaItem
+                                            accentColor={accentColor}
+                                            isFavorite={favorites.has(schema.schemaId)}
+                                            isSelected={isSelected}
+                                            key={schema.schemaId}
+                                            schema={schema}
+                                            scrollRef={isSelected ? scrollRef : undefined}
+                                            onClick={onClickHandler}
+                                        />
+                                    );
+                                })}
                             </Box>
                         );
                     })
