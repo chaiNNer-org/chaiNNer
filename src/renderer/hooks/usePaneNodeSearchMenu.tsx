@@ -43,6 +43,16 @@ import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
+const clampWithWrap = (min: number, max: number, value: number): number => {
+    if (value < min) {
+        return max;
+    }
+    if (value > max) {
+        return min;
+    }
+    return value;
+};
+
 interface SchemaItemProps {
     schema: NodeSchema;
     isFavorite?: boolean;
@@ -133,8 +143,6 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
 
     const nodeIndexes = useMemo(() => {
         const favSchemas = [...favoriteNodes.values()].flat();
-        // .flat()
-        // .map((n) => `fav-${n.schemaId}` as SchemaId);
         const regSchemas = [...byCategories.values()].flat();
         const allSchemas = [...favSchemas, ...regSchemas];
         return new Map(allSchemas.map((schema, i) => [i, schema]));
@@ -168,9 +176,9 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
     const keydownHandler = useCallback(
         (e: KeyboardEvent) => {
             if (e.key === 'ArrowDown') {
-                setSelectedIndex((i) => Math.min(i + 1, [...nodeIndexes].length - 1));
+                setSelectedIndex((i) => clampWithWrap(0, nodeIndexes.size - 1, i + 1));
             } else if (e.key === 'ArrowUp') {
-                setSelectedIndex((i) => Math.max(i - 1, 0));
+                setSelectedIndex((i) => clampWithWrap(0, nodeIndexes.size - 1, i - 1));
             }
         },
         [nodeIndexes]
@@ -187,7 +195,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
     const scrollRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         scrollRef.current?.scrollIntoView({
-            behavior: 'smooth',
+            behavior: 'instant',
             block: 'center',
             inline: 'nearest',
         });
