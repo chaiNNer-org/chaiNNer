@@ -30,9 +30,7 @@ export interface UseNodeMenuOptions {
 export const useNodeMenu = (
     data: NodeData,
     useDisabled: UseDisabled,
-    { canLock = true, reload }: UseNodeMenuOptions = {},
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-    memoBust?: any
+    { canLock = true, reload }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;

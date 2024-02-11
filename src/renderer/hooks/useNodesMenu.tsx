@@ -8,8 +8,7 @@ import { GlobalContext } from '../contexts/GlobalNodeState';
 import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-export const useNodesMenu = (nodes: Node<NodeData>[], memoBust?: any): UseContextMenu => {
+export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
     const { removeNodesById, resetInputs, resetConnections, duplicateNodes } =
         useContext(GlobalContext);
 

@@ -9,6 +9,7 @@ export interface UseContextMenu {
     readonly onContextMenu: MouseEventHandler;
     readonly onClick: MouseEventHandler;
     readonly manuallyOpenContextMenu: (pageX: number, pageY: number) => void;
+    readonly position: { x: number; y: number };
 }
 
 export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
@@ -17,6 +18,8 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
 
     // eslint-disable-next-line react/hook-use-state
     const [id] = useState(createUniqueId);
+
+    const [position, setPosition] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         return () => unregisterContextMenu(id);
@@ -33,6 +36,7 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
             e.stopPropagation();
             e.preventDefault();
             openContextMenu(id, e.pageX, e.pageY);
+            setPosition({ x: e.pageX, y: e.pageY });
         },
         [openContextMenu, id]
     );
@@ -40,6 +44,7 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
     const manuallyOpenContextMenu = useCallback(
         (pageX: number, pageY: number): void => {
             openContextMenu(id, pageX, pageY);
+            setPosition({ x: pageX, y: pageY });
         },
         [openContextMenu, id]
     );
@@ -53,6 +58,7 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
             const y = e.clientY - rect.top;
 
             openContextMenu(id, e.pageX - x + rect.width, e.pageY - y + rect.height);
+            setPosition({ x: e.pageX - x + rect.width, y: e.pageY - y + rect.height });
         },
         [openContextMenu, id]
     );
@@ -62,6 +68,7 @@ export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
         onContextMenu,
         onClick,
         manuallyOpenContextMenu,
+        position,
     });
 };
 

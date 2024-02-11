@@ -9,7 +9,6 @@ import {
     useCallback,
     useMemo,
     useRef,
-    useState,
 } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -280,13 +279,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
-    const [memoBustNumber, setMemoBustNumber] = useState(0);
-    const menu = useNodeMenu(
-        data,
-        disabled,
-        { reload: startingNode ? reload : undefined },
-        memoBustNumber
-    );
+    const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });
 
     const toggleCollapse = useCallback(() => {
         setNodeCollapsed(id, !isCollapsed);
@@ -305,7 +298,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             toggleCollapse={toggleCollapse}
             validity={validity}
             onContextMenu={(e) => {
-                setMemoBustNumber((n) => n + 1);
                 menu.onContextMenu(e);
             }}
             onDragOver={onDragOver}
