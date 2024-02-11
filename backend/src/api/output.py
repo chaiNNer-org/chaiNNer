@@ -29,6 +29,7 @@ class BaseOutput:
 
         # Optional documentation
         self.description: str | None = None
+        self.recommended_connections: list[str] | None = None
 
     def to_dict(self):
         return {
@@ -39,6 +40,7 @@ class BaseOutput:
             "kind": self.kind,
             "hasHandle": self.has_handle,
             "description": self.description,
+            "recommendedConnections": self.recommended_connections,
         }
 
     def with_id(self, output_id: OutputId | int):
@@ -51,6 +53,10 @@ class BaseOutput:
 
     def with_docs(self, *description: str):
         self.description = "\n\n".join(description)
+        return self
+
+    def with_recommended_connections(self, recommended_connections: list[str]):
+        self.recommended_connections = recommended_connections
         return self
 
     def __repr__(self):
