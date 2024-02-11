@@ -110,7 +110,7 @@ export const CustomEdge = memo(
                     sourceX,
                     sourceY,
                     sourcePosition,
-                    targetX,
+                    targetX: _targetX,
                     targetY,
                     targetPosition,
                     curvatures: {
@@ -125,7 +125,7 @@ export const CustomEdge = memo(
             }
             if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
                 return getCustomBezierPath({
-                    sourceX,
+                    sourceX: _sourceX,
                     sourceY,
                     sourcePosition,
                     targetX,
