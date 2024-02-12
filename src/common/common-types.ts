@@ -59,6 +59,7 @@ interface InputBase {
     readonly description?: string;
     readonly hint: boolean;
     readonly fused?: IOFusion | null;
+    readonly recommendedConnections?: readonly SchemaId[] | null;
 }
 export interface InputOption {
     readonly option: string;
@@ -169,6 +170,7 @@ export interface Output {
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
     readonly description?: string | null;
+    readonly recommendedConnections?: readonly SchemaId[] | null;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;

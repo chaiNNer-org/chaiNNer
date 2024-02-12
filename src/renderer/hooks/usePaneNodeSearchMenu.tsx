@@ -15,7 +15,14 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
-import { CategoryId, InputId, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
+import {
+    CategoryId,
+    InputId,
+    NodeData,
+    NodeSchema,
+    OutputId,
+    SchemaId,
+} from '../../common/common-types';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
@@ -104,9 +111,11 @@ interface MenuProps {
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: CategoryMap;
+    suggestions?: readonly SchemaId[];
 }
 
-const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => {
+const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: MenuProps) => {
+    console.log('🚀 ~ Menu ~ suggestions:', suggestions);
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories: ReadonlyMap<CategoryId, readonly NodeSchema[]> = useMemo(
@@ -358,6 +367,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
+    const { getNode } = useReactFlow<NodeData>();
 
     const { favorites } = useNodeFavorites();
 
@@ -448,12 +458,40 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         ]
     );
 
+    const suggestions = useMemo(() => {
+        const connection = parseConnectStartParams(connectingFrom);
+
+        if (!connection) return;
+
+        const node = getNode(connection.nodeId);
+
+        if (!node) return;
+
+        const connectingFromSchema = schemata.get(node.data.schemaId);
+
+        switch (connection.type) {
+            case 'source': {
+                const outputSchema = connectingFromSchema.outputs[connection.outputId];
+                const { recommendedConnections: recs } = outputSchema;
+                return recs?.filter((r) => matchingEnds.has(schemata.get(r)));
+            }
+            case 'target': {
+                const outputSchema = connectingFromSchema.inputs[connection.inputId];
+                const { recommendedConnections: recs } = outputSchema;
+                return recs?.filter((r) => matchingEnds.has(schemata.get(r)));
+            }
+            default:
+                assertNever(connection);
+        }
+    }, [connectingFrom, getNode, matchingEnds, schemata]);
+
     const menuSchemata = useMemo(() => [...matchingEnds.keys()], [matchingEnds]);
     const menu = useContextMenu(() => (
         <Menu
             categories={categories}
             favorites={favorites}
             schemata={menuSchemata}
+            suggestions={suggestions}
             onSelect={onSchemaSelect}
         />
     ));
