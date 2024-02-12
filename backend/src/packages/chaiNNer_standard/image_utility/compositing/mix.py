@@ -28,8 +28,14 @@ from .. import compositing_group
     ],
     outputs=[
         ImageOutput(
-            image_type="Input0",
-        )
+            image_type="""
+                Image {
+                    width: Input0.width & Input1.width,
+                    height: Input0.height & Input1.height,
+                    channels: max(Input0.channels, Input1.channels),
+                }
+            """,
+        ).with_never_reason("Both images must have the same size."),
     ],
 )
 def mix_node(input1: np.ndarray, input2: np.ndarray, mix: float) -> np.ndarray:
