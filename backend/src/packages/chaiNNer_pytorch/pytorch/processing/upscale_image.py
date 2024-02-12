@@ -109,16 +109,12 @@ def upscale(
         ImageInput()
         .with_id(1)
         .with_suggestions(
-            [
-                "chainner:image:load",
-            ]
+            "chainner:image:load",
         ),
         SrModelInput()
         .with_id(0)
         .with_suggestions(
-            [
-                "chainner:pytorch:load_model",
-            ]
+            "chainner:pytorch:load_model",
         ),
         if_group(
             Condition.type(

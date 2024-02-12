@@ -55,8 +55,8 @@ class BaseOutput:
         self.description = "\n\n".join(description)
         return self
 
-    def with_suggestions(self, suggestions: list[str]):
-        self.suggestions = suggestions
+    def with_suggestions(self, *suggestions: str):
+        self.suggestions = list(suggestions)
         return self
 
     def __repr__(self):

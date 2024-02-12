@@ -169,8 +169,8 @@ class BaseInput:
         self.hint = hint
         return self
 
-    def with_suggestions(self, suggestions: list[str]):
-        self.suggestions = suggestions
+    def with_suggestions(self, *suggestions: str):
+        self.suggestions = list(suggestions)
         return self
 
     def make_optional(self):

@@ -28,10 +28,8 @@ class WeightFormat(Enum):
     icon="MdSave",
     inputs=[
         ModelInput().with_suggestions(
-            [
-                "chainner:pytorch:upscale_image",
-                "chainner:pytorch:upscale_face",
-            ]
+            "chainner:pytorch:upscale_image",
+            "chainner:pytorch:upscale_face",
         ),
         DirectoryInput(has_handle=True),
         TextInput("Model Name"),

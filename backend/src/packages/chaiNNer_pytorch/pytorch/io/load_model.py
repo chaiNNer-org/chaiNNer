@@ -55,10 +55,8 @@ def parse_ckpt_state_dict(checkpoint: dict):
     inputs=[PthFileInput(primary_input=True)],
     outputs=[
         ModelOutput(kind="tagged").with_suggestions(
-            [
-                "chainner:pytorch:upscale_image",
-                "chainner:pytorch:upscale_face",
-            ]
+            "chainner:pytorch:upscale_image",
+            "chainner:pytorch:upscale_face",
         ),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
