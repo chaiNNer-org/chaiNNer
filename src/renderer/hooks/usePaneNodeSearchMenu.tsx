@@ -11,11 +11,12 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
 import {
+    Category,
     CategoryId,
     InputId,
     NodeData,
@@ -50,61 +51,127 @@ import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
+const clampWithWrap = (min: number, max: number, value: number): number => {
+    if (value < min) {
+        return max;
+    }
+    if (value > max) {
+        return min;
+    }
+    return value;
+};
+
 interface SchemaItemProps {
     schema: NodeSchema;
-    isFavorite?: boolean;
+    isFavorite: boolean;
     accentColor: string;
     onClick: (schema: NodeSchema) => void;
+    isSelected: boolean;
+    scrollRef?: React.RefObject<HTMLDivElement>;
 }
-const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
-    const bgColor = useThemeColor('--bg-700');
-    const menuBgColor = useThemeColor('--bg-800');
+const SchemaItem = memo(
+    ({ schema, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
+        const bgColor = useThemeColor('--bg-700');
+        const menuBgColor = useThemeColor('--bg-800');
 
-    const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
-    const gradR = menuBgColor;
-    const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
-    const hoverGradR = bgColor;
+        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+        const gradR = menuBgColor;
+        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+        const hoverGradR = bgColor;
 
-    return (
-        <HStack
-            _hover={{
-                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
-            }}
-            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
-            borderRadius="md"
-            key={schema.schemaId}
-            mx={1}
-            my={0.5}
-            px={2}
-            py={0.5}
-            onClick={() => onClick(schema)}
-        >
-            <IconFactory
-                accentColor="gray.500"
-                icon={schema.icon}
-            />
-            <Text
-                h="full"
-                verticalAlign="middle"
+        return (
+            <HStack
+                _hover={{
+                    bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
+                }}
+                bgGradient={
+                    isSelected
+                        ? `linear(to-r, ${hoverGradL}, ${hoverGradR})`
+                        : `linear(to-r, ${gradL}, ${gradR})`
+                }
+                borderRadius="md"
+                key={schema.schemaId}
+                mx={1}
+                my={0.5}
+                outline={isSelected ? '1px solid' : undefined}
+                px={2}
+                py={0.5}
+                ref={scrollRef}
+                onClick={() => onClick(schema)}
             >
-                {schema.name}
-            </Text>
-            {isFavorite && (
-                <>
-                    <Spacer />
-                    <StarIcon
-                        aria-label="Favorites"
-                        boxSize={2.5}
-                        color="gray.500"
-                        overflow="hidden"
-                        stroke="gray.500"
-                        verticalAlign="middle"
-                    />
-                </>
-            )}
-        </HStack>
+                <IconFactory
+                    accentColor="gray.500"
+                    icon={schema.icon}
+                />
+                <Text
+                    h="full"
+                    verticalAlign="middle"
+                >
+                    {schema.name}
+                </Text>
+                {isFavorite && (
+                    <>
+                        <Spacer />
+                        <StarIcon
+                            aria-label="Favorites"
+                            boxSize={2.5}
+                            color="gray.500"
+                            overflow="hidden"
+                            stroke="gray.500"
+                            verticalAlign="middle"
+                        />
+                    </>
+                )}
+            </HStack>
+        );
+    }
+);
+
+type SchemaGroup = FavoritesSchemaGroup | CategorySchemaGroup;
+interface SchemaGroupBase {
+    readonly name: string;
+    readonly schemata: readonly NodeSchema[];
+}
+interface FavoritesSchemaGroup extends SchemaGroupBase {
+    type: 'favorites';
+    categoryId?: never;
+}
+interface CategorySchemaGroup extends SchemaGroupBase {
+    type: 'category';
+    categoryId: CategoryId;
+    category: Category | undefined;
+}
+
+const groupSchemata = (
+    schemata: readonly NodeSchema[],
+    categories: CategoryMap,
+    favorites: ReadonlySet<SchemaId>
+): readonly SchemaGroup[] => {
+    const cats = [...groupBy(schemata, 'category')].map(
+        ([categoryId, categorySchemata]): CategorySchemaGroup => {
+            const category = categories.get(categoryId);
+            return {
+                type: 'category',
+                name: category?.name ?? categoryId,
+                categoryId,
+                category,
+                schemata: categorySchemata,
+            };
+        }
     );
-});
+
+    const favs: FavoritesSchemaGroup = {
+        type: 'favorites',
+        name: 'Favorites',
+        schemata: cats.flatMap((c) => c.schemata).filter((n) => favorites.has(n.schemaId)),
+    };
+
+    if (favs.schemata.length === 0) {
+        return cats;
+    }
+
+    return [favs, ...cats];
+};
 
 interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
@@ -117,32 +184,60 @@ interface MenuProps {
 const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: MenuProps) => {
     console.log('🚀 ~ Menu ~ suggestions:', suggestions);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const byCategories: ReadonlyMap<CategoryId, readonly NodeSchema[]> = useMemo(
-        () => groupBy(getMatchingNodes(searchQuery, schemata, categories), 'category'),
-        [searchQuery, schemata, categories]
-    );
+    const changeSearchQuery = useCallback((query: string) => {
+        setSearchQuery(query);
+        setSelectedIndex(0);
+    }, []);
 
-    const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
-        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    }, [byCategories, favorites]);
-
-    const menuBgColor = useThemeColor('--bg-800');
-    const inputColor = 'var(--fg-300)';
+    const groups = useMemo(() => {
+        return groupSchemata(
+            getMatchingNodes(searchQuery, schemata, categories),
+            categories,
+            favorites
+        );
+    }, [schemata, categories, favorites, searchQuery]);
+    const flatGroups = useMemo(() => groups.flatMap((group) => group.schemata), [groups]);
 
     const onClickHandler = useCallback(
         (schema: NodeSchema) => {
-            setSearchQuery('');
+            changeSearchQuery('');
             onSelect(schema);
         },
-        [setSearchQuery, onSelect]
+        [changeSearchQuery, onSelect]
     );
     const onEnterHandler = useCallback(() => {
-        const nodes = [...byCategories.values()].flat();
-        if (nodes.length === 1) {
-            onClickHandler(nodes[0]);
+        if (selectedIndex >= 0 && selectedIndex < flatGroups.length) {
+            onClickHandler(flatGroups[selectedIndex]);
         }
-    }, [byCategories, onClickHandler]);
+    }, [flatGroups, onClickHandler, selectedIndex]);
+
+    const keydownHandler = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                setSelectedIndex((i) => clampWithWrap(0, flatGroups.length - 1, i + 1));
+            } else if (e.key === 'ArrowUp') {
+                setSelectedIndex((i) => clampWithWrap(0, flatGroups.length - 1, i - 1));
+            }
+        },
+        [flatGroups]
+    );
+    useEffect(() => {
+        window.addEventListener('keydown', keydownHandler);
+        return () => window.removeEventListener('keydown', keydownHandler);
+    }, [keydownHandler]);
+
+    const scrollRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({
+            block: 'center',
+            inline: 'nearest',
+        });
+    }, [selectedIndex]);
+
+    const menuBgColor = useThemeColor('--bg-800');
+    const inputColor = 'var(--fg-300)';
 
     return (
         <MenuList
@@ -170,7 +265,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                     type="text"
                     value={searchQuery}
                     variant="filled"
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => changeSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             onEnterHandler();
@@ -185,7 +280,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                         display: searchQuery ? undefined : 'none',
                         fontSize: '66%',
                     }}
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => changeSearchQuery('')}
                 >
                     <CloseIcon />
                 </InputRightElement>
@@ -196,61 +291,60 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                 overflowY="scroll"
                 p={1}
             >
-                {favoriteNodes.length > 0 && (
-                    <Box>
-                        <HStack
-                            borderRadius="md"
-                            mx={1}
-                            py={0.5}
-                        >
-                            <StarIcon
-                                boxSize={3}
-                                color="yellow.500"
-                            />
-                            <Text fontSize="xs">Favorites</Text>
-                        </HStack>
-                        {favoriteNodes.map((favorite) => (
-                            <SchemaItem
-                                accentColor={getCategoryAccentColor(categories, favorite.category)}
-                                key={favorite.schemaId}
-                                schema={favorite}
-                                onClick={onClickHandler}
-                            />
-                        ))}
-                    </Box>
-                )}
+                {groups.map((group, groupIndex) => {
+                    const indexOffset = groups
+                        .slice(0, groupIndex)
+                        .reduce((acc, g) => acc + g.schemata.length, 0);
 
-                {byCategories.size > 0 ? (
-                    [...byCategories].map(([categoryId, categorySchemata]) => {
-                        const accentColor = getCategoryAccentColor(categories, categoryId);
-                        const category = categories.get(categoryId);
-                        return (
-                            <Box key={categoryId}>
-                                <HStack
-                                    borderRadius="md"
-                                    mx={1}
-                                    py={0.5}
-                                >
-                                    <IconFactory
-                                        accentColor={accentColor}
+                    return (
+                        <Box key={group.categoryId ?? 'favs'}>
+                            <HStack
+                                borderRadius="md"
+                                mx={1}
+                                py={0.5}
+                            >
+                                {group.type === 'favorites' ? (
+                                    <StarIcon
                                         boxSize={3}
-                                        icon={category?.icon}
+                                        color="yellow.500"
                                     />
-                                    <Text fontSize="xs">{category?.name ?? categoryId}</Text>
-                                </HStack>
-                                {categorySchemata.map((schema) => (
+                                ) : (
+                                    <IconFactory
+                                        accentColor={getCategoryAccentColor(
+                                            categories,
+                                            group.categoryId
+                                        )}
+                                        boxSize={3}
+                                        icon={group.category?.icon}
+                                    />
+                                )}
+                                <Text fontSize="xs">{group.name}</Text>
+                            </HStack>
+
+                            {group.schemata.map((schema, schemaIndex) => {
+                                const index = indexOffset + schemaIndex;
+                                const isSelected = selectedIndex === index;
+
+                                return (
                                     <SchemaItem
-                                        accentColor={accentColor}
+                                        accentColor={getCategoryAccentColor(
+                                            categories,
+                                            schema.category
+                                        )}
                                         isFavorite={favorites.has(schema.schemaId)}
+                                        isSelected={isSelected}
                                         key={schema.schemaId}
                                         schema={schema}
+                                        scrollRef={isSelected ? scrollRef : undefined}
                                         onClick={onClickHandler}
                                     />
-                                ))}
-                            </Box>
-                        );
-                    })
-                ) : (
+                                );
+                            })}
+                        </Box>
+                    );
+                })}
+
+                {groups.length === 0 && (
                     <Center
                         opacity="50%"
                         w="full"

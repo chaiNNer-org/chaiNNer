@@ -1,8 +1,8 @@
 import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TbUnlink } from 'react-icons/tb';
-import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
+import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../../common/common-types';
@@ -13,6 +13,8 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import { getCircularEdgeParams } from '../../helpers/floatingEdgeUtils';
+import { getCustomBezierPath } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
@@ -78,6 +80,7 @@ export const CustomEdge = memo(
         const sourceX = _sourceX - 1; // - 8 <- To align it with the node
         const targetX = _targetX + 1; // + 8
 
+        const { screenToFlowPosition } = useReactFlow();
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
@@ -93,24 +96,97 @@ export const CustomEdge = memo(
                 sourceStatus === NodeExecutionStatus.YET_TO_RUN) &&
             targetStatus !== NodeExecutionStatus.NOT_EXECUTING;
 
-        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
-            () =>
-                getBezierPath({
+        const { getNode } = useReactFlow<NodeData, EdgeData>();
+        const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
+        const edgeChildNode = useMemo(() => getNode(target)!, [target, getNode]);
+
+        const isAttachedToBreakPoint =
+            edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
+
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
+            const BREAKPOINT_RADIUS = 6;
+            if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
                     sourceX,
+                    sourceY,
+                    sourcePosition,
+                    targetX: _targetX,
+                    targetY,
+                    targetPosition,
+                    curvatures: {
+                        source: 0.25,
+                        target: 0,
+                    },
+                    radii: {
+                        source: 0,
+                        target: BREAKPOINT_RADIUS,
+                    },
+                });
+            }
+            if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
+                    sourceX: _sourceX,
                     sourceY,
                     sourcePosition,
                     targetX,
                     targetY,
                     targetPosition,
-                }),
-            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
-        );
+                    curvatures: {
+                        source: 0,
+                        target: 0.25,
+                    },
+                    radii: {
+                        source: BREAKPOINT_RADIUS,
+                        target: 0,
+                    },
+                });
+            }
+            if (isAttachedToBreakPoint) {
+                const { sx, sy, tx, ty } = getCircularEdgeParams(
+                    {
+                        x: _sourceX,
+                        y: sourceY,
+                        radius: BREAKPOINT_RADIUS,
+                    },
+                    {
+                        x: _targetX,
+                        y: targetY,
+                        radius: BREAKPOINT_RADIUS,
+                    }
+                );
 
-        const { getNode } = useReactFlow<NodeData, EdgeData>();
-        const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
+                return getStraightPath({
+                    sourceX: sx,
+                    sourceY: sy,
+                    targetX: tx,
+                    targetY: ty,
+                });
+            }
+            return getBezierPath({
+                sourceX,
+                sourceY,
+                sourcePosition,
+                targetX,
+                targetY,
+                targetPosition,
+            });
+        }, [
+            edgeParentNode.type,
+            isAttachedToBreakPoint,
+            edgeChildNode.type,
+            sourceX,
+            sourceY,
+            sourcePosition,
+            targetX,
+            targetY,
+            targetPosition,
+            _sourceX,
+            _targetX,
+        ]);
+
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById } = useContext(GlobalContext);
+        const { removeEdgeById, addEdgeBreakpoint } = useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
@@ -171,6 +247,20 @@ export const CustomEdge = memo(
 
         const menu = useEdgeMenu(id);
 
+        const altPressed = useKeyPress(['Alt', 'Option']);
+        const onClick = useCallback(
+            (e: React.MouseEvent) => {
+                if (altPressed) {
+                    const adjustedPosition = screenToFlowPosition({
+                        x: e.clientX || 0,
+                        y: e.clientY || 0,
+                    });
+                    addEdgeBreakpoint(id, adjustedPosition);
+                }
+            },
+            [addEdgeBreakpoint, altPressed, id, screenToFlowPosition]
+        );
+
         return (
             <g
                 className="edge-chain-group"
@@ -179,6 +269,7 @@ export const CustomEdge = memo(
                     opacity: isSourceEnabled ? 1 : 0.5,
                     ...style,
                 }}
+                onClick={onClick}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
                 onMouseEnter={() => setIsHovered(true)}
@@ -215,7 +306,8 @@ export const CustomEdge = memo(
                     requiredExtensions="http://www.w3.org/1999/xhtml"
                     style={{
                         borderRadius: 100,
-                        opacity: isHovered ? 1 : 0,
+                        opacity: isHovered && !altPressed ? 1 : 0,
+                        display: altPressed ? 'none' : 'block',
                         transitionDuration: '0.15s',
                         transitionProperty: 'opacity, background-color',
                         transitionTimingFunction: 'ease-in-out',
