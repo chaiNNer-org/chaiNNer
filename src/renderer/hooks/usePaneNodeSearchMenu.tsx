@@ -596,13 +596,15 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         switch (connection.type) {
             case 'source': {
                 const outputSchema = connectingFromSchema.outputs[connection.outputId];
-                const { recommendedConnections: recs } = outputSchema;
-                return new Set(recs?.filter((r) => matchingEnds.has(schemata.get(r))));
+                return new Set(
+                    outputSchema.suggestions?.filter((s) => matchingEnds.has(schemata.get(s)))
+                );
             }
             case 'target': {
-                const outputSchema = connectingFromSchema.inputs[connection.inputId];
-                const { recommendedConnections: recs } = outputSchema;
-                return new Set(recs?.filter((r) => matchingEnds.has(schemata.get(r))));
+                const inputSchema = connectingFromSchema.inputs[connection.inputId];
+                return new Set(
+                    inputSchema.suggestions?.filter((s) => matchingEnds.has(schemata.get(s)))
+                );
             }
             default:
                 assertNever(connection);

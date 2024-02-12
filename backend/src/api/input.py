@@ -100,6 +100,7 @@ class BaseInput:
         # Optional documentation
         self.description: str | None = None
         self.hint: bool = False
+        self.suggestions: list[str] | None = None
 
     # This is the method that should be created by each input
     def enforce(self, value: object):
@@ -165,6 +166,10 @@ class BaseInput:
     def with_docs(self, *description: str, hint: bool = False):
         self.description = "\n\n".join(description)
         self.hint = hint
+        return self
+
+    def with_suggestions(self, suggestions: list[str]):
+        self.suggestions = suggestions
         return self
 
     def make_optional(self):
