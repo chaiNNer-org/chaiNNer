@@ -152,6 +152,7 @@ class BaseInput:
             "hasHandle": self.has_handle,
             "description": self.description,
             "hint": self.hint,
+            "suggestions": self.suggestions,
             "fused": {
                 "outputId": self.fused.output_id,
             }

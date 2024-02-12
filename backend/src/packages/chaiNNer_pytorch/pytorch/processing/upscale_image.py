@@ -106,8 +106,20 @@ def upscale(
     ),
     icon="PyTorch",
     inputs=[
-        ImageInput().with_id(1),
-        SrModelInput().with_id(0),
+        ImageInput()
+        .with_id(1)
+        .with_suggestions(
+            [
+                "chainner:image:load",
+            ]
+        ),
+        SrModelInput()
+        .with_id(0)
+        .with_suggestions(
+            [
+                "chainner:pytorch:load_model",
+            ]
+        ),
         if_group(
             Condition.type(
                 0,
