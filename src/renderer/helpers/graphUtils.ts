@@ -1,40 +1,24 @@
 import { Bezier } from 'bezier-js';
 import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs';
 import { Edge, Node, Position } from 'reactflow';
+import { Circle, Point, Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
-import { Circle, getAngleBetweenPoints, getPointOnCircle } from './floatingEdgeUtils';
-
-export interface Point {
-    readonly x: number;
-    readonly y: number;
-}
-
-export const pointDist = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
 export class AABB {
-    readonly min: Point;
+    readonly min: Vec2;
 
-    readonly max: Point;
+    readonly max: Vec2;
 
-    private constructor(min: Point, max: Point) {
+    private constructor(min: Vec2, max: Vec2) {
         this.min = min;
         this.max = max;
     }
 
-    static fromPoints(...points: Point[]): AABB {
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-        for (const { x, y } of points) {
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
-        }
-
-        return new AABB({ x: minX, y: minY }, { x: maxX, y: maxY });
+    static fromPoints(...points: Vec2[]): AABB {
+        const min = points.reduce((acc, p) => acc.min(p), Vec2.INF);
+        const max = points.reduce((acc, p) => acc.max(p), Vec2.NEG_INF);
+        return new AABB(min, max);
     }
 
     contains({ x, y }: Point): boolean {
@@ -42,11 +26,9 @@ export class AABB {
     }
 
     intersects(other: AABB): boolean {
-        const minX = Math.max(this.min.x, other.min.x);
-        const minY = Math.max(this.min.y, other.min.y);
-        const maxX = Math.min(this.max.x, other.max.x);
-        const maxY = Math.min(this.max.y, other.max.y);
-        return minX <= maxX && minY <= maxY;
+        const min = this.min.max(other.min);
+        const max = this.max.min(other.max);
+        return min.x <= max.x && min.y <= max.y;
     }
 
     intersectsCurve(curve: Bezier): boolean {
@@ -59,10 +41,10 @@ export class AABB {
         }
 
         // check the side of the AABB
-        const TL: Point = this.min;
-        const TR: Point = { x: this.max.x, y: this.min.y };
-        const BL: Point = { x: this.min.x, y: this.max.y };
-        const BR: Point = this.max;
+        const TL = this.min;
+        const TR = { x: this.max.x, y: this.min.y };
+        const BL = { x: this.min.x, y: this.max.y };
+        const BR = this.max;
 
         return (
             curve.lineIntersects({ p1: TL, p2: TR }).length > 0 ||
@@ -76,21 +58,17 @@ export class AABB {
 // Modified from https://github.com/wbkd/react-flow/blob/674127a3eb6d2a70ca5894dffa7c5bad9d9769d5/packages/core/src/components/Edges/BezierEdge.tsx
 
 export interface GetBezierPathParams {
-    sourceX: number;
-    sourceY: number;
+    source: Vec2;
     sourcePosition?: Position;
-    targetX: number;
-    targetY: number;
+    target: Vec2;
     targetPosition?: Position;
     curvature?: number;
 }
 
 interface GetControlWithCurvatureParams {
     pos: Position;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
+    p1: Vec2;
+    p2: Vec2;
     c: number;
 }
 
@@ -102,73 +80,42 @@ const calculateControlOffset = (distance: number, curvature: number): number => 
     return curvature * 25 * Math.sqrt(-distance);
 };
 
-const getControlWithCurvature = ({
-    pos,
-    x1,
-    y1,
-    x2,
-    y2,
-    c,
-}: GetControlWithCurvatureParams): [number, number] => {
+const getControlWithCurvature = ({ pos, p1, p2, c }: GetControlWithCurvatureParams): Vec2 => {
     switch (pos) {
         case Position.Left:
-            return [x1 - calculateControlOffset(x1 - x2, c), y1];
+            return p1.add({ x: -calculateControlOffset(p1.x - p2.x, c), y: 0 });
         case Position.Right:
-            return [x1 + calculateControlOffset(x2 - x1, c), y1];
+            return p1.add({ x: +calculateControlOffset(p2.x - p1.x, c), y: 0 });
         case Position.Top:
-            return [x1, y1 - calculateControlOffset(y1 - y2, c)];
+            return p1.add({ x: 0, y: -calculateControlOffset(p1.y - p2.y, c) });
         case Position.Bottom:
-            return [x1, y1 + calculateControlOffset(y2 - y1, c)];
+            return p1.add({ x: 0, y: +calculateControlOffset(p2.y - p1.y, c) });
         default:
             return assertNever(pos);
     }
 };
 
 export const getBezierPathValues = ({
-    sourceX,
-    sourceY,
+    source,
     sourcePosition = Position.Bottom,
-    targetX,
-    targetY,
+    target,
     targetPosition = Position.Top,
     curvature = 0.25,
-}: GetBezierPathParams): [
-    sourceX: number,
-    sourceY: number,
-    sourceControlX: number,
-    sourceControlY: number,
-    targetControlX: number,
-    targetControlY: number,
-    targetX: number,
-    targetY: number
-] => {
-    const [sourceControlX, sourceControlY] = getControlWithCurvature({
+}: GetBezierPathParams): [source: Vec2, sourceControl: Vec2, targetControl: Vec2, target: Vec2] => {
+    const sourceControl = getControlWithCurvature({
         pos: sourcePosition,
-        x1: sourceX,
-        y1: sourceY,
-        x2: targetX,
-        y2: targetY,
+        p1: source,
+        p2: target,
         c: curvature,
     });
-    const [targetControlX, targetControlY] = getControlWithCurvature({
+    const targetControl = getControlWithCurvature({
         pos: targetPosition,
-        x1: targetX,
-        y1: targetY,
-        x2: sourceX,
-        y2: sourceY,
+        p1: target,
+        p2: source,
         c: curvature,
     });
 
-    return [
-        sourceX,
-        sourceY,
-        sourceControlX,
-        sourceControlY,
-        targetControlX,
-        targetControlY,
-        targetX,
-        targetY,
-    ];
+    return [source, sourceControl, targetControl, target];
 };
 
 const elk = new ELK();
@@ -255,65 +202,48 @@ const calculateCustomControlOffset = (distance: number, curvature: number): numb
     return curvature * 25 * Math.sqrt(Math.abs(distance));
 };
 
-const getCustomControlWithCurvature = ({
-    pos,
-    x1,
-    y1,
-    x2,
-    y2,
-    c,
-}: GetControlWithCurvatureParams): [number, number] => {
+const getCustomControlWithCurvature = ({ pos, p1, p2, c }: GetControlWithCurvatureParams): Vec2 => {
     switch (pos) {
         case Position.Left:
-            return [x1 - calculateCustomControlOffset(x1 - x2, c), y1];
+            return p1.add({ x: -calculateCustomControlOffset(p1.x - p2.x, c), y: 0 });
         case Position.Right:
-            return [x1 + calculateCustomControlOffset(x2 - x1, c), y1];
+            return p1.add({ x: +calculateCustomControlOffset(p2.x - p1.x, c), y: 0 });
         case Position.Top:
-            return [x1, y1 - calculateCustomControlOffset(y1 - y2, c)];
+            return p1.add({ x: 0, y: -calculateCustomControlOffset(p1.y - p2.y, c) });
         case Position.Bottom:
-            return [x1, y1 + calculateCustomControlOffset(y2 - y1, c)];
+            return p1.add({ x: 0, y: +calculateCustomControlOffset(p2.y - p1.y, c) });
         default:
             return assertNever(pos);
     }
 };
 
-export const getBezierEdgeCenter = ({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourceControlX,
-    sourceControlY,
-    targetControlX,
-    targetControlY,
+const getBezierEdgeCenter = ({
+    source,
+    target,
+    sourceControl,
+    targetControl,
 }: {
-    sourceX: number;
-    sourceY: number;
-    targetX: number;
-    targetY: number;
-    sourceControlX: number;
-    sourceControlY: number;
-    targetControlX: number;
-    targetControlY: number;
-}): [number, number, number, number] => {
+    source: Vec2;
+    target: Vec2;
+    sourceControl: Vec2;
+    targetControl: Vec2;
+}): [Vec2, Vec2] => {
     // cubic bezier t=0.5 mid point, not the actual mid point, but easy to calculate
     // https://stackoverflow.com/questions/67516101/how-to-find-distance-mid-point-of-bezier-curve
-    const centerX =
-        sourceX * 0.125 + sourceControlX * 0.375 + targetControlX * 0.375 + targetX * 0.125;
-    const centerY =
-        sourceY * 0.125 + sourceControlY * 0.375 + targetControlY * 0.375 + targetY * 0.125;
-    const offsetX = Math.abs(centerX - sourceX);
-    const offsetY = Math.abs(centerY - sourceY);
+    const center = source
+        .mul(0.125)
+        .add(sourceControl.mul(0.375))
+        .add(targetControl.mul(0.375))
+        .add(target.mul(0.125));
+    const offset = center.sub(source).abs();
 
-    return [centerX, centerY, offsetX, offsetY];
+    return [center, offset];
 };
 
 export const getCustomBezierPath = ({
-    sourceX,
-    sourceY,
+    source,
     sourcePosition = Position.Bottom,
-    targetX,
-    targetY,
+    target,
     targetPosition = Position.Top,
     curvatures = {
         source: 0.25,
@@ -321,11 +251,9 @@ export const getCustomBezierPath = ({
     },
     radii,
 }: {
-    sourceX: number;
-    sourceY: number;
+    source: Vec2;
     sourcePosition?: Position;
-    targetX: number;
-    targetY: number;
+    target: Vec2;
     targetPosition?: Position;
     curvatures?: {
         source: number;
@@ -336,59 +264,68 @@ export const getCustomBezierPath = ({
         target: number;
     };
 }): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] => {
-    let sx = sourceX;
-    let sy = sourceY;
-    let tx = targetX;
-    let ty = targetY;
-    const sourceCircle: Circle = { x: sourceX, y: sourceY, radius: radii?.source ?? 0 };
-    const targetCircle: Circle = { x: targetX, y: targetY, radius: radii?.target ?? 0 };
+    let s = source;
+    let t = target;
+    const sourceCircle = new Circle(source, radii?.source ?? 0);
+    const targetCircle = new Circle(target, radii?.target ?? 0);
 
-    const angle = getAngleBetweenPoints(sourceCircle, targetCircle);
+    const { angle } = Vec2.direction(sourceCircle.center, targetCircle.center);
 
     if (radii?.source) {
-        const sourcePoint = getPointOnCircle(sourceCircle, angle);
-        sx = sourcePoint.x - sourceCircle.radius;
-        sy = sourcePoint.y;
+        const sourcePoint = sourceCircle.atAngle(angle);
+        s = new Vec2(sourcePoint.x - sourceCircle.radius, sourcePoint.y);
     }
     if (radii?.target) {
-        const targetPoint = getPointOnCircle(targetCircle, angle + Math.PI);
-        tx = targetPoint.x + targetCircle.radius;
-        ty = targetPoint.y;
+        const targetPoint = targetCircle.atAngle(angle + Math.PI);
+        t = new Vec2(targetPoint.x + targetCircle.radius, targetPoint.y);
     }
 
-    const [sourceControlX, sourceControlY] = getCustomControlWithCurvature({
+    const sourceControl = getCustomControlWithCurvature({
         pos: sourcePosition,
-        x1: sx,
-        y1: sy,
-        x2: tx,
-        y2: ty,
+        p1: s,
+        p2: t,
         c: curvatures.source,
     });
 
-    const [targetControlX, targetControlY] = getCustomControlWithCurvature({
+    const targetControl = getCustomControlWithCurvature({
         pos: targetPosition,
-        x1: tx,
-        y1: ty,
-        x2: sx,
-        y2: sy,
+        p1: t,
+        p2: s,
         c: curvatures.target,
     });
-    const [labelX, labelY, offsetX, offsetY] = getBezierEdgeCenter({
-        sourceX: sx,
-        sourceY: sy,
-        targetX: tx,
-        targetY: ty,
-        sourceControlX,
-        sourceControlY,
-        targetControlX,
-        targetControlY,
+    const [label, offset] = getBezierEdgeCenter({
+        source: s,
+        target: t,
+        sourceControl,
+        targetControl,
     });
 
     return [
-        `M${sx},${sy} C${sourceControlX},${sourceControlY} ${targetControlX},${targetControlY} ${tx},${ty}`,
-        labelX,
-        labelY,
-        offsetX,
-        offsetY,
+        `M${s.x},${s.y} C${sourceControl.x},${sourceControl.y} ${targetControl.x},${targetControl.y} ${t.x},${t.y}`,
+        label.x,
+        label.y,
+        offset.x,
+        offset.y,
     ];
+};
+
+// Modify getEdgeParams to use circle parameters and get the line that floats around the edge of each circle
+export const getCircularEdgeParams = (sourceCircle: Circle, targetCircle: Circle) => {
+    // Update the sourceX and source Y to be in the center of the circle
+    // eslint-disable-next-line no-param-reassign
+    sourceCircle = sourceCircle.translateX(-sourceCircle.radius);
+    // eslint-disable-next-line no-param-reassign
+    targetCircle = targetCircle.translateX(targetCircle.radius);
+
+    // Calculate the angle between the centers of the circles
+    const { angle } = Vec2.direction(sourceCircle.center, targetCircle.center);
+
+    // Calculate the points on the circumference of each circle based on the angle
+    const startEdgePoint = sourceCircle.atAngle(angle);
+    const endEdgePoint = targetCircle.atAngle(angle + Math.PI);
+
+    return {
+        s: startEdgePoint,
+        t: endEdgePoint,
+    };
 };

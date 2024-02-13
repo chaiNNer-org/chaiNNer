@@ -5,6 +5,7 @@ import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { Circle, Vec2 } from '../../../common/2d';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -13,8 +14,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
-import { getCircularEdgeParams } from '../../helpers/floatingEdgeUtils';
-import { getCustomBezierPath } from '../../helpers/graphUtils';
+import { getCircularEdgeParams, getCustomBezierPath } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
@@ -107,11 +107,9 @@ export const CustomEdge = memo(
             const BREAKPOINT_RADIUS = 6;
             if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
                 return getCustomBezierPath({
-                    sourceX,
-                    sourceY,
+                    source: new Vec2(sourceX, sourceY),
                     sourcePosition,
-                    targetX: _targetX,
-                    targetY,
+                    target: new Vec2(_targetX, targetY),
                     targetPosition,
                     curvatures: {
                         source: 0.25,
@@ -125,11 +123,9 @@ export const CustomEdge = memo(
             }
             if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
                 return getCustomBezierPath({
-                    sourceX: _sourceX,
-                    sourceY,
+                    source: new Vec2(_sourceX, sourceY),
                     sourcePosition,
-                    targetX,
-                    targetY,
+                    target: new Vec2(targetX, targetY),
                     targetPosition,
                     curvatures: {
                         source: 0,
@@ -142,24 +138,16 @@ export const CustomEdge = memo(
                 });
             }
             if (isAttachedToBreakPoint) {
-                const { sx, sy, tx, ty } = getCircularEdgeParams(
-                    {
-                        x: _sourceX,
-                        y: sourceY,
-                        radius: BREAKPOINT_RADIUS,
-                    },
-                    {
-                        x: _targetX,
-                        y: targetY,
-                        radius: BREAKPOINT_RADIUS,
-                    }
+                const { s, t } = getCircularEdgeParams(
+                    new Circle(new Vec2(_sourceX, sourceY), BREAKPOINT_RADIUS),
+                    new Circle(new Vec2(_targetX, targetY), BREAKPOINT_RADIUS)
                 );
 
                 return getStraightPath({
-                    sourceX: sx,
-                    sourceY: sy,
-                    targetX: tx,
-                    targetY: ty,
+                    sourceX: s.x,
+                    sourceY: s.y,
+                    targetX: t.x,
+                    targetY: t.y,
                 });
             }
             return getBezierPath({
