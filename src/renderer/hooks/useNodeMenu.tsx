@@ -1,4 +1,5 @@
 import {
+    ChevronRightIcon,
     CloseIcon,
     CopyIcon,
     DeleteIcon,
@@ -6,7 +7,8 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import { MenuDivider, MenuItem, MenuList } from '@chakra-ui/react';
+import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
+import { useRef } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
@@ -17,6 +19,8 @@ import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
+
+import './useNodeMenu.scss';
 
 export interface UseNodeMenuOptions {
     canLock?: boolean;
@@ -31,11 +35,13 @@ export const useNodeMenu = (
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;
 
-    const { removeNodesById, clearNodes, duplicateNodes, toggleNodeLock } =
+    const { removeNodesById, resetInputs, resetConnections, duplicateNodes, toggleNodeLock } =
         useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
+
+    const resetMenuParentRef = useRef<HTMLButtonElement>(null);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -63,13 +69,53 @@ export const useNodeMenu = (
             </MenuItem>
             <MenuDivider />
             <MenuItem
+                as="a"
+                className="useNodeMenu-container"
+                closeOnSelect={false}
                 icon={<CloseIcon />}
-                onClick={() => {
-                    clearNodes([id]);
-                }}
+                ref={resetMenuParentRef}
             >
-                Reset Node
+                <HStack>
+                    <Text>Reset Node</Text>
+                    <Spacer />
+                    <ChevronRightIcon />
+                </HStack>
             </MenuItem>
+            <div className="useNodeMenu-child">
+                <MenuList
+                    left={resetMenuParentRef.current?.offsetWidth || 0}
+                    marginTop="-55px"
+                    position="absolute"
+                    top={resetMenuParentRef.current?.offsetHeight || 0}
+                >
+                    <MenuItem
+                        icon={<CloseIcon />}
+                        onClick={() => {
+                            resetInputs([id]);
+                        }}
+                    >
+                        Reset Inputs
+                    </MenuItem>
+                    <MenuItem
+                        icon={<CloseIcon />}
+                        onClick={() => {
+                            resetConnections([id]);
+                        }}
+                    >
+                        Reset Connections
+                    </MenuItem>
+                    <MenuItem
+                        icon={<CloseIcon />}
+                        onClick={() => {
+                            resetInputs([id]);
+                            resetConnections([id]);
+                        }}
+                    >
+                        Reset All
+                    </MenuItem>
+                </MenuList>
+            </div>
+            <MenuDivider />
             {canDisable && (
                 <MenuItem
                     icon={isDirectlyDisabled ? <MdPlayArrow /> : <MdPlayDisabled />}

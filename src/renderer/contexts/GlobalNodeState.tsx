@@ -128,7 +128,8 @@ interface Global {
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
-    clearNodes: (ids: readonly string[]) => void;
+    resetInputs: (ids: readonly string[]) => void;
+    resetConnections: (ids: readonly string[]) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setCollidingEdge: (value: string | undefined) => void;
     setCollidingNode: (value: string | undefined) => void;
@@ -1114,7 +1115,7 @@ export const GlobalProvider = memo(
             [changeNodes, changeEdges]
         );
 
-        const clearNodes = useCallback(
+        const resetInputs = useCallback(
             (ids: readonly string[]) => {
                 ids.forEach((id) => {
                     modifyNode(id, (old) => {
@@ -1130,6 +1131,17 @@ export const GlobalProvider = memo(
                 });
             },
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
+        );
+
+        const resetConnections = useCallback(
+            (ids: readonly string[]) => {
+                changeEdges((edges) => {
+                    return edges.filter((e) => {
+                        return !ids.includes(e.source) && !ids.includes(e.target);
+                    });
+                });
+            },
+            [changeEdges]
         );
 
         const setNodeDisabled = useCallback(
@@ -1299,7 +1311,8 @@ export const GlobalProvider = memo(
             setNodeOutputHeight,
             setNodeWidth,
             toggleNodeLock,
-            clearNodes,
+            resetInputs,
+            resetConnections,
             removeNodesById,
             removeEdgeById,
             duplicateNodes,
