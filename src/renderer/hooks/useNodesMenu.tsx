@@ -56,8 +56,9 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                 <MenuList
                     className="nodrag"
                     left={resetMenuParentRef.current?.offsetWidth || 0}
+                    marginTop="-55px"
                     position="absolute"
-                    top={(resetMenuParentRef.current?.offsetHeight || 0) - 12}
+                    top={resetMenuParentRef.current?.offsetHeight || 0}
                 >
                     <MenuItem
                         icon={<CloseIcon />}

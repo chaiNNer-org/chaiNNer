@@ -84,8 +84,9 @@ export const useNodeMenu = (
             <div className="useNodeMenu-child">
                 <MenuList
                     left={resetMenuParentRef.current?.offsetWidth || 0}
+                    marginTop="-55px"
                     position="absolute"
-                    top={(resetMenuParentRef.current?.offsetHeight || 0) - 12}
+                    top={resetMenuParentRef.current?.offsetHeight || 0}
                 >
                     <MenuItem
                         icon={<CloseIcon />}
