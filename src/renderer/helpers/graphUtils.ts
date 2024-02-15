@@ -1,7 +1,7 @@
 import { Bezier } from 'bezier-js';
 import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs';
 import { Edge, Node, Position } from 'reactflow';
-import { Circle, Point, Vec2 } from '../../common/2d';
+import { Circle, Line, Point, Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
 
@@ -52,6 +52,24 @@ export class AABB {
             curve.lineIntersects({ p1: BR, p2: BL }).length > 0 ||
             curve.lineIntersects({ p1: BL, p2: TL }).length > 0
         );
+    }
+
+    intersectsLine(line: Line): boolean {
+        // Convert AABB to an array of lines
+        const lines = [
+            new Line(this.min, new Vec2(this.max.x, this.min.y)),
+            new Line(new Vec2(this.max.x, this.min.y), this.max),
+            new Line(this.max, new Vec2(this.min.x, this.max.y)),
+            new Line(new Vec2(this.min.x, this.max.y), this.min),
+        ];
+
+        // Check if the line intersects with any of the AABB's edges
+        for (const l of lines) {
+            if (l.intersects(line)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -240,17 +258,7 @@ const getBezierEdgeCenter = ({
     return [center, offset];
 };
 
-export const getCustomBezierPath = ({
-    source,
-    sourcePosition = Position.Bottom,
-    target,
-    targetPosition = Position.Top,
-    curvatures = {
-        source: 0.25,
-        target: 0.25,
-    },
-    radii,
-}: {
+interface GetCustomBezierPathParams {
     source: Vec2;
     sourcePosition?: Position;
     target: Vec2;
@@ -263,7 +271,21 @@ export const getCustomBezierPath = ({
         source: number;
         target: number;
     };
-}): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] => {
+}
+
+export const BREAKPOINT_RADIUS = 6;
+
+export const getCustomBezierPathValues = ({
+    source,
+    sourcePosition = Position.Bottom,
+    target,
+    targetPosition = Position.Top,
+    curvatures = {
+        source: 0.25,
+        target: 0.25,
+    },
+    radii,
+}: GetCustomBezierPathParams) => {
     let s = source;
     let t = target;
     const sourceCircle = new Circle(source, radii?.source ?? 0);
@@ -293,6 +315,35 @@ export const getCustomBezierPath = ({
         p2: s,
         c: curvatures.target,
     });
+    return [source, sourceControl, targetControl, t];
+};
+
+export const getCustomBezierPath = ({
+    source,
+    sourcePosition = Position.Bottom,
+    target,
+    targetPosition = Position.Top,
+    curvatures = {
+        source: 0.25,
+        target: 0.25,
+    },
+    radii,
+}: GetCustomBezierPathParams): [
+    path: string,
+    labelX: number,
+    labelY: number,
+    offsetX: number,
+    offsetY: number
+] => {
+    const [s, sourceControl, targetControl, t] = getCustomBezierPathValues({
+        source,
+        sourcePosition,
+        target,
+        targetPosition,
+        curvatures,
+        radii,
+    });
+
     const [label, offset] = getBezierEdgeCenter({
         source: s,
         target: t,

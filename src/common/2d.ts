@@ -132,3 +132,26 @@ export class Circle {
         return new Circle(new Vec2(this.center.x, this.center.y + offset), this.radius);
     }
 }
+
+export class Line {
+    readonly from: Vec2;
+
+    readonly to: Vec2;
+
+    constructor(from: Vec2, to: Vec2) {
+        this.from = from;
+        this.to = to;
+    }
+
+    intersects(other: Line): boolean {
+        const { from, to } = this;
+        const { from: from2, to: to2 } = other;
+        const s1x = to.x - from.x;
+        const s1y = to.y - from.y;
+        const s2x = to2.x - from2.x;
+        const s2y = to2.y - from2.y;
+        const s = (-s1y * (from.x - from2.x) + s1x * (from.y - from2.y)) / (-s2x * s1y + s1x * s2y);
+        const t = (s2x * (from.y - from2.y) - s2y * (from.x - from2.x)) / (-s2x * s1y + s1x * s2y);
+        return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+    }
+}
