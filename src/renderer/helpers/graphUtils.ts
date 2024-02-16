@@ -309,14 +309,14 @@ export const getCustomBezierPathValues = ({
         p2: t,
         c: curvatures.source,
     });
-
     const targetControl = getCustomControlWithCurvature({
         pos: targetPosition,
         p1: t,
         p2: s,
         c: curvatures.target,
     });
-    return [source, sourceControl, targetControl, t];
+
+    return [s, sourceControl, targetControl, t];
 };
 
 export const getCustomBezierPath = ({
