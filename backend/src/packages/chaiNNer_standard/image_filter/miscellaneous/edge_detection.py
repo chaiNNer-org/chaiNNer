@@ -173,7 +173,7 @@ def edge_detection_node(
             return cv2.filter2D(img, -1, filter_x)
 
         def g_y() -> np.ndarray:
-            filter = filter_y or np.rot90(filter_x, 1)
+            filter = filter_y if filter_y is not None else np.rot90(filter_x, 1)
             return cv2.filter2D(img, -1, filter)
 
         if algorithm == Algorithm.ROBERTS:
