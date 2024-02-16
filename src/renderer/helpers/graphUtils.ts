@@ -274,6 +274,7 @@ interface GetCustomBezierPathParams {
 }
 
 export const BREAKPOINT_RADIUS = 6;
+export const DEFAULT_CURVATURE = 0.25;
 
 export const getCustomBezierPathValues = ({
     source,
@@ -281,8 +282,8 @@ export const getCustomBezierPathValues = ({
     target,
     targetPosition = Position.Top,
     curvatures = {
-        source: 0.25,
-        target: 0.25,
+        source: DEFAULT_CURVATURE,
+        target: DEFAULT_CURVATURE,
     },
     radii,
 }: GetCustomBezierPathParams) => {
@@ -324,8 +325,8 @@ export const getCustomBezierPath = ({
     target,
     targetPosition = Position.Top,
     curvatures = {
-        source: 0.25,
-        target: 0.25,
+        source: DEFAULT_CURVATURE,
+        target: DEFAULT_CURVATURE,
     },
     radii,
 }: GetCustomBezierPathParams): [
@@ -379,4 +380,96 @@ export const getCircularEdgeParams = (sourceCircle: Circle, targetCircle: Circle
         s: startEdgePoint,
         t: endEdgePoint,
     };
+};
+
+export const getNodeOnEdgeIntersection = (
+    leftNode: Node<NodeData>,
+    rightNode: Node<NodeData>,
+    nodeBB: AABB,
+    sourceP: Vec2,
+    targetP: Vec2,
+    mousePosition: Point
+): number | null => {
+    const leftNodeIsBreakpoint = leftNode.type === 'breakPoint';
+    const rightNodeIsBreakpoint = rightNode.type === 'breakPoint';
+
+    if (!leftNodeIsBreakpoint && !rightNodeIsBreakpoint) {
+        const bezierPathCoordinates = getBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+        });
+
+        // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    // If both are breakpoints, the lines are just straight
+    if (leftNodeIsBreakpoint && rightNodeIsBreakpoint) {
+        const leftNodePos = Vec2.from(leftNode.position);
+        const rightNodePos = Vec2.from(rightNode.position);
+        const line = new Line(leftNodePos, rightNodePos);
+
+        if (!nodeBB.intersectsLine(line)) {
+            return null;
+        }
+
+        const mouseDist = Math.hypot(mousePosition.x, mousePosition.y);
+        return mouseDist;
+    }
+    if (leftNodeIsBreakpoint) {
+        const bezierPathCoordinates = getCustomBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+            curvatures: {
+                source: 0,
+                target: DEFAULT_CURVATURE,
+            },
+            radii: {
+                source: BREAKPOINT_RADIUS,
+                target: 0,
+            },
+        });
+
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    if (rightNodeIsBreakpoint) {
+        const bezierPathCoordinates = getCustomBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+            curvatures: {
+                source: DEFAULT_CURVATURE,
+                target: 0,
+            },
+            radii: {
+                source: 0,
+                target: BREAKPOINT_RADIUS,
+            },
+        });
+
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    return null;
 };

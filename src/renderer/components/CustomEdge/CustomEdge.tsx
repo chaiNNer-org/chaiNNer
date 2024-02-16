@@ -16,6 +16,7 @@ import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import {
     BREAKPOINT_RADIUS,
+    DEFAULT_CURVATURE,
     getCircularEdgeParams,
     getCustomBezierPath,
 } from '../../helpers/graphUtils';
@@ -115,7 +116,7 @@ export const CustomEdge = memo(
                     target: new Vec2(_targetX, targetY),
                     targetPosition,
                     curvatures: {
-                        source: 0.25,
+                        source: DEFAULT_CURVATURE,
                         target: 0,
                     },
                     radii: {
@@ -132,7 +133,7 @@ export const CustomEdge = memo(
                     targetPosition,
                     curvatures: {
                         source: 0,
-                        target: 0.25,
+                        target: DEFAULT_CURVATURE,
                     },
                     radii: {
                         source: BREAKPOINT_RADIUS,

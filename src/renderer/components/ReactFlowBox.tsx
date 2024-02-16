@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
-import { Bezier } from 'bezier-js';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -14,7 +13,6 @@ import ReactFlow, {
     NodeTypes,
     OnEdgesChange,
     OnNodesChange,
-    Position,
     Viewport,
     XYPosition,
     useEdgesState,
@@ -23,7 +21,7 @@ import ReactFlow, {
     useReactFlow,
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Line, Vec2 } from '../../common/2d';
+import { Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
@@ -41,13 +39,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import {
-    AABB,
-    BREAKPOINT_RADIUS,
-    getBezierPathValues,
-    getCustomBezierPathValues,
-    getLayoutedPositionMap,
-} from '../helpers/graphUtils';
+import { AABB, getLayoutedPositionMap, getNodeOnEdgeIntersection } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -202,88 +194,24 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     const leftNode = getNode(sourceHandle.nodeId);
                     const rightNode = getNode(e.target);
 
-                    const leftNodeIsBreakpoint = leftNode?.type === 'breakPoint';
-                    const rightNodeIsBreakpoint = rightNode?.type === 'breakPoint';
-
-                    if (!leftNodeIsBreakpoint && !rightNodeIsBreakpoint) {
-                        const bezierPathCoordinates = getBezierPathValues({
-                            source: sourceP,
-                            sourcePosition: Position.Right,
-                            target: targetP,
-                            targetPosition: Position.Left,
-                        });
-
-                        // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                        const curve = new Bezier(bezierPathCoordinates);
-                        if (!nodeBB.intersectsCurve(curve)) {
-                            return EMPTY_ARRAY;
-                        }
-
-                        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
-                        return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
+                    if (!leftNode || !rightNode) {
+                        return EMPTY_ARRAY;
                     }
-                    // If both are breakpoints, the lines are just straight
-                    if (leftNodeIsBreakpoint && rightNodeIsBreakpoint) {
-                        const leftNodePos = Vec2.from(leftNode.position);
-                        const rightNodePos = Vec2.from(rightNode.position);
-                        const line = new Line(leftNodePos, rightNodePos);
 
-                        if (!nodeBB.intersectsLine(line)) {
-                            return EMPTY_ARRAY;
-                        }
+                    const mouseDist = getNodeOnEdgeIntersection(
+                        leftNode,
+                        rightNode,
+                        nodeBB,
+                        sourceP,
+                        targetP,
+                        mousePosition
+                    );
 
-                        const mouseDist = Math.hypot(mousePosition.x, mousePosition.y);
-                        return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
+                    if (!mouseDist) {
+                        return EMPTY_ARRAY;
                     }
-                    if (leftNodeIsBreakpoint) {
-                        const bezierPathCoordinates = getCustomBezierPathValues({
-                            source: sourceP,
-                            sourcePosition: Position.Right,
-                            target: targetP,
-                            targetPosition: Position.Left,
-                            curvatures: {
-                                source: 0,
-                                target: 0.25,
-                            },
-                            radii: {
-                                source: BREAKPOINT_RADIUS,
-                                target: 0,
-                            },
-                        });
 
-                        const curve = new Bezier(bezierPathCoordinates);
-                        if (!nodeBB.intersectsCurve(curve)) {
-                            return EMPTY_ARRAY;
-                        }
-
-                        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
-                        return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
-                    }
-                    if (rightNodeIsBreakpoint) {
-                        const bezierPathCoordinates = getCustomBezierPathValues({
-                            source: sourceP,
-                            sourcePosition: Position.Right,
-                            target: targetP,
-                            targetPosition: Position.Left,
-                            curvatures: {
-                                source: 0.25,
-                                target: 0,
-                            },
-                            radii: {
-                                source: 0,
-                                target: BREAKPOINT_RADIUS,
-                            },
-                        });
-
-                        const curve = new Bezier(bezierPathCoordinates);
-                        if (!nodeBB.intersectsCurve(curve)) {
-                            return EMPTY_ARRAY;
-                        }
-
-                        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
-                        return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
-                    }
-                    return EMPTY_ARRAY;
+                    return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
                 })
                 // Sort the edges by their distance from the mouse position
                 .sort((a, b) => a.mouseDist - b.mouseDist);
