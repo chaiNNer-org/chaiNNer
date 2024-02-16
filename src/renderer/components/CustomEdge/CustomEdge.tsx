@@ -14,7 +14,12 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
-import { getCircularEdgeParams, getCustomBezierPath } from '../../helpers/graphUtils';
+import {
+    BREAKPOINT_RADIUS,
+    DEFAULT_CURVATURE,
+    getCircularEdgeParams,
+    getCustomBezierPath,
+} from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
 
@@ -104,7 +109,6 @@ export const CustomEdge = memo(
             edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
 
         const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
-            const BREAKPOINT_RADIUS = 6;
             if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
                 return getCustomBezierPath({
                     source: new Vec2(sourceX, sourceY),
@@ -112,7 +116,7 @@ export const CustomEdge = memo(
                     target: new Vec2(_targetX, targetY),
                     targetPosition,
                     curvatures: {
-                        source: 0.25,
+                        source: DEFAULT_CURVATURE,
                         target: 0,
                     },
                     radii: {
@@ -129,7 +133,7 @@ export const CustomEdge = memo(
                     targetPosition,
                     curvatures: {
                         source: 0,
-                        target: 0.25,
+                        target: DEFAULT_CURVATURE,
                     },
                     radii: {
                         source: BREAKPOINT_RADIUS,

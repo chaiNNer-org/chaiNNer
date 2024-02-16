@@ -1,7 +1,7 @@
 import { Bezier } from 'bezier-js';
 import ELK, { ElkExtendedEdge, ElkNode } from 'elkjs';
 import { Edge, Node, Position } from 'reactflow';
-import { Circle, Point, Vec2 } from '../../common/2d';
+import { Circle, Line, Point, Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { assertNever } from '../../common/util';
 
@@ -52,6 +52,24 @@ export class AABB {
             curve.lineIntersects({ p1: BR, p2: BL }).length > 0 ||
             curve.lineIntersects({ p1: BL, p2: TL }).length > 0
         );
+    }
+
+    intersectsLine(line: Line): boolean {
+        // Convert AABB to an array of lines
+        const lines = [
+            new Line(this.min, new Vec2(this.max.x, this.min.y)),
+            new Line(new Vec2(this.max.x, this.min.y), this.max),
+            new Line(this.max, new Vec2(this.min.x, this.max.y)),
+            new Line(new Vec2(this.min.x, this.max.y), this.min),
+        ];
+
+        // Check if the line intersects with any of the AABB's edges
+        for (const l of lines) {
+            if (l.intersects(line)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -240,17 +258,7 @@ const getBezierEdgeCenter = ({
     return [center, offset];
 };
 
-export const getCustomBezierPath = ({
-    source,
-    sourcePosition = Position.Bottom,
-    target,
-    targetPosition = Position.Top,
-    curvatures = {
-        source: 0.25,
-        target: 0.25,
-    },
-    radii,
-}: {
+interface GetCustomBezierPathParams {
     source: Vec2;
     sourcePosition?: Position;
     target: Vec2;
@@ -263,7 +271,22 @@ export const getCustomBezierPath = ({
         source: number;
         target: number;
     };
-}): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] => {
+}
+
+export const BREAKPOINT_RADIUS = 6;
+export const DEFAULT_CURVATURE = 0.25;
+
+export const getCustomBezierPathValues = ({
+    source,
+    sourcePosition = Position.Bottom,
+    target,
+    targetPosition = Position.Top,
+    curvatures = {
+        source: DEFAULT_CURVATURE,
+        target: DEFAULT_CURVATURE,
+    },
+    radii,
+}: GetCustomBezierPathParams) => {
     let s = source;
     let t = target;
     const sourceCircle = new Circle(source, radii?.source ?? 0);
@@ -286,13 +309,42 @@ export const getCustomBezierPath = ({
         p2: t,
         c: curvatures.source,
     });
-
     const targetControl = getCustomControlWithCurvature({
         pos: targetPosition,
         p1: t,
         p2: s,
         c: curvatures.target,
     });
+
+    return [s, sourceControl, targetControl, t];
+};
+
+export const getCustomBezierPath = ({
+    source,
+    sourcePosition = Position.Bottom,
+    target,
+    targetPosition = Position.Top,
+    curvatures = {
+        source: DEFAULT_CURVATURE,
+        target: DEFAULT_CURVATURE,
+    },
+    radii,
+}: GetCustomBezierPathParams): [
+    path: string,
+    labelX: number,
+    labelY: number,
+    offsetX: number,
+    offsetY: number
+] => {
+    const [s, sourceControl, targetControl, t] = getCustomBezierPathValues({
+        source,
+        sourcePosition,
+        target,
+        targetPosition,
+        curvatures,
+        radii,
+    });
+
     const [label, offset] = getBezierEdgeCenter({
         source: s,
         target: t,
@@ -328,4 +380,96 @@ export const getCircularEdgeParams = (sourceCircle: Circle, targetCircle: Circle
         s: startEdgePoint,
         t: endEdgePoint,
     };
+};
+
+export const getNodeOnEdgeIntersection = (
+    leftNode: Node<NodeData>,
+    rightNode: Node<NodeData>,
+    nodeBB: AABB,
+    sourceP: Vec2,
+    targetP: Vec2,
+    mousePosition: Point
+): number | null => {
+    const leftNodeIsBreakpoint = leftNode.type === 'breakPoint';
+    const rightNodeIsBreakpoint = rightNode.type === 'breakPoint';
+
+    if (!leftNodeIsBreakpoint && !rightNodeIsBreakpoint) {
+        const bezierPathCoordinates = getBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+        });
+
+        // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    // If both are breakpoints, the lines are just straight
+    if (leftNodeIsBreakpoint && rightNodeIsBreakpoint) {
+        const leftNodePos = Vec2.from(leftNode.position);
+        const rightNodePos = Vec2.from(rightNode.position);
+        const line = new Line(leftNodePos, rightNodePos);
+
+        if (!nodeBB.intersectsLine(line)) {
+            return null;
+        }
+
+        const mouseDist = Math.hypot(mousePosition.x, mousePosition.y);
+        return mouseDist;
+    }
+    if (leftNodeIsBreakpoint) {
+        const bezierPathCoordinates = getCustomBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+            curvatures: {
+                source: 0,
+                target: DEFAULT_CURVATURE,
+            },
+            radii: {
+                source: BREAKPOINT_RADIUS,
+                target: 0,
+            },
+        });
+
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    if (rightNodeIsBreakpoint) {
+        const bezierPathCoordinates = getCustomBezierPathValues({
+            source: sourceP,
+            sourcePosition: Position.Right,
+            target: targetP,
+            targetPosition: Position.Left,
+            curvatures: {
+                source: DEFAULT_CURVATURE,
+                target: 0,
+            },
+            radii: {
+                source: 0,
+                target: BREAKPOINT_RADIUS,
+            },
+        });
+
+        const curve = new Bezier(bezierPathCoordinates);
+        if (!nodeBB.intersectsCurve(curve)) {
+            return null;
+        }
+
+        const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+        return mouseDist;
+    }
+    return null;
 };

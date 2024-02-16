@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
-import { Bezier } from 'bezier-js';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -14,7 +13,6 @@ import ReactFlow, {
     NodeTypes,
     OnEdgesChange,
     OnNodesChange,
-    Position,
     Viewport,
     XYPosition,
     useEdgesState,
@@ -41,7 +39,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import { AABB, getBezierPathValues, getLayoutedPositionMap } from '../helpers/graphUtils';
+import { AABB, getLayoutedPositionMap, getNodeOnEdgeIntersection } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -85,6 +83,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
 
     const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
+    const { getNode } = reactFlowInstance;
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
@@ -192,20 +191,26 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
 
-                    const bezierPathCoordinates = getBezierPathValues({
-                        source: sourceP,
-                        sourcePosition: Position.Right,
-                        target: targetP,
-                        targetPosition: Position.Left,
-                    });
+                    const leftNode = getNode(sourceHandle.nodeId);
+                    const rightNode = getNode(e.target);
 
-                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    const curve = new Bezier(bezierPathCoordinates);
-                    if (!nodeBB.intersectsCurve(curve)) {
+                    if (!leftNode || !rightNode) {
                         return EMPTY_ARRAY;
                     }
 
-                    const mouseDist = Vec2.dist(mousePosition, curve.project(mousePosition));
+                    const mouseDist = getNodeOnEdgeIntersection(
+                        leftNode,
+                        rightNode,
+                        nodeBB,
+                        sourceP,
+                        targetP,
+                        mousePosition
+                    );
+
+                    if (mouseDist === null) {
+                        return EMPTY_ARRAY;
+                    }
+
                     return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
                 })
                 // Sort the edges by their distance from the mouse position
@@ -254,13 +259,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             };
         },
         [
-            createConnection,
             edges,
             functionDefinitions,
             nodes,
-            removeEdgeById,
             typeState.functions,
             chainLineage,
+            getNode,
+            removeEdgeById,
+            createConnection,
         ]
     );
 
