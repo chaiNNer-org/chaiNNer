@@ -207,7 +207,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         mousePosition
                     );
 
-                    if (!mouseDist) {
+                    if (mouseDist === null) {
                         return EMPTY_ARRAY;
                     }
 
