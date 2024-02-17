@@ -5,15 +5,18 @@ import gc
 import importlib
 import logging
 import os
+import socket
+import subprocess
 import sys
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import psutil
+import requests
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -23,7 +26,6 @@ from sanic_cors import CORS
 import api
 from api import (
     ExecutionOptions,
-    Group,
     JsonExecutionOptions,
     NodeId,
 )
@@ -47,6 +49,25 @@ from server_config import ServerConfig
 from system import is_arm_mac
 
 
+def find_free_port():
+    with socket.socket() as s:
+        s.bind(("", 0))  # Bind to a free port provided by the host.
+        return s.getsockname()[1]  # Return the port number assigned.
+
+
+port = find_free_port()
+
+
+async def request_server(
+    method: Literal["GET", "POST", "PUT", "DELETE"],
+    endpoint: str,
+    data: dict | None = None,
+):
+    url = f"http://localhost:{port}/{endpoint}"
+    response = requests.request(method, url, json=data)
+    return response.json()
+
+
 class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
@@ -65,7 +86,7 @@ class AppContext:
         return app_instance.ctx
 
 
-app = Sanic("chaiNNer_executor", ctx=AppContext())
+app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
@@ -109,41 +130,8 @@ access_logger.addFilter(SSEFilter())
 
 @app.route("/nodes")
 async def nodes(_request: Request):
-    """Gets a list of all nodes as well as the node information"""
-    await nodes_available()
-    logger.debug(api.registry.categories)
-
-    node_list = []
-    for node, sub in api.registry.nodes.values():
-        node_dict = {
-            "schemaId": node.schema_id,
-            "name": node.name,
-            "category": sub.category.id,
-            "nodeGroup": sub.id,
-            "inputs": [x.to_dict() for x in node.inputs],
-            "outputs": [x.to_dict() for x in node.outputs],
-            "groupLayout": [
-                g.to_dict() if isinstance(g, Group) else g for g in node.group_layout
-            ],
-            "iteratorInputs": [x.to_dict() for x in node.iterator_inputs],
-            "iteratorOutputs": [x.to_dict() for x in node.iterator_outputs],
-            "description": node.description,
-            "seeAlso": node.see_also,
-            "icon": node.icon,
-            "kind": node.kind,
-            "hasSideEffects": node.side_effects,
-            "deprecated": node.deprecated,
-            "features": node.features,
-        }
-        node_list.append(node_dict)
-
-    return json(
-        {
-            "nodes": node_list,
-            "categories": [x.to_dict() for x in api.registry.categories],
-            "categoriesMissingNodes": [],
-        }
-    )
+    response = await request_server("GET", "nodes")
+    return json(response)
 
 
 class RunRequest(TypedDict):
@@ -662,6 +650,23 @@ async def close_server(sanic_app: Sanic):
     sanic_app.stop()
 
 
+def start_executor_server():
+    server_file = os.path.join(os.path.dirname(__file__), "server.py")
+    python_location = sys.executable
+    with subprocess.Popen(
+        [python_location, server_file, str(port)],
+        shell=False,
+        stdin=None,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ) as process:
+        if process.stdout is None:
+            print("Failed to start server")
+            sys.exit(1)
+        for line in process.stdout:
+            print(line.decode(), end="")
+
+
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # pylint: disable=global-statement
@@ -674,6 +679,9 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app))
+
+    # Start the executor server
+    loop.run_in_executor(None, start_executor_server)
 
     # start task to close the server
     if ctx.config.close_after_start:

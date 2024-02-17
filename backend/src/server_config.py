@@ -35,6 +35,8 @@ class ServerConfig:
         # Remove the first argument, which is the script name.
         argv = sys.argv[1:]
 
+        print("argv", argv)
+
         try:
             port = int(argv[0]) or 8000
             argv = argv[1:]

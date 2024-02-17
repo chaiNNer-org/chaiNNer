@@ -99,6 +99,12 @@ deps: list[DependencyInfo] = [
         "version": "5.9.5",
         "from_file": None,
     },
+    {
+        "package_name": "requests",
+        "display_name": "requests",
+        "version": "2.31.0",
+        "from_file": "requests-2.31.0-py3-none-any.whl",
+    },
 ]
 
 install_dependencies_sync(deps)
