@@ -31,7 +31,7 @@ def premultiplied_alpha_node(
     img: np.ndarray, alpha_association: AlphaAssociation
 ) -> np.ndarray:
     if len(img.shape) != 3:
-        return img, np.ones(img.shape[:2], dtype=img.dtype)
+        return img, np.ones(img.shape[:2], dtype="float32")
 
     img = as_target_channels(img, 4)
 
