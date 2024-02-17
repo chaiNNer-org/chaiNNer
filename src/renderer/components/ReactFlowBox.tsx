@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
-import { Bezier } from 'bezier-js';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -14,7 +13,6 @@ import ReactFlow, {
     NodeTypes,
     OnEdgesChange,
     OnNodesChange,
-    Position,
     Viewport,
     XYPosition,
     useEdgesState,
@@ -23,6 +21,7 @@ import ReactFlow, {
     useReactFlow,
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
@@ -40,13 +39,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import {
-    AABB,
-    Point,
-    getBezierPathValues,
-    getLayoutedPositionMap,
-    pointDist,
-} from '../helpers/graphUtils';
+import { AABB, getLayoutedPositionMap, getNodeOnEdgeIntersection } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -90,6 +83,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
 
     const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
+    const { getNode } = reactFlowInstance;
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
@@ -139,11 +133,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            const nodePos: Point = { x: node.position.x || 0, y: node.position.y || 0 };
-            const nodeBB = AABB.fromPoints(nodePos, {
-                x: nodePos.x + (node.width || 0),
-                y: nodePos.y + (node.height || 0),
-            });
+            const nodePos = Vec2.from(node.position);
+            const nodeBB = AABB.fromPoints(
+                nodePos,
+                nodePos.add({ x: node.width || 0, y: node.height || 0 })
+            );
 
             const fn = functionDefinitions.get(node.data.schemaId);
             if (!fn) {
@@ -164,8 +158,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     );
                 })
                 .flatMap((e) => {
-                    const sourceP: Point = { x: e.data.sourceX, y: e.data.sourceY };
-                    const targetP: Point = { x: e.data.targetX, y: e.data.targetY };
+                    const sourceP = new Vec2(e.data.sourceX, e.data.sourceY);
+                    const targetP = new Vec2(e.data.targetX, e.data.targetY);
 
                     // check node and edge bounding boxes
                     const edgeBB = AABB.fromPoints(sourceP, targetP);
@@ -197,22 +191,26 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
 
-                    const bezierPathCoordinates = getBezierPathValues({
-                        sourceX: e.data.sourceX,
-                        sourceY: e.data.sourceY,
-                        sourcePosition: Position.Right,
-                        targetX: e.data.targetX,
-                        targetY: e.data.targetY,
-                        targetPosition: Position.Left,
-                    });
+                    const leftNode = getNode(sourceHandle.nodeId);
+                    const rightNode = getNode(e.target);
 
-                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    const curve = new Bezier(bezierPathCoordinates);
-                    if (!nodeBB.intersectsCurve(curve)) {
+                    if (!leftNode || !rightNode) {
                         return EMPTY_ARRAY;
                     }
 
-                    const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
+                    const mouseDist = getNodeOnEdgeIntersection(
+                        leftNode,
+                        rightNode,
+                        nodeBB,
+                        sourceP,
+                        targetP,
+                        mousePosition
+                    );
+
+                    if (mouseDist === null) {
+                        return EMPTY_ARRAY;
+                    }
+
                     return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
                 })
                 // Sort the edges by their distance from the mouse position
@@ -261,13 +259,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             };
         },
         [
-            createConnection,
             edges,
             functionDefinitions,
             nodes,
-            removeEdgeById,
             typeState.functions,
             chainLineage,
+            getNode,
+            removeEdgeById,
+            createConnection,
         ]
     );
 

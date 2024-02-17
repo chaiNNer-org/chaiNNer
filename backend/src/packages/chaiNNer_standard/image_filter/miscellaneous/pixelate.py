@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import cv2
 import numpy as np
 
@@ -36,8 +38,8 @@ def pixelate_node(
     pad_y = (block_sizes[1] - height % block_sizes[1]) % block_sizes[1]
     img = cv2.copyMakeBorder(img, 0, pad_y, 0, pad_x, cv2.BORDER_REFLECT_101)
 
-    num_blocks_x = width // block_sizes[0]
-    num_blocks_y = height // block_sizes[1]
+    num_blocks_x = math.ceil(width / block_sizes[0])
+    num_blocks_y = math.ceil(height / block_sizes[1])
 
     blocks = img[: num_blocks_y * block_sizes[1], : num_blocks_x * block_sizes[0]]
     blocks = (

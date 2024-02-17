@@ -11,24 +11,30 @@ export interface UseContextMenu {
     readonly manuallyOpenContextMenu: (pageX: number, pageY: number) => void;
 }
 
-export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
+export const useContextMenu = (
+    render: (event: MouseEvent | null) => JSX.Element
+): UseContextMenu => {
     const { registerContextMenu, unregisterContextMenu, openContextMenu } =
         useContext(ContextMenuContext);
 
     // eslint-disable-next-line react/hook-use-state
     const [id] = useState(createUniqueId);
 
+    const [event, setEvent] = useState<MouseEvent | null>(null);
+
     useEffect(() => {
         return () => unregisterContextMenu(id);
     }, [unregisterContextMenu, id]);
 
     useEffect(() => {
-        registerContextMenu(id, render);
-    }, [registerContextMenu, id, render]);
+        registerContextMenu(id, () => render(event));
+    }, [registerContextMenu, id, render, event]);
 
     const onContextMenu = useCallback(
         (e: MouseEvent): void => {
             if (e.isDefaultPrevented()) return;
+
+            setEvent(e);
 
             e.stopPropagation();
             e.preventDefault();
