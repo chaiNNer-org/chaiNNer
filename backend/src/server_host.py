@@ -10,14 +10,14 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 import aiohttp
 import psutil
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
-from sanic.response import json
+from sanic.response import HTTPResponse, json
 from sanic_cors import CORS
 
 import api
@@ -45,19 +45,20 @@ port = find_free_port()
 session = None
 
 
-async def request_server(
-    method: Literal["GET", "POST", "PUT", "DELETE"],
+async def proxy_request(
+    request: Request,
     endpoint: str,
-    data: dict | None = None,
 ):
     if session is None:
         raise ValueError("Session not initialized")
-    # url = f"http://localhost:{port}/{endpoint}"
-    # response = requests.request(method, url, json=data)
-    # return response.json()
     url = f"http://localhost:{port}/{endpoint}"
-    async with session.request(method, url, json=data) as response:
-        return json(await response.json(), status=response.status)
+    async with session.request(
+        request.method, url, headers=request.headers, data=request.body
+    ) as resp:
+        headers = resp.headers
+        status = resp.status
+        body = await resp.read()
+        return HTTPResponse(body, status=status, headers=dict(headers))
 
 
 class AppContext:
@@ -123,7 +124,7 @@ access_logger.addFilter(SSEFilter())
 
 @app.route("/nodes")
 async def nodes(request: Request):
-    return await request_server("GET", "nodes")
+    return await proxy_request(request, "nodes")
 
 
 class RunRequest(TypedDict):
@@ -134,7 +135,7 @@ class RunRequest(TypedDict):
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    return await request_server("POST", "run", data=request.json)
+    return await proxy_request(request, "run")
 
 
 class RunIndividualRequest(TypedDict):
@@ -146,27 +147,27 @@ class RunIndividualRequest(TypedDict):
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
-    return await request_server("POST", "run/individual", data=request.json)
+    return await proxy_request(request, "run/individual")
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    return await request_server("POST", "clear-cache/individual", data=request.json)
+    return await proxy_request(request, "clear-cache/individual")
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
-    return await request_server("POST", "pause", data=request.json)
+    return await proxy_request(request, "pause")
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    return await request_server("POST", "resume", data=request.json)
+    return await proxy_request(request, "resume")
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    return await request_server("POST", "kill", data=request.json)
+    return await proxy_request(request, "kill")
 
 
 @app.route("/python-info", methods=["GET"])
@@ -204,18 +205,18 @@ async def system_usage(_request: Request):
 
 
 @app.route("/packages", methods=["GET"])
-async def get_packages(_request: Request):
-    return await request_server("GET", "packages")
+async def get_packages(request: Request):
+    return await proxy_request(request, "packages")
 
 
 @app.route("/installed-dependencies", methods=["GET"])
-async def get_installed_dependencies(_request: Request):
-    return await request_server("GET", "installed-dependencies")
+async def get_installed_dependencies(request: Request):
+    return await proxy_request(request, "installed-dependencies")
 
 
 @app.route("/features")
-async def get_features(_request: Request):
-    return await request_server("GET", "features")
+async def get_features(request: Request):
+    return await proxy_request(request, "features")
 
 
 @app.get("/sse")
