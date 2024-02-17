@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-import gc
 import importlib
 import logging
 import os
 import socket
 import subprocess
 import sys
-import traceback
-import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
@@ -25,26 +22,15 @@ from sanic_cors import CORS
 
 import api
 from api import (
-    ExecutionOptions,
     JsonExecutionOptions,
     NodeId,
 )
-from chain.cache import OutputCache
-from chain.chain import Chain, FunctionNode
-from chain.json import JsonNode, parse_json
-from chain.optimize import optimize
+from chain.json import JsonNode
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
-from events import EventConsumer, EventQueue, ExecutionErrorData
+from events import EventQueue
 from gpu import get_nvidia_helper
-from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
-from progress_controller import Aborted
-from response import (
-    already_running_response,
-    error_response,
-    no_executor_response,
-    success_response,
-)
+from process import ExecutionId, Executor, NodeOutput
 from server_config import ServerConfig
 from system import is_arm_mac
 
@@ -71,7 +57,7 @@ async def request_server(
     # return response.json()
     url = f"http://localhost:{port}/{endpoint}"
     async with session.request(method, url, json=data) as response:
-        return await response.json()
+        return json(await response.json(), status=response.status)
 
 
 class AppContext:
@@ -136,9 +122,8 @@ access_logger.addFilter(SSEFilter())
 
 
 @app.route("/nodes")
-async def nodes(_request: Request):
-    response = await request_server("GET", "nodes")
-    return json(response)
+async def nodes(request: Request):
+    return await request_server("GET", "nodes")
 
 
 class RunRequest(TypedDict):
@@ -149,63 +134,7 @@ class RunRequest(TypedDict):
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    """Runs the provided nodes"""
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-
-    if ctx.executor:
-        message = "Cannot run another executor while the first one is still running."
-        logger.warning(message)
-        return json(already_running_response(message), status=500)
-
-    try:
-        # wait until all previews are done
-        await run_individual_counter.wait_zero()
-
-        full_data: RunRequest = dict(request.json)  # type: ignore
-        logger.debug(full_data)
-        chain = parse_json(full_data["data"])
-        optimize(chain)
-
-        logger.info("Running new executor...")
-        executor = Executor(
-            id=ExecutionId("main-executor " + uuid.uuid4().hex),
-            chain=chain,
-            send_broadcast_data=full_data["sendBroadcastData"],
-            options=ExecutionOptions.parse(full_data["options"]),
-            loop=app.loop,
-            queue=ctx.queue,
-            pool=ctx.pool,
-            parent_cache=OutputCache(static_data=ctx.cache.copy()),
-        )
-        try:
-            ctx.executor = executor
-            await executor.run()
-        except Aborted:
-            pass
-        finally:
-            ctx.executor = None
-            gc.collect()
-
-        return json(success_response(), status=200)
-    except Exception as exception:
-        logger.error(exception, exc_info=True)
-        logger.error(traceback.format_exc())
-
-        error: ExecutionErrorData = {
-            "message": "Error running nodes!",
-            "source": None,
-            "exception": str(exception),
-        }
-        if isinstance(exception, NodeExecutionError):
-            error["source"] = {
-                "nodeId": exception.node_id,
-                "schemaId": exception.node_data.schema_id,
-                "inputs": exception.inputs,
-            }
-
-        await ctx.queue.put({"event": "execution-error", "data": error})
-        return json(error_response("Error running nodes!", exception), status=500)
+    return await request_server("POST", "run", data=request.json)
 
 
 class RunIndividualRequest(TypedDict):
@@ -217,139 +146,27 @@ class RunIndividualRequest(TypedDict):
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
-    """Runs a single node"""
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-    try:
-        full_data: RunIndividualRequest = dict(request.json)  # type: ignore
-        logger.debug(full_data)
-
-        node_id = full_data["id"]
-        ctx.cache.pop(node_id, None)
-
-        node = FunctionNode(node_id, full_data["schemaId"])
-        chain = Chain()
-        chain.add_node(node)
-
-        for index, i in enumerate(full_data["inputs"]):
-            chain.inputs.set(node_id, node.data.inputs[index].id, i)
-
-        # only yield certain types of events
-        queue = EventConsumer.filter(
-            ctx.queue, {"node-finish", "node-broadcast", "execution-error"}
-        )
-
-        execution_id = ExecutionId("individual-executor " + node_id)
-        executor = Executor(
-            id=execution_id,
-            chain=chain,
-            send_broadcast_data=True,
-            options=ExecutionOptions.parse(full_data["options"]),
-            loop=app.loop,
-            queue=queue,
-            pool=ctx.pool,
-        )
-
-        with run_individual_counter:
-            try:
-                if execution_id in ctx.individual_executors:
-                    # kill the previous executor (if any)
-                    old_executor = ctx.individual_executors[execution_id]
-                    old_executor.kill()
-
-                ctx.individual_executors[execution_id] = executor
-                output = await executor.process_regular_node(node)
-                ctx.cache[node_id] = output
-            except Aborted:
-                pass
-            finally:
-                if ctx.individual_executors.get(execution_id, None) == executor:
-                    ctx.individual_executors.pop(execution_id, None)
-                gc.collect()
-
-        return json({"success": True, "data": None})
-    except Exception as exception:
-        logger.error(exception, exc_info=True)
-        return json({"success": False, "error": str(exception)})
+    return await request_server("POST", "run/individual", data=request.json)
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-    try:
-        full_data = dict(request.json)  # type: ignore
-        if ctx.cache.get(full_data["id"], None) is not None:
-            del ctx.cache[full_data["id"]]
-        return json({"success": True, "data": None})
-    except Exception as exception:
-        logger.error(exception, exc_info=True)
-        return json({"success": False, "error": str(exception)})
+    return await request_server("POST", "clear-cache/individual", data=request.json)
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
-    """Pauses the current execution"""
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-
-    logger.info("Attempting to pause executor...")
-
-    if not ctx.executor:
-        logger.warning("No executor to pause.")
-        return json(no_executor_response(), status=400)
-
-    try:
-        ctx.executor.pause()
-        logger.info("Paused executor.")
-        return json(success_response(), status=200)
-    except Exception as exception:
-        logger.log(2, exception, exc_info=True)
-        return json(error_response("Error pausing execution!", exception), status=500)
+    return await request_server("POST", "pause", data=request.json)
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    """Pauses the current execution"""
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-
-    logger.info("Attempting to resume executor...")
-
-    if not ctx.executor:
-        logger.warning("No executor to resume.")
-        return json(no_executor_response(), status=400)
-
-    try:
-        ctx.executor.resume()
-        logger.info("Resumed executor.")
-        return json(success_response(), status=200)
-    except Exception as exception:
-        logger.log(2, exception, exc_info=True)
-        return json(error_response("Error resuming execution!", exception), status=500)
+    return await request_server("POST", "resume", data=request.json)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    """Kills the current execution"""
-    await nodes_available()
-    ctx = AppContext.get(request.app)
-
-    logger.info("Attempting to kill executor...")
-
-    if not ctx.executor:
-        logger.warning("No executor to kill.")
-        return json(no_executor_response(), status=400)
-
-    try:
-        ctx.executor.kill()
-        while ctx.executor:
-            await asyncio.sleep(0.0001)
-        logger.info("Killed executor.")
-        return json(success_response(), status=200)
-    except Exception as exception:
-        logger.log(2, exception, exc_info=True)
-        return json(error_response("Error killing execution!", exception), status=500)
+    return await request_server("POST", "kill", data=request.json)
 
 
 @app.route("/python-info", methods=["GET"])
@@ -388,95 +205,17 @@ async def system_usage(_request: Request):
 
 @app.route("/packages", methods=["GET"])
 async def get_packages(_request: Request):
-    await nodes_available()
-
-    packages = []
-    for package in api.registry.packages.values():
-        if package.name == "chaiNNer_standard":
-            continue
-
-        pkg_dependencies = []
-        for pkg_dep in package.dependencies:
-            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
-            pkg_dep_item = {
-                **pkg_dep.to_dict(),
-            }
-            if installed_version is None:
-                pkg_dep_item["installed"] = None
-            else:
-                pkg_dep_item["installed"] = installed_version
-            pkg_dependencies.append(pkg_dep_item)
-
-        packages.append(
-            {
-                "id": package.id,
-                "name": package.name,
-                "description": package.description,
-                "icon": package.icon,
-                "color": package.color,
-                "dependencies": [d.to_dict() for d in package.dependencies],
-                "features": [f.to_dict() for f in package.features],
-                "settings": [asdict(x) for x in package.settings],
-            }
-        )
-
-    return json(packages)
+    return await request_server("GET", "packages")
 
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(_request: Request):
-    await nodes_available()
-
-    installed_deps: dict[str, str] = {}
-    for package in api.registry.packages.values():
-        for pkg_dep in package.dependencies:
-            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
-            if installed_version is not None:
-                installed_deps[pkg_dep.pypi_name] = installed_version
-
-    return json(installed_deps)
+    return await request_server("GET", "installed-dependencies")
 
 
 @app.route("/features")
 async def get_features(_request: Request):
-    await nodes_available()
-
-    features: list[tuple[api.Feature, api.Package]] = []
-    for package in api.registry.packages.values():
-        for feature in package.features:
-            features.append((feature, package))
-
-    # check all features in parallel
-    async def check(feature: api.Feature) -> api.FeatureState | None:
-        if feature.behavior is None:
-            # no behavior assigned
-            return None
-
-        try:
-            return await feature.behavior.check()
-        except Exception as e:
-            return api.FeatureState.disabled(str(e))
-
-    # because good API design just isn't pythonic, asyncio.gather will return List[Any].
-    results: list[api.FeatureState | None] = await asyncio.gather(
-        *[check(f) for f, _ in features]
-    )
-
-    features_json = []
-    for (feature, package), state in zip(features, results):
-        if state is None:
-            continue
-
-        features_json.append(
-            {
-                "packageId": package.id,
-                "featureId": feature.id,
-                "enabled": state.is_enabled,
-                "details": state.details,
-            }
-        )
-
-    return json(features_json)
+    return await request_server("GET", "features")
 
 
 @app.get("/sse")
@@ -655,7 +394,8 @@ async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
     sanic_app.stop()
-    await session.close()
+    if session is not None:
+        await session.close()
 
 
 def start_executor_server():
