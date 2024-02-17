@@ -7,6 +7,7 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
+    XYPosition,
     useReactFlow,
     useViewport,
 } from 'reactflow';
@@ -20,6 +21,7 @@ import {
     Mutable,
     NodeData,
     OutputId,
+    SchemaId,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
@@ -126,7 +128,8 @@ interface Global {
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
-    clearNodes: (ids: readonly string[]) => void;
+    resetInputs: (ids: readonly string[]) => void;
+    resetConnections: (ids: readonly string[]) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setCollidingEdge: (value: string | undefined) => void;
     setCollidingNode: (value: string | undefined) => void;
@@ -141,6 +144,8 @@ interface Global {
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
     setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
+    addEdgeBreakpoint: (id: string, position: XYPosition) => void;
+    removeEdgeBreakpoint: (id: string) => void;
 }
 
 enum SaveResult {
@@ -764,6 +769,81 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const addEdgeBreakpoint = useCallback(
+            (id: string, position: XYPosition) => {
+                const newId = createUniqueId();
+                const newNode = {
+                    type: 'breakPoint',
+                    id: newId,
+                    position,
+                    data: {
+                        schemaId: 'chainner:utility:pass_through' as SchemaId,
+                        id: newId,
+                        inputData: {},
+                    },
+                };
+                changeNodes((nodes) => [...nodes, newNode]);
+                changeEdges((edges) => {
+                    const edge = edges.find((e) => e.id === id);
+                    if (!edge) return edges;
+                    const leftEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-left`),
+                        source: edge.source,
+                        sourceHandle: edge.sourceHandle,
+                        target: newId,
+                        targetHandle: `${newId}-0`,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const rightEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-right`),
+                        source: newId,
+                        sourceHandle: `${newId}-0`,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const filteredEdges = edges.filter((e) => e.id !== id);
+                    return [...filteredEdges, leftEdge, rightEdge];
+                });
+            },
+            [changeEdges, changeNodes]
+        );
+
+        const removeEdgeBreakpoint = useCallback(
+            (id: string) => {
+                changeEdges((edges) => {
+                    const edgesConnectedToBreakpoint = edges.filter(
+                        (e) => e.source === id || e.target === id
+                    );
+                    if (edgesConnectedToBreakpoint.length !== 2) {
+                        throw new Error('Breakpoint is not connected to exactly two edges');
+                    }
+                    const leftEdge = edgesConnectedToBreakpoint.find((e) => e.target === id);
+                    const rightEdge = edgesConnectedToBreakpoint.find((e) => e.source === id);
+                    if (!leftEdge || !rightEdge) {
+                        throw new Error(
+                            'Unable to find left or right edge connected to breakpoint'
+                        );
+                    }
+                    const combinedEdge = {
+                        ...leftEdge,
+                        target: rightEdge.target,
+                        targetHandle: rightEdge.targetHandle,
+                    };
+                    const filteredEdges = edges.filter(
+                        (e) => e.id !== leftEdge.id && e.id !== rightEdge.id
+                    );
+                    return [...filteredEdges, combinedEdge];
+                });
+                // We don't need to remove the breakpoint, it will handle removing itself once it's orphaned
+            },
+            [changeEdges]
+        );
+
         const selectNode = useCallback(
             (id: string) => {
                 changeNodes((nodes) =>
@@ -1035,7 +1115,7 @@ export const GlobalProvider = memo(
             [changeNodes, changeEdges]
         );
 
-        const clearNodes = useCallback(
+        const resetInputs = useCallback(
             (ids: readonly string[]) => {
                 ids.forEach((id) => {
                     modifyNode(id, (old) => {
@@ -1051,6 +1131,17 @@ export const GlobalProvider = memo(
                 });
             },
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
+        );
+
+        const resetConnections = useCallback(
+            (ids: readonly string[]) => {
+                changeEdges((edges) => {
+                    return edges.filter((e) => {
+                        return !ids.includes(e.source) && !ids.includes(e.target);
+                    });
+                });
+            },
+            [changeEdges]
         );
 
         const setNodeDisabled = useCallback(
@@ -1220,7 +1311,8 @@ export const GlobalProvider = memo(
             setNodeOutputHeight,
             setNodeWidth,
             toggleNodeLock,
-            clearNodes,
+            resetInputs,
+            resetConnections,
             removeNodesById,
             removeEdgeById,
             duplicateNodes,
@@ -1238,6 +1330,8 @@ export const GlobalProvider = memo(
             getInputHash,
             hasRelevantUnsavedChangesRef,
             setNodeCollapsed,
+            addEdgeBreakpoint,
+            removeEdgeBreakpoint,
         });
 
         return (
