@@ -105,6 +105,12 @@ deps: list[DependencyInfo] = [
         "version": "2.31.0",
         "from_file": "requests-2.31.0-py3-none-any.whl",
     },
+    {
+        "package_name": "aiohttp",
+        "display_name": "aiohttp",
+        "version": "3.9.3",
+        "from_file": None,
+    },
 ]
 
 install_dependencies_sync(deps)

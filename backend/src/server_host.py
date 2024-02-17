@@ -15,8 +15,8 @@ from dataclasses import asdict, dataclass
 from json import dumps as stringify
 from typing import Literal, TypedDict
 
+import aiohttp
 import psutil
-import requests
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -56,6 +56,7 @@ def find_free_port():
 
 
 port = find_free_port()
+session = None
 
 
 async def request_server(
@@ -63,9 +64,14 @@ async def request_server(
     endpoint: str,
     data: dict | None = None,
 ):
+    if session is None:
+        raise ValueError("Session not initialized")
+    # url = f"http://localhost:{port}/{endpoint}"
+    # response = requests.request(method, url, json=data)
+    # return response.json()
     url = f"http://localhost:{port}/{endpoint}"
-    response = requests.request(method, url, json=data)
-    return response.json()
+    async with session.request(method, url, json=data) as response:
+        return await response.json()
 
 
 class AppContext:
@@ -118,6 +124,7 @@ class ZeroCounter:
 run_individual_counter = ZeroCounter()
 
 setup_task = None
+server_process = None
 
 
 async def nodes_available():
@@ -648,9 +655,12 @@ async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
     sanic_app.stop()
+    await session.close()
 
 
 def start_executor_server():
+    global server_process
+
     server_file = os.path.join(os.path.dirname(__file__), "server.py")
     python_location = sys.executable
     with subprocess.Popen(
@@ -660,11 +670,19 @@ def start_executor_server():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     ) as process:
+        server_process = process
         if process.stdout is None:
             print("Failed to start server")
             sys.exit(1)
         for line in process.stdout:
             print(line.decode(), end="")
+
+
+def stop_executor_server():
+    global server_process
+    if server_process is not None:
+        server_process.kill()
+        server_process = None
 
 
 @app.after_server_start
@@ -679,6 +697,10 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app))
+
+    # initialize aiohttp session
+    global session
+    session = aiohttp.ClientSession()
 
     # Start the executor server
     loop.run_in_executor(None, start_executor_server)
