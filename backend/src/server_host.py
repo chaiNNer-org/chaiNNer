@@ -10,7 +10,6 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
-from typing import TypedDict
 
 import aiohttp
 import psutil
@@ -22,17 +21,14 @@ from sanic_cors import CORS
 
 import api
 from api import (
-    JsonExecutionOptions,
     NodeId,
 )
-from chain.json import JsonNode
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue
 from gpu import get_nvidia_helper
 from process import ExecutionId, Executor, NodeOutput
 from server_config import ServerConfig
-from system import is_arm_mac
 
 
 def find_free_port():
@@ -79,7 +75,7 @@ class AppContext:
         return app_instance.ctx
 
 
-app = Sanic("chaiNNer", ctx=AppContext())
+app = Sanic("chaiNNer_host", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
@@ -92,23 +88,6 @@ class SSEFilter(logging.Filter):
             (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore
         )
 
-
-class ZeroCounter:
-    def __init__(self) -> None:
-        self.count = 0
-
-    async def wait_zero(self) -> None:
-        while self.count != 0:
-            await asyncio.sleep(0.01)
-
-    def __enter__(self):
-        self.count += 1
-
-    def __exit__(self, _exc_type: object, _exc_value: object, _exc_traceback: object):
-        self.count -= 1
-
-
-run_individual_counter = ZeroCounter()
 
 setup_task = None
 server_process = None
@@ -127,22 +106,9 @@ async def nodes(request: Request):
     return await proxy_request(request, "nodes")
 
 
-class RunRequest(TypedDict):
-    data: list[JsonNode]
-    options: JsonExecutionOptions
-    sendBroadcastData: bool
-
-
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
     return await proxy_request(request, "run")
-
-
-class RunIndividualRequest(TypedDict):
-    id: NodeId
-    inputs: list[object]
-    schemaId: str
-    options: JsonExecutionOptions
 
 
 @app.route("/run/individual", methods=["POST"])
@@ -296,38 +262,8 @@ async def import_packages(
 
     logger.info("Done checking dependencies...")
 
-    # TODO: in the future, for external packages dir, scan & import
-    # for package in os.listdir(packages_dir):
-    #     importlib.import_module(package)
 
-    await update_progress_cb("Loading Nodes...", 1.0, None)
-
-    load_errors = api.registry.load_nodes(__file__)
-    if len(load_errors) > 0:
-        import_errors: list[api.LoadErrorInfo] = []
-        for e in load_errors:
-            if not isinstance(e.error, ModuleNotFoundError):
-                logger.warning(
-                    f"Failed to load {e.module} ({e.file}):", exc_info=e.error
-                )
-            else:
-                import_errors.append(e)
-
-        if len(import_errors) > 0:
-            logger.warning(f"Failed to import {len(import_errors)} modules:")
-            for e in import_errors:
-                logger.warning(f"{e.error}  ->  {e.module}")
-
-        if config.error_on_failed_node:
-            raise ValueError("Error importing nodes")
-
-
-async def apple_silicon_setup():
-    # enable mps fallback on apple silicon
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-
-
-async def setup(sanic_app: Sanic):
+async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     setup_queue = AppContext.get(sanic_app).setup_queue
 
     async def update_progress(
@@ -354,15 +290,15 @@ async def setup(sanic_app: Sanic):
         timeout=1,
     )
 
-    if is_arm_mac:
-        await apple_silicon_setup()
-
     await update_progress("Importing nodes...", 0.0, None)
 
     logger.info("Importing nodes...")
 
     # Now we can load all the nodes
     await import_packages(AppContext.get(sanic_app).config, update_progress)
+
+    # Start the executor server
+    loop.run_in_executor(None, start_executor_server)
 
     logger.info("Sending backend ready...")
 
@@ -436,15 +372,12 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     ctx.queue = EventQueue()
     ctx.setup_queue = EventQueue()
 
-    # start the setup task
-    setup_task = loop.create_task(setup(sanic_app))
-
     # initialize aiohttp session
     global session
     session = aiohttp.ClientSession()
 
-    # Start the executor server
-    loop.run_in_executor(None, start_executor_server)
+    # start the setup task
+    setup_task = loop.create_task(setup(sanic_app, loop))
 
     # start task to close the server
     if ctx.config.close_after_start:

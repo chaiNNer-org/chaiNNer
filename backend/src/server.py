@@ -4,7 +4,6 @@ import asyncio
 import gc
 import importlib
 import logging
-import os
 import sys
 import traceback
 import uuid
@@ -32,7 +31,7 @@ from chain.chain import Chain, FunctionNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from custom_types import UpdateProgressFn
-from dependencies.store import DependencyInfo, install_dependencies, installed_packages
+from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
@@ -44,7 +43,6 @@ from response import (
     success_response,
 )
 from server_config import ServerConfig
-from system import is_arm_mac
 
 
 class AppContext:
@@ -512,60 +510,13 @@ async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
 ):
-    async def install_deps(dependencies: list[api.Dependency]):
-        dep_info: list[DependencyInfo] = [
-            {
-                "package_name": dep.pypi_name,
-                "display_name": dep.display_name,
-                "version": dep.version,
-                "from_file": None,
-            }
-            for dep in dependencies
-        ]
-        await install_dependencies(dep_info, update_progress_cb, logger)
+    await update_progress_cb("Loading Nodes...", 1.0, None)
 
-    # Manually import built-in packages to get ordering correct
-    # Using importlib here so we don't have to ignore that it isn't used
     importlib.import_module("packages.chaiNNer_standard")
     importlib.import_module("packages.chaiNNer_pytorch")
     importlib.import_module("packages.chaiNNer_ncnn")
     importlib.import_module("packages.chaiNNer_onnx")
     importlib.import_module("packages.chaiNNer_external")
-
-    logger.info("Checking dependencies...")
-
-    to_install: list[api.Dependency] = []
-    for package in api.registry.packages.values():
-        logger.info(f"Checking dependencies for {package.name}...")
-
-        if config.install_builtin_packages:
-            to_install.extend(package.dependencies)
-            continue
-
-        if package.name == "chaiNNer_standard":
-            to_install.extend(package.dependencies)
-
-        # check auto updates
-        for dep in package.dependencies:
-            is_installed = installed_packages.get(dep.pypi_name, None) is not None
-            if dep.auto_update and is_installed:
-                to_install.append(dep)
-
-    if len(to_install) > 0:
-        try:
-            await install_deps(to_install)
-        except Exception as ex:
-            logger.error(f"Error installing dependencies: {ex}")
-            if config.close_after_start:
-                raise ValueError("Error installing dependencies") from ex
-
-    logger.info("Done checking dependencies...")
-
-    # TODO: in the future, for external packages dir, scan & import
-    # for package in os.listdir(packages_dir):
-    #     importlib.import_module(package)
-
-    await update_progress_cb("Loading Nodes...", 1.0, None)
 
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
@@ -585,11 +536,6 @@ async def import_packages(
 
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")
-
-
-async def apple_silicon_setup():
-    # enable mps fallback on apple silicon
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 
 async def setup(sanic_app: Sanic):
@@ -618,9 +564,6 @@ async def setup(sanic_app: Sanic):
         },
         timeout=1,
     )
-
-    if is_arm_mac:
-        await apple_silicon_setup()
 
     await update_progress("Importing nodes...", 0.0, None)
 
