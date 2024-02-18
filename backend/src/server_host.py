@@ -21,14 +21,12 @@ from sanic_cors import CORS
 
 import api
 from api import (
-    NodeId,
     Package,
 )
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue
 from gpu import get_nvidia_helper
-from process import ExecutionId, Executor, NodeOutput
 from server_config import ServerConfig
 
 
@@ -45,29 +43,34 @@ session = None
 
 async def proxy_request(
     request: Request,
-    endpoint: str,
 ):
-    if session is None:
+    logger.info(f"Proxying request to {request.url}")
+    if session is None or request.route is None:
         raise ValueError("Session not initialized")
-    url = f"http://localhost:{port}/{endpoint}"
     async with session.request(
-        request.method, url, headers=request.headers, data=request.body
+        request.method,
+        f"/{request.route.path}",
+        headers=request.headers,
+        data=request.body,
     ) as resp:
+        logger.info(f"Got response from {request.url}")
         headers = resp.headers
         status = resp.status
         body = await resp.read()
-        return HTTPResponse(body, status=status, headers=dict(headers))
+        logger.info(f"Returning response from {request.url}")
+        return HTTPResponse(
+            body,
+            status=status,
+            headers=dict(headers),
+            content_type=request.content_type,
+        )
 
 
 class AppContext:
     def __init__(self):
         self.config: ServerConfig = None  # type: ignore
-        self.executor: Executor | None = None
-        self.individual_executors: dict[ExecutionId, Executor] = {}
-        self.cache: dict[NodeId, NodeOutput] = {}
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
-        self.queue: EventQueue = None  # type: ignore
         self.setup_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
 
@@ -95,48 +98,45 @@ setup_task = None
 server_process = None
 server_thread = None
 
-
-async def nodes_available():
-    if setup_task is not None:
-        await setup_task
-
-
 access_logger.addFilter(SSEFilter())
 
 
 @app.route("/nodes")
 async def nodes(request: Request):
-    return await proxy_request(request, "nodes")
+    logger.info("getting nodes")
+    resp = await proxy_request(request)
+    logger.info("got nodes")
+    return resp
 
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    return await proxy_request(request, "run")
+    return await proxy_request(request)
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
-    return await proxy_request(request, "run/individual")
+    return await proxy_request(request)
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    return await proxy_request(request, "clear-cache/individual")
+    return await proxy_request(request)
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
-    return await proxy_request(request, "pause")
+    return await proxy_request(request)
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    return await proxy_request(request, "resume")
+    return await proxy_request(request)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    return await proxy_request(request, "kill")
+    return await proxy_request(request)
 
 
 @app.route("/python-info", methods=["GET"])
@@ -175,29 +175,22 @@ async def system_usage(_request: Request):
 
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
-    return await proxy_request(request, "packages")
+    return await proxy_request(request)
 
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
-    return await proxy_request(request, "installed-dependencies")
+    return await proxy_request(request)
 
 
 @app.route("/features")
 async def get_features(request: Request):
-    return await proxy_request(request, "features")
+    return await proxy_request(request)
 
 
 @app.get("/sse")
 async def sse(request: Request):
-    ctx = AppContext.get(request.app)
-    headers = {"Cache-Control": "no-cache"}
-    response = await request.respond(headers=headers, content_type="text/event-stream")
-    while True:
-        message = await ctx.queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
+    return await proxy_request(request)
 
 
 @app.get("/setup-sse")
@@ -232,7 +225,7 @@ async def import_packages(
         await install_dependencies(dep_info, update_progress_cb, logger)
 
     logger.info("Fetching packages...")
-    packages_resp = await session.get(f"http://localhost:{port}/packages")
+    packages_resp = await session.get("/packages")
     packages_json = await packages_resp.json()
     packages = [Package.from_dict(p) for p in packages_json]
 
@@ -323,15 +316,6 @@ exit_code = 0
 
 
 async def close_server(sanic_app: Sanic):
-    # pylint: disable=global-statement
-    global exit_code
-
-    try:
-        await nodes_available()
-    except Exception as ex:
-        logger.error(f"Error waiting for server to start: {ex}")
-        exit_code = 1
-
     # now we can close the server
     logger.info("Closing server...")
     sanic_app.stop()
@@ -339,11 +323,11 @@ async def close_server(sanic_app: Sanic):
         await session.close()
 
 
-def __read_stdout(process: subprocess.Popen):
-    if process.stdout is None:
-        return
-    for line in process.stdout:
-        print(line.decode(), end="")
+# def __read_stdout(process: subprocess.Popen):
+#     if process.stdout is None:
+#         return
+#     for line in process.stdout:
+#         print(line.decode(), end="")
 
 
 def __run_server():
@@ -359,13 +343,13 @@ def __run_server():
         stderr=subprocess.PIPE,
     ) as process:
         server_process = process
-        t1 = threading.Thread(target=__read_stdout, args=(process,), daemon=True)
-        t1.start()
+        # t1 = threading.Thread(target=__read_stdout, args=(process,), daemon=True)
+        # t1.start()
 
 
 def start_executor_server():
     global server_thread
-    server_thread = threading.Thread(target=__run_server, daemon=True)
+    server_thread = threading.Thread(target=__run_server)
     server_thread.start()
 
 
@@ -386,20 +370,16 @@ def restart_executor_server():
 
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
-    # pylint: disable=global-statement
-    global setup_task
-
     # initialize the queues
     ctx = AppContext.get(sanic_app)
-    ctx.queue = EventQueue()
     ctx.setup_queue = EventQueue()
 
     # initialize aiohttp session
     global session
-    session = aiohttp.ClientSession()
+    session = aiohttp.ClientSession(base_url=f"http://localhost:{port}", loop=loop)
 
     # start the setup task
-    setup_task = loop.create_task(setup(sanic_app, loop))
+    loop.create_task(setup(sanic_app, loop))
 
     # start task to close the server
     if ctx.config.close_after_start:
