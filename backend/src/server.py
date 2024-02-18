@@ -30,7 +30,6 @@ from chain.cache import OutputCache
 from chain.chain import Chain, FunctionNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
-from custom_types import UpdateProgressFn
 from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
 from gpu import get_nvidia_helper
@@ -54,7 +53,6 @@ class AppContext:
         # This will be initialized by after_server_start.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
-        self.setup_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
@@ -73,7 +71,7 @@ class SSEFilter(logging.Filter):
     def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
         return not (
-            (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore
+            (request.endswith("/sse")) and record.status == 200  # type: ignore
         )
 
 
@@ -494,24 +492,9 @@ async def sse(request: Request):
             await response.send(f"data: {stringify(message['data'])}\n\n")
 
 
-@app.get("/setup-sse")
-async def setup_sse(request: Request):
-    ctx = AppContext.get(request.app)
-    headers = {"Cache-Control": "no-cache"}
-    response = await request.respond(headers=headers, content_type="text/event-stream")
-    while True:
-        message = await ctx.setup_queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
-
-
 async def import_packages(
     config: ServerConfig,
-    update_progress_cb: UpdateProgressFn,
 ):
-    await update_progress_cb("Loading Nodes...", 1.0, None)
-
     importlib.import_module("packages.chaiNNer_standard")
     importlib.import_module("packages.chaiNNer_pytorch")
     importlib.import_module("packages.chaiNNer_ncnn")
@@ -539,52 +522,7 @@ async def import_packages(
 
 
 async def setup(sanic_app: Sanic):
-    setup_queue = AppContext.get(sanic_app).setup_queue
-
-    async def update_progress(
-        message: str, progress: float, status_progress: float | None = None
-    ):
-        await setup_queue.put_and_wait(
-            {
-                "event": "backend-status",
-                "data": {
-                    "message": message,
-                    "progress": progress,
-                    "statusProgress": status_progress,
-                },
-            },
-            timeout=1,
-        )
-
-    logger.info("Starting setup...")
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-started",
-            "data": None,
-        },
-        timeout=1,
-    )
-
-    await update_progress("Importing nodes...", 0.0, None)
-
-    logger.info("Importing nodes...")
-
-    # Now we can load all the nodes
-    await import_packages(AppContext.get(sanic_app).config, update_progress)
-
-    logger.info("Sending backend ready...")
-
-    await update_progress("Loading Nodes...", 1.0, None)
-
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-ready",
-            "data": None,
-        },
-        timeout=1,
-    )
-
-    logger.info("Done.")
+    await import_packages(AppContext.get(sanic_app).config)
 
 
 exit_code = 0
@@ -613,7 +551,6 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # initialize the queues
     ctx = AppContext.get(sanic_app)
     ctx.queue = EventQueue()
-    ctx.setup_queue = EventQueue()
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app))

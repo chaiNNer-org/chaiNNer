@@ -32,6 +32,7 @@ from server_config import ServerConfig
 
 
 def find_free_port():
+    return 8001
     with socket.socket() as s:
         s.bind(("", 0))  # Bind to a free port provided by the host.
         return s.getsockname()[1]  # Return the port number assigned.
