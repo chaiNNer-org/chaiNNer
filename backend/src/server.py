@@ -395,8 +395,8 @@ async def get_packages(_request: Request):
 
     packages = []
     for package in api.registry.packages.values():
-        if package.name == "chaiNNer_standard":
-            continue
+        # if package.name == "chaiNNer_standard":
+        #     continue
 
         pkg_dependencies = []
         for pkg_dep in package.dependencies:
