@@ -7,6 +7,7 @@ import numpy as np
 from chainner_ext import binary_threshold
 
 from nodes.groups import if_enum_group
+from nodes.impl.image_utils import as_2d_grayscale
 from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
@@ -84,7 +85,7 @@ def threshold_node(
         _, result = cv2.threshold(img, threshold, max_value, thresh_type.value)
         return result
 
-    binary = binary_threshold(img, threshold, True)
+    binary = as_2d_grayscale(binary_threshold(img, threshold, True))
     if thresh_type == ThresholdType.BINARY_INV:
         binary = 1 - binary
 
