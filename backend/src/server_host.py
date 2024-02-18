@@ -6,6 +6,7 @@ import os
 import socket
 import subprocess
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from json import dumps as stringify
@@ -92,6 +93,7 @@ class SSEFilter(logging.Filter):
 
 setup_task = None
 server_process = None
+server_thread = None
 
 
 async def nodes_available():
@@ -337,7 +339,14 @@ async def close_server(sanic_app: Sanic):
         await session.close()
 
 
-def start_executor_server():
+def __read_stdout(process: subprocess.Popen):
+    if process.stdout is None:
+        return
+    for line in process.stdout:
+        print(line.decode(), end="")
+
+
+def __run_server():
     global server_process
 
     server_file = os.path.join(os.path.dirname(__file__), "server.py")
@@ -350,18 +359,24 @@ def start_executor_server():
         stderr=subprocess.PIPE,
     ) as process:
         server_process = process
-        if process.stdout is None:
-            print("Failed to start server")
-            sys.exit(1)
-        for line in process.stdout:
-            print(line.decode(), end="")
+        t1 = threading.Thread(target=__read_stdout, args=(process,), daemon=True)
+        t1.start()
+
+
+def start_executor_server():
+    global server_thread
+    server_thread = threading.Thread(target=__run_server, daemon=True)
+    server_thread.start()
 
 
 def stop_executor_server():
-    global server_process
+    global server_process, server_thread
     if server_process is not None:
         server_process.kill()
         server_process = None
+    if server_thread is not None:
+        server_thread.join()
+        server_thread = None
 
 
 def restart_executor_server():
