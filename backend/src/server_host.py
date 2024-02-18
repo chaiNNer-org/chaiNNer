@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import importlib
 import logging
 import os
 import socket
@@ -22,6 +21,7 @@ from sanic_cors import CORS
 import api
 from api import (
     NodeId,
+    Package,
 )
 from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
@@ -213,6 +213,9 @@ async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
 ):
+    if session is None:
+        raise ValueError("Session not initialized")
+
     async def install_deps(dependencies: list[api.Dependency]):
         dep_info: list[DependencyInfo] = [
             {
@@ -225,18 +228,15 @@ async def import_packages(
         ]
         await install_dependencies(dep_info, update_progress_cb, logger)
 
-    # Manually import built-in packages to get ordering correct
-    # Using importlib here so we don't have to ignore that it isn't used
-    importlib.import_module("packages.chaiNNer_standard")
-    importlib.import_module("packages.chaiNNer_pytorch")
-    importlib.import_module("packages.chaiNNer_ncnn")
-    importlib.import_module("packages.chaiNNer_onnx")
-    importlib.import_module("packages.chaiNNer_external")
+    logger.info("Fetching packages...")
+    packages_resp = await session.get(f"http://localhost:{port}/packages")
+    packages_json = await packages_resp.json()
+    packages = [Package.from_dict(p) for p in packages_json]
 
     logger.info("Checking dependencies...")
 
     to_install: list[api.Dependency] = []
-    for package in api.registry.packages.values():
+    for package in packages:
         logger.info(f"Checking dependencies for {package.name}...")
 
         if config.install_builtin_packages:
@@ -255,6 +255,8 @@ async def import_packages(
     if len(to_install) > 0:
         try:
             await install_deps(to_install)
+
+            restart_executor_server()
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}")
             if config.close_after_start:
@@ -293,12 +295,11 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     await update_progress("Importing nodes...", 0.0, None)
 
     logger.info("Importing nodes...")
+    # Start the executor server
+    loop.run_in_executor(None, start_executor_server)
 
     # Now we can load all the nodes
     await import_packages(AppContext.get(sanic_app).config, update_progress)
-
-    # Start the executor server
-    loop.run_in_executor(None, start_executor_server)
 
     logger.info("Sending backend ready...")
 
@@ -360,6 +361,11 @@ def stop_executor_server():
     if server_process is not None:
         server_process.kill()
         server_process = None
+
+
+def restart_executor_server():
+    stop_executor_server()
+    start_executor_server()
 
 
 @app.after_server_start

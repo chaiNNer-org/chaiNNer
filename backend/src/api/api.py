@@ -4,6 +4,7 @@ import importlib
 import os
 from dataclasses import dataclass, field
 from typing import (
+    Any,
     Awaitable,
     Callable,
     Generic,
@@ -255,6 +256,17 @@ class Dependency:
             "findLink": self.extra_index_url,
         }
 
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Dependency:
+        return Dependency(
+            display_name=data["displayName"],
+            pypi_name=data["pypiName"],
+            version=data["version"],
+            size_estimate=data["sizeEstimate"],
+            auto_update=data["autoUpdate"],
+            extra_index_url=data.get("findLink"),
+        )
+
 
 @dataclass
 class Feature:
@@ -276,6 +288,14 @@ class Feature:
             "name": self.name,
             "description": self.description,
         }
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Feature:
+        return Feature(
+            id=data["id"],
+            name=data["name"],
+            description=data["description"],
+        )
 
 
 @dataclass
@@ -348,6 +368,22 @@ class Package:
         feature = Feature(id=id, name=name, description=description)
         self.features.append(feature)
         return feature
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Package:
+        """This is really only for dependency purposes, so it's not feature-complete"""
+        return Package(
+            where=data.get("where", "unknown"),
+            id=data["id"],
+            name=data["name"],
+            description=data["description"],
+            icon=data["icon"],
+            color=data["color"],
+            dependencies=[Dependency.from_dict(d) for d in data["dependencies"]],
+            categories=[],
+            features=[Feature.from_dict(f) for f in data["features"]],
+            settings=[],
+        )
 
 
 def _iter_py_files(directory: str):
