@@ -342,6 +342,7 @@ exit_code = 0
 async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
+    stop_executor_server()
     sanic_app.stop()
     if session is not None:
         await session.close()
