@@ -98,6 +98,16 @@ server_thread = None
 access_logger.addFilter(SSEFilter())
 
 
+async def get_packages_req():
+    if session is None:
+        raise ValueError("Session not initialized")
+    logger.info("Fetching packages...")
+    packages_resp = await session.get("/packages", params={"hideInternal": "false"})
+    packages_json = await packages_resp.json()
+    packages = [Package.from_dict(p) for p in packages_json]
+    return packages
+
+
 @app.route("/nodes")
 async def nodes(request: Request):
     resp = await proxy_request(request)
@@ -179,9 +189,7 @@ async def get_installed_dependencies(request: Request):
     if session is None:
         raise ValueError("Session not initialized")
     installed_deps: dict[str, str] = {}
-    packages_resp = await session.get("/packages")
-    packages_json = await packages_resp.json()
-    packages = [Package.from_dict(p) for p in packages_json]
+    packages = await get_packages_req()
     for package in packages:
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
@@ -244,10 +252,7 @@ async def import_packages(
         ]
         await install_dependencies(dep_info, update_progress_cb, logger)
 
-    logger.info("Fetching packages...")
-    packages_resp = await session.get("/packages")
-    packages_json = await packages_resp.json()
-    packages = [Package.from_dict(p) for p in packages_json]
+    packages = await get_packages_req()
 
     logger.info("Checking dependencies...")
 

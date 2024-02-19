@@ -388,13 +388,15 @@ async def system_usage(_request: Request):
 
 
 @app.route("/packages", methods=["GET"])
-async def get_packages(_request: Request):
+async def get_packages(request: Request):
     await nodes_available()
+
+    hide_internal = request.args.get("hideInternal", "true") == "true"
 
     packages = []
     for package in api.registry.packages.values():
-        # if package.name == "chaiNNer_standard":
-        #     continue
+        if package.name == "chaiNNer_standard" and hide_internal:
+            continue
 
         pkg_dependencies = []
         for pkg_dep in package.dependencies:
