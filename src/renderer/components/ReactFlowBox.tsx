@@ -9,6 +9,7 @@ import ReactFlow, {
     Controls,
     Edge,
     EdgeTypes,
+    MiniMap,
     Node,
     NodeTypes,
     OnEdgesChange,
@@ -511,6 +512,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     gap={16}
                     size={1}
                     variant={BackgroundVariant.Dots}
+                />
+                <MiniMap
+                    nodeColor="rgb(255, 255, 255, 0.66)"
+                    maskColor="rgb(11, 13, 18, 0.175)"
+                    maskStrokeColor="rgb(255, 255, 255, 1.0"
+                    maskStrokeWidth={10}
+                    pannable
+                    zoomable
+                    ariaLabel=""
                 />
                 <Controls>
                     <ControlButton
