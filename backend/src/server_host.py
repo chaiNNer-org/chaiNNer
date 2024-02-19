@@ -340,9 +340,9 @@ async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
     stop_executor_server()
-    sanic_app.stop()
     assert session is not None
     await session.close()
+    sanic_app.stop()
 
 
 def __run_server():
