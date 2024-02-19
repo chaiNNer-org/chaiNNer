@@ -117,11 +117,10 @@ const useRegisterNodeEvents = (
         'node-progress',
         (f) => f && backlog.push({ type: 'node-progress', data: f })
     );
-    useBackendEventSourceListener(
-        eventSource,
-        'node-broadcast',
-        (f) => f && backlog.push({ type: 'node-broadcast', data: f })
-    );
+    useBackendEventSourceListener(eventSource, 'node-broadcast', (f) => {
+        console.log(f);
+        return f && backlog.push({ type: 'node-broadcast', data: f });
+    });
     useBackendEventSourceListener(
         eventSource,
         'node-finish',

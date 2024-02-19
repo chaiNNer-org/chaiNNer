@@ -39,13 +39,12 @@ def find_free_port():
 
 port = find_free_port()
 session = None
+sse_session = None
 
 
-async def proxy_request(
-    request: Request,
-):
+async def proxy_request(request: Request):
     if session is None or request.route is None:
-        raise ValueError("Session not initialized")
+        raise ValueError("Route not found")
     async with session.request(
         request.method,
         f"/{request.route.path}",
@@ -86,6 +85,7 @@ CORS(app)
 class SSEFilter(logging.Filter):
     def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
+        return True
         return not (
             (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore
         )
@@ -111,6 +111,7 @@ async def run(request: Request):
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
+    logger.info("Running individual")
     return await proxy_request(request)
 
 
@@ -175,7 +176,19 @@ async def get_packages(request: Request):
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
-    return await proxy_request(request)
+    if session is None:
+        raise ValueError("Session not initialized")
+    installed_deps: dict[str, str] = {}
+    packages_resp = await session.get("/packages")
+    packages_json = await packages_resp.json()
+    packages = [Package.from_dict(p) for p in packages_json]
+    for package in packages:
+        for pkg_dep in package.dependencies:
+            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
+            if installed_version is not None:
+                installed_deps[pkg_dep.pypi_name] = installed_version
+
+    return json(installed_deps)
 
 
 @app.route("/features")
@@ -185,7 +198,19 @@ async def get_features(request: Request):
 
 @app.get("/sse")
 async def sse(request: Request):
-    return await proxy_request(request)
+    if sse_session is None:
+        raise ValueError("Session not initialized")
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    async with sse_session.request(
+        request.method,
+        "/sse",
+        headers=request.headers,
+        data=request.body,
+    ) as resp:
+        async for data, _ in resp.content.iter_chunks():
+            if response is not None:
+                await response.send(data)
 
 
 @app.get("/setup-sse")
@@ -365,8 +390,14 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     ctx.setup_queue = EventQueue()
 
     # initialize aiohttp session
-    global session
-    session = aiohttp.ClientSession(base_url=f"http://127.0.0.1:{port}", loop=loop)
+    global session, sse_session
+    base_url = f"http://127.0.0.1:{port}"
+    session = aiohttp.ClientSession(base_url=base_url, loop=loop)
+    sse_session = aiohttp.ClientSession(
+        base_url=base_url,
+        loop=loop,
+        timeout=aiohttp.ClientTimeout(total=None),
+    )
 
     # start the setup task
     loop.create_task(setup(sanic_app, loop))
