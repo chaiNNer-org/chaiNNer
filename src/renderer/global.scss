@@ -102,6 +102,10 @@ body {
     border-radius: 0 0 8px 8px;
 }
 
+.react-flow__minimap {
+    background-color: rgb(45 55 72 / 66%) !important; /* - defines base minimap opacity, everything sits on top of this */
+}
+
 [data-theme='light'] {
     .react-flow__controls:hover {
         background: var(--gray-300) !important;
