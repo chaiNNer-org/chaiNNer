@@ -44,7 +44,6 @@ session = None
 async def proxy_request(
     request: Request,
 ):
-    logger.info(f"Proxying request to {request.url}")
     if session is None or request.route is None:
         raise ValueError("Session not initialized")
     async with session.request(
@@ -53,11 +52,9 @@ async def proxy_request(
         headers=request.headers,
         data=request.body,
     ) as resp:
-        logger.info(f"Got response from {request.url}")
         headers = resp.headers
         status = resp.status
         body = await resp.read()
-        logger.info(f"Returning response from {request.url}")
         return HTTPResponse(
             body,
             status=status,
