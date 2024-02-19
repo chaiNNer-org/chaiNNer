@@ -376,7 +376,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     # initialize aiohttp session
     global session
-    session = aiohttp.ClientSession(base_url=f"http://localhost:{port}", loop=loop)
+    session = aiohttp.ClientSession(base_url=f"http://127.0.0.1:{port}", loop=loop)
 
     # start the setup task
     loop.create_task(setup(sanic_app, loop))
