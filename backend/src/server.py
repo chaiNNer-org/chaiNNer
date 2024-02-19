@@ -501,6 +501,8 @@ async def import_packages(
     importlib.import_module("packages.chaiNNer_onnx")
     importlib.import_module("packages.chaiNNer_external")
 
+    logger.info("Loading Nodes...")
+
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
         import_errors: list[api.LoadErrorInfo] = []

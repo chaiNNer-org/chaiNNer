@@ -323,13 +323,6 @@ async def close_server(sanic_app: Sanic):
         await session.close()
 
 
-# def __read_stdout(process: subprocess.Popen):
-#     if process.stdout is None:
-#         return
-#     for line in process.stdout:
-#         print(line.decode(), end="")
-
-
 def __run_server():
     global server_process
 
@@ -343,8 +336,10 @@ def __run_server():
         stderr=subprocess.PIPE,
     ) as process:
         server_process = process
-        # t1 = threading.Thread(target=__read_stdout, args=(process,), daemon=True)
-        # t1.start()
+        if process.stdout is None:
+            return
+        for line in process.stdout:
+            print(line.decode(), end="")
 
 
 def start_executor_server():
