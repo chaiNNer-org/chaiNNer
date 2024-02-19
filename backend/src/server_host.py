@@ -325,6 +325,10 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
     await update_progress("Loading Nodes...", 1.0, None)
 
+    # Wait to send backend-ready until nodes are loaded
+    assert session is not None
+    await session.get("/nodes", timeout=None)
+
     await setup_queue.put_and_wait(
         {
             "event": "backend-ready",
