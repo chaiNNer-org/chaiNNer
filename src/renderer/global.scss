@@ -103,7 +103,9 @@ body {
 }
 
 .react-flow__minimap {
-    background-color: rgb(45 55 72 / 66%) !important; /* - defines base minimap opacity, everything sits on top of this */
+    background-color: rgb(
+        45 55 72 / 66%
+    ) !important; /* - defines base minimap opacity, everything sits on top of this */
 }
 
 [data-theme='light'] {
