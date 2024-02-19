@@ -8,11 +8,10 @@ import sys
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from json import dumps as stringify
 from typing import TypedDict
 
-import psutil
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -32,7 +31,6 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
-from gpu import get_nvidia_helper
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
@@ -353,40 +351,6 @@ async def kill(request: Request):
         return json(error_response("Error killing execution!", exception), status=500)
 
 
-@app.route("/python-info", methods=["GET"])
-async def python_info(_request: Request):
-    version = (
-        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    )
-    return json({"python": sys.executable, "version": version})
-
-
-@dataclass
-class SystemStat:
-    label: str
-    percent: float
-
-
-@app.route("/system-usage", methods=["GET"])
-async def system_usage(_request: Request):
-    stats_list = []
-    cpu_usage = psutil.cpu_percent()
-    mem_usage = psutil.virtual_memory().percent
-    stats_list.append(SystemStat("CPU", cpu_usage))
-    stats_list.append(SystemStat("RAM", mem_usage))
-    nv = get_nvidia_helper()
-    if nv is not None:
-        for i in range(nv.num_gpus):
-            total, used, _ = nv.get_current_vram_usage(i)
-            stats_list.append(
-                SystemStat(
-                    f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
-                    used / total * 100,
-                )
-            )
-    return json([asdict(x) for x in stats_list])
-
-
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
     await nodes_available()
@@ -424,20 +388,6 @@ async def get_packages(request: Request):
         )
 
     return json(packages)
-
-
-@app.route("/installed-dependencies", methods=["GET"])
-async def get_installed_dependencies(_request: Request):
-    await nodes_available()
-
-    installed_deps: dict[str, str] = {}
-    for package in api.registry.packages.values():
-        for pkg_dep in package.dependencies:
-            installed_version = installed_packages.get(pkg_dep.pypi_name, None)
-            if installed_version is not None:
-                installed_deps[pkg_dep.pypi_name] = installed_version
-
-    return json(installed_deps)
 
 
 @app.route("/features")

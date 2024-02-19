@@ -39,27 +39,6 @@ def find_free_port():
 
 port = find_free_port()
 session = None
-sse_session = None
-
-
-async def proxy_request(request: Request):
-    if session is None or request.route is None:
-        raise ValueError("Route not found")
-    async with session.request(
-        request.method,
-        f"/{request.route.path}",
-        headers=request.headers,
-        data=request.body,
-    ) as resp:
-        headers = resp.headers
-        status = resp.status
-        body = await resp.read()
-        return HTTPResponse(
-            body,
-            status=status,
-            headers=dict(headers),
-            content_type=request.content_type,
-        )
 
 
 class AppContext:
@@ -85,7 +64,6 @@ CORS(app)
 class SSEFilter(logging.Filter):
     def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
-        return True
         return not (
             (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore
         )
@@ -96,6 +74,27 @@ server_process = None
 server_thread = None
 
 access_logger.addFilter(SSEFilter())
+
+
+async def proxy_request(request: Request, timeout: int = 300):
+    if session is None or request.route is None:
+        raise ValueError("Route not found")
+    async with session.request(
+        request.method,
+        f"/{request.route.path}",
+        headers=request.headers,
+        data=request.body,
+        timeout=timeout,
+    ) as resp:
+        headers = resp.headers
+        status = resp.status
+        body = await resp.read()
+        return HTTPResponse(
+            body,
+            status=status,
+            headers=dict(headers),
+            content_type=request.content_type,
+        )
 
 
 async def get_packages_req():
@@ -206,19 +205,19 @@ async def get_features(request: Request):
 
 @app.get("/sse")
 async def sse(request: Request):
-    if sse_session is None:
+    if session is None:
         raise ValueError("Session not initialized")
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
-    async with sse_session.request(
-        request.method,
-        "/sse",
-        headers=request.headers,
-        data=request.body,
+    async with session.request(
+        request.method, "/sse", headers=request.headers, data=request.body, timeout=None
     ) as resp:
-        async for data, _ in resp.content.iter_chunks():
-            if response is not None:
-                await response.send(data)
+        try:
+            async for data, _ in resp.content.iter_chunks():
+                if response is not None:
+                    await response.send(data)
+        except Exception as ex:
+            logger.error(f"Error in sse: {ex}")
 
 
 @app.get("/setup-sse")
@@ -395,14 +394,9 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     ctx.setup_queue = EventQueue()
 
     # initialize aiohttp session
-    global session, sse_session
+    global session
     base_url = f"http://127.0.0.1:{port}"
     session = aiohttp.ClientSession(base_url=base_url, loop=loop)
-    sse_session = aiohttp.ClientSession(
-        base_url=base_url,
-        loop=loop,
-        timeout=aiohttp.ClientTimeout(total=None),
-    )
 
     # start the setup task
     loop.create_task(setup(sanic_app, loop))
