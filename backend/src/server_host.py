@@ -38,6 +38,7 @@ def find_free_port():
 
 
 port = find_free_port()
+base_url = f"http://127.0.0.1:{port}"
 session = None
 
 
@@ -77,7 +78,8 @@ access_logger.addFilter(SSEFilter())
 
 
 async def proxy_request(request: Request, timeout: int = 300):
-    if session is None or request.route is None:
+    assert session is not None
+    if request.route is None:
         raise ValueError("Route not found")
     async with session.request(
         request.method,
@@ -98,8 +100,7 @@ async def proxy_request(request: Request, timeout: int = 300):
 
 
 async def get_packages_req():
-    if session is None:
-        raise ValueError("Session not initialized")
+    assert session is not None
     logger.info("Fetching packages...")
     packages_resp = await session.get("/packages", params={"hideInternal": "false"})
     packages_json = await packages_resp.json()
@@ -185,8 +186,6 @@ async def get_packages(request: Request):
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
-    if session is None:
-        raise ValueError("Session not initialized")
     installed_deps: dict[str, str] = {}
     packages = await get_packages_req()
     for package in packages:
@@ -205,8 +204,7 @@ async def get_features(request: Request):
 
 @app.get("/sse")
 async def sse(request: Request):
-    if session is None:
-        raise ValueError("Session not initialized")
+    assert session is not None
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
     async with session.request(
@@ -236,9 +234,6 @@ async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
 ):
-    if session is None:
-        raise ValueError("Session not initialized")
-
     async def install_deps(dependencies: list[api.Dependency]):
         dep_info: list[DependencyInfo] = [
             {
@@ -315,8 +310,6 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     await update_progress("Importing nodes...", 0.0, None)
 
     logger.info("Importing nodes...")
-    # Start the executor server
-    loop.run_in_executor(None, start_executor_server)
 
     # Now we can load all the nodes
     await import_packages(AppContext.get(sanic_app).config, update_progress)
@@ -348,8 +341,8 @@ async def close_server(sanic_app: Sanic):
     logger.info("Closing server...")
     stop_executor_server()
     sanic_app.stop()
-    if session is not None:
-        await session.close()
+    assert session is not None
+    await session.close()
 
 
 def __run_server():
@@ -394,14 +387,15 @@ def restart_executor_server():
 
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
+    global session
+    session = aiohttp.ClientSession(base_url=base_url)
+
+    # Start the executor server
+    loop.run_in_executor(None, start_executor_server)
+
     # initialize the queues
     ctx = AppContext.get(sanic_app)
     ctx.setup_queue = EventQueue()
-
-    # initialize aiohttp session
-    global session
-    base_url = f"http://127.0.0.1:{port}"
-    session = aiohttp.ClientSession(base_url=base_url, loop=loop)
 
     # start the setup task
     loop.create_task(setup(sanic_app, loop))
