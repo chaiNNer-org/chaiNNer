@@ -514,13 +514,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     variant={BackgroundVariant.Dots}
                 />
                 <MiniMap
-                    nodeColor="rgb(255, 255, 255, 0.66)"
-                    maskColor="rgb(11, 13, 18, 0.175)"
-                    maskStrokeColor="rgb(255, 255, 255, 1.0"
-                    maskStrokeWidth={10}
                     pannable
                     zoomable
                     ariaLabel=""
+                    maskColor="rgb(11, 13, 18, 0.175)"
+                    maskStrokeColor="rgb(255, 255, 255, 1.0"
+                    maskStrokeWidth={10}
+                    nodeColor="rgb(255, 255, 255, 0.66)"
                 />
                 <Controls>
                     <ControlButton
