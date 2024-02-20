@@ -518,7 +518,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     zoomable
                     ariaLabel=""
                     maskColor="rgb(11, 13, 18, 0.175)"
-                    maskStrokeColor="rgb(255, 255, 255, 1.0"
+                    maskStrokeColor="rgb(255, 255, 255, 1.0)"
                     maskStrokeWidth={10}
                     nodeColor="rgb(255, 255, 255, 0.5)"
                     zoomStep={3}
