@@ -70,9 +70,44 @@ class SSEFilter(logging.Filter):
         )
 
 
+class ExecutorServerProcess:
+    def __init__(self):
+        self.process = None
+        self.stop_event = threading.Event()
+
+    def start_process(self):
+        server_file = os.path.join(os.path.dirname(__file__), "server.py")
+        python_location = sys.executable
+        self.process = subprocess.Popen(
+            [python_location, server_file, str(port)],
+            shell=False,
+            stdin=None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        # Create a separate thread to read and print the output of the subprocess
+        threading.Thread(target=self._read_output).start()
+
+    def stop_process(self):
+        if self.process:
+            self.stop_event.set()
+            self.process.terminate()
+            self.process.kill()
+
+    def _read_output(self):
+        if self.process is None:
+            return
+        while not self.stop_event.is_set():
+            if self.process.stdout is not None:
+                line = self.process.stdout.readline()
+            if line:
+                print(line.decode().strip())
+            else:
+                break
+
+
 setup_task = None
-server_process = None
-server_thread = None
+server_process: ExecutorServerProcess | None = None
 
 access_logger.addFilter(SSEFilter())
 
@@ -336,6 +371,21 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 exit_code = 0
 
 
+def start_executor_server():
+    server_process = ExecutorServerProcess()
+    server_process.start_process()
+
+
+def stop_executor_server():
+    if server_process is not None:
+        server_process.stop_process()
+
+
+def restart_executor_server():
+    stop_executor_server()
+    start_executor_server()
+
+
 async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
@@ -345,44 +395,13 @@ async def close_server(sanic_app: Sanic):
     sanic_app.stop()
 
 
-def __run_server():
-    global server_process
-
-    server_file = os.path.join(os.path.dirname(__file__), "server.py")
-    python_location = sys.executable
-    with subprocess.Popen(
-        [python_location, server_file, str(port)],
-        shell=False,
-        stdin=None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    ) as process:
-        server_process = process
-        if process.stdout is None:
-            return
-        for line in process.stdout:
-            print(line.decode(), end="")
-
-
-def start_executor_server():
-    global server_thread
-    server_thread = threading.Thread(target=__run_server)
-    server_thread.start()
-
-
-def stop_executor_server():
-    global server_process, server_thread
-    if server_process is not None:
-        server_process.kill()
-        server_process = None
-    if server_thread is not None:
-        server_thread.join()
-        server_thread = None
-
-
-def restart_executor_server():
+@app.after_server_stop
+async def after_server_stop(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
+    global exit_code
+    exit_code = 1
     stop_executor_server()
-    start_executor_server()
+    assert session is not None
+    await session.close()
 
 
 @app.after_server_start
