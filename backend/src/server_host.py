@@ -79,8 +79,9 @@ class ExecutorServerProcess:
     def start_process(self):
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
+        flags = [x for x in sys.argv if x.startswith("--")]
         self.process = subprocess.Popen(
-            [python_location, server_file, str(port)],
+            [python_location, server_file, str(port), *flags],
             shell=False,
             stdin=None,
             stdout=subprocess.PIPE,
@@ -395,26 +396,28 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
 exit_code = 0
 
+setup_task = None
+
 
 async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
+
+    try:
+        if setup_task is not None:
+            await setup_task
+    except Exception as ex:
+        logger.error(f"Error waiting for server to start: {ex}")
+
     stop_executor_server()
     assert session is not None
     await session.close()
     sanic_app.stop()
 
 
-@app.after_server_stop
-async def after_server_stop(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
-    stop_executor_server()
-    assert session is not None
-    await session.close()
-
-
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
-    global session
+    global session, setup_task
     session = aiohttp.ClientSession(base_url=base_url)
 
     # initialize the queues
@@ -425,7 +428,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
         await asyncio.sleep(0.1)
 
     # start the setup task
-    loop.create_task(setup(sanic_app, loop))
+    setup_task = loop.create_task(setup(sanic_app, loop))
 
     # start task to close the server
     if ctx.config.close_after_start:
