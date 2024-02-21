@@ -74,6 +74,7 @@ class ExecutorServerProcess:
     def __init__(self):
         self.process = None
         self.stop_event = threading.Event()
+        self.finished_starting = False
 
     def start_process(self):
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
@@ -97,17 +98,40 @@ class ExecutorServerProcess:
     def _read_output(self):
         if self.process is None:
             return
-        while not self.stop_event.is_set():
+        while self.stop_event.is_set() is False:
             if self.process.stdout is not None:
                 line = self.process.stdout.readline()
             if line:
+                if not self.finished_starting:
+                    if "Starting worker" in line.decode():
+                        self.finished_starting = True
                 print(line.decode().strip())
             else:
                 break
 
 
+server_process: ExecutorServerProcess = ExecutorServerProcess()
+server_process.start_process()
+
+
+def start_executor_server():
+    global server_process
+    del server_process
+    server_process = ExecutorServerProcess()
+    server_process.start_process()
+    return server_process
+
+
+def stop_executor_server():
+    server_process.stop_process()
+
+
+def restart_executor_server():
+    stop_executor_server()
+    start_executor_server()
+
+
 setup_task = None
-server_process: ExecutorServerProcess | None = None
 
 access_logger.addFilter(SSEFilter())
 
@@ -334,6 +358,7 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
         )
 
     logger.info("Starting setup...")
+
     await setup_queue.put_and_wait(
         {
             "event": "backend-started",
@@ -371,21 +396,6 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 exit_code = 0
 
 
-def start_executor_server():
-    server_process = ExecutorServerProcess()
-    server_process.start_process()
-
-
-def stop_executor_server():
-    if server_process is not None:
-        server_process.stop_process()
-
-
-def restart_executor_server():
-    stop_executor_server()
-    start_executor_server()
-
-
 async def close_server(sanic_app: Sanic):
     # now we can close the server
     logger.info("Closing server...")
@@ -397,8 +407,6 @@ async def close_server(sanic_app: Sanic):
 
 @app.after_server_stop
 async def after_server_stop(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
-    global exit_code
-    exit_code = 1
     stop_executor_server()
     assert session is not None
     await session.close()
@@ -409,12 +417,12 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     global session
     session = aiohttp.ClientSession(base_url=base_url)
 
-    # Start the executor server
-    loop.run_in_executor(None, start_executor_server)
-
     # initialize the queues
     ctx = AppContext.get(sanic_app)
     ctx.setup_queue = EventQueue()
+
+    while server_process.finished_starting is False:
+        await asyncio.sleep(0.1)
 
     # start the setup task
     loop.create_task(setup(sanic_app, loop))
