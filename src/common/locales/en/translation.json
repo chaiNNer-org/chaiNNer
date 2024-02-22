@@ -1,77 +1,77 @@
 {
   "alert": {
     "title": {
-      "systemInformation": "System information"
+      "systemInformation": "系统信息"
     }
   },
   "dependencyManager": {
-    "manageDependencies": "Manage Dependencies",
-    "updatesAvailable": "Updates Available",
-    "updatesAvailableDescription": "There are {{count}} updates available for your dependencies."
+    "manageDependencies": "管理依赖关系",
+    "updatesAvailable": "可用更新",
+    "updatesAvailableDescription": "您的依赖项有 {{count}} 个更新可用。"
   },
   "error": {
-    "error": "Error",
+    "error": "错误",
     "message": {
-      "criticalBackend": "A critical error occurred while processing the node data returned by the backend."
+      "criticalBackend": "处理后端返回的节点数据时发生严重错误。"
     },
     "title": {
-      "unableToProcessNodes": "Unable to process backend nodes."
+      "unableToProcessNodes": "无法处理后端节点。"
     }
   },
   "header": {
-    "pause": "Pause",
-    "pauseButton": "Pause button",
-    "resume": "Resume",
-    "run": "Run",
-    "runButton": "Run button",
-    "stop": "Stop",
-    "stopButton": "Stop button"
+    "pause": "暂停",
+    "pauseButton": "暂停按钮",
+    "resume": "恢复",
+    "run": "运行",
+    "runButton": "运行按钮",
+    "stop": "停止",
+    "stopButton": "停止按钮"
   },
   "inputs": {
-    "copyInputOverrideId": "Copy Input Override Id",
+    "copyInputOverrideId": "复制输入覆盖 ID",
     "directory": {
-      "copyFullDirectoryPath": "Copy Full Directory Path",
-      "openInFileExplorer": "Open in File Explorer",
-      "selectDirectory": "Select a directory..."
+      "copyFullDirectoryPath": "复制完整目录路径",
+      "openInFileExplorer": "在文件资源管理器中打开",
+      "selectDirectory": "选择一个目录..."
     },
-    "extractValueIntoNode": "Extract value into node",
+    "extractValueIntoNode": "将值提取到节点中",
     "file": {
-      "copyFileName": "Copy File Name",
-      "copyFullFilePath": "Copy Full File Path",
-      "openInFileExplorer": "Open in File Explorer",
-      "selectFile": "Select a file..."
+      "copyFileName": "复制文件名",
+      "copyFullFilePath": "复制完整文件路径",
+      "openInFileExplorer": "在文件资源管理器中打开",
+      "selectFile": "选择一个文件..."
     },
     "number": {
-      "copyText": "Copy Number",
-      "paste": "Paste"
+      "copyText": "复制数量",
+      "paste": "粘贴"
     },
     "text": {
-      "copyText": "Copy Text",
-      "paste": "Paste"
+      "copyText": "复制文本",
+      "paste": "粘贴"
     }
   },
-  "loading": "Loading...",
+  "loading": "加载...",
   "outputs": {
     "largeImage": {
-      "imageNotAvailable": "Image not available."
+      "imageNotAvailable": "图像不可用。"
     },
     "model": {
-      "modelNotAvailable": "Model data not available."
+      "modelNotAvailable": "模型数据不可用。"
     }
   },
   "splash": {
-    "checkingFfmpeg": "Checking system environment for Ffmpeg...",
-    "checkingPort": "Checking for available port...",
-    "checkingPython": "Checking system environment for valid Python...",
-    "downloadingFfmpeg": "Downloading ffmpeg...",
-    "downloadingPython": "Downloading Integrated Python...",
-    "extractingFfmpeg": "Extracting downloaded files...",
-    "extractingPython": "Extracting downloaded files...",
-    "loading": "Loading...",
-    "loadingApp": "Loading main application...",
-    "startingBackend": "Starting up backend process..."
+    "checkingFfmpeg": "正在检查 FFmpeg 的系统环境...",
+    "checkingPort": "正在检查可用端口...",
+    "checkingPython": "正在检查系统环境是否有效 Python...",
+    "downloadingFfmpeg": "正在下载 ffmpeg...",
+    "downloadingPython": "下载集成Python...",
+    "extractingFfmpeg": "提取下载的文件...",
+    "extractingPython": "提取下载的文件...",
+    "loading": "加载中...",
+    "loadingApp": "正在加载主应用程序...",
+    "startingBackend": "正在启动后台进程..."
   },
   "typeTags": {
-    "optional": "optional"
+    "optional": "可选择的"
   }
 }
