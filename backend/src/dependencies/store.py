@@ -84,8 +84,8 @@ def install_dependencies_sync(
     }
 
     extra_index_args = []
-    for extra_index_url in extra_index_urls:
-        extra_index_args.extend(["--extra-index-url", extra_index_url])
+    if len(extra_index_urls) > 0:
+        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
     exit_code = subprocess.check_call(
         [
@@ -137,8 +137,8 @@ async def install_dependencies(
     }
 
     extra_index_args = []
-    for extra_index_url in extra_index_urls:
-        extra_index_args.extend(["--extra-index-url", extra_index_url])
+    if len(extra_index_urls) > 0:
+        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
     def get_progress_amount():
         transitive_progress = 1 - 1 / (2**transitive_deps_counter)
