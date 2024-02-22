@@ -301,6 +301,7 @@ async def import_packages(
                 "display_name": dep.display_name,
                 "version": dep.version,
                 "from_file": None,
+                "extra_index_url": dep.extra_index_url,
             }
             for dep in dependencies
         ]
@@ -333,7 +334,7 @@ async def import_packages(
 
             restart_executor_server()
         except Exception as ex:
-            logger.error(f"Error installing dependencies: {ex}")
+            logger.error(f"Error installing dependencies: {ex}", exc_info=True)
             if config.close_after_start:
                 raise ValueError("Error installing dependencies") from ex
 

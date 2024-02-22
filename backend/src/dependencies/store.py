@@ -25,6 +25,7 @@ class DependencyInfo(TypedDict):
     display_name: str | None
     version: str | None
     from_file: str | None
+    extra_index_url: str | None
 
 
 def pin(dependency: DependencyInfo) -> str:
@@ -76,6 +77,16 @@ def install_dependencies_sync(
     if len(dependencies_to_install) == 0:
         return
 
+    extra_index_urls = {
+        dep_info["extra_index_url"]
+        for dep_info in dependencies_to_install
+        if dep_info["extra_index_url"]
+    }
+
+    extra_index_args = []
+    for extra_index_url in extra_index_urls:
+        extra_index_args.extend(["--extra-index-url", extra_index_url])
+
     exit_code = subprocess.check_call(
         [
             python_path,
@@ -85,7 +96,8 @@ def install_dependencies_sync(
             *[pin(dep_info) for dep_info in dependencies_to_install],
             "--disable-pip-version-check",
             "--no-warn-script-location",
-        ]
+            *extra_index_args,
+        ],
     )
     if exit_code != 0:
         raise ValueError("An error occurred while installing dependencies.")
@@ -118,6 +130,16 @@ async def install_dependencies(
     deps_counter = 0
     transitive_deps_counter = 0
 
+    extra_index_urls = {
+        dep_info["extra_index_url"]
+        for dep_info in dependencies_to_install
+        if dep_info["extra_index_url"]
+    }
+
+    extra_index_args = []
+    for extra_index_url in extra_index_urls:
+        extra_index_args.extend(["--extra-index-url", extra_index_url])
+
     def get_progress_amount():
         transitive_progress = 1 - 1 / (2**transitive_deps_counter)
         progress = (deps_counter + transitive_progress) / (deps_count + 1)
@@ -137,6 +159,7 @@ async def install_dependencies(
             "--disable-chainner_pip-version-check",
             "--no-warn-script-location",
             "--progress-bar=json",
+            *extra_index_args,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
