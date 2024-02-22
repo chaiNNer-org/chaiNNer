@@ -79,9 +79,8 @@ class ExecutorServerProcess:
     def start_process(self):
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
-        flags = [x for x in sys.argv if x.startswith("--")]
         self.process = subprocess.Popen(
-            [python_location, server_file, str(port), *flags],
+            [python_location, server_file, str(port)],
             shell=False,
             stdin=None,
             stdout=subprocess.PIPE,
