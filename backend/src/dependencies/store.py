@@ -78,9 +78,9 @@ def install_dependencies_sync(
         return
 
     extra_index_urls = {
-        dep_info["extra_index_url"]
+        dep_info.get("extra_index_url")
         for dep_info in dependencies_to_install
-        if dep_info["extra_index_url"]
+        if dep_info.get("extra_index_url")
     }
 
     extra_index_args = []
@@ -131,9 +131,9 @@ async def install_dependencies(
     transitive_deps_counter = 0
 
     extra_index_urls = {
-        dep_info["extra_index_url"]
+        dep_info.get("extra_index_url")
         for dep_info in dependencies_to_install
-        if dep_info["extra_index_url"]
+        if dep_info.get("extra_index_url")
     }
 
     extra_index_args = []
