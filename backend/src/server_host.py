@@ -71,16 +71,18 @@ class SSEFilter(logging.Filter):
 
 
 class ExecutorServerProcess:
-    def __init__(self):
+    def __init__(self, flags: list[str] | None = None):
         self.process = None
         self.stop_event = threading.Event()
         self.finished_starting = False
+
+        self.flags = flags or []
 
     def start_process(self):
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
         self.process = subprocess.Popen(
-            [python_location, server_file, str(port)],
+            [python_location, server_file, str(port), *self.flags],
             shell=False,
             stdin=None,
             stdout=subprocess.PIPE,
@@ -114,10 +116,10 @@ server_process: ExecutorServerProcess = ExecutorServerProcess()
 server_process.start_process()
 
 
-def start_executor_server():
+def start_executor_server(flags: list[str] | None = None):
     global server_process
     del server_process
-    server_process = ExecutorServerProcess()
+    server_process = ExecutorServerProcess(flags)
     server_process.start_process()
     return server_process
 
@@ -126,9 +128,9 @@ def stop_executor_server():
     server_process.stop_process()
 
 
-def restart_executor_server():
+def restart_executor_server(flags: list[str] | None = None):
     stop_executor_server()
-    start_executor_server()
+    start_executor_server(flags)
 
 
 setup_task = None
@@ -331,7 +333,14 @@ async def import_packages(
         try:
             await install_deps(to_install)
 
-            restart_executor_server()
+            flags = []
+            if config.error_on_failed_node:
+                flags.append("--error-on-failed-node")
+
+            if config.close_after_start:
+                flags.append("--close-after-start")
+
+            restart_executor_server(flags)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}", exc_info=True)
             if config.close_after_start:
