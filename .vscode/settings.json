@@ -111,5 +111,9 @@
       "source.organizeImports": "explicit",
       "source.fixAll": "always"
     }
-  }
+  },
+  "stylelint.validate": [
+    "css",
+    "scss"
+  ]
 }
