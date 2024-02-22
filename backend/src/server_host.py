@@ -130,6 +130,11 @@ def restart_executor_server(flags: list[str] | None = None):
     start_executor_server(flags)
 
 
+async def wait_for_server_start():
+    while server_process.finished_starting is False:
+        await asyncio.sleep(0.1)
+
+
 setup_task = None
 
 access_logger.addFilter(SSEFilter())
@@ -158,6 +163,7 @@ async def proxy_request(request: Request, timeout: int = 300):
 
 
 async def get_packages_req():
+    await wait_for_server_start()
     assert session is not None
     logger.info("Fetching packages...")
     packages_resp = await session.get("/packages", params={"hideInternal": "false"})
@@ -386,6 +392,7 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     await update_progress("Loading Nodes...", 1.0, None)
 
     # Wait to send backend-ready until nodes are loaded
+    await wait_for_server_start()
     assert session is not None
     await session.get("/nodes", timeout=None)
 
@@ -430,8 +437,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     ctx = AppContext.get(sanic_app)
     ctx.setup_queue = EventQueue()
 
-    while server_process.finished_starting is False:
-        await asyncio.sleep(0.1)
+    await wait_for_server_start()
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app, loop))
