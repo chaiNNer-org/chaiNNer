@@ -135,6 +135,14 @@ async def wait_for_server_start():
         await asyncio.sleep(0.1)
 
 
+backend_ready = False
+
+
+async def wait_for_backend_ready():
+    while not backend_ready:
+        await asyncio.sleep(0.1)
+
+
 setup_task = None
 
 access_logger.addFilter(SSEFilter())
@@ -142,6 +150,8 @@ access_logger.addFilter(SSEFilter())
 
 async def proxy_request(request: Request, timeout: int = 300):
     assert session is not None
+    await wait_for_server_start()
+    await wait_for_backend_ready()
     if request.route is None:
         raise ValueError("Route not found")
     async with session.request(
@@ -353,6 +363,8 @@ async def import_packages(
 
 
 async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
+    global backend_ready
+
     setup_queue = AppContext.get(sanic_app).setup_queue
 
     async def update_progress(
@@ -396,6 +408,8 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     assert session is not None
     await session.get("/nodes", timeout=None)
 
+    backend_ready = True
+
     await setup_queue.put_and_wait(
         {
             "event": "backend-ready",
@@ -423,9 +437,17 @@ async def close_server(sanic_app: Sanic):
         logger.error(f"Error waiting for server to start: {ex}")
 
     stop_executor_server()
-    assert session is not None
-    await session.close()
+    if session is not None:
+        await session.close()
     sanic_app.stop()
+
+
+@app.after_server_stop
+async def after_server_stop(_sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
+    server_process.stop_process()
+    if session is not None:
+        await session.close()
+    logger.info("Server closed.")
 
 
 @app.after_server_start
