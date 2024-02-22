@@ -42,6 +42,12 @@ package = add_package(
             import_name="ffmpeg",
         ),
         Dependency(
+            display_name="Requests",
+            pypi_name="requests",
+            version="2.28.2",
+            size_estimate=452 * KB,
+        ),
+        Dependency(
             display_name="re2",
             pypi_name="google-re2",
             version="1.0",
