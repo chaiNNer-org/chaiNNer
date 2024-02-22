@@ -98,19 +98,15 @@ class ExecutorServerProcess:
             self.process.kill()
 
     def _read_output(self):
-        if self.process is None:
+        if self.process is None or self.process.stdout is None:
             return
-        while self.stop_event.is_set() is False:
-            line = None
-            if self.process.stdout is not None:
-                line = self.process.stdout.readline()
-            if line:
-                if not self.finished_starting:
-                    if "Starting worker" in line.decode():
-                        self.finished_starting = True
-                print(line.decode().strip())
-            else:
+        for line in self.process.stdout:
+            if self.stop_event.is_set():
                 break
+            if not self.finished_starting:
+                if "Starting worker" in line.decode():
+                    self.finished_starting = True
+            print(line.decode().strip())
 
 
 server_process: ExecutorServerProcess = ExecutorServerProcess()
