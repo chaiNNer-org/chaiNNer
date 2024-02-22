@@ -15,7 +15,7 @@ jobs:
             - name: Trigger chaiNNer.app build + deploy
               uses: fjogeleit/http-request-action@v1
               with:
-                  url: 'https://api.github.com/repos/BoxMiao007/chaiNNer/dispatches'
+                  url: 'https://api.github.com/repos/BoxMiao007/chaiNNer-org.github.io/dispatches'
                   method: 'POST'
                   customHeaders: '{"Accept": "application/vnd.github+json"}'
                   bearerToken: ${{ secrets.GH_TEST_TOKEN }}
