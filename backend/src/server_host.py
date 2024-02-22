@@ -104,7 +104,7 @@ class ExecutorServerProcess:
             line = None
             if self.process.stdout is not None:
                 line = self.process.stdout.readline()
-            if line is not None:
+            if line:
                 if not self.finished_starting:
                     if "Starting worker" in line.decode():
                         self.finished_starting = True
