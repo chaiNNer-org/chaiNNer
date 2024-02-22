@@ -102,6 +102,13 @@ body {
     border-radius: 0 0 8px 8px;
 }
 
+.react-flow__minimap {
+    border-radius: 0.5rem;
+    svg {
+        border-radius: 0.5rem;
+    }
+}
+
 [data-theme='light'] {
     .react-flow__controls:hover {
         background: var(--gray-300) !important;
@@ -144,6 +151,20 @@ body {
         background: var(--gray-700) !important;
     }
 
+    .react-flow__controls-button {
+        border: 0 solid rgb(74 85 104 / 66%) !important;
+        background: rgb(45 55 72 / 66%) !important;
+
+        &:not(:disabled):hover {
+            background: var(--gray-600) !important;
+            border: 0 solid var(--gray-600) !important;
+        }
+
+        &:not(:disabled) > svg {
+            fill: white;
+        }
+    }
+
     .react-flow__minimap {
         background-color: rgb(
             49 58 72 / 80%
@@ -159,20 +180,6 @@ body {
         fill: rgb(49 58 72 / 80%);
         stroke: rgb(255 255 255 / 50%);
         stroke-width: 15;
-    }
-
-    .react-flow__controls-button {
-        border: 0 solid rgb(74 85 104 / 66%) !important;
-        background: rgb(45 55 72 / 66%) !important;
-
-        &:not(:disabled):hover {
-            background: var(--gray-600) !important;
-            border: 0 solid var(--gray-600) !important;
-        }
-
-        &:not(:disabled) > svg {
-            fill: white;
-        }
     }
 }
 
