@@ -102,9 +102,34 @@ body {
     border-radius: 0 0 8px 8px;
 }
 
+.react-flow__minimap {
+    border-radius: 0.5rem;
+
+    svg {
+        border-radius: 0.5rem;
+    }
+}
+
 [data-theme='light'] {
     .react-flow__controls:hover {
         background: var(--gray-300) !important;
+    }
+
+    .react-flow__minimap {
+        background-color: rgb(
+            220 227 234 / 80%
+        ); /* - defines base minimap opacity, everything sits on top of this */
+    }
+
+    .react-flow__minimap-node {
+        fill: rgb(255 255 255 / 75%);
+        stroke: none;
+    }
+
+    .react-flow__minimap-mask {
+        fill: rgb(220 227 234 / 50%);
+        stroke: rgb(255 255 255 / 100%);
+        stroke-width: 15;
     }
 
     .react-flow__controls-button {
@@ -139,6 +164,23 @@ body {
         &:not(:disabled) > svg {
             fill: white;
         }
+    }
+
+    .react-flow__minimap {
+        background-color: rgb(
+            49 58 72 / 80%
+        ); /* - defines base minimap opacity, everything sits on top of this */
+    }
+
+    .react-flow__minimap-node {
+        fill: rgb(255 255 255 / 50%);
+        stroke: none;
+    }
+
+    .react-flow__minimap-mask {
+        fill: rgb(49 58 72 / 80%);
+        stroke: rgb(255 255 255 / 50%);
+        stroke-width: 15;
     }
 }
 
