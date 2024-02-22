@@ -101,9 +101,10 @@ class ExecutorServerProcess:
         if self.process is None:
             return
         while self.stop_event.is_set() is False:
+            line = None
             if self.process.stdout is not None:
                 line = self.process.stdout.readline()
-            if line:
+            if line is not None:
                 if not self.finished_starting:
                     if "Starting worker" in line.decode():
                         self.finished_starting = True
