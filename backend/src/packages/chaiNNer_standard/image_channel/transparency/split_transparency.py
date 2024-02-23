@@ -13,8 +13,8 @@ from . import node_group
 
 @node_group.register(
     schema_id="chainner:image:split_transparency",
-    name="Split Transparency",
-    description="Split image channels into RGB and Alpha (transparency) channels.",
+    name="分割透明度",
+    description="将图像通道拆分为 RGB 和 Alpha（透明度）通道。",
     icon="MdCallSplit",
     inputs=[ImageInput(channels=[1, 3, 4])],
     outputs=[

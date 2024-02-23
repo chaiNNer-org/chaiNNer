@@ -24,8 +24,8 @@ class AlphaFillMethod(Enum):
 
 @node_group.register(
     schema_id="chainner:image:fill_alpha",
-    name="Fill Alpha",
-    description="Splits the image into color and transparency, and fills the transparent pixels of an image with nearby colors.",
+    name="填充Alpha",
+    description="将图像分割为颜色和透明度，并用附近的颜色填充图像的透明像素。",
     icon="MdOutlineFormatColorFill",
     inputs=[
         ImageInput(channels=4),
@@ -67,6 +67,6 @@ def fill_alpha_node(
             anti_aliasing=True,
         )
     else:
-        raise AssertionError(f"Invalid alpha fill method {method}")
+        raise AssertionError(f"Alpha 填充方法无效 {method}")
 
     return img[:, :, :3], alpha

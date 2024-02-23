@@ -20,8 +20,8 @@ class CropMode(Enum):
 
 @crop_group.register(
     schema_id="chainner:image:crop",
-    name="Crop",
-    description="Crop an image.",
+    name="裁剪",
+    description="裁剪图像。",
     icon="MdCrop",
     inputs=[
         ImageInput(),
@@ -74,7 +74,7 @@ class CropMode(Enum):
             """,
             assume_normalized=True,
         ).with_never_reason(
-            "The cropped area would result in an image with no width or no height."
+            "裁剪区域将导致图像没有宽度或高度。"
         )
     ],
 )
@@ -95,20 +95,20 @@ def crop_node(
         if amount == 0:
             return img
 
-        assert 2 * amount < h, "Cropped area would result in an image with no height"
-        assert 2 * amount < w, "Cropped area would result in an image with no width"
+        assert 2 * amount < h, "裁剪区域将导致图像没有高度"
+        assert 2 * amount < w, "裁剪区域将导致图像没有宽度"
 
         return img[amount : h - amount, amount : w - amount]
     elif mode == CropMode.EDGES:
         if top == bottom == left == right == 0:
             return img
 
-        assert top + bottom < h, "Cropped area would result in an image with no height"
-        assert left + right < w, "Cropped area would result in an image with no width"
+        assert top + bottom < h, "裁剪区域将导致图像没有高度"
+        assert left + right < w, "裁剪区域将导致图像没有宽度"
 
         return img[top : h - bottom, left : w - right]
     elif mode == CropMode.OFFSETS:
-        assert top < h, "Cropped area would result in an image with no height"
-        assert left < w, "Cropped area would result in an image with no width"
+        assert top < h, "裁剪区域将导致图像没有高度"
+        assert left < w, "裁剪区域将导致图像没有宽度"
 
         return img[top : top + height, left : left + width]

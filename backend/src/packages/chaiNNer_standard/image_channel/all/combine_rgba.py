@@ -11,24 +11,24 @@ from . import node_group
 
 @node_group.register(
     schema_id="chainner:image:combine_rgba",
-    name="Combine RGBA",
+    name="合并RGBA",
     description=(
-        "Merges the given channels together and returns an RGBA image."
-        " All channel images must be a single channel image."
+        "将给定通道合并在一起并返回 RGBA 图像。"
+        " 所有通道图像必须是单通道图像。"
     ),
     icon="MdCallMerge",
     inputs=[
-        ImageInput("R Channel", channels=1, allow_colors=True).with_docs(
-            "The red channel."
+        ImageInput("R 通道", channels=1, allow_colors=True).with_docs(
+            "红色通道。"
         ),
-        ImageInput("G Channel", channels=1, allow_colors=True).with_docs(
-            "The green channel."
+        ImageInput("G 通道", channels=1, allow_colors=True).with_docs(
+            "绿色通道。"
         ),
-        ImageInput("B Channel", channels=1, allow_colors=True).with_docs(
-            "The blue channel."
+        ImageInput("B 通道", channels=1, allow_colors=True).with_docs(
+            "蓝色通道."
         ),
         ImageInput("A Channel", channels=1, allow_colors=True)
-        .with_docs("The alpha (transparency mask) channel.")
+        .with_docs("Alpha（透明蒙版）通道。")
         .make_optional(),
     ],
     outputs=[
@@ -51,7 +51,7 @@ from . import node_group
             """,
             channels=4,
             assume_normalized=True,
-        ).with_never_reason("All input channels must have the same size.")
+        ).with_never_reason("所有输入通道必须具有相同的大小。")
     ],
 )
 def combine_rgba_node(
@@ -74,7 +74,7 @@ def combine_rgba_node(
 
     if start_shape is None:
         raise ValueError(
-            "At least one channels must be an image, but all given channels are colors."
+            "至少一个通道必须是图像，但所有给定通道都是颜色。"
         )
 
     # check same size
@@ -82,7 +82,7 @@ def combine_rgba_node(
         if isinstance(i, np.ndarray):
             assert (
                 i.shape[:2] == start_shape
-            ), "All channel images must have the same resolution"
+            ), "所有通道图像必须具有相同的分辨率"
 
     channels = [
         (

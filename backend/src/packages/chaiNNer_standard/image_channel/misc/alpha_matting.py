@@ -13,30 +13,30 @@ from . import node_group
 
 @node_group.register(
     schema_id="chainner:image:alpha_matting",
-    name="Alpha Matting",
+    name="Alpha抠图",
     description=[
-        "Uses a trimap to separate foreground from background.",
-        "Trimaps are a three-color image that categorize the input image into foreground (white), background (black), and undecided (gray). Alpha matting uses this information to separate the foreground from the background.",
-        "A trimap typically has to be created manually, but it's typically an easy task since the trimaps don't have to detailed. The only requirements are that black pixels are the background, and white pixels are the foreground. The boundary region between foreground and background can be gray.",
-        "The following image shows the input image (top left), its trimap (top right), the output alpha (bottom left), and the output image with a different background (bottom right):"
+        "使用 Trimap 将前景与背景分开。",
+        "Trimap 是一种三色图像，将输入图像分类为前景（白色）、背景（黑色）和未决定（灰色）。 Alpha matting 使用此信息将前景与背景分开。",
+        "trimap通常必须手动创建，但这通常是一项简单的任务，因为trimap不必详细说明。唯一的要求是黑色像素是背景，白色像素是前景。前景和背景之间的边界区域可以是灰色的。",
+        "下图显示了输入图像（左上）、三分图（右上）、输出alpha（左下）和具有不同背景的输出图像（右下）："
         "![lemur_at_the_beach.png](https://github.com/pymatting/pymatting/raw/master/data/lemur/lemur_at_the_beach.png)",
     ],
     icon="MdContentCut",
     see_also="chainner:onnx:rembg",
     inputs=[
         ImageInput(channels=[3, 4]).with_docs(
-            "If the image has an alpha channel, it will be ignored."
+            "如果图像有 Alpha 通道，它将被忽略。"
         ),
         ImageInput("Trimap", channels=1),
         SliderInput(
-            "Foreground Threshold", minimum=1, maximum=255, default=240
+            "前景阈值", minimum=1, maximum=255, default=240
         ).with_docs(
-            "All pixels in the trimap brighter than this value are considered to be part of the foreground."
+            "Trimap 中比该值更亮的所有像素都被视为前景的一部分。"
         ),
         SliderInput(
-            "Background Threshold", minimum=0, maximum=254, default=15
+            "背景阈值", minimum=0, maximum=254, default=15
         ).with_docs(
-            "All pixels in the trimap darker than this value are considered to be part of the background."
+            "Trimap 中比该值暗的所有像素都被视为背景的一部分。"
         ),
     ],
     outputs=[
@@ -50,7 +50,7 @@ from . import node_group
                 if fg <= bg {
                     error("The foreground threshold must be greater than the background threshold.")
                 } else if bool::or(image.width != trimap.width, image.height != trimap.height) {
-                    error("The image and trimap must have the same size.")
+                    error("图像和trimap必须具有相同的大小。")
                 } else {
                     Image { width: image.width, height: image.height }
                 }
@@ -67,10 +67,10 @@ def alpha_matting_node(
 ) -> np.ndarray:
     assert (
         fg_threshold > bg_threshold
-    ), "The foreground threshold must be greater than the background threshold."
+    ), "前景阈值必须大于背景阈值。"
 
     h, w, c = get_h_w_c(img)
-    assert (h, w) == trimap.shape[:2], "The image and trimap must have the same size."
+    assert (h, w) == trimap.shape[:2], "图像和修剪图必须具有相同的大小。"
 
     # apply thresholding to trimap
     trimap = np.where(trimap > fg_threshold / 255, 1, trimap)

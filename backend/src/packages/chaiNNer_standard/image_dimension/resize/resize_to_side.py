@@ -83,10 +83,10 @@ def resize_to_side_conditional(
 
 @resize_group.register(
     schema_id="chainner:image:resize_to_side",
-    name="Resize To Side",
+    name="调整到一侧",
     description=(
-        "Resize an image to a given side length while keeping aspect ratio. "
-        "Auto uses box for downsampling and lanczos for upsampling."
+        "将图像大小调整为给定边长，同时保持纵横比。"
+        "Auto使用长方体进行下采样，使用lanczo进行上采样。"
     ),
     icon="MdOutlinePhotoSizeSelectLarge",
     inputs=[
@@ -101,9 +101,9 @@ def resize_to_side_conditional(
         EnumInput(
             ResizeCondition,
             option_labels={
-                ResizeCondition.BOTH: "Upscale And Downscale",
-                ResizeCondition.UPSCALE: "Upscale Only",
-                ResizeCondition.DOWNSCALE: "Downscale Only",
+                ResizeCondition.BOTH: "放大和缩小",
+                ResizeCondition.UPSCALE: "仅向上缩放",
+                ResizeCondition.DOWNSCALE: "仅向下缩放",
             },
         ).with_id(4),
         ResizeFilterInput().with_id(3),

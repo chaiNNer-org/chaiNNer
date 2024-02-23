@@ -12,10 +12,10 @@ from . import node_group
 
 @node_group.register(
     schema_id="chainner:image:split_channels",
-    name="Separate RGBA",
+    name="独立RGBA",
     description=(
-        "Split image channels into separate channels. "
-        "Typically used for splitting off an alpha (transparency) layer."
+        "将图像通道分割成单独的通道。 "
+        "通常用于分割 alpha（透明）层。"
     ),
     icon="MdCallSplit",
     inputs=[ImageInput()],
@@ -26,7 +26,7 @@ from . import node_group
             channels=1,
             assume_normalized=True,
         )
-        .with_docs("The red channel.")
+        .with_docs("红色通道。")
         .with_id(2),
         ImageOutput(
             "G Channel",
@@ -34,7 +34,7 @@ from . import node_group
             channels=1,
             assume_normalized=True,
         )
-        .with_docs("The green channel.")
+        .with_docs("绿色通道。")
         .with_id(1),
         ImageOutput(
             "B Channel",
@@ -42,14 +42,14 @@ from . import node_group
             channels=1,
             assume_normalized=True,
         )
-        .with_docs("The blue channel.")
+        .with_docs("蓝色通道。")
         .with_id(0),
         ImageOutput(
             "A Channel",
             image_type=navi.Image(size_as="Input0"),
             channels=1,
             assume_normalized=True,
-        ).with_docs("The alpha (transparency mask) channel."),
+        ).with_docs("Alpha（透明蒙版）通道。"),
     ],
 )
 def separate_rgba_node(

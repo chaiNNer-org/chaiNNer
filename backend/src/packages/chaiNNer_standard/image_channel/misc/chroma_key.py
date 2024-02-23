@@ -29,17 +29,17 @@ class KeyMethod(Enum):
 
 @node_group.register(
     schema_id="chainner:image:chroma_key",
-    name="Chroma Key",
+    name="色度键",
     description=[
-        "Removes a color from an image and replaces it with transparency.",
-        "To set the key color, either define a constant color with the `chainner:utility:color` node or pick a color from the image with the `chainner:image:pick_color` node.",
-        "This nodes offers multiple strategies to key the image:",
-        "- **Binary**:",
-        "    A simple binary thresholding method is used to determine the whether a pixel in the image is transparent or not. This method is mostly useful images *without anti-aliasing*.",
-        "- **Trimap matting**:",
-        "    This method uses a separate threshold for foreground (FG) and background (BG) to create a trimap. Alpha matting is then performed on the trimap to create the final alpha. For more information on alpha matting, see the `chainner:image:alpha_matting` node.",
-        "    The confusion sliders can be used to reduce the amount of pixels that are considered to be FG or BG. This is useful for anti-alised/blurred edges.",
-        "    Since alpha matting can be slow, it is recommended to use the **Output Trimap** option. This option will use the trimap for alpha directly, without performing alpha matting. Using the fast preview, you can tweak the other parameters to generate a good trimap. Once you are satisfied with the trimap, you can disable the **Output Trimap** option to perform alpha matting.",
+        "从图像中删除颜色并用透明度替换。",
+        "要设置关键颜色，请使用 `chainner:utility:color` 节点定义常量颜色，或使用 `chainner:image:pick_color` 节点从图像中选择颜色。",
+        "此节点提供多种策略来对图像进行关键处理：",
+        "- **二值法**：",
+        "  使用简单的二值阈值方法确定图像中的像素是否透明。此方法主要适用于没有抗锯齿的图像。",
+        "- **Trimap 抠图**：",
+        "  此方法使用前景（FG）和背景（BG）的单独阈值创建 Trimap。然后，在 Trimap 上执行 Alpha 抠图，生成最终的 Alpha 通道。有关 Alpha 抠图的详细信息，请参阅 `chainner:image:alpha_matting` 节点。",
+        " 混淆滑块可用于减少被视为前景或背景的像素数量。这对于抗锯齿/模糊边缘很有用。"
+        " 由于 Alpha 抠图可能会很慢，因此建议使用 **输出 Trimap** 选项。此选项将直接使用 alpha 的 trimap，而不执行 alpha 抠图。使用快速预览，您可以调整其他参数以生成良好的三维贴图。一旦您对三维贴图感到满意，您可以禁用 **输出三维贴图** 选项来执行 Alpha 抠图。",
     ],
     icon="MdOutlineFormatColorFill",
     inputs=[
@@ -63,7 +63,7 @@ class KeyMethod(Enum):
                 SliderInput("Confusion FG", maximum=100, default=4, scale="log"),
             ),
             BoolInput("Output Trimap", default=False).with_docs(
-                "If enabled, the generated trimap will be used as alpha. No alpha matting will be performed."
+                "如果启用，生成的 Trimap 将用作 Alpha。不会执行 alpha 抠图。"
             ),
         ),
     ],

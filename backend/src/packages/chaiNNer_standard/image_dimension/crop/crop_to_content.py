@@ -11,10 +11,10 @@ from .. import crop_group
 
 @crop_group.register(
     schema_id="chainner:image:crop_content",
-    name="Crop to Content",
+    name="裁剪到内容",
     description=(
-        "Crop an image to the boundaries of the visible image content, "
-        "removing borders at or below the given opacity threshold."
+        "将图像裁剪到可见图像内容的边界， "
+        "删除等于或低于给定不透明度阈值的边框。"
     ),
     icon="MdCrop",
     inputs=[
@@ -62,6 +62,6 @@ def crop_to_content_node(img: np.ndarray, thresh_val: float) -> np.ndarray:
             r.argmax() : h - r[::-1].argmax(), c.argmax() : w - c[::-1].argmax()
         ]
     else:
-        raise RuntimeError("Crop results in empty image.")
+        raise RuntimeError("裁剪结果为空图像。")
 
     return imgout

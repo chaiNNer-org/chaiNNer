@@ -61,10 +61,10 @@ ALGORITHM_LABEL: dict[ResizeAlgorithm, str] = {
 
 @resize_group.register(
     schema_id="chainner:image:resize_pixel_art",
-    name="Resize Pixel Art",
+    name="调整像素图像大小",
     description=[
-        "Upscales pixel art images using a variety of algorithms.",
-        "An overview of the algorithms can be found [here](https://en.wikipedia.org/w/index.php?title=Pixel-art_scaling_algorithms&oldid=1181447123).",
+        "使用各种算法升级像素艺术图像。",
+        "可以在[此处](https://en.wikipedia.org/w/index.php?title=Pixel-art_scaling_algorithms&oldid=118144712​​3)找到算法概述。",
     ],
     icon="MdOutlinePhotoSizeSelectLarge",
     inputs=[
