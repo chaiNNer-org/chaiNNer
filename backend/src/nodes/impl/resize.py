@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from chainner_ext import ResizeFilter as NavtiveResizeFilter
+from chainner_ext import ResizeFilter as NativeResizeFilter
 from chainner_ext import resize as native_resize
 
 from ..utils.utils import get_h_w_c
@@ -26,19 +26,19 @@ class ResizeFilter(Enum):
     GAUSS = 11
 
 
-_FILTER_MAP: dict[ResizeFilter, NavtiveResizeFilter] = {
-    ResizeFilter.NEAREST: NavtiveResizeFilter.Nearest,
-    ResizeFilter.BOX: NavtiveResizeFilter.Box,
-    ResizeFilter.LINEAR: NavtiveResizeFilter.Linear,
-    ResizeFilter.CATROM: NavtiveResizeFilter.CubicCatrom,
-    ResizeFilter.LANCZOS: NavtiveResizeFilter.Lanczos,
-    ResizeFilter.HERMITE: NavtiveResizeFilter.Hermite,
-    ResizeFilter.MITCHELL: NavtiveResizeFilter.CubicMitchell,
-    ResizeFilter.BSPLINE: NavtiveResizeFilter.CubicBSpline,
-    ResizeFilter.HAMMING: NavtiveResizeFilter.Hamming,
-    ResizeFilter.HANN: NavtiveResizeFilter.Hann,
-    ResizeFilter.LAGRANGE: NavtiveResizeFilter.Lagrange,
-    ResizeFilter.GAUSS: NavtiveResizeFilter.Gauss,
+_FILTER_MAP: dict[ResizeFilter, NativeResizeFilter] = {
+    ResizeFilter.NEAREST: NativeResizeFilter.Nearest,
+    ResizeFilter.BOX: NativeResizeFilter.Box,
+    ResizeFilter.LINEAR: NativeResizeFilter.Linear,
+    ResizeFilter.CATROM: NativeResizeFilter.CubicCatrom,
+    ResizeFilter.LANCZOS: NativeResizeFilter.Lanczos,
+    ResizeFilter.HERMITE: NativeResizeFilter.Hermite,
+    ResizeFilter.MITCHELL: NativeResizeFilter.CubicMitchell,
+    ResizeFilter.BSPLINE: NativeResizeFilter.CubicBSpline,
+    ResizeFilter.HAMMING: NativeResizeFilter.Hamming,
+    ResizeFilter.HANN: NativeResizeFilter.Hann,
+    ResizeFilter.LAGRANGE: NativeResizeFilter.Lagrange,
+    ResizeFilter.GAUSS: NativeResizeFilter.Gauss,
 }
 
 
