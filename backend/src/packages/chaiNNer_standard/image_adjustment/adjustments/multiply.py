@@ -10,13 +10,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:multiply",
-    description="Multiply all channels in an image by a value.",
-    name="Multiply",
+    name="乘法",
+    description="将图像中的所有通道乘以一个值。",
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Multiply",
+            "乘数",
             minimum=0.0,
             maximum=4.0,
             default=1.0,

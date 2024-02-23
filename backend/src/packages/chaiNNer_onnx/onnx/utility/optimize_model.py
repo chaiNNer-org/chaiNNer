@@ -12,8 +12,8 @@ from .. import utility_group
 
 @utility_group.register(
     schema_id="chainner:onnx:optimize_model",
-    name="Optimize Model",
-    description="Optimize the give model. Optimizations may or may not improve performance.",
+    name="优化模型",
+    description="优化给定的模型。优化可能会或可能不会提高性能。",
     icon="MdSpeed",
     inputs=[
         OnnxModelInput(),

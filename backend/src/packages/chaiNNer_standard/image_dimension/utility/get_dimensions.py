@@ -11,16 +11,16 @@ from .. import utility_group
 
 @utility_group.register(
     schema_id="chainner:image:get_dims",
-    name="Get Dimensions",
-    description=("Get the Height, Width, and number of Channels from an image."),
+    name="获取尺寸",
+    description=("获取图像的高度、宽度和通道数。"),
     icon="BsRulers",
     inputs=[
         ImageInput(),
     ],
     outputs=[
-        NumberOutput("Width", output_type="Input0.width"),
-        NumberOutput("Height", output_type="Input0.height"),
-        NumberOutput("Channels", output_type="Input0.channels"),
+        NumberOutput("宽度", output_type="Input0.width"),
+        NumberOutput("高度", output_type="Input0.height"),
+        NumberOutput("通道数", output_type="Input0.channels"),
     ],
 )
 def get_dimensions_node(

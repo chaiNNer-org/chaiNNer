@@ -80,7 +80,7 @@ def upscale(
             output = (output + 1) / 2
             restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
         except RuntimeError as error:
-            logger.error(f"\tFailed inference for Face Upscale: {error}.")
+            logger.error(f"\t脸部升级推理失败: {error}.")
             restored_face = cropped_face
 
         restored_face = restored_face.astype("uint8")
@@ -108,23 +108,22 @@ def upscale(
 
 @restoration_group.register(
     schema_id="chainner:pytorch:upscale_face",
-    name="Upscale Face",
+    name="人脸放大",
     description=(
-        "Uses face-detection to upscales and restore face(s) in an image using a"
-        " PyTorch Face Super-Resolution model. Right now supports GFPGAN,"
-        " RestoreFormer, and CodeFormer."
+        "使用人脸检测使用 PyTorch 人脸超分辨率模型对图像中的人脸进行放大和修复。"
+        "目前支持 GFPGAN，RestoreFormer 和 CodeFormer。"
     ),
     icon="PyTorch",
     inputs=[
         ImageInput().with_id(1),
-        FaceModelInput("Model").with_id(0),
-        ImageInput("Upscaled Background").with_id(2).make_optional(),
+        FaceModelInput("模型").with_id(0),
+        ImageInput("放大后的背景").with_id(2).make_optional(),
         NumberInput(
-            label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
+            label="输出比例", default=8, minimum=1, maximum=8, unit="x"
         ).with_id(3),
         if_group(Condition.type(0, 'PyTorchModel { arch: "CodeFormer" }'))(
             SliderInput(
-                label="Weight",
+                label="权重",
                 default=0.7,
                 minimum=0.0,
                 maximum=1.0,
@@ -136,7 +135,7 @@ def upscale(
     ],
     outputs=[
         ImageOutput(
-            "Image",
+            "图像",
             image_type="""
                 Image {
                     width: Input3 * Input1.width,
@@ -194,8 +193,8 @@ def upscale_face_node(
             return result
 
     except Exception as e:
-        logger.error(f"Face Upscale failed: {e}")
+        logger.error(f"脸部升级失败: {e}")
         face_helper = None
         del face_helper
         safe_cuda_cache_empty()
-        raise RuntimeError("Failed to run Face Upscale.") from e
+        raise RuntimeError("无法运行 Face Upscale。") from e

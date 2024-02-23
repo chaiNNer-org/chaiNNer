@@ -76,18 +76,18 @@ def inpaint(
 
 @processing_group.register(
     schema_id="chainner:pytorch:inpaint",
-    name="Inpaint",
+    name="修复",
     description=[
-        "Inpaint an image with given mask, using a PyTorch inpainting model.",
-        "Masks must typically be made outside of chaiNNer.",
-        "Supported models include LaMa and MAT",
+        "使用给定的蒙版对图像进行修复，使用 PyTorch 修复模型。",
+        "蒙版通常必须在 chaiNNer 外部制作。",
+        "支持的模型包括 LaMa 和 MAT。",
     ],
     icon="PyTorch",
     inputs=[
         ImageInput(channels=3),
-        ImageInput(label="Mask", channels=1).with_docs(
-            "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
-            "This must typically be made outside of chaiNNer.",
+        ImageInput(label="蒙版", channels=1).with_docs(
+            "修复蒙版是一个灰度图像，其中白色表示要修复的区域，黑色表示要保留的区域。",
+            "这通常必须在 chaiNNer 外部制作。",
             hint=True,
         ),
         InpaintModelInput(),
@@ -99,7 +99,7 @@ def inpaint(
                 height="Input0.height & Input1.height",
             ),
             channels=3,
-        ).with_never_reason("The given image and mask must have the same resolution.")
+        ).with_never_reason("给定的图像和蒙版必须具有相同的分辨率。")
     ],
     node_context=True,
 )
@@ -111,7 +111,7 @@ def inpaint_node(
 ) -> np.ndarray:
     assert (
         img.shape[:2] == mask.shape[:2]
-    ), "Input image and mask must have the same resolution"
+    ), "输入图像和掩模必须具有相同的分辨率"
 
     exec_options = get_settings(context)
 

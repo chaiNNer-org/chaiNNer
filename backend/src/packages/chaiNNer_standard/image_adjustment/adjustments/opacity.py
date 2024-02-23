@@ -13,13 +13,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:opacity",
-    name="Opacity",
-    description="Adjusts the opacity of an image. The higher the opacity value, the more opaque the image is.",
+    name="不透明度",
+    description="调整图像的不透明度。不透明度值越高，图像就越不透明。",
     icon="MdOutlineOpacity",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Opacity",
+            "不透明度",
             maximum=100,
             default=100,
             precision=1,

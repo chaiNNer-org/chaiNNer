@@ -16,17 +16,17 @@ FP_MODE_32 = 0
 
 @utility_group.register(
     schema_id="chainner:onnx:convert_to_ncnn",
-    name="Convert To NCNN",
+    name="转换为 NCNN",
     description=[
-        "Convert an ONNX model to NCNN.",
-        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
-        "Note: Converted models are not guaranteed to work with other programs that support NCNN models. This is for a variety of reasons and cannot be changed.",
+        "将 ONNX 模型转换为 NCNN。",
+        "建议将转换后的模型保存为一个单独的步骤，然后在运行链时加载转换后的模型，而不是每次都进行转换。",
+        "注意：转换后的模型不能保证与支持 NCNN 模型的其他程序兼容。这是由于多种原因，无法更改。",
     ],
     icon="NCNN",
-    inputs=[OnnxModelInput("ONNX Model"), OnnxFpDropdown()],
+    inputs=[OnnxModelInput("ONNX 模型"), OnnxFpDropdown()],
     outputs=[
-        NcnnModelOutput(label="NCNN Model"),
-        TextOutput("FP Mode", "FpMode::toString(Input1)"),
+        NcnnModelOutput(label="NCNN 模型"),
+        TextOutput("FP 模式", "FpMode::toString(Input1)"),
     ],
 )
 def convert_to_ncnn_node(

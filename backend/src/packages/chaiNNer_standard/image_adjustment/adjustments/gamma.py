@@ -12,12 +12,12 @@ from .. import adjustments_group
 @adjustments_group.register(
     schema_id="chainner:image:gamma",
     name="Gamma",
-    description="Adjusts the gamma of an image.",
+    description="调整图像的伽马值。",
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Gamma",
+            "伽马",
             minimum=0.01,
             maximum=100,
             default=1,
@@ -25,7 +25,7 @@ from .. import adjustments_group
             controls_step=0.1,
             scale="log",
         ),
-        BoolInput("Invert Gamma", default=False),
+        BoolInput("反转伽马", default=False),
     ],
     outputs=[
         ImageOutput(

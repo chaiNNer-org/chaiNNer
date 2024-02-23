@@ -241,7 +241,7 @@ export const LargeImageOutput = memo(
                                     >
                                         {t(
                                             'outputs.largeImage.imageNotAvailable',
-                                            'Image not available.'
+                                            '图像不可用。'
                                         )}
                                     </Text>
                                 </HStack>

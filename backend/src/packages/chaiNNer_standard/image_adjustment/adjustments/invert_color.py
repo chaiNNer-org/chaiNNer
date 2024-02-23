@@ -11,8 +11,8 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:invert",
-    name="Invert Color",
-    description="Inverts all colors in an image.",
+    name="反转颜色",
+    description="反转图像中的所有颜色。",
     icon="MdInvertColors",
     inputs=[ImageInput()],
     outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],

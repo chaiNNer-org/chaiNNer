@@ -7,12 +7,12 @@ from api import add_package
 package = add_package(
     __file__,
     id="chaiNNer_external",
-    name="External",
-    description="Interact with an external Stable Diffusion API",
+    name="外部",
+    description="与外部 Stable Diffusion API 交互",
 )
 
 external_stable_diffusion_category = package.add_category(
-    name="Stable Diffusion (External)",
+    name="Stable Diffusion 外部)",
     description="Interact with an external Stable Diffusion API",
     icon="FaPaintBrush",
     color="#9331CC",

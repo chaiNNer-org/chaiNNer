@@ -10,13 +10,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:add",
-    description="Add values to an image.",
-    name="Add",
+    description="给图像添加数值。",
+    name="添加",
     icon="ImBrightnessContrast",
     inputs=[
-        ImageInput(),
+        ImageInput("图像输入"),
         SliderInput(
-            "Add",
+            "添加值",
             minimum=-100,
             maximum=100,
             default=0,

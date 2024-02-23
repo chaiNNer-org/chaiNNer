@@ -19,17 +19,15 @@ from ..io.load_model import load_model_node
 
 @batch_processing_group.register(
     schema_id="chainner:pytorch:load_models",
-    name="Load Models",
+    name="加载模型",
     description=(
-        "Iterate over all files in a directory and run the provided nodes on just the"
-        " PyTorch model files (.pth). Supports the same models as"
-        " `chainner:pytorch:load_model`."
+        "迭代遍历目录中的所有文件，并仅对 PyTorch 模型文件 (.pth) 运行提供的节点。支持与 `chainner:pytorch:load_model` 相同的模型。"
     ),
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
         BoolInput("Stop on first error", default=False).with_docs(
-            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            "在处理过程中，不是收集错误并在处理结束时抛出，而是在出现错误时立即停止迭代并抛出错误。",
             hint=True,
         ),
     ],
@@ -39,7 +37,7 @@ from ..io.load_model import load_model_node
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
         NumberOutput("Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each model."
+            "从 0 开始递增的计数器，每个模型递增 1。"
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
@@ -51,7 +49,7 @@ def load_models_node(
     directory: Path,
     fail_fast: bool,
 ) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], Path]:
-    logger.debug(f"Iterating over models in directory: {directory}")
+    logger.debug(f"迭代目录中的模型: {directory}")
 
     def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(context, path)

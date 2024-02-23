@@ -11,13 +11,13 @@ from .. import utility_group
 
 @utility_group.register(
     schema_id="chainner:image:get_bbox",
-    name="Get Bounding Box",
-    description="Gets a bounding box (X, Y, Height, and Width) of the white area of a mask.",
+    name="获取边界框",
+    description="获取掩码白色区域的边界框（X、Y、高度和宽度）。",
     icon="BsBoundingBox",
     inputs=[
         ImageInput(channels=1),
         SliderInput(
-            "Threshold",
+            "阈值",
             precision=1,
             minimum=0,
             maximum=100,
@@ -29,8 +29,8 @@ from .. import utility_group
     outputs=[
         NumberOutput("X", output_type="min(uint, Input0.width - 1) & 0.."),
         NumberOutput("Y", output_type="min(uint, Input0.height - 1) & 0.."),
-        NumberOutput("Width", output_type="min(uint, Input0.width) & 1.."),
-        NumberOutput("Height", output_type="min(uint, Input0.height) & 1.."),
+        NumberOutput("宽度", output_type="min(uint, Input0.width) & 1.."),
+        NumberOutput("高度", output_type="min(uint, Input0.height) & 1.."),
     ],
 )
 def get_bounding_box_node(
@@ -45,7 +45,7 @@ def get_bounding_box_node(
     r = np.any(img > thresh, 1)
     c = np.any(img > thresh, 0)
     if not r.any():
-        raise RuntimeError("Resulting bounding box is empty.")
+        raise RuntimeError("生成的边界框为空。")
 
     x, y = c.argmax(), r.argmax()
     return int(x), int(y), int(w - x - c[::-1].argmax()), int(h - y - r[::-1].argmax())

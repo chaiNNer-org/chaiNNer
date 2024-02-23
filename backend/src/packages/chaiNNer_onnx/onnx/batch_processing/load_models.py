@@ -22,27 +22,26 @@ from ..io.load_model import load_model_node
 
 @batch_processing_group.register(
     schema_id="chainner:onnx:load_models",
-    name="Load Models",
+    name="加载模型",
     description=(
-        "Iterate over all files in a directory and run the provided nodes on just the"
-        " ONNX model files (.onnx). Supports the same models as"
-        " `chainner:onnx:load_model`."
+        "迭代目录中的所有文件，并仅对 ONNX 模型文件 (.onnx) 运行提供的节点。支持与"
+        " `chainner:onnx:load_model` 相同的模型。"
     ),
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
-        BoolInput("Stop on first error", default=False).with_docs(
-            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+        BoolInput("出现错误即停止", default=False).with_docs(
+            "不是收集错误并在处理结束时抛出它们，而是在出现错误时立即停止迭代并抛出错误。",
             hint=True,
         ),
     ],
     outputs=[
         OnnxModelOutput(),
-        DirectoryOutput("Directory", output_type="Input0"),
-        TextOutput("Subdirectory Path"),
-        TextOutput("Name"),
-        NumberOutput("Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each model."
+        DirectoryOutput("目录", output_type="Input0"),
+        TextOutput("子目录路径"),
+        TextOutput("名称"),
+        NumberOutput("索引", output_type="uint").with_docs(
+            "从 0 开始的计数器，每个模型递增 1。"
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
@@ -52,11 +51,11 @@ def load_models_node(
     directory: Path,
     fail_fast: bool,
 ) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], Path]:
-    logger.debug(f"Iterating over models in directory: {directory}")
+    logger.debug(f"在目录中迭代模型: {directory}")
 
     def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(path)
-        # Get relative path from root directory passed by Iterator directory input
+        # 获取相对于迭代器目录输入传递的根目录的相对路径
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 

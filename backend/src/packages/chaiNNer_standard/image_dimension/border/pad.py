@@ -28,14 +28,14 @@ class BorderMode(Enum):
 
 @padding_group.register(
     schema_id="chainner:image:pad",
-    name="Pad",
+    name="填充",
     description=[
-        "Adds padding to an image.",
-        "This node can be used to add a border or edges to an image.",
+        "为图像添加填充。",
+        "此节点可用于在图像周围添加边框或边缘。",
     ],
     icon="BsBorderOuter",
     inputs=[
-        ImageInput(),
+        ImageInput("图像"),
         BorderInput().with_id(1),
         if_enum_group(1, BorderType.CUSTOM_COLOR)(
             ColorInput().with_id(2),
@@ -44,19 +44,19 @@ class BorderMode(Enum):
             BorderMode, default=BorderMode.BORDER, preferred_style="tabs"
         ).with_id(3),
         if_enum_group(3, BorderMode.BORDER)(
-            NumberInput("Amount", unit="px").with_id(4),
+            NumberInput("数量", unit="px").with_id(4),
         ),
         if_enum_group(3, (BorderMode.EDGES, BorderMode.OFFSETS))(
-            NumberInput("Left", unit="px").with_id(5),
-            NumberInput("Top", unit="px").with_id(6),
+            NumberInput("左侧", unit="px").with_id(5),
+            NumberInput("顶部", unit="px").with_id(6),
         ),
         if_enum_group(3, BorderMode.EDGES)(
-            NumberInput("Right", unit="px").with_id(7),
-            NumberInput("Bottom", unit="px").with_id(8),
+            NumberInput("右侧", unit="px").with_id(7),
+            NumberInput("底部", unit="px").with_id(8),
         ),
         if_enum_group(3, BorderMode.OFFSETS)(
-            NumberInput("Width", unit="px", minimum=1, default=100).with_id(9),
-            NumberInput("Height", unit="px", minimum=1, default=100).with_id(10),
+            NumberInput("宽度", unit="px", minimum=1, default=100).with_id(9),
+            NumberInput("高度", unit="px", minimum=1, default=100).with_id(10),
         ),
     ],
     outputs=[

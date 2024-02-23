@@ -10,13 +10,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:divide",
-    description="Divide all channels in an image by a value.",
-    name="Divide",
+    description="将图像中的所有通道除以一个值。",
+    name="除法",
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Divide",
+            "除以",
             minimum=0.0001,
             maximum=4.0,
             default=1.0,

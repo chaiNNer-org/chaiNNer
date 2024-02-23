@@ -14,7 +14,7 @@ from .. import adjustments_group
 
 def _stretch(img: np.ndarray, range_min: float, range_max: float) -> np.ndarray:
     if range_min > range_max:
-        raise ValueError("min must be less than max")
+        raise ValueError("最小值必须小于最大值")
     if range_min == range_max:
         return img * 0
 
@@ -30,23 +30,23 @@ class StretchMode(Enum):
 
 @adjustments_group.register(
     schema_id="chainner:image:stretch_contrast",
-    description="Automatically stretches the histogram values in the given image. This is similar to auto levels.",
-    name="Stretch Contrast",
+    description="自动拉伸给定图像的直方图值。类似于自动级别调整。",
+    name="拉伸对比度",
     icon="ImContrast",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
         EnumInput(StretchMode, preferred_style="tabs").with_id(1),
         if_enum_group(1, [StretchMode.AUTO, StretchMode.PERCENTILE])(
-            BoolInput("Keep Colors", default=True),
+            BoolInput("保留颜色", default=True),
         ),
         if_enum_group(1, StretchMode.PERCENTILE)(
             SliderInput(
-                "Percentile", minimum=0, maximum=50, default=1, precision=2, scale="log"
+                "百分位数", minimum=0, maximum=50, default=1, precision=2, scale="log"
             ),
         ),
         if_enum_group(1, StretchMode.MANUAL)(
-            SliderInput("Minimum", minimum=0, maximum=255, default=0, precision=1),
-            SliderInput("Maximum", minimum=0, maximum=255, default=255, precision=1),
+            SliderInput("最小值", minimum=0, maximum=255, default=0, precision=1),
+            SliderInput("最大值", minimum=0, maximum=255, default=255, precision=1),
         ),
     ],
     outputs=[
@@ -60,7 +60,7 @@ class StretchMode(Enum):
                 if minMaxRangeValid {
                     Input0
                 } else {
-                    error("Minimum must be less than Maximum.")
+                    error("最小值必须小于最大值。")
                 }
             """,
         ),

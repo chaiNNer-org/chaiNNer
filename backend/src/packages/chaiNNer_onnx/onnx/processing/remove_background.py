@@ -19,27 +19,27 @@ from .. import processing_group
 
 @processing_group.register(
     schema_id="chainner:onnx:rembg",
-    name="Remove Background",
-    description="""Removes background from image.
-        Currently supports u2net models from the rembg project (links found in readme).""",
+    name="移除背景",
+    description="""从图像中移除背景。
+        当前支持 rembg 项目中的 u2net 模型（链接在 readme 中找到）。""",
     icon="ONNX",
     see_also="chainner:image:alpha_matting",
     inputs=[
         ImageInput(channels=[3, 4]).with_docs(
-            "If the image has an alpha channel, it will be ignored."
+            "如果图像具有 alpha 通道，则将被忽略。"
         ),
         OnnxRemBgModelInput(),
-        BoolInput("Post-process Mask", default=False),
-        BoolInput("Alpha Matting", default=False),
+        BoolInput("后处理蒙版", default=False),
+        BoolInput("Alpha 抠图", default=False),
         if_group(Condition.bool(3, True))(
-            SliderInput("Foreground Threshold", minimum=1, maximum=255, default=240),
-            SliderInput("Background Threshold", maximum=254, default=10),
-            NumberInput("Erode Size", minimum=1, default=10),
+            SliderInput("前景阈值", minimum=1, maximum=255, default=240),
+            SliderInput("背景阈值", maximum=254, default=10),
+            NumberInput("腐蚀尺寸", minimum=1, default=10),
         ),
     ],
     outputs=[
         ImageOutput(
-            "Image",
+            "图像",
             image_type="""
                 let image = Input0;
                 let model = Input1;
@@ -51,10 +51,11 @@ from .. import processing_group
             """,
             channels=4,
         ),
-        ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
+        ImageOutput("蒙版", image_type=navi.Image(size_as="Input0"), channels=1),
     ],
     node_context=True,
 )
+
 def remove_background_node(
     context: NodeContext,
     img: np.ndarray,

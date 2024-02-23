@@ -13,17 +13,17 @@ from . import node_group
 
 @node_group.register(
     schema_id="chainner:image:merge_channels",
-    name="Merge Channels",
+    name="合并通道",
     description=(
-        "Merge image channels together into a ≤4 channel image. "
-        "Typically used for combining an image with an alpha layer."
+        "将图像通道合并成一个包含≤4通道的图像。"
+        "通常用于将图像与alpha层合并。"
     ),
     icon="MdCallMerge",
     inputs=[
-        ImageInput("Channel(s) A"),
-        ImageInput("Channel(s) B").make_optional(),
-        ImageInput("Channel(s) C").make_optional(),
-        ImageInput("Channel(s) D").make_optional(),
+        ImageInput("通道 A"),
+        ImageInput("通道 B").make_optional(),
+        ImageInput("通道 C").make_optional(),
+        ImageInput("通道 D").make_optional(),
     ],
     outputs=[
         ImageOutput(
@@ -58,7 +58,7 @@ def merge_channels_node(
         if im is not None:
             assert (
                 im.shape[:2] == start_shape
-            ), "All images to be merged must be the same resolution"
+            ), "所有要合并的图像必须具有相同的分辨率"
 
     imgs = []
     for img in im1, im2, im3, im4:

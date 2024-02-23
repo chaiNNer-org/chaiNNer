@@ -92,17 +92,16 @@ def upscale(
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
         )
-        logger.debug("Done upscaling")
+        logger.debug("完成升级")
 
         return img_out
 
 
 @processing_group.register(
     schema_id="chainner:pytorch:upscale_image",
-    name="Upscale Image",
+    name="图像放大",
     description=(
-        "Upscales an image using a PyTorch Super-Resolution model. Select a"
-        " manual number of tiles if you are having issues with the automatic mode. "
+        "使用 PyTorch 超分辨率模型对图像进行放大。如果使用自动模式时出现问题，请选择手动的瓦片数量。"
     ),
     icon="PyTorch",
     inputs=[
@@ -118,16 +117,11 @@ def upscale(
             TileSizeDropdown()
             .with_id(2)
             .with_docs(
-                "Tiled upscaling is used to allow large images to be upscaled without"
-                " hitting memory limits.",
-                "This works by splitting the image into tiles (with overlap), upscaling"
-                " each tile individually, and seamlessly recombining them.",
-                "Generally it's recommended to use the largest tile size possible for"
-                " best performance (with the ideal scenario being no tiling at all),"
-                " but depending on the model and image size, this may not be possible.",
-                "If you are having issues with the automatic mode, you can manually"
-                " select a tile size. Sometimes, a manually selected tile size may be"
-                " faster than what the automatic mode picks.",
+                "使用瓦片放大可以使大图像在不触及内存限制的情况下进行放大。",
+                "这通过将图像分割成瓦片（带有重叠部分），分别对每个瓦片进行放大，然后无缝地重新组合它们来实现。",
+                "通常建议在性能最佳的情况下使用尽可能大的瓦片大小（理想情况下根本不进行瓦片），"
+                "但根据模型和图像大小，这可能是不可能的。",
+                "如果使用自动模式时遇到问题，可以手动选择瓦片大小。有时，手动选择的瓦片大小可能比自动模式选择的速度更快。",
                 hint=True,
             ),
         ),
@@ -142,14 +136,10 @@ def upscale(
                 )
             )
         )(
-            BoolInput("Separate Alpha", default=False).with_docs(
-                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
-                " the upscaled image to be less noisy and more accurate to the alpha of the original"
-                " image, but the image may suffer from dark borders near transparency edges"
-                " (transition from fully transparent to fully opaque).",
-                "Whether enabling this option will improve the upscaled image depends on the original"
-                " image. We generally recommend this option for images with smooth transitions between"
-                " transparent and opaque regions.",
+            BoolInput("分离 Alpha 通道", default=False).with_docs(
+                "将 alpha 通道与颜色分开进行放大。启用此选项将使放大图像的 alpha 通道噪声更少，更准确地反映原始图像的 alpha 通道，"
+                "但图像可能在透明边缘附近出现暗边（从完全透明到完全不透明的过渡）。",
+                "是否启用此选项将改进放大图像取决于原始图像。通常我们建议对具有平滑过渡的透明和不透明区域的图像启用此选项。",
             )
         ),
     ],
@@ -171,14 +161,14 @@ def upscale_image_node(
 ) -> np.ndarray:
     exec_options = get_settings(context)
 
-    logger.debug("Upscaling image...")
+    logger.debug("放大图像...")
 
     in_nc = model.input_channels
     out_nc = model.output_channels
     scale = model.scale
     h, w, c = get_h_w_c(img)
     logger.debug(
-        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
+        f"使用 {scale}x 模型放大 {h}x{w}x{c} 图像 (in_nc: {in_nc}, out_nc:"
         f" {out_nc})"
     )
 

@@ -20,10 +20,10 @@ class WeightFormat(Enum):
 
 @io_group.register(
     schema_id="chainner:pytorch:save_model",
-    name="Save Model",
+    name="保存模型",
     description=[
-        "Save a PyTorch model to specified directory.",
-        'This is not guaranteed to save certain models in a way that can be read by other programs. Notably, it saves without the "load key" some scripts expect.',
+        "将 PyTorch 模型保存到指定目录。",
+        '这不能保证以其他程序可读的方式保存某些模型。特别是，它保存时没有某些脚本期望的 "load key"。',
     ],
     icon="MdSave",
     inputs=[

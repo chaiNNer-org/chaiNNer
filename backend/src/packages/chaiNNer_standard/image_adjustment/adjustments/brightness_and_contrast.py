@@ -11,13 +11,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:brightness_and_contrast",
-    description="Adjust the brightness and contrast of an image.",
-    name="Brightness & Contrast",
+    description="调整图像的亮度和对比度。",
+    name="亮度和对比度",
     icon="ImBrightnessContrast",
     inputs=[
-        ImageInput(),
+        ImageInput("图像输入"),
         SliderInput(
-            "Brightness",
+            "亮度",
             minimum=-100,
             maximum=100,
             default=0,
@@ -25,7 +25,7 @@ from .. import adjustments_group
             controls_step=1,
         ),
         SliderInput(
-            "Contrast",
+            "对比度",
             minimum=-100,
             maximum=100,
             default=0,

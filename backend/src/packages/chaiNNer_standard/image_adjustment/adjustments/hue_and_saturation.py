@@ -22,12 +22,12 @@ def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
 @adjustments_group.register(
     schema_id="chainner:image:hue_and_saturation",
     name="Hue & Saturation",
-    description="Adjust the hue and saturation of an image. This is performed in the HSV color-space.",
+    description="调整图像的色调和饱和度。这是在HSV色彩空间中执行的。",
     icon="MdOutlineColorLens",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
         SliderInput(
-            "Hue",
+            "色调",
             minimum=-180,
             maximum=180,
             default=0,
@@ -44,17 +44,17 @@ def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
             ],
         ),
         SliderInput(
-            "Saturation",
+            "饱和度",
             minimum=-100,
             maximum=100,
             default=0,
             precision=1,
             controls_step=1,
-            # gradient from gray to saturated
+            # 从灰色到饱和的渐变
             gradient=["#808080", "#ff0000"],
         ),
         SliderInput(
-            "Lightness",
+            "亮度",
             minimum=-100,
             maximum=100,
             default=0,

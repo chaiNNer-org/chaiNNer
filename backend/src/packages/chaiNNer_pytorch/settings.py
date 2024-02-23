@@ -32,11 +32,10 @@ if not is_arm_mac:
 
 package.add_setting(
     ToggleSetting(
-        label="Use CPU Mode",
+        label="使用 CPU 模式",
         key="use_cpu",
         description=(
-            "Use CPU for PyTorch instead of GPU. This is much slower and not"
-            " recommended."
+            "在 PyTorch 中使用 CPU 而不是 GPU。这会慢得多，不建议使用。"
         ),
         default=False,
     ),
@@ -50,16 +49,15 @@ else:
 
 package.add_setting(
     ToggleSetting(
-        label="Use FP16 Mode",
+        label="使用 FP16 模式",
         key="use_fp16",
         description=(
-            "Runs PyTorch in half-precision (FP16) mode for reduced RAM usage but falls"
-            " back to full-precision (FP32) mode when CPU mode is selected."
+            "在 PyTorch 中运行半精度 (FP16) 模式，以减少 RAM 使用，但在选择 CPU 模式时回退到全精度 (FP32) 模式。"
             if is_arm_mac
             else (
-                "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX"
-                " GPUs also get a speedup. It falls back to full-precision (FP32)"
-                " mode when CPU mode is selected."
+                "在 PyTorch 中运行半精度 (FP16) 模式，以减少 VRAM 使用。RTX"
+                " GPU 也会加速。在选择 CPU 模式时回退到全精度 (FP32)"
+                " 模式。"
             )
         ),
         default=should_fp16,
@@ -68,9 +66,9 @@ package.add_setting(
 
 package.add_setting(
     NumberSetting(
-        label="Memory Budget Limit (GiB)",
+        label="内存预算限制（GiB）",
         key="budget_limit",
-        description="Maximum memory (VRAM if GPU, RAM if CPU) to use for PyTorch inference. 0 means no limit. Memory usage measurement is not completely accurate yet; you may need to significantly adjust this budget limit via trial-and-error if it's not having the effect you want.",
+        description="用于 PyTorch 推理的最大内存（如果使用 GPU，则为 VRAM；如果使用 CPU，则为 RAM）。0 表示没有限制。内存使用测量尚不完全准确；如果没有产生预期效果，您可能需要通过反复试验显著调整此预算限制。",
         default=0,
         min=0,
         max=1024**2,

@@ -4,18 +4,17 @@ from api import KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
-general = "ONNX uses .onnx models to upscale images."
-conversion = "It also helps to convert between PyTorch and NCNN."
+general = "ONNX 使用 .onnx 模型来放大图像。"
+conversion = "它还帮助在 PyTorch 和 NCNN 之间进行转换。"
 
 if is_arm_mac:
-    package_description = f"{general} {conversion} However, it does not support CoreML."
+    package_description = f"{general} {conversion} 但它不支持 CoreML。"
     inst_hint = general
 else:
     package_description = (
-        f"{general} {conversion} It is fastest when CUDA is supported. If TensorRT is"
-        " installed on the system, it can also be configured to use that."
+        f"{general} {conversion} 当 CUDA 可用时速度最快。如果系统上安装了 TensorRT，则还可以配置为使用它。"
     )
-    inst_hint = f"{general} It does not support AMD GPUs."
+    inst_hint = f"{general} 它不支持 AMD GPU。"
 
 
 def get_onnx_runtime():
@@ -69,11 +68,11 @@ package = add_package(
 
 onnx_category = package.add_category(
     name="ONNX",
-    description="Nodes for using the ONNX Neural Network Framework with images.",
+    description="使用 ONNX 神经网络框架处理图像的节点。",
     icon="ONNX",
     color="#63B3ED",
     install_hint=inst_hint,
 )
 
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug(f"加载包 {package.name}")

@@ -36,7 +36,7 @@ def perform_interp(
 
         assert (
             weight_array_a.shape == weight_array_b.shape
-        ), "Weights must have same size and shape"
+        ), "重量必须具有相同的尺寸和形状"
 
         weight_array_interp = (
             weight_array_a * amount_a + weight_array_b * amount_b
@@ -58,29 +58,29 @@ def check_will_upscale(context: NodeContext, model: OnnxModel):
 
 @utility_group.register(
     schema_id="chainner:onnx:interpolate_models",
-    name="Interpolate Models",
-    description="Interpolate two ONNX models of the same type together. \
-            Note: models must share a common 'pretrained model' ancestor \
-            in order to be interpolatable.",
+    name="插值模型",
+    description="将两个相同类型的 ONNX 模型插值在一起。\
+            注意：模型必须共享一个共同的 'pretrained model' 祖先\
+            以便进行插值。",
     icon="BsTornado",
     inputs=[
-        OnnxModelInput("Model A"),
-        OnnxModelInput("Model B"),
+        OnnxModelInput("模型 A"),
+        OnnxModelInput("模型 B"),
         SliderInput(
-            "Weights",
+            "权重",
             controls_step=5,
             slider_step=1,
             maximum=100,
             default=50,
             unit="%",
-            note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
+            note_expression="`模型 A ${100 - value}% ― 模型 B ${value}%`",
             ends=("A", "B"),
         ),
     ],
     outputs=[
         OnnxModelOutput(),
-        NumberOutput("Amount A", output_type="100 - Input2"),
-        NumberOutput("Amount B", output_type="Input2"),
+        NumberOutput("A 的比例", output_type="100 - Input2"),
+        NumberOutput("B 的比例", output_type="Input2"),
     ],
     node_context=True,
 )

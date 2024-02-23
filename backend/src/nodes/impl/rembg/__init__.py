@@ -1,4 +1,4 @@
 """
-Rembg code is modified from and copyright of Daniel Gatis,
-and can be found here: https://github.com/danielgatis/rembg
+Rembg 代码经过修改，版权属于 Daniel Gatis，
+可在此处找到：https://github.com/danielgatis/rembg
 """

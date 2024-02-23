@@ -32,20 +32,20 @@ except Exception:
 
 @utility_group.register(
     schema_id="chainner:pytorch:convert_to_ncnn",
-    name="Convert To NCNN",
+    name="转换为 NCNN",
     description=[
-        "Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format, so the ONNX dependency must also be installed to use this node.",
-        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
-        "Note: Converted models are not guaranteed to work with other programs that support NCNN models. This is for a variety of reasons and cannot be changed.",
+        "将 PyTorch 模型转换为 NCNN。在内部，此节点使用 ONNX 作为中间格式，因此必须安装 ONNX 依赖才能使用此节点。",
+        "建议将转换后的模型保存为单独的步骤，然后在运行链时加载转换后的模型，而不是每次运行链时都进行转换。",
+        "注意：转换后的模型不能保证与支持 NCNN 模型的其他程序兼容。这是由于多种原因，无法更改。",
     ],
     icon="NCNN",
     inputs=[
-        SrModelInput("PyTorch Model"),
+        SrModelInput("PyTorch 模型"),
         OnnxFpDropdown(),
     ],
     outputs=[
-        NcnnModelOutput(label="NCNN Model"),
-        TextOutput("FP Mode", "FpMode::toString(Input1)"),
+        NcnnModelOutput(label="NCNN 模型"),
+        TextOutput("FP 模式", "FpMode::toString(Input1)"),
     ],
     node_context=True,
 )
@@ -54,19 +54,18 @@ def convert_to_ncnn_node(
 ) -> tuple[NcnnModelWrapper, str]:
     if onnx_convert_to_ncnn_node is None:
         raise ModuleNotFoundError(
-            "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
-                and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
-                manager to use this node."
+            "将模型转换为 NCNN 是通过 ONNX 作为中间格式完成的（PyTorch -> ONNX -> NCNN），\
+                因此需要安装 ONNX 依赖。请通过依赖管理器安装 ONNX 以使用此节点。"
         )
 
     assert is_onnx_supported(model) and not isinstance(
         model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
-    ), f"{model.architecture} is not supported for NCNN conversions at this time."
+    ), f"目前不支持将 {model.architecture} 转换为 NCNN。"
 
     exec_options = get_settings(context)
     device = exec_options.device
 
-    # Intermediate conversion to ONNX is always fp32
+    # 中间转换到 ONNX 时始终使用 fp32
     onnx_model = OnnxGeneric(
         convert_to_onnx_impl(model, device, False, "data", "output")
     )

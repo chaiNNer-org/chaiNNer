@@ -29,34 +29,29 @@ def parse_ckpt_state_dict(checkpoint: dict):
 
 @io_group.register(
     schema_id="chainner:pytorch:load_model",
-    name="Load Model",
+    name="加载模型",
     description=[
         (
-            "Load PyTorch state dict (.pth), TorchScript (.pt), or Checkpoint (.ckpt) files into an"
-            " auto-detected supported model architecture."
+            "将 PyTorch 状态字典 (.pth)、TorchScript (.pt) 或检查点 (.ckpt) 文件加载到自动检测到的支持的模型架构中。"
         ),
         (
-            "- For Super-Resolution, we support most variations of the RRDB"
-            " architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's"
-            " SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, HAT, Omni-SR, SRFormer, and DAT."
+            "- 对于超分辨率，我们支持大多数变体的 RRDB 架构（ESRGAN、Real-ESRGAN、RealSR、BSRGAN、SPSR）、Real-ESRGAN 的 SRVGG 架构、Swift-SRGAN、SwinIR、Swin2SR、HAT、Omni-SR、SRFormer 和 DAT。"
         ),
         (
-            "- For Face-Restoration, we support GFPGAN (1.2, 1.3, 1.4), RestoreFormer,"
-            " and CodeFormer."
+            "- 对于人脸修复，我们支持 GFPGAN（1.2、1.3、1.4）、RestoreFormer 和 CodeFormer。"
         ),
-        "- For Inpainting, we support LaMa and MAT.",
+        "- 对于修复，我们支持 LaMa 和 MAT。",
         (
-            "Links to the official models can be found in [chaiNNer's"
-            " README](https://github.com/chaiNNer-org/chaiNNer#pytorch), and"
-            " community-trained models on [OpenModelDB](https://openmodeldb.info/)."
+            "官方模型的链接可以在 [chaiNNer 的 README](https://github.com/chaiNNer-org/chaiNNer#pytorch) 中找到，"
+            "社区训练的模型可以在 [OpenModelDB](https://openmodeldb.info/) 上找到。"
         ),
     ],
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
     outputs=[
         ModelOutput(kind="tagged"),
-        DirectoryOutput("Directory", of_input=0).with_id(2),
-        FileNameOutput("Name", of_input=0).with_id(1),
+        DirectoryOutput("目录", of_input=0).with_id(2),
+        FileNameOutput("名称", of_input=0).with_id(1),
     ],
     node_context=True,
     see_also=[
@@ -66,15 +61,15 @@ def parse_ckpt_state_dict(checkpoint: dict):
 def load_model_node(
     context: NodeContext, path: Path
 ) -> tuple[ModelDescriptor, Path, str]:
-    assert os.path.exists(path), f"Model file at location {path} does not exist"
+    assert os.path.exists(path), f"位置 {path} 处的模型文件不存在"
 
-    assert os.path.isfile(path), f"Path {path} is not a file"
+    assert os.path.isfile(path), f"路径 {path} 不是文件"
 
     exec_options = get_settings(context)
     pytorch_device = exec_options.device
 
     try:
-        logger.debug(f"Reading state dict from path: {path}")
+        logger.debug(f"从路径读取状态字典： {path}")
 
         model_descriptor = ModelLoader(pytorch_device).load_from_file(path)
 
@@ -89,8 +84,7 @@ def load_model_node(
             model_descriptor.model.float()
     except Exception as e:
         raise ValueError(
-            f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try"
-            " another."
+            f"chaiNNer 不支持模型 {os.path.basename(path)}。请尝试另一个"
         ) from e
 
     dirname, basename, _ = split_file_path(path)

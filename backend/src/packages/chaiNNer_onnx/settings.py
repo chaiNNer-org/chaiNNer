@@ -22,7 +22,7 @@ if not is_arm_mac:
         DropdownSetting(
             label="GPU",
             key="gpu_index",
-            description="Which GPU to use for ONNX. This is only relevant if you have multiple GPUs.",
+            description="要用于 ONNX 的 GPU。仅在有多个 GPU 时才相关。",
             options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
             default="0",
         )
@@ -46,9 +46,9 @@ execution_providers, default_provider = get_providers()
 if not is_arm_mac:
     package.add_setting(
         DropdownSetting(
-            label="Execution Provider",
+            label="执行提供者",
             key="execution_provider",
-            description="What provider to use for ONNX.",
+            description="ONNX 使用的提供者。",
             options=[
                 {"label": x.replace("ExecutionProvider", ""), "value": x}
                 for x in execution_providers
@@ -59,9 +59,9 @@ if not is_arm_mac:
 
     package.add_setting(
         CacheSetting(
-            label="Cache TensorRT Engines",
+            label="缓存 TensorRT 引擎",
             key="onnx_tensorrt_cache",
-            description="Whether to cache the converted TensorRT engines. This can significantly speed up subsequent runs.",
+            description="是否缓存转换后的 TensorRT 引擎。这可以显著加速后续运行。",
             directory="onnx_tensorrt_cache",
             disabled="TensorrtExecutionProvider" not in execution_providers,
         )
@@ -73,9 +73,9 @@ if not is_arm_mac:
 
     package.add_setting(
         ToggleSetting(
-            label="Use TensorRT FP16 Mode",
+            label="使用 TensorRT FP16 模式",
             key="tensorrt_fp16_mode",
-            description="Runs TensorRT in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup.",
+            description="在半精度（FP16）模式下运行 TensorRT，以减少 VRAM 使用量。RTX GPU 也会加速。",
             default=should_fp16,
             disabled="TensorrtExecutionProvider" not in execution_providers,
         )
@@ -94,7 +94,7 @@ def get_settings(context: NodeContext) -> OnnxSettings:
     settings = context.settings
 
     tensorrt_cache_path = settings.get_cache_location("onnx_tensorrt_cache")
-    logger.info(f"TensorRT cache location: {tensorrt_cache_path}")
+    logger.info(f"TensorRT 缓存位置：{tensorrt_cache_path}")
     if tensorrt_cache_path and not os.path.exists(tensorrt_cache_path):
         os.makedirs(tensorrt_cache_path)
 

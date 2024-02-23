@@ -34,15 +34,15 @@ OPSET_LABELS: dict[Opset, str] = {
 
 @utility_group.register(
     schema_id="chainner:pytorch:convert_to_onnx",
-    name="Convert To ONNX",
+    name="转换为 ONNX",
     description=[
-        "Convert a PyTorch model to ONNX. Note: fp16 conversion will only work if PyTorch fp16 mode is turned on.",
-        "It is recommended to save converted models as a separate step, then load the converted models instead of converting them every time you run the chain.",
-        "Note: Converted models are not guaranteed to work with other programs that support ONNX models. This is for a variety of reasons and cannot be changed.",
+        "将 PyTorch 模型转换为 ONNX。注意：只有在 PyTorch 中打开 fp16 模式时，fp16 转换才能正常工作。",
+        "建议将转换后的模型保存为单独的步骤，然后在运行链时加载转换后的模型，而不是每次运行链时都进行转换。",
+        "注意：转换后的模型不能保证与支持 ONNX 模型的其他程序兼容。这是由于多种原因，无法更改。",
     ],
     icon="ONNX",
     inputs=[
-        SrModelInput("PyTorch Model"),
+        SrModelInput("PyTorch 模型"),
         OnnxFpDropdown(),
         EnumInput(
             Opset,
@@ -52,8 +52,8 @@ OPSET_LABELS: dict[Opset, str] = {
         ),
     ],
     outputs=[
-        OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
-        TextOutput("FP Mode", "FpMode::toString(Input1)"),
+        OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX 模型"),
+        TextOutput("FP 模式", "FpMode::toString(Input1)"),
         TextOutput(
             "Opset",
             """
@@ -74,13 +74,13 @@ def convert_to_onnx_node(
 ) -> tuple[OnnxGeneric, str, str]:
     assert is_onnx_supported(
         model
-    ), f"{model.architecture} is not supported for ONNX conversion at this time."
+    ), f"目前不支持将 {model.architecture} 转换为 ONNX。"
 
     fp16 = bool(is_fp16)
     exec_options = get_settings(context)
     device = exec_options.device
     if fp16:
-        assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
+        assert exec_options.use_fp16, "必须在设置中支持并打开 PyTorch 的 fp16 模式才能将模型转换为 fp16。"
 
     model.eval().to(device)
 

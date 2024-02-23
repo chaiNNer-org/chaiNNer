@@ -26,17 +26,17 @@ def auto_split(
     overlap: int = 16,
 ) -> np.ndarray:
     """
-    Splits the image into tiles according to the given tiler.
+    根据给定的 Tiler 将图像分割成瓦片。
 
-    This method only changes the size of the given image, the tiles passed into the upscale function will have same number of channels.
+    此方法仅更改给定图像的大小，传递给 upscale 函数的瓦片将具有相同数量的通道。
 
-    The region passed into the upscale function is the region of the current tile.
-    The size of the region is guaranteed to be the same as the size of the given tile.
+    传递到 upscale 函数的区域是当前瓦片的区域。
+    区域的大小保证与给定瓦片的大小相同。
 
-    ## Padding
+    ## 填充
 
-    If the given tiler allows smaller tile sizes, then it is guaranteed that no padding will be added.
-    Otherwise, no padding is only guaranteed if the starting tile size is not larger than the size of the given image.
+    如果给定的 Tiler 允许较小的瓦片大小，则保证不会添加填充。
+    否则，仅当起始瓦片大小不大于给定图像的大小时才保证不添加填充。
     """
 
     h, w, c = get_h_w_c(img)

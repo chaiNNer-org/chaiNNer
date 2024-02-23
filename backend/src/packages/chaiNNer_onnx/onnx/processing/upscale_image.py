@@ -54,10 +54,8 @@ def upscale(
 @processing_group.register(
     schema_id="chainner:onnx:upscale_image",
     description=(
-        "Upscales an image using an ONNX Super-Resolution model. ONNX does"
-        " not support automatic out-of-memory handling via automatic tiling."
-        "  Therefore, you must set a Smart Tiling Mode manually. If you get an"
-        " out-of-memory error, try picking a setting further down the list."
+        "使用 ONNX 超分辨率模型对图像进行放大。ONNX 不支持通过自动平铺进行的内存不足处理。"
+        "因此，您必须手动设置智能平铺模式。如果出现内存不足错误，请尝试选择列表中的更低设置。"
     ),
     inputs=[
         ImageInput().with_id(1),
@@ -65,30 +63,23 @@ def upscale(
         TileSizeDropdown(estimate=False, default=TILE_SIZE_256)
         .with_id(2)
         .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without"
-            " hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling"
-            " each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for best"
-            " performance, but depending on the model and image size, this may not be"
-            " possible.",
-            "ONNX upscaling does not support an automatic mode, meaning you may need to"
-            " manually select a tile size for it to work.",
+            "使用平铺放大可允许放大大型图像而无需触及内存限制。",
+            "这通过将图像分割成瓦片（有重叠），单独放大每个瓦片，然后无缝地重新组合它们来实现。",
+            "通常建议为获得最佳性能使用最大的瓦片尺寸，但根据模型和图像大小，这可能不可行。",
+            "ONNX 放大不支持自动模式，这意味着您可能需要手动选择瓦片大小才能使其正常工作。",
         ),
         if_group(Condition.type(1, "Image { channels: 4 } "))(
-            BoolInput("Separate Alpha", default=False).with_docs(
-                "Upscale alpha separately from color. Enabling this option will cause the alpha of"
-                " the upscaled image to be less noisy and more accurate to the alpha of the original"
-                " image, but the image may suffer from dark borders near transparency edges"
-                " (transition from fully transparent to fully opaque).",
-                "Whether enabling this option will improve the upscaled image depends on the original"
-                " image. We generally recommend this option for images with smooth transitions between"
-                " transparent and opaque regions.",
+            BoolInput("分离 Alpha 通道", default=False).with_docs(
+                "将 alpha 通道与颜色分开放大。启用此选项将使放大后的图像的 alpha 通道噪声较小，"
+                "并更准确地反映原始图像的 alpha 通道，但图像可能会在透明度边缘附近出现暗边"
+                "（从完全透明到完全不透明的过渡处）。",
+                "是否启用此选项将改善放大后的图像取决于原始图像。通常建议对于在透明和不透明"
+                "区域之间具有平滑过渡的图像启用此选项。",
             )
         ),
     ],
-    outputs=[ImageOutput("Image")],
-    name="Upscale Image",
+    outputs=[ImageOutput("图像")],
+    name="放大图像",
     icon="ONNX",
     node_context=True,
 )

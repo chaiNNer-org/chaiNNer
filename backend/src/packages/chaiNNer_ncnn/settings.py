@@ -24,7 +24,7 @@ if not is_arm_mac and use_gpu:
             DropdownSetting(
                 label="GPU",
                 key="gpu_index",
-                description="Which GPU to use for NCNN. This is only relevant if you have multiple GPUs.",
+                description="NCNN 使用的 GPU。仅在有多个 GPU 的情况下相关。",
                 options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
                 default="0",
             )
@@ -34,33 +34,30 @@ if not is_arm_mac and use_gpu:
 
 default_net_opt = ncnn.Net().opt
 
-# Haven't tested disabling Winograd/SGEMM in the ncnn_vulkan fork, so only
-# allow it with upstream ncnn for now. It should work fine regardless of
-# CPU/GPU, but I only tested with CPU. Ditto for multithreading, except it
-# only makes sense for CPU.
+# 尚未测试在 ncnn_vulkan 分支中禁用 Winograd/SGEMM，因此目前仅允许在上游 ncnn 中进行。这应该在 CPU/GPU 无关的情况下正常工作，但我只测试了 CPU。对于多线程来说也是一样的，除非只有 CPU 才有意义。
 if not use_gpu:
     package.add_setting(
         ToggleSetting(
-            label="Use Winograd",
+            label="使用 Winograd",
             key="winograd",
-            description="Enable Winograd convolution for NCNN. Typically faster but uses more memory.",
+            description="启用 NCNN 的 Winograd 卷积。通常更快，但使用更多内存。",
             default=default_net_opt.use_winograd_convolution,
         )
     )
     package.add_setting(
         ToggleSetting(
-            label="Use SGEMM",
+            label="使用 SGEMM",
             key="sgemm",
-            description="Enable SGEMM convolution for NCNN. Typically faster but uses more memory.",
+            description="启用 NCNN 的 SGEMM 卷积。通常更快，但使用更多内存。",
             default=default_net_opt.use_sgemm_convolution,
         )
     )
 
     package.add_setting(
         NumberSetting(
-            label="Thread Count",
+            label="线程数",
             key="threads",
-            description="Number of threads for NCNN. Only affects CPU mode.",
+            description="NCNN 的线程数。仅影响 CPU 模式。",
             default=default_net_opt.num_threads,
             min=1,
             max=default_net_opt.num_threads,
@@ -68,9 +65,9 @@ if not use_gpu:
     )
     package.add_setting(
         NumberSetting(
-            label="Block Time",
+            label="块时间",
             key="blocktime",
-            description="Milliseconds for threads to busy-wait for more work before going to sleep. Higher values may be faster; lower values may decrease power consumption and CPU usage. Only affects CPU mode.",
+            description="线程在进入休眠之前等待更多工作的毫秒数。较高的值可能更快；较低的值可能降低功耗和 CPU 使用率。仅影响 CPU 模式。",
             default=default_net_opt.openmp_blocktime,
             min=0,
             max=400,
@@ -79,9 +76,9 @@ if not use_gpu:
 
 package.add_setting(
     NumberSetting(
-        label="Memory Budget Limit (GiB)",
+        label="内存预算限制（GiB）",
         key="budget_limit",
-        description="Maximum memory to use for NCNN inference. 0 means no limit. Memory usage measurement is not completely accurate yet; you may need to significantly adjust this budget limit via trial-and-error if it's not having the effect you want.",
+        description="NCNN 推理使用的最大内存。0 表示无限制。内存使用测量尚不完全准确；如果效果不理想，您可能需要通过试错大幅调整此预算限制。",
         default=0,
         min=0,
         max=1024**2,

@@ -61,7 +61,7 @@ class VideoFormat(Enum):
         elif self == VideoFormat.GIF:
             return ()
         else:
-            raise ValueError(f"Unknown container: {self}")
+            raise ValueError(f"未知容器: {self}")
 
 
 class VideoEncoder(Enum):
@@ -120,13 +120,13 @@ class Writer:
     out: Popen | None = None
 
     def start(self, width: int, height: int):
-        # Create the writer and run process
+        # 创建写入器并运行进程
         if self.out is None:
-            # Verify some parameters
+            # 验证一些参数
             if self.encoder in (VideoEncoder.H264, VideoEncoder.H265):
                 assert (
                     height % 2 == 0 and width % 2 == 0
-                ), f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
+                ), f'"{self.encoder.value}" 编码器需要偶数帧分辨率。'
 
             try:
                 self.out = (
@@ -144,10 +144,10 @@ class Writer:
                 )
 
             except Exception as e:
-                logger.warning("Failed to open video writer", exc_info=e)
+                logger.warning("打开视频写入器失败", exc_info=e)
 
     def write_frame(self, img: np.ndarray):
-        # Create the writer and run process
+        # 创建写入器并运行进程
         if self.out is None:
             h, w, _ = get_h_w_c(img)
             self.start(w, h)
@@ -156,7 +156,7 @@ class Writer:
         if self.out is not None and self.out.stdin is not None:
             self.out.stdin.write(out_frame.tobytes())
         else:
-            raise RuntimeError("Failed to open video writer")
+            raise RuntimeError("打开视频写入器失败")
 
     def close(self):
         if self.out is not None:
@@ -169,7 +169,7 @@ class Writer:
             base, ext = os.path.splitext(video_path)
             audio_video_path = f"{base}_av{ext}"
 
-            # Default and auto -> copy
+            # 默认和自动 -> 复制
             output_params = {
                 "vcodec": "copy",
                 "acodec": "copy",
@@ -179,7 +179,7 @@ class Writer:
                     output_params["acodec"] = "libopus"
                     output_params["b:a"] = "320k"
                 else:
-                    raise ValueError(f"WebM does not support {self.audio_settings}")
+                    raise ValueError(f"WebM 不支持 {self.audio_settings}")
             elif self.audio_settings == AudioSettings.TRANSCODE:
                 output_params["acodec"] = "aac"
                 output_params["b:a"] = "320k"
@@ -193,13 +193,12 @@ class Writer:
                     **output_params,
                 ).overwrite_output()
                 ffmpeg.run(output_video)
-                # delete original, rename new
+                # 删除原始文件，重命名新文件
                 os.remove(video_path)
                 os.rename(audio_video_path, video_path)
             except Exception:
                 logger.warning(
-                    "Failed to copy audio to video, input file probably contains "
-                    "no audio or audio stream is supported by this container. Ignoring audio settings."
+                    "复制音频到视频失败，输入文件可能不包含音频或音频流不受此容器支持。忽略音频设置。"
                 )
                 try:
                     os.remove(audio_video_path)
@@ -209,20 +208,20 @@ class Writer:
 
 @video_frames_group.register(
     schema_id="chainner:image:save_video",
-    name="Save Video",
+    name="保存视频",
     description=[
-        "Combines an iterable sequence into a video, which it saves to a file.",
-        "Uses FFMPEG to write video files.",
-        "This iterator is much slower than just using FFMPEG directly, so if you are doing a simple conversion, just use FFMPEG outside chaiNNer instead.",
+        "将可迭代序列合并成视频，并将其保存到文件。",
+        "使用 FFMPEG 编写视频文件。",
+        "此迭代器比直接使用 FFMPEG 要慢得多，因此如果只是进行简单的转换，最好在 chaiNNer 外部直接使用 FFMPEG。",
     ],
     icon="MdVideoCameraBack",
     inputs=[
-        ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Directory", has_handle=True),
-        TextInput("Video Name"),
+        ImageInput("图像序列", channels=3),
+        DirectoryInput("目录", has_handle=True),
+        TextInput("视频名称"),
         EnumInput(
             VideoFormat,
-            label="Video Format",
+            label="视频格式",
             option_labels={
                 VideoFormat.MKV: "mkv",
                 VideoFormat.MP4: "mp4",
@@ -234,7 +233,7 @@ class Writer:
         ).with_id(4),
         EnumInput(
             VideoEncoder,
-            label="Encoder",
+            label="编码器",
             option_labels={
                 VideoEncoder.H264: "H.264 (AVC)",
                 VideoEncoder.H265: "H.265 (HEVC)",
@@ -253,34 +252,34 @@ class Writer:
         if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
             EnumInput(VideoPreset, default=VideoPreset.MEDIUM)
             .with_docs(
-                "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
+                "有关预设的更多信息，请参见[此处](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)。"
             )
             .with_id(8),
         ),
         if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9))(
             SliderInput(
-                "Quality (CRF)",
+                "质量 (CRF)",
                 precision=0,
                 controls_step=1,
                 slider_step=1,
                 minimum=0,
                 maximum=51,
                 default=23,
-                ends=("Best", "Worst"),
+                ends=("最佳", "最差"),
             )
             .with_docs(
-                "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
+                "有关 CRF 的更多信息，请参见[此处](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)。"
             )
             .with_id(9),
         ),
-        BoolInput("Additional parameters", default=False)
+        BoolInput("附加参数", default=False)
         .with_docs(
-            "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
+            "允许用户添加 FFmpeg 参数。[FFmpeg 文档链接](https://ffmpeg.org/documentation.html)。"
         )
         .with_id(12),
         if_group(Condition.bool(12, True))(
             TextInput(
-                "Additional parameters",
+                "附加参数",
                 multiline=True,
                 label_style="hidden",
                 allow_empty_string=True,
@@ -297,17 +296,17 @@ class Writer:
             if_group(Condition.type(15, "AudioStream"))(
                 EnumInput(
                     AudioSettings,
-                    label="Audio",
+                    label="音频",
                     default=AudioSettings.AUTO,
                     conditions={
                         AudioSettings.COPY: ~Condition.enum(4, VideoFormat.WEBM)
                     },
                 )
                 .with_docs(
-                    "The first audio stream can be discarded, copied or transcoded at 320 kb/s."
-                    " Some audio formats are not supported by selected container, thus copying the audio may fail."
-                    " Some players may not output the audio stream if its format is not supported."
-                    " If it isn't working for you, verify compatibility or use FFMPEG to mux the audio externally."
+                    "第一个音频流可以丢弃、复制或以 320 kb/s 转码。"
+                    " 一些音频格式不受所选容器的支持，因此复制音频可能会失败。"
+                    " 如果播放器不支持音频流的格式，则某些播放器可能不会输出音频流。"
+                    " 如果对您不起作用，请验证兼容性或使用 FFMPEG 在外部混音音频。"
                 )
                 .with_id(10)
             ),
@@ -370,7 +369,7 @@ def save_video_node(
                     if not key.startswith(nop):
                         output_params[key] = value
                     else:
-                        raise ValueError(f"Duplicate parameter: -{parameter}")
+                        raise ValueError(f"重复参数: -{parameter}")
             else:
                 global_params.append(f"-{parameter}")
 

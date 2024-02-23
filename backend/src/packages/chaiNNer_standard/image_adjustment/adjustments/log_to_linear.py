@@ -10,13 +10,13 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:log2lin",
-    description="Convert all channels in an image to a scene linear encoding using the Kodak Cineon logarithmic function set.",
-    name="Log To Linear",
+    name="对数到线性",
+    description="使用Kodak Cineon对数函数集将图像中的所有通道转换为场景线性编码。",
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Black",
+            "黑色",
             minimum=0.0,
             maximum=1023,
             default=95.0,
@@ -24,7 +24,7 @@ from .. import adjustments_group
             controls_step=1.0,
         ),
         SliderInput(
-            "White",
+            "白色",
             minimum=0.0,
             maximum=1023,
             default=685.0,
@@ -32,7 +32,7 @@ from .. import adjustments_group
             controls_step=1.0,
         ),
         SliderInput(
-            "Gamma",
+            "伽马",
             minimum=0.0001,
             maximum=1.0,
             default=0.6,
@@ -40,8 +40,8 @@ from .. import adjustments_group
             controls_step=0.0001,
             scale="log",
         ),
-        BoolInput("Invert Log to Linear", default=False).with_docs(
-            "When checked this will convert the input image back to the Kodak Cineon Logarithmic encoding"
+        BoolInput("反转对数到线性", default=False).with_docs(
+            "选中此项将把输入图像转换回Kodak Cineon对数编码"
         ),
     ],
     outputs=[ImageOutput(image_type="Input0")],

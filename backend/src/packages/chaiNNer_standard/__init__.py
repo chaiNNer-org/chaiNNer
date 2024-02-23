@@ -5,8 +5,8 @@ from api import KB, MB, Dependency, add_package
 package = add_package(
     __file__,
     id="chaiNNer_standard",
-    name="chaiNNer_standard",
-    description="The standard set of nodes for chaiNNer.",
+    name="chainer_标准",
+    description="chainNNer 的标准节点集。",
     dependencies=[
         Dependency(
             display_name="Numpy",

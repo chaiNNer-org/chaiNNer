@@ -12,29 +12,29 @@ from .. import batch_processing_group
 
 @batch_processing_group.register(
     schema_id="chainner:image:split_spritesheet",
-    name="Split Spritesheet",
+    name="分割精灵表",
     description=[
-        "Iterate over sub-images in a single image spritesheet.",
-        "This iterator splits the image into an iterable sequence of tiles.",
+        "迭代单个图像精灵表中的子图像。",
+        "此迭代器将图像拆分为一个可迭代的切片序列。",
     ],
     icon="BsFillGrid3X3GapFill",
     inputs=[
-        ImageInput("Spritesheet"),
+        ImageInput("精灵表"),
         NumberInput(
-            "Number of rows (height)",
+            "行数（高度）",
             controls_step=1,
             minimum=1,
             default=1,
         ).with_docs(
-            "The number of rows to split the image into. The height of the image must be a multiple of this number."
+            "要将图像拆分为的行数。图像的高度必须是此数字的倍数。"
         ),
         NumberInput(
-            "Number of columns (width)",
+            "列数（宽度）",
             controls_step=1,
             minimum=1,
             default=1,
         ).with_docs(
-            "The number of columns to split the image into. The width of the image must be a multiple of this number."
+            "要将图像拆分为的列数。图像的宽度必须是此数字的倍数。"
         ),
     ],
     outputs=[
@@ -46,8 +46,8 @@ from .. import batch_processing_group
                 channels: Input0.channels,
             }"""
         ),
-        NumberOutput("Index", output_type="min(uint, Input1 * Input2 - 1)").with_docs(
-            "A counter that starts at 0 and increments by 1 for each image."
+        NumberOutput("索引", output_type="min(uint, Input1 * Input2 - 1)").with_docs(
+            "从0开始递增，为每个图像分配一个索引的计数器。"
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="Input1 * Input2"),
@@ -61,10 +61,10 @@ def split_spritesheet_node(
     h, w, _ = get_h_w_c(sprite_sheet)
     assert (
         h % rows == 0
-    ), "Height of sprite sheet must be a multiple of the number of rows"
+    ), "精灵表的高度必须是行数的倍数"
     assert (
         w % columns == 0
-    ), "Width of sprite sheet must be a multiple of the number of columns"
+    ), "精灵表的宽度必须是列数的倍数"
 
     individual_h = h // rows
     individual_w = w // columns
@@ -80,5 +80,5 @@ def split_spritesheet_node(
 
         return sprite, index
 
-    # We just need the index, so we can pass in a list of None's
+    # 只需要索引，因此我们可以传入一个值全为 None 的列表
     return Iterator.from_range(rows * columns, get_sprite)

@@ -27,31 +27,30 @@ ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
 @video_frames_group.register(
     schema_id="chainner:image:load_video",
-    name="Load Video",
+    name="加载视频",
     description=[
-        "Iterate over all frames in a video as images.",
-        "Uses FFMPEG to read video files.",
-        "This iterator is much slower than just using FFMPEG directly, so if you are doing a simple conversion, just use FFMPEG outside chaiNNer instead.",
+        "迭代视频中的所有帧作为图像。",
+        "使用 FFMPEG 读取视频文件。",
+        "此迭代器比直接使用 FFMPEG 要慢得多，因此如果只是进行简单的转换，最好在 chaiNNer 外部直接使用 FFMPEG。",
     ],
     icon="MdVideoCameraBack",
     inputs=[
         VideoFileInput(primary_input=True),
-        BoolInput("Use limit", default=False),
+        BoolInput("使用限制", default=False),
         if_group(Condition.bool(1, True))(
-            NumberInput("Limit", default=10, minimum=1).with_docs(
-                "Limit the number of frames to iterate over. This can be useful for testing the iterator without having to iterate over all frames of the video."
-                " Will not copy audio if limit is used."
+            NumberInput("限制", default=10, minimum=1).with_docs(
+                "限制要迭代的帧数。这对于在不必迭代视频的所有帧的情况下测试迭代器而不必复制音频非常有用。"
             )
         ),
     ],
     outputs=[
-        ImageOutput("Frame Image", channels=3),
+        ImageOutput("帧图像", channels=3),
         NumberOutput(
-            "Frame Index",
+            "帧索引",
             output_type="if Input1 { min(uint, Input2 - 1) } else { uint }",
-        ).with_docs("A counter that starts at 0 and increments by 1 for each frame."),
-        DirectoryOutput("Video Directory", of_input=0),
-        FileNameOutput("Name", of_input=0),
+        ).with_docs("从0开始递增，为每个帧分配一个索引的计数器。"),
+        DirectoryOutput("视频目录", of_input=0),
+        FileNameOutput("名称", of_input=0),
         NumberOutput("FPS"),
         AudioStreamOutput(),
     ],
@@ -80,26 +79,26 @@ def load_video_node(
     probe = ffmpeg.probe(path, cmd=ffprobe_path)
     video_format = probe.get("format", None)
     if video_format is None:
-        raise RuntimeError("Failed to get video format. Please report.")
+        raise RuntimeError("无法获取视频格式。请报告问题。")
     video_stream = next(
         (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
         None,
     )
 
     if video_stream is None:
-        raise RuntimeError("No video stream found in file")
+        raise RuntimeError("文件中找不到视频流")
 
     width = video_stream.get("width", None)
     if width is None:
-        raise RuntimeError("No width found in video stream")
+        raise RuntimeError("在视频流中找不到宽度")
     width = int(width)
     height = video_stream.get("height", None)
     if height is None:
-        raise RuntimeError("No height found in video stream")
+        raise RuntimeError("在视频流中找不到高度")
     height = int(height)
     fps = video_stream.get("r_frame_rate", None)
     if fps is None:
-        raise RuntimeError("No fps found in video stream")
+        raise RuntimeError("在视频流中找不到 fps")
     fps = int(fps.split("/")[0]) / int(fps.split("/")[1])
     frame_count = video_stream.get("nb_frames", None)
     if frame_count is None:
@@ -110,7 +109,7 @@ def load_video_node(
             frame_count = float(duration) * fps
         else:
             raise RuntimeError(
-                "No frame count or duration found in video stream. Unable to determine video length. Please report."
+                "在视频流中找不到帧数或持续时间。无法确定视频长度。请报告问题。"
             )
     frame_count = int(frame_count)
     if use_limit:
@@ -125,7 +124,7 @@ def load_video_node(
                 break
             in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
             if not in_bytes:
-                print("Can't receive frame (stream end?). Exiting ...")
+                print("无法接收帧（流结束？）。退出……")
                 break
             in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
             yield in_frame, index

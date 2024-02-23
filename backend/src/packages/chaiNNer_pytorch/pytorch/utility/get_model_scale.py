@@ -10,11 +10,11 @@ from .. import utility_group
 
 @utility_group.register(
     schema_id="chainner:pytorch:model_dim",
-    name="Get Model Scale",
-    description="""Returns the scale of a PyTorch model.""",
+    name="获取模型尺度",
+    description="""返回 PyTorch 模型的尺度。""",
     icon="BsRulers",
     inputs=[ModelInput()],
-    outputs=[NumberOutput("Scale", output_type="Input0.scale")],
+    outputs=[NumberOutput("尺度", output_type="Input0.scale")],
 )
 def get_model_scale_node(model: ModelDescriptor) -> int:
     return model.scale

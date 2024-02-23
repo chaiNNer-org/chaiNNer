@@ -11,12 +11,12 @@ from .. import adjustments_group
 @adjustments_group.register(
     schema_id="chainner:image:clamp",
     name="Clamp",
-    description="Clamps the values of an image.",
+    description="将图像的值夹在一个范围内。",
     icon="ImContrast",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Minimum",
+            "最小值",
             minimum=0.0,
             maximum=1.0,
             default=0.0,
@@ -25,7 +25,7 @@ from .. import adjustments_group
             scale="log",
         ),
         SliderInput(
-            "Maximum",
+            "最大值",
             minimum=0.0,
             maximum=1.0,
             default=1.0,

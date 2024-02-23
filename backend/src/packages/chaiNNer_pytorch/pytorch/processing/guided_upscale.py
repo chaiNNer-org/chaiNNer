@@ -15,13 +15,13 @@ from .. import processing_group
 
 @processing_group.register(
     schema_id="chainner:pytorch:guided_upscale",
-    name="Guided Upscale",
+    name="引导放大",
     description=(
-        "Upscales a source image using a guide."
-        " This is most useful for very small source images."
-        "\n\nUnder the hood, PixTransform is used which trains a NN to convert the guide image into the source image."
-        " Note that this operation is very expensive, because it needs to train a NN."
-        " Try a small number of iterations before going up to around 30k."
+        "使用引导放大源图像。"
+        " 这对于非常小的源图像最有用。"
+        "\n\n在底层使用 PixTransform，该工具训练一个神经网络将引导图像转换为源图像。"
+        " 请注意，此操作非常昂贵，因为它需要训练一个神经网络。"
+        " 在尝试 30000 次左右之前，请尝试少量迭代。"
     ),
     icon="PyTorch",
     inputs=[

@@ -13,19 +13,19 @@ from .. import adjustments_group
 
 @adjustments_group.register(
     schema_id="chainner:image:color_levels",
-    name="Color Levels",
-    description="Color Levels can be used to make an image lighter or darker, to change contrast or to correct a predominant color cast.",
+    name="颜色级别",
+    description="颜色级别可用于使图像变亮或变暗，改变对比度或纠正主导的色调。",
     icon="MdOutlineColorLens",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        icon_set_group("Channels")(
-            BoolInput("Red", default=True),
-            BoolInput("Green", default=True),
-            BoolInput("Blue", default=True),
+        icon_set_group("通道")(
+            BoolInput("红色", default=True),
+            BoolInput("绿色", default=True),
+            BoolInput("蓝色", default=True),
             BoolInput("Alpha", default=False),
         ),
         SliderInput(
-            "In Black",
+            "黑色中的输入",
             minimum=0,
             maximum=1,
             default=0,
@@ -33,7 +33,7 @@ from .. import adjustments_group
             controls_step=0.01,
         ),
         SliderInput(
-            "In White",
+            "白色中的输入",
             minimum=0,
             maximum=1,
             default=1,
@@ -41,7 +41,7 @@ from .. import adjustments_group
             controls_step=0.01,
         ),
         SliderInput(
-            "Gamma",
+            "伽马",
             minimum=0,
             maximum=10,
             default=1,
@@ -50,7 +50,7 @@ from .. import adjustments_group
             scale="log",
         ),
         SliderInput(
-            "Out Black",
+            "黑色中的输出",
             minimum=0,
             maximum=1,
             default=0,
@@ -58,7 +58,7 @@ from .. import adjustments_group
             controls_step=0.01,
         ),
         SliderInput(
-            "Out White",
+            "白色中的输出",
             minimum=0,
             maximum=1,
             default=1,

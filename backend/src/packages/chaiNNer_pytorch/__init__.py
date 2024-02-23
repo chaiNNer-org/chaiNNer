@@ -12,15 +12,13 @@ general = "PyTorch uses .pth models to upscale images."
 
 if is_arm_mac:
     package_description = general
-    inst_hint = f"{general} It is the most widely-used upscaling architecture."
+    inst_hint = f"{general} 它是最广泛使用的升级架构。"
 else:
     package_description = (
-        f"{general} and is fastest when CUDA is supported (Nvidia GPU). If CUDA is"
-        " unsupported, it will install with CPU support (which is very slow)."
+        f"{general} 且在支持 CUDA（Nvidia GPU）的情况下运行最快。如果不支持 CUDA，则会使用 CPU 支持进行安装（速度较慢）。"
     )
     inst_hint = (
-        f"{general} It is the most widely-used upscaling architecture. However, it does"
-        " not support AMD GPUs."
+        f"{general} 是最广泛使用的放大架构之一。然而，它不支持 AMD GPU。"
     )
 
 
@@ -109,10 +107,10 @@ package = add_package(
 
 pytorch_category = package.add_category(
     name="PyTorch",
-    description="Nodes for using the PyTorch Neural Network Framework with images.",
+    description="用于将 PyTorch 神经网络框架与图像结合使用的节点。",
     icon="PyTorch",
     color="#DD6B20",
     install_hint=inst_hint,
 )
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug(f"已加载的包 {package.name}")

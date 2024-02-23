@@ -16,29 +16,28 @@ from .. import io_group
 
 @io_group.register(
     schema_id="chainner:onnx:load_model",
-    name="Load Model",
+    name="加载模型",
     description=(
-        "Load ONNX model file (.onnx). Theoretically supports any ONNX Super-Resolution"
-        " model that doesn't expect non-standard preprocessing. Also supports RemBG"
-        " background removal models."
+        "加载 ONNX 模型文件（.onnx）。理论上支持任何不需要非标准预处理的 ONNX 超分辨率模型。"
+        "也支持 RemBG 背景去除模型。"
     ),
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],
     outputs=[
         OnnxModelOutput(),
-        DirectoryOutput("Directory", of_input=0).with_id(2),
-        FileNameOutput("Name", of_input=0).with_id(1),
+        DirectoryOutput("目录", of_input=0).with_id(2),
+        FileNameOutput("名称", of_input=0).with_id(1),
     ],
     see_also=[
         "chainner:onnx:load_models",
     ],
 )
 def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
-    assert os.path.exists(path), f"Model file at location {path} does not exist"
+    assert os.path.exists(path), f"模型文件在路径 {path} 不存在"
 
-    assert os.path.isfile(path), f"Path {path} is not a file"
+    assert os.path.isfile(path), f"路径 {path} 不是文件"
 
-    logger.debug(f"Reading onnx model from path: {path}")
+    logger.debug(f"从路径 {path} 读取 ONNX 模型")
     model = onnx.load_model(str(path))
 
     model_as_string = model.SerializeToString()
