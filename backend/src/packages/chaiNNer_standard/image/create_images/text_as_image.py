@@ -50,15 +50,15 @@ class TextAsImagePosition(Enum):
 
 
 TEXT_AS_IMAGE_POSITION_LABELS = {
-    TextAsImagePosition.TOP_LEFT: "Top left",
-    TextAsImagePosition.TOP_CENTERED: "Top centered",
-    TextAsImagePosition.TOP_RIGHT: "Top right",
-    TextAsImagePosition.CENTERED_LEFT: "Centered left",
-    TextAsImagePosition.CENTERED: "Centered",
-    TextAsImagePosition.CENTERED_RIGHT: "Centered right",
-    TextAsImagePosition.BOTTOM_LEFT: "Bottom left",
-    TextAsImagePosition.BOTTOM_CENTERED: "Bottom centered",
-    TextAsImagePosition.BOTTOM_RIGHT: "Bottom right",
+    TextAsImagePosition.TOP_LEFT: "左上角",
+    TextAsImagePosition.TOP_CENTERED: "上方居中",
+    TextAsImagePosition.TOP_RIGHT: "右上角",
+    TextAsImagePosition.CENTERED_LEFT: "左侧居中",
+    TextAsImagePosition.CENTERED: "居中",
+    TextAsImagePosition.CENTERED_RIGHT: "右侧居中",
+    TextAsImagePosition.BOTTOM_LEFT: "左下角",
+    TextAsImagePosition.BOTTOM_CENTERED: "下方居中",
+    TextAsImagePosition.BOTTOM_RIGHT: "右下角",
 }
 
 TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
@@ -94,19 +94,19 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
 
 @create_images_group.register(
     schema_id="chainner:image:text_as_image",
-    name="Text As Image",
-    description="Create an image using any text.",
+    name="文本转图像",
+    description="使用任意文本创建图像。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text", multiline=True, label_style="hidden"),
+        TextInput("文本", multiline=True, label_style="hidden"),
         menu_icon_row_group()(
-            icon_set_group("Style")(
-                BoolInput("Bold", default=False, icon="FaBold").with_id(1),
-                BoolInput("Italic", default=False, icon="FaItalic").with_id(2),
+            icon_set_group("样式")(
+                BoolInput("加粗", default=False, icon="FaBold").with_id(1),
+                BoolInput("斜体", default=False, icon="FaItalic").with_id(2),
             ),
             EnumInput(
                 TextAsImageAlignment,
-                label="Alignment",
+                label="对齐",
                 preferred_style="icons",
                 icons={
                     TextAsImageAlignment.LEFT: "FaAlignLeft",
@@ -118,7 +118,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
         ),
         ColorInput(channels=[3], default=Color.bgr((0, 0, 0))).with_id(3),
         NumberInput(
-            "Width",
+            "宽度",
             minimum=1,
             maximum=None,
             controls_step=1,
@@ -126,7 +126,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
             default=500,
         ).with_id(5),
         NumberInput(
-            "Height",
+            "高度",
             minimum=1,
             maximum=None,
             controls_step=1,
@@ -135,7 +135,7 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
         ).with_id(6),
         EnumInput(
             TextAsImagePosition,
-            label="Position",
+            label="位置",
             option_labels=TEXT_AS_IMAGE_POSITION_LABELS,
             default=TextAsImagePosition.CENTERED,
         ).with_id(7),

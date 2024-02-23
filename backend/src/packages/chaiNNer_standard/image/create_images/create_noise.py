@@ -24,14 +24,14 @@ from .. import create_images_group
 
 
 class NoiseMethod(Enum):
-    VALUE = "Value Noise"
+    VALUE = "值噪声"
     SIMPLEX = "Simplex"
-    BLUE_NOISE = "Blue Noise"
+    BLUE_NOISE = "蓝噪声"
 
 
 class FractalMethod(Enum):
-    NONE = "None"
-    PINK = "Pink noise"
+    NONE = "无"
+    PINK = "粉红噪声"
 
 
 def _add_noise(
@@ -79,12 +79,12 @@ def _add_noise(
 
 @create_images_group.register(
     schema_id="chainner:image:create_noise",
-    name="Create Noise",
-    description="Create an image of specified dimensions filled with one of a variety of noises.",
+    name="创建噪声",
+    description="创建一个指定尺寸的图像，填充各种噪声之一。",
     icon="MdFormatColorFill",
     inputs=[
-        NumberInput("Width", minimum=1, unit="px", default=256),
-        NumberInput("Height", minimum=1, unit="px", default=256),
+        NumberInput("宽度", minimum=1, unit="px", default=256),
+        NumberInput("高度", minimum=1, unit="px", default=256),
         seed_group(SeedInput()),
         EnumInput(
             NoiseMethod,
@@ -92,32 +92,30 @@ def _add_noise(
             option_labels={key: key.value for key in NoiseMethod},
         ).with_id(3),
         if_enum_group(3, (NoiseMethod.SIMPLEX, NoiseMethod.VALUE))(
-            NumberInput("Scale", minimum=1, default=50, precision=1).with_id(4),
+            NumberInput("缩放", minimum=1, default=50, precision=1).with_id(4),
             SliderInput(
-                "Brightness", minimum=0, default=100, maximum=100, precision=2
+                "亮度", minimum=0, default=100, maximum=100, precision=2
             ).with_id(5),
-            BoolInput("Tile Horizontal", default=False).with_id(10),
-            BoolInput("Tile Vertical", default=False).with_id(11),
-            BoolInput("Tile Spherical", default=False).with_id(12),
+            BoolInput("水平平铺", default=False).with_id(10),
+            BoolInput("垂直平铺", default=False).with_id(11),
+            BoolInput("球面平铺", default=False).with_id(12),
             EnumInput(
                 FractalMethod,
                 default=FractalMethod.NONE,
                 option_labels={key: key.value for key in FractalMethod},
             ).with_id(6),
             if_enum_group(6, FractalMethod.PINK)(
-                NumberInput("Layers", minimum=2, default=3, precision=0).with_id(7),
-                NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
-                    8
-                ),
+                NumberInput("层数", minimum=2, default=3, precision=0).with_id(7),
+                NumberInput("缩放比例", minimum=1, default=2, precision=2).with_id(8),
                 NumberInput(
-                    "Brightness Ratio", minimum=1, default=2, precision=2
+                    "亮度比例", minimum=1, default=2, precision=2
                 ).with_id(9),
-                BoolInput("Increment Seed", default=True).with_id(13),
+                BoolInput("增加种子", default=True).with_id(13),
             ),
         ),
         if_enum_group(3, NoiseMethod.BLUE_NOISE)(
             SliderInput(
-                "Standard Deviation",
+                "标准差",
                 minimum=1,
                 maximum=100,
                 default=1.5,

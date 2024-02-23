@@ -73,5 +73,16 @@
   },
   "typeTags": {
     "optional": "可选择的"
-  }
+  },
+  "Loading Nodes...": "正在加载节点...",
+  "Nodes": "节点",
+  "Favorites": "收藏夹",
+  "Image": "图像",
+  "INPUT & OUTPUT": "输入和输出",
+  "LOAD IMAGE": "加载图像",
+  "SAVE IMAGE": "保存图像",
+  "VIEW IMAGE": "查看图像",
+  "VIEW IMAGE(EXTERNAL)": "查看图像（外部）"
+
+
 }

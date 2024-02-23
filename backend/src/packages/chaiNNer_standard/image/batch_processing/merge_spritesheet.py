@@ -11,28 +11,28 @@ from .. import batch_processing_group
 
 @batch_processing_group.register(
     schema_id="chainner:image:merge_spritesheet",
-    name="Merge Spritesheet",
+    name="合并精灵表",
     description=[
-        "Combines an iterable sequence into a single image spritesheet.",
+        "将可迭代序列合并成单个图像精灵表。",
     ],
     icon="BsGrid3X3",
     inputs=[
-        ImageInput("Image Sequence"),
+        ImageInput("图像序列"),
         NumberInput(
-            "Number of rows (height)",
+            "行数（高度）",
             controls_step=1,
             minimum=1,
             default=1,
         ).with_docs(
-            "The number of rows to split the image into. The height of the image must be a multiple of this number."
+            "要将图像分割成的行数。图像的高度必须是此数字的倍数。"
         ),
         NumberInput(
-            "Number of columns (width)",
+            "列数（宽度）",
             controls_step=1,
             minimum=1,
             default=1,
         ).with_docs(
-            "The number of columns to split the image into. The width of the image must be a multiple of this number."
+            "要将图像分割成的列数。图像的宽度必须是此数字的倍数。"
         ),
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),

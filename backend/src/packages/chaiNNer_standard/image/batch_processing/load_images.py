@@ -23,8 +23,7 @@ from ..io.load_image import load_image_node
 
 
 def extension_filter(lst: list[str]) -> str:
-    """generates a mcmatch.glob expression to filter files with specific extensions
-    ex. {*,**/*}@(*.png|*.jpg|...)"""
+    """生成 mcmatch.glob 表达式来过滤具有特定扩展名的文件，例如。 {*,**/*}@(*.png|*.jpg|...)"""
     return "**/*@(" + "|".join(lst) + ")"
 
 
@@ -52,44 +51,45 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
 
 @batch_processing_group.register(
     schema_id="chainner:image:load_images",
-    name="Load Images",
+    name="加载图像",
     description=[
-        "Iterate over all files in a directory/folder (batch processing) and run the provided nodes on just the image files. Supports the same file types as `chainner:image:load`.",
-        "Optionally, you can toggle whether to iterate recursively (subdirectories) or use a glob expression to filter the files.",
+        "遍历目录/文件夹中的所有文件（批处理）并在仅对图像文件运行提供的节点。支持与 `chainner:image:load` 相同的文件类型。",
+        "可选地，您可以切换是否递归迭代（子目录）或使用 glob 表达式来过滤文件。",
     ],
     icon="BsImages",
     inputs=[
-        DirectoryInput(),
-        BoolInput("Use WCMatch glob expression", default=False),
+        DirectoryInput("目录"),
+        BoolInput("使用 WCMatch glob 表达式", default=False),
         if_group(Condition.bool(1, False))(
-            BoolInput("Recursive").with_docs("Iterate recursively over subdirectories.")
+            BoolInput("递归").with_docs("递归地遍历子目录。")
         ),
         if_group(Condition.bool(1, True))(
-            TextInput("WCMatch Glob expression", default="**/*").with_docs(
-                "For information on how to use WCMatch glob expressions, see [here](https://facelessuser.github.io/wcmatch/glob/)."
+            TextInput("WCMatch Glob 表达式", default="**/*").with_docs(
+                "有关如何使用 WCMatch glob 表达式的信息，请参阅[此处](https://facelessuser.github.io/wcmatch/glob/)。"
             ),
         ),
-        BoolInput("Use limit", default=False),
+        BoolInput("使用限制", default=False),
         if_group(Condition.bool(4, True))(
-            NumberInput("Limit", default=10, minimum=1).with_docs(
-                "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
+            NumberInput("限制", default=10, minimum=1).with_docs(
+                "限制要遍历的图像数量。这对于在不必遍历所有图像的情况下测试迭代器可能很有用。"
             )
         ),
-        BoolInput("Stop on first error", default=False).with_docs(
-            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+        BoolInput("遇到错误时停止", default=False).with_docs(
+            "而不是在处理结束时收集错误并抛出它们，如果发生错误，则停止迭代并立即抛出错误。",
             hint=True,
         ),
     ],
     outputs=[
-        ImageOutput(),
-        DirectoryOutput("Directory", output_type="Input0"),
-        TextOutput("Subdirectory Path"),
-        TextOutput("Name"),
+        ImageOutput("图像"),
+        DirectoryOutput("目录", output_type="Input0"),
+        TextOutput("子目录路径"),
+        TextOutput("名称"),
         NumberOutput(
-            "Index",
+            "索引",
             output_type="if Input4 { min(uint, Input5 - 1) } else { uint }",
         ),
     ],
+
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
     kind="newIterator",
 )

@@ -23,36 +23,36 @@ from ..io.load_image import load_image_node
 
 @batch_processing_group.register(
     schema_id="chainner:image:load_image_pairs",
-    name="Load Image Pairs",
-    description="Iterate over all files in two directories and run the provided nodes on the image files together. This can be useful for things like making comparisons of already processed content.",
+    name="加载图像对",
+    description="遍历两个目录中的所有文件，并同时运行提供的节点处理图像文件对。这对于比较已处理内容的情况可能很有用。",
     icon="BsImages",
     inputs=[
-        DirectoryInput("Directory A"),
-        DirectoryInput("Directory B"),
-        BoolInput("Use limit", default=False),
+        DirectoryInput("目录 A"),
+        DirectoryInput("目录 B"),
+        BoolInput("使用限制", default=False),
         if_group(Condition.bool(2, True))(
-            NumberInput("Limit", default=10, minimum=1).with_docs(
-                "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
+            NumberInput("限制", default=10, minimum=1).with_docs(
+                "限制要遍历的图像数量。这对于在不必遍历所有图像的情况下测试迭代器可能很有用。"
             )
         ),
-        BoolInput("Stop on first error", default=False).with_docs(
-            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+        BoolInput("遇到错误时停止", default=False).with_docs(
+            "而不是在处理结束时收集错误并抛出它们，如果发生错误，则停止迭代并立即抛出错误。",
             hint=True,
         ),
     ],
     outputs=[
-        ImageOutput("Image A"),
-        ImageOutput("Image B"),
-        DirectoryOutput("Directory A", output_type="Input0"),
-        DirectoryOutput("Directory B", output_type="Input1"),
-        TextOutput("Subdirectory Path A"),
-        TextOutput("Subdirectory Path B"),
-        TextOutput("Image Name A"),
-        TextOutput("Image Name B"),
+        ImageOutput("图像 A"),
+        ImageOutput("图像 B"),
+        DirectoryOutput("目录 A", output_type="Input0"),
+        DirectoryOutput("目录 B", output_type="Input1"),
+        TextOutput("子目录路径 A"),
+        TextOutput("子目录路径 B"),
+        TextOutput("图像名称 A"),
+        TextOutput("图像名称 B"),
         NumberOutput(
-            "Index",
+            "索引",
             output_type="if Input2 { min(uint, Input3 - 1) } else { uint }",
-        ).with_docs("A counter that starts at 0 and increments by 1 for each image."),
+        ).with_docs("一个计数器，从 0 开始，每遍历一个图像递增 1。"),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
     kind="newIterator",
@@ -71,7 +71,7 @@ def load_image_pairs_node(
         img_a, img_dir_a, basename_a = load_image_node(path_a)
         img_b, img_dir_b, basename_b = load_image_node(path_b)
 
-        # Get relative path from root directory passed by Iterator directory input
+        # 从由 Iterator 目录输入传递的根目录获取相对路径
         rel_path_a = os.path.relpath(img_dir_a, directory_a)
         rel_path_b = os.path.relpath(img_dir_b, directory_b)
         return img_a, img_b, rel_path_a, rel_path_b, basename_a, basename_b, index
@@ -82,9 +82,9 @@ def load_image_pairs_node(
     image_files_b: list[Path] = list_all_files_sorted(directory_b, supported_filetypes)
 
     assert len(image_files_a) == len(image_files_b), (
-        "Number of images in directories A and B must be equal. "
-        f"Directory A: {directory_a} has {len(image_files_a)} images. "
-        f"Directory B: {directory_b} has {len(image_files_b)} images."
+        "目录 A 和 B 中的图像数量必须相等。"
+        f"目录 A: {directory_a} 中有 {len(image_files_a)} 张图像。"
+        f"目录 B: {directory_b} 中有 {len(image_files_b)} 张图像。"
     )
 
     if use_limit:

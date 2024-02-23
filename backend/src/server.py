@@ -565,7 +565,7 @@ async def import_packages(
     # for package in os.listdir(packages_dir):
     #     importlib.import_module(package)
 
-    await update_progress_cb("Loading Nodes...", 1.0, None)
+    await update_progress_cb("正在加载节点...", 1.0, None)
 
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
@@ -631,7 +631,7 @@ async def setup(sanic_app: Sanic):
 
     logger.info("Sending backend ready...")
 
-    await update_progress("Loading Nodes...", 1.0, None)
+    await update_progress("正在加载节点...", 1.0, None)
 
     await setup_queue.put_and_wait(
         {

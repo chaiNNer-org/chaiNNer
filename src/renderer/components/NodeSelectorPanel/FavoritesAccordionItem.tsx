@@ -31,7 +31,7 @@ export const FavoritesAccordionItem = memo(
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<b>Favorites</b>}
+                    label={<b>收藏夹</b>}
                     openDelay={500}
                     px={2}
                     py={1}
@@ -52,7 +52,7 @@ export const FavoritesAccordionItem = memo(
                                     textOverflow="clip"
                                     whiteSpace="nowrap"
                                 >
-                                    Favorites
+                                    收藏夹
                                 </Heading>
                             )}
                         </HStack>
@@ -77,19 +77,19 @@ export const FavoritesAccordionItem = memo(
                                 noWrap
                                 collapsed={collapsed}
                                 height="1.5rem"
-                                text="No Favorites."
+                                text="没有收藏夹"
                                 toolTip={
                                     collapsed ? (
                                         <>
-                                            Add Favorites by right-clicking nodes and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            通过右键单击节点并选择“添加收藏夹”{' '}
+                                            <em>添加到收藏夹</em>.
                                         </>
                                     ) : (
                                         <>
-                                            Add Favorites by hovering over nodes and clicking the{' '}
-                                            <StarIcon style={{ verticalAlign: 'baseline' }} /> icon,
-                                            or by right-clicking and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            将鼠标悬停在节点上并单击{' '}
+                                            <StarIcon style={{ 垂直对齐: 'baseline' }} /> icon,
+                                            或者右键单击并选择{' '}
+                                            <em>添加到收藏夹</em>.
                                         </>
                                     )
                                 }

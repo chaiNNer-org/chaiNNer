@@ -91,60 +91,60 @@ package = add_package(
 
 
 image_category = package.add_category(
-    name="Image",
-    description="Base image nodes.",
+    name="图像",
+    description="基本图像节点。",
     icon="BsFillImageFill",
     color="#C53030",
 )
 
 image_dimensions_category = package.add_category(
-    name="Image (Dimensions)",
-    description="Nodes that deal with changing the dimensions/resolution of images.",
+    name="图像（尺寸）",
+    description="处理改变图像尺寸/分辨率的节点。",
     icon="MdOutlinePhotoSizeSelectLarge",
     color="#3182CE",
 )
 
 image_adjustments_category = package.add_category(
-    name="Image (Adjustments)",
-    description="Nodes that deal with adjusting properties of images.",
+    name="图像（调整）",
+    description="处理调整图像属性的节点。",
     icon="BsSliders",
     color="#319795",
 )
 
 image_filter_category = package.add_category(
-    name="Image (Filters)",
-    description="Nodes that deal with filtering images.",
+    name="图像（滤镜）",
+    description="处理过滤图像的节点。",
     icon="MdFilterAlt",
     color="#38A169",
 )
 
 image_utility_category = package.add_category(
-    name="Image (Utilities)",
-    description="Various utility nodes for images.",
+    name="图像（实用工具）",
+    description="各种图像实用工具节点。",
     icon="BsGear",
     color="#00A3C4",
 )
 
 image_channel_category = package.add_category(
-    name="Image (Channels)",
-    description="Nodes that deal with manipulating channels of images.",
+    name="图像（通道）",
+    description="处理操纵图像通道的节点。",
     icon="MdAllOut",
     color="#D69E2E",
 )
 
 material_textures_category = package.add_category(
-    name="Material Textures",
-    description="Modify and create material textures for games & 3D models.",
+    name="材质纹理",
+    description="修改和创建游戏和3D模型的材质纹理。",
     icon="GiRolledCloth",
     color="#827DFB",
 )
 
 utility_category = package.add_category(
-    name="Utility",
-    description="Various utility nodes.",
+    name="实用工具",
+    description="各种实用工具节点。",
     icon="BsGearFill",
     color="#718096",
 )
 
+logger.debug(f"加载了包 {package.name}")
 
-logger.debug(f"Loaded package {package.name}")

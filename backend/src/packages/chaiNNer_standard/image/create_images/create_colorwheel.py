@@ -17,15 +17,15 @@ from .. import create_images_group
 
 @create_images_group.register(
     schema_id="chainner:image:create_colorwheel",
-    name="Create Colorwheel",
-    description="Create an image with a color wheel.",
+    name="创建彩色圆盘",
+    description="创建带有彩色圆盘的图像。",
     icon="MdLens",
     inputs=[
-        NumberInput("Size", minimum=1, unit="px", default=512),
+        NumberInput("大小", minimum=1, unit="px", default=512),
     ],
     outputs=[
         ImageOutput(
-            image_type=navi.Image(  # Creates a square output buffer from scratch and sets it to the width and height defined by the (Number)Input0 defined earlier
+            image_type=navi.Image(  # 从头开始创建一个正方形输出缓冲区，并将其设置为由前面定义的 (Number)Input0 宽度和高度
                 width="Input0",
                 height="Input0",
             ),

@@ -10,13 +10,13 @@ from .. import io_group
 
 @io_group.register(
     schema_id="chainner:image:view",
-    name="View Image",
-    description="See an inline preview of the image in the editor.",
+    name="查看图像",
+    description="在编辑器中查看图像的内联预览。",
     icon="BsEyeFill",
-    inputs=[ImageInput()],
+    inputs=[ImageInput("图像")],
     outputs=[
         LargeImageOutput(
-            "Preview",
+            "预览",
             image_type="Input0",
             has_handle=False,
             assume_normalized=True,

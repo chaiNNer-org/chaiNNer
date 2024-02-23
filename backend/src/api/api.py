@@ -122,8 +122,8 @@ class NodeGroup:
                 description += f" {limited_to_8bpc}"
             else:
                 description += (
-                    "This node will internally convert input images to 8 bits/channel."
-                    " This is generally only a problem if you intend to save the output with 16 bits/channel or higher."
+                    "该节点将在内部将输入图像转换为 8 位/通道。"
+                    " 如果您打算保存16位/通道或更高的输出，这通常只是一个问题。"
                 )
 
         def to_list(x: list[S] | S | None) -> list[S]:
@@ -488,8 +488,8 @@ class Iterator(Generic[I]):
         count: int, map_fn: Callable[[int], I], fail_fast: bool = True
     ) -> Iterator[I]:
         """
-        Creates a new iterator the given number of items where each item is
-        lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
+        创建一个新的迭代器，其中每个项目是给定数量的项目
+        懒洋洋地评价了。可迭代对象相当于“map(map_fn, range(count))”。
         """
         assert count >= 0
 

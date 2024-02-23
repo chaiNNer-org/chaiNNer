@@ -12,13 +12,13 @@ from .. import create_images_group
 
 @create_images_group.register(
     schema_id="chainner:image:create_color",
-    name="Create Color",
-    description="Create an image of specified dimensions filled with the given color.",
+    name="创建颜色",
+    description="创建一个指定尺寸、填充指定颜色的图像。",
     icon="MdFormatColorFill",
     inputs=[
-        ColorInput(),
-        NumberInput("Width", minimum=1, unit="px", default=1),
-        NumberInput("Height", minimum=1, unit="px", default=1),
+        ColorInput("颜色"),
+        NumberInput("宽度", minimum=1, unit="px", default=1),
+        NumberInput("高度", minimum=1, unit="px", default=1),
     ],
     outputs=[
         ImageOutput(

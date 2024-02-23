@@ -18,20 +18,20 @@ from .. import io_group
 
 @io_group.register(
     schema_id="chainner:image:preview",
-    name="View Image (external)",
+    name="查看图像（外部）",
     description=[
-        "Open the image in your default image viewer.",
-        "This works by saving a temporary file that will be deleted after chaiNNer is closed. It is not recommended to be used when performing batch processing.",
+        "在默认的图像查看器中打开图像。",
+        "这是通过保存一个在 chaiNNer 关闭后将被删除的临时文件来实现的。不建议在进行批处理时使用。",
     ],
     icon="BsEyeFill",
-    inputs=[ImageInput()],
+    inputs=[ImageInput("图像")],
     outputs=[],
     side_effects=True,
-    limited_to_8bpc="The temporary file is an 8-bit PNG.",
+    limited_to_8bpc="临时文件是一个 8 位 PNG。",
 )
 def view_image_external_node(img: np.ndarray) -> None:
     tempdir = mkdtemp(prefix="chaiNNer-")
-    logger.debug(f"Writing image to temp path: {tempdir}")
+    logger.debug(f"将图像写入临时路径: {tempdir}")
     im_name = f"{time.time()}.png"
     temp_save_dir = os.path.join(tempdir, im_name)
     status = cv2.imwrite(
@@ -46,3 +46,4 @@ def view_image_external_node(img: np.ndarray) -> None:
             os.startfile(temp_save_dir)  # type: ignore
         else:  # linux variants
             subprocess.call(("xdg-open", temp_save_dir))
+

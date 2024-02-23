@@ -37,26 +37,26 @@ class GradientStyle(Enum):
 
 @create_images_group.register(
     schema_id="chainner:image:create_gradient",
-    name="Create Gradient",
-    description="Create an image with a gradient.",
+    name="创建渐变",
+    description="创建一个带有渐变的图像。",
     icon="MdFormatColorFill",
     inputs=[
-        NumberInput("Width", minimum=1, unit="px", default=64),
-        NumberInput("Height", minimum=1, unit="px", default=64),
-        ColorInput("Color 1", default=Color.gray(0)).with_id(9),
-        ColorInput("Color 2", default=Color.gray(1)).with_id(10),
-        BoolInput("Reverse", default=False).with_id(2),
+        NumberInput("宽度", minimum=1, unit="px", default=64),
+        NumberInput("高度", minimum=1, unit="px", default=64),
+        ColorInput("颜色 1", default=Color.gray(0)).with_id(9),
+        ColorInput("颜色 2", default=Color.gray(1)).with_id(10),
+        BoolInput("反转", default=False).with_id(2),
         EnumInput(GradientStyle, default=GradientStyle.HORIZONTAL).with_id(3),
         if_enum_group(3, GradientStyle.DIAGONAL)(
             SliderInput(
-                "Angle",
+                "角度",
                 minimum=0,
                 maximum=360,
                 default=45,
-                unit="deg",
+                unit="度",
             ).with_id(4),
             NumberInput(
-                "Width",
+                "宽度",
                 minimum=0,
                 default=100,
                 unit="px",
@@ -64,14 +64,14 @@ class GradientStyle(Enum):
         ),
         if_enum_group(3, GradientStyle.RADIAL)(
             SliderInput(
-                "Inner Radius",
+                "内半径",
                 minimum=0,
                 maximum=100,
                 default=0,
                 unit="%",
             ).with_id(6),
             SliderInput(
-                "Outer Radius",
+                "外半径",
                 minimum=0,
                 maximum=100,
                 default=100,
@@ -80,11 +80,11 @@ class GradientStyle(Enum):
         ),
         if_enum_group(3, GradientStyle.CONIC)(
             SliderInput(
-                "Rotation",
+                "旋转",
                 minimum=0,
                 maximum=360,
                 default=0,
-                unit="deg",
+                unit="度",
             ).with_id(8),
         ),
     ],

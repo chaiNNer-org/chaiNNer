@@ -59,12 +59,12 @@ const AppearanceSettings = memo(() => {
             <DropdownSetting
                 setValue={setSelectTheme}
                 setting={{
-                    label: 'Select Theme',
-                    description: "Choose the Theme for chaiNNer's appearance.",
+                    label: '选择主题',
+                    description: "选择 chaiNNer 外观的主题。",
                     options: [
-                        { label: 'Dark Mode', value: 'dark' },
-                        { label: 'Light Mode', value: 'light' },
-                        { label: 'System', value: 'system' },
+                        { label: '深色模式', value: 'dark' },
+                        { label: '浅色模式', value: 'light' },
+                        { label: '系统', value: 'system' },
                     ],
                     small: true,
                 }}
@@ -74,8 +74,8 @@ const AppearanceSettings = memo(() => {
             <ToggleSetting
                 setValue={setAnimateChain}
                 setting={{
-                    label: 'Chain animation',
-                    description: 'Enable animations that show the processing state of the chain.',
+                    label: '链动画',
+                    description: '启用显示链处理状态的动画。',
                 }}
                 value={animateChain}
             />
@@ -83,8 +83,8 @@ const AppearanceSettings = memo(() => {
             <ToggleSetting
                 setValue={setIsSnapToGrid}
                 setting={{
-                    label: 'Snap to grid',
-                    description: 'Enable node grid snapping.',
+                    label: '对齐到网格',
+                    description: '启用节点网格捕捉。',
                 }}
                 value={isSnapToGrid}
             />
@@ -92,8 +92,8 @@ const AppearanceSettings = memo(() => {
             <NumberSetting
                 setValue={setSnapToGridAmount}
                 setting={{
-                    label: 'Snap to grid amount',
-                    description: 'The amount to snap the grid to.',
+                    label: '对齐网格量',
+                    description: '网格对齐的量。',
                     max: 45,
                     min: 1,
                 }}
@@ -103,8 +103,8 @@ const AppearanceSettings = memo(() => {
             <NumberSetting
                 setValue={setViewportExportPadding}
                 setting={{
-                    label: 'Viewport PNG export padding',
-                    description: 'The amount of padding for the viewport PNG export.',
+                    label: '视口 PNG 导出填充',
+                    description: '视口 PNG 导出的填充量。',
                     max: 100,
                     min: 0,
                 }}
@@ -125,7 +125,7 @@ const EnvironmentSettings = memo(() => {
         const fileDir = startupTemplate ? path.dirname(startupTemplate) : lastDirectory;
         const fileFilter = [
             {
-                name: 'Select Chain',
+                name: '选择链',
                 extensions: ['chn'],
             },
         ];
@@ -148,7 +148,7 @@ const EnvironmentSettings = memo(() => {
             w="full"
         >
             <SettingContainer
-                description="Set a chain template to use by default when chaiNNer starts up."
+                description="设置 chaiNNer 启动时默认使用的链模板。"
                 title="Startup Template"
             >
                 <HStack>

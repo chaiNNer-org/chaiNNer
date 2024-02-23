@@ -24,11 +24,10 @@ from .. import io_group
 
 _Decoder = Callable[[Path], Union[np.ndarray, None]]
 """
-An image decoder.
+图像解码器。
 
-Of the given image is naturally not supported, the decoder may return `None`
-instead of raising an exception. E.g. when the file extension indicates an
-unsupported format.
+如果给定的图像格式自然不受支持，则解码器可能返回 `None` 而不是引发异常。
+例如，当文件扩展名指示不支持的格式时。
 """
 
 
@@ -38,7 +37,7 @@ def get_ext(path: Path | str) -> str:
 
 def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
     """
-    Removes the alpha channel from an image if it is not used.
+    如果不使用alpha通道，则将其从图像中删除。
     """
     if get_h_w_c(img)[2] != 4:
         return img
@@ -64,19 +63,19 @@ def _read_cv(path: Path) -> np.ndarray | None:
     try:
         img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
     except Exception as cv_err:
-        logger.warning(f"Error loading image, trying with imdecode: {cv_err}")
+        logger.warning(f"加载图像时出错，尝试使用 imdecode: {cv_err}")
 
     if img is None:
         try:
             img = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
         except Exception as e:
             raise RuntimeError(
-                f'Error reading image image from path "{path}". Image may be corrupt.'
+                f'从路径“{path}”读取图像图像时出错。图像可能已损坏。'
             ) from e
 
     if img is None:  # type: ignore
         raise RuntimeError(
-            f'Error reading image image from path "{path}". Image may be corrupt.'
+            f'从路径“{path}”读取图像图像时出错。图像可能已损坏。'
         )
 
     return img
@@ -138,30 +137,27 @@ valid_formats = get_available_image_formats()
 
 @io_group.register(
     schema_id="chainner:image:load",
-    name="Load Image",
+    name="加载图像",
     description=(
-        "Load image from specified file. This node will output the loaded image, the"
-        " directory of the image file, and the name of the image file (without file"
-        " extension)."
+        "从指定的文件加载图像。此节点将输出加载的图像"
+        "图像文件的目录，以及图像文件的名称（不带文件扩展名）。"
     ),
     icon="BsFillImageFill",
     inputs=[
         ImageFileInput(primary_input=True).with_docs(
-            "Select the path of an image file."
+            "选择图像文件的路径。"
         )
     ],
     outputs=[
         LargeImageOutput().with_docs(
-            "The node will display a preview of the selected image as well as type"
-            " information for it. Connect this output to the input of another node to"
-            " pass the image to it."
+            "该节点将显示所选图像的预览及其类型信息。将此输出连接到另一个节点的输入以将图像传递给它。"
         ),
-        DirectoryOutput("Directory", of_input=0),
-        FileNameOutput("Name", of_input=0),
+        DirectoryOutput("目录", of_input=0),
+        FileNameOutput("名称", of_input=0),
     ],
 )
 def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
-    logger.debug(f"Reading image from path: {path}")
+    logger.debug(f"正在从路径读取图像: {path}")
 
     dirname, basename, _ = split_file_path(path)
 
@@ -172,7 +168,7 @@ def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
             img = decoder(Path(path))
         except Exception as e:
             error = e
-            logger.warning(f"Decoder {name} failed")
+            logger.warning(f"解码器｛name｝失败")
 
         if img is not None:
             break
@@ -181,7 +177,7 @@ def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
         if error is not None:
             raise error
         raise RuntimeError(
-            f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
+            f'chaiNNer 无法读取您尝试读取的图像“{path}”。'
         )
 
     return img, dirname, basename

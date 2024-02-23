@@ -102,48 +102,48 @@ class TiffColorDepth(Enum):
 
 @io_group.register(
     schema_id="chainner:image:save",
-    name="Save Image",
-    description="Save image to file at a specified directory.",
+    name="保存图像",
+    description="将图像保存到指定目录。",
     icon="MdSave",
     inputs=[
-        ImageInput(),
-        DirectoryInput(must_exist=False, has_handle=True),
-        TextInput("Subdirectory Path")
+        ImageInput("图像"),
+        DirectoryInput(must_exist=False, has_handle=True, label="目录"),
+        TextInput("子目录路径")
         .make_optional()
         .with_docs(
-            "An optional subdirectory path. Use this to save the image to a subdirectory of the specified directory. If the subdirectory does not exist, it will be created. Multiple subdirectories can be specified by separating them with a forward slash (`/`).",
-            "Example: `foo/bar`",
+            "可选的子目录路径。使用此选项将图像保存到指定目录的子目录中。如果子目录不存在，将创建它。可以通过使用斜杠 (`/`) 分隔它们来指定多个子目录。",
+            "示例: `foo/bar`",
         ),
-        TextInput("Image Name").with_docs(
-            "The name of the image file **without** the file extension. If the file already exists, it will be overwritten.",
-            "Example: `my-image`",
+        TextInput("图像名称").with_docs(
+            "图像文件的名称 **不包括** 文件扩展名。如果文件已经存在，将覆盖它。",
+            "示例: `my-image`",
         ),
         EnumInput(
             ImageFormat,
-            "Image Format",
+            "图像格式",
             default=ImageFormat.PNG,
             option_labels=IMAGE_FORMAT_LABELS,
         ).with_id(4),
         if_enum_group(4, ImageFormat.PNG)(
             EnumInput(
                 PngColorDepth,
-                "Color Depth",
+                "颜色深度",
                 default=PngColorDepth.U8,
                 option_labels={
-                    PngColorDepth.U8: "8 Bits/Channel",
-                    PngColorDepth.U16: "16 Bits/Channel",
+                    PngColorDepth.U8: "8 位/通道",
+                    PngColorDepth.U16: "16 位/通道",
                 },
             ).with_id(15),
         ),
         if_enum_group(4, ImageFormat.WEBP)(
-            BoolInput("Lossless", default=False).with_id(14),
+            BoolInput("无损压缩", default=False).with_id(14),
         ),
         if_group(
             Condition.enum(4, ImageFormat.JPG)
             | (Condition.enum(4, ImageFormat.WEBP) & Condition.enum(14, 0))
         )(
             SliderInput(
-                "Quality",
+                "质量",
                 minimum=0,
                 maximum=100,
                 default=95,
@@ -153,26 +153,26 @@ class TiffColorDepth(Enum):
         if_enum_group(4, ImageFormat.JPG)(
             EnumInput(
                 JpegSubsampling,
-                label="Chroma Subsampling",
+                label="色度子采样",
                 default=JpegSubsampling.FACTOR_422,
                 option_labels={
-                    JpegSubsampling.FACTOR_444: "4:4:4 (Best Quality)",
+                    JpegSubsampling.FACTOR_444: "4:4:4 (最佳质量)",
                     JpegSubsampling.FACTOR_440: "4:4:0",
                     JpegSubsampling.FACTOR_422: "4:2:2",
-                    JpegSubsampling.FACTOR_420: "4:2:0 (Best Compression)",
+                    JpegSubsampling.FACTOR_420: "4:2:0 (最佳压缩)",
                 },
             ).with_id(11),
-            BoolInput("Progressive", default=False).with_id(12),
+            BoolInput("渐进", default=False).with_id(12),
         ),
         if_enum_group(4, ImageFormat.TIFF)(
             EnumInput(
                 TiffColorDepth,
-                "Color Depth",
+                "颜色深度",
                 default=TiffColorDepth.U8,
                 option_labels={
-                    TiffColorDepth.U8: "8 Bits/Channel",
-                    TiffColorDepth.U16: "16 Bits/Channel",
-                    TiffColorDepth.F32: "32 Bits/Channel (Float)",
+                    TiffColorDepth.U8: "8 位/通道",
+                    TiffColorDepth.U16: "16 位/通道",
+                    TiffColorDepth.F32: "32 位/通道 (浮点数)",
                 },
             ).with_id(16),
         ),
@@ -181,38 +181,38 @@ class TiffColorDepth(Enum):
             if_enum_group(6, SUPPORTED_BC7_FORMATS)(
                 EnumInput(
                     BC7Compression,
-                    label="BC7 Compression",
+                    label="BC7 压缩",
                     default=BC7Compression.DEFAULT,
                 ).with_id(7),
             ),
             if_enum_group(6, SUPPORTED_BC123_FORMATS)(
-                EnumInput(DDSErrorMetric, label="Error Metric").with_id(9),
-                BoolInput("Dithering", default=False).with_id(8),
+                EnumInput(DDSErrorMetric, label="错误度量").with_id(9),
+                BoolInput("抖动", default=False).with_id(8),
             ),
             DdsMipMapsDropdown()
             .with_id(10)
             .with_docs(
-                "Whether [mipmaps](https://en.wikipedia.org/wiki/Mipmap) will be generated."
-                " Mipmaps vastly improve the quality of the image when it is viewed at a smaller size, but they also increase the file size by 33%."
+                "是否生成 [mipmaps](https://en.wikipedia.org/wiki/Mipmap)。",
+                "Mipmaps 在以较小的尺寸查看图像时极大地提高图像质量，但它们也会使文件大小增加 33%。",
             ),
             if_group(
                 Condition.enum(6, SUPPORTED_WITH_ALPHA)
                 & Condition.enum(10, 0)
                 & Condition.type(0, "Image { channels: 4 }")
             )(
-                BoolInput("Separate Alpha for MipMaps", default=False)
+                BoolInput("为 MipMaps 单独使用 Alpha 通道", default=False)
                 .with_id(13)
                 .with_docs(
-                    "Enable this option when the alpha channel of an image is **not** transparency.",
-                    "The normal method for downscaling images with an alpha channel will remove the color information of transparent pixels (setting them to black). This is a problem if the alpha channel isn't transparency. E.g. games commonly store extra material information in the alpha channel of normal maps. Downscaling color and alpha separately fixes this problem.",
-                    "Note: Do not enable this option if the alpha channel is transparency. Otherwise, dark artifacts may appear around transparency edges.",
+                    "当图像的 Alpha 通道 **不是** 透明时启用此选项。",
+                    "使用 Alpha 通道缩小图像的普通方法会删除透明像素的颜色信息（将其设置为黑色）。如果 Alpha 通道不是透明，则这可能是一个问题。例如，游戏通常在法线贴图的 Alpha 通道中存储额外的材质信息。单独缩小颜色和 Alpha 可以解决此问题。",
+                    "注意: 如果 Alpha 通道是透明，请不要启用此选项。否则，透明边缘周围可能会出现深色伪影。",
                 ),
             ),
         ),
     ],
     outputs=[],
     side_effects=True,
-    limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
+    limited_to_8bpc="图像将默认以 8 位/通道保存。某些格式支持更高的位深度。",
 )
 def save_image_node(
     img: np.ndarray,
