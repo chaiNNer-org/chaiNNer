@@ -21,16 +21,16 @@ class Expression(Enum):
 
 @compositing_group.register(
     schema_id="chainner:image:z_stack",
-    name="Z-Stack Images",
-    description="""Aligns multiple images and evaluates them in relation to each other to create a merged image result.""",
+    name="Z-堆叠图像",
+    description="""对齐多个图像并相对于彼此评估，以创建合并的图像结果。""",
     icon="BsLayersHalf",
     inputs=[
         EnumInput(Expression),
-        ImageInput("Image A"),
-        ImageInput("Image B"),
+        ImageInput("图像 A"),
+        ImageInput("图像 B"),
         optional_list_group(
             *[
-                ImageInput(f"Image {letter}").make_optional()
+                ImageInput(f"图像 {letter}").make_optional()
                 for letter in ALPHABET[2:14]
             ],
         ),
@@ -55,7 +55,7 @@ class Expression(Enum):
                     & conv(Input14)
             """
         ).with_never_reason(
-            "All input images much have the same size and number of channels."
+            "所有输入图像都具有相同的大小和通道数。"
         ),
     ],
 )
@@ -66,11 +66,11 @@ def z_stack_images_node(
     images = [x for x in inputs if x is not None]
     assert (
         2 <= len(images) <= 15
-    ), f"Number of images must be between 2 and 15 ({len(images)})"
+    ), f"图片数量必须在 2 到 15 之间 ({len(images)})"
 
     assert all(
         get_h_w_c(image) == get_h_w_c(images[0]) for image in images
-    ), "All images must have the same dimensions and channels"
+    ), "所有图像必须具有相同的尺寸和通道"
 
     if expression == Expression.MEAN:
         result = np.mean(images, axis=0)

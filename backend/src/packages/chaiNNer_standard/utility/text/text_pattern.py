@@ -10,11 +10,11 @@ from .. import text_group
 
 @text_group.register(
     schema_id="chainner:utility:text_pattern",
-    name="Text Pattern",
-    description="Concatenate text using a pattern with a Python-like string interpolation syntax.",
+    name="文本模式",
+    description="使用类似于 Python 的字符串插值语法使用模式连接文本。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Pattern", has_handle=False, placeholder='E.g. "{1} and {2}"'),
+        TextInput("模式", has_handle=False, placeholder='例如 "{1} 和 {2}"'),
         TextInput("{1}").make_optional(),
         TextInput("{2}").make_optional(),
         optional_list_group(
@@ -23,7 +23,7 @@ from .. import text_group
     ],
     outputs=[
         TextOutput(
-            "Output Text",
+            "输出文本",
             output_type="""
                 formatPattern(
                     Input0,
@@ -39,8 +39,7 @@ from .. import text_group
                 )
                 """,
         ).with_never_reason(
-            "The pattern is either syntactically invalid or contains replacements that do not have a value."
-            '\n\nHint: Use "{{" to escape a single "{" inside the pattern.'
+            "该模式在语法上无效或包含没有值的替换。\n\n提示: 使用“{{”来转义模式中的单个“{”."
         )
     ],
     see_also=["chainner:utility:text_append"],

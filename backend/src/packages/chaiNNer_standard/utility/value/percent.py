@@ -8,8 +8,8 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:percent",
-    name="Percent",
-    description="Outputs the given percent.",
+    name="百分比",
+    description="输出给定的百分比。",
     icon="MdCalculate",
     inputs=[
         SliderInput(

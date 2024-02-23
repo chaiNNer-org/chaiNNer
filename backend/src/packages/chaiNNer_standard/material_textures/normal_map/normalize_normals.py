@@ -20,25 +20,25 @@ class BChannel(Enum):
     ONE = 4
 
 
-@normal_map_group.register(
+    @normal_map_group.register(
     schema_id="chainner:image:normalize_normal_map",
-    name="Normalize Normals",
+    name="法线图归一化",
     description=[
-        "Normalizes the given normal map. Only the R and G channels of the input image will be used to compute the unit vectors.",
-        "While the X and Y component will always be mapped from [-1, 1] to [0, 1] and saved as the R and G channels respectively, the B channel can be configured to contain different values.",
+        "归一化给定的法线图。仅使用输入图像的R和G通道来计算单位向量。",
+        "虽然X和Y分量将始终从[-1,1]映射到[0,1]并保存为R和G通道，但B通道可以配置为包含不同的值。",
     ],
     icon="MdOutlineAutoFixHigh",
     inputs=[
-        ImageInput("Normal Map", channels=[3, 4]),
+        ImageInput("法线图", channels=[3, 4]),
         EnumInput(
-            BChannel, "Output B", label_style="inline", default=BChannel.Z
+            BChannel, "输出B", label_style="inline", default=BChannel.Z
         ).with_docs(
-            "Determines the content of the B channel of the output normal map.",
-            "- `Z`: Unlike the X and Y components which are in range [-1, 1], the Z component is guaranteed to be in the range [0, 1]. This allows us to directly use the Z component as the B channel.",
-            "- `Z Mapped`: Just like the X and Y components, the Z component will be mapped to [0, 1] and stored as the B channel. Since the Z component is always >= 0, the B channel will be in the range [0.5, 1] ([128, 255])",
-            "- `ONE`: The B channel will be 1 (255) everywhere.",
-            "- `HALF`: The B channel will be 0.5 (128) everywhere.",
-            "- `ZERO`: The B channel will be 0 everywhere.",
+            "确定输出法线图的B通道的内容。",
+            "- `Z`: 与始终在范围[-1,1]内的X和Y分量不同，Z分量保证在范围[0,1]内。这使我们可以直接将Z分量用作B通道。",
+            "- `Z Mapped`: 与X和Y分量一样，Z分量将被映射到[0,1]并存储为B通道。由于Z分量始终>=0，B通道将在范围[0.5,1]内（[128,255]）",
+            "- `ONE`: B通道将在所有位置上都为1（255）。",
+            "- `HALF`: B通道将在所有位置上都为0.5（128）。",
+            "- `ZERO`: B通道将在所有位置上都为0。",
         ),
     ],
     outputs=[

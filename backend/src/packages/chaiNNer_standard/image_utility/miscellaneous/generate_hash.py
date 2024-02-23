@@ -14,20 +14,20 @@ from .. import miscellaneous_group
 
 @miscellaneous_group.register(
     schema_id="chainner:image:generate_hash",
-    name="Generate Hash",
-    description="Generate a hash from an image using the BLAKE2b hashing algorithm.",
+    name="生成哈希",
+    description="使用 BLAKE2b 哈希算法从图像生成哈希。",
     icon="MdCalculate",
     inputs=[
         ImageInput(),
         SliderInput(
-            "Digest Size (in bytes)",
+            "摘要大小（字节）",
             minimum=1,
             maximum=64,
             default=8,
             precision=0,
             controls_step=1,
         ).with_docs(
-            "The digest size determines the length of the hash that is returned."
+            "摘要大小确定返回的哈希的长度。"
         ),
     ],
     outputs=[

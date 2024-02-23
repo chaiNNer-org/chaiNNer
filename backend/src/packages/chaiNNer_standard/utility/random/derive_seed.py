@@ -38,14 +38,14 @@ def _to_bytes(s: Source) -> bytes:
 
 @random_group.register(
     schema_id="chainner:utility:derive_seed",
-    name="Derive Seed",
-    description="Creates a new seed from multiple sources of randomness.",
+    name="推导种子",
+    description="从多个随机源创建一个新的种子。",
     icon="MdCalculate",
     inputs=[
         seed_group(SeedInput(has_handle=False)),
-        SourceInput("Source A"),
+        SourceInput("源 A"),
         optional_list_group(
-            *[SourceInput(f"Source {letter}") for letter in ALPHABET[1:10]],
+            *[SourceInput(f"源 {letter}") for letter in ALPHABET[1:10]],
         ),
     ],
     outputs=[

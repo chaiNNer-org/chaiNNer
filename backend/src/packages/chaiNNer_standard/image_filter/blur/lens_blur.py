@@ -136,8 +136,8 @@ def lens_blur(
 
 @blur_group.register(
     schema_id="chainner:image:lens_blur",
-    name="Lens Blur",
-    description="Apply Lens blur to an image.",
+    name="镜头模糊",
+    description="将镜头模糊应用于图像。",
     icon="MdBlurOn",
     inputs=[
         ImageInput(),

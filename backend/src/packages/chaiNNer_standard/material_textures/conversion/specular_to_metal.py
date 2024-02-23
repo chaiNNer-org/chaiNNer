@@ -63,15 +63,15 @@ def spec_to_metal(
 
 @conversion_group.register(
     schema_id="chainner:image:specular_to_metal",
-    name="Specular to Metal",
-    description=("Converts a Specular/Gloss material into a Metal/Roughness material."),
+    name="金属镜面反射",
+    description=("将镜面/光泽材质转换为金属/粗糙度材质。"),
     icon="MdChangeCircle",
     inputs=[
-        ImageInput("Diffuse", channels=[3, 4]),
-        ImageInput("Specular", channels=3),
-        ImageInput("Gloss", channels=1).make_optional(),
+        ImageInput("扩散", channels=[3, 4]),
+        ImageInput("镜面反射", channels=3),
+        ImageInput("光泽", channels=1).make_optional(),
         SliderInput(
-            "Metallic Min",
+            "金属最小值",
             minimum=0,
             maximum=100,
             default=23,
@@ -79,7 +79,7 @@ def spec_to_metal(
             slider_step=1,
         ),
         SliderInput(
-            "Metallic Max",
+            "金属最大",
             minimum=0,
             maximum=100,
             default=30,
@@ -90,12 +90,12 @@ def spec_to_metal(
     outputs=[
         ImageOutput("Albedo", image_type="Input0"),
         ImageOutput(
-            "Metal",
+            "金属",
             image_type=navi.Image(size_as="Input1"),
             channels=1,
         ),
         ImageOutput(
-            "Roughness",
+            "粗糙度",
             image_type="""
                     match Input2 {
                         Image as i => i,

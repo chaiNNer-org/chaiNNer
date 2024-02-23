@@ -10,17 +10,17 @@ from .. import random_group
 
 @random_group.register(
     schema_id="chainner:utility:random_number",
-    name="Random Number",
-    description="Generate a random integer.",
+    name="随机数",
+    description="生成一个随机整数。",
     icon="MdCalculate",
     inputs=[
         NumberInput(
-            "Min",
+            "最小值",
             minimum=None,
             maximum=None,
         ),
         NumberInput(
-            "Max",
+            "最大值",
             minimum=None,
             maximum=None,
             default=100,
@@ -28,7 +28,7 @@ from .. import random_group
         seed_group(SeedInput()),
     ],
     outputs=[
-        NumberOutput("Result", output_type="int & max(.., Input0) & min(.., Input1)")
+        NumberOutput("结果", output_type="int & max(.., Input0) & min(.., Input1)")
     ],
 )
 def random_number_node(min_val: int, max_val: int, seed: Seed) -> int:

@@ -19,19 +19,17 @@ from .. import normal_map_group
 
 @normal_map_group.register(
     schema_id="chainner:image:convert_normal_map",
-    name="Convert Normals",
+    name="转换法线",
     description=[
-        """Convert between different normal map formats. Only the R and G
-            channels of the input image will be used. For DirectX and OpenGL, the output normal map
-            is guaranteed to be normalized.""",
-        "Also supports converting to and from the Octahedral format used by RTX Remix.",
+        """在不同的法线图格式之间进行转换。仅使用输入图像的R和G通道。对于DirectX和OpenGL，输出法线图保证已归一化。""",
+        "还支持与RTX Remix使用的八面体格式之间的转换。",
     ],
     icon="BsBoxArrowUpRight",
     inputs=[
-        ImageInput("Normal Map", channels=[3, 4]),
+        ImageInput("法线图", channels=[3, 4]),
         EnumInput(
             NormalMapType,
-            label="From",
+            label="从",
             label_style="inline",
             default=NormalMapType.DIRECTX,
             option_labels={
@@ -41,19 +39,19 @@ from .. import normal_map_group
         ),
         EnumInput(
             NormalMapType,
-            label="To",
+            label="到",
             label_style="inline",
             default=NormalMapType.OPENGL,
             option_labels={
                 NormalMapType.DIRECTX: "DirectX",
                 NormalMapType.OPENGL: "OpenGL",
-                NormalMapType.OCTAHEDRAL: "Octahedral (RTX Remix)",
+                NormalMapType.OCTAHEDRAL: "八面体（RTX Remix）",
             },
         ),
     ],
     outputs=[
         ImageOutput(
-            "Normal Map",
+            "法线图",
             image_type=navi.Image(
                 width="Input0.width",
                 height="Input0.height",

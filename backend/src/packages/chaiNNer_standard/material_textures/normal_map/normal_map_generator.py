@@ -36,7 +36,7 @@ def as_grayscale(img: np.ndarray) -> np.ndarray:
         return img
     if c == 3:
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    raise AssertionError("Only grayscale and RGB images are supported.")
+    raise AssertionError("仅支持灰度和 RGB 图像。")
 
 
 def normalize(x: np.ndarray, y: np.ndarray):
@@ -49,58 +49,58 @@ def normalize(x: np.ndarray, y: np.ndarray):
 
 @normal_map_group.register(
     schema_id="chainner:image:normal_generator",
-    name="Normal Map Generator",
+    name="法线图生成器",
     description=[
-        "Generate a normal map from a given image using the specified filtering technique.",
-        "The node will first convert the given image into a height map. A filter is then applied to the height map to calculate the normal map.",
-        "### Height map generation",
-        "Since this node needs a height map, it will always convert the input image into one. The **Height** input determines how this conversion happens.",
-        "Generally, if you have already have a good height map for a texture, use it with *Average RGB* for best results.",
-        "If you have a albedo/diffuse texture, most height sources will approximate the height map using pixel brightness. This is a very crude approximation, but can work well enough. Start with *Average RGB* and test our difference filters before using a different height source.",
-        "### Filters",
-        "There are many filters available. Generally, the *Sobel (dUdV) (3x3)* filter is a good choice for obtaining a normal map. Since the filter is small and not too aggressive, it works well even with crude height maps (e.g. height maps obtained from albedo/diffuse textures). For a more aggressive filter, try *Scharr (3x3)* or *4 Sample (1x3)*.",
-        "If you want more control over the output normal map, use the *Multi Gaussian* filter. This filter operates on multiple frequencies and allows you to control the strength of each frequency. This allows you to adjust the influence of tiny details and large features. *Scale 1** is the strength of the smallest details, and **Scale 8** is the strength of the largest features.",
-        "Note: If you set **Scale 1** to 1 and all other scales to 0, you will get (almost) the same result as the *4 Sample (1x3)* filter. If you set **Scale 2** to 1 and all other scales to 0, you will get (almost) the same result as the *Sobel (dUdV) (3x3)* filter.",
+        "使用指定的过滤技术从给定图像生成法线图。",
+        "节点首先将给定图像转换为高度图。然后对高度图应用滤波器以计算法线图。",
+        "### 高度图生成",
+        "由于此节点需要高度图，因此它将始终将输入图像转换为高度图。**高度**输入确定此转换如何进行。",
+        "通常，如果您已经有一个用于纹理的良好高度图，请使用 *平均RGB* 以获得最佳结果。",
+        "如果您有反照率/漫反射纹理，则大多数高度来源将使用像素亮度近似高度图。这是一个非常粗略的近似，但可能足够好用。在使用其他高度来源之前，请尝试 *平均RGB* 并测试不同的滤波器。",
+        "### 滤波器",
+        "有许多可用的滤波器。通常，*Sobel（dUdV）（3x3）* 滤波器是获得法线图的不错选择。由于滤波器尺寸小且不太激进，因此即使在粗略的高度图上（例如从反照率/漫反射纹理获得的高度图），它也能很好地工作。对于更激进的滤波器，请尝试 *Scharr（3x3）* 或 *4样本（1x3）*。",
+        "如果您想对输出法线图进行更精细的控制，请使用 *多高斯* 滤波器。该滤波器对多个频率进行操作，并允许您控制每个频率的强度。这使您可以调整微小细节和大特征的影响。*比例 1** 是最小细节的强度，而 **比例 8** 是最大特征的强度。",
+        "注意：如果将 **比例 1** 设置为 1，将所有其他比例设置为 0，您将获得与 *4样本（1x3）* 滤波器几乎相同的结果。如果将 **比例 2** 设置为 1，将所有其他比例设置为 0，您将获得与 *Sobel（dUdV）（3x3）* 滤波器几乎相同的结果。",
     ],
     icon="MdOutlineAutoFixHigh",
     inputs=[
-        ImageInput("Image", channels=[1, 3, 4]),
-        BoolInput("Tileable", default=False)
+        ImageInput("图像", channels=[1, 3, 4]),
+        BoolInput("可平铺", default=False)
         .with_docs(
-            "If enabled, the input texture will be treated as tileable and a tileable normal map will be created.",
+            "如果启用，将视输入纹理为可平铺，并创建可平铺的法线图。",
             hint=True,
         )
         .with_id(16),
         EnumInput(
             HeightSource,
-            label="Height",
+            label="高度",
             label_style="inline",
             default=HeightSource.AVERAGE_RGB,
         )
         .with_docs(
-            "Given the R, G, B, A channels of the input image, a height map will be calculated as follows:",
-            "- Average RGB: `Height = (R + G + B) / 3`",
-            "- Max RGB: `Height = max(R, G, B)`",
-            "- Screen RGB: `Height = 1 - ((1 - R) * (1 - G) * (1 - B))`",
-            "- Red: `Height = R`",
-            "- Green: `Height = G`",
-            "- Blue: `Height = B`",
-            "- Alpha: `Height = A`",
+            "给定输入图像的R、G、B、A通道，将计算高度图如下：",
+            "- 平均RGB: `高度 = (R + G + B) / 3`",
+            "- 最大RGB: `高度 = max(R, G, B)`",
+            "- 屏幕RGB: `高度 = 1 - ((1 - R) * (1 - G) * (1 - B))`",
+            "- 红色: `高度 = R`",
+            "- 绿色: `高度 = G`",
+            "- 蓝色: `高度 = B`",
+            "- Alpha: `高度 = A`",
         )
         .with_id(1),
         SliderInput(
-            "Blur/Sharp",
+            "模糊/锐化",
             minimum=-20,
             maximum=20,
             default=0,
             precision=1,
         )
         .with_docs(
-            "A quick way to blur or sharpen the height map. Negative values blur, positive values sharpen."
+            "快速模糊或锐化高度图的方法。负值会模糊，正值会锐化。"
         )
         .with_id(2),
         SliderInput(
-            "Min Z",
+            "最小 Z",
             minimum=0,
             maximum=1,
             default=0,

@@ -27,20 +27,20 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
 
 @miscellaneous_group.register(
     schema_id="chainner:image:change_colorspace",
-    name="Change Colorspace",
+    name="更改颜色空间",
     description=(
-        "Convert the colorspace of an image to a different one. "
-        "Also can convert to different channel-spaces."
+        "将图像的颜色空间转换为其他颜色空间。"
+        "还可以转换为不同的通道空间。"
     ),
     icon="MdColorLens",
     inputs=[
         ImageInput(image_type=navi.Image(channels="Input1.channels")),
         from_to_dropdowns_group(
-            ColorSpaceDetectorInput(label="From").with_id(1),
-            ColorSpaceInput(label="To").with_id(2),
+            ColorSpaceDetectorInput(label="从").with_id(1),
+            ColorSpaceInput(label="到").with_id(2),
         ),
         if_enum_group(2, COLOR_SPACES_WITH_ALPHA_PARTNER)(
-            BoolInput("Output Alpha", default=False),
+            BoolInput("输出 Alpha", default=False),
         ),
     ],
     outputs=[

@@ -12,8 +12,8 @@ from .. import sharpen_group
 
 @sharpen_group.register(
     schema_id="chainner:image:sharpen",
-    name="Unsharp Mask",
-    description="Apply sharpening to an image using an unsharp mask.",
+    name="模糊蒙版",
+    description="使用锐化蒙版对图像应用锐化。",
     see_also="chainner:image:sharpen_hbf",
     icon="MdBlurOff",
     inputs=[

@@ -40,8 +40,8 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
 
 @math_group.register(
     schema_id="chainner:utility:math",
-    name="Math",
-    description="Perform mathematical operations on numbers.",
+    name="数学",
+    description="对数字进行数学运算。",
     see_also=[
         "chainner:utility:math_round",
         "chainner:utility:number",
@@ -92,7 +92,7 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
                 }
                 """,
         ).with_never_reason(
-            "The mathematical operation is not defined. This is most likely a divide by zero error."
+            "数学运算未定义。这很可能是除以零的错误。"
         )
     ],
 )

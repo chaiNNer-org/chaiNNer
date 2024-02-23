@@ -14,13 +14,13 @@ from .. import noise_group
 
 @noise_group.register(
     schema_id="chainner:image:fast_nlmeans",
-    name="Fast NL means",
-    description="Use the fast Non-Local Means algorithm to denoise an image.",
+    name="快速NL均值s",
+    description="使用快速非局部均值算法对图像进行去噪。",
     icon="CgEditNoise",
     inputs=[
-        ImageInput("Image", channels=[1, 3, 4]),
+        ImageInput("图像", channels=[1, 3, 4]),
         SliderInput(
-            "Luminance strength",
+            "亮度强度",
             minimum=0,
             maximum=50,
             default=3.0,
@@ -30,7 +30,7 @@ from .. import noise_group
         ),
         if_group(Condition.type(0, "Image { channels: 3 | 4 }"))(
             SliderInput(
-                "Color strength",
+                "颜色强度",
                 minimum=0.0,
                 maximum=50.0,
                 default=3.0,
@@ -39,8 +39,8 @@ from .. import noise_group
                 slider_step=0.1,
             )
         ),
-        NumberInput("Patch radius", minimum=1, default=3, maximum=30, precision=0),
-        NumberInput("Search radius", minimum=1, default=10, maximum=30, precision=0),
+        NumberInput("块半径", minimum=1, default=3, maximum=30, precision=0),
+        NumberInput("搜索半径", minimum=1, default=10, maximum=30, precision=0),
     ],
     outputs=[ImageOutput(image_type="Input0")],
     limited_to_8bpc=True,

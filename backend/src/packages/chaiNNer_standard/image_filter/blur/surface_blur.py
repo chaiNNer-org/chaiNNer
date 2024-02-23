@@ -12,8 +12,8 @@ from .. import blur_group
 
 @blur_group.register(
     schema_id="chainner:image:bilateral_blur",
-    name="Surface Blur",
-    description="Apply surface/bilateral blur to an image.",
+    name="表面模糊",
+    description="对图像应用表面/双边模糊。",
     icon="MdBlurOn",
     inputs=[
         ImageInput(),

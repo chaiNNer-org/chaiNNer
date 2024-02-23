@@ -18,8 +18,8 @@ class ColorType(Enum):
 
 @color_group.register(
     schema_id="chainner:utility:color_from_channels",
-    name="Color From",
-    description="Create a new color value from individual channels.",
+    name="颜色来源",
+    description="从各个通道创建新的颜色值。",
     icon="MdColorLens",
     inputs=[
         EnumInput(ColorType, "Color Type", ColorType.RGBA, preferred_style="tabs"),
@@ -112,4 +112,4 @@ def color_from_node(
     if color_type == ColorType.RGBA:
         return Color.bgra([blue / 255, green / 255, red / 255, alpha / 100])
     else:
-        raise AssertionError(f"Invalid color type {color_type}")
+        raise AssertionError(f"颜色类型无效 {color_type}")

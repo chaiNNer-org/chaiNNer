@@ -8,18 +8,18 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:parse_number",
-    name="Parse Number",
-    description="Parses text to base-10.",
+    name="解析数字",
+    description="将文本解析为十进制数字。",
     icon="MdCalculate",
     inputs=[
-        TextInput("Text", label_style="inline"),
-        NumberInput("Base", default=10, minimum=2, maximum=36),
+        TextInput("文本", label_style="inline"),
+        NumberInput("基数", default=10, minimum=2, maximum=36),
     ],
     outputs=[
         NumberOutput(
-            "Value",
+            "数值",
             output_type="int & number::parseInt(Input0, Input1)",
-        ).with_never_reason("The given text cannot be parsed into a number."),
+        ).with_never_reason("无法将给定文本解析为数字。"),
     ],
 )
 def parse_number_node(text: str, base: int) -> int:

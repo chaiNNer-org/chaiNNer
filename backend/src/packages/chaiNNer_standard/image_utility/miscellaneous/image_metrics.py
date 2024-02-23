@@ -15,14 +15,14 @@ from .. import miscellaneous_group
 
 @miscellaneous_group.register(
     schema_id="chainner:image:image_metrics",
-    name="Image Metrics",
+    name="图像度量",
     description=(
-        """Calculate image quality metrics (MSE, PSNR, SSIM) between two images."""
+        """计算两个图像之间的图像质量度量（MSE、PSNR、SSIM）。"""
     ),
     icon="MdOutlineAssessment",
     inputs=[
-        ImageInput("Original Image"),
-        ImageInput("Comparison Image"),
+        ImageInput("原始图像"),
+        ImageInput("比较图像"),
     ],
     outputs=[
         NumberOutput("MSE", output_type="0..1"),
@@ -35,7 +35,7 @@ def image_metrics_node(
 ) -> tuple[float, float, float]:
     assert (
         orig_img.shape == comp_img.shape
-    ), "Images must have same dimensions and color depth"
+    ), "图片必须具有相同的尺寸和颜色深度"
 
     # If an image is not grayscale, convert to YCrCb and compute metrics
     # on luma channel only

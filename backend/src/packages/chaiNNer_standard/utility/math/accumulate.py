@@ -54,8 +54,8 @@ class Operation(Enum):
 
 @math_group.register(
     schema_id="chainner:utility:accumulate",
-    name="Accumulate",
-    description="Calculates a single number of a sequence of number.",
+    name="累积",
+    description="计算数字序列中的单个数字。",
     icon="MdCalculate",
     inputs=[
         AnyNumberInput("Numbers"),

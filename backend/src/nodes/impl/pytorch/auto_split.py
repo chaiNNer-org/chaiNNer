@@ -21,7 +21,7 @@ def _into_standard_image_form(t: torch.Tensor) -> torch.Tensor:
         # (1, C, H, W) -> (H, W, C)
         return t.squeeze(0).permute(1, 2, 0)
     else:
-        raise ValueError("Unsupported output tensor shape")
+        raise ValueError("不支持的输出张量形状")
 
 
 def _into_batched_form(t: torch.Tensor) -> torch.Tensor:

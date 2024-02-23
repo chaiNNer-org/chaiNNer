@@ -8,16 +8,16 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:text",
-    name="Text",
-    description="Outputs the given text.",
+    name="文本",
+    description="输出给定的文本。",
     icon="MdTextFields",
     inputs=[
         TextInput(
-            "Text", min_length=0, label_style="hidden", allow_empty_string=True
+            "文本", min_length=0, label_style="hidden", allow_empty_string=True
         ).make_fused(),
     ],
     outputs=[
-        TextOutput("Text", output_type="Input0"),
+        TextOutput("文本", output_type="Input0"),
     ],
 )
 def text_node(text: str) -> str:

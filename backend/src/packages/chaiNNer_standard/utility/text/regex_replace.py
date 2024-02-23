@@ -18,26 +18,26 @@ class ReplacementMode(Enum):
 
 @text_group.register(
     schema_id="chainner:utility:regex_replace",
-    name="Regex Replace",
-    description="Replace occurrences of some regex with a replacement text. Either or all occurrences or the first occurrence will be replaced",
+    name="正则表达式替换",
+    description="使用替换文本替换一些正则表达式的出现。可以替换所有出现、任意一个出现，或者第一个出现。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text"),
-        TextInput("Regex", placeholder=r'E.g. "\b\w+\b"'),
+        TextInput("文本"),
+        TextInput("正则表达式", placeholder=r'例如 "\b\w+\b"'),
         TextInput(
-            "Replacement Pattern",
+            "替换模式",
             allow_empty_string=True,
-            placeholder=r'E.g. "found {0}"',
+            placeholder=r'例如 "找到 {0}"',
         ),
         EnumInput(
             ReplacementMode,
-            label="Replace mode",
+            label="替换模式",
             default=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[
         TextOutput(
-            "Text",
+            "文本",
             output_type="""
                 let count = match Input3 {
                     ReplacementMode::ReplaceAll => inf,
@@ -46,7 +46,7 @@ class ReplacementMode(Enum):
                 regexReplace(Input0, Input1, Input2, count)
             """,
         ).with_never_reason(
-            "Either the regex pattern or the replacement pattern is invalid"
+            "正则表达式模式或替换模式无效"
         ),
     ],
     see_also=["chainner:utility:text_replace"],

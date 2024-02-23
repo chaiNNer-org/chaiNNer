@@ -12,8 +12,8 @@ from .. import blur_group
 
 @blur_group.register(
     schema_id="chainner:image:median_blur",
-    name="Median Blur",
-    description="Apply median blur to an image.",
+    name="中值模糊",
+    description="对图像应用中值模糊。",
     icon="MdBlurOn",
     inputs=[
         ImageInput(),

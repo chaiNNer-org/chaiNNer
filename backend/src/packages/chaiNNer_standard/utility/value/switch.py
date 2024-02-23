@@ -25,16 +25,16 @@ class ValueIndex(Enum):
 
 @value_group.register(
     schema_id="chainner:utility:switch",
-    name="Switch",
-    description="Allows you to pass in multiple inputs and then change which one passes through to the output.",
+    name="切换",
+    description="允许传入多个输入，然后更改通过到输出的输入。",
     icon="BsShuffle",
     inputs=[
         EnumInput(ValueIndex),
-        AnyInput(label="Value A"),
-        AnyInput(label="Value B"),
+        AnyInput(label="值 A"),
+        AnyInput(label="值 B"),
         optional_list_group(
             *[
-                AnyInput(label=f"Value {letter}").make_optional()
+                AnyInput(label=f"值 {letter}").make_optional()
                 for letter in ALPHABET[2:10]
             ],
         ),
@@ -61,8 +61,8 @@ class ValueIndex(Enum):
                 _ => value
             }
             """,
-            label="Value",
-        ).with_never_reason("The selected value should have a connection.")
+            label="值",
+        ).with_never_reason("所选值应该有连接。")
     ],
     see_also=["chainner:utility:pass_through"],
 )
@@ -70,5 +70,5 @@ def switch_node(selection: ValueIndex, *args: object | None) -> object:
     if args[selection.value] is not None:
         return args[selection.value]
     raise RuntimeError(
-        "Invalid value selected. The selected value should have a connection."
+        "选择的值无效。所选的值应该有连接。"
     )

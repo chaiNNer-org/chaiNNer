@@ -48,14 +48,14 @@ def get_kernel_2d(radius_x: float, radius_y: float) -> np.ndarray:
 
 @blur_group.register(
     schema_id="chainner:image:blur",
-    name="Box Blur",
-    description="Apply box/average blur to an image.",
+    name="框模糊",
+    description="对图像应用框/平均模糊。",
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
         linked_inputs_group(
             SliderInput(
-                "Radius X",
+                "半径 X",
                 minimum=0,
                 maximum=1000,
                 default=1,
@@ -65,7 +65,7 @@ def get_kernel_2d(radius_x: float, radius_y: float) -> np.ndarray:
                 scale="log",
             ),
             SliderInput(
-                "Radius Y",
+                "半径 Y",
                 minimum=0,
                 maximum=1000,
                 default=1,

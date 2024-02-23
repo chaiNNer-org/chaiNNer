@@ -10,30 +10,30 @@ from .. import text_group
 
 @text_group.register(
     schema_id="chainner:utility:text_append",
-    name="Text Append",
+    name="文本追加",
     description=[
-        "Append different text together using a separator string.",
-        "This is the simplest method to join/concatenate text strings together.",
+        "使用分隔符字符串将不同的文本连接在一起。",
+        "这是将文本字符串连接在一起的最简单方法。",
     ],
     icon="MdTextFields",
     inputs=[
         TextInput(
-            "Separator",
+            "分隔符",
             has_handle=False,
             min_length=0,
             max_length=3,
             default="-",
             allow_empty_string=True,
         ),
-        TextInput("Text A"),
-        TextInput("Text B"),
+        TextInput("文本A"),
+        TextInput("文本B"),
         optional_list_group(
-            *[TextInput(f"Text {letter}").make_optional() for letter in ALPHABET[2:10]],
+            *[TextInput(f"文本{letter}").make_optional() for letter in ALPHABET[2:10]],
         ),
     ],
     outputs=[
         TextOutput(
-            "Output Text",
+            "输出文本",
             output_type="""
                 let sep = Input0;
                 string::concat(
@@ -49,7 +49,7 @@ from .. import text_group
                     match Input9 { null => "", _ as s => string::concat(sep, s) },
                     match Input10 { null => "", _ as s => string::concat(sep, s) }
                 )
-                """,
+            """,
         )
     ],
     see_also=["chainner:utility:text_pattern"],

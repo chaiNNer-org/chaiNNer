@@ -20,18 +20,18 @@ class Orientation(Enum):
 
 @compositing_group.register(
     schema_id="chainner:image:stack",
-    name="Stack Images",
-    description="Concatenate (stack) multiple images horizontally or vertically.",
+    name="堆叠图像",
+    description="水平或垂直连接（堆叠）多个图像。",
     icon="CgMergeVertical",
     inputs=[
         EnumInput(Orientation).with_id(4),
-        ImageInput("Image A").with_id(0),
-        ImageInput("Image B").make_optional().with_id(1),
+        ImageInput("图像 A").with_id(0),
+        ImageInput("图像 B").make_optional().with_id(1),
         optional_list_group(
-            ImageInput("Image C").make_optional().with_id(2),
-            ImageInput("Image D").make_optional().with_id(3),
+            ImageInput("图像 C").make_optional().with_id(2),
+            ImageInput("图像 D").make_optional().with_id(3),
             *[
-                ImageInput(f"Image {letter}").make_optional()
+                ImageInput(f"图像 {letter}").make_optional()
                 for letter in ALPHABET[4:14]
             ],
         ),

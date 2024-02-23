@@ -9,25 +9,25 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:range",
-    name="Range",
-    description="Iterates through all integers in the given range.",
+    name="范围",
+    description="迭代给定范围内的所有整数。",
     icon="MdCalculate",
     inputs=[
-        NumberInput("Start", default=0, minimum=None, maximum=None),
-        BoolInput("Start Inclusive", default=True),
-        NumberInput("Stop", default=10, minimum=None, maximum=None),
-        BoolInput("Stop Inclusive", default=False),
+        NumberInput("开始", default=0, minimum=None, maximum=None),
+        BoolInput("包含开始", default=True),
+        NumberInput("结束", default=10, minimum=None, maximum=None),
+        BoolInput("包含结束", default=False),
     ],
     outputs=[
         NumberOutput(
-            "Number",
+            "数字",
             output_type="""
                 let start = if Input1 { Input0 } else { Input0 + 1 };
                 let stop = if Input3 { Input2 } else { Input2 - 1 };
 
                 max(int, start) & min(int, stop)
             """,
-        ).with_never_reason("The range is empty."),
+        ).with_never_reason("范围为空。"),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=0),
     kind="newIterator",

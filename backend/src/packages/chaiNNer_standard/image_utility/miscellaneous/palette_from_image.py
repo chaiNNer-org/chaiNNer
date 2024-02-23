@@ -24,9 +24,9 @@ class PaletteExtractionMethod(Enum):
 
 
 PALETTE_EXTRACTION_METHOD_LABELS = {
-    PaletteExtractionMethod.ALL: "All distinct colors",
-    PaletteExtractionMethod.KMEANS: "K-Means",
-    PaletteExtractionMethod.MEDIAN_CUT: "Median cut",
+    PaletteExtractionMethod.ALL: "所有不同的颜色",
+    PaletteExtractionMethod.KMEANS: "K均值",
+    PaletteExtractionMethod.MEDIAN_CUT: "中值切割",
 }
 
 MAX_COLORS = 4096
@@ -34,11 +34,11 @@ MAX_COLORS = 4096
 
 @miscellaneous_group.register(
     schema_id="chainner:image:palette_from_image",
-    name="Palette from Image",
+    name="从图像生成调色板",
     description=[
-        "Use an image to create a color palette.",
-        "The color palette is returned as an image with one row (height=1). All colors of the palette are in the top row of the image.",
-        f'*Note:* The "{PALETTE_EXTRACTION_METHOD_LABELS[PaletteExtractionMethod.ALL]}" option only supports images with at most {MAX_COLORS} distinct colors. If the image has more colors, an error will occur.',
+        "使用图像创建一个调色板。",
+        "调色板作为一行图像返回（高度=1）。调色板的所有颜色都在图像的顶行。",
+        f'*注意：*“{PALETTE_EXTRACTION_METHOD_LABELS[PaletteExtractionMethod.ALL]}”选项仅支持最多具有{MAX_COLORS}种不同颜色的图像。如果图像具有更多颜色，将会出现错误。',
     ],
     see_also=[
         "chainner:image:lut",
@@ -57,13 +57,13 @@ MAX_COLORS = 4096
             (PaletteExtractionMethod.KMEANS, PaletteExtractionMethod.MEDIAN_CUT),
         )(
             NumberInput(
-                "Palette Size", minimum=2, maximum=MAX_COLORS, default=8
+                "调色板大小", minimum=2, maximum=MAX_COLORS, default=8
             ).with_id(2),
         ),
     ],
     outputs=[
         ImageOutput(
-            "Palette",
+            "调色板",
             image_type=navi.Image(
                 width="""
                     min(
@@ -91,7 +91,7 @@ def palette_from_image_node(
     if palette_extraction_method == PaletteExtractionMethod.ALL:
         if distinct_count > MAX_COLORS:
             raise ValueError(
-                f"Image has {distinct_count} distinct colors, but only palettes with at most {MAX_COLORS} colors are supported."
+                f"图像具有{distinct_count}种不同的颜色，但只支持最多{MAX_COLORS}种颜色的调色板。"
             )
         return distinct_colors
 

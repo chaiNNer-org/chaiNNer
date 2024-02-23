@@ -12,13 +12,13 @@ from .. import miscellaneous_group
 
 @miscellaneous_group.register(
     schema_id="chainner:image:image_statistics",
-    name="Image Statistics",
-    description="Returns statistics of the given image.",
+    name="图像统计",
+    description="返回给定图像的统计信息。",
     icon="MdOutlineAssessment",
     inputs=[
         ImageInput(channels=1),
         SliderInput(
-            "Percentile",
+            "百分位数",
             precision=2,
             minimum=0,
             maximum=100,
@@ -29,10 +29,10 @@ from .. import miscellaneous_group
         ),
     ],
     outputs=[
-        NumberOutput("Minimum", output_type="0..255"),
-        NumberOutput("Maximum", output_type="0..255"),
-        NumberOutput("Arithmetic Mean", output_type="0..255"),
-        NumberOutput("Percentile", output_type="0..255"),
+        NumberOutput("最小值", output_type="0..255"),
+        NumberOutput("最大值", output_type="0..255"),
+        NumberOutput("算术平均值", output_type="0..255"),
+        NumberOutput("百分位数", output_type="0..255"),
     ],
 )
 def image_statistics_node(

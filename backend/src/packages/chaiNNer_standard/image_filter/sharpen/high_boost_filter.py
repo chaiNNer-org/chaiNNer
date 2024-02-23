@@ -20,13 +20,13 @@ class KernelType(Enum):
 
 @sharpen_group.register(
     schema_id="chainner:image:sharpen_hbf",
-    name="High Boost Filter",
-    description="Apply sharpening to an image using a high boost filter.",
+    name="高升压滤波器",
+    description="使用高提升滤波器对图像进行锐化。",
     see_also="chainner:image:sharpen",
     icon="MdBlurOff",
     inputs=[
         ImageInput(),
-        EnumInput(KernelType, label="Filter Type"),
+        EnumInput(KernelType, label="滤波器类型"),
         SliderInput(
             "Amount",
             minimum=0,
@@ -36,15 +36,15 @@ class KernelType(Enum):
             controls_step=1,
             scale="log",
         ),
-        BoolInput("Contrast Adaptive", default=False)
+        BoolInput("对比度自适应", default=False)
         .with_id(3)
         .with_docs(
-            "Enable contrast adaptive sharpening.",
-            "This will sharpen the image more evenly and prevents over-sharpening in dark areas and areas that are already quite sharp.",
+            "启用对比度自适应锐化。",
+            "这将使图像的锐化更均匀，防止在暗区域和已经相当锐利的区域过度锐化。",
         ),
         if_enum_group(3, 1)(
             SliderInput(
-                "Contrast Bias",
+                "对比度偏差",
                 minimum=1,
                 maximum=3,
                 default=2,
@@ -52,8 +52,8 @@ class KernelType(Enum):
                 controls_step=0.1,
                 slider_step=0.1,
             ).with_docs(
-                "A bias that controls the strength of the contrast adaptiveness. A bias of 2 is recommended, because it offers a good trade-off between sharpening and contrast adaptiveness.",
-                "A high bias will result in more sharpening but lose contrast adaptiveness. The bias is bounded between 1 and 3 because values higher than 3 effectively disable the contrast adaptiveness. A bias less than 2 will result in noticeable less sharpening, but apply that sharpening very evenly.",
+                "一个控制对比度自适应强度的偏差。推荐使用偏差为2，因为它在锐化和对比度自适应之间取得了良好的平衡。",
+                "较高的偏差将导致更多的锐化但失去对比度自适应性。偏差限制在1和3之间，因为高于3的值实际上会禁用对比度自适应性。偏差小于2将导致明显减少的锐化，但会均匀应用该锐化。",
             )
         ),
     ],

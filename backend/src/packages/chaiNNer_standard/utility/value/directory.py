@@ -10,8 +10,8 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:directory",
-    name="Directory",
-    description="Outputs the given directory.",
+    name="目录",
+    description="输出给定的目录。",
     icon="BsFolder",
     inputs=[
         DirectoryInput(

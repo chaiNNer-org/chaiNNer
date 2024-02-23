@@ -25,7 +25,7 @@ def _into_batched_form(img: np.ndarray, change_shape: bool) -> np.ndarray:
             # (H, W) -> (1, 1, H, W)
             return img[np.newaxis, np.newaxis, :]
     else:
-        raise ValueError("Unsupported input tensor shape")
+        raise ValueError("不支持的输入张量形状")
 
 
 def _into_standard_image_form(img: np.ndarray, change_shape: bool) -> np.ndarray:
@@ -48,7 +48,7 @@ def _into_standard_image_form(img: np.ndarray, change_shape: bool) -> np.ndarray
         # (H, W)
         return img
     else:
-        raise ValueError("Unsupported output tensor shape")
+        raise ValueError("不支持的输出张量形状")
 
 
 def _flip_r_b_channels(img: np.ndarray) -> np.ndarray:
@@ -93,7 +93,7 @@ def onnx_auto_split(
                 or "cudaMalloc" in str(e)
             ):
                 raise RuntimeError(  # noqa: B904
-                    "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+                    "发生 VRAM 内存不足错误。请尝试使用更极端的平铺模式。"
                 )
             else:
                 # Re-raise the exception if not an OOM error

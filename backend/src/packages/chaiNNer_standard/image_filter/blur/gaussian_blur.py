@@ -12,8 +12,8 @@ from .. import blur_group
 
 @blur_group.register(
     schema_id="chainner:image:gaussian_blur",
-    name="Gaussian Blur",
-    description="Apply Gaussian blur to an image.",
+    name="高斯模糊",
+    description="对图像应用高斯模糊。",
     icon="MdBlurOn",
     inputs=[
         ImageInput(),

@@ -14,10 +14,9 @@ from .. import io_group
 
 @io_group.register(
     schema_id="chainner:ncnn:load_model",
-    name="Load Model",
+    name="加载模型",
     description=(
-        "Load NCNN model (.bin and .param files). Theoretically supports any NCNN"
-        " Super-Resolution model that doesn't expect non-standard preprocessing."
+        "加载 NCNN 模型（.bin 和 .param 文件）。理论上支持任何不需要非标准预处理的 NCNN 超分辨率模型。"
     ),
     icon="NCNN",
     inputs=[
@@ -28,8 +27,8 @@ from .. import io_group
     ],
     outputs=[
         NcnnModelOutput(kind="tagged"),
-        DirectoryOutput("Directory", of_input=0).with_id(2),
-        FileNameOutput("Name", of_input=0).with_id(1),
+        DirectoryOutput("目录", of_input=0).with_id(2),
+        FileNameOutput("名称", of_input=0).with_id(1),
     ],
     see_also=[
         "chainner:ncnn:load_models",

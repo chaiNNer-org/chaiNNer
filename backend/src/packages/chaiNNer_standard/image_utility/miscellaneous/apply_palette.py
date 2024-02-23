@@ -33,16 +33,16 @@ def quantize(img: np.ndarray, levels: int) -> np.ndarray:
 
 @miscellaneous_group.register(
     schema_id="chainner:image:lut",
-    name="Apply Palette",
+    name="应用调色板",
     description=(
-        "Apply a color palette to a grayscale image."
-        " Only the top row of pixels (y=0) of the palette will be used to do the look up."
+        "将调色板应用于灰度图像。"
+        " 仅调色板的顶行像素 (y=0) 将用于进行查找。"
     ),
     see_also="chainner:image:palette_from_image",
     icon="MdGradient",
     inputs=[
         ImageInput(channels=1),
-        ImageInput("Palette"),
+        ImageInput("调色板"),
     ],
     outputs=[
         ImageOutput(image_type=navi.Image(size_as="Input0", channels_as="Input1"))

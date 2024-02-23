@@ -9,8 +9,8 @@ from .. import color_group
 
 @color_group.register(
     schema_id="chainner:utility:color",
-    name="Color",
-    description="Outputs the given color.",
+    name="颜色",
+    description="输出给定的颜色。",
     icon="MdColorLens",
     inputs=[
         ColorInput().make_fused(),

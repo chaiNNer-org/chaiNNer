@@ -15,22 +15,22 @@ class ReplacementMode(Enum):
 
 @text_group.register(
     schema_id="chainner:utility:text_replace",
-    name="Text Replace",
-    description="Replace occurrences of some text with a replacement text. Either or all occurrences or the first occurrence will be replaced",
+    name="文本替换",
+    description="使用替换文本替换一些文本的出现。将替换所有或所有出现或第一次出现",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text"),
-        TextInput("Old Text"),
-        TextInput("Replacement", allow_empty_string=True),
+        TextInput("文本"),
+        TextInput("旧文本"),
+        TextInput("替换", allow_empty_string=True),
         EnumInput(
             ReplacementMode,
-            label="Replace mode",
+            label="替换模式",
             default=ReplacementMode.REPLACE_ALL,
         ),
     ],
     outputs=[
         TextOutput(
-            "Text",
+            "文本",
             output_type="""
                 let count = match Input3 {
                     ReplacementMode::ReplaceAll => inf,

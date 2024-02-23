@@ -16,25 +16,25 @@ class PaddingAlignment(Enum):
 
 @text_group.register(
     schema_id="chainner:utility:text_padding",
-    name="Text Padding",
-    description="Pads text until it has a certain length.",
+    name="文本填充",
+    description="填充文本直到达到特定长度。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text"),
-        NumberInput("Width", unit="chars"),
+        TextInput("文本"),
+        NumberInput("宽度", unit="字符"),
         TextInput(
-            "Padding Character",
+            "填充字符",
             has_handle=False,
             allow_numbers=False,
             min_length=1,
             max_length=1,
-            placeholder="e.g. '0' or ' '",
+            placeholder="例如 '0' 或 ' '",
         ),
-        EnumInput(PaddingAlignment, label="Alignment"),
+        EnumInput(PaddingAlignment, label="对齐方式"),
     ],
     outputs=[
         TextOutput(
-            "Output Text",
+            "输出文本",
             output_type="""
                 match Input3 {
                     PaddingAlignment::Start => padStart(Input0, Input1, Input2),

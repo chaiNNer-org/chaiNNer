@@ -13,32 +13,30 @@ from .. import normal_map_group
 
 @normal_map_group.register(
     schema_id="chainner:image:add_normals",
-    name="Add Normals",
-    description="""Add 2 normal maps together. Only the R and G
-            channels of the input image will be used. The output normal map
-            is guaranteed to be normalized.""",
+    name="添加法线",
+    description="""将两个法线图相加。仅使用输入图像的R和G通道。输出法线图保证已归一化。""",
     icon="MdAddCircleOutline",
     inputs=[
-        ImageInput("Normal Map 1", channels=[3, 4]),
-        SliderInput("Strength 1", maximum=200, default=100),
-        ImageInput("Normal Map 2", channels=[3, 4]),
-        SliderInput("Strength 2", maximum=200, default=100),
+        ImageInput("法线图1", channels=[3, 4]),
+        SliderInput("强度1", maximum=200, default=100),
+        ImageInput("法线图2", channels=[3, 4]),
+        SliderInput("强度2", maximum=200, default=100),
         EnumInput(
             AdditionMethod,
-            label="Method",
+            label="方法",
             default=AdditionMethod.PARTIAL_DERIVATIVES,
         ),
     ],
     outputs=[
         ImageOutput(
-            "Normal Map",
+            "法线图",
             image_type=navi.Image(
                 width="Input0.width & Input2.width",
                 height="Input0.height & Input2.height",
             ),
             channels=3,
         ).with_never_reason(
-            "The given normal maps have different sizes but must be the same size."
+            "给定的法线图大小不同，但必须相同大小。"
         ),
     ],
 )

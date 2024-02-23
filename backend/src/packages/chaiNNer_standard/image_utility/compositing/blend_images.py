@@ -69,23 +69,23 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
 
 @compositing_group.register(
     schema_id="chainner:image:blend",
-    name="Blend Images",
-    description="""Blends an overlay image onto a base image using the specified mode.""",
+    name="混合图像",
+    description="""使用指定的模式将叠加图像混合到基础图像上。""",
     icon="BsLayersHalf",
     inputs=[
-        ImageInput("Base Layer", channels=[1, 3, 4], allow_colors=True),
-        ImageInput("Overlay Layer", channels=[1, 3, 4], allow_colors=True),
+        ImageInput("基础图层", channels=[1, 3, 4], allow_colors=True),
+        ImageInput("叠加图层", channels=[1, 3, 4], allow_colors=True),
         BlendModeDropdown(),
         if_group(Condition.type(0, "Image") & Condition.type(1, "Image"))(
             EnumInput(
                 BlendOverlayPosition,
-                label="Overlay position",
+                label="叠加位置",
                 option_labels=BLEND_OVERLAY_POSITION_LABELS,
                 default=BlendOverlayPosition.CENTERED,
             ),
             if_enum_group(3, (BlendOverlayPosition.PERCENT_OFFSET))(
                 SliderInput(
-                    "X offset",
+                    "X 偏移",
                     precision=0,
                     controls_step=1,
                     minimum=-200,
@@ -94,7 +94,7 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
                     unit="%",
                 ),
                 SliderInput(
-                    "Y offset",
+                    "Y 轴偏移",
                     precision=0,
                     controls_step=1,
                     minimum=-200,
@@ -105,7 +105,7 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
             ),
             if_enum_group(3, (BlendOverlayPosition.PIXEL_OFFSET))(
                 NumberInput(
-                    "X offset",
+                    "X 偏移",
                     controls_step=1,
                     minimum=None,
                     maximum=None,
@@ -113,7 +113,7 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
                     unit="px",
                 ),
                 NumberInput(
-                    "Y offset",
+                    "Y 轴偏移",
                     controls_step=1,
                     minimum=None,
                     maximum=None,
@@ -121,7 +121,7 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
                     unit="px",
                 ),
             ),
-            BoolInput("Crop to fit base layer", default=False),
+            BoolInput("裁剪以适合基层", default=False),
         ),
     ],
     outputs=[

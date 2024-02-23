@@ -11,16 +11,16 @@ from .. import compositing_group
 
 @compositing_group.register(
     schema_id="chainner:image:caption",
-    name="Add Caption",
-    description="Add a caption to the top or bottom of an image.",
+    name="添加标题",
+    description="在图像的顶部或底部添加标题。",
     icon="MdVideoLabel",
     inputs=[
         ImageInput(),
-        TextInput("Caption"),
-        NumberInput("Size", minimum=20, default=42, unit="px"),
+        TextInput("标题"),
+        NumberInput("大小", minimum=20, default=42, unit="px"),
         EnumInput(
             CaptionPosition,
-            "Position",
+            "位置",
             default=CaptionPosition.BOTTOM,
             label_style="inline",
         ),
@@ -28,7 +28,7 @@ from .. import compositing_group
     outputs=[
         ImageOutput(
             image_type="""
-                // this value is defined by `add_caption`
+                // 此值由 `add_caption` 定义
                 let captionHeight = Input2;
                 Image {
                     width: Input0.width,

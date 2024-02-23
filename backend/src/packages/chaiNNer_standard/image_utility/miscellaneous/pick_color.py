@@ -20,12 +20,12 @@ class CoordinateType(Enum):
 
 @miscellaneous_group.register(
     schema_id="chainner:image:pick_color",
-    name="Pick Color",
+    name="拾取颜色",
     description=[
-        "Returns the color of the pixel at the given coordinate.",
-        "This node supports 2 coordinate types:",
-        "- Relative: The coordinates are relative to the image size. So (X=0, Y=0) is the top-left pixel, ((X=50%, Y=50%) is the center pixel, and (X=100%, Y=100%) is the bottom-right pixel.",
-        "- Absolute: The coordinates are absolute pixel coordinates. So (X=0, Y=0) is the top-left pixel and (X=width-1, Y=height-1) is the bottom-right pixel. X-Y coordinates outside the image are not allowed and will result in an error.",
+        "返回给定坐标处像素的颜色。",
+        "此节点支持两种坐标类型：",
+        "- 相对坐标：坐标相对于图像大小。因此 (X=0, Y=0) 是左上角像素，((X=50%, Y=50%) 是中心像素，(X=100%, Y=100%) 是右下角像素。",
+        "- 绝对坐标：坐标是绝对像素坐标。因此 (X=0, Y=0) 是左上角像素，(X=width-1, Y=height-1) 是右下角像素。不允许在图像之外使用 X-Y 坐标，否则将导致错误。",
     ],
     icon="MdColorize",
     inputs=[
@@ -41,7 +41,7 @@ class CoordinateType(Enum):
                 controls_step=1,
                 unit="%",
             )
-            .with_docs("Relative X coordinate.")
+            .with_docs("相对 X 坐标。")
             .with_id(4),
             SliderInput(
                 "Y",
@@ -50,7 +50,7 @@ class CoordinateType(Enum):
                 controls_step=1,
                 unit="%",
             )
-            .with_docs("Relative Y coordinate.")
+            .with_docs("相对 Y 坐标。")
             .with_id(5),
         ),
         if_enum_group(3, CoordinateType.ABSOLUTE)(
@@ -60,7 +60,7 @@ class CoordinateType(Enum):
                 minimum=0,
                 unit="px",
             )
-            .with_docs("Absolute X coordinate.")
+            .with_docs("绝对 X 坐标。")
             .with_id(1),
             NumberInput(
                 "Y",
@@ -68,7 +68,7 @@ class CoordinateType(Enum):
                 minimum=0,
                 unit="px",
             )
-            .with_docs("Absolute Y coordinate.")
+            .with_docs("绝对 Y 坐标。")
             .with_id(2),
         ),
     ],
@@ -110,7 +110,7 @@ def pick_color_node(
         y = round_half_up((h - 1) * y_rel / 100)
 
     assert x < w and y < h, (
-        "The given coordinates (X, Y) are outside the image."
+        "给定的坐标 (X, Y) 在图像之外。"
         f" Expect X={x} to be to 0 to {w-1} and Y={y} to be to 0 to {h-1}."
     )
 
@@ -121,4 +121,4 @@ def pick_color_node(
     elif c == 4:
         return Color.bgra(orig_img[y, x])
     else:
-        raise ValueError(f"Unsupported number of channels: {c}")
+        raise ValueError(f"通道数量不受支持: {c}")

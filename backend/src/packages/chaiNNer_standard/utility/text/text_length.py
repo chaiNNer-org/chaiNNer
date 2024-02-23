@@ -8,14 +8,14 @@ from .. import text_group
 
 @text_group.register(
     schema_id="chainner:utility:text_length",
-    name="Text Length",
-    description="Returns the number characters in a string of text.",
+    name="文本长度",
+    description="返回文本字符串中的字符数。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text"),
+        TextInput("文本"),
     ],
     outputs=[
-        NumberOutput("Length", output_type="string::len(Input0)"),
+        NumberOutput("长度", output_type="string::len(Input0)"),
     ],
 )
 def text_length_node(text: str) -> int:

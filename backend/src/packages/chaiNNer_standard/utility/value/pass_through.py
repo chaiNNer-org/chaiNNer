@@ -9,8 +9,8 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:pass_through",
-    name="Pass Through",
-    description="Outputs the input value as is. Supports up to 10 inputs.",
+    name="透传",
+    description="将输入值直接输出。支持最多10个输入。",
     icon="MdDoubleArrow",
     inputs=[
         AnyInput(label="Value 1").make_fused(0),

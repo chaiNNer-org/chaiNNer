@@ -8,12 +8,12 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:number",
-    name="Number",
-    description="Outputs the given number.",
+    name="数字",
+    description="输出给定的数字。",
     icon="MdCalculate",
     inputs=[
         NumberInput(
-            "Number",
+            "数字",
             minimum=None,
             maximum=None,
             precision=100,
@@ -22,7 +22,7 @@ from .. import value_group
         ).make_fused(),
     ],
     outputs=[
-        NumberOutput("Number", output_type="Input0"),
+        NumberOutput("数字", output_type="Input0"),
     ],
 )
 def number_node(number: float) -> float:

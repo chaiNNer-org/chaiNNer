@@ -22,35 +22,35 @@ class SliceAlignment(Enum):
 
 @text_group.register(
     schema_id="chainner:utility:text_slice",
-    name="Text Slice",
-    description="Creates a slice of a given string of text.",
+    name="文本切片",
+    description="从给定的文本字符串创建一个切片。",
     icon="MdTextFields",
     inputs=[
-        TextInput("Text"),
+        TextInput("文本"),
         EnumInput(
             SliceOperation,
-            label="Operation",
+            label="操作",
             default=SliceOperation.START,
             option_labels={
-                SliceOperation.START: "Start",
-                SliceOperation.START_AND_LENGTH: "Start & Length",
-                SliceOperation.MAX_LENGTH: "Maximum Length",
+                SliceOperation.START: "起始",
+                SliceOperation.START_AND_LENGTH: "起始和长度",
+                SliceOperation.MAX_LENGTH: "最大长度",
             },
         ).with_id(1),
         if_enum_group(1, (SliceOperation.START, SliceOperation.START_AND_LENGTH))(
-            NumberInput("Start", minimum=None, maximum=None, unit="chars"),
+            NumberInput("起始", minimum=None, maximum=None, unit="字符"),
         ),
         if_enum_group(1, SliceOperation.START_AND_LENGTH)(
-            NumberInput("Length", minimum=0, maximum=None, unit="chars"),
+            NumberInput("长度", minimum=0, maximum=None, unit="字符"),
         ),
         if_enum_group(1, SliceOperation.MAX_LENGTH)(
-            NumberInput("Maximum Length", minimum=0, maximum=None, unit="chars"),
-            EnumInput(SliceAlignment, label="Alignment"),
+            NumberInput("最大长度", minimum=0, maximum=None, unit="字符"),
+            EnumInput(SliceAlignment, label="对齐"),
         ),
     ],
     outputs=[
         TextOutput(
-            "Output Text",
+            "输出文本",
             output_type="""
                 let text = Input0;
                 let operation = Input1;

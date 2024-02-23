@@ -11,31 +11,31 @@ from nodes.properties.outputs import ImageOutput
 from .. import normal_map_group
 
 
-@normal_map_group.register(
+    @normal_map_group.register(
     schema_id="chainner:image:strengthen_normals",
-    name="Scale Normals",
+    name="加强法线",
     description=[
-        "Strengths or weakens the normals in the given normal map. Only the R and G channels of the input image will be used. The output normal map is guaranteed to be normalized.",
-        "Conceptually, this node is equivalent to `chainner:image:add_normals` with the strength of the second normal map set to 0.",
+        "加强或减弱给定法线图中的法线。仅使用输入图像的R和G通道。输出法线图保证被归一化。",
+        "从概念上讲，该节点等效于将第二个法线图的强度设置为0的`chainner:image:add_normals`。",
     ],
     icon="MdExpand",
     inputs=[
-        ImageInput("Normal Map", channels=[3, 4]),
-        SliderInput("Strength", maximum=400, default=100),
+        ImageInput("法线图", channels=[3, 4]),
+        SliderInput("强度", maximum=400, default=100),
         EnumInput(
             AdditionMethod,
-            label="Method",
+            label="方法",
             default=AdditionMethod.PARTIAL_DERIVATIVES,
         ),
     ],
     outputs=[
         ImageOutput(
-            "Normal Map",
+            "法线图",
             image_type=navi.Image(size_as="Input0"),
             channels=3,
         ),
     ],
-)
+
 def scale_normals_node(
     n: np.ndarray, strength: int, method: AdditionMethod
 ) -> np.ndarray:

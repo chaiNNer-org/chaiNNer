@@ -30,8 +30,8 @@ class NoiseType(Enum):
 
 @noise_group.register(
     schema_id="chainner:image:add_noise",
-    name="Add Noise",
-    description="Add various kinds of noise to an image.",
+    name="添加噪音",
+    description="向图像添加各种噪声。",
     icon="CgEditNoise",
     inputs=[
         ImageInput(channels=[1, 3, 4]),

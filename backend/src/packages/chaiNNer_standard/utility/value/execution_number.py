@@ -8,19 +8,19 @@ from .. import value_group
 
 @value_group.register(
     schema_id="chainner:utility:execution_number",
-    name="Execution Number",
-    description="Get the current execution number of this session. Increments by 1 every time you press the run button.",
+    name="执行次数",
+    description="获取当前会话的执行次数。每次按运行按钮时递增1。",
     icon="MdNumbers",
     inputs=[
         StaticValueInput(
-            label="Value",
+            label="数值",
             value="execution_number",
             navi_type="int(1..)",
             py_type=int,
         ).make_fused(),
     ],
     outputs=[
-        NumberOutput("Execution Number", output_type="Input0"),
+        NumberOutput("执行次数", output_type="Input0"),
     ],
 )
 def execution_number_node(number: int) -> int:
