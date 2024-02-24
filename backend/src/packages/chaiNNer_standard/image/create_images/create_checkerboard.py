@@ -37,11 +37,11 @@ from .. import create_images_group
     ],
 )
 def create_checkerboard_node(
-    width: float,
-    height: float,
+    width: int,
+    height: int,
     color_1: Color,
     color_2: Color,
-    square_size: float,
+    square_size: int,
 ) -> np.ndarray:
     img = np.zeros(
         (height, width, 3), dtype=np.float32
