@@ -19,10 +19,10 @@ from .. import create_images_group
         NumberInput("Width", minimum=1, unit="px", default=1024),
         NumberInput("Height", minimum=1, unit="px", default=1024),
         ColorInput(
-            "Color 1", channels=[3], default=Color.bgr((0.75, 0.75, 0.75))
+            "Color 1", channels=[4], default=Color.bgra((0.75, 0.75, 0.75, 1.0))
         ).with_id(2),
         ColorInput(
-            "Color 2", channels=[3], default=Color.bgr((0.35, 0.35, 0.35))
+            "Color 2", channels=[4], default=Color.bgr((0.35, 0.35, 0.35, 1.0))
         ).with_id(3),
         NumberInput("Square Size", minimum=1, default=32),
     ],
@@ -31,7 +31,7 @@ from .. import create_images_group
             image_type=navi.Image(
                 width="Input0",
                 height="Input1",
-                channels=3,
+                channels=4,
             ),
         )
     ],
@@ -44,7 +44,7 @@ def create_checkerboard_node(
     square_size: int,
 ) -> np.ndarray:
     img = np.zeros(
-        (height, width, 3), dtype=np.float32
+        (height, width, 4), dtype=np.float32
     )  # Create a new buffer with all zeros
 
     # Determine the number of squares in each direction
