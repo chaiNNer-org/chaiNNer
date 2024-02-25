@@ -22,7 +22,7 @@ from .. import create_images_group
             "Color 1", channels=[4], default=Color.bgra((0.75, 0.75, 0.75, 1.0))
         ).with_id(2),
         ColorInput(
-            "Color 2", channels=[4], default=Color.bgr((0.35, 0.35, 0.35, 1.0))
+            "Color 2", channels=[4], default=Color.bgra((0.35, 0.35, 0.35, 1.0))
         ).with_id(3),
         NumberInput("Square Size", minimum=1, default=32),
     ],
