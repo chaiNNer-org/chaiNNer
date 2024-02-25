@@ -105,3 +105,26 @@ class Color:
             raise AssertionError(f"Colors with {len(values)} are not supported.")
 
         return {"kind": kind, "values": values}
+
+    def to_bgr(self) -> Color:
+        if self.channels == 1:
+            return Color.bgr([self.value[0], self.value[0], self.value[0]])
+        elif self.channels == 4:
+            return Color.bgr([self.value[0], self.value[1], self.value[2]])
+        else:
+            return Color.bgr(self.value)
+
+    def to_bgra(self) -> Color:
+        if self.channels == 1:
+            return Color.bgra([self.value[0], self.value[0], self.value[0], 1])
+        elif self.channels == 3:
+            return Color.bgra([self.value[0], self.value[1], self.value[2], 1])
+        else:
+            return Color.bgra(self.value)
+
+    def to_gray(self) -> Color:
+        if self.channels == 1:
+            return Color.gray(self.value[0])
+        else:
+            # values from https://stackoverflow.com/questions/41971663/use-numpy-to-convert-rgb-pixel-array-into-grayscale
+            return Color.gray(np.dot(self.value, [0.299, 0.587, 0.114]))
