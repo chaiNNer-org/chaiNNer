@@ -6,7 +6,6 @@ from enum import Enum
 from subprocess import Popen
 from typing import Any, Literal
 
-import cv2
 import ffmpeg
 import numpy as np
 from sanic.log import logger
@@ -131,7 +130,7 @@ class Writer:
                     ffmpeg.input(
                         "pipe:",
                         format="rawvideo",
-                        pix_fmt="rgb24",
+                        pix_fmt="bgr24",
                         s=f"{width}x{height}",
                         r=self.fps,
                     )
@@ -150,7 +149,7 @@ class Writer:
             h, w, _ = get_h_w_c(img)
             self.start(w, h)
 
-        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
+        out_frame = to_uint8(img, normalized=True)
         if self.out is not None and self.out.stdin is not None:
             self.out.stdin.write(out_frame.tobytes())
         else:
