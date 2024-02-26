@@ -35,7 +35,7 @@ class ResList(Enum):
 @value_group.register(
     schema_id="chainner:utility:formats",
     name="Formats",
-    description="Industry formats.",
+    description="Returns the image dimensions of industry formats. E.g. HD 1080p and UHD 4K.",
     icon="BsBadgeHd",
     inputs=[
         EnumInput(
