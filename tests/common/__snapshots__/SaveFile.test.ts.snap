@@ -17213,7 +17213,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": undefined,
           "1": "A:\\tmp\\output",
-          "10": "transcode",
+          "10": "none",
           "12": 1,
           "13": "",
           "14": "",
@@ -18262,7 +18262,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "inputData": {
           "0": undefined,
           "1": "A:\\tmp\\output",
-          "10": "copy",
+          "10": "auto",
           "12": 1,
           "13": "",
           "14": "",
@@ -34604,7 +34604,7 @@ exports[`Write save file utilities.chn 1`] = `
 
 exports[`Write save file video-frame-iterator.chn 1`] = `
 {
-  "checksum": "ebd6a4da057f87c86a71d4d50d505c7a",
+  "checksum": "02eb8a975ea8fd26d410817cadbca098",
   "content": {
     "edges": [
       {
@@ -35455,7 +35455,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "id": "adedfe61-a1cb-566e-b8a5-ec421bc2810b",
           "inputData": {
             "1": "A:\\tmp\\output",
-            "10": "transcode",
+            "10": "none",
             "12": 1,
             "13": "",
             "14": "",
@@ -36246,7 +36246,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "id": "c732f0df-ba9f-5c70-a8a8-ec1ad6914880",
           "inputData": {
             "1": "A:\\tmp\\output",
-            "10": "copy",
+            "10": "auto",
             "12": 1,
             "13": "",
             "14": "",
