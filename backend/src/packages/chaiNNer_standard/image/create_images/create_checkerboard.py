@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from nodes.impl.color.color import Color
+from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ColorInput, NumberInput
 from nodes.properties.outputs import ImageOutput
 
@@ -53,15 +54,12 @@ def create_checkerboard_node(
 
     max_channels = max(color_1.channels, color_2.channels)
 
-    if max_channels == 1:
-        color_a = color_1.to_gray()
-        color_b = color_2.to_gray()
-    elif max_channels == 3:
-        color_a = color_1.to_bgr()
-        color_b = color_2.to_bgr()
-    else:
-        color_a = color_1.to_bgra()
-        color_b = color_2.to_bgra()
+    color_a = Color.from_1x1_image(
+        as_target_channels(color_1.to_1x1_image(), max_channels)
+    )
+    color_b = Color.from_1x1_image(
+        as_target_channels(color_2.to_1x1_image(), max_channels)
+    )
 
     # Fill the checkerboard with alternating squares
     for i in range(num_rows):
