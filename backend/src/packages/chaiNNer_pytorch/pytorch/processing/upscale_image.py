@@ -108,16 +108,8 @@ def upscale(
     ),
     icon="PyTorch",
     inputs=[
-        ImageInput()
-        .with_id(1)
-        .with_suggestions(
-            "chainner:image:load",
-        ),
-        SrModelInput()
-        .with_id(0)
-        .with_suggestions(
-            "chainner:pytorch:load_model",
-        ),
+        ImageInput().with_id(1),
+        SrModelInput().with_id(0),
         if_group(
             Condition.type(0, "PyTorchModel { scale: int(2..) }", if_not_connected=True)
             & (

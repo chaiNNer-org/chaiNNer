@@ -29,7 +29,7 @@ class BaseOutput:
 
         # Optional documentation
         self.description: str | None = None
-        self.suggestions: list[str] | None = None
+        self.should_suggest: bool = False
 
     def to_dict(self):
         return {
@@ -40,7 +40,7 @@ class BaseOutput:
             "kind": self.kind,
             "hasHandle": self.has_handle,
             "description": self.description,
-            "suggestions": self.suggestions,
+            "suggest": self.should_suggest,
         }
 
     def with_id(self, output_id: OutputId | int):
@@ -55,8 +55,8 @@ class BaseOutput:
         self.description = "\n\n".join(description)
         return self
 
-    def with_suggestions(self, *suggestions: str):
-        self.suggestions = list(suggestions)
+    def suggest(self):
+        self.should_suggest = True
         return self
 
     def __repr__(self):

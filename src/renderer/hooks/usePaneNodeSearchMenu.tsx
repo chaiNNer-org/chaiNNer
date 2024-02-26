@@ -582,7 +582,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         ]
     );
 
-    const suggestions: ReadonlySet<SchemaId> = useMemo(() => {
+    const suggestions: Set<SchemaId> = useMemo(() => {
         const connection = parseConnectStartParams(connectingFrom);
 
         if (!connection) return new Set();
@@ -591,30 +591,26 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
 
         if (!node) return new Set();
 
-        const connectingFromSchema = schemata.get(node.data.schemaId);
-
         switch (connection.type) {
             case 'source': {
-                const outputSchema = connectingFromSchema.outputs.find(
-                    (o) => o.id === connection.outputId
-                );
                 return new Set(
-                    outputSchema?.suggestions?.filter((s) => matchingEnds.has(schemata.get(s)))
+                    [...matchingEnds.keys()]
+                        .filter((end) => end.inputs.some((input) => input.suggest))
+                        .map((schema) => schema.schemaId)
                 );
             }
             case 'target': {
-                const inputSchema = connectingFromSchema.inputs.find(
-                    (i) => i.id === connection.inputId
-                );
                 return new Set(
-                    inputSchema?.suggestions?.filter((s) => matchingEnds.has(schemata.get(s)))
+                    [...matchingEnds.keys()]
+                        .filter((end) => end.outputs.some((output) => output.suggest))
+                        .map((schema) => schema.schemaId)
                 );
             }
             default:
                 assertNever(connection);
         }
         return new Set();
-    }, [connectingFrom, getNode, matchingEnds, schemata]);
+    }, [connectingFrom, getNode, matchingEnds]);
 
     const menuSchemata = useMemo(() => [...matchingEnds.keys()], [matchingEnds]);
     const menu = useContextMenu(() => (
