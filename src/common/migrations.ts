@@ -1942,6 +1942,22 @@ const normalMapGeneratorInvert: ModernMigration = (data) => {
     return data;
 };
 
+const saveVideoInputPatchMigration: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            const oldData = node.data.inputData;
+
+            if (oldData[10] === 'none') {
+                oldData[10] = 'auto';
+            }
+
+            node.data.inputData = oldData;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -2000,6 +2016,7 @@ const migrations = [
     unifiedResizeNode,
     saveVideoInputPR2514,
     normalMapGeneratorInvert,
+    saveVideoInputPatchMigration,
 ];
 
 export const currentMigration = migrations.length;
