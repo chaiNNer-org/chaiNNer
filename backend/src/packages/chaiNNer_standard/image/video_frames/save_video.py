@@ -14,6 +14,7 @@ from sanic.log import logger
 from api import Collector, IteratorInputInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
+from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -96,9 +97,6 @@ class AudioSettings(Enum):
     TRANSCODE = "transcode"
 
 
-ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
-
 PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
     VideoEncoder.H264: ["preset", "crf"],
     VideoEncoder.H265: ["preset", "crf"],
@@ -140,7 +138,7 @@ class Writer:
                     .output(**self.output_params)
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
+                    .run_async(pipe_stdin=True, cmd=FFMPEG_PATH)
                 )
 
             except Exception as e:
