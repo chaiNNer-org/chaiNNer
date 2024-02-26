@@ -72,7 +72,7 @@ def load_video_node(
         for index, frame in enumerate(loader.stream_frames()):
             yield frame, index
 
-            if use_limit and index >= limit:
+            if use_limit and index + 1 >= limit:
                 break
 
     return (
