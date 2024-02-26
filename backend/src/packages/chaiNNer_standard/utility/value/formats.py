@@ -68,8 +68,8 @@ class ResList(Enum):
         ),
     ],
     outputs=[
-        NumberOutput("Width", output_type="1.."),
-        NumberOutput("Height", output_type="1.."),
+        NumberOutput("Width", output_type="int(1..)"),
+        NumberOutput("Height", output_type="int(1..)"),
     ],
 )
 def formats_node(resolution_presets: ResList) -> tuple[int, int]:
