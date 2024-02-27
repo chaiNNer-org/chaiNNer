@@ -31,6 +31,7 @@ class ResList(Enum):
     SQ4096 = "SQ4096"
     SQ8192 = "SQ8192"
 
+
 RESOLUTIONS: dict[ResList, tuple[int, int]] = {
     ResList.HD_1080: (1920, 1080),
     ResList.NTSC_MPEG2: (704, 480),
@@ -53,7 +54,7 @@ RESOLUTIONS: dict[ResList, tuple[int, int]] = {
     ResList.SQ2048: (2048, 2048),
     ResList.SQ4096: (4096, 4096),
     ResList.SQ8192: (8192, 8192),
-    }
+}
 
 
 @value_group.register(
@@ -97,6 +98,6 @@ RESOLUTIONS: dict[ResList, tuple[int, int]] = {
     ],
 )
 def resolutions_node(resolution_presets: ResList) -> tuple[int, int]:
-        assert len(RESOLUTIONS) == len(ResList)
+    assert len(RESOLUTIONS) == len(ResList)
 
-        return RESOLUTIONS[resolution_presets]
+    return RESOLUTIONS[resolution_presets]
