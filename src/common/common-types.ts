@@ -502,5 +502,5 @@ export interface RgbaColorJson {
 }
 
 export interface PackageSettings {
-    [packageName: string]: Record<string, SettingValue>;
+    [packageName: string]: Partial<Record<string, SettingValue>> | undefined;
 }

@@ -38,7 +38,7 @@ import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AABB, getLayoutedPositionMap, getNodeOnEdgeIntersection } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
@@ -76,9 +76,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
-    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
-    const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
-    const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+    const { snapToGrid: isSnapToGrid, snapToGridAmount, animateChain } = useSettings();
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);

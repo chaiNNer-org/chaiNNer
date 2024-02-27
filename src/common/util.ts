@@ -1,6 +1,5 @@
 import { constants } from 'fs';
 import fs from 'fs/promises';
-import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 import type { Input, InputData, InputId, InputValue, NodeSchema, OutputId } from './common-types';
 
@@ -72,21 +71,6 @@ export const stringifySourceHandle = (handle: ParsedSourceHandle): string =>
     `${handle.nodeId}-${handle.outputId}`;
 export const stringifyTargetHandle = (handle: ParsedTargetHandle): string =>
     `${handle.nodeId}-${handle.inputId}`;
-
-export const getLocalStorage = (): Storage => {
-    const storage = (global as Record<string, unknown>).customLocalStorage;
-    if (storage === undefined) throw new Error('Custom storage not defined');
-    return storage as Storage;
-};
-
-export const getStorageKeys = (storage: Storage): string[] => {
-    if (storage instanceof LocalStorage) {
-        // workaround for https://github.com/lmaccherone/node-localstorage/issues/27
-        // eslint-disable-next-line no-underscore-dangle
-        return (storage as unknown as { _keys: string[] })._keys;
-    }
-    return Object.keys(storage);
-};
 
 export const createUniqueId = () => uuid4();
 export const deriveUniqueId = (input: string) =>

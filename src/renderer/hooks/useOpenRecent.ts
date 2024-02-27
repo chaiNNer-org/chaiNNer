@@ -1,15 +1,13 @@
 import { useCallback, useEffect } from 'react';
 import { ipcRenderer } from '../../common/safeIpc';
+import { EMPTY_ARRAY } from '../../common/util';
 import { useIpcRendererListener } from './useIpcRendererListener';
-import { useLocalStorage } from './useLocalStorage';
+import { useStored } from './useStored';
 
 const MAX_ENTRIES = 20;
 
 export const useOpenRecent = () => {
-    const [recentlyOpen, setRecentlyOpen] = useLocalStorage<readonly string[]>(
-        'use-recently-open',
-        []
-    );
+    const [recentlyOpen, setRecentlyOpen] = useStored<readonly string[]>('recent', EMPTY_ARRAY);
 
     useEffect(() => {
         ipcRenderer.send('update-open-recent-menu', recentlyOpen as string[]);

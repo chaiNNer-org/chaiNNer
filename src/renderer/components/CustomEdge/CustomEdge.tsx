@@ -11,7 +11,7 @@ import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import {
@@ -91,8 +91,7 @@ export const CustomEdge = memo(
             (c) => c.effectivelyDisabledNodes
         );
         const { paused, getNodeStatus } = useContext(ExecutionContext);
-        const { useAnimateChain } = useContext(SettingsContext);
-        const [animateChain] = useAnimateChain;
+        const { animateChain } = useSettings();
 
         const sourceStatus = getNodeStatus(source);
         const targetStatus = getNodeStatus(target);

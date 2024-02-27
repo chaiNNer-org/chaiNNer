@@ -16,13 +16,13 @@ import {
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { groupBy } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { getMatchingNodes } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { useStored } from '../../hooks/useStored';
 import { SearchBar } from '../SearchBar';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
@@ -41,10 +41,7 @@ export const NodeSelector = memo(() => {
     );
     const byCategories = useMemo(() => groupBy(matchingNodes, 'category'), [matchingNodes]);
 
-    const [collapsed, setCollapsed] = useContextSelector(
-        SettingsContext,
-        (c) => c.useNodeSelectorCollapsed
-    );
+    const [collapsed, setCollapsed] = useStored('nodeSelectorCollapsed', false);
 
     const { favorites } = useNodeFavorites();
     const favoriteNodes = useMemo(() => {

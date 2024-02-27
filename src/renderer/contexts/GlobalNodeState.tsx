@@ -86,7 +86,7 @@ import {
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
-import { SettingsContext } from './SettingsContext';
+import { useSettings } from './SettingsContext';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
@@ -169,7 +169,7 @@ export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
-        const { useStartupTemplate, useViewportExportPadding } = useContext(SettingsContext);
+        const { startupTemplate, viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -718,7 +718,6 @@ export const GlobalProvider = memo(
         useIpcRendererListener('file-export-template', exportTemplate);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
-        const [startupTemplate] = useStartupTemplate;
         useAsyncEffect(
             () => async () => {
                 if (firstLoad && startupTemplate) {
@@ -1162,7 +1161,6 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const [viewportExportPadding] = useViewportExportPadding;
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
                 const currentFlowWrapper = reactFlowWrapper.current;
