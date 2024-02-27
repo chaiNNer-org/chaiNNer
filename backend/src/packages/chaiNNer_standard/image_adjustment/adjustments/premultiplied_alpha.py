@@ -4,7 +4,6 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -12,29 +11,32 @@ from .. import adjustments_group
 
 
 class AlphaAssociation(Enum):
-    UNPREMULTIPLY_RGB = "Unpremultiply RGB"
-    PREMULTIPLY_RGB = "Premulitply RGB"
+    PREMULTIPLY_RGB = "Straight -> Premultiplied"
+    UNPREMULTIPLY_RGB = "Premultiplied -> Straight"
 
 
 @adjustments_group.register(
     schema_id="chainner:image:premultiplied_alpha",
-    description="Divide (or multiply) the RGB channels with the Alpha channel values of an image to go from a Straight Alpha to a Premultiplied Alpha image state.",
+    description="Converts an RGBA Input from a Straight Alpha Association to a Premultiplied Alpha Association, or vice versa.",
     name="Premultiplied Alpha",
     icon="CgMathDivide",
     inputs=[
-        ImageInput(),
-        EnumInput(AlphaAssociation, label="Alpha Association"),
+        ImageInput(channels=[4]),
+        EnumInput(
+            AlphaAssociation,
+            label="Alpha Association Conversion",
+            default=AlphaAssociation.PREMULTIPLY_RGB,
+            option_labels={
+                AlphaAssociation.PREMULTIPLY_RGB: "Straight → Premultiplied",
+                AlphaAssociation.UNPREMULTIPLY_RGB: "Premultiplied → Straight",
+            },
+        ),
     ],
     outputs=[ImageOutput(image_type="Input0")],
 )
 def premultiplied_alpha_node(
     img: np.ndarray, alpha_association: AlphaAssociation
 ) -> np.ndarray:
-    if len(img.shape) != 3:
-        return img, np.ones(img.shape[:2], dtype="float32")
-
-    img = as_target_channels(img, 4)
-
     rgb = img[..., :3]
     alpha = img[..., 3]
 
