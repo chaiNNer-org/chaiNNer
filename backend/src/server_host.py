@@ -89,7 +89,9 @@ class ExecutorServerProcess:
             stderr=subprocess.PIPE,
         )
         # Create a separate thread to read and print the output of the subprocess
-        threading.Thread(target=self._read_output).start()
+        threading.Thread(
+            target=self._read_output, daemon=True, name="output reader"
+        ).start()
 
     def stop_process(self):
         if self.process:
