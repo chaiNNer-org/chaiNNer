@@ -1892,7 +1892,7 @@ const saveVideoInputPR2514: ModernMigration = (data) => {
             const format = formatMap[encoder ?? 'libx264'];
 
             const oldAudioSettings = oldData[10];
-            const oldReducedAudioSettings = oldData[10];
+            const oldReducedAudioSettings = oldData[11];
             const audioSettings = format === 'webm' ? oldReducedAudioSettings : oldAudioSettings;
 
             const newData = {
