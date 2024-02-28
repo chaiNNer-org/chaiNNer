@@ -312,13 +312,12 @@ async def import_packages(
 ):
     async def install_deps(dependencies: list[api.Dependency]):
         dep_info: list[DependencyInfo] = [
-            {
-                "package_name": dep.pypi_name,
-                "display_name": dep.display_name,
-                "version": dep.version,
-                "from_file": None,
-                "extra_index_url": dep.extra_index_url,
-            }
+            DependencyInfo(
+                package_name=dep.pypi_name,
+                display_name=dep.display_name,
+                version=dep.version,
+                extra_index_url=dep.extra_index_url,
+            )
             for dep in dependencies
         ]
         await install_dependencies(dep_info, update_progress_cb, logger)

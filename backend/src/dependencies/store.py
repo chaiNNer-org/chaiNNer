@@ -5,8 +5,8 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from logging import Logger
-from typing import TypedDict
 
 from custom_types import UpdateProgressFn
 
@@ -20,28 +20,27 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 DEP_MAX_PROGRESS = 0.8
 
 
-class DependencyInfo(TypedDict):
+@dataclass(frozen=True)
+class DependencyInfo:
     package_name: str
-    display_name: str | None
-    version: str | None
-    from_file: str | None
-    extra_index_url: str | None
+    display_name: str | None = None
+    version: str | None = None
+    from_file: str | None = None
+    extra_index_url: str | None = None
 
 
 def pin(dependency: DependencyInfo) -> str:
-    package_name = dependency["package_name"]
-    version = dependency["version"]
-    from_file = dependency["from_file"]
+    package_name = dependency.package_name
 
-    if from_file is not None:
-        whl_file = f"{dir_path}/whls/{package_name}/{from_file}"
+    if dependency.from_file is not None:
+        whl_file = f"{dir_path}/whls/{package_name}/{dependency.from_file}"
         if os.path.isfile(whl_file):
             return whl_file
 
-    if version is None:
+    if dependency.version is None:
         return package_name
 
-    return f"{package_name}=={version}"
+    return f"{package_name}=={dependency.version}"
 
 
 def coerce_semver(version: str) -> tuple[int, int, int]:
@@ -57,12 +56,12 @@ def coerce_semver(version: str) -> tuple[int, int, int]:
 
 
 def get_deps_to_install(dependencies: list[DependencyInfo]):
-    dependencies_to_install = []
+    dependencies_to_install: list[DependencyInfo] = []
     for dependency in dependencies:
-        version = installed_packages.get(dependency["package_name"], None)
-        if dependency["version"] and version:
+        version = installed_packages.get(dependency.package_name, None)
+        if dependency.version and version:
             installed_version = coerce_semver(version)
-            dep_version = coerce_semver(dependency["version"])
+            dep_version = coerce_semver(dependency.version)
             if installed_version < dep_version:
                 dependencies_to_install.append(dependency)
         elif not version:
@@ -78,9 +77,9 @@ def install_dependencies_sync(
         return
 
     extra_index_urls = {
-        dep_info.get("extra_index_url")
+        dep_info.extra_index_url
         for dep_info in dependencies_to_install
-        if dep_info.get("extra_index_url")
+        if dep_info.extra_index_url
     }
 
     extra_index_args = []
@@ -103,9 +102,7 @@ def install_dependencies_sync(
         raise ValueError("An error occurred while installing dependencies.")
 
     for dep_info in dependencies_to_install:
-        package_name = dep_info["package_name"]
-        version = dep_info["version"]
-        installed_packages[package_name] = version
+        installed_packages[dep_info.package_name] = dep_info.version
 
 
 async def install_dependencies(
@@ -123,7 +120,7 @@ async def install_dependencies(
         return
 
     dependency_name_map = {
-        dep_info["package_name"]: dep_info["display_name"]
+        dep_info.package_name: dep_info.display_name
         for dep_info in dependencies_to_install
     }
     deps_count = len(dependencies_to_install)
@@ -131,9 +128,9 @@ async def install_dependencies(
     transitive_deps_counter = 0
 
     extra_index_urls = {
-        dep_info.get("extra_index_url")
+        dep_info.extra_index_url
         for dep_info in dependencies_to_install
-        if dep_info.get("extra_index_url")
+        if dep_info.extra_index_url
     }
 
     extra_index_args = []
@@ -228,9 +225,7 @@ async def install_dependencies(
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
-        installing_name = dep_info["package_name"]
-        version = dep_info["version"]
-        installed_packages[installing_name] = version
+        installed_packages[dep_info.package_name] = dep_info.version
 
 
 __all__ = [
