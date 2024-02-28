@@ -213,7 +213,7 @@ const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
                 />
             );
         default:
-            assertNever(group);
+            return assertNever(group);
     }
 };
 
