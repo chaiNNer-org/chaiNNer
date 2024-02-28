@@ -120,7 +120,7 @@ async def install_dependencies(
         return
 
     dependency_name_map = {
-        dep_info.package_name: dep_info.display_name
+        dep_info.package_name: dep_info.display_name or dep_info.package_name
         for dep_info in dependencies_to_install
     }
     deps_count = len(dependencies_to_install)
