@@ -129,6 +129,6 @@ def resolutions_node(
     height: float,
 ) -> tuple[int, int]:
     if resolution_presets == ResList.CUSTOM:
-        return width, height
+        return int(width), int(height)
     else:
         return RESOLUTIONS[resolution_presets]
