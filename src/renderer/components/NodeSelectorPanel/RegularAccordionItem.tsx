@@ -10,9 +10,9 @@ import {
     Text,
     Tooltip,
 } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Category, NodeSchema } from '../../../common/common-types';
-import { groupBy } from '../../../common/util';
+import { EMPTY_ARRAY, groupBy } from '../../../common/util';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
@@ -80,6 +80,100 @@ export const RegularAccordionItem = memo(
     }
 );
 
+interface OnlyIfVisibleProps {
+    height: string;
+    visibleOffset?: number;
+    children: React.ReactNode;
+}
+export const OnlyIfVisible = memo(
+    ({ height, visibleOffset = 1000, children }: OnlyIfVisibleProps) => {
+        interface Foo {
+            visible: boolean;
+            timestamp: number;
+        }
+        const [dataPoints, setDataPoints] = useState<readonly Foo[]>(EMPTY_ARRAY);
+        const addDataPoint = useCallback((visible: boolean) => {
+            setDataPoints((prev) => {
+                const now = Date.now();
+                return [
+                    ...prev.filter((p) => Math.abs(now - p.timestamp) < 1000),
+                    { visible, timestamp: now },
+                ];
+            });
+        }, []);
+
+        const intersectionRef = useRef<HTMLDivElement>(null);
+
+        const [checkAgain, setCheckAgain] = useState(-1);
+
+        // Set visibility with intersection observer
+        useEffect(() => {
+            const root = document;
+            if (intersectionRef.current) {
+                const localRef = intersectionRef.current;
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        console.log('change');
+                        // addDataPoint(entries[0].isIntersecting);
+                        setCheckAgain(0);
+                        window.requestIdleCallback(
+                            () => {
+                                // setCheckAgain((prev) => prev + 1);
+                            },
+                            {
+                                timeout: 600,
+                            }
+                        );
+                    },
+                    { root, rootMargin: `${visibleOffset}px 0px ${visibleOffset}px 0px` }
+                );
+
+                observer.observe(localRef);
+                return () => {
+                    observer.unobserve(localRef);
+                };
+            }
+        }, [visibleOffset, addDataPoint]);
+
+        useEffect(() => {
+            if (intersectionRef.current && checkAgain < 10) {
+                const localRef = intersectionRef.current;
+                const timerId = setTimeout(() => {
+                    const rect = localRef.getBoundingClientRect();
+                    const visible =
+                        rect.left < window.innerWidth &&
+                        rect.right >= 0 &&
+                        rect.top - visibleOffset < window.innerHeight &&
+                        rect.bottom + visibleOffset >= 0;
+                    addDataPoint(visible);
+                    setCheckAgain((prev) => prev + 1);
+                }, 2 ** checkAgain + 1);
+
+                return () => clearTimeout(timerId);
+            }
+        }, [checkAgain, visibleOffset, addDataPoint]);
+
+        const isVisible =
+            dataPoints.length > 0 &&
+            dataPoints.filter((p) => p.visible).length >= dataPoints.length / 2;
+
+        return (
+            <Box
+                height={height}
+                ref={intersectionRef}
+            >
+                {isVisible && (
+                    <>
+                        <Box display="flex" />
+                        {children}
+                        <Box display="flex" />
+                    </>
+                )}
+            </Box>
+        );
+    }
+);
+
 interface SubcategoriesProps {
     collapsed: boolean;
     category: Category;
@@ -94,6 +188,11 @@ export const Subcategories = memo(({ collapsed, category, categoryNodes }: Subca
                 const nodes = byGroup.get(group.id);
                 if (!nodes) return null;
 
+                const nodeHeight = 28;
+                const nodePadding = 6;
+                const placeholderHeight =
+                    nodeHeight * nodes.length + nodePadding * (nodes.length - 1) + 12;
+
                 return (
                     <Box key={group.id}>
                         <Center>
@@ -102,15 +201,21 @@ export const Subcategories = memo(({ collapsed, category, categoryNodes }: Subca
                                 group={group}
                             />
                         </Center>
-                        <Box>
-                            {nodes.map((node) => (
-                                <RepresentativeNodeWrapper
-                                    collapsed={collapsed}
-                                    key={node.schemaId}
-                                    node={node}
-                                />
-                            ))}
-                        </Box>
+                        <OnlyIfVisible
+                            height={`${placeholderHeight}px`}
+                            key={group.id}
+                            visibleOffset={600}
+                        >
+                            <Box>
+                                {nodes.map((node) => (
+                                    <RepresentativeNodeWrapper
+                                        collapsed={collapsed}
+                                        key={node.schemaId}
+                                        node={node}
+                                    />
+                                ))}
+                            </Box>
+                        </OnlyIfVisible>
                     </Box>
                 );
             })}
