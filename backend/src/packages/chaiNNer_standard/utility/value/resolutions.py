@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
-from nodes.properties.inputs import EnumInput
+from nodes.groups import if_enum_group
+from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
 
 from .. import value_group
@@ -30,6 +31,7 @@ class ResList(Enum):
     SQ2048 = "SQ2048"
     SQ4096 = "SQ4096"
     SQ8192 = "SQ8192"
+    CUSTOM = "CUSTOM"
 
 
 RESOLUTIONS: dict[ResList, tuple[int, int]] = {
@@ -54,7 +56,10 @@ RESOLUTIONS: dict[ResList, tuple[int, int]] = {
     ResList.SQ2048: (2048, 2048),
     ResList.SQ4096: (4096, 4096),
     ResList.SQ8192: (8192, 8192),
+    ResList.CUSTOM: (1920, 1080),
 }
+
+assert len(RESOLUTIONS) == len(ResList)
 
 
 @value_group.register(
@@ -89,7 +94,28 @@ RESOLUTIONS: dict[ResList, tuple[int, int]] = {
                 ResList.SQ2048: "Square 2048x2048",
                 ResList.SQ4096: "Square 4096x4096",
                 ResList.SQ8192: "Square 8192x8192",
+                ResList.CUSTOM: "Custom Resolution",
             },
+        ),
+        if_enum_group(0, ResList.CUSTOM)(
+            NumberInput(
+                "Width",
+                minimum=1,
+                maximum=None,
+                default=1920,
+                precision=1,
+                controls_step=1,
+                unit="px",
+            ),
+            NumberInput(
+                "Height",
+                minimum=1,
+                maximum=None,
+                default=1080,
+                precision=1,
+                controls_step=1,
+                unit="px",
+            ),
         ),
     ],
     outputs=[
@@ -97,7 +123,12 @@ RESOLUTIONS: dict[ResList, tuple[int, int]] = {
         NumberOutput("Height", output_type="int(1..)"),
     ],
 )
-def resolutions_node(resolution_presets: ResList) -> tuple[int, int]:
-    assert len(RESOLUTIONS) == len(ResList)
-
-    return RESOLUTIONS[resolution_presets]
+def resolutions_node(
+    resolution_presets: ResList,
+    width: float,
+    height: float,
+) -> tuple[int, int]:
+    if resolution_presets == ResList.CUSTOM:
+        return width, height
+    else:
+        return RESOLUTIONS[resolution_presets]
