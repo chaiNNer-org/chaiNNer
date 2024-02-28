@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Text, Tooltip, useDisclosure } from '@chakra-ui/react';
-import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -50,11 +51,11 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
 
 interface RepresentativeNodeWrapperProps {
     node: NodeSchema;
-    collapsed?: boolean;
+    collapsed: boolean;
 }
 
 export const RepresentativeNodeWrapper = memo(
-    ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
+    ({ node, collapsed }: RepresentativeNodeWrapperProps) => {
         const { reactFlowWrapper, createNode } = useContext(GlobalContext);
         const { featureStates } = useContext(BackendContext);
         const reactFlowInstance = useReactFlow();
@@ -100,7 +101,7 @@ export const RepresentativeNodeWrapper = memo(
             </MenuList>
         ));
 
-        const createNodeFromSelector = useCallback(() => {
+        const onCreateNode = useCallback(() => {
             if (!reactFlowWrapper.current) return;
 
             const {
@@ -137,69 +138,78 @@ export const RepresentativeNodeWrapper = memo(
                   .join('\n')
             : undefined;
 
-        return (
-            <Box
-                my={1.5}
-                onContextMenu={onContextMenu}
-            >
-                <Tooltip
-                    closeOnMouseDown
-                    hasArrow
-                    borderRadius={8}
-                    isOpen={isOpen}
-                    label="Either double-click or drag and drop to add nodes to the canvas."
-                    placement="top"
-                    px={2}
-                    py={1}
-                    onClose={onClose}
+        return useMemo(
+            () => (
+                <Box
+                    my={1.5}
+                    onContextMenu={onContextMenu}
                 >
-                    <Box>
-                        <Tooltip
-                            closeOnMouseDown
-                            hasArrow
-                            borderRadius={8}
-                            label={
-                                <TooltipLabel
-                                    description={node.description}
-                                    name={collapsed ? node.name : undefined}
-                                    unavailableReason={unavailableReason}
-                                />
-                            }
-                            openDelay={500}
-                            placement="bottom"
-                            px={2}
-                            py={1}
-                        >
-                            <Center
-                                draggable
-                                boxSizing="content-box"
-                                display="block"
-                                opacity={isDisabled ? 0.5 : 1}
-                                onClick={() => {
-                                    setDidSingleClick(true);
-                                }}
-                                onDoubleClick={() => {
-                                    setDidSingleClick(false);
-                                    createNodeFromSelector();
-                                }}
-                                onDragStart={(event) => {
-                                    setDidSingleClick(false);
-                                    onDragStart(event, node);
-                                }}
+                    <Tooltip
+                        closeOnMouseDown
+                        hasArrow
+                        borderRadius={8}
+                        isOpen={isOpen}
+                        label="Either double-click or drag and drop to add nodes to the canvas."
+                        placement="top"
+                        px={2}
+                        py={1}
+                        onClose={onClose}
+                    >
+                        <Box>
+                            <Tooltip
+                                closeOnMouseDown
+                                hasArrow
+                                borderRadius={8}
+                                label={
+                                    <TooltipLabel
+                                        description={node.description}
+                                        name={collapsed ? node.name : undefined}
+                                        unavailableReason={unavailableReason}
+                                    />
+                                }
+                                openDelay={500}
+                                placement="bottom"
+                                px={2}
+                                py={1}
                             >
-                                <RepresentativeNode
-                                    category={node.category}
-                                    collapsed={collapsed}
-                                    createNodeFromSelector={createNodeFromSelector}
-                                    icon={node.icon}
-                                    name={node.name}
-                                    schemaId={node.schemaId}
-                                />
-                            </Center>
-                        </Tooltip>
-                    </Box>
-                </Tooltip>
-            </Box>
+                                <Center
+                                    draggable
+                                    boxSizing="content-box"
+                                    display="block"
+                                    opacity={isDisabled ? 0.5 : 1}
+                                    onClick={() => {
+                                        setDidSingleClick(true);
+                                    }}
+                                    onDoubleClick={() => {
+                                        setDidSingleClick(false);
+                                        onCreateNode();
+                                    }}
+                                    onDragStart={(event) => {
+                                        setDidSingleClick(false);
+                                        onDragStart(event, node);
+                                    }}
+                                >
+                                    <RepresentativeNode
+                                        collapsed={collapsed}
+                                        schema={node}
+                                        onCreateNode={onCreateNode}
+                                    />
+                                </Center>
+                            </Tooltip>
+                        </Box>
+                    </Tooltip>
+                </Box>
+            ),
+            [
+                collapsed,
+                isDisabled,
+                isOpen,
+                node,
+                onClose,
+                onContextMenu,
+                onCreateNode,
+                unavailableReason,
+            ]
         );
     }
 );
