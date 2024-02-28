@@ -594,16 +594,32 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         switch (connection.type) {
             case 'source': {
                 return new Set(
-                    [...matchingEnds.keys()]
-                        .filter((end) => end.inputs.some((input) => input.suggest))
-                        .map((schema) => schema.schemaId)
+                    [...matchingEnds.entries()]
+                        .filter(([key, value]) =>
+                            key.inputs.some(
+                                (input) =>
+                                    input.suggest &&
+                                    value &&
+                                    'input' in value &&
+                                    input.id === value.input
+                            )
+                        )
+                        .map(([schema]) => schema.schemaId)
                 );
             }
             case 'target': {
                 return new Set(
-                    [...matchingEnds.keys()]
-                        .filter((end) => end.outputs.some((output) => output.suggest))
-                        .map((schema) => schema.schemaId)
+                    [...matchingEnds.entries()]
+                        .filter(([key, value]) =>
+                            key.outputs.some(
+                                (output) =>
+                                    output.suggest &&
+                                    value &&
+                                    'output' in value &&
+                                    output.id === value.output
+                            )
+                        )
+                        .map(([schema]) => schema.schemaId)
                 );
             }
             default:
