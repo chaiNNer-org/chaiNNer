@@ -144,6 +144,7 @@
     "react-hotkeys-hook": "^3.4.6",
     "react-i18next": "^12.0.0",
     "react-icons": "^4.10.1",
+    "react-intersection-observer": "^9.8.1",
     "react-markdown": "^8.0.3",
     "react-query": "^3.39.3",
     "react-time-ago": "^7.2.1",
