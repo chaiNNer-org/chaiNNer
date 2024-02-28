@@ -25,7 +25,7 @@ from .. import io_group
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],
     outputs=[
-        OnnxModelOutput(),
+        OnnxModelOutput().suggest(),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
