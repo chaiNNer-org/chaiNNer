@@ -174,6 +174,9 @@ export const NodesList = memo(
                                                         <Text
                                                             cursor="pointer"
                                                             key={node.schemaId}
+                                                            overflow="hidden"
+                                                            textOverflow="ellipsis"
+                                                            whiteSpace="nowrap"
                                                         >
                                                             {node.name}
                                                         </Text>
