@@ -59,7 +59,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
         )
     ],
 )
-def change_colorspace_node(
+def change_color_model_node(
     img: np.ndarray, input_: int, output: int, alpha: bool
 ) -> np.ndarray:
     from_cs = color_space_or_detector_from_id(input_)
