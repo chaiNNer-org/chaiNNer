@@ -27,7 +27,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
 
 @miscellaneous_group.register(
     schema_id="chainner:image:change_colorspace",
-    name="Change Color model",
+    name="Change Color Model",
     description=(
         "Convert the color model of an image to a different one. "
         "Also can convert to different channel-spaces."
