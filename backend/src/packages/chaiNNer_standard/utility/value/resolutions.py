@@ -106,6 +106,7 @@ assert len(RESOLUTIONS) == len(ResList)
                 precision=0,
                 controls_step=1,
                 unit="px",
+                has_handle=False,
             ),
             NumberInput(
                 "Height",
@@ -115,6 +116,7 @@ assert len(RESOLUTIONS) == len(ResList)
                 precision=0,
                 controls_step=1,
                 unit="px",
+                has_handle=False,
             ),
         ),
     ],
