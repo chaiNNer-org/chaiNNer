@@ -25,7 +25,7 @@ from .. import text_group
             default="-",
             allow_empty_string=True,
         ),
-        TextInput("Text A"),
+        TextInput("Text A").suggest(),
         TextInput("Text B"),
         optional_list_group(
             *[TextInput(f"Text {letter}").make_optional() for letter in ALPHABET[2:10]],
@@ -50,7 +50,7 @@ from .. import text_group
                     match Input10 { null => "", _ as s => string::concat(sep, s) }
                 )
                 """,
-        )
+        ).suggest()
     ],
     see_also=["chainner:utility:text_pattern"],
 )

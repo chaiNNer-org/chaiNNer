@@ -151,11 +151,13 @@ valid_formats = get_available_image_formats()
         )
     ],
     outputs=[
-        LargeImageOutput().with_docs(
+        LargeImageOutput()
+        .with_docs(
             "The node will display a preview of the selected image as well as type"
             " information for it. Connect this output to the input of another node to"
             " pass the image to it."
-        ),
+        )
+        .suggest(),
         DirectoryOutput("Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
     ],

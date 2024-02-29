@@ -3,6 +3,7 @@ import {
     Box,
     Center,
     HStack,
+    Icon,
     Input,
     InputGroup,
     InputLeftElement,
@@ -12,6 +13,7 @@ import {
     Text,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { VscLightbulbAutofix } from 'react-icons/vsc';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
@@ -28,6 +30,7 @@ import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { FunctionDefinition } from '../../common/types/function';
 import {
+    EMPTY_SET,
     assertNever,
     createUniqueId,
     groupBy,
@@ -127,13 +130,18 @@ const SchemaItem = memo(
     }
 );
 
-type SchemaGroup = FavoritesSchemaGroup | CategorySchemaGroup;
+type SchemaGroup = FavoritesSchemaGroup | SuggestedSchemaGroup | CategorySchemaGroup;
 interface SchemaGroupBase {
     readonly name: string;
     readonly schemata: readonly NodeSchema[];
 }
 interface FavoritesSchemaGroup extends SchemaGroupBase {
     type: 'favorites';
+    categoryId?: never;
+}
+
+interface SuggestedSchemaGroup extends SchemaGroupBase {
+    type: 'suggested';
     categoryId?: never;
 }
 interface CategorySchemaGroup extends SchemaGroupBase {
@@ -145,7 +153,8 @@ interface CategorySchemaGroup extends SchemaGroupBase {
 const groupSchemata = (
     schemata: readonly NodeSchema[],
     categories: CategoryMap,
-    favorites: ReadonlySet<SchemaId>
+    favorites: ReadonlySet<SchemaId>,
+    suggested: ReadonlySet<SchemaId>
 ): readonly SchemaGroup[] => {
     const cats = [...groupBy(schemata, 'category')].map(
         ([categoryId, categorySchemata]): CategorySchemaGroup => {
@@ -166,11 +175,47 @@ const groupSchemata = (
         schemata: cats.flatMap((c) => c.schemata).filter((n) => favorites.has(n.schemaId)),
     };
 
-    if (favs.schemata.length === 0) {
-        return cats;
-    }
+    const suggs: SuggestedSchemaGroup = {
+        type: 'suggested',
+        name: 'Suggested',
+        schemata: schemata.filter((n) => suggested.has(n.schemaId)),
+    };
 
-    return [favs, ...cats];
+    return [
+        ...(suggs.schemata.length ? [suggs] : []),
+        ...(favs.schemata.length ? [favs] : []),
+        ...cats,
+    ];
+};
+
+const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
+    switch (group.type) {
+        case 'favorites':
+            return (
+                <StarIcon
+                    boxSize={3}
+                    color="yellow.500"
+                />
+            );
+        case 'suggested':
+            return (
+                <Icon
+                    as={VscLightbulbAutofix}
+                    boxSize={3}
+                    color="cyan.500"
+                />
+            );
+        case 'category':
+            return (
+                <IconFactory
+                    accentColor={getCategoryAccentColor(categories, group.categoryId)}
+                    boxSize={3}
+                    icon={group.category?.icon}
+                />
+            );
+        default:
+            return assertNever(group);
+    }
 };
 
 interface MenuProps {
@@ -178,9 +223,10 @@ interface MenuProps {
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: CategoryMap;
+    suggestions: ReadonlySet<SchemaId>;
 }
 
-const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => {
+const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -193,9 +239,10 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
         return groupSchemata(
             getMatchingNodes(searchQuery, schemata, categories),
             categories,
-            favorites
+            favorites,
+            suggestions
         );
-    }, [schemata, categories, favorites, searchQuery]);
+    }, [searchQuery, schemata, categories, favorites, suggestions]);
     const flatGroups = useMemo(() => groups.flatMap((group) => group.schemata), [groups]);
 
     const onClickHandler = useCallback(
@@ -301,27 +348,13 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                         nodePadding * (group.schemata.length + 1);
 
                     return (
-                        <Box key={group.categoryId ?? 'favs'}>
+                        <Box key={group.categoryId ?? group.type}>
                             <HStack
                                 borderRadius="md"
                                 mx={1}
                                 py={0.5}
                             >
-                                {group.type === 'favorites' ? (
-                                    <StarIcon
-                                        boxSize={3}
-                                        color="yellow.500"
-                                    />
-                                ) : (
-                                    <IconFactory
-                                        accentColor={getCategoryAccentColor(
-                                            categories,
-                                            group.categoryId
-                                        )}
-                                        boxSize={3}
-                                        icon={group.category?.icon}
-                                    />
-                                )}
+                                {renderGroupIcon(categories, group)}
                                 <Text fontSize="xs">{group.name}</Text>
                             </HStack>
 
@@ -563,12 +596,29 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         ]
     );
 
+    const suggestions: ReadonlySet<SchemaId> = useMemo(() => {
+        const connection = parseConnectStartParams(connectingFrom);
+        if (!connection) return EMPTY_SET;
+
+        return new Set(
+            [...matchingEnds.entries()]
+                .filter(([schema, end]) => {
+                    if (!end) return false;
+                    return end.type === 'target'
+                        ? schema.outputs.some((o) => o.suggest && o.id === end.output)
+                        : schema.inputs.some((i) => i.suggest && i.id === end.input);
+                })
+                .map(([schema]) => schema.schemaId)
+        );
+    }, [connectingFrom, matchingEnds]);
+
     const menuSchemata = useMemo(() => [...matchingEnds.keys()], [matchingEnds]);
     const menu = useContextMenu(() => (
         <Menu
             categories={categories}
             favorites={favorites}
             schemata={menuSchemata}
+            suggestions={suggestions}
             onSelect={onSchemaSelect}
         />
     ));
