@@ -42,6 +42,7 @@ import {
     stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
+import { IfVisible } from '../components/IfVisible';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
@@ -340,6 +341,12 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                         .slice(0, groupIndex)
                         .reduce((acc, g) => acc + g.schemata.length, 0);
 
+                    const nodeHeight = 28;
+                    const nodePadding = 2;
+                    const placeholderHeight =
+                        nodeHeight * group.schemata.length +
+                        nodePadding * (group.schemata.length + 1);
+
                     return (
                         <Box key={group.categoryId ?? group.type}>
                             <HStack
@@ -351,25 +358,33 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                                 <Text fontSize="xs">{group.name}</Text>
                             </HStack>
 
-                            {group.schemata.map((schema, schemaIndex) => {
-                                const index = indexOffset + schemaIndex;
-                                const isSelected = selectedIndex === index;
+                            <IfVisible
+                                forceVisible={
+                                    indexOffset <= selectedIndex &&
+                                    selectedIndex < indexOffset + group.schemata.length
+                                }
+                                height={placeholderHeight}
+                            >
+                                {group.schemata.map((schema, schemaIndex) => {
+                                    const index = indexOffset + schemaIndex;
+                                    const isSelected = selectedIndex === index;
 
-                                return (
-                                    <SchemaItem
-                                        accentColor={getCategoryAccentColor(
-                                            categories,
-                                            schema.category
-                                        )}
-                                        isFavorite={favorites.has(schema.schemaId)}
-                                        isSelected={isSelected}
-                                        key={schema.schemaId}
-                                        schema={schema}
-                                        scrollRef={isSelected ? scrollRef : undefined}
-                                        onClick={onClickHandler}
-                                    />
-                                );
-                            })}
+                                    return (
+                                        <SchemaItem
+                                            accentColor={getCategoryAccentColor(
+                                                categories,
+                                                schema.category
+                                            )}
+                                            isFavorite={favorites.has(schema.schemaId)}
+                                            isSelected={isSelected}
+                                            key={schema.schemaId}
+                                            schema={schema}
+                                            scrollRef={isSelected ? scrollRef : undefined}
+                                            onClick={onClickHandler}
+                                        />
+                                    );
+                                })}
+                            </IfVisible>
                         </Box>
                     );
                 })}

@@ -6,6 +6,7 @@ import { groupBy } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { NodeDocumentationContext } from '../../contexts/NodeDocumentationContext';
 import { IconFactory } from '../CustomIcons';
+import { IfVisible } from '../IfVisible';
 import { SearchBar } from '../SearchBar';
 
 export interface NodesListProps {
@@ -135,41 +136,51 @@ export const NodesList = memo(
                                                 <Text>{category.name}</Text>
                                             </HStack>
                                         </Center>
-                                        {categoryNodesByScore.map((node) => {
-                                            const isSelected = node.schemaId === selectedSchemaId;
-                                            return (
-                                                <HStack
-                                                    _hover={{
-                                                        backgroundColor: 'var(--bg-700)',
-                                                    }}
-                                                    backgroundColor={
-                                                        isSelected
-                                                            ? 'var(--bg-700)'
-                                                            : 'var(--bg-800)'
-                                                    }
-                                                    borderBottomColor="gray.500"
-                                                    borderBottomWidth="1px"
-                                                    borderLeftColor={category.color}
-                                                    borderLeftWidth={isSelected ? 8 : 4}
-                                                    cursor="pointer"
-                                                    key={node.schemaId}
-                                                    p={2}
-                                                    ref={isSelected ? selectedElement : undefined}
-                                                    w="full"
-                                                    onClick={() => {
-                                                        setSelectedSchemaId(node.schemaId);
-                                                    }}
-                                                >
-                                                    <IconFactory icon={node.icon} />
-                                                    <Text
+                                        <IfVisible
+                                            forceVisible={categoryNodesByScore.some(
+                                                (node) => node.schemaId === selectedSchemaId
+                                            )}
+                                            height={41 * categoryNodesByScore.length}
+                                        >
+                                            {categoryNodesByScore.map((node) => {
+                                                const isSelected =
+                                                    node.schemaId === selectedSchemaId;
+                                                return (
+                                                    <HStack
+                                                        _hover={{
+                                                            backgroundColor: 'var(--bg-700)',
+                                                        }}
+                                                        backgroundColor={
+                                                            isSelected
+                                                                ? 'var(--bg-700)'
+                                                                : 'var(--bg-800)'
+                                                        }
+                                                        borderBottomColor="gray.500"
+                                                        borderBottomWidth="1px"
+                                                        borderLeftColor={category.color}
+                                                        borderLeftWidth={isSelected ? 8 : 4}
                                                         cursor="pointer"
                                                         key={node.schemaId}
+                                                        p={2}
+                                                        ref={
+                                                            isSelected ? selectedElement : undefined
+                                                        }
+                                                        w="full"
+                                                        onClick={() => {
+                                                            setSelectedSchemaId(node.schemaId);
+                                                        }}
                                                     >
-                                                        {node.name}
-                                                    </Text>
-                                                </HStack>
-                                            );
-                                        })}
+                                                        <IconFactory icon={node.icon} />
+                                                        <Text
+                                                            cursor="pointer"
+                                                            key={node.schemaId}
+                                                        >
+                                                            {node.name}
+                                                        </Text>
+                                                    </HStack>
+                                                );
+                                            })}
+                                        </IfVisible>
                                     </Box>
                                 );
                             })
