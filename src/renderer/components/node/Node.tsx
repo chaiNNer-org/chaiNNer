@@ -97,6 +97,7 @@ export const NodeView = memo(
 
         const { id, schema } = nodeState;
 
+        const bgColor = 'var(--node-bg-color)';
         const accentColor = getCategoryAccentColor(categories, schema.category);
         const finalBorderColor = useMemo(() => {
             if (borderColor) return borderColor;
@@ -108,7 +109,7 @@ export const NodeView = memo(
 
         return (
             <Center
-                bg="var(--node-bg-color)"
+                bg={selected && isCollapsed ? accentColor : bgColor}
                 borderColor={finalBorderColor}
                 borderRadius="lg"
                 borderWidth="0.5px"
