@@ -14,8 +14,7 @@ import React, { memo } from 'react';
 import { Category, NodeSchema } from '../../../common/common-types';
 import { groupBy } from '../../../common/util';
 import { IconFactory } from '../CustomIcons';
-import { IfVisible } from '../IfVisible';
-import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
+import { NodeRepresentativeList } from './NodeRepresentative';
 import { SubcategoryHeading } from './SubcategoryHeading';
 import { TextBox } from './TextBox';
 
@@ -30,6 +29,7 @@ export const RegularAccordionItem = memo(
             <AccordionItem
                 cursor="pointer"
                 key={category.name}
+                style={{ contain: 'style layout paint' }}
             >
                 <Tooltip
                     closeOnMouseDown
@@ -95,9 +95,6 @@ export const Subcategories = memo(({ collapsed, category, categoryNodes }: Subca
                 const nodes = byGroup.get(group.id);
                 if (!nodes) return null;
 
-                const nodeHeight = 28;
-                const nodePadding = 6;
-
                 return (
                     <Box key={group.id}>
                         <Center>
@@ -106,20 +103,10 @@ export const Subcategories = memo(({ collapsed, category, categoryNodes }: Subca
                                 group={group}
                             />
                         </Center>
-                        <IfVisible
-                            height={nodeHeight * nodes.length + nodePadding * (nodes.length + 1)}
-                            visibleOffset={600}
-                        >
-                            <Box>
-                                {nodes.map((node) => (
-                                    <RepresentativeNodeWrapper
-                                        collapsed={collapsed}
-                                        key={node.schemaId}
-                                        node={node}
-                                    />
-                                ))}
-                            </Box>
-                        </IfVisible>
+                        <NodeRepresentativeList
+                            collapsed={collapsed}
+                            nodes={nodes}
+                        />
                     </Box>
                 );
             })}
