@@ -125,10 +125,10 @@ assert len(RESOLUTIONS) == len(ResList)
 )
 def resolutions_node(
     resolution_presets: ResList,
-    width: float,
-    height: float,
+    width: int,
+    height: int,
 ) -> tuple[int, int]:
     if resolution_presets == ResList.CUSTOM:
-        return int(width), int(height)
+        return width, height
     else:
         return RESOLUTIONS[resolution_presets]
