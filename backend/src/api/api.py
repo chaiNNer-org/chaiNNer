@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import importlib
 import os
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import (
     Any,
     Awaitable,
@@ -264,7 +264,7 @@ class Dependency:
             version=data["version"],
             size_estimate=data["sizeEstimate"],
             auto_update=data["autoUpdate"],
-            extra_index_url=data.get("findLink"),
+            extra_index_url=data["findLink"],
         )
 
 
@@ -368,6 +368,18 @@ class Package:
         feature = Feature(id=id, name=name, description=description)
         self.features.append(feature)
         return feature
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "icon": self.icon,
+            "color": self.color,
+            "dependencies": [d.to_dict() for d in self.dependencies],
+            "features": [f.to_dict() for f in self.features],
+            "settings": [asdict(x) for x in self.settings],
+        }
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Package:

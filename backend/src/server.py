@@ -8,7 +8,6 @@ import sys
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict
 from json import dumps as stringify
 from typing import TypedDict
 
@@ -374,18 +373,7 @@ async def get_packages(request: Request):
                 pkg_dep_item["installed"] = installed_version
             pkg_dependencies.append(pkg_dep_item)
 
-        packages.append(
-            {
-                "id": package.id,
-                "name": package.name,
-                "description": package.description,
-                "icon": package.icon,
-                "color": package.color,
-                "dependencies": [d.to_dict() for d in package.dependencies],
-                "features": [f.to_dict() for f in package.features],
-                "settings": [asdict(x) for x in package.settings],
-            }
-        )
+        packages.append(package.to_dict())
 
     return json(packages)
 
