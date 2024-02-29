@@ -31,6 +31,7 @@ import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { FunctionDefinition } from '../../common/types/function';
 import {
+    EMPTY_SET,
     assertNever,
     createUniqueId,
     groupBy,
