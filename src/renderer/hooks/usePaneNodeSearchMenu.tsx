@@ -21,7 +21,6 @@ import {
     Category,
     CategoryId,
     InputId,
-    NodeData,
     NodeSchema,
     OutputId,
     SchemaId,
@@ -492,7 +491,6 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
-    const { getNode } = useReactFlow<NodeData>();
 
     const { favorites } = useNodeFavorites();
 
