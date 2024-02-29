@@ -119,6 +119,7 @@ export const NodeView = memo(
                 overflow="hidden"
                 ref={targetRef}
                 transition="0.15s ease-in-out"
+                transitionProperty="border-color, opacity"
                 onContextMenu={onContextMenu}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
