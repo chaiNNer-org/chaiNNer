@@ -103,7 +103,7 @@ assert len(RESOLUTIONS) == len(ResList)
                 minimum=1,
                 maximum=None,
                 default=1920,
-                precision=1,
+                precision=0,
                 controls_step=1,
                 unit="px",
             ),
