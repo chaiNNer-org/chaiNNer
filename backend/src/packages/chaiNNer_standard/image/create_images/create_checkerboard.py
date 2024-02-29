@@ -44,10 +44,6 @@ def create_checkerboard_node(
     color_2: Color,
     square_size: int,
 ) -> np.ndarray:
-    img = np.zeros(
-        (height, width, 4), dtype=np.float32
-    )  # Create a new buffer with all zeros
-
     # Determine the number of squares in each direction
     num_cols = (width + square_size - 1) // square_size
     num_rows = (height + square_size - 1) // square_size
@@ -60,6 +56,10 @@ def create_checkerboard_node(
     color_b = Color.from_1x1_image(
         as_target_channels(color_2.to_1x1_image(), max_channels)
     )
+
+    img = np.zeros(
+        (height, width, max_channels), dtype=np.float32
+    )  # Create a new buffer with all zeros
 
     # Fill the checkerboard with alternating squares
     for i in range(num_rows):

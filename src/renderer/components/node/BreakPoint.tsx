@@ -1,10 +1,9 @@
 import { NeverType } from '@chainner/navi';
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData, OutputId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -102,35 +101,27 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
         [type, definitionType]
     );
 
-    const [isHovered, setIsHovered] = useState(false);
-    // Prevent hovered state from getting stuck
-    const hoverTimeout = useDebouncedCallback(() => {
-        setIsHovered(false);
-    }, 7500);
-
     return (
         <Box
+            data-group
             height="1px"
             position="relative"
             width="1px"
+            onContextMenu={menu.onContextMenu}
+            onDoubleClick={() => removeEdgeBreakpoint(id)}
         >
             <Center
-                _hover={{
+                _groupHover={{
                     height: '16px',
                     width: '16px',
                 }}
                 backgroundColor={accentColor}
                 borderRadius="100%"
-                height={isHovered ? '16px' : '12px'}
+                height="12px"
                 position="absolute"
                 transform="translate(-50%, -50%)"
                 transition="all 0.2s ease-in-out"
-                width={isHovered ? '16px' : '12px'}
-                onContextMenu={menu.onContextMenu}
-                onDoubleClick={() => removeEdgeBreakpoint(id)}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseOver={() => hoverTimeout()}
+                width="12px"
             >
                 <Box
                     height="1px"
@@ -177,11 +168,6 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
                 transform="translate(-50%, -50%)"
                 transition="all 0.2s ease-in-out"
                 width="26px"
-                onContextMenu={menu.onContextMenu}
-                onDoubleClick={() => removeEdgeBreakpoint(id)}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseOver={() => hoverTimeout()}
             />
         </Box>
     );

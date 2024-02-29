@@ -21,7 +21,7 @@
     transition-timing-function: ease-in-out;
     stroke: var(--bg-700);
 
-    &.hovered {
+    .edge-chain-group:hover & {
         stroke-width: 4px;
     }
 }
@@ -36,9 +36,9 @@
     stroke-dashoffset: 0;
     stroke-linecap: round;
     animation: 'none';
-    opacity: 100%;
+    opacity: 1;
 
-    &.hovered {
+    .edge-chain-group:hover & {
         stroke-width: 4px;
     }
 
@@ -64,7 +64,7 @@
             opacity: 1;
         }
 
-        &.hovered {
+        .edge-chain-group:hover & {
             stroke-width: 4px;
         }
 
