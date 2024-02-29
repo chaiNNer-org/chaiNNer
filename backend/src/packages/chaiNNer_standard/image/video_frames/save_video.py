@@ -133,11 +133,12 @@ class Writer:
                         pix_fmt="bgr24",
                         s=f"{width}x{height}",
                         r=self.fps,
+                        loglevel="error",
                     )
-                    .output(**self.output_params)
+                    .output(**self.output_params, loglevel="error")
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, cmd=FFMPEG_PATH)
+                    .run_async(pipe_stdin=True, pipe_stdout=False, cmd=FFMPEG_PATH)
                 )
 
             except Exception as e:

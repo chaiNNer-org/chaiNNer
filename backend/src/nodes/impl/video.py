@@ -91,7 +91,7 @@ class VideoLoader:
                 sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact",
                 loglevel="error",
             )
-            .run_async(pipe_stdout=True, cmd=FFMPEG_PATH)
+            .run_async(pipe_stdout=True, pipe_stderr=False, cmd=FFMPEG_PATH)
         )
         assert isinstance(ffmpeg_reader, subprocess.Popen)
 
