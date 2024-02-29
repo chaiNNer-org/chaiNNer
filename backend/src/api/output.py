@@ -29,6 +29,7 @@ class BaseOutput:
 
         # Optional documentation
         self.description: str | None = None
+        self.should_suggest: bool = False
 
     def to_dict(self):
         return {
@@ -39,6 +40,7 @@ class BaseOutput:
             "kind": self.kind,
             "hasHandle": self.has_handle,
             "description": self.description,
+            "suggest": self.should_suggest,
         }
 
     def with_id(self, output_id: OutputId | int):
@@ -51,6 +53,10 @@ class BaseOutput:
 
     def with_docs(self, *description: str):
         self.description = "\n\n".join(description)
+        return self
+
+    def suggest(self):
+        self.should_suggest = True
         return self
 
     def __repr__(self):

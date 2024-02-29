@@ -27,7 +27,7 @@ from .. import io_group
         )
     ],
     outputs=[
-        NcnnModelOutput(kind="tagged"),
+        NcnnModelOutput(kind="tagged").suggest(),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
