@@ -150,7 +150,7 @@ setup_task = None
 access_logger.addFilter(SSEFilter())
 
 
-async def proxy_request(request: Request, timeout: int = 300):
+async def proxy_request(request: Request, timeout: int | None = 300):
     assert session is not None
     await wait_for_server_start()
     await wait_for_backend_ready()
@@ -192,7 +192,7 @@ async def nodes(request: Request):
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    return await proxy_request(request)
+    return await proxy_request(request, timeout=None)
 
 
 @app.route("/run/individual", methods=["POST"])
@@ -213,7 +213,7 @@ async def pause(request: Request):
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    return await proxy_request(request)
+    return await proxy_request(request, timeout=None)
 
 
 @app.route("/kill", methods=["POST"])
