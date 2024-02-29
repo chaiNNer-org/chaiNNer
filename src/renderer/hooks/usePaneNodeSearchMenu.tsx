@@ -8,7 +8,6 @@ import {
     InputLeftElement,
     InputRightElement,
     MenuList,
-    Spacer,
     Text,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -104,23 +103,24 @@ const SchemaItem = memo(
                     icon={schema.icon}
                 />
                 <Text
+                    flex={1}
                     h="full"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
                     verticalAlign="middle"
+                    whiteSpace="nowrap"
                 >
                     {schema.name}
                 </Text>
                 {isFavorite && (
-                    <>
-                        <Spacer />
-                        <StarIcon
-                            aria-label="Favorites"
-                            boxSize={2.5}
-                            color="gray.500"
-                            overflow="hidden"
-                            stroke="gray.500"
-                            verticalAlign="middle"
-                        />
-                    </>
+                    <StarIcon
+                        aria-label="Favorites"
+                        boxSize={2.5}
+                        color="gray.500"
+                        overflow="hidden"
+                        stroke="gray.500"
+                        verticalAlign="middle"
+                    />
                 )}
             </HStack>
         );
