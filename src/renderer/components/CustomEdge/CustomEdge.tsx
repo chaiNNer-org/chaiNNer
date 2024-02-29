@@ -1,10 +1,9 @@
 import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { useDebouncedCallback } from 'use-debounce';
 import { Circle, Vec2 } from '../../../common/2d';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { assertNever, parseSourceHandle } from '../../../common/util';
@@ -26,16 +25,8 @@ import './CustomEdge.scss';
 const EDGE_CLASS = {
     RUNNING: 'running',
     YET_TO_RUN: 'yet-to-run',
-    HOVERED: 'hovered',
     COLLIDING: 'colliding',
     NONE: '',
-};
-
-const getHoveredClass = (isHovered: boolean) => {
-    if (isHovered) {
-        return EDGE_CLASS.HOVERED;
-    }
-    return EDGE_CLASS.NONE;
 };
 
 const getCollidingClass = (isColliding: boolean) => {
@@ -181,8 +172,6 @@ export const CustomEdge = memo(
         const { removeEdgeById, addEdgeBreakpoint } = useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
 
-        const [isHovered, setIsHovered] = useState(false);
-
         const { outputId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
         const definitionType =
             functionDefinitions.get(edgeParentNode.data.schemaId)?.outputDefaults.get(outputId) ??
@@ -196,11 +185,6 @@ export const CustomEdge = memo(
 
         const buttonSize = 32;
 
-        // Prevent hovered state from getting stuck
-        const hoverTimeout = useDebouncedCallback(() => {
-            setIsHovered(false);
-        }, 7500);
-
         const showRunning = animated && !paused;
 
         const isColliding = useContextSelector(
@@ -210,12 +194,12 @@ export const CustomEdge = memo(
 
         const classModifier = useMemo(
             () =>
-                `${getHoveredClass(isHovered)} ${getRunningStateClass(
+                `${getRunningStateClass(
                     sourceStatus,
                     targetStatus,
                     animateChain
                 )} ${getCollidingClass(isColliding)}`,
-            [isHovered, sourceStatus, targetStatus, isColliding, animateChain]
+            [sourceStatus, targetStatus, isColliding, animateChain]
         );
 
         // NOTE: I know that technically speaking this is bad
@@ -255,6 +239,7 @@ export const CustomEdge = memo(
 
         return (
             <g
+                data-group
                 className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
@@ -264,9 +249,6 @@ export const CustomEdge = memo(
                 onClick={onClick}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseOver={() => hoverTimeout()}
             >
                 {showRunning && (
                     <path
@@ -298,7 +280,6 @@ export const CustomEdge = memo(
                     requiredExtensions="http://www.w3.org/1999/xhtml"
                     style={{
                         borderRadius: 100,
-                        opacity: isHovered && !altPressed ? 1 : 0,
                         display: altPressed ? 'none' : 'block',
                         transitionDuration: '0.15s',
                         transitionProperty: 'opacity, background-color',
@@ -309,13 +290,17 @@ export const CustomEdge = memo(
                     y={edgeCenterY - buttonSize / 2}
                 >
                     <Center
+                        _groupHover={{
+                            opacity: 1,
+                        }}
                         backgroundColor={currentColor}
                         borderColor="var(--node-border-color)"
                         borderRadius={100}
                         borderWidth={2}
                         h="full"
+                        opacity={0}
                         transitionDuration="0.15s"
-                        transitionProperty="background-color"
+                        transitionProperty="background-color opacity"
                         transitionTimingFunction="ease-in-out"
                         w="full"
                     >

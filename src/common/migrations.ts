@@ -1892,7 +1892,7 @@ const saveVideoInputPR2514: ModernMigration = (data) => {
             const format = formatMap[encoder ?? 'libx264'];
 
             const oldAudioSettings = oldData[10];
-            const oldReducedAudioSettings = oldData[10];
+            const oldReducedAudioSettings = oldData[11];
             const audioSettings = format === 'webm' ? oldReducedAudioSettings : oldAudioSettings;
 
             const newData = {
@@ -1936,6 +1936,22 @@ const normalMapGeneratorInvert: ModernMigration = (data) => {
 
             inputData[17] = Number(invertR);
             inputData[18] = Number(invertG);
+        }
+    });
+
+    return data;
+};
+
+const saveVideoInputPatchMigration: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            const oldData = node.data.inputData;
+
+            if (oldData[10] === 'none') {
+                oldData[10] = 'auto';
+            }
+
+            node.data.inputData = oldData;
         }
     });
 
@@ -2000,6 +2016,7 @@ const migrations = [
     unifiedResizeNode,
     saveVideoInputPR2514,
     normalMapGeneratorInvert,
+    saveVideoInputPatchMigration,
 ];
 
 export const currentMigration = migrations.length;

@@ -27,9 +27,9 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
 
 @miscellaneous_group.register(
     schema_id="chainner:image:change_colorspace",
-    name="Change Colorspace",
+    name="Change Color Model",
     description=(
-        "Convert the colorspace of an image to a different one. "
+        "Convert the color model of an image to a different one. "
         "Also can convert to different channel-spaces."
     ),
     icon="MdColorLens",
@@ -59,7 +59,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
         )
     ],
 )
-def change_colorspace_node(
+def change_color_model_node(
     img: np.ndarray, input_: int, output: int, alpha: bool
 ) -> np.ndarray:
     from_cs = color_space_or_detector_from_id(input_)

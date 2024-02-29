@@ -6,7 +6,6 @@ from enum import Enum
 from subprocess import Popen
 from typing import Any, Literal
 
-import cv2
 import ffmpeg
 import numpy as np
 from sanic.log import logger
@@ -14,6 +13,7 @@ from sanic.log import logger
 from api import Collector, IteratorInputInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
+from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -96,9 +96,6 @@ class AudioSettings(Enum):
     TRANSCODE = "transcode"
 
 
-ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
-
 PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
     VideoEncoder.H264: ["preset", "crf"],
     VideoEncoder.H265: ["preset", "crf"],
@@ -133,14 +130,14 @@ class Writer:
                     ffmpeg.input(
                         "pipe:",
                         format="rawvideo",
-                        pix_fmt="rgb24",
+                        pix_fmt="bgr24",
                         s=f"{width}x{height}",
                         r=self.fps,
                     )
                     .output(**self.output_params)
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
+                    .run_async(pipe_stdin=True, cmd=FFMPEG_PATH)
                 )
 
             except Exception as e:
@@ -152,7 +149,7 @@ class Writer:
             h, w, _ = get_h_w_c(img)
             self.start(w, h)
 
-        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
+        out_frame = to_uint8(img, normalized=True)
         if self.out is not None and self.out.stdin is not None:
             self.out.stdin.write(out_frame.tobytes())
         else:
