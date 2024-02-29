@@ -582,51 +582,21 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         ]
     );
 
-    const suggestions: Set<SchemaId> = useMemo(() => {
+    const suggestions: ReadonlySet<SchemaId> = useMemo(() => {
         const connection = parseConnectStartParams(connectingFrom);
+        if (!connection) return EMPTY_SET;
 
-        if (!connection) return new Set();
-
-        const node = getNode(connection.nodeId);
-
-        if (!node) return new Set();
-
-        switch (connection.type) {
-            case 'source': {
-                return new Set(
-                    [...matchingEnds.entries()]
-                        .filter(([key, value]) =>
-                            key.inputs.some(
-                                (input) =>
-                                    input.suggest &&
-                                    value &&
-                                    'input' in value &&
-                                    input.id === value.input
-                            )
-                        )
-                        .map(([schema]) => schema.schemaId)
-                );
-            }
-            case 'target': {
-                return new Set(
-                    [...matchingEnds.entries()]
-                        .filter(([key, value]) =>
-                            key.outputs.some(
-                                (output) =>
-                                    output.suggest &&
-                                    value &&
-                                    'output' in value &&
-                                    output.id === value.output
-                            )
-                        )
-                        .map(([schema]) => schema.schemaId)
-                );
-            }
-            default:
-                assertNever(connection);
-        }
-        return new Set();
-    }, [connectingFrom, getNode, matchingEnds]);
+        return new Set(
+            [...matchingEnds.entries()]
+                .filter(([schema, end]) => {
+                    if (!end) return false;
+                    return end.type === 'target'
+                        ? schema.outputs.some((o) => o.suggest && o.id === end.output)
+                        : schema.inputs.some((i) => i.suggest && i.id === end.input);
+                })
+                .map(([schema]) => schema.schemaId)
+        );
+    }, [connectingFrom, matchingEnds]);
 
     const menuSchemata = useMemo(() => [...matchingEnds.keys()], [matchingEnds]);
     const menu = useContextMenu(() => (
