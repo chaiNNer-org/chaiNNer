@@ -7,6 +7,7 @@ export interface UseNodeFavorites {
     readonly favorites: ReadonlySet<SchemaId>;
     readonly addFavorites: (...schemaIds: SchemaId[]) => void;
     readonly removeFavorite: (schemaId: SchemaId) => void;
+    readonly toggleFavorite: (schemaId: SchemaId) => void;
 }
 
 export const useNodeFavorites = () => {
@@ -26,6 +27,22 @@ export const useNodeFavorites = () => {
         },
         [setFavorites]
     );
+    const toggleFavorite = useCallback(
+        (schemaId: SchemaId) => {
+            setFavorites((prev) => {
+                if (prev.includes(schemaId)) {
+                    return prev.filter((id) => id !== schemaId);
+                }
+                return [...prev, schemaId];
+            });
+        },
+        [setFavorites]
+    );
 
-    return useMemoObject<UseNodeFavorites>({ favorites, addFavorites, removeFavorite });
+    return useMemoObject<UseNodeFavorites>({
+        favorites,
+        addFavorites,
+        removeFavorite,
+        toggleFavorite,
+    });
 };
