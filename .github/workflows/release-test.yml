@@ -26,7 +26,7 @@ jobs:
         strategy:
             matrix:
                 os: [
-                    macos-13,
+                    macos-13-large,
                     ubuntu-latest,
                     windows-latest
                 ]
@@ -37,13 +37,13 @@ jobs:
               with:
                   node-version: 18
             - name: install setuptools (macos)
-              if: matrix.os == 'macos-13'
+              if: matrix.os == 'macos-13-large'
               run: python3 -m pip install setuptools
             - run: npm ci
             - name: publish --dry-run
               shell: bash
               run: |
-                  if [[ "${{ matrix.os }}" != "macos-13" ]]; then
+                  if [[ "${{ matrix.os }}" != "macos-13-large" ]]; then
                       npm run publish -- --dry-run
                   else
                       npm run publish -- --dry-run --arch=universal
