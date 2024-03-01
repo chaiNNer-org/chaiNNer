@@ -1,4 +1,4 @@
-import sys
+import os
 
 from sanic.log import logger
 
@@ -6,11 +6,10 @@ from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
-python_version = sys.version_info
-
 general = "PyTorch uses .pth models to upscale images."
 
 if is_arm_mac:
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     package_description = general
     inst_hint = f"{general} It is the most widely-used upscaling architecture."
 else:
