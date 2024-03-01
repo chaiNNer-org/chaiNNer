@@ -49,7 +49,7 @@ from .. import video_frames_group
         DirectoryOutput("Video Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
         NumberOutput("FPS", output_type="0.."),
-        AudioStreamOutput(),
+        AudioStreamOutput().suggest(),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
     kind="newIterator",

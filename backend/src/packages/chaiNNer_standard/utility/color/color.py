@@ -16,7 +16,7 @@ from .. import color_group
         ColorInput().make_fused(),
     ],
     outputs=[
-        ColorOutput(color_type="Input0"),
+        ColorOutput(color_type="Input0").suggest(),
     ],
 )
 def color_node(color: Color) -> Color:
