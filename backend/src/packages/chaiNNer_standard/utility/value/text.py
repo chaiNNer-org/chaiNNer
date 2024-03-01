@@ -17,7 +17,7 @@ from .. import value_group
         ).make_fused(),
     ],
     outputs=[
-        TextOutput("Text", output_type="Input0"),
+        TextOutput("Text", output_type="Input0").suggest(),
     ],
 )
 def text_node(text: str) -> str:
