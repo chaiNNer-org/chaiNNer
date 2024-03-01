@@ -24,8 +24,7 @@
     "test:js": "jest",
     "test:py": "pytest ./backend/tests/",
     "test:update": "npm run test:js -- -u",
-    "test": "npm run test:js && npm run test:py",
-    "postinstall": "patch-package"
+    "test": "npm run test:js && npm run test:py"
   },
   "keywords": [],
   "author": {
@@ -134,7 +133,6 @@
     "node-localstorage": "^2.2.1",
     "nodejs-file-downloader": "^4.9.3",
     "os-utils": "^0.0.14",
-    "patch-package": "^8.0.0",
     "portfinder": "^1.0.32",
     "re-resizable": "^6.9.9",
     "react": "^18.1.0",
