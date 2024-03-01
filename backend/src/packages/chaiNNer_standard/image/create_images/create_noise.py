@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Callable
 
 import numpy as np
 
@@ -8,6 +9,7 @@ import navi
 from nodes.groups import if_enum_group, seed_group
 from nodes.impl.image_utils import cartesian_product
 from nodes.impl.noise_functions.blue import create_blue_noise
+from nodes.impl.noise_functions.noise_generator import NoiseGenerator
 from nodes.impl.noise_functions.simplex import SimplexNoise
 from nodes.impl.noise_functions.value import ValueNoise
 from nodes.properties.inputs import (
@@ -24,57 +26,58 @@ from .. import create_images_group
 
 
 class NoiseMethod(Enum):
-    VALUE = "Value Noise"
+    VALUE_NOISE = "Value Noise"
+    SMOOTH_VALUE_NOISE = "Smooth Value Noise"
     SIMPLEX = "Simplex"
     BLUE_NOISE = "Blue Noise"
 
 
 class FractalMethod(Enum):
     NONE = "None"
-    PINK = "Pink noise"
+    PINK_NOISE = "Pink noise"
 
 
-def _add_noise(
-    generator_class,  # noqa: ANN001
-    image: np.ndarray,
+def _generate_noise(
+    generator: Callable[[int], NoiseGenerator],
+    width: int,
+    height: int,
     scale: float,
     brightness: float,
     tile_horizontal: bool = False,
     tile_vertical: bool = False,
     tile_spherical: bool = False,
-    **kwargs,
 ):
-    pixels = cartesian_product([np.arange(image.shape[0]), np.arange(image.shape[1])])
+    h, w = height, width
+    pixels = cartesian_product([np.arange(h), np.arange(w)])
     points = np.array(pixels)
     if tile_spherical:
         tile_horizontal = False
         tile_vertical = False
     if tile_horizontal:
-        x = points[:, 1] * 2 * np.pi / image.shape[1]
-        cx = (image.shape[1] * np.cos(x) / np.pi / 2).reshape((-1, 1))
-        sx = (image.shape[1] * np.sin(x) / np.pi / 2).reshape((-1, 1))
+        x = points[:, 1] * 2 * np.pi / w
+        cx = (w * np.cos(x) / np.pi / 2).reshape((-1, 1))
+        sx = (w * np.sin(x) / np.pi / 2).reshape((-1, 1))
         points = np.concatenate([points[:, :1], cx, sx], axis=1)
     if tile_vertical:
-        x = points[:, 0] * 2 * np.pi / image.shape[0]
-        cx = (image.shape[0] * np.cos(x) / np.pi / 2).reshape((-1, 1))
-        sx = (image.shape[0] * np.sin(x) / np.pi / 2).reshape((-1, 1))
+        x = points[:, 0] * 2 * np.pi / h
+        cx = (h * np.cos(x) / np.pi / 2).reshape((-1, 1))
+        sx = (h * np.sin(x) / np.pi / 2).reshape((-1, 1))
         points = np.concatenate([points[:, 1:], cx, sx], axis=1)
     if tile_spherical:
-        theta = points[:, 0] * np.pi / image.shape[0]
-        alpha = points[:, 1] * 2 * np.pi / image.shape[1]
+        theta = points[:, 0] * np.pi / h
+        alpha = points[:, 1] * 2 * np.pi / w
 
-        y = image.shape[1] * np.cos(theta).reshape((-1, 1)) / np.pi / 2
-        r = image.shape[0] * np.sin(theta).reshape((-1, 1))
+        y = w * np.cos(theta).reshape((-1, 1)) / np.pi / 2
+        r = h * np.sin(theta).reshape((-1, 1))
 
         x = r * np.cos(alpha).reshape((-1, 1)) / np.pi / 2
         z = r * np.sin(alpha).reshape((-1, 1)) / np.pi / 2
 
         points = np.concatenate([x, y, z], axis=1)
 
-    gen = generator_class(dimensions=points.shape[1], **kwargs)
-    output = gen.evaluate(points / scale)
+    output = generator(points.shape[1]).evaluate(points / scale)
 
-    image += output.reshape(image.shape) * brightness
+    return output.reshape((h, w)) * brightness
 
 
 @create_images_group.register(
@@ -89,9 +92,16 @@ def _add_noise(
         EnumInput(
             NoiseMethod,
             default=NoiseMethod.SIMPLEX,
-            option_labels={key: key.value for key in NoiseMethod},
+            option_labels={NoiseMethod.SMOOTH_VALUE_NOISE: "Value Noise (smooth)"},
         ).with_id(3),
-        if_enum_group(3, (NoiseMethod.SIMPLEX, NoiseMethod.VALUE))(
+        if_enum_group(
+            3,
+            (
+                NoiseMethod.SIMPLEX,
+                NoiseMethod.VALUE_NOISE,
+                NoiseMethod.SMOOTH_VALUE_NOISE,
+            ),
+        )(
             NumberInput("Scale", minimum=1, default=50, precision=1).with_id(4),
             SliderInput(
                 "Brightness", minimum=0, default=100, maximum=100, precision=2
@@ -99,13 +109,11 @@ def _add_noise(
             BoolInput("Tile Horizontal", default=False).with_id(10),
             BoolInput("Tile Vertical", default=False).with_id(11),
             BoolInput("Tile Spherical", default=False).with_id(12),
-            EnumInput(
-                FractalMethod,
-                default=FractalMethod.NONE,
-                option_labels={key: key.value for key in FractalMethod},
-            ).with_id(6),
-            if_enum_group(6, FractalMethod.PINK)(
-                NumberInput("Layers", minimum=2, default=3, precision=0).with_id(7),
+            EnumInput(FractalMethod, default=FractalMethod.NONE).with_id(6),
+            if_enum_group(6, FractalMethod.PINK_NOISE)(
+                NumberInput(
+                    "Layers", minimum=2, maximum=20, default=3, precision=0
+                ).with_id(7),
                 NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
                     8
                 ),
@@ -139,7 +147,7 @@ def _add_noise(
 def create_noise_node(
     width: int,
     height: int,
-    seed: Seed,
+    seed_obj: Seed,
     noise_method: NoiseMethod,
     scale: float,
     brightness: float,
@@ -153,50 +161,53 @@ def create_noise_node(
     increment_seed: bool,
     standard_deviation: float,
 ) -> np.ndarray:
+    brightness /= 100
+    seed = seed_obj.to_u32()
+
     if noise_method == NoiseMethod.BLUE_NOISE:
         return create_blue_noise(
             (height, width),
             standard_deviation=standard_deviation,
-            seed=seed.to_u32(),
+            seed=seed_obj.to_u32(),
         ).astype(np.float32) / (width * height - 1)
 
-    img = np.zeros((height, width), dtype=np.float32)
-    brightness /= 100
-
-    kwargs = {
-        "tile_horizontal": tile_horizontal,
-        "tile_vertical": tile_vertical,
-        "tile_spherical": tile_spherical,
-        "scale": scale,
-        "brightness": brightness,
-        "seed": seed.to_u32(),
-    }
-
-    generator_class = None
+    generator_class: Callable[[int, int], NoiseGenerator]
     if noise_method == NoiseMethod.SIMPLEX:
         generator_class = SimplexNoise
-    elif noise_method == NoiseMethod.VALUE:
-        generator_class = ValueNoise
+    elif noise_method == NoiseMethod.VALUE_NOISE:
+        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=False)  # noqa: E731
+    elif noise_method == NoiseMethod.SMOOTH_VALUE_NOISE:
+        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=True)  # noqa: E731
 
     if fractal_method == FractalMethod.NONE:
-        _add_noise(generator_class, image=img, **kwargs)  # type: ignore
-    elif fractal_method == FractalMethod.PINK:
-        del kwargs["scale"], kwargs["brightness"]
-        total_brightness = 0
-        relative_brightness = 1
-        for _ in range(layers):
-            total_brightness += relative_brightness
-            _add_noise(
-                generator_class,
-                image=img,
-                **kwargs,  # type: ignore
-                scale=scale,
-                brightness=brightness * relative_brightness,
-            )
-            scale /= scale_ratio
-            relative_brightness /= brightness_ratio
-            if increment_seed:
-                kwargs["seed"] = (kwargs["seed"] + 1) % (2**32)
-        img /= total_brightness
+        return _generate_noise(
+            lambda dim: generator_class(dim, seed),
+            width=width,
+            height=height,
+            scale=scale,
+            brightness=brightness,
+            tile_horizontal=tile_horizontal,
+            tile_vertical=tile_vertical,
+            tile_spherical=tile_spherical,
+        )
 
-    return img
+    if fractal_method == FractalMethod.PINK_NOISE:
+        img = np.zeros((height, width), dtype=np.float32)
+        total_brightness = 0
+        for i in range(layers):
+            rel_brightness = 1 / (brightness_ratio**i)
+            total_brightness += rel_brightness
+            img += _generate_noise(
+                lambda dim: generator_class(dim, seed),  # noqa: B023
+                width=width,
+                height=height,
+                scale=scale / (scale_ratio**i),
+                brightness=brightness * rel_brightness,
+                tile_horizontal=tile_horizontal,
+                tile_vertical=tile_vertical,
+                tile_spherical=tile_spherical,
+            )
+            if increment_seed:
+                seed += 1
+        img /= total_brightness
+        return img
