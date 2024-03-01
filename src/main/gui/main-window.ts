@@ -27,9 +27,27 @@ const registerEventHandlerPreSetup = (
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDirSync());
-    ipcMain.handle('get-settings', () => settings);
-    ipcMain.handle('set-settings', (_, newSettings) => writeSettings(newSettings));
     ipcMain.handle('refresh-nodes', () => args.refresh);
+
+    // settings
+    let currentSettings = settings;
+    let savingInProgress = false;
+    ipcMain.handle('get-settings', () => currentSettings);
+    ipcMain.handle('set-settings', (_, newSettings) => {
+        currentSettings = newSettings;
+        if (savingInProgress) {
+            return;
+        }
+        savingInProgress = true;
+        setTimeout(() => {
+            savingInProgress = false;
+            try {
+                writeSettings(currentSettings);
+            } catch (error) {
+                log.error('Unable to save settings.', error);
+            }
+        }, 1000);
+    });
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };
