@@ -17,7 +17,11 @@ export const migrateOldStorageSettings = (settings: ReadonlyStorage): ChainnerSe
     const lastDirectories: Record<string, string | undefined> = {};
     for (const key of settings.keys) {
         const prefix = 'use-last-directory-';
-        if (key.startsWith(prefix)) {
+        if (
+            key.startsWith(prefix) &&
+            // old (now unused) keys end with <space><number>
+            !/ \d+$/.test(key)
+        ) {
             lastDirectories[key.slice(prefix.length)] = settings.getItem(key) || undefined;
         }
     }
