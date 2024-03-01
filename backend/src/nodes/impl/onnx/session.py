@@ -53,9 +53,9 @@ def create_inference_session(
     return session
 
 
-__session_cache: WeakKeyDictionary[
-    OnnxModel, ort.InferenceSession
-] = WeakKeyDictionary()
+__session_cache: WeakKeyDictionary[OnnxModel, ort.InferenceSession] = (
+    WeakKeyDictionary()
+)
 
 
 def get_onnx_session(
