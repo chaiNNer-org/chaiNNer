@@ -19,7 +19,7 @@ from .. import value_group
         ).make_fused(),
     ],
     outputs=[
-        DirectoryOutput("Directory", output_type="Input0"),
+        DirectoryOutput("Directory", output_type="Input0").suggest(),
     ],
 )
 def directory_node(directory: Path) -> Path:

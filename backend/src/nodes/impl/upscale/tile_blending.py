@@ -156,9 +156,9 @@ class TileBlender:
                 ]
                 right = tile[:, :blend_size, ...]
 
-                self.result[
-                    :, self.offset - o.start : self.offset + o.start, ...
-                ] = _fast_mix(left, right, blend)
+                self.result[:, self.offset - o.start : self.offset + o.start, ...] = (
+                    _fast_mix(left, right, blend)
+                )
 
                 self.offset += w - o.total
                 self.last_end_overlap = o.end
@@ -198,9 +198,9 @@ class TileBlender:
                 ]
                 right = tile[: o.start * 2, :, ...]
 
-                self.result[
-                    self.offset - o.start : self.offset + o.start, :, ...
-                ] = _fast_mix(left, right, blend)
+                self.result[self.offset - o.start : self.offset + o.start, :, ...] = (
+                    _fast_mix(left, right, blend)
+                )
 
                 self.offset += h - o.total
                 self.last_end_overlap = o.end

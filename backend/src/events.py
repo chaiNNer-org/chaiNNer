@@ -120,8 +120,7 @@ Event = Union[ExecutionEvent, BackendEvent]
 
 class EventConsumer(ABC):
     @abstractmethod
-    async def put(self, event: Event) -> None:
-        ...
+    async def put(self, event: Event) -> None: ...
 
     @staticmethod
     def filter(queue: EventConsumer, allowed: set[str]) -> EventConsumer:

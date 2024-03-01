@@ -290,7 +290,7 @@ class Writer:
             "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=4
         ).with_id(14),
         if_group(~Condition.enum(4, VideoFormat.GIF))(
-            AudioStreamInput().make_optional().with_id(15),
+            AudioStreamInput().make_optional().with_id(15).suggest(),
             if_group(Condition.type(15, "AudioStream"))(
                 EnumInput(
                     AudioSettings,

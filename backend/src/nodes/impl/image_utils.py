@@ -176,7 +176,7 @@ def shift(
     fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
-    translation_matrix = np.asfarray(
+    translation_matrix = np.asarray(
         [[1, 0, amount_x], [0, 1, amount_y]], dtype=np.float32
     )
     img = cv2.warpAffine(

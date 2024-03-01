@@ -22,7 +22,7 @@ from .. import value_group
         ).make_fused(),
     ],
     outputs=[
-        NumberOutput("Number", output_type="Input0"),
+        NumberOutput("Number", output_type="Input0").suggest(),
     ],
 )
 def number_node(number: float) -> float:
