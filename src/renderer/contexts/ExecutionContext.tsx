@@ -502,15 +502,28 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
-    const kill = useCallback(async () => {
+    const kill = useCallback(() => {
         try {
             setStatus(ExecutionStatus.KILLING);
             backend.abort();
-            const response = await backend.kill();
-            if (response.type === 'error') {
-                sendAlert({ type: AlertType.ERROR, message: response.exception });
-                return;
-            }
+            // Give it a second to abort the run request before submitting another request
+            // TODO: the abort and the timeout can be removed once `run` is made fully async
+            setTimeout(() => {
+                backend
+                    .kill()
+                    .then((response) => {
+                        if (response.type === 'error') {
+                            sendAlert({ type: AlertType.ERROR, message: response.exception });
+                        }
+                        setStatus(ExecutionStatus.READY);
+                    })
+                    .catch(() => {
+                        sendAlert({
+                            type: AlertType.ERROR,
+                            message: 'An unexpected error occurred.',
+                        });
+                    });
+            }, 1000);
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
@@ -551,7 +564,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     case ExecutionStatus.RUNNING:
                     case ExecutionStatus.PAUSED:
                         event.preventDefault();
-                        kill().catch(log.error);
+                        kill();
                         break;
                     case ExecutionStatus.READY:
                     case ExecutionStatus.KILLING:
