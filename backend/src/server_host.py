@@ -27,6 +27,7 @@ from custom_types import UpdateProgressFn
 from dependencies.store import DependencyInfo, install_dependencies, installed_packages
 from events import EventQueue
 from gpu import get_nvidia_helper
+from response import error_response, success_response
 from server_config import ServerConfig
 
 
@@ -218,7 +219,25 @@ async def resume(request: Request):
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    return await proxy_request(request)
+    try:
+        response = await proxy_request(request, timeout=3)
+        if response.status > 200:
+            if response.body is None:
+                raise Exception(
+                    "Unknown error occurred while attempting to stop execution."
+                )
+            raise Exception(response.body.decode())
+    except Exception:
+        try:
+            logger.debug(
+                "Regular kill failed, attempting to restart executor process..."
+            )
+            restart_executor_server()
+        except Exception as exception:
+            return json(
+                error_response("Error killing execution!", exception), status=500
+            )
+    return json(success_response(), status=200)
 
 
 @app.route("/python-info", methods=["GET"])

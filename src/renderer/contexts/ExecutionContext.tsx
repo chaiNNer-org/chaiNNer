@@ -15,7 +15,7 @@ import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { fromJson } from '../../common/types/json';
-import { EMPTY_MAP, EMPTY_SET, assertNever, delay, groupBy } from '../../common/util';
+import { EMPTY_MAP, EMPTY_SET, assertNever, groupBy } from '../../common/util';
 import { bothValid } from '../../common/Validity';
 import {
     ChainProgress,
@@ -505,24 +505,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(2500).then(() => ({
-                type: 'timeout',
-                exception: '',
-            }));
-            const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            if (response.type === 'timeout') {
-                await restart();
-                log.info('Finished restarting backend');
-            }
+            const response = await backend.kill();
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
+                return;
             }
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
         setNodeProgress({});
-    }, [backend, restart, sendAlert]);
+    }, [backend, sendAlert]);
 
     // This makes sure keystrokes are executed even if the focus is on an input field
     useEffect(() => {
