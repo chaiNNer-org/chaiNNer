@@ -505,6 +505,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
+            backend.abort();
             const response = await backend.kill();
             if (response.type === 'error') {
                 sendAlert({ type: AlertType.ERROR, message: response.exception });
