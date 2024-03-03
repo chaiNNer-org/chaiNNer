@@ -76,7 +76,7 @@ export interface NodeProgress {
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
-    kill: () => Promise<void>;
+    kill: () => void;
     status: ExecutionStatus;
     paused: boolean;
     getNodeProgress: (nodeId: string) => NodeProgress | undefined;
