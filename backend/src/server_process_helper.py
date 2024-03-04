@@ -13,7 +13,7 @@ from sanic.log import logger
 from api import Package
 
 
-class ExecutorServerProcess:
+class ExecutorServerWorker:
     def __init__(self, port: int, flags: list[str] | None = None):
         self.process = None
         self.stop_event = threading.Event()
@@ -69,7 +69,7 @@ class ExecutorServer:
 
     async def start(self, flags: list[str] | None = None):
         del self.server_process
-        self.server_process = ExecutorServerProcess(self.port, flags or self.flags)
+        self.server_process = ExecutorServerWorker(self.port, flags or self.flags)
         self.server_process.start_process()
         self.session = aiohttp.ClientSession(base_url=self.base_url)
         await self.wait_for_server_start()

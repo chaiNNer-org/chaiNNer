@@ -60,7 +60,7 @@ class SSEFilter(logging.Filter):
 
 
 port = find_free_port()
-server_process: ExecutorServer = ExecutorServer(port)
+executor_server: ExecutorServer = ExecutorServer(port)
 
 setup_task = None
 
@@ -69,39 +69,39 @@ access_logger.addFilter(SSEFilter())
 
 @app.route("/nodes")
 async def nodes(request: Request):
-    resp = await server_process.proxy_request(request)
+    resp = await executor_server.proxy_request(request)
     return resp
 
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    return await server_process.proxy_request(request, timeout=None)
+    return await executor_server.proxy_request(request, timeout=None)
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     logger.info("Running individual")
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    return await server_process.proxy_request(request, timeout=None)
+    return await executor_server.proxy_request(request, timeout=None)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.route("/python-info", methods=["GET"])
@@ -140,13 +140,13 @@ async def system_usage(_request: Request):
 
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
     installed_deps: dict[str, str] = {}
-    packages = await server_process.get_packages()
+    packages = await executor_server.get_packages()
     for package in packages:
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
@@ -158,7 +158,7 @@ async def get_installed_dependencies(request: Request):
 
 @app.route("/features")
 async def get_features(request: Request):
-    return await server_process.proxy_request(request)
+    return await executor_server.proxy_request(request)
 
 
 @app.get("/sse")
@@ -167,7 +167,7 @@ async def sse(request: Request):
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
         try:
-            async for data in server_process.get_sse(request):
+            async for data in executor_server.get_sse(request):
                 if response is not None:
                     await response.send(data)
         except Exception:
@@ -205,7 +205,7 @@ async def import_packages(
         ]
         await install_dependencies(dep_info, update_progress_cb, logger)
 
-    packages = await server_process.get_packages()
+    packages = await executor_server.get_packages()
 
     logger.info("Checking dependencies...")
 
@@ -237,7 +237,7 @@ async def import_packages(
             if config.close_after_start:
                 flags.append("--close-after-start")
 
-            await server_process.restart(flags)
+            await executor_server.restart(flags)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}", exc_info=True)
             if config.close_after_start:
@@ -286,7 +286,7 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     await update_progress("Loading Nodes...", 1.0, None)
 
     # Wait to send backend-ready until nodes are loaded
-    await server_process.wait_for_backend_ready()
+    await executor_server.wait_for_backend_ready()
 
     await setup_queue.put_and_wait(
         {
@@ -314,26 +314,26 @@ async def close_server(sanic_app: Sanic):
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
 
-    await server_process.stop()
+    await executor_server.stop()
     sanic_app.stop()
 
 
 @app.after_server_stop
 async def after_server_stop(_sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
-    await server_process.stop()
+    await executor_server.stop()
     logger.info("Server closed.")
 
 
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     global setup_task
-    await server_process.start()
+    await executor_server.start()
 
     # initialize the queues
     ctx = AppContext.get(sanic_app)
     ctx.setup_queue = EventQueue()
 
-    await server_process.wait_for_server_start()
+    await executor_server.wait_for_server_start()
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app, loop))
