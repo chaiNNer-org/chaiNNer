@@ -1,2 +1,5 @@
+from navi import Image
+
+
 def test_dummy():
-    pass
+    Image(1, 1, 3)

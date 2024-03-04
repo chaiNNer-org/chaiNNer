@@ -12,6 +12,9 @@ from __future__ import annotations
 import itertools
 
 import numpy as np
+from typing_extensions import override
+
+from .noise_generator import NoiseGenerator
 
 # fmt: off
 PERMUTATION_TABLE_ARRAY = np.array([
@@ -43,7 +46,7 @@ SCALE = {
 }
 
 
-class SimplexNoise:
+class SimplexNoise(NoiseGenerator):
     def __init__(self, dimensions: int, seed: int | None, r2: float = 0.5):
         if dimensions <= 0:
             raise ValueError
@@ -91,6 +94,7 @@ class SimplexNoise:
             self.permutation_table = np.arange(self.gradients.shape[0] * 16)
             np.random.default_rng(seed).shuffle(self.permutation_table)
 
+    @override
     def evaluate(self, points: np.ndarray):
         n_points = points.shape[0]
         assert points.shape == (n_points, self.dimensions)

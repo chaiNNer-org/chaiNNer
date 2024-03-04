@@ -1,20 +1,31 @@
 import itertools
 
 import numpy as np
+from typing_extensions import override
+
+from .noise_generator import NoiseGenerator
 
 
-class ValueNoise:
-    def __init__(self, dimensions: int, seed: int):
+def smoothstep(t: np.ndarray):
+    return t * t * (3 - 2 * t)
+
+
+class ValueNoise(NoiseGenerator):
+    def __init__(self, dimensions: int, seed: int, smooth: bool):
         self.dimensions = dimensions
+        self.smooth = smooth
 
-        self.values = np.arange(16, dtype="float32")
+        self.values: np.ndarray = np.arange(16, dtype="float32")
         self.values = self.values / max(self.values)
 
         self.permutation_table = np.arange(self.values.size * 16)
         np.random.default_rng(seed).shuffle(self.permutation_table)
 
+    @override
     def evaluate(self, points: np.ndarray):
         block, fractional = np.divmod(points, 1)
+        if self.smooth:
+            fractional = smoothstep(fractional)
 
         corners = np.zeros(
             (points.shape[0], 2**self.dimensions, self.dimensions), dtype="int32"
