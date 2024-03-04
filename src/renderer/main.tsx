@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeKind } from '../common/common-types';
-import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
 import { Header } from './components/Header/Header';
@@ -19,7 +18,7 @@ import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { NodeDocumentationProvider } from './contexts/NodeDocumentationContext';
-import { SettingsProvider } from './contexts/SettingsContext';
+import { useSettings } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
@@ -37,6 +36,7 @@ export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
     const { connectionState } = useContext(BackendContext);
+    const settings = useSettings();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -46,12 +46,9 @@ export const Main = memo(() => {
         'show-collected-information',
         useCallback(
             (_, info) => {
-                const localStorage = getLocalStorage();
                 const fullInfo = {
                     ...info,
-                    settings: Object.fromEntries(
-                        getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)])
-                    ),
+                    settings,
                 };
 
                 sendAlert({
@@ -60,7 +57,7 @@ export const Main = memo(() => {
                     message: JSON.stringify(fullInfo, undefined, 2),
                 });
             },
-            [sendAlert, t]
+            [sendAlert, t, settings]
         )
     );
 
@@ -90,38 +87,36 @@ export const Main = memo(() => {
 
     return (
         <ReactFlowProvider>
-            <SettingsProvider>
-                <GlobalProvider reactFlowWrapper={reactFlowWrapper}>
-                    <NodeDocumentationProvider>
-                        <ExecutionProvider>
-                            <DependencyProvider>
-                                <HistoryProvider>
-                                    <VStack
-                                        bg="var(--window-bg)"
-                                        h="100vh"
-                                        overflow="hidden"
-                                        p={2}
-                                        w="100vw"
+            <GlobalProvider reactFlowWrapper={reactFlowWrapper}>
+                <NodeDocumentationProvider>
+                    <ExecutionProvider>
+                        <DependencyProvider>
+                            <HistoryProvider>
+                                <VStack
+                                    bg="var(--window-bg)"
+                                    h="100vh"
+                                    overflow="hidden"
+                                    p={2}
+                                    w="100vw"
+                                >
+                                    <Header />
+                                    <HStack
+                                        h="calc(100vh - 80px)"
+                                        w="full"
                                     >
-                                        <Header />
-                                        <HStack
-                                            h="calc(100vh - 80px)"
-                                            w="full"
-                                        >
-                                            <NodeSelector />
-                                            <ReactFlowBox
-                                                edgeTypes={edgeTypes}
-                                                nodeTypes={nodeTypes}
-                                                wrapperRef={reactFlowWrapper}
-                                            />
-                                        </HStack>
-                                    </VStack>
-                                </HistoryProvider>
-                            </DependencyProvider>
-                        </ExecutionProvider>
-                    </NodeDocumentationProvider>
-                </GlobalProvider>
-            </SettingsProvider>
+                                        <NodeSelector />
+                                        <ReactFlowBox
+                                            edgeTypes={edgeTypes}
+                                            nodeTypes={nodeTypes}
+                                            wrapperRef={reactFlowWrapper}
+                                        />
+                                    </HStack>
+                                </VStack>
+                            </HistoryProvider>
+                        </DependencyProvider>
+                    </ExecutionProvider>
+                </NodeDocumentationProvider>
+            </GlobalProvider>
         </ReactFlowProvider>
     );
 });

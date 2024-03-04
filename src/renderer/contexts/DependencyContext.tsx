@@ -62,7 +62,7 @@ import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
-import { SettingsContext } from './SettingsContext';
+import { useSettings } from './SettingsContext';
 
 const installModes = {
     NORMAL: 'Normal',
@@ -388,12 +388,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { showAlert } = useContext(AlertBoxContext);
-    const { useIsSystemPython } = useContext(SettingsContext);
+    const { useSystemPython } = useSettings();
     const { backend, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
         useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
-
-    const [isSystemPython] = useIsSystemPython;
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
     const [installMode, setInstallMode] = useState(installModes.NORMAL);
@@ -582,7 +580,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     textAlign="left"
                                 >
                                     Python ({pythonInfo.version}) [
-                                    {isSystemPython ? 'System' : 'Integrated'}]
+                                    {useSystemPython ? 'System' : 'Integrated'}]
                                 </Text>
                                 <HStack gap={2}>
                                     <HStack>

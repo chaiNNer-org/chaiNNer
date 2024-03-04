@@ -25,17 +25,16 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useRef, useState } from 'react';
 import semver from 'semver';
-import { useContext } from 'use-context-selector';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
 import { ipcRenderer } from '../../../common/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
+import { useStored } from '../../hooks/useStored';
 import { Markdown } from '../Markdown';
 
 export const AppInfo = memo(() => {
-    const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
-    const [checkUpdOnStrtUp] = useCheckUpdOnStrtUp;
+    const { checkForUpdatesOnStartup } = useSettings();
 
     const [appVersion, setAppVersion] = useState<string | null>(null);
     useAsyncEffect(
@@ -66,19 +65,23 @@ export const AppInfo = memo(() => {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
 
+    const [lastIgnoredUpdate, setLastIgnoredUpdate] = useStored<string | undefined>(
+        'ignored-update',
+        undefined
+    );
+
     const leastDestructiveRef = useRef(null);
 
     useEffect(() => {
-        if (checkUpdOnStrtUp) {
+        if (checkForUpdatesOnStartup) {
             if (appVersion && updateVersion) {
-                const lastIgnoredUpdate = localStorage.getItem(`ignored-update`);
                 if (lastIgnoredUpdate && semver.lte(lastIgnoredUpdate, updateVersion.tag_name)) {
                     return;
                 }
                 onAlertOpen();
             }
         }
-    }, [appVersion, checkUpdOnStrtUp, onAlertOpen, updateVersion]);
+    }, [appVersion, lastIgnoredUpdate, checkForUpdatesOnStartup, onAlertOpen, updateVersion]);
 
     return (
         <>
@@ -197,10 +200,7 @@ export const AppInfo = memo(() => {
                                 <Button
                                     onClick={() => {
                                         if (updateVersion?.tag_name) {
-                                            localStorage.setItem(
-                                                `ignored-update`,
-                                                updateVersion.tag_name
-                                            );
+                                            setLastIgnoredUpdate(updateVersion.tag_name);
                                         }
                                         onAlertClose();
                                     }}

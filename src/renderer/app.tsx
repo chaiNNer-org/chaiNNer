@@ -1,14 +1,15 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
-import { LocalStorage } from 'node-localstorage';
 import { memo, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
+import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';
 import { ContextMenuProvider } from './contexts/ContextMenuContext';
 import { HotkeysProvider } from './contexts/HotKeyContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
 import { darktheme } from './theme';
@@ -32,20 +33,20 @@ const LoadingComponent = memo(() => (
 ));
 
 export const App = memo(() => {
-    const [url, setUrl] = useState<string | null>(null);
-    const [storageInitialized, setStorageInitialized] = useState(false);
-
-    useAsyncEffect(
-        () => ({ supplier: () => ipcRenderer.invoke('get-backend-url'), successEffect: setUrl }),
-        []
-    );
+    const [url, setUrl] = useState<string>();
     useAsyncEffect(
         () => ({
-            supplier: () => ipcRenderer.invoke('get-localstorage-location'),
-            successEffect: (location) => {
-                (global as Record<string, unknown>).customLocalStorage = new LocalStorage(location);
-                setStorageInitialized(true);
-            },
+            supplier: () => ipcRenderer.invoke('get-backend-url'),
+            successEffect: setUrl,
+        }),
+        []
+    );
+
+    const [settings, setSettings] = useState<ChainnerSettings>();
+    useAsyncEffect(
+        () => ({
+            supplier: () => ipcRenderer.invoke('get-settings'),
+            successEffect: setSettings,
         }),
         []
     );
@@ -65,15 +66,17 @@ export const App = memo(() => {
             <HotkeysProvider>
                 <ContextMenuProvider>
                     <AlertBoxProvider>
-                        {!url || !storageInitialized || !pythonInfo ? (
+                        {!url || !settings || !pythonInfo ? (
                             <LoadingComponent />
                         ) : (
-                            <BackendProvider
-                                pythonInfo={pythonInfo}
-                                url={url}
-                            >
-                                <Main />
-                            </BackendProvider>
+                            <SettingsProvider initialSettings={settings}>
+                                <BackendProvider
+                                    pythonInfo={pythonInfo}
+                                    url={url}
+                                >
+                                    <Main />
+                                </BackendProvider>
+                            </SettingsProvider>
                         )}
                     </AlertBoxProvider>
                 </ContextMenuProvider>

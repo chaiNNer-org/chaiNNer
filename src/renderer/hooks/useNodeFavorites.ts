@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { useContextSelector } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useMutSetting } from '../contexts/SettingsContext';
 import { useMemoObject } from './useMemo';
 
 export interface UseNodeFavorites {
@@ -12,10 +11,7 @@ export interface UseNodeFavorites {
 }
 
 export const useNodeFavorites = () => {
-    const [favoritesArray, setFavorites] = useContextSelector(
-        SettingsContext,
-        (c) => c.useNodeFavorites
-    );
+    const [favoritesArray, setFavorites] = useMutSetting('favoriteNodes');
 
     const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
 

@@ -45,12 +45,12 @@ export const DirectoryInput = memo(
     }: InputProps<'directory', string>) => {
         const { t } = useTranslation();
 
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
+        const { lastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
             const { canceled, filePaths } = await ipcRenderer.invoke(
                 'dir-select',
-                value ?? getLastDirectory() ?? ''
+                value ?? lastDirectory ?? ''
             );
             const path = filePaths[0];
             if (!canceled && path) {
