@@ -171,7 +171,7 @@ async def sse(request: Request):
                 if response is not None:
                     await response.send(data)
         except Exception:
-            pass
+            break
 
 
 @app.get("/setup-sse")
@@ -180,10 +180,13 @@ async def setup_sse(request: Request):
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
-        message = await ctx.setup_queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
+        try:
+            message = await ctx.setup_queue.get()
+            if response is not None:
+                await response.send(f"event: {message['event']}\n")
+                await response.send(f"data: {stringify(message['data'])}\n\n")
+        except Exception:
+            break
 
 
 async def import_packages(
