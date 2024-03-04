@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import socket
 import subprocess
 import sys
 import threading
@@ -11,6 +12,12 @@ from sanic import HTTPResponse, Request
 from sanic.log import logger
 
 from api import Package
+
+
+def find_free_port():
+    with socket.socket() as s:
+        s.bind(("", 0))  # Bind to a free port provided by the host.
+        return s.getsockname()[1]  # Return the port number assigned.
 
 
 class ExecutorServerWorker:
@@ -56,13 +63,13 @@ class ExecutorServerWorker:
 
 
 class ExecutorServer:
-    def __init__(self, port: int, flags: list[str] | None = None):
-        self.port = port
+    def __init__(self, flags: list[str] | None = None):
         self.flags = flags
 
         self.server_process = None
 
-        self.base_url = f"http://127.0.0.1:{port}"
+        self.port = find_free_port()
+        self.base_url = f"http://127.0.0.1:{self.port}"
         self.session = None
 
         self.backend_ready = False

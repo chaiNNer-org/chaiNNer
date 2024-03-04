@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
@@ -22,13 +21,6 @@ from events import EventQueue
 from gpu import get_nvidia_helper
 from server_config import ServerConfig
 from server_process_helper import ExecutorServer
-
-
-def find_free_port():
-    # return 8001
-    with socket.socket() as s:
-        s.bind(("", 0))  # Bind to a free port provided by the host.
-        return s.getsockname()[1]  # Return the port number assigned.
 
 
 class AppContext:
@@ -59,8 +51,7 @@ class SSEFilter(logging.Filter):
         )
 
 
-port = find_free_port()
-executor_server: ExecutorServer = ExecutorServer(port)
+executor_server: ExecutorServer = ExecutorServer()
 
 setup_task = None
 
