@@ -139,7 +139,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setManualOutputType,
         clearManualOutputTypes,
     } = useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
+    const { schemata, url, backend, ownsBackend, restartingRef, features, featureStates } =
         useContext(BackendContext);
     const { useBackendSettings } = useContext(SettingsContext);
 
