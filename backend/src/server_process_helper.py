@@ -22,7 +22,7 @@ def _find_free_port():
         return s.getsockname()[1]  # Return the port number assigned.
 
 
-def _port_in_used(port: int):
+def _port_in_use(port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
 
@@ -94,7 +94,7 @@ class WorkerServer:
             if (
                 self._process is not None
                 and self._session is not None
-                and _port_in_used(self._port)
+                and _port_in_use(self._port)
             ):
                 try:
                     await self._session.get("/nodes", timeout=5)
