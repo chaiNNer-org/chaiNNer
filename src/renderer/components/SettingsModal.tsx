@@ -46,6 +46,7 @@ const AppearanceSettings = memo(() => {
         useMutSetting('viewportExportPadding');
     const [snapToGrid, setSnapToGrid] = useMutSetting('snapToGrid');
     const [snapToGridAmount, setSnapToGridAmount] = useMutSetting('snapToGridAmount');
+    const [showMinimap, setShowMinimap] = useMutSetting('showMinimap');
 
     return (
         <VStack
@@ -74,6 +75,16 @@ const AppearanceSettings = memo(() => {
                     description: 'Enable animations that show the processing state of the chain.',
                 }}
                 value={animateChain}
+            />
+
+            <ToggleSetting
+                setValue={setShowMinimap}
+                setting={{
+                    label: 'Minimap',
+                    description:
+                        'Enable a minimap of the current chain in the bottom right corner of the node editor.',
+                }}
+                value={showMinimap}
             />
 
             <ToggleSetting

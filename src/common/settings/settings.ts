@@ -12,6 +12,7 @@ export interface ChainnerSettings {
     snapToGrid: boolean;
     snapToGridAmount: number;
     viewportExportPadding: number;
+    showMinimap: boolean;
 
     experimentalFeatures: boolean;
     hardwareAcceleration: boolean;
@@ -38,6 +39,7 @@ export const defaultSettings: Readonly<ChainnerSettings> = {
     snapToGrid: false,
     snapToGridAmount: 16,
     viewportExportPadding: 20,
+    showMinimap: true,
 
     experimentalFeatures: false,
     hardwareAcceleration: false,
