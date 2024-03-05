@@ -33,6 +33,7 @@ export const SeedGroup = memo(({ inputs, nodeState }: GroupProps<'seed'>) => {
                     >
                         <IconButton
                             aria-label="Random Seed"
+                            className="nodrag"
                             h="2rem"
                             icon={<HiOutlineRefresh />}
                             isDisabled={isLocked || isInputLocked}
