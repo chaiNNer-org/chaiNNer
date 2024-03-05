@@ -6,6 +6,8 @@ import socket
 import subprocess
 import sys
 import threading
+import time
+from typing import Iterable
 
 import aiohttp
 from sanic import HTTPResponse, Request
@@ -14,104 +16,102 @@ from sanic.log import logger
 from api import Package
 
 
-def find_free_port():
+def _find_free_port():
     with socket.socket() as s:
         s.bind(("", 0))  # Bind to a free port provided by the host.
         return s.getsockname()[1]  # Return the port number assigned.
 
 
-class ExecutorServerWorker:
-    def __init__(self, port: int, flags: list[str] | None = None):
-        self.process = None
-        self.stop_event = threading.Event()
-        self.finished_starting = False
+def _port_in_use(port: int):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
 
-        self.port = port
-        self.flags = flags or []
 
-    def start_process(self):
+class _WorkerProcess:
+    def __init__(self, flags: list[str]):
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
-        self.process = subprocess.Popen(
-            [python_location, server_file, str(self.port), *self.flags],
+
+        self._process = subprocess.Popen(
+            [python_location, server_file, *flags],
             shell=False,
             stdin=None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        self._stop_event = threading.Event()
+
         # Create a separate thread to read and print the output of the subprocess
         threading.Thread(
-            target=self._read_output, daemon=True, name="output reader"
+            target=self._read_output,
+            daemon=True,
+            name="output reader",
         ).start()
 
-    def stop_process(self):
-        if self.process:
-            self.stop_event.set()
-            self.process.terminate()
-            self.process.kill()
+    def close(self):
+        self._stop_event.set()
+        self._process.terminate()
+        self._process.kill()
 
     def _read_output(self):
-        if self.process is None or self.process.stdout is None:
+        if self._process.stdout is None:
             return
-        for line in self.process.stdout:
-            if self.stop_event.is_set():
+        for line in self._process.stdout:
+            if self._stop_event.is_set():
                 break
-            if not self.finished_starting:
-                if "Starting worker" in line.decode():
-                    self.finished_starting = True
             print(line.decode().strip())
 
 
-class ExecutorServer:
-    def __init__(self, flags: list[str] | None = None):
-        self.flags = flags
+class WorkerServer:
+    def __init__(self):
+        self._process = None
 
-        self.server_process = None
+        self._port = _find_free_port()
+        self._base_url = f"http://127.0.0.1:{self._port}"
+        self._session = None
 
-        self.port = find_free_port()
-        self.base_url = f"http://127.0.0.1:{self.port}"
-        self.session = None
-
-        self.backend_ready = False
-
-    async def start(self, flags: list[str] | None = None):
-        del self.server_process
-        self.server_process = ExecutorServerWorker(self.port, flags or self.flags)
-        self.server_process.start_process()
-        self.session = aiohttp.ClientSession(base_url=self.base_url)
-        await self.wait_for_server_start()
-        await self.session.get("/nodes", timeout=None)
-        self.backend_ready = True
-        return self
+    async def start(self, flags: Iterable[str] = []):
+        logger.info("Starting worker process...")
+        self._process = _WorkerProcess([str(self._port), *flags])
+        self._session = aiohttp.ClientSession(base_url=self._base_url)
+        await self.wait_for_ready()
+        logger.info("Worker process started")
 
     async def stop(self):
-        if self.server_process:
-            self.server_process.stop_process()
-        if self.session:
-            await self.session.close()
+        if self._process:
+            self._process.close()
+        if self._session:
+            await self._session.close()
+        logger.info("Worker process stopped")
 
-    async def restart(self, flags: list[str] | None = None):
+    async def restart(self, flags: Iterable[str] = []):
         await self.stop()
         await self.start(flags)
 
-    async def wait_for_server_start(self):
-        while (
-            self.server_process is None
-            or self.server_process.finished_starting is False
-        ):
+    async def wait_for_ready(self, timeout: float = 300):
+        start = time.time()
+        while time.time() - start < timeout:
+            if (
+                self._process is not None
+                and self._session is not None
+                and _port_in_use(self._port)
+            ):
+                try:
+                    await self._session.get("/nodes", timeout=5)
+                    return
+                except Exception:
+                    pass
+
             await asyncio.sleep(0.1)
 
-    async def wait_for_backend_ready(self):
-        while not self.backend_ready:
-            await asyncio.sleep(0.1)
+        raise TimeoutError("Server did not start in time")
 
     async def proxy_request(self, request: Request, timeout: int | None = 300):
-        assert self.session is not None
-        await self.wait_for_server_start()
-        await self.wait_for_backend_ready()
+        await self.wait_for_ready()
+        assert self._session is not None
         if request.route is None:
             raise ValueError("Route not found")
-        async with self.session.request(
+        async with self._session.request(
             request.method,
             f"/{request.route.path}",
             headers=request.headers,
@@ -129,10 +129,9 @@ class ExecutorServer:
             )
 
     async def get_sse(self, request: Request):
-        assert self.session is not None
-        await self.wait_for_server_start()
-        await self.wait_for_backend_ready()
-        async with self.session.request(
+        await self.wait_for_ready()
+        assert self._session is not None
+        async with self._session.request(
             request.method,
             "/sse",
             headers=request.headers,
@@ -143,11 +142,10 @@ class ExecutorServer:
                 yield data
 
     async def get_packages(self):
-        await self.wait_for_server_start()
-        await self.wait_for_backend_ready()
-        assert self.session is not None
+        await self.wait_for_ready()
+        assert self._session is not None
         logger.debug("Fetching packages...")
-        packages_resp = await self.session.get(
+        packages_resp = await self._session.get(
             "/packages", params={"hideInternal": "false"}
         )
         packages_json = await packages_resp.json()
