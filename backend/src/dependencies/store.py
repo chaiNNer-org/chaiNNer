@@ -74,7 +74,7 @@ def install_dependencies_sync(
 ):
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return 0
 
     extra_index_urls = {
         dep_info.extra_index_url
@@ -104,6 +104,8 @@ def install_dependencies_sync(
     for dep_info in dependencies_to_install:
         installed_packages[dep_info.package_name] = dep_info.version
 
+    return len(dependencies_to_install)
+
 
 async def install_dependencies(
     dependencies: list[DependencyInfo],
@@ -112,12 +114,11 @@ async def install_dependencies(
 ):
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:
-        install_dependencies_sync(dependencies)
-        return
+        return install_dependencies_sync(dependencies)
 
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return 0
 
     dependency_name_map = {
         dep_info.package_name: dep_info.display_name or dep_info.package_name
@@ -226,6 +227,8 @@ async def install_dependencies(
 
     for dep_info in dependencies_to_install:
         installed_packages[dep_info.package_name] = dep_info.version
+
+    return len(dependencies_to_install)
 
 
 __all__ = [
