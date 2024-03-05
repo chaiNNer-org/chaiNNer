@@ -76,7 +76,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
-    const { snapToGrid: isSnapToGrid, snapToGridAmount, animateChain } = useSettings();
+    const { snapToGrid: isSnapToGrid, snapToGridAmount, animateChain, showMinimap } = useSettings();
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
     const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
@@ -511,12 +511,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     size={1}
                     variant={BackgroundVariant.Dots}
                 />
-                <MiniMap
-                    pannable
-                    zoomable
-                    ariaLabel=""
-                    zoomStep={3}
-                />
+                {showMinimap && (
+                    <MiniMap
+                        pannable
+                        zoomable
+                        ariaLabel=""
+                        zoomStep={3}
+                    />
+                )}
                 <Controls>
                     <ControlButton
                         disabled={nodes.length === 0}

@@ -5,7 +5,7 @@ export interface ReadonlyStorage {
     getItem(key: string): string | null;
 }
 
-export const migrateOldStorageSettings = (settings: ReadonlyStorage): ChainnerSettings => {
+export const migrateOldStorageSettings = (settings: ReadonlyStorage): Partial<ChainnerSettings> => {
     const get = <T>(key: string, defaultValue: T): T => {
         const stored = settings.getItem(key);
         if (stored === null) {
