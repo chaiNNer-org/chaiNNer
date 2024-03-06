@@ -16,6 +16,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 installed_packages: dict[str, str | None] = {}
 
 COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
+UNINSTALLING_REGEX = re.compile(r"Uninstalling ([a-zA-Z0-9-_]+)-+")
 
 DEP_MAX_PROGRESS = 0.8
 
@@ -225,6 +226,116 @@ async def install_dependencies(
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
+        installed_packages[dep_info.package_name] = dep_info.version
+
+
+def uninstall_dependencies_sync(
+    dependencies: list[DependencyInfo],
+):
+    if len(dependencies) == 0:
+        return
+
+    exit_code = subprocess.check_call(
+        [
+            python_path,
+            "-m",
+            "pip",
+            "uninstall",
+            *[d.package_name for d in dependencies],
+            "-y",
+        ],
+    )
+    if exit_code != 0:
+        raise ValueError("An error occurred while uninstalling dependencies.")
+
+    for dep_info in dependencies:
+        installed_packages[dep_info.package_name] = dep_info.version
+
+
+async def uninstall_dependencies(
+    dependencies: list[DependencyInfo],
+    update_progress_cb: UpdateProgressFn | None = None,
+    logger: Logger | None = None,
+):
+    # If there's no progress callback, just uninstall the dependencies synchronously
+    if update_progress_cb is None:
+        return uninstall_dependencies_sync(dependencies)
+
+    if len(dependencies) == 0:
+        return
+
+    dependency_name_map = {
+        dep_info.package_name: dep_info.display_name or dep_info.package_name
+        for dep_info in dependencies
+    }
+    deps_count = len(dependencies)
+    deps_counter = 0
+    transitive_deps_counter = 0
+
+    def get_progress_amount():
+        transitive_progress = 1 - 1 / (2**transitive_deps_counter)
+        progress = (deps_counter + transitive_progress) / (deps_count + 1)
+        return min(max(0, progress), 1)
+
+    # Used to increment by a small amount between collect and download
+    dep_small_incr = (1 / deps_count) / 2
+
+    process = subprocess.Popen(
+        [
+            python_path,
+            "-m",
+            # TODO: Change this back to "pip" once pip updates with my changes
+            "chainner_pip",
+            "uninstall",
+            *[d.package_name for d in dependencies],
+            "-y",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    uninstalling_name = "Unknown"
+    while True:
+        nextline = process.stdout.readline()  # type: ignore
+        if nextline == b"" and process.poll() is not None:
+            break
+        line = nextline.decode("utf-8").strip()
+        if not line:
+            continue
+
+        if logger is not None and not line.startswith("Progress:"):
+            logger.info(line)
+
+        # The Uninstalling step of pip. It tells us what package is being UNinstalled.
+        if "Uninstalling" in line:
+            match = UNINSTALLING_REGEX.search(line)
+            if match:
+                package_name = match.group(1)
+                uninstalling_name = dependency_name_map.get(package_name, None)
+                if uninstalling_name is None:
+                    uninstalling_name = package_name
+                    transitive_deps_counter += 1
+                else:
+                    deps_counter += 1
+                await update_progress_cb(
+                    f"Uninstalling {uninstalling_name}...", get_progress_amount(), None
+                )
+        # The Downloading step of pip. It tells us what package is currently being downloaded.
+        # Later, we can use this to get the progress of the download.
+        # For now, we just tell the user that it's happening.
+        elif "Successfully uninstalled" in line:
+            await update_progress_cb(
+                f"Uninstalled {uninstalling_name}.",
+                get_progress_amount() + dep_small_incr,
+                None,
+            )
+
+    exit_code = process.wait()
+    if exit_code != 0:
+        raise ValueError("An error occurred while installing dependencies.")
+
+    await update_progress_cb("Finished installing dependencies...", 1, None)
+
+    for dep_info in dependencies:
         installed_packages[dep_info.package_name] = dep_info.version
 
 
