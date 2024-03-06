@@ -1,13 +1,7 @@
 import { app } from 'electron';
 import EventSource from 'eventsource';
 import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
-import {
-    EdgeData,
-    NodeData,
-    NodeSchema,
-    PackageSettings,
-    SchemaId,
-} from '../../common/common-types';
+import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { log } from '../../common/log';
@@ -21,6 +15,7 @@ import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { ChainnerSettings } from '../../common/settings/settings';
 import { FunctionDefinition } from '../../common/types/function';
 import { ProgressController, ProgressMonitor, ProgressToken } from '../../common/ui/progress';
 import { assertNever, delay } from '../../common/util';
@@ -28,7 +23,7 @@ import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
-import { settingStorage } from '../setting-storage';
+import { readSettings } from '../setting-storage';
 import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
 
@@ -67,14 +62,15 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
     });
 };
 
-const createBackend = async (token: ProgressToken, args: RunArguments) => {
-    const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
-    const systemPythonLocation = settingStorage.getItem('system-python-location');
-
+const createBackend = async (
+    token: ProgressToken,
+    args: RunArguments,
+    settings: ChainnerSettings
+) => {
     return setupBackend(
         token,
-        useSystemPython,
-        systemPythonLocation,
+        settings.useSystemPython,
+        settings.systemPythonLocation,
         getRootDirSync(),
         args.remoteBackend
     );
@@ -120,18 +116,6 @@ const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBa
     const functionDefinitions = parseFunctionDefinitions(schemata.schemata);
 
     return { backend, schemata, functionDefinitions, eventSource };
-};
-
-const getExecutionOptions = (): PackageSettings => {
-    const getSetting = <T>(key: string, defaultValue: T): T => {
-        const value = settingStorage.getItem(key);
-        if (!value) return defaultValue;
-        return JSON.parse(value) as T;
-    };
-
-    return {
-        options: getSetting('backend-settings', {}),
-    };
 };
 
 interface Chain {
@@ -198,7 +182,9 @@ export const runChainInCli = async (args: RunArguments) => {
     const progressController = new ProgressController();
     addProgressListeners(progressController);
 
-    const backendProcess = await createBackend(progressController, args);
+    const settings = readSettings();
+
+    const backendProcess = await createBackend(progressController, args, settings);
     if (backendProcess.owned) {
         backendProcess.addErrorListener((error) => {
             log.error(
@@ -268,10 +254,9 @@ export const runChainInCli = async (args: RunArguments) => {
     });
 
     const data = toBackendJson(nodes, edges, schemata);
-    const options = getExecutionOptions();
     const response = await backend.run({
         data,
-        options,
+        options: settings.packageSettings,
         sendBroadcastData: false,
     });
     eventSource.close();

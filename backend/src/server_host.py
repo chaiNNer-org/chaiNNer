@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
@@ -22,14 +21,7 @@ from events import EventQueue
 from gpu import get_nvidia_helper
 from response import error_response, success_response
 from server_config import ServerConfig
-from server_process_helper import ExecutorServer
-
-
-def find_free_port():
-    # return 8001
-    with socket.socket() as s:
-        s.bind(("", 0))  # Bind to a free port provided by the host.
-        return s.getsockname()[1]  # Return the port number assigned.
+from server_process_helper import WorkerServer
 
 
 class AppContext:
@@ -60,8 +52,7 @@ class SSEFilter(logging.Filter):
         )
 
 
-port = find_free_port()
-executor_server: ExecutorServer = ExecutorServer(port)
+worker: WorkerServer = WorkerServer()
 
 setup_task = None
 
@@ -70,40 +61,40 @@ access_logger.addFilter(SSEFilter())
 
 @app.route("/nodes")
 async def nodes(request: Request):
-    resp = await executor_server.proxy_request(request)
+    resp = await worker.proxy_request(request)
     return resp
 
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
-    return await executor_server.proxy_request(request, timeout=None)
+    return await worker.proxy_request(request, timeout=None)
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     logger.info("Running individual")
-    return await executor_server.proxy_request(request)
+    return await worker.proxy_request(request)
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
-    return await executor_server.proxy_request(request)
+    return await worker.proxy_request(request)
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
-    return await executor_server.proxy_request(request)
+    return await worker.proxy_request(request)
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
-    return await executor_server.proxy_request(request, timeout=None)
+    return await worker.proxy_request(request, timeout=None)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
     try:
-        response = await executor_server.proxy_request(request, timeout=3)
+        response = await worker.proxy_request(request, timeout=3)
         if response.status > 200:
             if response.body is None:
                 raise Exception(
@@ -115,7 +106,7 @@ async def kill(request: Request):
             logger.debug(
                 "Regular kill failed, attempting to restart executor process..."
             )
-            await executor_server.restart()
+            await worker.restart()
         except Exception as exception:
             return json(
                 error_response("Error killing execution!", exception), status=500
@@ -159,13 +150,13 @@ async def system_usage(_request: Request):
 
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
-    return await executor_server.proxy_request(request)
+    return await worker.proxy_request(request)
 
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
     installed_deps: dict[str, str] = {}
-    packages = await executor_server.get_packages()
+    packages = await worker.get_packages()
     for package in packages:
         for pkg_dep in package.dependencies:
             installed_version = installed_packages.get(pkg_dep.pypi_name, None)
@@ -177,7 +168,7 @@ async def get_installed_dependencies(request: Request):
 
 @app.route("/features")
 async def get_features(request: Request):
-    return await executor_server.proxy_request(request)
+    return await worker.proxy_request(request)
 
 
 @app.get("/sse")
@@ -186,7 +177,7 @@ async def sse(request: Request):
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
         try:
-            async for data in executor_server.get_sse(request):
+            async for data in worker.get_sse(request):
                 if response is not None:
                     await response.send(data)
         except Exception:
@@ -224,7 +215,7 @@ async def import_packages(
         ]
         await install_dependencies(dep_info, update_progress_cb, logger)
 
-    packages = await executor_server.get_packages()
+    packages = await worker.get_packages()
 
     logger.info("Checking dependencies...")
 
@@ -256,7 +247,7 @@ async def import_packages(
             if config.close_after_start:
                 flags.append("--close-after-start")
 
-            await executor_server.restart(flags)
+            await worker.restart(flags)
         except Exception as ex:
             logger.error(f"Error installing dependencies: {ex}", exc_info=True)
             if config.close_after_start:
@@ -305,7 +296,7 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     await update_progress("Loading Nodes...", 1.0, None)
 
     # Wait to send backend-ready until nodes are loaded
-    await executor_server.wait_for_backend_ready()
+    await worker.wait_for_ready()
 
     await setup_queue.put_and_wait(
         {
@@ -333,26 +324,26 @@ async def close_server(sanic_app: Sanic):
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
 
-    await executor_server.stop()
+    await worker.stop()
     sanic_app.stop()
 
 
 @app.after_server_stop
 async def after_server_stop(_sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
-    await executor_server.stop()
+    await worker.stop()
     logger.info("Server closed.")
 
 
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     global setup_task
-    await executor_server.start()
+    await worker.start()
 
     # initialize the queues
     ctx = AppContext.get(sanic_app)
     ctx.setup_queue = EventQueue()
 
-    await executor_server.wait_for_server_start()
+    await worker.wait_for_ready()
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app, loop))

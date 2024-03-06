@@ -41,10 +41,10 @@ export const FileInput = memo(
 
         const { sendToast } = useContext(AlertBoxContext);
 
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
+        const { lastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
-            const fileDir = filePath ? path.dirname(filePath) : getLastDirectory();
+            const fileDir = filePath ? path.dirname(filePath) : lastDirectory;
             const fileFilter = [
                 {
                     name: label,

@@ -2,18 +2,19 @@ import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from
 import EventSource from 'eventsource';
 import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
-import { Version, WindowSize } from '../../common/common-types';
+import { Version } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
+import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
-import { settingStorage, settingStorageLocation } from '../setting-storage';
+import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
 
@@ -21,12 +22,32 @@ const version = app.getVersion() as Version;
 
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
-    args: OpenArguments
+    args: OpenArguments,
+    settings: ChainnerSettings
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDirSync());
-    ipcMain.handle('get-localstorage-location', () => settingStorageLocation);
     ipcMain.handle('refresh-nodes', () => args.refresh);
+
+    // settings
+    let currentSettings = settings;
+    let savingInProgress = false;
+    ipcMain.handle('get-settings', () => currentSettings);
+    ipcMain.handle('set-settings', (_, newSettings) => {
+        currentSettings = newSettings;
+        if (savingInProgress) {
+            return;
+        }
+        savingInProgress = true;
+        setTimeout(() => {
+            savingInProgress = false;
+            try {
+                writeSettings(currentSettings);
+            } catch (error) {
+                log.error('Unable to save settings.', error);
+            }
+        }, 1000);
+    });
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };
@@ -283,30 +304,27 @@ const registerEventHandlerPostSetup = (
     });
 };
 
-const createBackend = async (token: ProgressToken, args: OpenArguments) => {
-    const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
-    const systemPythonLocation = settingStorage.getItem('system-python-location');
-
+const createBackend = async (
+    token: ProgressToken,
+    args: OpenArguments,
+    settings: ChainnerSettings
+) => {
     log.info(`chaiNNer Version: ${version}`);
 
     return setupBackend(
         token,
-        useSystemPython,
-        systemPythonLocation,
+        settings.useSystemPython,
+        settings.systemPythonLocation,
         getRootDirSync(),
         args.remoteBackend
     );
 };
 
-export const createMainWindow = async (args: OpenArguments) => {
-    const lastWindowSize = JSON.parse(
-        settingStorage.getItem('use-last-window-size') || 'null'
-    ) as WindowSize | null;
-
+export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        width: lastWindowSize?.width ?? 1280,
-        height: lastWindowSize?.height ?? 720,
+        width: settings.lastWindowSize.width,
+        height: settings.lastWindowSize.height,
         backgroundColor: '#1A202C',
         minWidth: 720,
         minHeight: 640,
@@ -331,8 +349,12 @@ export const createMainWindow = async (args: OpenArguments) => {
     addSplashScreen(progressController);
 
     try {
-        registerEventHandlerPreSetup(mainWindow, args);
-        const backend = await createBackend(SubProgress.slice(progressController, 0, 0.5), args);
+        registerEventHandlerPreSetup(mainWindow, args, settings);
+        const backend = await createBackend(
+            SubProgress.slice(progressController, 0, 0.5),
+            args,
+            settings
+        );
         registerEventHandlerPostSetup(mainWindow, backend);
 
         const sse = new EventSource(`${backend.url}/setup-sse`, {
@@ -377,7 +399,7 @@ export const createMainWindow = async (args: OpenArguments) => {
 
             if (!opened) {
                 mainWindow.show();
-                if (lastWindowSize?.maximized) {
+                if (settings.lastWindowSize.maximized) {
                     mainWindow.maximize();
                 }
                 opened = true;
