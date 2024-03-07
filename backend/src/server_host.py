@@ -218,23 +218,22 @@ async def import_packages(
             if dep.auto_update and is_installed:
                 to_install.append(dep)
 
-    if len(to_install) > 0:
-        try:
-            num_installed = await install_deps(to_install)
+    try:
+        num_installed = await install_deps(to_install)
 
-            if num_installed > 0:
-                flags = []
-                if config.error_on_failed_node:
-                    flags.append("--error-on-failed-node")
+        if num_installed > 0:
+            flags = []
+            if config.error_on_failed_node:
+                flags.append("--error-on-failed-node")
 
-                if config.close_after_start:
-                    flags.append("--close-after-start")
-
-                await worker.restart(flags)
-        except Exception as ex:
-            logger.error(f"Error installing dependencies: {ex}", exc_info=True)
             if config.close_after_start:
-                raise ValueError("Error installing dependencies") from ex
+                flags.append("--close-after-start")
+
+            await worker.restart(flags)
+    except Exception as ex:
+        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        if config.close_after_start:
+            raise ValueError("Error installing dependencies") from ex
 
     logger.info("Done checking dependencies...")
 
