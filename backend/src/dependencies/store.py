@@ -336,7 +336,7 @@ async def uninstall_dependencies(
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies:
-        installed_packages[dep_info.package_name] = dep_info.version
+        del installed_packages[dep_info.package_name]
 
 
 __all__ = [

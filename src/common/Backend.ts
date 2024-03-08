@@ -238,20 +238,20 @@ export class Backend {
         return this.fetchJson('/features', 'GET');
     }
 
-    installPackage(pkg: Package): Promise<unknown> {
-        return this.fetchJson('/package/install', 'POST', {
+    installPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
             package: pkg.name,
         });
     }
 
-    uninstallPackage(pkg: Package): Promise<unknown> {
-        return this.fetchJson('/package/uninstall', 'POST', {
+    uninstallPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/uninstall', 'POST', {
             package: pkg.name,
         });
     }
 
-    updatePackage(pkg: Package): Promise<unknown> {
-        return this.fetchJson('/package/install', 'POST', {
+    updatePackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
             package: pkg.name,
         });
     }

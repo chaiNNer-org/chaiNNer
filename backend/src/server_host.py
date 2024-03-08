@@ -200,9 +200,11 @@ async def uninstall_dependencies_request(request: Request):
         )
 
     try:
+        await worker.stop()
         await uninstall_dependencies(
             deps_to_dep_info(package.dependencies), update_progress, logger
         )
+        await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
@@ -239,9 +241,11 @@ async def install_dependencies_request(request: Request):
         )
 
     try:
+        await worker.stop()
         await install_dependencies(
             deps_to_dep_info(package.dependencies), update_progress, logger
         )
+        await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)

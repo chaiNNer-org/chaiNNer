@@ -54,7 +54,7 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { OnStdio, getFindLinks, runPipInstall, runPipUninstall } from '../../common/pip';
+import { OnStdio, getFindLinks } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
@@ -439,20 +439,21 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 appendToOutput(`${String(error)}\n`);
             })
             .finally(() => {
-                restart()
+                refetchInstalledPyPi()
                     .catch(log.error)
                     .then(() => {
-                        refetchInstalledPyPi()
-                            .catch(log.error)
-                            .then(() => {
-                                setIsRunningShell(false);
-                                setInstallingPackage(null);
-                                setUninstallingPackage(null);
-                                setProgress(0);
-                            })
-                            .catch(log.error);
+                        setIsRunningShell(false);
+                        setInstallingPackage(null);
+                        setUninstallingPackage(null);
+                        setProgress(0);
                     })
                     .catch(log.error);
+                // restart()
+                //     .catch(log.error)
+                //     .then(() => {
+
+                //     })
+                //     .catch(log.error);
             });
     };
 
@@ -491,12 +492,13 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
         setInstallingPackage(pkg);
         changePackages(() =>
-            runPipInstall(
-                pythonInfo,
-                pkg.dependencies,
-                installMode === installModes.NORMAL ? setProgress : undefined,
-                onStdio
-            )
+            // runPipInstall(
+            //     pythonInfo,
+            //     pkg.dependencies,
+            //     installMode === installModes.NORMAL ? setProgress : undefined,
+            //     onStdio
+            // )
+            backend.installPackage(pkg)
         );
     };
 
@@ -510,12 +512,13 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
         setUninstallingPackage(pkg);
         changePackages(() =>
-            runPipUninstall(
-                pythonInfo,
-                pkg.dependencies,
-                installMode === installModes.NORMAL ? setProgress : undefined,
-                onStdio
-            )
+            // runPipUninstall(
+            //     pythonInfo,
+            //     pkg.dependencies,
+            //     installMode === installModes.NORMAL ? setProgress : undefined,
+            //     onStdio
+            // )
+            backend.uninstallPackage(pkg)
         );
     };
 
