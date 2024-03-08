@@ -5,9 +5,9 @@ from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
 from spandrel.architectures.OmniSR import OmniSR
 from spandrel.architectures.SCUNet import SCUNet
-from spandrel.architectures.SRFormer import SRFormer
 from spandrel.architectures.Swin2SR import Swin2SR
 from spandrel.architectures.SwinIR import SwinIR
+from spandrel_extra_arches.architectures.SRFormer import SRFormer
 
 from api import NodeContext
 from nodes.impl.ncnn.model import NcnnModelWrapper
