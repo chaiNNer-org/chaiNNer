@@ -237,6 +237,24 @@ export class Backend {
     features(): Promise<FeatureState[]> {
         return this.fetchJson('/features', 'GET');
     }
+
+    installPackage(pkg: Package): Promise<unknown> {
+        return this.fetchJson('/package/install', 'POST', {
+            package: pkg.name,
+        });
+    }
+
+    uninstallPackage(pkg: Package): Promise<unknown> {
+        return this.fetchJson('/package/uninstall', 'POST', {
+            package: pkg.name,
+        });
+    }
+
+    updatePackage(pkg: Package): Promise<unknown> {
+        return this.fetchJson('/package/install', 'POST', {
+            package: pkg.name,
+        });
+    }
 }
 
 const backendCache = new Map<string, Backend>();

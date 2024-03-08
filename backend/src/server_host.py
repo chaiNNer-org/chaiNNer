@@ -157,10 +157,32 @@ async def get_features(request: Request):
     return await worker.proxy_request(request)
 
 
-@app.route("/dependencies/uninstall", methods=["POST"])
+def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
+    return [
+        DependencyInfo(
+            package_name=dep.pypi_name,
+            display_name=dep.display_name,
+            version=dep.version,
+            extra_index_url=dep.extra_index_url,
+        )
+        for dep in deps
+    ]
+
+
+@app.route("/packages/uninstall", methods=["POST"])
 async def uninstall_dependencies_request(request: Request):
     full_data = dict(request.json)  # type: ignore
-    deps_to_uninstall = full_data["dependencies"]
+    package_to_uninstall = full_data["package"]
+
+    packages = await worker.get_packages()
+
+    package = next((x for x in packages if x.name == package_to_uninstall), None)
+
+    if package is None:
+        return json(
+            {"status": "error", "message": f"Package {package_to_uninstall} not found"},
+            status=404,
+        )
 
     def update_progress(
         message: str, progress: float, status_progress: float | None = None
@@ -178,14 +200,16 @@ async def uninstall_dependencies_request(request: Request):
         )
 
     try:
-        await uninstall_dependencies(deps_to_uninstall, update_progress, logger)
+        await uninstall_dependencies(
+            deps_to_dep_info(package.dependencies), update_progress, logger
+        )
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
-@app.route("/dependencies/install", methods=["POST"])
+@app.route("/packages/install", methods=["POST"])
 async def install_dependencies_request(request: Request):
     full_data = dict(request.json)  # type: ignore
     package_to_install = full_data["package"]
@@ -214,18 +238,10 @@ async def install_dependencies_request(request: Request):
             status=404,
         )
 
-    dependency_info = [
-        DependencyInfo(
-            package_name=dep.pypi_name,
-            display_name=dep.display_name,
-            version=dep.version,
-            extra_index_url=dep.extra_index_url,
-        )
-        for dep in package.dependencies
-    ]
-
     try:
-        await install_dependencies(dependency_info, update_progress, logger)
+        await install_dependencies(
+            deps_to_dep_info(package.dependencies), update_progress, logger
+        )
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)
