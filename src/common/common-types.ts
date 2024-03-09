@@ -286,10 +286,14 @@ export interface IteratorOutputInfo {
     readonly lengthType: ExpressionJson;
 }
 
-export type KeyInfo = EnumKeyInfo | TypeKeyInfo;
+export type KeyInfo = EnumKeyInfo | NumberKeyInfo | TypeKeyInfo;
 export interface EnumKeyInfo {
     readonly kind: 'enum';
-    readonly enum: InputId;
+    readonly inputId: InputId;
+}
+export interface NumberKeyInfo {
+    readonly kind: 'number';
+    readonly inputId: InputId;
 }
 export interface TypeKeyInfo {
     readonly kind: 'type';

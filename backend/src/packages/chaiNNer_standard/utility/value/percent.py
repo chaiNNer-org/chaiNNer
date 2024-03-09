@@ -26,7 +26,7 @@ from .. import value_group
     outputs=[
         NumberOutput("Percent", output_type="Input0"),
     ],
-    key_info=KeyInfo.type("""string::concat(toString(Input0), "%")"""),
+    key_info=KeyInfo.number(0),
 )
 def percent_node(number: int) -> int:
     return number

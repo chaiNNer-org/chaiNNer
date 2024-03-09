@@ -57,7 +57,11 @@ class KeyInfo:
 
     @staticmethod
     def enum(enum_input: InputId | int) -> KeyInfo:
-        return KeyInfo({"kind": "enum", "enum": enum_input})
+        return KeyInfo({"kind": "enum", "inputId": enum_input})
+
+    @staticmethod
+    def number(number_input: InputId | int) -> KeyInfo:
+        return KeyInfo({"kind": "number", "inputId": number_input})
 
     @staticmethod
     def type(expression: navi.ExpressionJson) -> KeyInfo:
