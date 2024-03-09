@@ -59,7 +59,20 @@ class _WorkerProcess:
         for line in self._process.stdout:
             if self._stop_event.is_set():
                 break
-            print(line.decode().strip())
+            stripped_line = line.decode().strip()
+            words = stripped_line.split()
+            log_level = words[4].lower()[1:-1]  # remove brackets
+            rest = " ".join(words[5:])
+            if log_level == "debug":
+                logger.debug(rest)
+            elif log_level == "info":
+                logger.info(rest)
+            elif log_level == "warning":
+                logger.warning(rest)
+            elif log_level == "error":
+                logger.error(rest)
+            elif log_level == "critical":
+                logger.critical(rest)
 
 
 class WorkerServer:
