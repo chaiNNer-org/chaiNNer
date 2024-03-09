@@ -28,7 +28,7 @@ def _port_in_use(port: int):
         return s.connect_ex(("127.0.0.1", port)) == 0
 
 
-SANIC_LOG_REGEX = re.compile(r"\[.*\] \[\d*\] \[(\w*)\] (.*)")
+SANIC_LOG_REGEX = re.compile(r"^\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
 
 class _WorkerProcess:
