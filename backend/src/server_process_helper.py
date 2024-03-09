@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -25,6 +26,9 @@ def _find_free_port():
 def _port_in_use(port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+SANIC_LOG_REGEX = r"\[.*\] \[\d*\] \[(\w*)\] (.*)"
 
 
 class _WorkerProcess:
@@ -60,19 +64,25 @@ class _WorkerProcess:
             if self._stop_event.is_set():
                 break
             stripped_line = line.decode().strip()
-            words = stripped_line.split()
-            log_level = words[4].lower()[1:-1]  # remove brackets
-            rest = " ".join(words[5:])
-            if log_level == "debug":
-                logger.debug(rest)
-            elif log_level == "info":
-                logger.info(rest)
-            elif log_level == "warning":
-                logger.warning(rest)
-            elif log_level == "error":
-                logger.error(rest)
-            elif log_level == "critical":
-                logger.critical(rest)
+            match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
+            if match_obj is not None:
+                log_level, message = match_obj.groups()
+                log_level = log_level.lower()
+                message = f"[Executor] {message.strip()}"
+                if log_level == "debug":
+                    logger.debug(message)
+                elif log_level == "info":
+                    logger.info(message)
+                elif log_level == "warning":
+                    logger.warning(message)
+                elif log_level == "error":
+                    logger.error(message)
+                elif log_level == "critical":
+                    logger.critical(message)
+                else:
+                    logger.info(stripped_line)
+            else:
+                logger.info(stripped_line)
 
 
 class WorkerServer:
