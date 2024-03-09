@@ -158,6 +158,7 @@ async def install_dependencies(
             "--disable-chainner_pip-version-check",
             "--no-warn-script-location",
             "--progress-bar=json",
+            "--no-cache-dir",
             *extra_index_args,
         ],
         stdout=subprocess.PIPE,

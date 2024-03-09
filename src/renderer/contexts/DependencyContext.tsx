@@ -58,6 +58,10 @@ import { OnStdio, getFindLinks } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
+import {
+    useBackendEventSourceListener,
+    useBackendSetupEventSource,
+} from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -389,7 +393,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useSystemPython } = useSettings();
-    const { backend, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
+    const { backend, url, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
         useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
@@ -490,6 +494,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             copyCommandToClipboard(cmd);
             return;
         }
+        setOverallProgress(0);
         setInstallingPackage(pkg);
         changePackages(() =>
             // runPipInstall(
@@ -510,6 +515,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             copyCommandToClipboard(cmd);
             return;
         }
+        setOverallProgress(0);
         setUninstallingPackage(pkg);
         changePackages(() =>
             // runPipUninstall(
@@ -552,6 +558,24 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const features = useMemo(() => packages.flatMap((p) => p.features), [packages]);
     const [isRefreshingFeatureStates, setIsRefreshingFeatureStates] = useState(false);
+
+    const [installMessage, setInstallMessage] = useState<string | null>(null);
+    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
+    const [eventSource, eventSourceStatus] = useBackendSetupEventSource(url);
+    useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
+        if (f) {
+            console.log('🚀 ~ useBackendEventSourceListener ~ f:', f);
+            setOverallProgress(f.progress);
+            setIndividualProgress(
+                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
+            );
+
+            if (f.message) {
+                setInstallMessage(f.message);
+            }
+        }
+    });
 
     return (
         <DependencyContext.Provider value={value}>
@@ -709,7 +733,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                     isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
                                                         ?.id === p.id
-                                                        ? progress
+                                                        ? overallProgress * 100 +
+                                                          ((individualProgress ?? 0) * 100) /
+                                                              p.dependencies.length
                                                         : undefined
                                                 }
                                                 onInstall={install}

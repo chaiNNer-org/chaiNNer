@@ -189,7 +189,7 @@ async def uninstall_dependencies_request(request: Request):
     ):
         return AppContext.get(request.app).setup_queue.put_and_wait(
             {
-                "event": "backend-status",
+                "event": "package-install-status",
                 "data": {
                     "message": message,
                     "progress": progress,
@@ -219,9 +219,10 @@ async def install_dependencies_request(request: Request):
     def update_progress(
         message: str, progress: float, status_progress: float | None = None
     ):
+        logger.info(f"Progress: {message} {progress} {status_progress}")
         return AppContext.get(request.app).setup_queue.put_and_wait(
             {
-                "event": "backend-status",
+                "event": "package-install-status",
                 "data": {
                     "message": message,
                     "progress": progress,

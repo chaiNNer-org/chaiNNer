@@ -17,7 +17,7 @@ class BackendStatusData(TypedDict):
 
 
 class BackendStatusEvent(TypedDict):
-    event: Literal["backend-status"]
+    event: Literal["backend-status", "package-install-status"]
     data: BackendStatusData
 
 

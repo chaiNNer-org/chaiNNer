@@ -310,4 +310,9 @@ export interface BackendEventMap {
         statusProgress?: number | null;
     };
     'backend-ready': null;
+    'package-install-status': {
+        message: string;
+        progress: number;
+        statusProgress?: number | null;
+    };
 }
