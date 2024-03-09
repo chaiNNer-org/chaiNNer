@@ -111,7 +111,9 @@ const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
             as="span"
             fontSize="sm"
             fontWeight="medium"
-            ml={2}
+            h="full"
+            lineHeight={0}
+            my="auto"
             textTransform="none"
         >
             {info}
@@ -197,25 +199,27 @@ export const NodeHeader = memo(
                             />
                         </Center>
                         <Center verticalAlign="middle">
-                            <Heading
-                                alignContent="center"
-                                as="h5"
-                                fontWeight={700}
-                                lineHeight="auto"
-                                m={0}
-                                opacity={isEnabled ? 1 : 0.5}
-                                p={0}
-                                size="sm"
-                                textAlign="center"
-                                textTransform="uppercase"
-                                verticalAlign="middle"
-                                whiteSpace="nowrap"
-                            >
-                                {nodeState.schema.name}
+                            <HStack>
+                                <Heading
+                                    alignContent="center"
+                                    as="h5"
+                                    fontWeight={700}
+                                    lineHeight="auto"
+                                    m={0}
+                                    opacity={isEnabled ? 1 : 0.5}
+                                    p={0}
+                                    size="sm"
+                                    textAlign="center"
+                                    textTransform="uppercase"
+                                    verticalAlign="middle"
+                                    whiteSpace="nowrap"
+                                >
+                                    {nodeState.schema.name}
+                                </Heading>
                                 {isCollapsed && nodeState.schema.keyInfo && (
                                     <KeyInfoLabel nodeState={nodeState} />
                                 )}
-                            </Heading>
+                            </HStack>
                         </Center>
                     </HStack>
                     <Spacer />
