@@ -286,6 +286,16 @@ export interface IteratorOutputInfo {
     readonly lengthType: ExpressionJson;
 }
 
+export type KeyInfo = EnumKeyInfo | TypeKeyInfo;
+export interface EnumKeyInfo {
+    readonly kind: 'enum';
+    readonly enum: InputId;
+}
+export interface TypeKeyInfo {
+    readonly kind: 'type';
+    readonly expression: ExpressionJson;
+}
+
 export interface NodeSchema {
     readonly name: string;
     readonly category: CategoryId;
@@ -299,6 +309,7 @@ export interface NodeSchema {
     readonly groupLayout: readonly (InputId | Group)[];
     readonly iteratorInputs: readonly IteratorInputInfo[];
     readonly iteratorOutputs: readonly IteratorOutputInfo[];
+    readonly keyInfo?: KeyInfo | null;
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;

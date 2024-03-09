@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
+from api import KeyInfo
 from nodes.groups import optional_list_group
 from nodes.properties.inputs import AnyInput, EnumInput
 from nodes.properties.outputs import BaseOutput
@@ -29,7 +30,7 @@ class ValueIndex(Enum):
     description="Allows you to pass in multiple inputs and then change which one passes through to the output.",
     icon="BsShuffle",
     inputs=[
-        EnumInput(ValueIndex),
+        EnumInput(ValueIndex).with_id(0),
         AnyInput(label="Value A"),
         AnyInput(label="Value B"),
         optional_list_group(
@@ -64,6 +65,7 @@ class ValueIndex(Enum):
             label="Value",
         ).with_never_reason("The selected value should have a connection.")
     ],
+    key_info=KeyInfo.enum(0),
     see_also=["chainner:utility:pass_through"],
 )
 def switch_node(selection: ValueIndex, *args: object | None) -> object:

@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+from api import KeyInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import (
@@ -89,6 +90,20 @@ class ImageResizeMode(Enum):
             assume_normalized=True,
         )
     ],
+    key_info=KeyInfo.type(
+        """
+        let mode = Input1;
+
+        let scale = Input2;
+        let width = Input3;
+        let height = Input4;
+
+        match mode {
+            ImageResizeMode::Percentage => string::concat(toString(scale), "%"),
+            ImageResizeMode::Absolute => string::concat(toString(width), "x", toString(height)),
+        }
+        """
+    ),
 )
 def resize_node(
     img: np.ndarray,

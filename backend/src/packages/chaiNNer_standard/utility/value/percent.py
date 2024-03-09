@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from api import KeyInfo
 from nodes.properties.inputs import SliderInput
 from nodes.properties.outputs import NumberOutput
 
@@ -25,6 +26,7 @@ from .. import value_group
     outputs=[
         NumberOutput("Percent", output_type="Input0"),
     ],
+    key_info=KeyInfo.type("""string::concat(toString(Input0), "%")"""),
 )
 def percent_node(number: int) -> int:
     return number

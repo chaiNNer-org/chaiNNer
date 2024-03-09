@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
+from api import KeyInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,
@@ -211,6 +212,7 @@ class TiffColorDepth(Enum):
         ),
     ],
     outputs=[],
+    key_info=KeyInfo.enum(4),
     side_effects=True,
     limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
 )

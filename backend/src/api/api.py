@@ -24,7 +24,7 @@ from .node_check import (
     check_naming_conventions,
     check_schema_types,
 )
-from .node_data import IteratorInputInfo, IteratorOutputInfo, NodeData
+from .node_data import IteratorInputInfo, IteratorOutputInfo, KeyInfo, NodeData
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
@@ -113,6 +113,7 @@ class NodeGroup:
         iterator_inputs: list[IteratorInputInfo] | IteratorInputInfo | None = None,
         iterator_outputs: list[IteratorOutputInfo] | IteratorOutputInfo | None = None,
         node_context: bool = False,
+        key_info: KeyInfo | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -181,6 +182,7 @@ class NodeGroup:
                 outputs=p_outputs,
                 iterator_inputs=iterator_inputs,
                 iterator_outputs=iterator_outputs,
+                key_info=key_info,
                 side_effects=side_effects,
                 deprecated=deprecated,
                 node_context=node_context,

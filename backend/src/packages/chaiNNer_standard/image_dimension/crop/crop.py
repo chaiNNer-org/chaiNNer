@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+from api import KeyInfo
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -77,6 +78,7 @@ class CropMode(Enum):
             "The cropped area would result in an image with no width or no height."
         )
     ],
+    key_info=KeyInfo.enum(1),
 )
 def crop_node(
     img: np.ndarray,
