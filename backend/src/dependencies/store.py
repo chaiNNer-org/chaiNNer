@@ -43,9 +43,11 @@ def pin(dependency: DependencyInfo) -> str:
     return f"{package_name}=={dependency.version}"
 
 
+SEMVER_REGEX = re.compile(r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?")
+
+
 def coerce_semver(version: str) -> tuple[int, int, int]:
-    regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
-    match = re.search(regex, version)
+    match = re.search(SEMVER_REGEX, version)
     if match:
         return (
             int(match.group(1) or 0),
