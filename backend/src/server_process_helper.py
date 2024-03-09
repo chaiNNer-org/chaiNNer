@@ -67,17 +67,16 @@ class _WorkerProcess:
             match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
             if match_obj is not None:
                 log_level, message = match_obj.groups()
-                log_level = log_level.lower()
                 message = f"[Executor] {message.strip()}"
-                if log_level == "debug":
+                if log_level == "DEBUG":
                     logger.debug(message)
-                elif log_level == "info":
+                elif log_level == "INFO":
                     logger.info(message)
-                elif log_level == "warning":
+                elif log_level == "WARNING":
                     logger.warning(message)
-                elif log_level == "error":
+                elif log_level == "ERROR":
                     logger.error(message)
-                elif log_level == "critical":
+                elif log_level == "CRITICAL":
                     logger.critical(message)
                 else:
                     logger.info(stripped_line)
