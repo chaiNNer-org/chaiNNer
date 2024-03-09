@@ -10,7 +10,7 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector, IteratorInputInfo
+from api import Collector, IteratorInputInfo, KeyInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.video import FFMPEG_PATH
@@ -313,6 +313,7 @@ class Writer:
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
+    key_info=KeyInfo.enum(4),
     kind="collector",
     side_effects=True,
 )

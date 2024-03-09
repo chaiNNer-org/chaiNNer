@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from api import KeyInfo
 from nodes.impl.pil_utils import (
     FillColor,
     RotateSizeChange,
@@ -120,6 +121,7 @@ from .. import modification_group
             assume_normalized=True,
         )
     ],
+    key_info=KeyInfo.number(1),
     limited_to_8bpc=True,
 )
 def rotate_node(

@@ -25,7 +25,7 @@ from .. import value_group
     outputs=[
         NumberOutput("Number", output_type="Input0").suggest(),
     ],
-    key_info=KeyInfo.type("""toString(Input0)"""),
+    key_info=KeyInfo.number(0),
 )
 def number_node(number: float) -> float:
     return number

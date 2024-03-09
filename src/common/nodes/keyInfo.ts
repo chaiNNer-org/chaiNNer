@@ -4,6 +4,7 @@ import {
     ScopeBuilder,
     StringType,
     evaluate,
+    isNumericLiteral,
     isStringLiteral,
     isSubsetOf,
 } from '@chainner/navi';
@@ -53,13 +54,30 @@ const accessors: {
     ) => string | undefined;
 } = {
     enum: (info, node, inputData) => {
-        const input = node.inputs.find((i) => i.id === info.enum);
-        if (!input) throw new Error(`Input ${info.enum} not found`);
-        if (input.kind !== 'dropdown') throw new Error(`Input ${info.enum} is not a dropdown`);
+        const input = node.inputs.find((i) => i.id === info.inputId);
+        if (!input) throw new Error(`Input ${info.inputId} not found`);
+        if (input.kind !== 'dropdown') throw new Error(`Input ${info.inputId} is not a dropdown`);
 
         const value = inputData[input.id];
         const option = input.options.find((o) => o.value === value);
         return option?.option;
+    },
+    number: (info, node, inputData, types) => {
+        const input = node.inputs.find((i) => i.id === info.inputId);
+        if (!input) throw new Error(`Input ${info.inputId} not found`);
+        if (input.kind !== 'number' && input.kind !== 'slider')
+            throw new Error(`Input ${info.inputId} is not a number/slider`);
+
+        let value = inputData[input.id];
+        if (types) {
+            const t = types.inputs.get(input.id);
+            if (t && isNumericLiteral(t)) {
+                value = t.value;
+            }
+        }
+
+        const unit = input.unit ?? '';
+        return String(value) + unit;
     },
     type: (info, node, inputData, types) => {
         if (!types) return undefined;
