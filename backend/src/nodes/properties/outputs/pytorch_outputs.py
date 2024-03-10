@@ -20,7 +20,7 @@ class ModelOutput(BaseOutput):
     def get_broadcast_data(self, value: ModelDescriptor) -> dict[str, list[str]]:
         return {
             "tags": [
-                value.architecture,
+                value.architecture.name,
                 format_channel_numbers(value.input_channels, value.output_channels),
                 *value.tags,
             ]
