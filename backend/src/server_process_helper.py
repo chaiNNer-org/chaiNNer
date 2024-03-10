@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -25,6 +26,9 @@ def _find_free_port():
 def _port_in_use(port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+SANIC_LOG_REGEX = re.compile(r"^\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
 
 class _WorkerProcess:
@@ -59,7 +63,25 @@ class _WorkerProcess:
         for line in self._process.stdout:
             if self._stop_event.is_set():
                 break
-            print(line.decode().strip())
+            stripped_line = line.decode().strip()
+            match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
+            if match_obj is not None:
+                log_level, message = match_obj.groups()
+                message = f"[Executor] {message.strip()}"
+                if log_level == "DEBUG":
+                    logger.debug(message)
+                elif log_level == "INFO":
+                    logger.info(message)
+                elif log_level == "WARNING":
+                    logger.warning(message)
+                elif log_level == "ERROR":
+                    logger.error(message)
+                elif log_level == "CRITICAL":
+                    logger.critical(message)
+                else:
+                    logger.info(stripped_line)
+            else:
+                logger.info(stripped_line)
 
 
 class WorkerServer:
