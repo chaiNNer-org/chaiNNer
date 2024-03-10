@@ -166,7 +166,7 @@ class ImageBlender:
         return np.where(a <= 0.5, 2 * a * b, 1 - 2 * (1 - a) * (1 - b))
 
     def __vivid_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return np.where(a <= 0.5, self.__color_burn(a, b), self.__color_dodge(a, b))
+        return np.where(a <= 0.5, self.__color_burn(2 * a, b), self.__color_dodge(2 * (a - 0.5), b))
 
     def __linear_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return b + 2 * a - 1
