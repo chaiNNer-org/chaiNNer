@@ -76,7 +76,7 @@ export interface NodeProgress {
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
-    kill: () => void;
+    kill: () => Promise<void>;
     status: ExecutionStatus;
     paused: boolean;
     getNodeProgress: (nodeId: string) => NodeProgress | undefined;
@@ -500,28 +500,31 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         }
     }, [backend, sendAlert]);
 
-    const kill = useCallback(() => {
+    const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            backend.abort();
-            // Give it a second to abort the run request before submitting another request
-            // TODO: the abort and the timeout can be removed once `run` is made fully async
-            setTimeout(() => {
-                backend
-                    .kill()
-                    .then((response) => {
+            await backend.abort();
+            // We need to set the status again, since run() resets it to READY
+            // We have to do this in a setTimeout, otherwise react doesn't honor this
+            const killBackendAndWait = new Promise<void>((resolve, reject) =>
+                // eslint-disable-next-line no-promise-executor-return, @typescript-eslint/no-misused-promises
+                setTimeout(async () => {
+                    setStatus(ExecutionStatus.KILLING);
+                    try {
+                        const response = await backend.kill();
                         if (response.type === 'error') {
                             sendAlert({ type: AlertType.ERROR, message: response.exception });
                         }
+                        await backend.nodes();
+                    } catch (err) {
+                        reject(err);
+                    } finally {
                         setStatus(ExecutionStatus.READY);
-                    })
-                    .catch(() => {
-                        sendAlert({
-                            type: AlertType.ERROR,
-                            message: 'An unexpected error occurred.',
-                        });
-                    });
-            }, 1000);
+                        resolve();
+                    }
+                }, 0)
+            );
+            await killBackendAndWait;
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
@@ -562,7 +565,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     case ExecutionStatus.RUNNING:
                     case ExecutionStatus.PAUSED:
                         event.preventDefault();
-                        kill();
+                        kill().catch(log.error);
                         break;
                     case ExecutionStatus.READY:
                     case ExecutionStatus.KILLING:
