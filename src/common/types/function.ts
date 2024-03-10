@@ -49,8 +49,8 @@ const getParamRefs = <P extends 'Input' | 'Output'>(
     return refs;
 };
 
-const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
-const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
+export const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
+export const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
 
 interface InputInfo {
     expression: Expression;

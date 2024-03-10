@@ -1,8 +1,11 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import ReactTimeAgo from 'react-time-ago';
+import { useContext } from 'use-context-selector';
+import { getKeyInfo } from '../../../common/nodes/keyInfo';
 import { Validity } from '../../../common/Validity';
+import { AlertBoxContext, AlertType } from '../../contexts/AlertBoxContext';
 import { NodeProgress } from '../../contexts/ExecutionContext';
 import { interpolateColor } from '../../helpers/colorTools';
 import { NodeState } from '../../helpers/nodeState';
@@ -69,6 +72,52 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
                 />
             </Box>
         </Box>
+    );
+});
+
+interface KeyInfoLabelProps {
+    nodeState: NodeState;
+}
+
+const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
+    const { sendAlert } = useContext(AlertBoxContext);
+
+    const { schema, inputData, type } = nodeState;
+    const [info, error] = useMemo((): [string | undefined, unknown] => {
+        try {
+            return [getKeyInfo(schema, inputData, type.instance), undefined];
+        } catch (e) {
+            return [undefined, e];
+        }
+    }, [schema, inputData, type.instance]);
+
+    useEffect(() => {
+        if (error) {
+            sendAlert({
+                type: AlertType.ERROR,
+                title: 'Implementation Error',
+                message: `Unable to determine key info for node ${schema.name} (${
+                    schema.schemaId
+                }) due to an error in the implementation of the key info:\n\n${String(error)}`,
+            });
+        }
+    }, [schema, error, sendAlert]);
+
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    if (!info) return <></>;
+
+    return (
+        <Text
+            as="span"
+            fontSize="sm"
+            fontWeight="medium"
+            h="full"
+            lineHeight={0}
+            my="auto"
+            textTransform="none"
+        >
+            {info}
+        </Text>
     );
 });
 
@@ -150,22 +199,27 @@ export const NodeHeader = memo(
                             />
                         </Center>
                         <Center verticalAlign="middle">
-                            <Heading
-                                alignContent="center"
-                                as="h5"
-                                fontWeight={700}
-                                lineHeight="auto"
-                                m={0}
-                                opacity={isEnabled ? 1 : 0.5}
-                                p={0}
-                                size="sm"
-                                textAlign="center"
-                                textTransform="uppercase"
-                                verticalAlign="middle"
-                                whiteSpace="nowrap"
-                            >
-                                {nodeState.schema.name}
-                            </Heading>
+                            <HStack>
+                                <Heading
+                                    alignContent="center"
+                                    as="h5"
+                                    fontWeight={700}
+                                    lineHeight="auto"
+                                    m={0}
+                                    opacity={isEnabled ? 1 : 0.5}
+                                    p={0}
+                                    size="sm"
+                                    textAlign="center"
+                                    textTransform="uppercase"
+                                    verticalAlign="middle"
+                                    whiteSpace="nowrap"
+                                >
+                                    {nodeState.schema.name}
+                                </Heading>
+                                {isCollapsed && nodeState.schema.keyInfo && (
+                                    <KeyInfoLabel nodeState={nodeState} />
+                                )}
+                            </HStack>
                         </Center>
                     </HStack>
                     <Spacer />
