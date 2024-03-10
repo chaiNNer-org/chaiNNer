@@ -17,7 +17,7 @@ class ModelOutput(BaseOutput):
     ):
         super().__init__(model_type, label, kind=kind, associated_type=ModelDescriptor)
 
-    def get_broadcast_data(self, value: ModelDescriptor):
+    def get_broadcast_data(self, value: ModelDescriptor) -> dict[str, list[str]]:
         return {
             "tags": [
                 value.architecture.name,
