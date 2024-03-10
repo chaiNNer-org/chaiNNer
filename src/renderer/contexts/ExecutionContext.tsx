@@ -503,7 +503,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            await backend.abort();
+            backend.abort();
             // We need to set the status again, since run() resets it to READY
             // We have to do this in a setTimeout, otherwise react doesn't honor this
             const killBackendAndWait = new Promise<void>((resolve, reject) =>

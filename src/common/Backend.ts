@@ -17,7 +17,6 @@ import {
     Version,
 } from './common-types';
 import { isRenderer } from './env';
-import { sleep } from './util';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -140,16 +139,12 @@ export class Backend {
 
     private abortController: AbortController;
 
-    private requestFinished: boolean;
-
     constructor(url: string) {
         this.url = url;
         this.abortController = new AbortController();
-        this.requestFinished = true;
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        this.requestFinished = false;
         const options: RequestInit & undici.RequestInit = isRenderer
             ? { method, cache: 'no-cache' }
             : {
@@ -168,16 +163,12 @@ export class Backend {
             };
             options.signal = signal;
         }
-        try {
-            const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
-            const result = (await resp.json()) as T;
-            if (ServerError.isJson(result)) {
-                throw ServerError.fromJson(result);
-            }
-            return result;
-        } finally {
-            this.requestFinished = true;
+        const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
+        const result = (await resp.json()) as T;
+        if (ServerError.isJson(result)) {
+            throw ServerError.fromJson(result);
         }
+        return result;
     }
 
     /**
@@ -215,16 +206,9 @@ export class Backend {
         return this.fetchJson('/kill', 'POST');
     }
 
-    async abort(): Promise<void> {
+    abort(): void {
         this.abortController.abort('Aborting current execution');
         this.abortController = new AbortController();
-        let counter = 0;
-        while (!this.requestFinished && counter < 100) {
-            // Wait for the request to finish
-            // eslint-disable-next-line no-await-in-loop
-            await sleep(100);
-            counter += 1;
-        }
     }
 
     /**
