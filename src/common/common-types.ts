@@ -275,7 +275,6 @@ export type InputHeight = Readonly<Record<InputId, number>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
-export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface IteratorInputInfo {
     readonly inputs: readonly InputId[];
@@ -332,13 +331,9 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
-    readonly groupState?: GroupState;
     readonly inputHeight?: InputHeight;
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
-    readonly invalid?: boolean;
-    readonly minWidth?: number;
-    readonly minHeight?: number;
     readonly isCollapsed?: boolean;
 }
 export interface EdgeData {
