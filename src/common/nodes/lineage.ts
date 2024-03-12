@@ -42,8 +42,6 @@ export class Lineage {
 }
 
 export class ChainLineage {
-    readonly schemata: SchemaMap;
-
     private readonly nodeSchemata: ReadonlyMap<string, NodeSchema>;
 
     private readonly byTargetNode: ReadonlyMap<string, readonly Edge<EdgeData>[]>;
@@ -57,7 +55,6 @@ export class ChainLineage {
         nodes: readonly Node<NodeData>[],
         edges: readonly Edge<EdgeData>[]
     ) {
-        this.schemata = schemata;
         this.nodeSchemata = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
 
         this.byTargetHandle = new Map(edges.map((e) => [e.targetHandle!, e] as const));
