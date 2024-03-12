@@ -28,7 +28,7 @@ def _port_in_use(port: int):
         return s.connect_ex(("127.0.0.1", port)) == 0
 
 
-SANIC_LOG_REGEX = re.compile(r"^\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
+SANIC_LOG_REGEX = re.compile(r"^\s*\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
 
 class _WorkerProcess:
@@ -63,11 +63,11 @@ class _WorkerProcess:
         for line in self._process.stdout:
             if self._stop_event.is_set():
                 break
-            stripped_line = line.decode().strip()
+            stripped_line = line.decode().rstrip()
             match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
             if match_obj is not None:
                 log_level, message = match_obj.groups()
-                message = f"[Executor] {message.strip()}"
+                message = f"[Worker] {message}"
                 if log_level == "DEBUG":
                     logger.debug(message)
                 elif log_level == "INFO":
@@ -79,9 +79,9 @@ class _WorkerProcess:
                 elif log_level == "CRITICAL":
                     logger.critical(message)
                 else:
-                    logger.info(stripped_line)
+                    logger.info(message)
             else:
-                logger.info(stripped_line)
+                logger.info(f"[Worker] {stripped_line}")
 
 
 class WorkerServer:
