@@ -120,7 +120,7 @@ const PackageDependencyView = memo(
                     textAlign="left"
                     width="fit-content"
                 >
-                    {pkg.pypiName}
+                    {pkg.displayName}
                 </Text>
                 {!!tagText && <Tag color={color}>{tagText}</Tag>}
                 <Tag>{versionString}</Tag>
