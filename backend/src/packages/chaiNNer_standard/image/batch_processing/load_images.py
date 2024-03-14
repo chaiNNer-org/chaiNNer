@@ -37,7 +37,6 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
         | glob.GLOBSTAR
         | glob.NEGATE
         | glob.DOTGLOB
-        | glob.MINUSNEGATE
         | glob.NEGATEALL
     )
 
