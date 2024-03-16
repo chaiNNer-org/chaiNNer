@@ -120,6 +120,7 @@ async def nodes(_request: Request):
             ],
             "iteratorInputs": [x.to_dict() for x in node.iterator_inputs],
             "iteratorOutputs": [x.to_dict() for x in node.iterator_outputs],
+            "keyInfo": node.key_info.to_dict() if node.key_info else None,
             "description": node.description,
             "seeAlso": node.see_also,
             "icon": node.icon,

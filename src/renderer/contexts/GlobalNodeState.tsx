@@ -560,7 +560,11 @@ export const GlobalProvider = memo(
                                 ...node.data,
                                 inputData: {
                                     ...schemata.getDefaultInput(node.data.schemaId),
-                                    ...node.data.inputData,
+                                    ...Object.fromEntries(
+                                        Object.entries(node.data.inputData).filter(
+                                            ([, v]) => v != null
+                                        )
+                                    ),
                                 },
                             },
                         };

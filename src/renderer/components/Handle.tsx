@@ -39,7 +39,9 @@ const HandleElement = memo(
                 borderRadius={8}
                 display={validity.isValid ? 'none' : 'block'}
                 label={
-                    validity.isValid ? undefined : (
+                    validity.isValid ? (
+                        'Connection is valid'
+                    ) : (
                         <Markdown
                             nonInteractive
                         >{`Unable to connect: ${validity.reason}`}</Markdown>

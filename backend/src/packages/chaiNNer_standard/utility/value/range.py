@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from api import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo, KeyInfo
 from nodes.properties.inputs import BoolInput, NumberInput
 from nodes.properties.outputs import NumberOutput
 
@@ -29,6 +29,14 @@ from .. import value_group
             """,
         ).with_never_reason("The range is empty."),
     ],
+    key_info=KeyInfo.type(
+        """
+        let start = if Input1 { Input0 } else { Input0 + 1 };
+        let stop = if Input3 { Input2 } else { Input2 - 1 };
+
+        string::concat(toString(start), "..", toString(stop))
+        """
+    ),
     iterator_outputs=IteratorOutputInfo(outputs=0),
     kind="newIterator",
 )

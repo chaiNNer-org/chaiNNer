@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import NodeContext
+from api import KeyInfo, NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -215,6 +215,23 @@ def upscale(
             assume_normalized=True,  # pytorch_auto_split already does clipping internally
         )
     ],
+    key_info=KeyInfo.type(
+        """
+        let model = Input0;
+        let useCustomScale = Input4;
+        let customScale = Input5;
+
+        let singleUpscale = convenientUpscale(model, img);
+
+        let scale = if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+            customScale
+        } else {
+            model.scale
+        };
+
+        string::concat(toString(scale), "x")
+        """
+    ),
     node_context=True,
 )
 def upscale_image_node(

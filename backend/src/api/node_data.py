@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import navi
 
@@ -50,6 +51,26 @@ class IteratorOutputInfo:
         }
 
 
+class KeyInfo:
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._data = data
+
+    @staticmethod
+    def enum(enum_input: InputId | int) -> KeyInfo:
+        return KeyInfo({"kind": "enum", "inputId": enum_input})
+
+    @staticmethod
+    def number(number_input: InputId | int) -> KeyInfo:
+        return KeyInfo({"kind": "number", "inputId": number_input})
+
+    @staticmethod
+    def type(expression: navi.ExpressionJson) -> KeyInfo:
+        return KeyInfo({"kind": "type", "expression": expression})
+
+    def to_dict(self):
+        return self._data
+
+
 @dataclass(frozen=True)
 class NodeData:
     schema_id: str
@@ -65,6 +86,8 @@ class NodeData:
 
     iterator_inputs: list[IteratorInputInfo]
     iterator_outputs: list[IteratorOutputInfo]
+
+    key_info: KeyInfo | None
 
     side_effects: bool
     deprecated: bool
