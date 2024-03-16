@@ -158,7 +158,10 @@ class LargeImageOutput(ImageOutput):
             assume_normalized=assume_normalized,
         )
 
-    def get_broadcast_data(self, value: np.ndarray):
+    def get_broadcast_data(self, value: np.ndarray | None):
+        if value is None:
+            return None
+
         img = value
         h, w, c = get_h_w_c(img)
         image_size = max(h, w)

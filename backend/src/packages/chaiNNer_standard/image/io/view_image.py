@@ -13,7 +13,7 @@ from .. import io_group
     name="View Image",
     description="See an inline preview of the image in the editor.",
     icon="BsEyeFill",
-    inputs=[ImageInput()],
+    inputs=[ImageInput().make_optional()],
     outputs=[
         LargeImageOutput(
             "Preview",
@@ -24,5 +24,5 @@ from .. import io_group
     ],
     side_effects=True,
 )
-def view_image_node(img: np.ndarray):
+def view_image_node(img: np.ndarray | None):
     return img

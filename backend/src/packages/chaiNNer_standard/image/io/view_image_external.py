@@ -24,12 +24,15 @@ from .. import io_group
         "This works by saving a temporary file that will be deleted after chaiNNer is closed. It is not recommended to be used when performing batch processing.",
     ],
     icon="BsEyeFill",
-    inputs=[ImageInput()],
+    inputs=[ImageInput().make_optional()],
     outputs=[],
     side_effects=True,
     limited_to_8bpc="The temporary file is an 8-bit PNG.",
 )
-def view_image_external_node(img: np.ndarray) -> None:
+def view_image_external_node(img: np.ndarray | None) -> None:
+    if img is None:
+        return
+
     tempdir = mkdtemp(prefix="chaiNNer-")
     logger.debug(f"Writing image to temp path: {tempdir}")
     im_name = f"{time.time()}.png"
