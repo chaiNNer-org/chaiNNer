@@ -219,7 +219,7 @@ const PackageView = memo(
 
                                     <Button
                                         colorScheme="red"
-                                        disabled={isRunningShell}
+                                        isDisabled={isRunningShell}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
                                         onClick={onUninstall}
@@ -234,7 +234,7 @@ const PackageView = memo(
                                 >
                                     <Button
                                         colorScheme="blue"
-                                        disabled={isRunningShell}
+                                        isDisabled={isRunningShell}
                                         isLoading={isRunningShell}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
@@ -393,8 +393,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useSystemPython } = useSettings();
-    const { backend, url, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
-        useContext(BackendContext);
+    const {
+        backend,
+        url,
+        pythonInfo,
+        backendDownRef,
+        packages,
+        featureStates,
+        refreshFeatureStates,
+    } = useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
@@ -455,6 +462,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         setIsRunningShell(true);
         setOverallProgress(0);
         setIndividualProgress(null);
+        backendDownRef.current = true;
 
         supplier()
             .catch((error) => {
@@ -469,6 +477,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                         setUninstallingPackage(null);
                         setOverallProgress(0);
                         setIndividualProgress(null);
+                        backendDownRef.current = false;
                     })
                     .catch(log.error);
             });
@@ -574,7 +583,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     maxW="750px"
                 >
                     <ModalHeader>Dependency Manager</ModalHeader>
-                    <ModalCloseButton disabled={currentlyProcessingDeps} />
+                    <ModalCloseButton isDisabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
                             <Flex
@@ -821,7 +830,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalFooter>
                         <Button
                             colorScheme="blue"
-                            disabled={currentlyProcessingDeps}
+                            isDisabled={currentlyProcessingDeps}
                             mr={3}
                             variant={currentlyProcessingDeps ? 'ghost' : 'solid'}
                             onClick={onClose}
