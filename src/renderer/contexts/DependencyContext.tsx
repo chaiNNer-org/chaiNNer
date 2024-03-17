@@ -54,7 +54,7 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { OnStdio, getFindLinks } from '../../common/pip';
+import { getFindLinks } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
@@ -422,21 +422,39 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const consoleRef = useRef<HTMLTextAreaElement | null>(null);
     const [shellOutput, setShellOutput] = useState('');
     const [isRunningShell, setIsRunningShell] = useState(false);
-    const [progress, setProgress] = useState(0);
     const appendToOutput = useCallback(
         (data: string) => {
             setShellOutput((prev) => (prev + data).slice(-10_000));
         },
         [setShellOutput]
     );
-    const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [installMessage, setInstallMessage] = useState<string | null>(null);
+    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
+    const [eventSource] = useBackendSetupEventSource(url);
+    useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
+        if (f) {
+            setOverallProgress(f.progress);
+            setIndividualProgress(
+                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
+            );
+
+            if (f.message) {
+                setInstallMessage(f.message);
+                appendToOutput(f.message);
+            }
+        }
+    });
 
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
         setShellOutput('');
         setIsRunningShell(true);
-        setProgress(0);
+        setOverallProgress(0);
+        setIndividualProgress(null);
 
         supplier()
             .catch((error) => {
@@ -449,15 +467,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                         setIsRunningShell(false);
                         setInstallingPackage(null);
                         setUninstallingPackage(null);
-                        setProgress(0);
+                        setOverallProgress(0);
+                        setIndividualProgress(null);
                     })
                     .catch(log.error);
-                // restart()
-                //     .catch(log.error)
-                //     .then(() => {
-
-                //     })
-                //     .catch(log.error);
             });
     };
 
@@ -496,15 +509,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
         setOverallProgress(0);
         setInstallingPackage(pkg);
-        changePackages(() =>
-            // runPipInstall(
-            //     pythonInfo,
-            //     pkg.dependencies,
-            //     installMode === installModes.NORMAL ? setProgress : undefined,
-            //     onStdio
-            // )
-            backend.installPackage(pkg)
-        );
+        changePackages(() => backend.installPackage(pkg));
     };
 
     const uninstallPackage = (pkg: Package) => {
@@ -517,15 +522,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
         setOverallProgress(0);
         setUninstallingPackage(pkg);
-        changePackages(() =>
-            // runPipUninstall(
-            //     pythonInfo,
-            //     pkg.dependencies,
-            //     installMode === installModes.NORMAL ? setProgress : undefined,
-            //     onStdio
-            // )
-            backend.uninstallPackage(pkg)
-        );
+        changePackages(() => backend.uninstallPackage(pkg));
     };
 
     useEffect(() => {
@@ -558,24 +555,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const features = useMemo(() => packages.flatMap((p) => p.features), [packages]);
     const [isRefreshingFeatureStates, setIsRefreshingFeatureStates] = useState(false);
-
-    const [installMessage, setInstallMessage] = useState<string | null>(null);
-    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
-    const [overallProgress, setOverallProgress] = useState(0);
-    const [eventSource, eventSourceStatus] = useBackendSetupEventSource(url);
-    useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
-        if (f) {
-            console.log('🚀 ~ useBackendEventSourceListener ~ f:', f);
-            setOverallProgress(f.progress);
-            setIndividualProgress(
-                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
-            );
-
-            if (f.message) {
-                setInstallMessage(f.message);
-            }
-        }
-    });
 
     return (
         <DependencyContext.Provider value={value}>
