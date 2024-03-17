@@ -70,7 +70,6 @@ import { useSettings } from './SettingsContext';
 
 const installModes = {
     NORMAL: 'Normal',
-    DIRECT_PIP: 'Direct Pip',
     MANUAL_COPY: 'Manual/Copy',
 };
 
@@ -497,6 +496,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     };
 
     const installPackage = (pkg: Package) => {
+        // TODO: Make this feature get the command from the backend directly
         if (installMode === installModes.MANUAL_COPY) {
             const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
             const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => [
@@ -618,7 +618,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                         }}
                                                     >
                                                         <option>{installModes.NORMAL}</option>
-                                                        <option>{installModes.DIRECT_PIP}</option>
                                                         <option>{installModes.MANUAL_COPY}</option>
                                                     </Select>
                                                 </PopoverTrigger>
@@ -641,9 +640,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 borderRadius={8}
                                                 label={
                                                     <Markdown nonInteractive>
-                                                        {'The dependency install mode. ChaiNNer supports 3 ways of installing packages:\n\n' +
-                                                            '- Normal: This is the default installation mode. This mode manually downloads packages in order to display download progress.\n' +
-                                                            '- Direct Pip: This will invoke pip more directly, like installing python packages normally. Use this setting when having issues with Normal. Note: this makes it impossible to show installation progress.\n' +
+                                                        {'The dependency install mode. ChaiNNer supports 2 ways of installing packages:\n\n' +
+                                                            '- Normal: This is the default installation mode. This mode will automatically handle the dependency install for you and will report progress along the way.\n' +
                                                             '- Manual/Copy: Copy the pip install command to your clipboard for you to run in your own terminal. You will have to manually restart chaiNner afterwards.'}
                                                     </Markdown>
                                                 }

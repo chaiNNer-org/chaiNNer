@@ -139,8 +139,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setManualOutputType,
         clearManualOutputTypes,
     } = useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
-        useContext(BackendContext);
+    const {
+        schemata,
+        url,
+        backend,
+        ownsBackend,
+        backendDownRef,
+        restart,
+        features,
+        featureStates,
+    } = useContext(BackendContext);
     const { packageSettings } = useSettings();
 
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
@@ -309,12 +317,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     });
 
     useEffect(() => {
-        if (ownsBackend && !restartingRef.current && eventSourceStatus === 'error') {
+        if (ownsBackend && !backendDownRef.current && eventSourceStatus === 'error') {
             log.warn('The backend event source errored.');
             clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, clearNodeStatusMap, restartingRef, ownsBackend]);
+    }, [eventSourceStatus, clearNodeStatusMap, backendDownRef, ownsBackend]);
 
     const lastChangesRef = useRef(`${nodeChanges} ${edgeChanges}`);
     useEffect(() => {
