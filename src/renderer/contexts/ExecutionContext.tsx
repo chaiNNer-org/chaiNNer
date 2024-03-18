@@ -15,7 +15,7 @@ import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { fromJson } from '../../common/types/json';
-import { EMPTY_MAP, EMPTY_SET, assertNever, delay, groupBy } from '../../common/util';
+import { EMPTY_MAP, EMPTY_SET, assertNever, groupBy } from '../../common/util';
 import { bothValid } from '../../common/Validity';
 import {
     ChainProgress,
@@ -139,7 +139,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setManualOutputType,
         clearManualOutputTypes,
     } = useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
+    const { schemata, url, backend, ownsBackend, restartingRef, features, featureStates } =
         useContext(BackendContext);
     const { packageSettings } = useSettings();
 
@@ -503,24 +503,33 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(2500).then(() => ({
-                type: 'timeout',
-                exception: '',
-            }));
-            const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            if (response.type === 'timeout') {
-                await restart();
-                log.info('Finished restarting backend');
-            }
-            if (response.type === 'error') {
-                sendAlert({ type: AlertType.ERROR, message: response.exception });
-            }
+            backend.abort();
+            // We need to set the status again, since run() resets it to READY
+            // We have to do this in a setTimeout, otherwise react doesn't honor this
+            const killBackendAndWait = new Promise<void>((resolve, reject) =>
+                // eslint-disable-next-line no-promise-executor-return, @typescript-eslint/no-misused-promises
+                setTimeout(async () => {
+                    setStatus(ExecutionStatus.KILLING);
+                    try {
+                        const response = await backend.kill();
+                        if (response.type === 'error') {
+                            sendAlert({ type: AlertType.ERROR, message: response.exception });
+                        }
+                        await backend.nodes();
+                    } catch (err) {
+                        reject(err);
+                    } finally {
+                        setStatus(ExecutionStatus.READY);
+                        resolve();
+                    }
+                }, 0)
+            );
+            await killBackendAndWait;
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
         setNodeProgress({});
-    }, [backend, restart, sendAlert]);
+    }, [backend, sendAlert]);
 
     // This makes sure keystrokes are executed even if the focus is on an input field
     useEffect(() => {
