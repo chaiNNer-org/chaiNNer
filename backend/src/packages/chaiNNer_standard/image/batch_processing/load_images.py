@@ -31,7 +31,14 @@ def extension_filter(lst: list[str]) -> str:
 def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Path]:
     extension_expr = extension_filter(ext_filter)
 
-    flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR | glob.NEGATE | glob.DOTGLOB
+    flags = (
+        glob.EXTGLOB
+        | glob.BRACE
+        | glob.GLOBSTAR
+        | glob.NEGATE
+        | glob.DOTGLOB
+        | glob.NEGATEALL
+    )
 
     foo = list(glob.iglob(globexpr, root_dir=directory, flags=flags))
 

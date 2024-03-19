@@ -4,7 +4,7 @@ import { SchemaMap } from './SchemaMap';
 const defaultListItem = (label: string, value: string) => `- ${label}: ${value}`;
 
 export const formatExecutionErrorMessage = (
-    { exception, source }: BackendEventMap['execution-error'],
+    { exception, source }: Pick<BackendEventMap['execution-error'], 'exception' | 'source'>,
     schemata: SchemaMap,
     formatListItem: (label: string, value: string) => string = defaultListItem
 ): string => {

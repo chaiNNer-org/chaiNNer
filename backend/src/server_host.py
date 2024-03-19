@@ -24,6 +24,7 @@ from dependencies.store import (
 )
 from events import EventQueue
 from gpu import get_nvidia_helper
+from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
 
@@ -97,7 +98,25 @@ async def resume(request: Request):
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
-    return await worker.proxy_request(request)
+    try:
+        response = await worker.proxy_request(request, timeout=3)
+        if response.status > 200:
+            if response.body is None:
+                raise Exception(
+                    "Unknown error occurred while attempting to stop execution."
+                )
+            raise Exception(response.body.decode())
+    except Exception:
+        try:
+            logger.debug(
+                "Regular kill failed, attempting to restart executor process..."
+            )
+            await worker.restart()
+        except Exception as exception:
+            return json(
+                error_response("Error killing execution!", exception), status=500
+            )
+    return json(success_response(), status=200)
 
 
 @app.route("/python-info", methods=["GET"])

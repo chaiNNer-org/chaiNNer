@@ -185,7 +185,7 @@ class WorkerServer:
             "/sse",
             headers=request.headers,
             data=request.body,
-            timeout=None,
+            timeout=5,
         ) as resp:
             async for data, _ in resp.content.iter_chunks():
                 yield data

@@ -44,6 +44,7 @@ class ExecutionErrorSource(TypedDict):
 class ExecutionErrorData(TypedDict):
     message: str
     exception: str
+    exceptionTrace: str
     source: ExecutionErrorSource | None
 
 
