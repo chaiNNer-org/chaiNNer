@@ -195,7 +195,7 @@ async def uninstall_dependencies_request(request: Request):
 
     packages = await worker.get_packages()
 
-    package = next((x for x in packages if x.name == package_to_uninstall), None)
+    package = next((x for x in packages if x.id == package_to_uninstall), None)
 
     if package is None:
         return json(
@@ -206,7 +206,7 @@ async def uninstall_dependencies_request(request: Request):
     def update_progress(
         message: str, progress: float, status_progress: float | None = None
     ):
-        return AppContext.get(request.app).setup_queue.put_and_wait(
+        return AppContext.get(request.app).setup_queue.put(
             {
                 "event": "package-install-status",
                 "data": {
@@ -215,15 +215,16 @@ async def uninstall_dependencies_request(request: Request):
                     "statusProgress": status_progress,
                 },
             },
-            timeout=1,
         )
 
     try:
         await worker.stop()
-        await uninstall_dependencies(
-            deps_to_dep_info(package.dependencies), update_progress, logger
-        )
-        await worker.start()
+        try:
+            await uninstall_dependencies(
+                deps_to_dep_info(package.dependencies), update_progress, logger
+            )
+        finally:
+            await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
@@ -239,7 +240,7 @@ async def install_dependencies_request(request: Request):
         message: str, progress: float, status_progress: float | None = None
     ):
         logger.info(f"Progress: {message} {progress} {status_progress}")
-        return AppContext.get(request.app).setup_queue.put_and_wait(
+        return AppContext.get(request.app).setup_queue.put(
             {
                 "event": "package-install-status",
                 "data": {
@@ -248,11 +249,10 @@ async def install_dependencies_request(request: Request):
                     "statusProgress": status_progress,
                 },
             },
-            timeout=1,
         )
 
     packages = await worker.get_packages()
-    package = next((x for x in packages if x.name == package_to_install), None)
+    package = next((x for x in packages if x.id == package_to_install), None)
 
     if package is None:
         return json(

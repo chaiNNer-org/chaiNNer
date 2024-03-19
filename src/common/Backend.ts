@@ -240,19 +240,19 @@ export class Backend {
 
     installPackage(pkg: Package): Promise<void> {
         return this.fetchJson('/packages/install', 'POST', {
-            package: pkg.name,
+            package: pkg.id,
         });
     }
 
     uninstallPackage(pkg: Package): Promise<void> {
         return this.fetchJson('/packages/uninstall', 'POST', {
-            package: pkg.name,
+            package: pkg.id,
         });
     }
 
     updatePackage(pkg: Package): Promise<void> {
         return this.fetchJson('/packages/install', 'POST', {
-            package: pkg.name,
+            package: pkg.id,
         });
     }
 }
