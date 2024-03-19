@@ -314,6 +314,7 @@ const AlertBoxDialog = memo(
                                 aria-label="Copy to Clipboard"
                                 background="transparent"
                                 icon={<CopyIcon />}
+                                title="Copy to Clipboard"
                                 onClick={() => clipboard.writeText(copyText)}
                             />
                             <HStack
