@@ -793,7 +793,7 @@ class Executor:
                 "event": "node-progress",
                 "data": {
                     "nodeId": node.id,
-                    "progress": index / length,
+                    "progress": 1 if length == 0 else index / length,
                     "index": index,
                     "total": length,
                     "eta": get_eta(),
