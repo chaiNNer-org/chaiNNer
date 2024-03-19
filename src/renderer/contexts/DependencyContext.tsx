@@ -139,6 +139,7 @@ const PackageView = memo(
         isRunningShell,
         progress,
         installedPyPi,
+        installingPackage,
         onInstall,
         onUninstall,
         onUpdate,
@@ -147,6 +148,7 @@ const PackageView = memo(
         isRunningShell: boolean;
         progress?: number;
         installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>;
+        installingPackage: Package | null;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
@@ -156,6 +158,8 @@ const PackageView = memo(
             const installed = installedPyPi[d.pypiName];
             return installed && versionGt(d.version, installed);
         });
+
+        const isInstallingThisPackage = installingPackage?.id === p.id;
 
         return (
             <AccordionItem cursor="pointer">
@@ -207,7 +211,7 @@ const PackageView = memo(
                                         <Button
                                             colorScheme="blue"
                                             disabled={isRunningShell}
-                                            isLoading={isRunningShell}
+                                            isLoading={isRunningShell && isInstallingThisPackage}
                                             leftIcon={<DownloadIcon />}
                                             size="sm"
                                             onClick={onUpdate}
@@ -219,6 +223,7 @@ const PackageView = memo(
                                     <Button
                                         colorScheme="red"
                                         isDisabled={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
                                         onClick={onUninstall}
@@ -234,7 +239,7 @@ const PackageView = memo(
                                     <Button
                                         colorScheme="blue"
                                         isDisabled={isRunningShell}
-                                        isLoading={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
                                         onClick={onInstall}
@@ -422,8 +427,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         refetchInterval: false,
     });
 
-    const [installingPackage, setInstallingPackage] = useState<Package | null>(null);
-    const [uninstallingPackage, setUninstallingPackage] = useState<Package | null>(null);
+    const [modifyingPackage, setModifyingPackage] = useState<Package | null>(null);
 
     const consoleRef = useRef<HTMLTextAreaElement | null>(null);
     const [shellOutput, setShellOutput] = useState('');
@@ -472,8 +476,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     .catch(log.error)
                     .then(() => {
                         setIsRunningShell(false);
-                        setInstallingPackage(null);
-                        setUninstallingPackage(null);
+                        setModifyingPackage(null);
                         setOverallProgress(0);
                         setIndividualProgress(null);
                         backendDownRef.current = false;
@@ -517,7 +520,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             return;
         }
         setOverallProgress(0);
-        setInstallingPackage(pkg);
+        setModifyingPackage(pkg);
         changePackages(() => backend.installPackage(pkg));
     };
 
@@ -530,7 +533,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             return;
         }
         setOverallProgress(0);
-        setUninstallingPackage(pkg);
+        setModifyingPackage(pkg);
         changePackages(() => backend.uninstallPackage(pkg));
     };
 
@@ -540,9 +543,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
     }, [shellOutput]);
 
-    // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
-    const currentlyProcessingDeps =
-        installedPyPi === undefined || installingPackage !== null || uninstallingPackage !== null;
+    // whether we are current installing/uninstalling packages or refreshing the list of installed packages
+    const currentlyProcessingDeps = installedPyPi === undefined || modifyingPackage !== null;
 
     const availableUpdates = useMemo((): number => {
         if (!installedPyPi) return 0;
@@ -711,14 +713,14 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         return (
                                             <PackageView
                                                 installedPyPi={installedPyPi}
+                                                installingPackage={modifyingPackage}
                                                 isRunningShell={isRunningShell}
                                                 key={p.id}
                                                 p={p}
                                                 progress={
                                                     installMode === installModes.NORMAL &&
                                                     isRunningShell &&
-                                                    (installingPackage || uninstallingPackage)
-                                                        ?.id === p.id
+                                                    modifyingPackage?.id === p.id
                                                         ? overallProgress * 100 +
                                                           ((individualProgress ?? 0) * 100) /
                                                               p.dependencies.length
