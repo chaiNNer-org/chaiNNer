@@ -284,6 +284,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     schemata,
                     (label, value) => `• ${label}: ${value}`
                 ),
+                trace: data.exceptionTrace,
             });
             clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);

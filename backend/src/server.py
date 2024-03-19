@@ -188,13 +188,27 @@ async def run(request: Request):
 
         return json(success_response(), status=200)
     except Exception as exception:
-        logger.error(exception, exc_info=True)
-        logger.error(traceback.format_exc())
+        logger.error(exception)
+        if (
+            isinstance(exception, NodeExecutionError)
+            and exception.__cause__ is not None
+        ):
+            trace = "".join(
+                traceback.format_exception(
+                    type(exception.__cause__),
+                    exception.__cause__,
+                    exception.__cause__.__traceback__,
+                )
+            )
+        else:
+            trace = traceback.format_exc()
+        logger.error(trace)
 
         error: ExecutionErrorData = {
             "message": "Error running nodes!",
             "source": None,
             "exception": str(exception),
+            "exceptionTrace": trace,
         }
         if isinstance(exception, NodeExecutionError):
             error["source"] = {

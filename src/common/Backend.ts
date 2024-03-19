@@ -263,6 +263,7 @@ export interface BackendEventMap {
         message: string;
         source?: BackendExceptionSource | null;
         exception: string;
+        exceptionTrace: string;
     };
     'chain-start': {
         nodes: string[];
