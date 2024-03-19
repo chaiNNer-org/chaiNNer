@@ -215,6 +215,7 @@ async def uninstall_dependencies_request(request: Request):
                     "statusProgress": status_progress,
                 },
             },
+            timeout=0.01,
         )
 
     try:
@@ -249,6 +250,7 @@ async def install_dependencies_request(request: Request):
                     "statusProgress": status_progress,
                 },
             },
+            timeout=0.01,
         )
 
     packages = await worker.get_packages()
