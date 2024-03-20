@@ -6,10 +6,10 @@ from nodes.impl.color.color import Color
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import all_group
 
 
-@node_group.register(
+@all_group.register(
     schema_id="chainner:image:combine_rgba",
     name="Combine RGBA",
     description=(

@@ -7,10 +7,10 @@ from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import all_group
 
 
-@node_group.register(
+@all_group.register(
     schema_id="chainner:image:split_channels",
     name="Separate RGBA",
     description=(
