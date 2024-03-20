@@ -19,7 +19,7 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import miscellaneous_group
 
 
 class KeyMethod(Enum):
@@ -27,7 +27,7 @@ class KeyMethod(Enum):
     TRIMAP_MATTING = 2
 
 
-@node_group.register(
+@miscellaneous_group.register(
     schema_id="chainner:image:chroma_key",
     name="Chroma Key",
     description=[

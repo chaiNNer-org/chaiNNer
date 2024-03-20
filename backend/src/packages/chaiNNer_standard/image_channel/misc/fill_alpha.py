@@ -13,7 +13,7 @@ import navi
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import miscellaneous_group
 
 
 class AlphaFillMethod(Enum):
@@ -22,7 +22,7 @@ class AlphaFillMethod(Enum):
     NEAREST_COLOR = 3
 
 
-@node_group.register(
+@miscellaneous_group.register(
     schema_id="chainner:image:fill_alpha",
     name="Fill Alpha",
     description="Splits the image into color and transparency, and fills the transparent pixels of an image with nearby colors.",
