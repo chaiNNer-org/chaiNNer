@@ -7,10 +7,9 @@ import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
+import { optimizeChain } from '../../common/nodes/optimize';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
-import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
@@ -214,20 +213,14 @@ export const runChainInCli = async (args: RunArguments) => {
         applyOverrides(saveFile.nodes, saveFile.edges, schemata, overrideFile);
     }
 
-    const disabledNodes = new Set(
-        getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id)
-    );
-    const nodesToOptimize = saveFile.nodes.filter((n) => !disabledNodes.has(n.id));
-    const nodes = getNodesWithSideEffects(nodesToOptimize, saveFile.edges, schemata);
-    const nodesById = new Map(nodes.map((n) => [n.id, n]));
-    const edges = saveFile.edges.filter((e) => nodesById.has(e.source) && nodesById.has(e.target));
+    const { nodes, edges, report } = optimizeChain(saveFile.nodes, saveFile.edges, schemata);
 
     // show an error if there are no nodes to run
     if (nodes.length === 0) {
         let message;
-        if (nodesToOptimize.length > 0) {
+        if (report.removedSideEffectFree > 0) {
             message = 'There are no nodes that have an effect. Try to view or output images/files.';
-        } else if (disabledNodes.size > 0) {
+        } else if (report.removedDisabled > 0) {
             message = 'All nodes are disabled. There are no nodes to run.';
         } else {
             message = 'There are no nodes to run.';
