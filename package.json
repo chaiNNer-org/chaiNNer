@@ -10,7 +10,7 @@
     "start": "electron-forge start -- --devtools",
     "frontend": "electron-forge start -- --remote-backend=http://127.0.0.1:8000 --devtools",
     "dev": "concurrently \"npm run dev:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
-    "dev:py": "cd backend/src && nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
+    "dev:py": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",
     "make-linux-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform linux",
