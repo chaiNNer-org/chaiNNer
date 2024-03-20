@@ -369,9 +369,6 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                     handleChange(event);
                                 }}
                                 onContextMenu={textAreaContextMenu.onContextMenu}
-                                onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                                    e.stopPropagation();
-                                }}
                             />
                         ) : (
                             <Box
