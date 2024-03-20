@@ -118,6 +118,7 @@ class DirectoryInput(BaseInput):
         label: str = "Directory",
         has_handle: bool = True,
         must_exist: bool = True,
+        create: bool = False,
         label_style: LabelStyle = "default",
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
@@ -130,6 +131,7 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
+        self.create: bool = create
         self.label_style: LabelStyle = label_style
 
         self.associated_type = Path
@@ -144,8 +146,12 @@ class DirectoryInput(BaseInput):
         if isinstance(value, str):
             value = Path(value)
         assert isinstance(value, Path)
-        if self.must_exist:
+
+        if self.create:
+            value.mkdir(parents=True, exist_ok=True)
+        elif self.must_exist:
             assert value.exists(), f"Directory {value} does not exist"
+
         return value
 
 

@@ -17,7 +17,7 @@ from .. import io_group
     icon="MdSave",
     inputs=[
         OnnxModelInput(),
-        DirectoryInput(has_handle=True),
+        DirectoryInput(create=True),
         TextInput("Model Name"),
     ],
     outputs=[],

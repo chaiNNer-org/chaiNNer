@@ -216,7 +216,7 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Directory", has_handle=True),
+        DirectoryInput(create=True),
         TextInput("Video Name"),
         EnumInput(
             VideoFormat,

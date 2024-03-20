@@ -108,7 +108,7 @@ class TiffColorDepth(Enum):
     icon="MdSave",
     inputs=[
         ImageInput(),
-        DirectoryInput(must_exist=False, has_handle=True),
+        DirectoryInput(must_exist=False),
         TextInput("Subdirectory Path")
         .make_optional()
         .with_docs(
