@@ -8,8 +8,8 @@ import {
     NumberInputStepper,
 } from '@chakra-ui/react';
 import { evaluate, isBigNumber, isComplex, isFraction, isNumber, isUnit, number } from 'mathjs';
-import { MouseEventHandler, memo } from 'react';
-import { areApproximatelyEqual, noop } from '../../../../common/util';
+import { MouseEventHandler, memo, useCallback, useEffect, useRef } from 'react';
+import { areApproximatelyEqual } from '../../../../common/util';
 import './AdvancedNumberInput.scss';
 
 const validChars = /^[0-9a-z.+\-*()^!%&|~_ /]$/iu;
@@ -99,27 +99,65 @@ export const AdvancedNumberInput = memo(
                 return Number(clamp(valAsNumber, min, max).toFixed(precision));
             }
         };
-        const formatValue = (value: number): string =>
-            hideTrailingZeros ? String(value) : value.toFixed(precision);
-        const onBlur = noRepeatOnBlur
-            ? noop
-            : () => {
-                  const value = getNumericValue();
-                  if (value !== undefined) {
-                      // Make sure the input value has been altered so onChange gets correct value if adjustment needed
-                      setImmediate(() => {
-                          setInput(value);
-                          setInputString(formatValue(value));
-                      });
-                  }
-              };
+        const setValue = (value: number): void => {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            cancelAutoCommit();
 
+            setInput(value);
+            const formatted = hideTrailingZeros ? String(value) : value.toFixed(precision);
+            setInputString(formatted);
+        };
+
+        // auto commit system to set value after a delay
+        const timerRef = useRef<NodeJS.Timeout | null>(null);
+        const autoCommit = () => {
+            if (timerRef.current !== null) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+
+            timerRef.current = setTimeout(() => {
+                const value = getNumericValue();
+                if (value !== undefined) {
+                    setValue(value);
+                }
+            }, 500);
+        };
+        const cancelAutoCommit = useCallback(() => {
+            if (timerRef.current !== null) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+        }, []);
+        useEffect(() => {
+            cancelAutoCommit();
+        }, [inputString, cancelAutoCommit]);
+
+        // event handlers
+        const onBlur = () => {
+            cancelAutoCommit();
+            if (noRepeatOnBlur) return;
+            const value = getNumericValue();
+            if (value !== undefined) {
+                // Make sure the input value has been altered so onChange gets correct value if adjustment needed
+                setImmediate(() => setValue(value));
+            }
+        };
         const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+            cancelAutoCommit();
             if (e.key === 'Enter') {
                 const value = getNumericValue();
                 if (value !== undefined) {
-                    setInput(value);
-                    setInputString(formatValue(value));
+                    setValue(value);
+                }
+            }
+        };
+        const onClick = (e: React.MouseEvent<HTMLElement>) => {
+            if (e.target instanceof HTMLElement || e.target instanceof SVGElement) {
+                const buttonSelector = 'div.small-stepper > div[role=button]';
+                const isStepperButton = e.target.matches(`${buttonSelector}, ${buttonSelector} *`);
+                if (isStepperButton) {
+                    autoCommit();
                 }
             }
         };
@@ -130,7 +168,9 @@ export const AdvancedNumberInput = memo(
                     mx={0}
                     size="xs"
                     w="fit-content"
+                    onClick={onClick}
                     onContextMenu={onContextMenu}
+                    onMouseDown={cancelAutoCommit}
                 >
                     {unit && (
                         <InputLeftAddon
@@ -183,7 +223,9 @@ export const AdvancedNumberInput = memo(
             <InputGroup
                 size="sm"
                 w="full"
+                onClick={onClick}
                 onContextMenu={onContextMenu}
+                onMouseDown={cancelAutoCommit}
             >
                 {unit && (
                     <InputLeftAddon
