@@ -268,6 +268,14 @@ export const getInputValue = <T extends NonNullable<InputValue>>(
 
 export const isAutoInput = (input: Input): boolean =>
     input.kind === 'generic' && input.optional && !input.hasHandle;
+export const getDefaultValue = <I extends Input>(
+    input: I
+): undefined | (I extends { readonly def: unknown } ? NonNullable<I['def']> : never) => {
+    if ('def' in input) {
+        return (input.def ?? undefined) as never;
+    }
+    return undefined;
+};
 
 export const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

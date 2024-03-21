@@ -1,6 +1,7 @@
 import { Edge, Node } from 'reactflow';
 import { EdgeData, NodeData } from '../common-types';
 import { SchemaMap } from '../SchemaMap';
+import { getDefaultValue } from '../util';
 import { getEffectivelyDisabledNodes } from './disabled';
 import { getNodesWithSideEffects } from './sideEffect';
 
@@ -39,7 +40,9 @@ const removeUnusedSideEffectNodes = (
         }
 
         // if all inputs don't require connections, that's fine too
-        const requireConnection = schema.inputs.some((i) => i.kind === 'generic' && !i.optional);
+        const requireConnection = schema.inputs.some(
+            (i) => !i.optional && getDefaultValue(i) === undefined
+        );
         if (!requireConnection) {
             return true;
         }
