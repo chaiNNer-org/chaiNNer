@@ -17,6 +17,7 @@ import {
     union,
     wrapBinary,
     wrapQuaternary,
+    wrapScopedBinary,
     wrapScopedUnary,
     wrapTernary,
 } from '@chainner/navi';
@@ -410,5 +411,49 @@ export const getParentDirectory = wrapBinary<StringPrimitive, Int, StringPrimiti
             return union(...[...values].map(literal));
         }
         return StringType.instance;
+    }
+);
+
+// eslint-disable-next-line no-control-regex
+const INVALID_PATH_CHARS = /[<>:"|?*\x00-\x1F]/;
+const goIntoDirectoryImpl = (basePath: string, relPath: string): string | Error => {
+    const isAbsolute = /^[/\\]/.test(relPath) || path.isAbsolute(relPath);
+    if (isAbsolute) {
+        return new Error('Absolute paths are not allowed as folders.');
+    }
+
+    const invalid = INVALID_PATH_CHARS.exec(relPath);
+    if (invalid) {
+        return new Error(`Invalid character '${invalid[0]}' in folder name.`);
+    }
+
+    const joined = path.join(basePath, relPath);
+    return path.resolve(joined);
+};
+export const goIntoDirectory = wrapScopedBinary(
+    (
+        scope,
+        basePath: StringPrimitive,
+        relPath: StringPrimitive
+    ): Arg<StringPrimitive | StructInstanceType> => {
+        const errorDesc = getStructDescriptor(scope, 'Error');
+
+        if (basePath.type === 'literal' && relPath.type === 'literal') {
+            try {
+                const result = goIntoDirectoryImpl(basePath.value, relPath.value);
+                if (typeof result === 'string') {
+                    return literal(result);
+                }
+                return createInstance(errorDesc, {
+                    message: literal(result.message),
+                });
+            } catch (e) {
+                return createInstance(errorDesc, {
+                    message: literal(String(e)),
+                });
+            }
+        }
+
+        return union(StringType.instance, errorDesc.default);
     }
 );
