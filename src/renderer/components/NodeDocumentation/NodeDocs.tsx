@@ -22,7 +22,7 @@ import { getInputCondition } from '../../../common/nodes/inputCondition';
 import { explain } from '../../../common/types/explain';
 import { FunctionDefinition } from '../../../common/types/function';
 import { prettyPrintType } from '../../../common/types/pretty';
-import { withoutNull } from '../../../common/types/util';
+import { withoutError, withoutNull } from '../../../common/types/util';
 import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
@@ -239,7 +239,7 @@ const InputOutputItem = memo(
                                 >
                                     Type:
                                 </Text>
-                                <TypeView type={type} />
+                                <TypeView type={withoutError(type)} />
                             </Box>
                         )}
                     </VStack>
