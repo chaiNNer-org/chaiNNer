@@ -7,9 +7,29 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
+import { evaluate, isBigNumber, isComplex, isFraction, isNumber, isUnit, number } from 'mathjs';
 import { MouseEventHandler, memo } from 'react';
 import { areApproximatelyEqual, noop, stopPropagation } from '../../../../common/util';
 import './AdvancedNumberInput.scss';
+
+const validChars = /^[0-9a-z.+\-*()^!%&|~_ /]$/iu;
+const isValidChar = (c: string): boolean => validChars.test(c);
+const parseNumberString = (s: string): number => {
+    try {
+        const result = evaluate(s.replace(/\*\*/g, ' ^ ')) as unknown;
+        if (isNumber(result)) return result;
+        // ignore units
+        if (isUnit(result)) return result.toNumber();
+        // just return the real part of complex numbers
+        if (isComplex(result)) return result.re;
+        // just return the real part of complex numbers
+        if (isBigNumber(result)) return result.toNumber();
+        if (isFraction(result)) return number(result);
+    } catch {
+        // noop
+    }
+    return parseFloat(s);
+};
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
     if (min != null && value < min) return min;
@@ -72,15 +92,15 @@ export const AdvancedNumberInput = memo(
         noRepeatOnBlur = false,
     }: AdvancedNumberInputProps) => {
         const getNumericValue = (): number | undefined => {
-            const valAsNumber =
-                precision > 0
-                    ? parseFloat(inputString || String(defaultValue))
-                    : Math.round(parseFloat(inputString || String(defaultValue)));
+            const rawNumber = inputString.trim() ? parseNumberString(inputString) : defaultValue;
+            const valAsNumber = precision > 0 ? rawNumber : Math.round(rawNumber);
 
             if (!Number.isNaN(valAsNumber)) {
                 return Number(clamp(valAsNumber, min, max).toFixed(precision));
             }
         };
+        const formatValue = (value: number): string =>
+            hideTrailingZeros ? String(value) : value.toFixed(precision);
         const onBlur = noRepeatOnBlur
             ? noop
             : () => {
@@ -89,9 +109,7 @@ export const AdvancedNumberInput = memo(
                       // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                       setImmediate(() => {
                           setInput(value);
-                          setInputString(
-                              hideTrailingZeros ? String(value) : value.toFixed(precision)
-                          );
+                          setInputString(formatValue(value));
                       });
                   }
               };
@@ -101,6 +119,7 @@ export const AdvancedNumberInput = memo(
                 const value = getNumericValue();
                 if (value !== undefined) {
                     setInput(value);
+                    setInputString(formatValue(value));
                 }
             }
         };
@@ -129,6 +148,7 @@ export const AdvancedNumberInput = memo(
                         defaultValue={defaultValue}
                         draggable={false}
                         isDisabled={isDisabled}
+                        isValidCharacter={isValidChar}
                         max={max}
                         min={min}
                         size="xs"
@@ -181,6 +201,7 @@ export const AdvancedNumberInput = memo(
                     defaultValue={defaultValue}
                     draggable={false}
                     isDisabled={isDisabled}
+                    isValidCharacter={isValidChar}
                     max={max}
                     min={min}
                     size="sm"
