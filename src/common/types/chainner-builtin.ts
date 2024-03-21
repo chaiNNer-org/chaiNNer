@@ -14,6 +14,8 @@ import {
     handleNumberLiterals,
     intersect,
     literal,
+    union,
+    wrapBinary,
     wrapQuaternary,
     wrapScopedUnary,
     wrapTernary,
@@ -358,5 +360,55 @@ export const parseColorJson = wrapScopedUnary(
             return NeverType.instance;
         }
         return createInstance(colorDesc);
+    }
+);
+
+const getParentDirectoryStr = (pathStr: string): string => {
+    return path.dirname(pathStr);
+};
+export const getParentDirectory = wrapBinary<StringPrimitive, Int, StringPrimitive>(
+    (pathStr, times) => {
+        if (times.type === 'literal' && times.value === 0) {
+            return pathStr;
+        }
+        if (pathStr.type === 'literal') {
+            let min;
+            let max;
+            if (times.type === 'literal') {
+                min = times.value;
+                max = times.value;
+            } else {
+                min = times.min;
+                max = times.max;
+            }
+
+            // the basic idea here is that repeatedly getting the parent directory of a path
+            // will eventually converge to the root directory, so we can stop when that happens
+            let p = pathStr.value;
+            for (let i = 0; i < min; i += 1) {
+                const next = getParentDirectoryStr(p);
+                if (next === p) {
+                    return literal(p);
+                }
+                p = next;
+            }
+
+            if (min === max) {
+                return literal(p);
+            }
+
+            const values = new Set<string>();
+            values.add(p);
+            for (let i = min; i < max; i += 1) {
+                p = getParentDirectoryStr(p);
+                if (values.has(p)) {
+                    break;
+                }
+                values.add(p);
+            }
+
+            return union(...[...values].map(literal));
+        }
+        return StringType.instance;
     }
 );

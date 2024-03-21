@@ -12,6 +12,7 @@ import {
 import { lazy } from '../util';
 import {
     formatTextPattern,
+    getParentDirectory,
     padCenter,
     padEnd,
     padStart,
@@ -126,6 +127,7 @@ intrinsic def padEnd(text: string, width: uint, padding: string): string;
 intrinsic def padCenter(text: string, width: uint, padding: string): string;
 intrinsic def splitFilePath(path: string): SplitFilePath;
 intrinsic def parseColorJson(json: string): Color;
+intrinsic def getParentDirectory(path: string, times: uint): string;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -139,6 +141,7 @@ export const getChainnerScope = lazy((): Scope => {
         padCenter: makeScoped(padCenter),
         splitFilePath,
         parseColorJson,
+        getParentDirectory: makeScoped(getParentDirectory),
     };
 
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));
