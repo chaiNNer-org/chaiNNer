@@ -128,6 +128,7 @@
     "html-to-image": "^1.10.8",
     "i18next": "^22.0.5",
     "javascript-time-ago": "^2.5.9",
+    "mathjs": "^12.4.1",
     "minisearch": "^6.1.0",
     "node-localstorage": "^2.2.1",
     "nodejs-file-downloader": "^4.9.3",
