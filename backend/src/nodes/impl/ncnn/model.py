@@ -254,7 +254,7 @@ class NcnnParamCollection:
         for v in self.param_dict.values():
             if v.value == v.default:
                 continue
-            if isinstance(v.default, str):
+            if isinstance(v.default, str) and "FLT_MAX" not in v.default:
                 pid = None
                 for key, val in list(param_dict.items())[:-1]:
                     if v.default == val["paramPhase"]:
