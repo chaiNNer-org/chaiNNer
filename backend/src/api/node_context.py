@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 
 from .settings import SettingsParser
@@ -15,6 +16,13 @@ class NodeProgress(ABC):
         Returns whether the current operation was aborted.
         """
 
+    @property
+    @abstractmethod
+    def paused(self) -> bool:
+        """
+        Returns whether the current operation was paused.
+        """
+
     def check_aborted(self) -> None:
         """
         Raises an `Aborted` exception if the current operation was aborted. Does nothing otherwise.
@@ -22,6 +30,18 @@ class NodeProgress(ABC):
 
         if self.aborted:
             raise Aborted()
+
+    def suspend(self) -> None:
+        """
+        If the operation was aborted, this method will throw an `Aborted` exception.
+        If the operation is paused, this method will wait until the operation is resumed or aborted.
+        """
+
+        while True:
+            self.check_aborted()
+            if not self.paused:
+                break
+            time.sleep(0.1)
 
     @abstractmethod
     def set_progress(self, progress: float) -> None:

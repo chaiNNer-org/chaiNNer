@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import KeyInfo, NodeContext
+from api import KeyInfo, NodeContext, NodeProgress
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -37,6 +37,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
+    progress: NodeProgress,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -93,6 +94,7 @@ def upscale(
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
+            progress=progress,
         )
         logger.debug("Done upscaling")
 
@@ -260,7 +262,7 @@ def upscale_image_node(
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(i, model, tile_size, exec_options),
+            lambda i: upscale(i, model, tile_size, exec_options, context),
             separate_alpha,
             clip=False,  # pytorch_auto_split already does clipping internally
         )
