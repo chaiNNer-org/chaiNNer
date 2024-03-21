@@ -90,6 +90,7 @@ export const NodesList = memo(
                             bgColor="var(--bg-800)"
                             position="sticky"
                             top={0}
+                            zIndex={10}
                         >
                             <SearchBar
                                 value={searchQuery}
