@@ -104,7 +104,7 @@ export const pipInstallWithProgress = async (
         pipRequest.stdout.on('data', async (data) => {
             const stringData = String(data);
             onStdout(stringData);
-            const wheelRegex = /([^\s\\]*)[.]whl/g;
+            const wheelRegex = /[^\s\\]*\.whl/g;
             const matches = stringData.match(wheelRegex);
             if (matches) {
                 const [wheelFileName] = matches;

@@ -46,7 +46,7 @@ class ReplacementString {
 
         const contentPattern = /^\w+$/;
 
-        const tokenPattern = /(\{\{)|\{([^{}]*)\}/g;
+        const tokenPattern = /\{([^{}]*)\}|\{\{/g;
         let lastIndex = 0;
         let lastStr = '';
         let m;
@@ -55,7 +55,7 @@ class ReplacementString {
             lastStr += pattern.slice(lastIndex, m.index);
             lastIndex = m.index + m[0].length;
 
-            const interpolation = m[2] as string | undefined;
+            const interpolation = m[1] as string | undefined;
             if (interpolation !== undefined) {
                 if (interpolation === '') {
                     throw new Error(

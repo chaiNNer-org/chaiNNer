@@ -311,7 +311,7 @@ const TagRenderer = memo(({ tag, longText }: TagRendererProps) => {
             tt = value;
             if (longText) {
                 text = value;
-                if (/^[\p{L}\p{D}_]/u.test(value) && /[\p{L}\p{D}_]$/u.test(value)) {
+                if (/^[\p{L}\p{N}_]/u.test(value) && /[\p{L}\p{N}_]$/u.test(value)) {
                     // punctuation will be messed up in rtl
                     direction = 'rtl';
                 }
