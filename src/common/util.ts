@@ -247,7 +247,7 @@ export const fixRoundingError = (n: number): number => {
     if (!Number.isFinite(n)) return n;
 
     const expS = n.toExponential(15);
-    if (/0{6}[0-3]\d[eE][+-]\d+$/.test(expS)) {
+    if (/0{6}[0-3]\de[+-]\d+$/i.test(expS)) {
         return Number(n.toExponential(12));
     }
 

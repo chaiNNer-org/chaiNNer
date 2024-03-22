@@ -12,7 +12,7 @@ import { MouseEventHandler, memo, useCallback, useEffect, useRef } from 'react';
 import { areApproximatelyEqual } from '../../../../common/util';
 import './AdvancedNumberInput.scss';
 
-const validChars = /^[0-9a-z.+\-*()^!%&|~_ /]$/iu;
+const validChars = /^[\w.+\-*()^!%&|~ /]$/iu;
 const isValidChar = (c: string): boolean => validChars.test(c);
 const parseNumberString = (s: string): number => {
     try {

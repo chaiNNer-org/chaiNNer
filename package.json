@@ -85,6 +85,7 @@
     "eslint-plugin-react": "^7.30.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-memo": "^0.0.3",
+    "eslint-plugin-regexp": "^2.3.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "file-loader": "^6.2.0",
     "image-webpack-loader": "^8.1.0",

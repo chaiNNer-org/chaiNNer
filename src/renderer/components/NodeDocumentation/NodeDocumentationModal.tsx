@@ -95,7 +95,7 @@ const NodeDocumentationModal = memo(() => {
 
     const highlightRegex = useMemo(() => {
         if (!searchTerms) return undefined;
-        return RegExp(`(?:${[...searchTerms].map(escapeRegExp).join('|')})(?!\\w)`, 'ig');
+        return RegExp(`(?:${[...searchTerms].map(escapeRegExp).join('|')})(?!\\w)`, 'gi');
     }, [searchTerms]);
 
     // select highest scoring schema
