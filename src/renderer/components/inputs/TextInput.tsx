@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -189,7 +188,6 @@ export const TextInput = memo(
                             handleChange(event);
                         }}
                         onContextMenu={menu.onContextMenu}
-                        onKeyDown={stopPropagation}
                     />
                 </Resizable>
             );
@@ -210,7 +208,6 @@ export const TextInput = memo(
                         handleChange(event);
                     }}
                     onContextMenu={menu.onContextMenu}
-                    onKeyDown={stopPropagation}
                 />
             );
         }

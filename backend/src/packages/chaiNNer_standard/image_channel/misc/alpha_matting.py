@@ -8,10 +8,10 @@ from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import miscellaneous_group
 
 
-@node_group.register(
+@miscellaneous_group.register(
     schema_id="chainner:image:alpha_matting",
     name="Alpha Matting",
     description=[

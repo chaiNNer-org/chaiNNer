@@ -8,10 +8,10 @@ from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import transparency_group
 
 
-@node_group.register(
+@transparency_group.register(
     schema_id="chainner:image:split_transparency",
     name="Split Transparency",
     description="Split image channels into RGB and Alpha (transparency) channels.",

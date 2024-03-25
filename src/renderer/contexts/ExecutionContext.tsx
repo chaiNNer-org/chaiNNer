@@ -9,8 +9,7 @@ import { log } from '../../common/log';
 import { checkFeatures } from '../../common/nodes/checkFeatures';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
-import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
+import { optimizeChain } from '../../common/nodes/optimize';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { getChainnerScope } from '../../common/types/chainner-scope';
@@ -139,8 +138,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setManualOutputType,
         clearManualOutputTypes,
     } = useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, backendDownRef, features, featureStates } =
-        useContext(BackendContext);
+    const {
+        schemata,
+        url,
+        backend,
+        ownsBackend,
+        backendDownRef,
+        features,
+        featureStates,
+        categories,
+    } = useContext(BackendContext);
     const { packageSettings } = useSettings();
 
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
@@ -345,24 +352,15 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = useCallback(async () => {
-        const allNodes = getNodes();
-        const allEdges = getEdges();
-
-        const disabledNodes = new Set(
-            getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
-        );
-        const nodesToOptimize = allNodes.filter((n) => !disabledNodes.has(n.id));
-        const nodes = getNodesWithSideEffects(nodesToOptimize, allEdges, schemata);
-        const nodeIds = new Set(nodes.map((n) => n.id));
-        const edges = allEdges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+        const { nodes, edges, report } = optimizeChain(getNodes(), getEdges(), schemata);
 
         // show an error if there are no nodes to run
         if (nodes.length === 0) {
             let message;
-            if (nodesToOptimize.length > 0) {
+            if (report.removedSideEffectFree > 0) {
                 message =
                     'There are no nodes that have an effect. Try to view or output images/files.';
-            } else if (disabledNodes.size > 0) {
+            } else if (report.removedDisabled > 0) {
                 message = 'All nodes are disabled. There are no nodes to run.';
             } else {
                 message = 'There are no nodes to run.';
@@ -375,7 +373,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const invalidNodes = nodes.flatMap((node) => {
             const functionInstance = typeStateRef.current.functions.get(node.data.id);
             const schema = schemata.get(node.data.schemaId);
-            const { category, name } = schema;
+            const { name } = schema;
+            const category = categories.get(schema.category)?.name ?? schema.category;
 
             const validity = bothValid(
                 checkFeatures(schema.features, features, featureStates),
@@ -448,6 +447,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         getNodes,
         getEdges,
         schemata,
+        categories,
         sendAlert,
         typeStateRef,
         chainLineageRef,

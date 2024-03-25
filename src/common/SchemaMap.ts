@@ -8,6 +8,7 @@ import {
     SchemaId,
 } from './common-types';
 import { log } from './log';
+import { getDefaultValue } from './util';
 
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
@@ -77,9 +78,7 @@ export class SchemaMap {
         const defaultData: Record<InputId, InputValue> = {};
         const { inputs } = this.get(schemaId);
         inputs.forEach((input) => {
-            if ('def' in input) {
-                defaultData[input.id] = input.def ?? undefined;
-            }
+            defaultData[input.id] = getDefaultValue(input);
         });
         return defaultData;
     }

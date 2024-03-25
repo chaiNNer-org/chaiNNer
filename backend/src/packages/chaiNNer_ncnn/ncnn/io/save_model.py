@@ -15,7 +15,7 @@ from .. import io_group
     icon="MdSave",
     inputs=[
         NcnnModelInput(),
-        DirectoryInput(has_handle=True),
+        DirectoryInput(create=True),
         TextInput("Param/Bin Name"),
     ],
     outputs=[],
