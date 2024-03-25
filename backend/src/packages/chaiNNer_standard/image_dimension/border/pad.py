@@ -4,6 +4,7 @@ from enum import Enum
 
 import numpy as np
 
+from api import KeyInfo
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import BorderType, create_border
@@ -95,6 +96,7 @@ class BorderMode(Enum):
             assume_normalized=True,
         )
     ],
+    key_info=KeyInfo.enum(3),
 )
 def pad_node(
     img: np.ndarray,

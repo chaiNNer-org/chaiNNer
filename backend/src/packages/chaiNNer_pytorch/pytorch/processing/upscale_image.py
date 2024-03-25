@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import NodeContext
+from api import KeyInfo, NodeContext, NodeProgress
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -16,10 +16,12 @@ from nodes.impl.upscale.auto_split_tiles import (
     parse_tile_size_input,
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
+from nodes.impl.upscale.custom_scale import custom_scale_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
+    NumberInput,
     SrModelInput,
     TileSizeDropdown,
 )
@@ -35,6 +37,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
+    progress: NodeProgress,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -91,6 +94,7 @@ def upscale(
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
+            progress=progress,
         )
         logger.debug("Done upscaling")
 
@@ -108,6 +112,40 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         SrModelInput().with_id(0),
+        if_group(
+            Condition.type(0, "PyTorchModel { scale: int(2..) }", if_not_connected=True)
+            & (
+                Condition.type(
+                    0,
+                    "PyTorchModel { inputChannels: 1, outputChannels: 1 }",
+                    if_not_connected=True,
+                )
+                | Condition.type(
+                    0, "PyTorchModel { inputChannels: 3, outputChannels: 3 }"
+                )
+                | Condition.type(
+                    0, "PyTorchModel { inputChannels: 4, outputChannels: 4 }"
+                )
+            )
+        )(
+            BoolInput("Custom Scale", default=False)
+            .with_id(4)
+            .with_docs(
+                "If enabled, the scale factor can be manually set. This makes it possible to e.g. upscale 4x with a 2x model.",
+                "Custom scales are **not** supported for 1x models and colorization models.",
+                "Under the hood, this will repeatedly apply the model to the image, effectively upscaling by the given factor."
+                " E.g. if the model is 2x and the desired scale is 4x, the model will be applied 2 times."
+                " If the desired scale cannot be reached exactly, the image will be downscaled to the desired scale after upscaling."
+                " E.g. if the model is 2x and the desired scale is 6x, the model will be applied 3 times (8x) and the image will be downscaled to 6x.",
+                "If the desired scale is less than the model's scale, the image will be downscaled to the desired scale after upscaling.",
+                hint=True,
+            ),
+            if_group(Condition.bool(4, True))(
+                NumberInput(
+                    "Scale", default=4, minimum=1, maximum=32, label_style="hidden"
+                ).with_id(5),
+            ),
+        ),
         if_group(
             Condition.type(
                 0,
@@ -142,7 +180,9 @@ def upscale(
                 )
             )
         )(
-            BoolInput("Separate Alpha", default=False).with_docs(
+            BoolInput("Separate Alpha", default=False)
+            .with_id(3)
+            .with_docs(
                 "Upscale alpha separately from color. Enabling this option will cause the alpha of"
                 " the upscaled image to be less noisy and more accurate to the alpha of the original"
                 " image, but the image may suffer from dark borders near transparency edges"
@@ -156,37 +196,79 @@ def upscale(
     outputs=[
         ImageOutput(
             "Image",
-            image_type="""convenientUpscale(Input0, Input1)""",
+            image_type="""
+                let img = Input1;
+                let model = Input0;
+                let useCustomScale = Input4;
+                let customScale = Input5;
+
+                let singleUpscale = convenientUpscale(model, img);
+
+                if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+                    Image {
+                        width: img.width * customScale,
+                        height: img.height * customScale,
+                        channels: singleUpscale.channels,
+                    }
+                } else {
+                    singleUpscale
+                }
+            """,
             assume_normalized=True,  # pytorch_auto_split already does clipping internally
         )
     ],
+    key_info=KeyInfo.type(
+        """
+        let model = Input0;
+        let useCustomScale = Input4;
+        let customScale = Input5;
+
+        let singleUpscale = convenientUpscale(model, img);
+
+        let scale = if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+            customScale
+        } else {
+            model.scale
+        };
+
+        string::concat(toString(scale), "x")
+        """
+    ),
     node_context=True,
 )
 def upscale_image_node(
     context: NodeContext,
     img: np.ndarray,
     model: ImageModelDescriptor,
+    use_custom_scale: bool,
+    custom_scale: int,
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
 
-    logger.debug("Upscaling image...")
-
     in_nc = model.input_channels
     out_nc = model.output_channels
     scale = model.scale
-    h, w, c = get_h_w_c(img)
-    logger.debug(
-        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
-        f" {out_nc})"
-    )
 
-    return convenient_upscale(
-        img,
-        in_nc,
-        out_nc,
-        lambda i: upscale(i, model, tile_size, exec_options),
-        separate_alpha,
-        clip=False,  # pytorch_auto_split already does clipping internally
-    )
+    def inner_upscale(img: np.ndarray) -> np.ndarray:
+        h, w, c = get_h_w_c(img)
+        logger.debug(
+            f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
+            f" {out_nc})"
+        )
+
+        return convenient_upscale(
+            img,
+            in_nc,
+            out_nc,
+            lambda i: upscale(i, model, tile_size, exec_options, context),
+            separate_alpha,
+            clip=False,  # pytorch_auto_split already does clipping internally
+        )
+
+    if not use_custom_scale or scale == 1 or in_nc != out_nc:
+        # no custom scale
+        custom_scale = scale
+
+    return custom_scale_upscale(img, inner_upscale, scale, custom_scale, separate_alpha)

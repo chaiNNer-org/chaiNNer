@@ -6,7 +6,7 @@ import { delay, mapInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
 
 /**
@@ -21,9 +21,7 @@ export const useRunNode = (
     const { sendToast } = useContext(AlertBoxContext);
     const { addIndividuallyRunning, removeIndividuallyRunning } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const { useBackendSettings } = useContext(SettingsContext);
-
-    const [options] = useBackendSettings;
+    const { packageSettings } = useSettings();
 
     const [reloadCounter, setReloadCounter] = useState(0);
     const reload = useCallback(() => setReloadCounter((c) => c + 1), []);
@@ -60,7 +58,7 @@ export const useRunNode = (
                     schemaId,
                     id,
                     inputs,
-                    options,
+                    options: packageSettings,
                 });
                 removeIndividuallyRunning(id);
 

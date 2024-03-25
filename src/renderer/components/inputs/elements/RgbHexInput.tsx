@@ -1,7 +1,6 @@
 import { HStack, Input, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { RgbColor } from 'react-colorful';
-import { stopPropagation } from '../../../../common/util';
 import { parseRgbHex, rgbToHex } from '../../../helpers/colorUtil';
 
 interface RgbHexInputProps {
@@ -46,7 +45,6 @@ export const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
                 value={inputString}
                 w="4.5rem"
                 onChange={(event) => changeInputString(event.target.value)}
-                onKeyDown={stopPropagation}
             />
         </HStack>
     );

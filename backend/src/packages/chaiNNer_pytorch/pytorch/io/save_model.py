@@ -28,7 +28,7 @@ class WeightFormat(Enum):
     icon="MdSave",
     inputs=[
         ModelInput(),
-        DirectoryInput(has_handle=True),
+        DirectoryInput(create=True),
         TextInput("Model Name"),
         EnumInput(
             WeightFormat,

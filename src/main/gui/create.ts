@@ -3,7 +3,7 @@ import electronLog from 'electron-log';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
-import { settingStorage } from '../setting-storage';
+import { readSettings } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
 const mdCodeBlock = (code: string): string => {
@@ -48,22 +48,19 @@ const setupErrorHandling = () => {
 export const createGuiApp = (args: OpenArguments) => {
     setupErrorHandling();
 
-    const isEnableHardwareAcceleration =
-        settingStorage.getItem('enable-hardware-acceleration') === 'true';
-
-    if (!isEnableHardwareAcceleration) {
+    const settings = readSettings();
+    if (!settings.hardwareAcceleration) {
         app.disableHardwareAcceleration();
     }
 
-    const isAllowMultipleInstances = settingStorage.getItem('allow-multiple-instances') === 'true';
-
-    const hasInstanceLock = isAllowMultipleInstances || app.requestSingleInstanceLock();
+    const hasInstanceLock = settings.allowMultipleInstances || app.requestSingleInstanceLock();
     if (!hasInstanceLock) {
         app.quit();
+        return;
     }
 
     const createWindow = lazy(() => {
-        createMainWindow(args).catch((error) => {
+        createMainWindow(args, settings).catch((error) => {
             log.error(error);
             // rethrow to let the global error handler deal with it
             return Promise.reject(error);

@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
+from api import KeyInfo
 from nodes.impl.pil_utils import convert_to_bgra
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -34,6 +35,7 @@ from .. import adjustments_group
             assume_normalized=True,
         )
     ],
+    key_info=KeyInfo.number(1),
 )
 def opacity_node(img: np.ndarray, opacity: float) -> np.ndarray:
     # Convert inputs

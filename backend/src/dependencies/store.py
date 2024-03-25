@@ -5,8 +5,8 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from logging import Logger
-from typing import TypedDict
 
 from custom_types import UpdateProgressFn
 
@@ -20,32 +20,34 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 DEP_MAX_PROGRESS = 0.8
 
 
-class DependencyInfo(TypedDict):
+@dataclass(frozen=True)
+class DependencyInfo:
     package_name: str
-    display_name: str | None
-    version: str | None
-    from_file: str | None
+    display_name: str | None = None
+    version: str | None = None
+    from_file: str | None = None
+    extra_index_url: str | None = None
 
 
 def pin(dependency: DependencyInfo) -> str:
-    package_name = dependency["package_name"]
-    version = dependency["version"]
-    from_file = dependency["from_file"]
+    package_name = dependency.package_name
 
-    if from_file is not None:
-        whl_file = f"{dir_path}/whls/{package_name}/{from_file}"
+    if dependency.from_file is not None:
+        whl_file = f"{dir_path}/whls/{package_name}/{dependency.from_file}"
         if os.path.isfile(whl_file):
             return whl_file
 
-    if version is None:
+    if dependency.version is None:
         return package_name
 
-    return f"{package_name}=={version}"
+    return f"{package_name}=={dependency.version}"
+
+
+SEMVER_REGEX = re.compile(r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?")
 
 
 def coerce_semver(version: str) -> tuple[int, int, int]:
-    regex = r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?"
-    match = re.search(regex, version)
+    match = re.search(SEMVER_REGEX, version)
     if match:
         return (
             int(match.group(1) or 0),
@@ -56,12 +58,12 @@ def coerce_semver(version: str) -> tuple[int, int, int]:
 
 
 def get_deps_to_install(dependencies: list[DependencyInfo]):
-    dependencies_to_install = []
+    dependencies_to_install: list[DependencyInfo] = []
     for dependency in dependencies:
-        version = installed_packages.get(dependency["package_name"], None)
-        if dependency["version"] and version:
+        version = installed_packages.get(dependency.package_name, None)
+        if dependency.version and version:
             installed_version = coerce_semver(version)
-            dep_version = coerce_semver(dependency["version"])
+            dep_version = coerce_semver(dependency.version)
             if installed_version < dep_version:
                 dependencies_to_install.append(dependency)
         elif not version:
@@ -74,7 +76,17 @@ def install_dependencies_sync(
 ):
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return 0
+
+    extra_index_urls = {
+        dep_info.extra_index_url
+        for dep_info in dependencies_to_install
+        if dep_info.extra_index_url
+    }
+
+    extra_index_args = []
+    if len(extra_index_urls) > 0:
+        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
     exit_code = subprocess.check_call(
         [
@@ -85,15 +97,16 @@ def install_dependencies_sync(
             *[pin(dep_info) for dep_info in dependencies_to_install],
             "--disable-pip-version-check",
             "--no-warn-script-location",
-        ]
+            *extra_index_args,
+        ],
     )
     if exit_code != 0:
         raise ValueError("An error occurred while installing dependencies.")
 
     for dep_info in dependencies_to_install:
-        package_name = dep_info["package_name"]
-        version = dep_info["version"]
-        installed_packages[package_name] = version
+        installed_packages[dep_info.package_name] = dep_info.version
+
+    return len(dependencies_to_install)
 
 
 async def install_dependencies(
@@ -103,20 +116,29 @@ async def install_dependencies(
 ):
     # If there's no progress callback, just install the dependencies synchronously
     if update_progress_cb is None:
-        install_dependencies_sync(dependencies)
-        return
+        return install_dependencies_sync(dependencies)
 
     dependencies_to_install = get_deps_to_install(dependencies)
     if len(dependencies_to_install) == 0:
-        return
+        return 0
 
     dependency_name_map = {
-        dep_info["package_name"]: dep_info["display_name"]
+        dep_info.package_name: dep_info.display_name or dep_info.package_name
         for dep_info in dependencies_to_install
     }
     deps_count = len(dependencies_to_install)
     deps_counter = 0
     transitive_deps_counter = 0
+
+    extra_index_urls = {
+        dep_info.extra_index_url
+        for dep_info in dependencies_to_install
+        if dep_info.extra_index_url
+    }
+
+    extra_index_args = []
+    if len(extra_index_urls) > 0:
+        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
     def get_progress_amount():
         transitive_progress = 1 - 1 / (2**transitive_deps_counter)
@@ -137,6 +159,7 @@ async def install_dependencies(
             "--disable-chainner_pip-version-check",
             "--no-warn-script-location",
             "--progress-bar=json",
+            *extra_index_args,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -205,9 +228,9 @@ async def install_dependencies(
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies_to_install:
-        installing_name = dep_info["package_name"]
-        version = dep_info["version"]
-        installed_packages[installing_name] = version
+        installed_packages[dep_info.package_name] = dep_info.version
+
+    return len(dependencies_to_install)
 
 
 __all__ = [

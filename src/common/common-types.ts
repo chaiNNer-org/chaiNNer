@@ -59,6 +59,7 @@ interface InputBase {
     readonly description?: string;
     readonly hint: boolean;
     readonly fused?: IOFusion | null;
+    readonly suggest: boolean;
 }
 export interface InputOption {
     readonly option: string;
@@ -169,6 +170,7 @@ export interface Output {
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
     readonly description?: string | null;
+    readonly suggest: boolean;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
@@ -273,7 +275,6 @@ export type InputHeight = Readonly<Record<InputId, number>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
-export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface IteratorInputInfo {
     readonly inputs: readonly InputId[];
@@ -282,6 +283,20 @@ export interface IteratorInputInfo {
 export interface IteratorOutputInfo {
     readonly outputs: readonly OutputId[];
     readonly lengthType: ExpressionJson;
+}
+
+export type KeyInfo = EnumKeyInfo | NumberKeyInfo | TypeKeyInfo;
+export interface EnumKeyInfo {
+    readonly kind: 'enum';
+    readonly inputId: InputId;
+}
+export interface NumberKeyInfo {
+    readonly kind: 'number';
+    readonly inputId: InputId;
+}
+export interface TypeKeyInfo {
+    readonly kind: 'type';
+    readonly expression: ExpressionJson;
 }
 
 export interface NodeSchema {
@@ -297,6 +312,7 @@ export interface NodeSchema {
     readonly groupLayout: readonly (InputId | Group)[];
     readonly iteratorInputs: readonly IteratorInputInfo[];
     readonly iteratorOutputs: readonly IteratorOutputInfo[];
+    readonly keyInfo?: KeyInfo | null;
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
@@ -315,13 +331,9 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
-    readonly groupState?: GroupState;
     readonly inputHeight?: InputHeight;
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
-    readonly invalid?: boolean;
-    readonly minWidth?: number;
-    readonly minHeight?: number;
     readonly isCollapsed?: boolean;
 }
 export interface EdgeData {
@@ -502,5 +514,5 @@ export interface RgbaColorJson {
 }
 
 export interface PackageSettings {
-    [packageName: string]: Record<string, SettingValue>;
+    [packageName: string]: Partial<Record<string, SettingValue>> | undefined;
 }

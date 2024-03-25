@@ -1,4 +1,4 @@
-import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
+import { Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
@@ -6,21 +6,18 @@ import { OutputProps } from './props';
 export const GenericOutput = memo(({ output, type }: OutputProps) => {
     return (
         <Flex
-            h="full"
-            minH="2rem"
+            alignItems="center"
+            h="2rem"
+            style={{ contain: 'layout size' }}
             verticalAlign="middle"
             w="full"
         >
             <Spacer />
-            <Center
-                h="2rem"
-                verticalAlign="middle"
-            >
-                <TypeTags
-                    isOptional={false}
-                    type={type}
-                />
-            </Center>
+            <TypeTags
+                longText
+                isOptional={false}
+                type={type}
+            />
             <Text
                 h="full"
                 lineHeight="2rem"

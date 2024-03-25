@@ -1,4 +1,4 @@
-import sys
+import os
 
 from sanic.log import logger
 
@@ -6,11 +6,10 @@ from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
-python_version = sys.version_info
-
 general = "PyTorch uses .pth models to upscale images."
 
 if is_arm_mac:
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     package_description = general
     inst_hint = f"{general} It is the most widely-used upscaling architecture."
 else:
@@ -99,8 +98,14 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.2.2",
-            size_estimate=287 * KB,
+            version="0.3.0",
+            size_estimate=240 * KB,
+        ),
+        Dependency(
+            display_name="Spandrel extra architectures",
+            pypi_name="spandrel_extra_arches",
+            version="0.1.0",
+            size_estimate=75 * KB,
         ),
     ],
     icon="PyTorch",

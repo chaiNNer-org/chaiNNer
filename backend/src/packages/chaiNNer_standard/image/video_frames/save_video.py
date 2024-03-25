@@ -6,14 +6,14 @@ from enum import Enum
 from subprocess import Popen
 from typing import Any, Literal
 
-import cv2
 import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector, IteratorInputInfo
+from api import Collector, IteratorInputInfo, KeyInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
+from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -96,9 +96,6 @@ class AudioSettings(Enum):
     TRANSCODE = "transcode"
 
 
-ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
-
 PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
     VideoEncoder.H264: ["preset", "crf"],
     VideoEncoder.H265: ["preset", "crf"],
@@ -133,14 +130,15 @@ class Writer:
                     ffmpeg.input(
                         "pipe:",
                         format="rawvideo",
-                        pix_fmt="rgb24",
+                        pix_fmt="bgr24",
                         s=f"{width}x{height}",
                         r=self.fps,
+                        loglevel="error",
                     )
-                    .output(**self.output_params)
+                    .output(**self.output_params, loglevel="error")
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
+                    .run_async(pipe_stdin=True, pipe_stdout=False, cmd=FFMPEG_PATH)
                 )
 
             except Exception as e:
@@ -152,7 +150,7 @@ class Writer:
             h, w, _ = get_h_w_c(img)
             self.start(w, h)
 
-        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
+        out_frame = to_uint8(img, normalized=True)
         if self.out is not None and self.out.stdin is not None:
             self.out.stdin.write(out_frame.tobytes())
         else:
@@ -218,7 +216,7 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Directory", has_handle=True),
+        DirectoryInput(create=True),
         TextInput("Video Name"),
         EnumInput(
             VideoFormat,
@@ -293,7 +291,7 @@ class Writer:
             "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=4
         ).with_id(14),
         if_group(~Condition.enum(4, VideoFormat.GIF))(
-            AudioStreamInput().make_optional().with_id(15),
+            AudioStreamInput().make_optional().with_id(15).suggest(),
             if_group(Condition.type(15, "AudioStream"))(
                 EnumInput(
                     AudioSettings,
@@ -315,6 +313,7 @@ class Writer:
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
+    key_info=KeyInfo.enum(4),
     kind="collector",
     side_effects=True,
 )

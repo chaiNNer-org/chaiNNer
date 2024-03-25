@@ -7,10 +7,10 @@ from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import transparency_group
 
 
-@node_group.register(
+@transparency_group.register(
     schema_id="chainner:image:merge_transparency",
     name="Merge Transparency",
     description="Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",

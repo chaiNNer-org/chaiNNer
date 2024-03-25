@@ -64,7 +64,6 @@ jobs:
                   APPLE_SIGNING_ID: ${{ secrets.APPLE_SIGNING_ID }}
               shell: bash
               run: |
-                  npm ci
                   if [[ "${{ matrix.os }}" != "macos-13" ]]; then
                       npm run publish
                   else

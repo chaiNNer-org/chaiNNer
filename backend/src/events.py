@@ -44,6 +44,7 @@ class ExecutionErrorSource(TypedDict):
 class ExecutionErrorData(TypedDict):
     message: str
     exception: str
+    exceptionTrace: str
     source: ExecutionErrorSource | None
 
 
@@ -120,8 +121,7 @@ Event = Union[ExecutionEvent, BackendEvent]
 
 class EventConsumer(ABC):
     @abstractmethod
-    async def put(self, event: Event) -> None:
-        ...
+    async def put(self, event: Event) -> None: ...
 
     @staticmethod
     def filter(queue: EventConsumer, allowed: set[str]) -> EventConsumer:

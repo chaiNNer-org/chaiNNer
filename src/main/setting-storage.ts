@@ -1,12 +1,38 @@
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { LocalStorage } from 'node-localstorage';
 import path from 'path';
+import { migrateOldStorageSettings } from '../common/settings/migration';
+import { ChainnerSettings, defaultSettings } from '../common/settings/settings';
 import { getRootDirSync } from './platform';
 
-export const settingStorageLocation = path.join(getRootDirSync(), 'settings');
+const settingsJson = path.join(getRootDirSync(), 'settings.json');
 
-interface ReadonlyStorage {
-    /** Returns the current value associated with the given key, or null if the given key does not exist. */
-    getItem(key: string): string | null;
-}
+export const writeSettings = (settings: ChainnerSettings) => {
+    writeFileSync(settingsJson, JSON.stringify(settings, null, 4), 'utf-8');
+};
 
-export const settingStorage: ReadonlyStorage = new LocalStorage(settingStorageLocation);
+export const readSettings = (): ChainnerSettings => {
+    if (existsSync(settingsJson)) {
+        // settings.json
+        return JSON.parse(readFileSync(settingsJson, 'utf-8')) as ChainnerSettings;
+    }
+
+    // legacy settings
+    const storagePath = path.join(getRootDirSync(), 'settings');
+    const storage = new LocalStorage(storagePath);
+    const partialSettings = migrateOldStorageSettings({
+        keys: Array.from({ length: storage.length }, (_, i) => storage.key(i)),
+        getItem: (key: string) => storage.getItem(key),
+    });
+    const settings: ChainnerSettings = {
+        ...defaultSettings,
+        ...partialSettings,
+    };
+
+    // write a new settings.json we'll use form now on
+    writeSettings(settings);
+    // don't delete the old settings in case we need to revert
+    renameSync(storagePath, path.join(getRootDirSync(), 'settings_old'));
+
+    return settings;
+};

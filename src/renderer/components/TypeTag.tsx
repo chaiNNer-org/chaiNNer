@@ -265,6 +265,7 @@ export const TypeTag = memo(
             <Tag
                 bgColor="var(--tag-bg)"
                 color="var(--tag-fg)"
+                display="inline-block"
                 fontSize="x-small"
                 fontStyle={isOptional ? 'italic' : undefined}
                 height="15px"
@@ -287,39 +288,57 @@ export const TypeTag = memo(
 export interface TypeTagsProps {
     type: Type;
     isOptional: boolean;
+    longText?: boolean;
 }
 
 const Punctuation = memo(({ children }: React.PropsWithChildren<unknown>) => {
     return <span style={{ opacity: '50%' }}>{children}</span>;
 });
 
-const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
+interface TagRendererProps {
+    tag: TagValue;
+    longText: boolean;
+}
+const TagRenderer = memo(({ tag, longText }: TagRendererProps) => {
     const { kind, value } = tag;
 
     let tt: string | undefined;
     let text: NonNullable<ReactNode>;
+    let direction: 'ltr' | 'rtl' = 'ltr';
 
     switch (kind) {
         case 'path': {
             tt = value;
-            const maxLength = 14;
-            text = (
-                <>
-                    {value.length > maxLength && <Punctuation>…</Punctuation>}
-                    {value.slice(Math.max(0, value.length - maxLength))}
-                </>
-            );
+            if (longText) {
+                text = value;
+                if (/^[\p{L}\p{N}_]/u.test(value) && /[\p{L}\p{N}_]$/u.test(value)) {
+                    // punctuation will be messed up in rtl
+                    direction = 'rtl';
+                }
+            } else {
+                const maxLength = 14;
+                text = (
+                    <>
+                        {value.length > maxLength && <Punctuation>…</Punctuation>}
+                        {value.slice(Math.max(0, value.length - maxLength))}
+                    </>
+                );
+            }
             break;
         }
         case 'string': {
             tt = value;
-            const maxLength = 16;
-            text = (
-                <>
-                    {value.slice(0, maxLength)}
-                    {value.length > maxLength && <Punctuation>…</Punctuation>}
-                </>
-            );
+            if (longText) {
+                text = value;
+            } else {
+                const maxLength = 16;
+                text = (
+                    <>
+                        {value.slice(0, maxLength)}
+                        {value.length > maxLength && <Punctuation>…</Punctuation>}
+                    </>
+                );
+            }
             break;
         }
         case 'literal': {
@@ -344,12 +363,22 @@ const TagRenderer = memo(({ tag }: { tag: TagValue }) => {
             px={2}
             textAlign="center"
         >
-            <TypeTag>{text}</TypeTag>
+            {longText ? (
+                <TypeTag
+                    overflow="hidden"
+                    style={{ direction }}
+                    textOverflow="ellipsis"
+                >
+                    {text}
+                </TypeTag>
+            ) : (
+                <TypeTag>{text}</TypeTag>
+            )}
         </Tooltip>
     );
 });
 
-export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
+export const TypeTags = memo(({ type, isOptional, longText = false }: TypeTagsProps) => {
     const { t } = useTranslation();
     const tags = getTypeText(withoutNull(type));
 
@@ -358,6 +387,7 @@ export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
             {tags.map((tag) => (
                 <TagRenderer
                     key={`${tag.kind};${tag.value}`}
+                    longText={longText}
                     tag={tag}
                 />
             ))}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
+from api import KeyInfo
 from nodes.groups import if_enum_group
 from nodes.impl.color.color import Color
 from nodes.properties.inputs import EnumInput, SliderInput
@@ -22,7 +23,9 @@ class ColorType(Enum):
     description="Create a new color value from individual channels.",
     icon="MdColorLens",
     inputs=[
-        EnumInput(ColorType, "Color Type", ColorType.RGBA, preferred_style="tabs"),
+        EnumInput(
+            ColorType, "Color Type", ColorType.RGBA, preferred_style="tabs"
+        ).with_id(0),
         if_enum_group(0, ColorType.GRAY)(
             SliderInput(
                 "Luma",
@@ -96,6 +99,7 @@ class ColorType(Enum):
             """
         )
     ],
+    key_info=KeyInfo.enum(0),
 )
 def color_from_node(
     color_type: ColorType,

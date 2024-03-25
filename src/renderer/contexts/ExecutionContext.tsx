@@ -9,13 +9,12 @@ import { log } from '../../common/log';
 import { checkFeatures } from '../../common/nodes/checkFeatures';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
-import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
+import { optimizeChain } from '../../common/nodes/optimize';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { ipcRenderer } from '../../common/safeIpc';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { fromJson } from '../../common/types/json';
-import { EMPTY_MAP, EMPTY_SET, assertNever, delay, groupBy } from '../../common/util';
+import { EMPTY_MAP, EMPTY_SET, assertNever, groupBy } from '../../common/util';
 import { bothValid } from '../../common/Validity';
 import {
     ChainProgress,
@@ -33,7 +32,7 @@ import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
-import { SettingsContext } from './SettingsContext';
+import { useSettings } from './SettingsContext';
 
 export enum ExecutionStatus {
     READY,
@@ -139,15 +138,21 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setManualOutputType,
         clearManualOutputTypes,
     } = useContext(GlobalContext);
-    const { schemata, url, backend, ownsBackend, restartingRef, restart, features, featureStates } =
-        useContext(BackendContext);
-    const { useBackendSettings } = useContext(SettingsContext);
+    const {
+        schemata,
+        url,
+        backend,
+        ownsBackend,
+        restartingRef,
+        features,
+        featureStates,
+        categories,
+    } = useContext(BackendContext);
+    const { packageSettings } = useSettings();
 
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-
-    const [options] = useBackendSettings;
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -286,6 +291,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     schemata,
                     (label, value) => `• ${label}: ${value}`
                 ),
+                trace: data.exceptionTrace,
             });
             clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
@@ -346,24 +352,15 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = useCallback(async () => {
-        const allNodes = getNodes();
-        const allEdges = getEdges();
-
-        const disabledNodes = new Set(
-            getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
-        );
-        const nodesToOptimize = allNodes.filter((n) => !disabledNodes.has(n.id));
-        const nodes = getNodesWithSideEffects(nodesToOptimize, allEdges, schemata);
-        const nodeIds = new Set(nodes.map((n) => n.id));
-        const edges = allEdges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+        const { nodes, edges, report } = optimizeChain(getNodes(), getEdges(), schemata);
 
         // show an error if there are no nodes to run
         if (nodes.length === 0) {
             let message;
-            if (nodesToOptimize.length > 0) {
+            if (report.removedSideEffectFree > 0) {
                 message =
                     'There are no nodes that have an effect. Try to view or output images/files.';
-            } else if (disabledNodes.size > 0) {
+            } else if (report.removedDisabled > 0) {
                 message = 'All nodes are disabled. There are no nodes to run.';
             } else {
                 message = 'There are no nodes to run.';
@@ -376,7 +373,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const invalidNodes = nodes.flatMap((node) => {
             const functionInstance = typeStateRef.current.functions.get(node.data.id);
             const schema = schemata.get(node.data.schemaId);
-            const { category, name } = schema;
+            const { name } = schema;
+            const category = categories.get(schema.category)?.name ?? schema.category;
 
             const validity = bothValid(
                 checkFeatures(schema.features, features, featureStates),
@@ -417,7 +415,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const data = toBackendJson(nodes, edges, schemata);
             const response = await backend.run({
                 data,
-                options,
+                options: packageSettings,
                 sendBroadcastData: true,
             });
             if (response.type === 'error') {
@@ -449,13 +447,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         getNodes,
         getEdges,
         schemata,
+        categories,
         sendAlert,
         typeStateRef,
         chainLineageRef,
         features,
         featureStates,
         backend,
-        options,
+        packageSettings,
         clearNodeStatusMap,
         nodeEventBacklog,
         clearManualOutputTypes,
@@ -505,24 +504,33 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = useCallback(async () => {
         try {
             setStatus(ExecutionStatus.KILLING);
-            const backendKillPromise = backend.kill();
-            const timeoutPromise = delay(2500).then(() => ({
-                type: 'timeout',
-                exception: '',
-            }));
-            const response = await Promise.race([backendKillPromise, timeoutPromise]);
-            if (response.type === 'timeout') {
-                await restart();
-                log.info('Finished restarting backend');
-            }
-            if (response.type === 'error') {
-                sendAlert({ type: AlertType.ERROR, message: response.exception });
-            }
+            backend.abort();
+            // We need to set the status again, since run() resets it to READY
+            // We have to do this in a setTimeout, otherwise react doesn't honor this
+            const killBackendAndWait = new Promise<void>((resolve, reject) =>
+                // eslint-disable-next-line no-promise-executor-return, @typescript-eslint/no-misused-promises
+                setTimeout(async () => {
+                    setStatus(ExecutionStatus.KILLING);
+                    try {
+                        const response = await backend.kill();
+                        if (response.type === 'error') {
+                            sendAlert({ type: AlertType.ERROR, message: response.exception });
+                        }
+                        await backend.nodes();
+                    } catch (err) {
+                        reject(err);
+                    } finally {
+                        setStatus(ExecutionStatus.READY);
+                        resolve();
+                    }
+                }, 0)
+            );
+            await killBackendAndWait;
         } catch (err) {
             sendAlert({ type: AlertType.ERROR, message: 'An unexpected error occurred.' });
         }
         setNodeProgress({});
-    }, [backend, restart, sendAlert]);
+    }, [backend, sendAlert]);
 
     // This makes sure keystrokes are executed even if the focus is on an input field
     useEffect(() => {

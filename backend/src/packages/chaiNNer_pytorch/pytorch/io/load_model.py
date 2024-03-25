@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 
 from sanic.log import logger
-from spandrel import ModelDescriptor, ModelLoader
+from spandrel import MAIN_REGISTRY, ModelDescriptor, ModelLoader
+from spandrel_extra_arches import EXTRA_REGISTRY
 
 from api import NodeContext
 from nodes.properties.inputs import PthFileInput
@@ -13,6 +14,8 @@ from nodes.utils.utils import split_file_path
 
 from ...settings import get_settings
 from .. import io_group
+
+MAIN_REGISTRY.add(*EXTRA_REGISTRY)
 
 
 def parse_ckpt_state_dict(checkpoint: dict):
@@ -54,7 +57,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
     icon="PyTorch",
     inputs=[PthFileInput(primary_input=True)],
     outputs=[
-        ModelOutput(kind="tagged"),
+        ModelOutput(kind="tagged").suggest(),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],

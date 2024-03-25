@@ -81,6 +81,7 @@ module.exports = {
                 'plugin:@typescript-eslint/recommended',
                 'plugin:@typescript-eslint/recommended-requiring-type-checking',
                 'plugin:prettier/recommended',
+                'plugin:regexp/recommended',
             ],
             plugins: [
                 'prettier',
@@ -90,6 +91,7 @@ module.exports = {
                 'eslint-plugin-react-memo',
                 'react-hooks',
                 'unused-imports',
+                'regexp',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -135,6 +137,7 @@ module.exports = {
                 'react-hooks/rules-of-hooks': 'error',
                 'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useAsyncEffect)' }],
                 'unused-imports/no-unused-imports': 'error',
+                'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
             },
         },
     ],

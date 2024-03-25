@@ -291,6 +291,11 @@ class _ExecutorNodeContext(NodeContext):
     def aborted(self) -> bool:
         return self.progress.aborted
 
+    @property
+    def paused(self) -> bool:
+        time.sleep(0.001)
+        return self.progress.paused
+
     def set_progress(self, progress: float) -> None:
         self.check_aborted()
 
@@ -793,7 +798,7 @@ class Executor:
                 "event": "node-progress",
                 "data": {
                     "nodeId": node.id,
-                    "progress": index / length,
+                    "progress": 1 if length == 0 else index / length,
                     "index": index,
                     "total": length,
                     "eta": get_eta(),

@@ -14,7 +14,10 @@ import {
     handleNumberLiterals,
     intersect,
     literal,
+    union,
+    wrapBinary,
     wrapQuaternary,
+    wrapScopedBinary,
     wrapScopedUnary,
     wrapTernary,
 } from '@chainner/navi';
@@ -43,7 +46,7 @@ class ReplacementString {
 
         const contentPattern = /^\w+$/;
 
-        const tokenPattern = /(\{\{)|\{([^{}]*)\}/g;
+        const tokenPattern = /\{([^{}]*)\}|\{\{/g;
         let lastIndex = 0;
         let lastStr = '';
         let m;
@@ -52,7 +55,7 @@ class ReplacementString {
             lastStr += pattern.slice(lastIndex, m.index);
             lastIndex = m.index + m[0].length;
 
-            const interpolation = m[2] as string | undefined;
+            const interpolation = m[1] as string | undefined;
             if (interpolation !== undefined) {
                 if (interpolation === '') {
                     throw new Error(
@@ -358,5 +361,99 @@ export const parseColorJson = wrapScopedUnary(
             return NeverType.instance;
         }
         return createInstance(colorDesc);
+    }
+);
+
+const getParentDirectoryStr = (pathStr: string): string => {
+    return path.dirname(pathStr);
+};
+export const getParentDirectory = wrapBinary<StringPrimitive, Int, StringPrimitive>(
+    (pathStr, times) => {
+        if (times.type === 'literal' && times.value === 0) {
+            return pathStr;
+        }
+        if (pathStr.type === 'literal') {
+            let min;
+            let max;
+            if (times.type === 'literal') {
+                min = times.value;
+                max = times.value;
+            } else {
+                min = times.min;
+                max = times.max;
+            }
+
+            // the basic idea here is that repeatedly getting the parent directory of a path
+            // will eventually converge to the root directory, so we can stop when that happens
+            let p = pathStr.value;
+            for (let i = 0; i < min; i += 1) {
+                const next = getParentDirectoryStr(p);
+                if (next === p) {
+                    return literal(p);
+                }
+                p = next;
+            }
+
+            if (min === max) {
+                return literal(p);
+            }
+
+            const values = new Set<string>();
+            values.add(p);
+            for (let i = min; i < max; i += 1) {
+                p = getParentDirectoryStr(p);
+                if (values.has(p)) {
+                    break;
+                }
+                values.add(p);
+            }
+
+            return union(...[...values].map(literal));
+        }
+        return StringType.instance;
+    }
+);
+
+// eslint-disable-next-line no-control-regex
+const INVALID_PATH_CHARS = /[<>:"|?*\x00-\x1F]/;
+const goIntoDirectoryImpl = (basePath: string, relPath: string): string | Error => {
+    const isAbsolute = /^[/\\]/.test(relPath) || path.isAbsolute(relPath);
+    if (isAbsolute) {
+        return new Error('Absolute paths are not allowed as folders.');
+    }
+
+    const invalid = INVALID_PATH_CHARS.exec(relPath);
+    if (invalid) {
+        return new Error(`Invalid character '${invalid[0]}' in folder name.`);
+    }
+
+    const joined = path.join(basePath, relPath);
+    return path.resolve(joined);
+};
+export const goIntoDirectory = wrapScopedBinary(
+    (
+        scope,
+        basePath: StringPrimitive,
+        relPath: StringPrimitive
+    ): Arg<StringPrimitive | StructInstanceType> => {
+        const errorDesc = getStructDescriptor(scope, 'Error');
+
+        if (basePath.type === 'literal' && relPath.type === 'literal') {
+            try {
+                const result = goIntoDirectoryImpl(basePath.value, relPath.value);
+                if (typeof result === 'string') {
+                    return literal(result);
+                }
+                return createInstance(errorDesc, {
+                    message: literal(result.message),
+                });
+            } catch (e) {
+                return createInstance(errorDesc, {
+                    message: literal(String(e)),
+                });
+            }
+        }
+
+        return union(StringType.instance, errorDesc.default);
     }
 );

@@ -25,31 +25,28 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import { produce } from 'immer';
 import path from 'path';
 import { memo, useCallback, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { SettingKey, SettingValue } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useMutSetting } from '../contexts/SettingsContext';
 import { IconFactory } from './CustomIcons';
 import { DropdownSetting, NumberSetting, ToggleSetting } from './settings/components';
 import { SettingContainer } from './settings/SettingContainer';
 import { SettingItem } from './settings/SettingItem';
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useSelectTheme, useAnimateChain, useViewportExportPadding } =
-        useContext(SettingsContext);
-
-    const [isSelectTheme, setSelectTheme] = useSelectTheme;
-    const [animateChain, setAnimateChain] = useAnimateChain;
-    const [viewportExportPadding, setViewportExportPadding] = useViewportExportPadding;
-
-    const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
+    const [theme, setTheme] = useMutSetting('theme');
+    const [animateChain, setAnimateChain] = useMutSetting('animateChain');
+    const [viewportExportPadding, setViewportExportPadding] =
+        useMutSetting('viewportExportPadding');
+    const [snapToGrid, setSnapToGrid] = useMutSetting('snapToGrid');
+    const [snapToGridAmount, setSnapToGridAmount] = useMutSetting('snapToGridAmount');
+    const [showMinimap, setShowMinimap] = useMutSetting('showMinimap');
 
     return (
         <VStack
@@ -57,7 +54,7 @@ const AppearanceSettings = memo(() => {
             w="full"
         >
             <DropdownSetting
-                setValue={setSelectTheme}
+                setValue={(value) => setTheme(value as never)}
                 setting={{
                     label: 'Select Theme',
                     description: "Choose the Theme for chaiNNer's appearance.",
@@ -68,7 +65,7 @@ const AppearanceSettings = memo(() => {
                     ],
                     small: true,
                 }}
-                value={isSelectTheme}
+                value={theme}
             />
 
             <ToggleSetting
@@ -81,12 +78,22 @@ const AppearanceSettings = memo(() => {
             />
 
             <ToggleSetting
-                setValue={setIsSnapToGrid}
+                setValue={setShowMinimap}
+                setting={{
+                    label: 'Minimap',
+                    description:
+                        'Enable a minimap of the current chain in the bottom right corner of the node editor.',
+                }}
+                value={showMinimap}
+            />
+
+            <ToggleSetting
+                setValue={setSnapToGrid}
                 setting={{
                     label: 'Snap to grid',
                     description: 'Enable node grid snapping.',
                 }}
-                value={isSnapToGrid}
+                value={snapToGrid}
             />
 
             <NumberSetting
@@ -115,9 +122,7 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
-    const { useStartupTemplate } = useContext(SettingsContext);
-
-    const [startupTemplate, setStartupTemplate] = useStartupTemplate;
+    const [startupTemplate, setStartupTemplate] = useMutSetting('startupTemplate');
 
     const [lastDirectory, setLastDirectory] = useState(startupTemplate || '');
 
@@ -192,13 +197,11 @@ const EnvironmentSettings = memo(() => {
 });
 
 const PythonSettings = memo(() => {
-    const { useIsSystemPython, useSystemPythonLocation, useBackendSettings } =
-        useContext(SettingsContext);
-    const [backendSettings, setBackendSettings] = useBackendSettings;
-
     const { packages } = useContext(BackendContext);
-    const [isSystemPython, setIsSystemPython] = useIsSystemPython;
-    const [systemPythonLocation, setSystemPythonLocation] = useSystemPythonLocation;
+    const [packageSettings, setPackageSettings] = useMutSetting('packageSettings');
+
+    const [useSystemPython, setUseSystemPython] = useMutSetting('useSystemPython');
+    const [systemPythonLocation, setSystemPythonLocation] = useMutSetting('systemPythonLocation');
     const [lastDirectory, setLastDirectory] = useState(systemPythonLocation || '');
 
     const onButtonClick = useCallback(async () => {
@@ -212,23 +215,6 @@ const PythonSettings = memo(() => {
     }, [systemPythonLocation, lastDirectory, setSystemPythonLocation]);
 
     const packagesWithSettings = packages.filter((pkg) => pkg.settings.length);
-
-    const setBackendPackageSetting = (pkg: string, key: SettingKey, value: SettingValue) =>
-        setBackendSettings((prev) =>
-            produce(prev, (draftState) => {
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                if (!draftState[pkg]) {
-                    // eslint-disable-next-line no-param-reassign
-                    draftState[pkg] = {};
-                }
-                // eslint-disable-next-line no-param-reassign
-                draftState[pkg][key] = value;
-            })
-        );
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const setGeneralBackendSetting = (key: SettingKey, value: SettingValue) =>
-        setBackendPackageSetting('general', key, value);
 
     return (
         <Tabs
@@ -259,15 +245,15 @@ const PythonSettings = memo(() => {
                         w="full"
                     >
                         <ToggleSetting
-                            setValue={setIsSystemPython}
+                            setValue={setUseSystemPython}
                             setting={{
                                 label: 'Use system Python (requires restart)',
                                 description:
                                     "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)",
                             }}
-                            value={isSystemPython}
+                            value={useSystemPython}
                         />
-                        {isSystemPython && (
+                        {useSystemPython && (
                             <SettingContainer
                                 description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
                                 title="System Python location (optional)"
@@ -308,7 +294,7 @@ const PythonSettings = memo(() => {
                                         aria-label="clear"
                                         icon={<SmallCloseIcon />}
                                         size="xs"
-                                        onClick={() => setSystemPythonLocation(null)}
+                                        onClick={() => setSystemPythonLocation('')}
                                     />
                                 </HStack>
                             </SettingContainer>
@@ -325,14 +311,20 @@ const PythonSettings = memo(() => {
                             w="full"
                         >
                             {pkg.settings.map((setting) => {
-                                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                                const packageSettings = backendSettings[pkg.id] ?? {};
-                                const thisSetting = packageSettings[setting.key];
+                                const thisSetting = packageSettings[pkg.id]?.[setting.key];
                                 return (
                                     <SettingItem
                                         key={setting.key}
                                         setValue={(value) => {
-                                            setBackendPackageSetting(pkg.id, setting.key, value);
+                                            setPackageSettings((prev) => {
+                                                return {
+                                                    ...prev,
+                                                    [pkg.id]: {
+                                                        ...(prev[pkg.id] ?? {}),
+                                                        [setting.key]: value,
+                                                    },
+                                                };
+                                            });
                                         }}
                                         setting={setting}
                                         value={thisSetting}
@@ -348,17 +340,13 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const {
-        useCheckUpdOnStrtUp,
-        useExperimentalFeatures,
-        useEnableHardwareAcceleration,
-        useAllowMultipleInstances,
-    } = useContext(SettingsContext);
-    const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
-    const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
-    const [isEnableHardwareAcceleration, setIsEnableHardwareAcceleration] =
-        useEnableHardwareAcceleration;
-    const [isAllowMultipleInstances, setIsAllowMultipleInstances] = useAllowMultipleInstances;
+    const [checkForUpdatesOnStartup, setCheckForUpdatesOnStartup] = useMutSetting(
+        'checkForUpdatesOnStartup'
+    );
+    const [experimentalFeatures, setExperimentalFeatures] = useMutSetting('experimentalFeatures');
+    const [hardwareAcceleration, setHardwareAcceleration] = useMutSetting('hardwareAcceleration');
+    const [allowMultipleInstances, setAllowMultipleInstances] =
+        useMutSetting('allowMultipleInstances');
 
     return (
         <VStack
@@ -366,41 +354,41 @@ const AdvancedSettings = memo(() => {
             w="full"
         >
             <ToggleSetting
-                setValue={setIsCheckUpdOnStrtUp}
+                setValue={setCheckForUpdatesOnStartup}
                 setting={{
                     label: 'Check for Update on Start-up',
                     description: 'Toggles checking for updates on start-up.',
                 }}
-                value={isCheckUpdOnStrtUp}
+                value={checkForUpdatesOnStartup}
             />
             <ToggleSetting
-                setValue={setIsExperimentalFeatures}
+                setValue={setExperimentalFeatures}
                 setting={{
                     label: 'Enable experimental features',
                     description:
                         'Enable experimental features to try them out before they are finished.',
                 }}
-                value={isExperimentalFeatures}
+                value={experimentalFeatures}
             />
             <ToggleSetting
-                setValue={setIsEnableHardwareAcceleration}
+                setValue={setHardwareAcceleration}
                 setting={{
                     label: 'Enable Hardware Acceleration (requires restart)',
                     description:
                         'Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing.',
                 }}
-                value={isEnableHardwareAcceleration}
+                value={hardwareAcceleration}
             />
             {/* TODO: Not working on macOS ATM. A new window must be created. */}
             {!isMac && (
                 <ToggleSetting
-                    setValue={setIsAllowMultipleInstances}
+                    setValue={setAllowMultipleInstances}
                     setting={{
                         label: 'Allow multiple concurrent instances',
                         description:
                             'Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently.',
                     }}
-                    value={isAllowMultipleInstances}
+                    value={allowMultipleInstances}
                 />
             )}
         </VStack>
