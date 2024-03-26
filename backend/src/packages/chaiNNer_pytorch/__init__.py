@@ -98,14 +98,14 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.3.0",
-            size_estimate=240 * KB,
+            version="0.3.1",
+            size_estimate=255 * KB,
         ),
         Dependency(
             display_name="Spandrel extra architectures",
             pypi_name="spandrel_extra_arches",
-            version="0.1.0",
-            size_estimate=75 * KB,
+            version="0.1.1",
+            size_estimate=83 * KB,
         ),
     ],
     icon="PyTorch",
