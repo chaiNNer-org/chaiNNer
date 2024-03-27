@@ -1,23 +1,24 @@
 from __future__ import annotations
 
+import math
 from enum import Enum
 
 import cv2
 import numpy as np
 
 import navi
-from nodes.groups import if_enum_group
-from nodes.impl.image_utils import fast_gaussian_blur
+from nodes.groups import icon_set_group, if_enum_group
+from nodes.impl.image_utils import BorderType, create_border, fast_gaussian_blur
 from nodes.impl.normals.edge_filter import EdgeFilter, get_filter_kernels
 from nodes.impl.normals.height import HeightSource, get_height_map
 from nodes.properties.inputs import (
+    BoolInput,
     EnumInput,
     ImageInput,
-    NormalChannelInvertInput,
     SliderInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import Padding, get_h_w_c
 
 from .. import normal_map_group
 
@@ -53,7 +54,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
         "Generate a normal map from a given image using the specified filtering technique.",
         "The node will first convert the given image into a height map. A filter is then applied to the height map to calculate the normal map.",
         "### Height map generation",
-        "Since this node needs a height map, it will always convert the input image into one. The **Height Source** input determines how this conversion happens.",
+        "Since this node needs a height map, it will always convert the input image into one. The **Height** input determines how this conversion happens.",
         "Generally, if you have already have a good height map for a texture, use it with *Average RGB* for best results.",
         "If you have a albedo/diffuse texture, most height sources will approximate the height map using pixel brightness. This is a very crude approximation, but can work well enough. Start with *Average RGB* and test our difference filters before using a different height source.",
         "### Filters",
@@ -64,11 +65,19 @@ def normalize(x: np.ndarray, y: np.ndarray):
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput("Image", channels=[1, 3, 4]),
+        BoolInput("Tileable", default=False)
+        .with_docs(
+            "If enabled, the input texture will be treated as tileable and a tileable normal map will be created.",
+            hint=True,
+        )
+        .with_id(16),
         EnumInput(
             HeightSource,
-            label="Height Source",
+            label="Height",
+            label_style="inline",
             default=HeightSource.AVERAGE_RGB,
-        ).with_docs(
+        )
+        .with_docs(
             "Given the R, G, B, A channels of the input image, a height map will be calculated as follows:",
             "- Average RGB: `Height = (R + G + B) / 3`",
             "- Max RGB: `Height = max(R, G, B)`",
@@ -77,16 +86,19 @@ def normalize(x: np.ndarray, y: np.ndarray):
             "- Green: `Height = G`",
             "- Blue: `Height = B`",
             "- Alpha: `Height = A`",
-        ),
+        )
+        .with_id(1),
         SliderInput(
             "Blur/Sharp",
             minimum=-20,
             maximum=20,
             default=0,
             precision=1,
-        ).with_docs(
+        )
+        .with_docs(
             "A quick way to blur or sharpen the height map. Negative values blur, positive values sharpen."
-        ),
+        )
+        .with_id(2),
         SliderInput(
             "Min Z",
             minimum=0,
@@ -95,10 +107,12 @@ def normalize(x: np.ndarray, y: np.ndarray):
             precision=3,
             slider_step=0.01,
             controls_step=0.05,
-        ).with_docs(
+        )
+        .with_docs(
             "A minimum height that can be used to cut off low height values.",
             "This value is generally only useful in specific circumstances, so it's usually best to leave it at 0.",
-        ),
+        )
+        .with_id(3),
         SliderInput(
             "Scale",
             minimum=0,
@@ -107,13 +121,16 @@ def normalize(x: np.ndarray, y: np.ndarray):
             precision=3,
             controls_step=0.1,
             scale="log-offset",
-        ).with_docs(
+        )
+        .with_docs(
             "A factor applied to the height map.",
             "The smaller the scale, the most flat the output normal map will be. The large the scale, the more pronounced the normal map will be.",
-        ),
+        )
+        .with_id(4),
         EnumInput(
             EdgeFilter,
             label="Filter",
+            label_style="inline",
             default=EdgeFilter.SOBEL,
             option_labels={
                 EdgeFilter.SOBEL: "Sobel (dUdV) (3x3)",
@@ -208,15 +225,23 @@ def normalize(x: np.ndarray, y: np.ndarray):
                 has_handle=False,
             ).with_id(15),
         ),
-        NormalChannelInvertInput()
-        .with_id(6)
-        .with_docs("Whether to invert some channels of the normal map."),
+        icon_set_group("Invert")(
+            BoolInput("Invert R", default=False, icon="R")
+            .with_docs("Whether to invert the R/X channels of the normal map.")
+            .with_id(17),
+            BoolInput("Invert G", default=False, icon="G")
+            .with_docs("Whether to invert the G/Y channels of the normal map.")
+            .with_id(18),
+        ),
         EnumInput(
             AlphaOutput,
-            label="Alpha Channel",
+            label="Alpha",
+            label_style="inline",
             default=AlphaOutput.NONE,
             option_labels={AlphaOutput.ONE: "Set to 1"},
-        ).with_id(7),
+        )
+        .with_docs("Determines the alpha channel of the generated normal map.")
+        .with_id(7),
     ],
     outputs=[
         ImageOutput(
@@ -230,6 +255,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
 )
 def normal_map_generator_node(
     img: np.ndarray,
+    tileable: bool,
     height_source: HeightSource,
     blur_sharp: float,
     min_z: float,
@@ -243,24 +269,12 @@ def normal_map_generator_node(
     gauss_scale6: float,
     gauss_scale7: float,
     gauss_scale8: float,
-    invert: int,
+    invert_r: bool,
+    invert_g: bool,
     alpha_output: AlphaOutput,
 ) -> np.ndarray:
     h, w, c = get_h_w_c(img)
     height = get_height_map(img, height_source)
-
-    if blur_sharp < 0:
-        # blur
-        height = fast_gaussian_blur(height, -blur_sharp)
-    elif blur_sharp > 0:
-        # sharpen
-        blurred = fast_gaussian_blur(height, blur_sharp)
-        height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
-
-    if min_z > 0:
-        height = np.maximum(min_z, height)
-    if scale != 0:
-        height = height * scale  # type: ignore
 
     filter_x, filter_y = get_filter_kernels(
         edge_filter,
@@ -276,14 +290,37 @@ def normal_map_generator_node(
         ],
     )
 
+    padding = 0
+    if tileable:
+        padding = max(1, filter_x.shape[0] // 2, math.ceil(abs(blur_sharp) * 2))
+        height = create_border(height, BorderType.WRAP, Padding.all(padding))
+
+    if blur_sharp < 0:
+        # blur
+        height = fast_gaussian_blur(height, -blur_sharp)
+    elif blur_sharp > 0:
+        # sharpen
+        blurred = fast_gaussian_blur(height, blur_sharp)
+        height = cv2.addWeighted(height, 2.0, blurred, -1.0, 0)
+
+    if min_z > 0:
+        height = np.maximum(min_z, height)
+    if scale != 0:
+        height = height * scale  # type: ignore
+
     dx = cv2.filter2D(height, -1, filter_x)
     dy = cv2.filter2D(height, -1, filter_y)
 
+    if padding > 0:
+        dx = dx[padding:-padding, padding:-padding]
+        dy = dy[padding:-padding, padding:-padding]
+        height = height[padding:-padding, padding:-padding]
+
     x, y, z = normalize(dx, dy)
 
-    if invert & 1 != 0:
+    if invert_r:
         x = -x
-    if invert & 2 != 0:
+    if invert_g:
         y = -y
 
     if alpha_output is AlphaOutput.NONE:

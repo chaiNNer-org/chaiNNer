@@ -17,6 +17,7 @@ import { InputContainer, InputHandle } from './InputContainer';
 import { NumberInput } from './NumberInput';
 import { InputProps } from './props';
 import { SliderInput } from './SliderInput';
+import { StaticValueInput } from './StaticValueInput';
 import { TextInput } from './TextInput';
 
 const InputComponents: {
@@ -33,6 +34,7 @@ const InputComponents: {
     slider: SliderInput,
     color: ColorInput,
     generic: GenericInput,
+    static: StaticValueInput,
 };
 
 export interface SingleInputProps {
@@ -56,8 +58,10 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         setWidth,
         isLocked,
         connectedInputs,
+        iteratedInputs,
+        iteratedOutputs,
         type,
-        schema,
+        testCondition,
     } = nodeState;
 
     const functionDefinition = useContextSelector(BackendContext, (c) =>
@@ -107,6 +111,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             setSize={setSize}
             setValue={setValue}
             size={size}
+            testCondition={testCondition}
             value={value}
         />
     );
@@ -126,7 +131,8 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 connectableType={connectableType}
                 id={nodeId}
                 inputId={inputId}
-                nodeType={schema.nodeType}
+                isConnected={connectedInputs.has(inputId)}
+                isIterated={iteratedInputs.has(inputId)}
             >
                 {inputElement}
             </InputHandle>
@@ -143,7 +149,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 }
                 id={nodeId}
                 isConnected={nodeState.connectedOutputs.has(fused.outputId)}
-                nodeType={schema.nodeType}
+                isIterated={iteratedOutputs.has(fused.outputId)}
                 outputId={fused.outputId}
                 type={outputType}
             />
@@ -157,7 +163,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                 >
                     {inputElement}
                 </Box>
-                {input.kind === 'generic' && outputType && (
+                {(input.kind === 'generic' || input.kind === 'static') && outputType && (
                     <Center pr="0.5em">
                         <TypeTags
                             isOptional={false}

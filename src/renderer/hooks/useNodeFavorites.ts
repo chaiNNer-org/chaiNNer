@@ -1,20 +1,17 @@
 import { useCallback, useMemo } from 'react';
-import { useContextSelector } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useMutSetting } from '../contexts/SettingsContext';
 import { useMemoObject } from './useMemo';
 
 export interface UseNodeFavorites {
     readonly favorites: ReadonlySet<SchemaId>;
     readonly addFavorites: (...schemaIds: SchemaId[]) => void;
     readonly removeFavorite: (schemaId: SchemaId) => void;
+    readonly toggleFavorite: (schemaId: SchemaId) => void;
 }
 
 export const useNodeFavorites = () => {
-    const [favoritesArray, setFavorites] = useContextSelector(
-        SettingsContext,
-        (c) => c.useNodeFavorites
-    );
+    const [favoritesArray, setFavorites] = useMutSetting('favoriteNodes');
 
     const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
 
@@ -30,6 +27,22 @@ export const useNodeFavorites = () => {
         },
         [setFavorites]
     );
+    const toggleFavorite = useCallback(
+        (schemaId: SchemaId) => {
+            setFavorites((prev) => {
+                if (prev.includes(schemaId)) {
+                    return prev.filter((id) => id !== schemaId);
+                }
+                return [...prev, schemaId];
+            });
+        },
+        [setFavorites]
+    );
 
-    return useMemoObject<UseNodeFavorites>({ favorites, addFavorites, removeFavorite });
+    return useMemoObject<UseNodeFavorites>({
+        favorites,
+        addFavorites,
+        removeFavorite,
+        toggleFavorite,
+    });
 };

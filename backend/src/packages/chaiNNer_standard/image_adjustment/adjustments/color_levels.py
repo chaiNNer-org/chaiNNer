@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from nodes.groups import icon_set_group
 from nodes.impl.image_utils import as_3d
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -13,14 +14,16 @@ from .. import adjustments_group
 @adjustments_group.register(
     schema_id="chainner:image:color_levels",
     name="Color Levels",
-    description="Adjust color levels",
+    description="Color Levels can be used to make an image lighter or darker, to change contrast or to correct a predominant color cast.",
     icon="MdOutlineColorLens",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        BoolInput("Red", default=True),
-        BoolInput("Green", default=True),
-        BoolInput("Blue", default=True),
-        BoolInput("Alpha", default=False),
+        icon_set_group("Channels")(
+            BoolInput("Red", default=True),
+            BoolInput("Green", default=True),
+            BoolInput("Blue", default=True),
+            BoolInput("Alpha", default=False),
+        ),
         SliderInput(
             "In Black",
             minimum=0,
@@ -77,13 +80,9 @@ def color_levels_node(
     out_black: float,
     out_white: float,
 ) -> np.ndarray:
-    """
-    Color Levels can be used to make an image lighter or darker,
-    to change contrast or to correct a predominant color cast.
+    # This code was adapted from a Stack-Overflow answer by Iperov,
+    # can found at: https://stackoverflow.com/a/60339950
 
-    This code was adapted from a Stack-Overflow answer by Iperov,
-    can found at: https://stackoverflow.com/a/60339950
-    """
     _, _, c = get_h_w_c(img)
 
     if c == 1:

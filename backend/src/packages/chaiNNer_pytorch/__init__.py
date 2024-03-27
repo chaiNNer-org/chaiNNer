@@ -1,4 +1,4 @@
-import sys
+import os
 
 from sanic.log import logger
 
@@ -6,11 +6,10 @@ from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia_is_available
 from system import is_arm_mac
 
-python_version = sys.version_info
-
 general = "PyTorch uses .pth models to upscale images."
 
 if is_arm_mac:
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     package_description = general
     inst_hint = f"{general} It is the most widely-used upscaling architecture."
 else:
@@ -30,14 +29,16 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.1",
+                version="2.1.2",
                 size_estimate=55.8 * MB,
+                auto_update=True,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.16.1",
+                version="0.16.2",
                 size_estimate=1.3 * MB,
+                auto_update=True,
             ),
         ]
     else:
@@ -45,24 +46,26 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.1+cu121" if nvidia_is_available else "2.1.1",
+                version="2.1.2+cu121" if nvidia_is_available else "2.1.2",
                 size_estimate=2 * GB if nvidia_is_available else 140 * MB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Too large to auto-update
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.16.1+cu121" if nvidia_is_available else "0.16.1",
+                version="0.16.2+cu121" if nvidia_is_available else "0.16.2",
                 size_estimate=2 * MB if nvidia_is_available else 800 * KB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
                     if nvidia_is_available
-                    else None
+                    else "https://download.pytorch.org/whl/cpu"
                 ),
+                auto_update=not nvidia_is_available,  # Needs to match PyTorch version
             ),
         ]
 
@@ -95,8 +98,14 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
+            version="0.3.1",
+            size_estimate=255 * KB,
+        ),
+        Dependency(
+            display_name="Spandrel extra architectures",
+            pypi_name="spandrel_extra_arches",
             version="0.1.1",
-            size_estimate=180.7 * KB,
+            size_estimate=83 * KB,
         ),
     ],
     icon="PyTorch",

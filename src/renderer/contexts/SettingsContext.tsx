@@ -1,106 +1,97 @@
 import { useColorMode } from '@chakra-ui/react';
-import React, { memo, useEffect } from 'react';
-import { createContext } from 'use-context-selector';
-import { PackageSettings, SchemaId } from '../../common/common-types';
-import { GetSetState, SetState } from '../helpers/types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useMemoArray, useMemoObject } from '../hooks/useMemo';
+import React, { SetStateAction, memo, useCallback, useEffect, useState } from 'react';
+import { createContext, useContext } from 'use-context-selector';
+import { log } from '../../common/log';
+import { ipcRenderer } from '../../common/safeIpc';
+import { ChainnerSettings, defaultSettings } from '../../common/settings/settings';
+import { noop } from '../../common/util';
+import { useMemoObject } from '../hooks/useMemo';
 
-interface Settings {
-    // Global Settings
-    useBackendSettings: GetSetState<PackageSettings>;
-    useIsSystemPython: GetSetState<boolean>;
-    useSystemPythonLocation: GetSetState<string | null>;
-    useCheckUpdOnStrtUp: GetSetState<boolean>;
-    useSnapToGrid: readonly [
-        snapToGrid: boolean,
-        setSnapToGrid: SetState<boolean>,
-        snapToGridAmount: number,
-        setSnapToGridAmount: SetState<number>
-    ];
-    useStartupTemplate: GetSetState<string>;
-    useSelectTheme: GetSetState<string>;
-    useAnimateChain: GetSetState<boolean>;
-    useExperimentalFeatures: GetSetState<boolean>;
-    useEnableHardwareAcceleration: GetSetState<boolean>;
-    useViewportExportPadding: GetSetState<number>;
-    useAllowMultipleInstances: GetSetState<boolean>;
-
-    // Node Settings
-    useNodeFavorites: GetSetState<readonly SchemaId[]>;
-    useNodeSelectorCollapsed: GetSetState<boolean>;
+interface SettingsContextValue {
+    settings: Readonly<ChainnerSettings>;
+    updateSettings: (
+        update:
+            | Partial<Readonly<ChainnerSettings>>
+            | ((prev: Readonly<ChainnerSettings>) => Partial<Readonly<ChainnerSettings>>)
+    ) => void;
+    setSetting: <K extends keyof ChainnerSettings>(
+        key: K,
+        update: SetStateAction<ChainnerSettings[K]>
+    ) => void;
 }
 
-// TODO: create context requires default values
-export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
-
-export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
-    const useBackendSettings = useMemoArray(useLocalStorage('backend-settings', {}));
-
-    const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
-    const useSystemPythonLocation = useMemoArray(
-        useLocalStorage<string | null>('system-python-location', null)
-    );
-    const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup-2', true));
-    const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
-
-    const useSelectTheme = useMemoArray(useLocalStorage('theme', 'dark'));
-
-    const { setColorMode } = useColorMode();
-    const [selectThemeColor] = useSelectTheme;
-    useEffect(() => {
-        setColorMode(selectThemeColor);
-    }, [setColorMode, selectThemeColor]);
-
-    const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
-
-    // Snap to grid
-    const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
-    const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 16);
-    const useSnapToGrid = useMemoArray([
-        isSnapToGrid,
-        setIsSnapToGrid,
-        snapToGridAmount || 1,
-        setSnapToGridAmount,
-    ] as const);
-
-    const useViewportExportPadding = useMemoArray(useLocalStorage('viewport-export-padding', 20));
-
-    // Node Settings
-    const useNodeFavorites = useMemoArray(
-        useLocalStorage<readonly SchemaId[]>('node-favorites', [])
-    );
-    const useNodeSelectorCollapsed = useMemoArray(
-        useLocalStorage('node-selector-collapsed', false)
-    );
-
-    const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
-    const useEnableHardwareAcceleration = useMemoArray(
-        useLocalStorage('enable-hardware-acceleration', false)
-    );
-    const useAllowMultipleInstances = useMemoArray(
-        useLocalStorage('allow-multiple-instances', false)
-    );
-
-    const contextValue = useMemoObject<Settings>({
-        // Globals
-        useBackendSettings,
-        useIsSystemPython,
-        useSystemPythonLocation,
-        useSnapToGrid,
-        useCheckUpdOnStrtUp,
-        useStartupTemplate,
-        useSelectTheme,
-        useAnimateChain,
-        useExperimentalFeatures,
-        useEnableHardwareAcceleration,
-        useViewportExportPadding,
-        useAllowMultipleInstances,
-
-        // Node
-        useNodeFavorites,
-        useNodeSelectorCollapsed,
-    });
-
-    return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
+export const SettingsContext = createContext<Readonly<SettingsContextValue>>({
+    settings: defaultSettings,
+    updateSettings: noop,
+    setSetting: noop,
 });
+
+export const SettingsProvider = memo(
+    ({
+        initialSettings,
+        children,
+    }: React.PropsWithChildren<{ initialSettings: ChainnerSettings }>) => {
+        const [settings, setSettings] = useState<ChainnerSettings>(() => ({
+            ...defaultSettings,
+            ...initialSettings,
+        }));
+        const [updateCounter, setUpdateCounter] = useState(0);
+
+        const updateSettings: SettingsContextValue['updateSettings'] = useCallback((update) => {
+            setSettings((prev) => {
+                if (typeof update === 'function') {
+                    // eslint-disable-next-line no-param-reassign
+                    update = update(prev);
+                }
+                return { ...prev, ...update };
+            });
+            setUpdateCounter((prev) => prev + 1);
+        }, []);
+
+        const setSetting: SettingsContextValue['setSetting'] = useCallback((key, update) => {
+            setSettings((prev) => {
+                const oldValue = prev[key];
+                const newValue = typeof update === 'function' ? update(oldValue) : update;
+                if (oldValue === newValue) return prev;
+                return { ...prev, [key]: newValue };
+            });
+            setUpdateCounter((prev) => prev + 1);
+        }, []);
+
+        useEffect(() => {
+            if (updateCounter === 0) return;
+            ipcRenderer.invoke('set-settings', settings).catch(log.error);
+        }, [settings, updateCounter]);
+
+        // update theme
+        const { setColorMode } = useColorMode();
+        useEffect(() => {
+            setColorMode(settings.theme);
+        }, [setColorMode, settings.theme]);
+
+        const contextValue = useMemoObject<SettingsContextValue>({
+            settings,
+            updateSettings,
+            setSetting,
+        });
+
+        return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
+    }
+);
+
+export const useSettings = () => {
+    return useContext(SettingsContext).settings;
+};
+
+export const useMutSetting = <K extends keyof ChainnerSettings>(key: K) => {
+    const { settings, setSetting } = useContext(SettingsContext);
+
+    const set = useCallback(
+        (update: SetStateAction<ChainnerSettings[K]>) => {
+            setSetting(key, update);
+        },
+        [key, setSetting]
+    );
+
+    return [settings[key], set] as const;
+};

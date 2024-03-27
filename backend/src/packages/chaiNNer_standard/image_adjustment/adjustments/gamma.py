@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import numpy as np
+from chainner_ext import fast_gamma
 
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
 
 from .. import adjustments_group
 
@@ -27,7 +27,12 @@ from .. import adjustments_group
         ),
         BoolInput("Invert Gamma", default=False),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[
+        ImageOutput(
+            image_type="Input0",
+            assume_normalized=True,
+        )
+    ],
 )
 def gamma_node(img: np.ndarray, gamma: float, invert_gamma: bool) -> np.ndarray:
     if gamma == 1:
@@ -37,12 +42,4 @@ def gamma_node(img: np.ndarray, gamma: float, invert_gamma: bool) -> np.ndarray:
     if invert_gamma:
         gamma = 1 / gamma
 
-    # single-channel grayscale
-    if img.ndim == 2:
-        return img**gamma
-
-    img = img.copy()
-    # apply gamma to the first 3 channels
-    c = get_h_w_c(img)[2]
-    img[:, :, : min(c, 3)] **= gamma
-    return img
+    return fast_gamma(img, gamma)

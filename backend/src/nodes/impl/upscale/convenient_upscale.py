@@ -25,7 +25,7 @@ def denoise_and_flatten_alpha(img: np.ndarray) -> np.ndarray:
     alpha_max = np.max(img, axis=2)
     alpha_mean = np.mean(img, axis=2)
     alpha = alpha_max * alpha_mean + alpha_min * (1 - alpha_mean)
-    return alpha
+    return alpha.clip(0, 1)
 
 
 def convenient_upscale(
@@ -34,6 +34,7 @@ def convenient_upscale(
     model_out_nc: int,
     upscale: ImageOp,
     separate_alpha: bool = False,
+    clip: bool = True,
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
@@ -47,7 +48,8 @@ def convenient_upscale(
     """
     in_img_c = get_h_w_c(img)[2]
 
-    upscale = clipped(upscale)
+    if clip:
+        upscale = clipped(upscale)
 
     if model_in_nc != model_out_nc:
         return upscale(as_target_channels(img, model_in_nc, True))

@@ -35,6 +35,8 @@ type DeclaredGroupInputs = InputGuarantees<{
     'optional-list': readonly [InputItem, ...InputItem[]];
     seed: readonly [NumberInput];
     'linked-inputs': readonly [Input, Input, ...Input[]];
+    'icon-set': readonly DropDownInput[];
+    'menu-icon-row': readonly InputItem[];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -75,11 +77,13 @@ const checkCondition = (condition: Condition, schema: NodeSchema): string | unde
                 if (dropdown.hasHandle) return 'The first dropdown must not have a handle';
                 const allowed = new Set(dropdown.options.map((o) => o.value));
 
-                const value = typeof values === 'object' ? values : [values];
-                if (value.length === 0) return 'All items must have at least one condition value';
-                const invalidValue = value.find((v) => !allowed.has(v));
+                if (values.length === 0) return 'All items must have at least one condition value';
+                const invalidValue = values.find((v) => !allowed.has(v));
                 if (invalidValue !== undefined)
-                    return `Invalid condition value ${JSON.stringify(invalidValue)}`;
+                    return (
+                        `Invalid condition value ${JSON.stringify(invalidValue)}.` +
+                        ` Allowed values: ${[...allowed].map((x) => JSON.stringify(x)).join(', ')}`
+                    );
                 break;
             }
             case 'type': {
@@ -162,6 +166,19 @@ const groupInputsChecks: {
                     return `Expected all inputs to have the same ${key} value`;
             }
         }
+    },
+    'icon-set': (inputs) => {
+        if (inputs.length < 1) return 'Expected at least at one input';
+
+        if (
+            !allInputsOfKind(inputs, 'dropdown') ||
+            !inputs.every((input) => !input.hasHandle && input.preferredStyle === 'checkbox')
+        ) {
+            return `Expected all inputs to checkboxes`;
+        }
+    },
+    'menu-icon-row': (inputs) => {
+        if (inputs.length < 1) return 'Expected at least at one input';
     },
 };
 

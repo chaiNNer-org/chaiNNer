@@ -4,55 +4,98 @@ import gc
 
 import numpy as np
 import torch
-from sanic.log import logger
 from spandrel import ImageModelDescriptor
 
+from api import NodeProgress
+
 from ..upscale.auto_split import Split, Tiler, auto_split
-from .utils import np2tensor, safe_cuda_cache_empty, tensor2np
+from .utils import safe_cuda_cache_empty
+
+
+def _into_standard_image_form(t: torch.Tensor) -> torch.Tensor:
+    if len(t.shape) == 2:
+        # (H, W)
+        return t
+    elif len(t.shape) == 3:
+        # (C, H, W) -> (H, W, C)
+        return t.permute(1, 2, 0)
+    elif len(t.shape) == 4:
+        # (1, C, H, W) -> (H, W, C)
+        return t.squeeze(0).permute(1, 2, 0)
+    else:
+        raise ValueError("Unsupported output tensor shape")
+
+
+def _into_batched_form(t: torch.Tensor) -> torch.Tensor:
+    if len(t.shape) == 2:
+        # (H, W) -> (1, 1, H, W)
+        return t.unsqueeze(0).unsqueeze(0)
+    elif len(t.shape) == 3:
+        # (H, W, C) -> (1, C, H, W)
+        return t.permute(2, 0, 1).unsqueeze(0)
+    else:
+        raise ValueError("Unsupported input tensor shape")
+
+
+def _rgb_to_bgr(t: torch.Tensor) -> torch.Tensor:
+    if len(t.shape) == 3 and t.shape[2] == 3:
+        # (H, W, C) RGB -> BGR
+        return t.flip(2)
+    elif len(t.shape) == 3 and t.shape[2] == 4:
+        # (H, W, C) RGBA -> BGRA
+        return torch.cat((t[:, :, 2:3], t[:, :, 1:2], t[:, :, 0:1], t[:, :, 3:4]), 2)
+    else:
+        return t
 
 
 @torch.inference_mode()
 def pytorch_auto_split(
     img: np.ndarray,
-    model: ImageModelDescriptor,
+    model: ImageModelDescriptor[torch.nn.Module],
     device: torch.device,
     use_fp16: bool,
     tiler: Tiler,
+    progress: NodeProgress,
 ) -> np.ndarray:
-    model = model.to(device)
-    if use_fp16:
-        model.model.half()
-    else:
-        model.model.float()
+    dtype = torch.float16 if use_fp16 else torch.float32
+    model = model.to(device, dtype)
 
     def upscale(img: np.ndarray, _: object):
-        img_tensor = np2tensor(img, change_range=True)
+        if progress.paused:
+            # clear resources before pausing
+            gc.collect()
+            safe_cuda_cache_empty()
+            progress.suspend()
 
-        d_img = None
+        input_tensor = None
         try:
-            d_img = img_tensor.to(device)
-            d_img = d_img.half() if use_fp16 else d_img.float()
+            # convert to tensor
+            img = np.ascontiguousarray(img)
+            if not img.flags.writeable:
+                img = np.copy(img)
+            input_tensor = torch.from_numpy(img).to(device, dtype)
+            input_tensor = _rgb_to_bgr(input_tensor)
+            input_tensor = _into_batched_form(input_tensor)
 
-            result = model(d_img)
-            logger.info(result)
-            result = tensor2np(
-                result.detach().cpu().detach(),
-                change_range=False,
-                imtype=np.float32,
-            )
+            # inference
+            output_tensor = model(input_tensor)
 
-            del d_img
+            # convert back to numpy
+            output_tensor = _into_standard_image_form(output_tensor)
+            output_tensor = _rgb_to_bgr(output_tensor)
+            result = output_tensor.detach().cpu().detach().float().numpy()
+
             return result
         except RuntimeError as e:
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
-                if d_img is not None:
+                if input_tensor is not None:
                     try:
-                        d_img.detach().cpu()
+                        input_tensor.detach().cpu()
                     except Exception:
                         pass
-                    del d_img
+                    del input_tensor
                 gc.collect()
                 safe_cuda_cache_empty()
                 return Split()
@@ -63,7 +106,4 @@ def pytorch_auto_split(
     try:
         return auto_split(img, upscale, tiler)
     finally:
-        del model
-        del device
-        gc.collect()
         safe_cuda_cache_empty()

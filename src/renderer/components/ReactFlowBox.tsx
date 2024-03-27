@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Box } from '@chakra-ui/react';
-import { Bezier } from 'bezier-js';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaFileExport } from 'react-icons/fa';
 import ReactFlow, {
@@ -10,11 +9,11 @@ import ReactFlow, {
     Controls,
     Edge,
     EdgeTypes,
+    MiniMap,
     Node,
     NodeTypes,
     OnEdgesChange,
     OnNodesChange,
-    Position,
     Viewport,
     XYPosition,
     useEdgesState,
@@ -23,6 +22,7 @@ import ReactFlow, {
     useReactFlow,
 } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { Vec2 } from '../../common/2d';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
@@ -38,10 +38,12 @@ import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import { AABB, Point, getBezierPathValues, pointDist } from '../helpers/graphUtils';
+import { AABB, getLayoutedPositionMap, getNodeOnEdgeIntersection } from '../helpers/graphUtils';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { useHotkeys } from '../hooks/useHotkeys';
+import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
@@ -74,13 +76,13 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     } = useContext(GlobalContext);
     const { schemata, functionDefinitions } = useContext(BackendContext);
 
-    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
-    const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
-    const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+    const { snapToGrid: isSnapToGrid, snapToGridAmount, animateChain, showMinimap } = useSettings();
 
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
 
     const reactFlowInstance = useReactFlow<NodeData, EdgeData>();
+    const { getNode } = reactFlowInstance;
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
@@ -130,11 +132,11 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 return;
             }
 
-            const nodePos: Point = { x: node.position.x || 0, y: node.position.y || 0 };
-            const nodeBB = AABB.fromPoints(nodePos, {
-                x: nodePos.x + (node.width || 0),
-                y: nodePos.y + (node.height || 0),
-            });
+            const nodePos = Vec2.from(node.position);
+            const nodeBB = AABB.fromPoints(
+                nodePos,
+                nodePos.add({ x: node.width || 0, y: node.height || 0 })
+            );
 
             const fn = functionDefinitions.get(node.data.schemaId);
             if (!fn) {
@@ -155,8 +157,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     );
                 })
                 .flatMap((e) => {
-                    const sourceP: Point = { x: e.data.sourceX, y: e.data.sourceY };
-                    const targetP: Point = { x: e.data.targetX, y: e.data.targetY };
+                    const sourceP = new Vec2(e.data.sourceX, e.data.sourceY);
+                    const targetP = new Vec2(e.data.targetX, e.data.targetY);
 
                     // check node and edge bounding boxes
                     const edgeBB = AABB.fromPoints(sourceP, targetP);
@@ -166,17 +168,19 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
                     // Check if the node has valid connections it can make
                     // If it doesn't, we don't need to bother checking collision
-                    const { outputId } = parseSourceHandle(e.sourceHandle);
-                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
-                    if (!edgeType) {
-                        return EMPTY_ARRAY;
-                    }
+                    const sourceHandle = parseSourceHandle(e.sourceHandle);
+                    const { outputId } = sourceHandle;
                     const { inputId } = parseTargetHandle(e.targetHandle);
+                    const edgeType = typeState.functions.get(e.source)?.outputs.get(outputId);
                     const targetEdgeDefinition = typeState.functions.get(e.target)?.definition;
-                    if (!targetEdgeDefinition || !targetEdgeDefinition.hasInput(inputId)) {
+                    if (!edgeType || !targetEdgeDefinition) {
                         return EMPTY_ARRAY;
                     }
-                    const firstPossibleInput = getFirstPossibleInput(fn, edgeType);
+                    const firstPossibleInput = getFirstPossibleInput(
+                        fn,
+                        edgeType,
+                        chainLineage.getOutputLineage(sourceHandle) !== null
+                    );
                     const firstPossibleOutput = getFirstPossibleOutput(
                         fn,
                         targetEdgeDefinition,
@@ -186,22 +190,26 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                         return EMPTY_ARRAY;
                     }
 
-                    const bezierPathCoordinates = getBezierPathValues({
-                        sourceX: e.data.sourceX,
-                        sourceY: e.data.sourceY,
-                        sourcePosition: Position.Right,
-                        targetX: e.data.targetX,
-                        targetY: e.data.targetY,
-                        targetPosition: Position.Left,
-                    });
+                    const leftNode = getNode(sourceHandle.nodeId);
+                    const rightNode = getNode(e.target);
 
-                    // Here we use Bezier-js to determine if any of the node's sides intersect with the curve
-                    const curve = new Bezier(bezierPathCoordinates);
-                    if (!nodeBB.intersectsCurve(curve)) {
+                    if (!leftNode || !rightNode) {
                         return EMPTY_ARRAY;
                     }
 
-                    const mouseDist = pointDist(mousePosition, curve.project(mousePosition));
+                    const mouseDist = getNodeOnEdgeIntersection(
+                        leftNode,
+                        rightNode,
+                        nodeBB,
+                        sourceP,
+                        targetP,
+                        mousePosition
+                    );
+
+                    if (mouseDist === null) {
+                        return EMPTY_ARRAY;
+                    }
+
                     return { edge: e, mouseDist, firstPossibleInput, firstPossibleOutput };
                 })
                 // Sort the edges by their distance from the mouse position
@@ -249,7 +257,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 },
             };
         },
-        [createConnection, edges, functionDefinitions, nodes, removeEdgeById, typeState.functions]
+        [
+            edges,
+            functionDefinitions,
+            nodes,
+            typeState.functions,
+            chainLineage,
+            getNode,
+            removeEdgeById,
+            createConnection,
+        ]
     );
 
     const onNodeDrag = useCallback(
@@ -404,7 +421,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     //     [setEdges]
     // );
 
-    const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
+    const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu();
 
     const [selectedNodes, setSelectedNodes] = useState<Node<NodeData>[]>([]);
     const selectionMenu = useNodesMenu(selectedNodes);
@@ -421,6 +438,27 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         () => (isMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
         []
     );
+
+    const onLayout = useCallback(() => {
+        getLayoutedPositionMap(nodes, edges, isSnapToGrid ? snapToGridAmount : undefined)
+            .then((positionMap) => {
+                changeNodes((nds) => {
+                    return nds.map((node) => {
+                        const newPosition = positionMap.get(node.id);
+                        return {
+                            ...node,
+                            position: newPosition ?? node.position,
+                        };
+                    });
+                });
+            })
+            .catch((error) => {
+                log.error(error);
+            });
+    }, [nodes, edges, isSnapToGrid, snapToGridAmount, changeNodes]);
+
+    useHotkeys('ctrl+shift+f, cmd+shift+f', onLayout);
+    useIpcRendererListener('format-chain', onLayout);
 
     return (
         <Box
@@ -473,6 +511,14 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     size={1}
                     variant={BackgroundVariant.Dots}
                 />
+                {showMinimap && (
+                    <MiniMap
+                        pannable
+                        zoomable
+                        ariaLabel=""
+                        zoomStep={3}
+                    />
+                )}
                 <Controls>
                     <ControlButton
                         disabled={nodes.length === 0}

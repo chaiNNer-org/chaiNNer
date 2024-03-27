@@ -1,6 +1,5 @@
 import { constants } from 'fs';
 import fs from 'fs/promises';
-import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 import type { Input, InputData, InputId, InputValue, NodeSchema, OutputId } from './common-types';
 
@@ -23,6 +22,8 @@ export const assertNever = (value: never): never => {
 export const assertType: <T>(_: T) => void = noop;
 
 export const isReadonlyArray = Array.isArray as (value: unknown) => value is readonly unknown[];
+
+export const isNotNullish = <T>(value: T | null | undefined): value is T => value != null;
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
@@ -70,21 +71,6 @@ export const stringifySourceHandle = (handle: ParsedSourceHandle): string =>
     `${handle.nodeId}-${handle.outputId}`;
 export const stringifyTargetHandle = (handle: ParsedTargetHandle): string =>
     `${handle.nodeId}-${handle.inputId}`;
-
-export const getLocalStorage = (): Storage => {
-    const storage = (global as Record<string, unknown>).customLocalStorage;
-    if (storage === undefined) throw new Error('Custom storage not defined');
-    return storage as Storage;
-};
-
-export const getStorageKeys = (storage: Storage): string[] => {
-    if (storage instanceof LocalStorage) {
-        // workaround for https://github.com/lmaccherone/node-localstorage/issues/27
-        // eslint-disable-next-line no-underscore-dangle
-        return (storage as unknown as { _keys: string[] })._keys;
-    }
-    return Object.keys(storage);
-};
 
 export const createUniqueId = () => uuid4();
 export const deriveUniqueId = (input: string) =>
@@ -261,7 +247,7 @@ export const fixRoundingError = (n: number): number => {
     if (!Number.isFinite(n)) return n;
 
     const expS = n.toExponential(15);
-    if (/0{6}[0-3]\d[eE][+-]\d+$/.test(expS)) {
+    if (/0{6}[0-3]\de[+-]\d+$/i.test(expS)) {
         return Number(n.toExponential(12));
     }
 
@@ -282,6 +268,14 @@ export const getInputValue = <T extends NonNullable<InputValue>>(
 
 export const isAutoInput = (input: Input): boolean =>
     input.kind === 'generic' && input.optional && !input.hasHandle;
+export const getDefaultValue = <I extends Input>(
+    input: I
+): undefined | (I extends { readonly def: unknown } ? NonNullable<I['def']> : never) => {
+    if ('def' in input) {
+        return (input.def ?? undefined) as never;
+    }
+    return undefined;
+};
 
 export const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

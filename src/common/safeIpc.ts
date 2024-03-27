@@ -10,6 +10,7 @@ import {
 } from 'electron';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
+import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
@@ -21,7 +22,6 @@ type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 export interface InvokeChannels {
     'get-python': ChannelInfo<PythonInfo>;
     'get-backend-url': ChannelInfo<string>;
-    'get-localstorage-location': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
     'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
@@ -46,6 +46,10 @@ export interface InvokeChannels {
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
+
+    // settings
+    'get-settings': ChannelInfo<ChainnerSettings>;
+    'set-settings': ChannelInfo<void, [settings: ChainnerSettings]>;
 }
 
 export interface SendChannels {
@@ -84,6 +88,7 @@ export interface SendChannels {
     paste: SendChannelInfo;
     duplicate: SendChannelInfo;
     'duplicate-with-input-edges': SendChannelInfo;
+    'format-chain': SendChannelInfo;
 }
 export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];

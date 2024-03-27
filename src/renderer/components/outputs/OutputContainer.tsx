@@ -3,7 +3,7 @@ import { Box, Center, HStack, Text } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { NodeType, Output, OutputId } from '../../../common/common-types';
+import { Output, OutputId } from '../../../common/common-types';
 import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -14,14 +14,14 @@ import { TypeTags } from '../TypeTag';
 export interface OutputHandleProps {
     id: string;
     outputId: OutputId;
-    nodeType: NodeType;
     definitionType: Type;
     type: Type | undefined;
     isConnected: boolean;
+    isIterated: boolean;
 }
 
 export const OutputHandle = memo(
-    ({ id, outputId, nodeType, definitionType, type, isConnected }: OutputHandleProps) => {
+    ({ id, outputId, isIterated, definitionType, type, isConnected }: OutputHandleProps) => {
         const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
 
@@ -64,8 +64,8 @@ export const OutputHandle = memo(
                     connectedColor={isConnected ? handleColors[0] : undefined}
                     handleColors={handleColors}
                     id={sourceHandle}
+                    isIterated={isIterated}
                     isValidConnection={isValidConnectionForRf}
-                    nodeType={nodeType}
                     type="output"
                     validity={validity}
                 />
@@ -81,7 +81,7 @@ interface OutputContainerProps {
     type: Type | undefined;
     generic: boolean;
     isConnected: boolean;
-    nodeType: NodeType;
+    isIterated: boolean;
 }
 
 export const OutputContainer = memo(
@@ -93,7 +93,7 @@ export const OutputContainer = memo(
         type,
         generic,
         isConnected,
-        nodeType,
+        isIterated,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         let contents = children;
         if (output.hasHandle) {
@@ -104,7 +104,7 @@ export const OutputContainer = memo(
                         definitionType={definitionType}
                         id={id}
                         isConnected={isConnected}
-                        nodeType={nodeType}
+                        isIterated={isIterated}
                         outputId={output.id}
                         type={type}
                     />

@@ -7,7 +7,7 @@ import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { explain } from '../../../common/types/explain';
 import { fromJson } from '../../../common/types/json';
 import { prettyPrintType } from '../../../common/types/pretty';
-import { assertNever, isReadonlyArray } from '../../../common/util';
+import { assertNever } from '../../../common/util';
 import { DropDownOptions } from './DropDownOptions';
 
 type PossiblePrimitive = OfKind<Condition, Exclude<Condition['kind'], 'and' | 'or'>>;
@@ -49,9 +49,7 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
                 throw new Error(`Invalid input ID: ${inputId}`);
             }
 
-            const values = isReadonlyArray(condition.values)
-                ? condition.values
-                : [condition.values];
+            const { values } = condition;
             const valueOptions = input.options.filter((o) => values.includes(o.value));
 
             return (

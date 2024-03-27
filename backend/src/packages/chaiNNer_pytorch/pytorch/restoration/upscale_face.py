@@ -11,6 +11,7 @@ from sanic.log import logger
 from spandrel import ImageModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 
+from api import KeyInfo, NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
@@ -145,22 +146,23 @@ def upscale(
             channels=3,
         )
     ],
+    key_info=KeyInfo.number(3),
     limited_to_8bpc=True,
+    node_context=True,
 )
 def upscale_face_node(
+    context: NodeContext,
     img: np.ndarray,
     face_model: ImageModelDescriptor,
     background_img: np.ndarray | None,
     scale: int,
     weight: float,
 ) -> np.ndarray:
-    """Upscales an image with a face model"""
-
     face_helper = None
     try:
         img = denormalize(img)
 
-        exec_options = get_settings()
+        exec_options = get_settings(context)
         device = exec_options.device
 
         with torch.no_grad():

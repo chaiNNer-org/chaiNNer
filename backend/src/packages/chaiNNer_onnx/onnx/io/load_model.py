@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import onnx
 from sanic.log import logger
@@ -24,7 +25,7 @@ from .. import io_group
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],
     outputs=[
-        OnnxModelOutput(),
+        OnnxModelOutput().suggest(),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
@@ -32,16 +33,13 @@ from .. import io_group
         "chainner:onnx:load_models",
     ],
 )
-def load_model_node(path: str) -> tuple[OnnxModel, str, str]:
-    """Read a pth file from the specified path and return it as a state dict
-    and loaded model after finding arch config"""
-
+def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
     assert os.path.exists(path), f"Model file at location {path} does not exist"
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
     logger.debug(f"Reading onnx model from path: {path}")
-    model = onnx.load_model(path)
+    model = onnx.load_model(str(path))
 
     model_as_string = model.SerializeToString()
 

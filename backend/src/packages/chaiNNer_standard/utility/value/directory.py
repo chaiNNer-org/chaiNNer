@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.outputs import DirectoryOutput
 
@@ -12,13 +14,11 @@ from .. import value_group
     description="Outputs the given directory.",
     icon="BsFolder",
     inputs=[
-        DirectoryInput(
-            "Directory", must_exist=False, hide_label=True, has_handle=True
-        ).make_fused(),
+        DirectoryInput(must_exist=False, label_style="hidden").make_fused(),
     ],
     outputs=[
-        DirectoryOutput("Directory", output_type="Input0"),
+        DirectoryOutput(output_type="Input0").suggest(),
     ],
 )
-def directory_node(directory: str) -> str:
+def directory_node(directory: Path) -> Path:
     return directory

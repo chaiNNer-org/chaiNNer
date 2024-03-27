@@ -150,6 +150,10 @@ def intersect(*items: ExpressionJson) -> ExpressionJson:
     return {"type": "intersection", "items": list(items)}
 
 
+def intersect_with_error(*items: ExpressionJson) -> ExpressionJson:
+    return union(intersect(*items), *[intersect("Error", item) for item in items])
+
+
 def named(name: str, fields: dict[str, ExpressionJson] | None = None) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
 

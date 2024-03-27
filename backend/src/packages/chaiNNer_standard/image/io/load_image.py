@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
+from pathlib import Path
 from typing import Callable, Iterable, Union
 
 import cv2
@@ -21,7 +22,7 @@ from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
-_Decoder = Callable[[str], Union[np.ndarray, None]]
+_Decoder = Callable[[Path], Union[np.ndarray, None]]
 """
 An image decoder.
 
@@ -31,7 +32,7 @@ unsupported format.
 """
 
 
-def get_ext(path: str) -> str:
+def get_ext(path: Path | str) -> str:
     return split_file_path(path)[2].lower()
 
 
@@ -54,7 +55,7 @@ def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def _read_cv(path: str) -> np.ndarray | None:
+def _read_cv(path: Path) -> np.ndarray | None:
     if get_ext(path) not in get_opencv_formats():
         # not supported
         return None
@@ -67,7 +68,7 @@ def _read_cv(path: str) -> np.ndarray | None:
 
     if img is None:
         try:
-            img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            img = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
         except Exception as e:
             raise RuntimeError(
                 f'Error reading image image from path "{path}". Image may be corrupt.'
@@ -81,7 +82,7 @@ def _read_cv(path: str) -> np.ndarray | None:
     return img
 
 
-def _read_pil(path: str) -> np.ndarray | None:
+def _read_pil(path: Path) -> np.ndarray | None:
     if get_ext(path) not in get_pil_formats():
         # not supported
         return None
@@ -96,7 +97,7 @@ def _read_pil(path: str) -> np.ndarray | None:
     return img
 
 
-def _read_dds(path: str) -> np.ndarray | None:
+def _read_dds(path: Path) -> np.ndarray | None:
     if get_ext(path) != ".dds":
         # not supported
         return None
@@ -150,18 +151,18 @@ valid_formats = get_available_image_formats()
         )
     ],
     outputs=[
-        LargeImageOutput().with_docs(
+        LargeImageOutput()
+        .with_docs(
             "The node will display a preview of the selected image as well as type"
             " information for it. Connect this output to the input of another node to"
             " pass the image to it."
-        ),
+        )
+        .suggest(),
         DirectoryOutput("Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
     ],
 )
-def load_image_node(path: str) -> tuple[np.ndarray, str, str]:
-    """Reads an image from the specified path and return it as a numpy array"""
-
+def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
     logger.debug(f"Reading image from path: {path}")
 
     dirname, basename, _ = split_file_path(path)
@@ -170,7 +171,7 @@ def load_image_node(path: str) -> tuple[np.ndarray, str, str]:
     error = None
     for name, decoder in _decoders:
         try:
-            img = decoder(path)
+            img = decoder(Path(path))
         except Exception as e:
             error = e
             logger.warning(f"Decoder {name} failed")

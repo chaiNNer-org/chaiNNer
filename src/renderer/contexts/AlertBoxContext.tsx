@@ -7,7 +7,9 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogOverlay,
+    Box,
     Button,
+    Code,
     HStack,
     IconButton,
     UseToastOptions,
@@ -29,7 +31,7 @@ export type AlertId = number & { __alertId: never };
 
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
-    sendAlert: (message: Pick<AlertOptions, 'type' | 'title' | 'message'>) => AlertId;
+    sendAlert: (message: Pick<AlertOptions, 'type' | 'title' | 'message' | 'trace'>) => AlertId;
     forgetAlert: (id: AlertId) => void;
     showAlert: (message: AlertOptions) => Promise<number>;
 }
@@ -45,6 +47,7 @@ export interface AlertOptions {
     type: AlertType;
     title?: string;
     message: string;
+    trace?: string;
     buttons?: string[];
     /**
      * The button to that will be selected by default. Defaults to `0`.
@@ -215,6 +218,119 @@ const getButtons = (
     return <>{buttonElements}</>;
 };
 
+const getCopyText = (message: InternalMessage): string => {
+    let text = `${message.title}\n\n${message.message}`;
+    if (message.trace) {
+        text += `\n\nStack Trace:\n${message.trace}`;
+    }
+    return text;
+};
+
+interface AlertBoxDialogProps {
+    isOpen: boolean;
+    current: InternalMessage | undefined;
+    onClose: (button: number) => void;
+    cancelRef: React.RefObject<HTMLButtonElement>;
+    progressTotal: number;
+    progressCurrent: number;
+}
+const AlertBoxDialog = memo(
+    ({
+        isOpen,
+        current,
+        onClose,
+        cancelRef,
+        progressTotal,
+        progressCurrent,
+    }: AlertBoxDialogProps) => {
+        const buttons = useMemo(() => {
+            return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID);
+        }, [current, onClose, cancelRef]);
+
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                if (isOpen) {
+                    document.querySelector<HTMLElement>(`#${ALERT_FOCUS_ID}`)?.focus();
+                }
+            }, 50);
+            return () => clearTimeout(timerId);
+        }, [isOpen, buttons]);
+
+        const copyText = current ? getCopyText(current) : '';
+        const displayTrace = current?.trace?.replace(
+            /File "(?:[^\\/]*[\\/])*?backend[\\/]src[\\/]/g,
+            'File "'
+        );
+
+        return (
+            <AlertDialog
+                isCentered
+                isOpen={isOpen && current !== undefined}
+                leastDestructiveRef={cancelRef}
+                scrollBehavior="inside"
+                onClose={() => cancelRef.current?.click()}
+            >
+                <AlertDialogOverlay />
+
+                <AlertDialogContent
+                    bgColor="var(--chain-editor-bg)"
+                    maxWidth="xl"
+                >
+                    <AlertDialogHeader>
+                        {pickAlertIcon(current?.type ?? AlertType.INFO)}
+                        {current?.title}
+                        {progressTotal > 1 ? ` (${progressCurrent}/${progressTotal})` : ''}
+                    </AlertDialogHeader>
+
+                    <AlertDialogCloseButton />
+                    <AlertDialogBody
+                        userSelect="text"
+                        whiteSpace="pre-wrap"
+                    >
+                        {current?.message}
+
+                        {displayTrace && (
+                            <Box mt={4}>
+                                <details>
+                                    <summary style={{ cursor: 'pointer' }}>Stack Trace</summary>
+                                    <Code
+                                        display="block"
+                                        overflow="auto"
+                                        px={4}
+                                        py={2}
+                                        userSelect="text"
+                                        whiteSpace="pre"
+                                    >
+                                        {displayTrace}
+                                    </Code>
+                                </details>
+                            </Box>
+                        )}
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <HStack width="full">
+                            <IconButton
+                                _hover={{ background: 'var(--chakra-colors-whiteAlpha-300)' }}
+                                aria-label="Copy to Clipboard"
+                                background="transparent"
+                                icon={<CopyIcon />}
+                                title="Copy to Clipboard"
+                                onClick={() => clipboard.writeText(copyText)}
+                            />
+                            <HStack
+                                justifyContent="flex-end"
+                                width="full"
+                            >
+                                {buttons}
+                            </HStack>
+                        </HStack>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+);
+
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
 export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
@@ -283,10 +399,6 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         [current]
     );
 
-    const buttons = useMemo(() => {
-        return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID);
-    }, [current, onClose]);
-
     const toast = useToast();
     const sendToast = useCallback(
         (options: UseToastOptions) => {
@@ -305,64 +417,16 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     const value = useMemoObject<AlertBox>({ sendAlert, forgetAlert, showAlert, sendToast });
 
-    useEffect(() => {
-        const timerId = setTimeout(() => {
-            if (isOpen) {
-                document.querySelector<HTMLElement>(`#${ALERT_FOCUS_ID}`)?.focus();
-            }
-        }, 50);
-        return () => clearTimeout(timerId);
-    }, [isOpen, buttons]);
-
-    const progressCurrent = done + 1;
-    const progressTotal = done + queue.length;
-
-    const copyText = current ? `${current.title}\n\n${current.message}` : '';
-
     return (
         <AlertBoxContext.Provider value={value}>
-            <AlertDialog
-                isCentered
+            <AlertBoxDialog
+                cancelRef={cancelRef}
+                current={current}
                 isOpen={isOpen}
-                leastDestructiveRef={cancelRef}
-                scrollBehavior="inside"
-                onClose={() => cancelRef.current?.click()}
-            >
-                <AlertDialogOverlay />
-
-                <AlertDialogContent bgColor="var(--chain-editor-bg)">
-                    <AlertDialogHeader>
-                        {pickAlertIcon(current?.type ?? AlertType.INFO)}
-                        {current?.title}
-                        {progressTotal > 1 ? ` (${progressCurrent}/${progressTotal})` : ''}
-                    </AlertDialogHeader>
-
-                    <AlertDialogCloseButton />
-                    <AlertDialogBody
-                        userSelect="text"
-                        whiteSpace="pre-wrap"
-                    >
-                        {current?.message}
-                    </AlertDialogBody>
-                    <AlertDialogFooter>
-                        <HStack width="full">
-                            <IconButton
-                                _hover={{ background: 'var(--chakra-colors-whiteAlpha-300)' }}
-                                aria-label="Copy to Clipboard"
-                                background="transparent"
-                                icon={<CopyIcon />}
-                                onClick={() => clipboard.writeText(copyText)}
-                            />
-                            <HStack
-                                justifyContent="flex-end"
-                                width="full"
-                            >
-                                {buttons}
-                            </HStack>
-                        </HStack>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                progressCurrent={done + 1}
+                progressTotal={done + queue.length}
+                onClose={onClose}
+            />
             {children}
         </AlertBoxContext.Provider>
     );

@@ -6,6 +6,7 @@ import os
 import random
 import string
 from enum import Enum
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -137,14 +138,45 @@ def to_uint16(img: np.ndarray, normalized: bool = False) -> np.ndarray:
     return (img * 65535).round().astype(np.uint16)
 
 
-def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: FillColor) -> np.ndarray:
-    c = get_h_w_c(img)[2]
+class ShiftFill(Enum):
+    AUTO = -1
+    BLACK = 0
+    TRANSPARENT = 1
+    WRAP = 2
+
+    def to_fill_color(self) -> FillColor:
+        if self == ShiftFill.AUTO:
+            return FillColor.AUTO
+        elif self == ShiftFill.BLACK:
+            return FillColor.BLACK
+        elif self == ShiftFill.TRANSPARENT:
+            return FillColor.TRANSPARENT
+        raise ValueError(f"Cannot get color for {self}")
+
+
+def shift(
+    img: np.ndarray, amount_x: int, amount_y: int, shift_fill: ShiftFill
+) -> np.ndarray:
+    h, w, c = get_h_w_c(img)
+
+    if shift_fill == ShiftFill.WRAP:
+        amount_x %= w
+        amount_y %= h
+
+        if amount_x != 0:
+            img = np.roll(img, amount_x, axis=1)
+        if amount_y != 0:
+            img = np.roll(img, amount_y, axis=0)
+
+        return img
+
+    fill = shift_fill.to_fill_color()
     if fill == FillColor.TRANSPARENT:
         img = convert_to_bgra(img, c)
     fill_color = fill.get_color(c)
 
     h, w, _ = get_h_w_c(img)
-    translation_matrix = np.asfarray(
+    translation_matrix = np.asarray(
         [[1, 0, amount_x], [0, 1, amount_y]], dtype=np.float32
     )
     img = cv2.warpAffine(
@@ -298,15 +330,15 @@ def calculate_ssim(
     return float(np.mean(ssim_map))
 
 
-def cv_save_image(path: str, img: np.ndarray, params: list[int]):
+def cv_save_image(path: Path | str, img: np.ndarray, params: list[int]):
     """
     A light wrapper around `cv2.imwrite` to support non-ASCII paths.
     """
 
     # Write image with opencv if path is ascii, since imwrite doesn't support unicode
     # This saves us from having to keep the image buffer in memory, if possible
-    if path.isascii():
-        cv2.imwrite(path, img, params)
+    if str(path).isascii():
+        cv2.imwrite(str(path), img, params)
     else:
         dirname, _, extension = split_file_path(path)
         try:

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
 from nodes.impl.onnx.model import OnnxModel
-from nodes.properties.inputs import DirectoryInput
+from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (
     DirectoryOutput,
     NumberOutput,
@@ -30,6 +31,10 @@ from ..io.load_model import load_model_node
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            hint=True,
+        ),
     ],
     outputs=[
         OnnxModelOutput(),
@@ -41,14 +46,15 @@ from ..io.load_model import load_model_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_models_node(
-    directory: str,
-) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], str]:
+    directory: Path,
+    fail_fast: bool,
+) -> tuple[Iterator[tuple[OnnxModel, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    def load_model(path: str, index: int):
+    def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
@@ -57,4 +63,4 @@ def load_models_node(
     supported_filetypes = [".onnx"]
     model_files = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model), directory
+    return Iterator.from_list(model_files, load_model, fail_fast), directory

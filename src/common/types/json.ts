@@ -136,6 +136,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
             }
             return new StructExpression(
                 e.name,
+                undefined,
                 Object.entries(e.fields ?? {}).map(
                     ([name, type]) => new StructExpressionField(name, fromJson(type))
                 )

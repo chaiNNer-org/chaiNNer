@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 import navi
-from nodes.impl.pil_utils import InterpolationMethod, resize
+from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -47,9 +47,7 @@ def spec_to_metal(
     else:
         # to prevent color bleeding from non-metal parts of the specular map,
         # we apply the metal map as alpha and resize before combining with diffuse
-        scaled = resize(
-            np.dstack((spec, metal)), diff_size, InterpolationMethod.LANCZOS
-        )
+        scaled = resize(np.dstack((spec, metal)), diff_size, ResizeFilter.LANCZOS)
         sped_scaled: np.ndarray = scaled[:, :, 0:3]
         metal_scaled: np.ndarray = scaled[:, :, 3]
     metal3_scaled = np.dstack((metal_scaled,) * 3)
@@ -107,7 +105,6 @@ def spec_to_metal(
             channels=1,
         ),
     ],
-    limited_to_8bpc=True,
 )
 def specular_to_metal_node(
     diff: np.ndarray,

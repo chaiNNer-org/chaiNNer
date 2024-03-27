@@ -16,25 +16,21 @@ import {
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { groupBy } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { getMatchingNodes } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
+import { useStored } from '../../hooks/useStored';
 import { SearchBar } from '../SearchBar';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
-import { PresetComponent } from './Preset';
-import { presets } from './presets';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 export const NodeSelector = memo(() => {
     const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
-    const { useExperimentalFeatures } = useContext(SettingsContext);
-    const [isExperimentalFeatures] = useExperimentalFeatures;
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -45,10 +41,7 @@ export const NodeSelector = memo(() => {
     );
     const byCategories = useMemo(() => groupBy(matchingNodes, 'category'), [matchingNodes]);
 
-    const [collapsed, setCollapsed] = useContextSelector(
-        SettingsContext,
-        (c) => c.useNodeSelectorCollapsed
-    );
+    const [collapsed, setCollapsed] = useStored('nodeSelectorCollapsed', false);
 
     const { favorites } = useNodeFavorites();
     const favoriteNodes = useMemo(() => {
@@ -96,10 +89,13 @@ export const NodeSelector = memo(() => {
                     >
                         <TabList h="42px">
                             {!collapsed && (
-                                <>
-                                    <Tab>Nodes</Tab>
-                                    {isExperimentalFeatures && <Tab>Presets</Tab>}
-                                </>
+                                <Tab
+                                    _active={{}}
+                                    _hover={{}}
+                                    cursor="default"
+                                >
+                                    Nodes
+                                </Tab>
                             )}
                         </TabList>
                         <TabPanels>
@@ -213,34 +209,6 @@ export const NodeSelector = memo(() => {
                                         </AccordionItem>
                                     </Accordion>
                                 </Box>
-                            </TabPanel>
-                            <TabPanel
-                                m={0}
-                                overflowX="hidden"
-                                p={0}
-                            >
-                                <SearchBar
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        setSearchQuery(e.target.value);
-                                        setCollapsed(false);
-                                    }}
-                                    onClick={() => setCollapsed(false)}
-                                    onClose={() => setSearchQuery('')}
-                                />
-                                {presets
-                                    .filter((preset) =>
-                                        `${preset.name} ${preset.author} ${preset.description}`
-                                            .toLowerCase()
-                                            .includes(searchQuery.toLowerCase())
-                                    )
-                                    .map((preset) => (
-                                        <PresetComponent
-                                            collapsed={collapsed}
-                                            key={preset.name}
-                                            preset={preset}
-                                        />
-                                    ))}
                             </TabPanel>
                         </TabPanels>
                     </Tabs>

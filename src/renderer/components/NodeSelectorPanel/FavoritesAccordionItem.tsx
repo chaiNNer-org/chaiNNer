@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { memo } from 'react';
 import { NodeSchema } from '../../../common/common-types';
-import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
+import { NodeRepresentativeList } from './NodeRepresentative';
 import { TextBox } from './TextBox';
 
 interface FavoritesAccordionItemProps {
@@ -65,13 +65,10 @@ export const FavoritesAccordionItem = memo(
                 >
                     <Box>
                         {!noFavorites ? (
-                            favoriteNodes.map((node) => (
-                                <RepresentativeNodeWrapper
-                                    collapsed={collapsed}
-                                    key={node.schemaId}
-                                    node={node}
-                                />
-                            ))
+                            <NodeRepresentativeList
+                                collapsed={collapsed}
+                                nodes={favoriteNodes}
+                            />
                         ) : (
                             <TextBox
                                 noWrap

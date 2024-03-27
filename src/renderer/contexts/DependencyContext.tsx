@@ -20,10 +20,17 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverHeader,
+    PopoverTrigger,
     Progress,
+    Select,
     Spacer,
     Spinner,
-    Switch,
     Tag,
     Text,
     Textarea,
@@ -31,6 +38,7 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
+import { clipboard } from 'electron';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';
@@ -46,15 +54,24 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { OnStdio, runPipInstall, runPipUninstall } from '../../common/pip';
+import { getFindLinks } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
+import {
+    useBackendEventSourceListener,
+    useBackendSetupEventSource,
+} from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
-import { SettingsContext } from './SettingsContext';
+import { useSettings } from './SettingsContext';
+
+const installModes = {
+    NORMAL: 'Normal',
+    MANUAL_COPY: 'Manual/Copy',
+};
 
 export interface DependencyContextValue {
     openDependencyManager: () => void;
@@ -106,7 +123,7 @@ const PackageDependencyView = memo(
                     textAlign="left"
                     width="fit-content"
                 >
-                    {pkg.pypiName}
+                    {pkg.displayName}
                 </Text>
                 {!!tagText && <Tag color={color}>{tagText}</Tag>}
                 <Tag>{versionString}</Tag>
@@ -122,6 +139,7 @@ const PackageView = memo(
         isRunningShell,
         progress,
         installedPyPi,
+        installingPackage,
         onInstall,
         onUninstall,
         onUpdate,
@@ -130,6 +148,7 @@ const PackageView = memo(
         isRunningShell: boolean;
         progress?: number;
         installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>;
+        installingPackage: Package | null;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
@@ -139,6 +158,8 @@ const PackageView = memo(
             const installed = installedPyPi[d.pypiName];
             return installed && versionGt(d.version, installed);
         });
+
+        const isInstallingThisPackage = installingPackage?.id === p.id;
 
         return (
             <AccordionItem cursor="pointer">
@@ -190,7 +211,7 @@ const PackageView = memo(
                                         <Button
                                             colorScheme="blue"
                                             disabled={isRunningShell}
-                                            isLoading={isRunningShell}
+                                            isLoading={isRunningShell && isInstallingThisPackage}
                                             leftIcon={<DownloadIcon />}
                                             size="sm"
                                             onClick={onUpdate}
@@ -201,7 +222,8 @@ const PackageView = memo(
 
                                     <Button
                                         colorScheme="red"
-                                        disabled={isRunningShell}
+                                        isDisabled={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
                                         onClick={onUninstall}
@@ -216,8 +238,8 @@ const PackageView = memo(
                                 >
                                     <Button
                                         colorScheme="blue"
-                                        disabled={isRunningShell}
-                                        isLoading={isRunningShell}
+                                        isDisabled={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
                                         onClick={onInstall}
@@ -374,15 +396,20 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { showAlert } = useContext(AlertBoxContext);
-    const { useIsSystemPython } = useContext(SettingsContext);
-    const { backend, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
-        useContext(BackendContext);
+    const { useSystemPython } = useSettings();
+    const {
+        backend,
+        url,
+        pythonInfo,
+        backendDownRef,
+        packages,
+        featureStates,
+        refreshFeatureStates,
+    } = useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
-    const [isSystemPython] = useIsSystemPython;
-
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-    const [usePipDirectly, setUsePipDirectly] = useState(false);
+    const [installMode, setInstallMode] = useState(installModes.NORMAL);
 
     const { data: installedPyPi, refetch: refetchInstalledPyPi } = useQuery({
         queryKey: 'dependencies',
@@ -400,72 +427,114 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         refetchInterval: false,
     });
 
-    const [installingPackage, setInstallingPackage] = useState<Package | null>(null);
-    const [uninstallingPackage, setUninstallingPackage] = useState<Package | null>(null);
+    const [modifyingPackage, setModifyingPackage] = useState<Package | null>(null);
 
     const consoleRef = useRef<HTMLTextAreaElement | null>(null);
     const [shellOutput, setShellOutput] = useState('');
     const [isRunningShell, setIsRunningShell] = useState(false);
-    const [progress, setProgress] = useState(0);
     const appendToOutput = useCallback(
         (data: string) => {
             setShellOutput((prev) => (prev + data).slice(-10_000));
         },
         [setShellOutput]
     );
-    const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [installMessage, setInstallMessage] = useState<string | null>(null);
+    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
+    const [eventSource] = useBackendSetupEventSource(url);
+    useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
+        if (f) {
+            setOverallProgress(f.progress);
+            setIndividualProgress(
+                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
+            );
+
+            if (f.message) {
+                setInstallMessage(f.message);
+                appendToOutput(f.message);
+            }
+        }
+    });
 
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
         setShellOutput('');
         setIsRunningShell(true);
-        setProgress(0);
+        setOverallProgress(0);
+        setIndividualProgress(null);
+        backendDownRef.current = true;
 
         supplier()
             .catch((error) => {
                 appendToOutput(`${String(error)}\n`);
             })
             .finally(() => {
-                restart()
+                refetchInstalledPyPi()
                     .catch(log.error)
                     .then(() => {
-                        refetchInstalledPyPi()
-                            .catch(log.error)
-                            .then(() => {
-                                setIsRunningShell(false);
-                                setInstallingPackage(null);
-                                setUninstallingPackage(null);
-                                setProgress(0);
-                            })
-                            .catch(log.error);
+                        setIsRunningShell(false);
+                        setModifyingPackage(null);
+                        setOverallProgress(0);
+                        setIndividualProgress(null);
+                        backendDownRef.current = false;
                     })
                     .catch(log.error);
             });
     };
 
-    const installPackage = (p: Package) => {
-        setInstallingPackage(p);
-        changePackages(() =>
-            runPipInstall(
-                pythonInfo,
-                p.dependencies,
-                usePipDirectly ? undefined : setProgress,
-                onStdio
-            )
-        );
+    const {
+        isOpen: isPopoverOpen,
+        onToggle: onPopoverToggle,
+        onClose: onPopoverClose,
+    } = useDisclosure();
+    const copyCommandToClipboard = (command: string) => {
+        clipboard.writeText(command);
+        onPopoverToggle();
+        setTimeout(() => {
+            onPopoverClose();
+        }, 5000);
     };
 
-    const uninstallPackage = (p: Package) => {
-        setUninstallingPackage(p);
-        changePackages(() =>
-            runPipUninstall(
-                pythonInfo,
-                p.dependencies,
-                usePipDirectly ? undefined : setProgress,
-                onStdio
-            )
-        );
+    const installPackage = (pkg: Package) => {
+        // TODO: Make this feature get the command from the backend directly
+        if (installMode === installModes.MANUAL_COPY) {
+            const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
+            const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => [
+                '--extra-index-url',
+                l,
+            ]);
+            const args = [
+                pythonInfo.python,
+                '-m',
+                'pip',
+                'install',
+                '--upgrade',
+                ...deps,
+                ...findLinks,
+            ];
+            const cmd = args.join(' ');
+            copyCommandToClipboard(cmd);
+            return;
+        }
+        setOverallProgress(0);
+        setModifyingPackage(pkg);
+        changePackages(() => backend.installPackage(pkg));
+    };
+
+    const uninstallPackage = (pkg: Package) => {
+        if (installMode === installModes.MANUAL_COPY) {
+            const deps = pkg.dependencies.map((p) => p.pypiName);
+            const args = [pythonInfo.python, '-m', 'pip', 'uninstall', ...deps];
+            const cmd = args.join(' ');
+            copyCommandToClipboard(cmd);
+            return;
+        }
+        setOverallProgress(0);
+        setModifyingPackage(pkg);
+        changePackages(() => backend.uninstallPackage(pkg));
     };
 
     useEffect(() => {
@@ -474,9 +543,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
     }, [shellOutput]);
 
-    // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
-    const currentlyProcessingDeps =
-        installedPyPi === undefined || installingPackage !== null || uninstallingPackage !== null;
+    // whether we are current installing/uninstalling packages or refreshing the list of installed packages
+    const currentlyProcessingDeps = installedPyPi === undefined || modifyingPackage !== null;
 
     const availableUpdates = useMemo((): number => {
         if (!installedPyPi) return 0;
@@ -517,7 +585,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     maxW="750px"
                 >
                     <ModalHeader>Dependency Manager</ModalHeader>
-                    <ModalCloseButton disabled={currentlyProcessingDeps} />
+                    <ModalCloseButton isDisabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
                             <Flex
@@ -529,31 +597,65 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     textAlign="left"
                                 >
                                     Python ({pythonInfo.version}) [
-                                    {isSystemPython ? 'System' : 'Integrated'}]
+                                    {useSystemPython ? 'System' : 'Integrated'}]
                                 </Text>
-                                <HStack>
+                                <HStack gap={2}>
                                     <HStack>
-                                        <Switch
-                                            isChecked={usePipDirectly}
-                                            isDisabled={isRunningShell}
-                                            onChange={() => {
-                                                setUsePipDirectly(!usePipDirectly);
-                                            }}
-                                        />
-                                        <Text>Use Pip Directly</Text>
-                                        <Tooltip
-                                            hasArrow
-                                            borderRadius={8}
-                                            label="Disable progress bars and use pip to directly download and install the packages. Use this setting if you are having issues installing normally."
-                                            maxW="auto"
-                                            openDelay={500}
-                                            px={2}
-                                            py={0}
-                                        >
-                                            <Center>
-                                                <Icon as={BsQuestionCircle} />
-                                            </Center>
-                                        </Tooltip>
+                                        <HStack>
+                                            <Popover
+                                                closeOnBlur={false}
+                                                colorScheme="green"
+                                                isOpen={isPopoverOpen}
+                                                placement="top"
+                                                returnFocusOnClose={false}
+                                                onClose={onPopoverClose}
+                                            >
+                                                <PopoverTrigger>
+                                                    <Select
+                                                        isDisabled={isRunningShell}
+                                                        size="md"
+                                                        value={installMode}
+                                                        onChange={(e) => {
+                                                            setInstallMode(e.target.value);
+                                                        }}
+                                                    >
+                                                        <option>{installModes.NORMAL}</option>
+                                                        <option>{installModes.MANUAL_COPY}</option>
+                                                    </Select>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <PopoverHeader fontWeight="semibold">
+                                                        Command copied to clipboard.
+                                                    </PopoverHeader>
+                                                    <PopoverArrow />
+                                                    <PopoverCloseButton />
+                                                    <PopoverBody>
+                                                        Open up an external terminal, paste the
+                                                        command, and run it. When it is done
+                                                        running, manually restart chaiNNer.
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            <Tooltip
+                                                hasArrow
+                                                borderRadius={8}
+                                                label={
+                                                    <Markdown nonInteractive>
+                                                        {'The dependency install mode. ChaiNNer supports 2 ways of installing packages:\n\n' +
+                                                            '- Normal: This is the default installation mode. This mode will automatically handle the dependency install for you and will report progress along the way.\n' +
+                                                            '- Manual/Copy: Copy the pip install command to your clipboard for you to run in your own terminal. You will have to manually restart chaiNner afterwards.'}
+                                                    </Markdown>
+                                                }
+                                                openDelay={500}
+                                                px={2}
+                                                py={0}
+                                            >
+                                                <Center>
+                                                    <Icon as={BsQuestionCircle} />
+                                                </Center>
+                                            </Tooltip>
+                                        </HStack>
                                     </HStack>
                                     <Button
                                         aria-label={isConsoleOpen ? 'Hide Console' : 'View Console'}
@@ -611,15 +713,17 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         return (
                                             <PackageView
                                                 installedPyPi={installedPyPi}
+                                                installingPackage={modifyingPackage}
                                                 isRunningShell={isRunningShell}
                                                 key={p.id}
                                                 p={p}
                                                 progress={
-                                                    !usePipDirectly &&
+                                                    installMode === installModes.NORMAL &&
                                                     isRunningShell &&
-                                                    (installingPackage || uninstallingPackage)
-                                                        ?.id === p.id
-                                                        ? progress
+                                                    modifyingPackage?.id === p.id
+                                                        ? overallProgress * 100 +
+                                                          ((individualProgress ?? 0) * 100) /
+                                                              p.dependencies.length
                                                         : undefined
                                                 }
                                                 onInstall={install}
@@ -726,7 +830,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalFooter>
                         <Button
                             colorScheme="blue"
-                            disabled={currentlyProcessingDeps}
+                            isDisabled={currentlyProcessingDeps}
                             mr={3}
                             variant={currentlyProcessingDeps ? 'ghost' : 'solid'}
                             onClick={onClose}

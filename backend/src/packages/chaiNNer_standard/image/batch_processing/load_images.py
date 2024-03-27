@@ -28,21 +28,33 @@ def extension_filter(lst: list[str]) -> str:
     return "**/*@(" + "|".join(lst) + ")"
 
 
-def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]:
+def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Path]:
     extension_expr = extension_filter(ext_filter)
 
-    flags = glob.EXTGLOB | glob.BRACE | glob.GLOBSTAR
+    flags = (
+        glob.EXTGLOB
+        | glob.BRACE
+        | glob.GLOBSTAR
+        | glob.NEGATE
+        | glob.DOTGLOB
+        | glob.NEGATEALL
+    )
+
+    foo = list(glob.iglob(globexpr, root_dir=directory, flags=flags))
 
     filtered = glob.globfilter(
-        glob.iglob(globexpr, root_dir=directory, flags=flags),
+        foo,
         extension_expr,
         flags=flags | glob.IGNORECASE,
     )
 
-    return sorted(
-        {str(Path(directory) / f) for f in filtered},
-        key=alphanumeric_sort,
-    )
+    return [
+        Path(x)
+        for x in sorted(
+            {str(directory / f) for f in filtered},
+            key=alphanumeric_sort,
+        )
+    ]
 
 
 @batch_processing_group.register(
@@ -66,9 +78,13 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
         ),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(4, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
+        ),
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            hint=True,
         ),
     ],
     outputs=[
@@ -82,17 +98,18 @@ def list_glob(directory: str, globexpr: str, ext_filter: list[str]) -> list[str]
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_images_node(
-    directory: str,
+    directory: Path,
     use_glob: bool,
     is_recursive: bool,
     glob_str: str,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], str]:
-    def load_image(path: str, index: int):
+    fail_fast: bool,
+) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], Path]:
+    def load_image(path: Path, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(img_dir, directory)
@@ -103,11 +120,11 @@ def load_images_node(
     if not use_glob:
         glob_str = "**/*" if is_recursive else "*"
 
-    just_image_files: list[str] = list_glob(directory, glob_str, supported_filetypes)
+    just_image_files = list_glob(directory, glob_str, supported_filetypes)
     if not len(just_image_files):
         raise FileNotFoundError(f"{directory} has no valid images.")
 
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Iterator.from_list(just_image_files, load_image), directory
+    return Iterator.from_list(just_image_files, load_image, fail_fast), directory

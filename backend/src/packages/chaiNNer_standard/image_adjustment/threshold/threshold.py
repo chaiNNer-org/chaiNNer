@@ -6,9 +6,12 @@ import cv2
 import numpy as np
 from chainner_ext import binary_threshold
 
+from api import KeyInfo
 from nodes.groups import if_enum_group
+from nodes.impl.image_utils import as_2d_grayscale
 from nodes.properties.inputs import BoolInput, EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
 
 from .. import threshold_group
 
@@ -64,7 +67,10 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
             "Conceptually, the option is equivalent to first upscaling the image by a factor of X (with linear interpolation), thresholding it, and then downscaling it by a factor of X (where X is 20 or more).",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[
+        ImageOutput(image_type="Input0"),
+    ],
+    key_info=KeyInfo.number(1),
     see_also=[
         "chainner:image:generate_threshold",
         "chainner:image:threshold_adaptive",
@@ -85,6 +91,9 @@ def threshold_node(
         return result
 
     binary = binary_threshold(img, threshold, True)
+    if get_h_w_c(binary)[2] == 1:
+        binary = as_2d_grayscale(binary)
+
     if thresh_type == ThresholdType.BINARY_INV:
         binary = 1 - binary
 

@@ -12,6 +12,8 @@ import {
 import { lazy } from '../util';
 import {
     formatTextPattern,
+    getParentDirectory,
+    goIntoDirectory,
     padCenter,
     padEnd,
     padStart,
@@ -22,6 +24,11 @@ import {
 
 const code = `
 struct null;
+
+struct Error { message: string }
+def error(message: invStrSet("")): Error {
+    Error { message: message }
+}
 
 struct Seed;
 
@@ -51,7 +58,9 @@ struct PyTorchModel {
     arch: string,
     size: string,
     subType: string,
+    tiling: ModelTiling,
 }
+enum ModelTiling { Supported, Discouraged, Internal }
 
 struct NcnnBinFile { path: string }
 struct NcnnParamFile { path: string }
@@ -81,12 +90,8 @@ let OnnxGenericModel = OnnxModel {
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
-struct NormalChannelInvert;
 struct RotateInterpolationMode;
 struct TileSize;
-struct VideoEncoder;
-struct VideoContainer;
-struct VideoPreset;
 struct AudioStream;
 
 enum FpMode { fp32, fp16 }
@@ -123,6 +128,8 @@ intrinsic def padEnd(text: string, width: uint, padding: string): string;
 intrinsic def padCenter(text: string, width: uint, padding: string): string;
 intrinsic def splitFilePath(path: string): SplitFilePath;
 intrinsic def parseColorJson(json: string): Color;
+intrinsic def getParentDirectory(path: string, times: uint): string;
+intrinsic def goIntoDirectory(basePath: string, path: string): string | Error;
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -136,6 +143,8 @@ export const getChainnerScope = lazy((): Scope => {
         padCenter: makeScoped(padCenter),
         splitFilePath,
         parseColorJson,
+        getParentDirectory: makeScoped(getParentDirectory),
+        goIntoDirectory,
     };
 
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));

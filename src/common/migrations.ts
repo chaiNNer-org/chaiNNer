@@ -6,6 +6,7 @@ import semver from 'semver';
 import {
     ColorJson,
     EdgeData,
+    InputData,
     InputId,
     InputValue,
     Mutable,
@@ -1699,6 +1700,264 @@ const removeZIndexes: ModernMigration = (data) => {
     return data;
 };
 
+const createBorderEdgesTileFillToPad: ModernMigration = (data) => {
+    interface EdgeMapping {
+        nodeId: string;
+        from: InputId | number;
+        to: InputId | number;
+    }
+    const edgeChanges: EdgeMapping[] = [];
+
+    const BORDER = 0;
+    const EDGES = 1;
+    const OFFSETS = 2;
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === ('chainner:image:create_border' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 3, to: 2 }, // color
+                { nodeId: node.id, from: 2, to: 4 } // amount
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: oldData[1],
+                2: oldData[3],
+                3: BORDER,
+                4: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:create_edges' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 6, to: 2 }, // color
+                { nodeId: node.id, from: 2, to: 6 }, // top
+                { nodeId: node.id, from: 3, to: 5 }, // left
+                { nodeId: node.id, from: 4, to: 7 }, // right
+                { nodeId: node.id, from: 5, to: 8 } // bottom
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: oldData[1],
+                2: oldData[6],
+                3: EDGES,
+                6: oldData[2],
+                5: oldData[3],
+                7: oldData[4],
+                8: oldData[5],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:tile_fill' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 9 }, // width
+                { nodeId: node.id, from: 2, to: 10 } // height
+            );
+
+            const tileMode = node.data.inputData[3] ?? 0;
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                // eslint-disable-next-line eqeqeq
+                1: tileMode == 0 ? 3 : 4,
+                3: OFFSETS,
+                5: 0,
+                6: 0,
+                9: oldData[1],
+                10: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:pad' as SchemaId;
+        }
+    });
+
+    const byNode = new Map<string, EdgeMapping[]>();
+    for (const mapping of edgeChanges) {
+        if (!byNode.has(mapping.nodeId)) {
+            byNode.set(mapping.nodeId, []);
+        }
+        byNode.get(mapping.nodeId)?.push(mapping);
+    }
+
+    data.edges.forEach((edge) => {
+        const mappings = byNode.get(edge.target) ?? [];
+        for (const mapping of mappings) {
+            const nodeId = mapping.nodeId;
+            const from = mapping.from as InputId;
+            const to = mapping.to as InputId;
+
+            if (edge.targetHandle === stringifyTargetHandle({ nodeId, inputId: from })) {
+                edge.targetHandle = stringifyTargetHandle({ nodeId, inputId: to });
+                break;
+            }
+        }
+    });
+
+    return data;
+};
+
+const unifiedResizeNode: ModernMigration = (data) => {
+    interface EdgeMapping {
+        nodeId: string;
+        from: InputId | number;
+        to: InputId | number;
+    }
+    const edgeChanges: EdgeMapping[] = [];
+
+    const PERCENTAGE = 0;
+    const ABSOLUTE = 1;
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === ('chainner:image:resize_resolution' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 3 }, // width
+                { nodeId: node.id, from: 2, to: 4 }, // height
+                { nodeId: node.id, from: 3, to: 5 } // interpolation
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: ABSOLUTE,
+                3: oldData[1],
+                4: oldData[2],
+                5: oldData[3],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:resize' as SchemaId;
+        }
+
+        if (node.data.schemaId === ('chainner:image:resize_factor' as SchemaId)) {
+            edgeChanges.push(
+                { nodeId: node.id, from: 1, to: 2 }, // scale
+                { nodeId: node.id, from: 2, to: 5 } // interpolation
+            );
+
+            const oldData = node.data.inputData;
+            const newData: Record<number | InputId, InputValue> = {
+                1: PERCENTAGE,
+                2: oldData[1],
+                5: oldData[2],
+            };
+            node.data.inputData = newData as InputData;
+            node.data.schemaId = 'chainner:image:resize' as SchemaId;
+        }
+    });
+
+    const byNode = new Map<string, EdgeMapping[]>();
+    for (const mapping of edgeChanges) {
+        if (!byNode.has(mapping.nodeId)) {
+            byNode.set(mapping.nodeId, []);
+        }
+        byNode.get(mapping.nodeId)?.push(mapping);
+    }
+
+    data.edges.forEach((edge) => {
+        const mappings = byNode.get(edge.target) ?? [];
+        for (const mapping of mappings) {
+            const nodeId = mapping.nodeId;
+            const from = mapping.from as InputId;
+            const to = mapping.to as InputId;
+
+            if (edge.targetHandle === stringifyTargetHandle({ nodeId, inputId: from })) {
+                edge.targetHandle = stringifyTargetHandle({ nodeId, inputId: to });
+                break;
+            }
+        }
+    });
+
+    return data;
+};
+
+const saveVideoInputPR2514: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            const oldData = node.data.inputData;
+
+            const encoder = oldData[3];
+            const formatH264 = oldData[4];
+            const formatH265 = oldData[5];
+            const formatFFV1 = oldData[6];
+            const formatVP9 = oldData[7];
+            const formatMap: Record<string, InputValue> = {
+                libx264: formatH264,
+                libx265: formatH265,
+                ffv1: formatFFV1,
+                'libvpx-vp9': formatVP9,
+            };
+            const format = formatMap[encoder ?? 'libx264'];
+
+            const oldAudioSettings = oldData[10];
+            const oldReducedAudioSettings = oldData[11];
+            const audioSettings = format === 'webm' ? oldReducedAudioSettings : oldAudioSettings;
+
+            const newData = {
+                // Image Sequence, Directory, Video Name
+                0: oldData[0],
+                1: oldData[1],
+                2: oldData[2],
+                // Video Format, Encoder
+                4: format,
+                3: encoder,
+                // VideoPreset, Quality (CRF), Additional parameters, FPS
+                8: oldData[8],
+                9: oldData[9],
+                12: oldData[12],
+                13: oldData[13],
+                14: oldData[14],
+                // Audio
+                15: oldData[15],
+                10: audioSettings,
+            };
+
+            node.data.inputData = newData;
+        }
+    });
+
+    return data;
+};
+
+const normalMapGeneratorInvert: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:normal_generator') {
+            const inputData = node.data.inputData;
+
+            const invert = Number(inputData[6] ?? 0);
+            delete inputData[6];
+
+            // eslint-disable-next-line no-bitwise
+            const invertR = (invert & 1) !== 0;
+            // eslint-disable-next-line no-bitwise
+            const invertG = (invert & 2) !== 0;
+
+            inputData[17] = Number(invertR);
+            inputData[18] = Number(invertG);
+        }
+    });
+
+    return data;
+};
+
+const saveVideoInputPatchMigration: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            const oldData = node.data.inputData;
+
+            if (oldData[10] === 'none') {
+                oldData[10] = 'auto';
+            }
+
+            node.data.inputData = oldData;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -1753,6 +2012,11 @@ const migrations = [
     separateNodeWidthAndInputHeight,
     oldToNewIterators,
     removeZIndexes,
+    createBorderEdgesTileFillToPad,
+    unifiedResizeNode,
+    saveVideoInputPR2514,
+    normalMapGeneratorInvert,
+    saveVideoInputPatchMigration,
 ];
 
 export const currentMigration = migrations.length;

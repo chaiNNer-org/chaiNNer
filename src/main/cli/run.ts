@@ -1,25 +1,20 @@
 import { app } from 'electron';
 import EventSource from 'eventsource';
 import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
-import {
-    EdgeData,
-    NodeData,
-    NodeSchema,
-    PackageSettings,
-    SchemaId,
-} from '../../common/common-types';
+import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
-import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { ChainLineage } from '../../common/nodes/lineage';
+import { optimizeChain } from '../../common/nodes/optimize';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
-import { getNodesWithSideEffects } from '../../common/nodes/sideEffect';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
 import { SaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { ChainnerSettings } from '../../common/settings/settings';
 import { FunctionDefinition } from '../../common/types/function';
 import { ProgressController, ProgressMonitor, ProgressToken } from '../../common/ui/progress';
 import { assertNever, delay } from '../../common/util';
@@ -27,7 +22,7 @@ import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
-import { settingStorage } from '../setting-storage';
+import { readSettings } from '../setting-storage';
 import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
 
@@ -66,14 +61,15 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
     });
 };
 
-const createBackend = async (token: ProgressToken, args: RunArguments) => {
-    const useSystemPython = settingStorage.getItem('use-system-python') === 'true';
-    const systemPythonLocation = settingStorage.getItem('system-python-location');
-
+const createBackend = async (
+    token: ProgressToken,
+    args: RunArguments,
+    settings: ChainnerSettings
+) => {
     return setupBackend(
         token,
-        useSystemPython,
-        systemPythonLocation,
+        settings.useSystemPython,
+        settings.systemPythonLocation,
         getRootDirSync(),
         args.remoteBackend
     );
@@ -121,18 +117,6 @@ const connectToBackend = async (backendProcess: BackendProcess): Promise<ReadyBa
     return { backend, schemata, functionDefinitions, eventSource };
 };
 
-const getExecutionOptions = (): PackageSettings => {
-    const getSetting = <T>(key: string, defaultValue: T): T => {
-        const value = settingStorage.getItem(key);
-        if (!value) return defaultValue;
-        return JSON.parse(value) as T;
-    };
-
-    return {
-        options: getSetting('backend-settings', {}),
-    };
-};
-
 interface Chain {
     nodes: Node<NodeData>[];
     edges: Edge<EdgeData>[];
@@ -154,6 +138,7 @@ const ensureStaticCorrectness = (
 
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions);
+    const chainLineage = new ChainLineage(schemata, nodes, edges);
 
     const invalidNodes = nodes.flatMap((node) => {
         const functionInstance = typeState.functions.get(node.data.id);
@@ -164,6 +149,8 @@ const ensureStaticCorrectness = (
             connectedInputs: getConnectedInputs(node.id, edges),
             schema,
             functionInstance,
+            chainLineage,
+            nodeId: node.id,
         });
         if (validity.isValid) return [];
 
@@ -194,7 +181,9 @@ export const runChainInCli = async (args: RunArguments) => {
     const progressController = new ProgressController();
     addProgressListeners(progressController);
 
-    const backendProcess = await createBackend(progressController, args);
+    const settings = readSettings();
+
+    const backendProcess = await createBackend(progressController, args, settings);
     if (backendProcess.owned) {
         backendProcess.addErrorListener((error) => {
             log.error(
@@ -224,20 +213,14 @@ export const runChainInCli = async (args: RunArguments) => {
         applyOverrides(saveFile.nodes, saveFile.edges, schemata, overrideFile);
     }
 
-    const disabledNodes = new Set(
-        getEffectivelyDisabledNodes(saveFile.nodes, saveFile.edges).map((n) => n.id)
-    );
-    const nodesToOptimize = saveFile.nodes.filter((n) => !disabledNodes.has(n.id));
-    const nodes = getNodesWithSideEffects(nodesToOptimize, saveFile.edges, schemata);
-    const nodesById = new Map(nodes.map((n) => [n.id, n]));
-    const edges = saveFile.edges.filter((e) => nodesById.has(e.source) && nodesById.has(e.target));
+    const { nodes, edges, report } = optimizeChain(saveFile.nodes, saveFile.edges, schemata);
 
     // show an error if there are no nodes to run
     if (nodes.length === 0) {
         let message;
-        if (nodesToOptimize.length > 0) {
+        if (report.removedSideEffectFree > 0) {
             message = 'There are no nodes that have an effect. Try to view or output images/files.';
-        } else if (disabledNodes.size > 0) {
+        } else if (report.removedDisabled > 0) {
             message = 'All nodes are disabled. There are no nodes to run.';
         } else {
             message = 'There are no nodes to run.';
@@ -264,10 +247,9 @@ export const runChainInCli = async (args: RunArguments) => {
     });
 
     const data = toBackendJson(nodes, edges, schemata);
-    const options = getExecutionOptions();
     const response = await backend.run({
         data,
-        options,
+        options: settings.packageSettings,
         sendBroadcastData: false,
     });
     eventSource.close();

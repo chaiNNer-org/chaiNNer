@@ -82,7 +82,6 @@ export const useInputRefactor = (
                             schemaId: valueNodeMap[specificInput.kind],
                             inputData: { [0 as InputId]: value },
                         },
-                        nodeType: 'regularNode',
                     });
                     createEdge(
                         { nodeId: valueNodeId, outputId: 0 as OutputId },

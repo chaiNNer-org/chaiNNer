@@ -52,7 +52,7 @@ interface BackendContextState {
     features: ReadonlyMap<FeatureId, Feature>;
     featureStates: ReadonlyMap<FeatureId, FeatureState>;
     refreshFeatureStates: () => Promise<void>;
-    restartingRef: Readonly<React.MutableRefObject<boolean>>;
+    backendDownRef: React.MutableRefObject<boolean>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
 }
@@ -90,8 +90,8 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     };
 };
 
-const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boolean>>) => {
-    const isRestarting = restartingRef.current;
+const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<boolean>>) => {
+    const isBackendIntentionallyDown = backendDownRef.current;
 
     const { t } = useTranslation();
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
@@ -119,7 +119,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
         queryFn: async (): Promise<BackendData> => {
             try {
                 // spin until we're no longer restarting
-                while (restartingRef.current) {
+                while (backendDownRef.current) {
                     // eslint-disable-next-line no-await-in-loop
                     await delay(100);
                 }
@@ -184,7 +184,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
     }, [nodesQuery.status, nodesQuery.data, backendReady, sendAlert, forgetLastErrorAlert, t]);
 
     useEffect(() => {
-        if (nodeQueryError && !isRestarting) {
+        if (nodeQueryError && !isBackendIntentionallyDown) {
             const message =
                 nodeQueryError instanceof Error ? nodeQueryError.message : String(nodeQueryError);
             forgetLastErrorAlert();
@@ -196,7 +196,7 @@ const useNodes = (backend: Backend, restartingRef: Readonly<MutableRefObject<boo
                 )}\n\n${t('error.error', 'Error')}: ${message}`,
             });
         }
-    }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t, isRestarting]);
+    }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t, isBackendIntentionallyDown]);
 
     useIpcRendererListener('backend-ready', () => {
         // Refresh the nodes once the backend is ready
@@ -287,13 +287,13 @@ export const BackendProvider = memo(
             []
         );
 
-        const restartingRef = useRef(false);
+        const backendDownRef = useRef(false);
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
 
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            restartingRef
+            backendDownRef
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
@@ -323,7 +323,7 @@ export const BackendProvider = memo(
                 return restartPromiseRef.current;
             }
 
-            restartingRef.current = true;
+            backendDownRef.current = true;
             restartPromiseRef.current = (async () => {
                 let error;
                 try {
@@ -341,7 +341,7 @@ export const BackendProvider = memo(
                     } while (needsNewRestartRef.current);
                 } finally {
                     // Done. At this point, the backend either restarted or failed trying
-                    restartingRef.current = false;
+                    backendDownRef.current = false;
                     restartPromiseRef.current = undefined;
                 }
 
@@ -370,7 +370,7 @@ export const BackendProvider = memo(
             scope,
             featureStates: featureStatesMaps,
             refreshFeatureStates,
-            restartingRef,
+            backendDownRef,
             restart,
             connectionState,
         });

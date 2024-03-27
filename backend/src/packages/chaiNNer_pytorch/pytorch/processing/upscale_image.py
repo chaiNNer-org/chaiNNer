@@ -1,22 +1,27 @@
 from __future__ import annotations
 
 import numpy as np
+import psutil
 import torch
 from sanic.log import logger
-from spandrel import ImageModelDescriptor
+from spandrel import ImageModelDescriptor, ModelTiling
 
+from api import KeyInfo, NodeContext, NodeProgress
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
+    NO_TILING,
     TileSize,
     estimate_tile_size,
     parse_tile_size_input,
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
+from nodes.impl.upscale.custom_scale import custom_scale_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
+    NumberInput,
     SrModelInput,
     TileSizeDropdown,
 )
@@ -32,6 +37,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
+    progress: NodeProgress,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -41,16 +47,37 @@ def upscale(
         use_fp16 = options.use_fp16 and model.supports_half
         device = options.device
 
+        if model.tiling == ModelTiling.INTERNAL:
+            # disable tiling if the model already does it internally
+            tile_size = NO_TILING
+
         def estimate():
+            element_size = 2 if use_fp16 else 4
+            model_bytes = sum(
+                p.numel() * element_size for p in model.model.parameters()
+            )
+
             if "cuda" in device.type:
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
-                model_bytes = sum(
-                    p.numel() * element_size for p in model.model.parameters()
-                )
+                if options.budget_limit > 0:
+                    free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
 
+                return MaxTileSize(
+                    estimate_tile_size(
+                        budget,
+                        model_bytes,
+                        img,
+                        element_size,
+                    )
+                )
+            elif device.type == "cpu":
+                free = psutil.virtual_memory().available
+                if options.budget_limit > 0:
+                    free = min(options.budget_limit * 1024**3, free)
+                budget = int(free * 0.8)
                 return MaxTileSize(
                     estimate_tile_size(
                         budget,
@@ -67,6 +94,7 @@ def upscale(
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
+            progress=progress,
         )
         logger.debug("Done upscaling")
 
@@ -84,20 +112,62 @@ def upscale(
     inputs=[
         ImageInput().with_id(1),
         SrModelInput().with_id(0),
-        TileSizeDropdown()
-        .with_id(2)
-        .with_docs(
-            "Tiled upscaling is used to allow large images to be upscaled without"
-            " hitting memory limits.",
-            "This works by splitting the image into tiles (with overlap), upscaling"
-            " each tile individually, and seamlessly recombining them.",
-            "Generally it's recommended to use the largest tile size possible for"
-            " best performance (with the ideal scenario being no tiling at all),"
-            " but depending on the model and image size, this may not be possible.",
-            "If you are having issues with the automatic mode, you can manually"
-            " select a tile size. Sometimes, a manually selected tile size may be"
-            " faster than what the automatic mode picks.",
-            hint=True,
+        if_group(
+            Condition.type(0, "PyTorchModel { scale: int(2..) }", if_not_connected=True)
+            & (
+                Condition.type(
+                    0,
+                    "PyTorchModel { inputChannels: 1, outputChannels: 1 }",
+                    if_not_connected=True,
+                )
+                | Condition.type(
+                    0, "PyTorchModel { inputChannels: 3, outputChannels: 3 }"
+                )
+                | Condition.type(
+                    0, "PyTorchModel { inputChannels: 4, outputChannels: 4 }"
+                )
+            )
+        )(
+            BoolInput("Custom Scale", default=False)
+            .with_id(4)
+            .with_docs(
+                "If enabled, the scale factor can be manually set. This makes it possible to e.g. upscale 4x with a 2x model.",
+                "Custom scales are **not** supported for 1x models and colorization models.",
+                "Under the hood, this will repeatedly apply the model to the image, effectively upscaling by the given factor."
+                " E.g. if the model is 2x and the desired scale is 4x, the model will be applied 2 times."
+                " If the desired scale cannot be reached exactly, the image will be downscaled to the desired scale after upscaling."
+                " E.g. if the model is 2x and the desired scale is 6x, the model will be applied 3 times (8x) and the image will be downscaled to 6x.",
+                "If the desired scale is less than the model's scale, the image will be downscaled to the desired scale after upscaling.",
+                hint=True,
+            ),
+            if_group(Condition.bool(4, True))(
+                NumberInput(
+                    "Scale", default=4, minimum=1, maximum=32, label_style="hidden"
+                ).with_id(5),
+            ),
+        ),
+        if_group(
+            Condition.type(
+                0,
+                "PyTorchModel { tiling: ModelTiling::Supported | ModelTiling::Discouraged } ",
+                if_not_connected=True,
+            )
+        )(
+            TileSizeDropdown()
+            .with_id(2)
+            .with_docs(
+                "Tiled upscaling is used to allow large images to be upscaled without"
+                " hitting memory limits.",
+                "This works by splitting the image into tiles (with overlap), upscaling"
+                " each tile individually, and seamlessly recombining them.",
+                "Generally it's recommended to use the largest tile size possible for"
+                " best performance (with the ideal scenario being no tiling at all),"
+                " but depending on the model and image size, this may not be possible.",
+                "If you are having issues with the automatic mode, you can manually"
+                " select a tile size. Sometimes, a manually selected tile size may be"
+                " faster than what the automatic mode picks.",
+                hint=True,
+            ),
         ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
@@ -110,7 +180,9 @@ def upscale(
                 )
             )
         )(
-            BoolInput("Separate Alpha", default=False).with_docs(
+            BoolInput("Separate Alpha", default=False)
+            .with_id(3)
+            .with_docs(
                 "Upscale alpha separately from color. Enabling this option will cause the alpha of"
                 " the upscaled image to be less noisy and more accurate to the alpha of the original"
                 " image, but the image may suffer from dark borders near transparency edges"
@@ -124,36 +196,79 @@ def upscale(
     outputs=[
         ImageOutput(
             "Image",
-            image_type="""convenientUpscale(Input0, Input1)""",
+            image_type="""
+                let img = Input1;
+                let model = Input0;
+                let useCustomScale = Input4;
+                let customScale = Input5;
+
+                let singleUpscale = convenientUpscale(model, img);
+
+                if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+                    Image {
+                        width: img.width * customScale,
+                        height: img.height * customScale,
+                        channels: singleUpscale.channels,
+                    }
+                } else {
+                    singleUpscale
+                }
+            """,
+            assume_normalized=True,  # pytorch_auto_split already does clipping internally
         )
     ],
+    key_info=KeyInfo.type(
+        """
+        let model = Input0;
+        let useCustomScale = Input4;
+        let customScale = Input5;
+
+        let singleUpscale = convenientUpscale(model, img);
+
+        let scale = if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+            customScale
+        } else {
+            model.scale
+        };
+
+        string::concat(toString(scale), "x")
+        """
+    ),
+    node_context=True,
 )
 def upscale_image_node(
+    context: NodeContext,
     img: np.ndarray,
     model: ImageModelDescriptor,
+    use_custom_scale: bool,
+    custom_scale: int,
     tile_size: TileSize,
     separate_alpha: bool,
 ) -> np.ndarray:
-    """Upscales an image with a pretrained model"""
+    exec_options = get_settings(context)
 
-    exec_options = get_settings()
-
-    logger.debug("Upscaling image...")
-
-    # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
     in_nc = model.input_channels
     out_nc = model.output_channels
     scale = model.scale
-    h, w, c = get_h_w_c(img)
-    logger.debug(
-        f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
-        f" {out_nc})"
-    )
 
-    return convenient_upscale(
-        img,
-        in_nc,
-        out_nc,
-        lambda i: upscale(i, model, tile_size, exec_options),
-        separate_alpha,
-    )
+    def inner_upscale(img: np.ndarray) -> np.ndarray:
+        h, w, c = get_h_w_c(img)
+        logger.debug(
+            f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
+            f" {out_nc})"
+        )
+
+        return convenient_upscale(
+            img,
+            in_nc,
+            out_nc,
+            lambda i: upscale(i, model, tile_size, exec_options, context),
+            separate_alpha,
+            clip=False,  # pytorch_auto_split already does clipping internally
+        )
+
+    if not use_custom_scale or scale == 1 or in_nc != out_nc:
+        # no custom scale
+        custom_scale = scale
+
+    return custom_scale_upscale(img, inner_upscale, scale, custom_scale, separate_alpha)

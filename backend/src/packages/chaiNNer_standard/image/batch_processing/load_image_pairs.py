@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -30,34 +31,42 @@ from ..io.load_image import load_image_node
         DirectoryInput("Directory B"),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(2, True))(
-            NumberInput("Limit", default=10).with_docs(
+            NumberInput("Limit", default=10, minimum=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
+        ),
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            hint=True,
         ),
     ],
     outputs=[
         ImageOutput("Image A"),
         ImageOutput("Image B"),
-        DirectoryOutput("Directory A"),
-        DirectoryOutput("Directory B"),
+        DirectoryOutput("Directory A", output_type="Input0"),
+        DirectoryOutput("Directory B", output_type="Input1"),
         TextOutput("Subdirectory Path A"),
         TextOutput("Subdirectory Path B"),
         TextOutput("Image Name A"),
         TextOutput("Image Name B"),
-        NumberOutput("Index", output_type="uint").with_docs(
-            "A counter that starts at 0 and increments by 1 for each image."
-        ),
+        NumberOutput(
+            "Index",
+            output_type="if Input2 { min(uint, Input3 - 1) } else { uint }",
+        ).with_docs("A counter that starts at 0 and increments by 1 for each image."),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_image_pairs_node(
-    directory_a: str,
-    directory_b: str,
+    directory_a: Path,
+    directory_b: Path,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], str, str]:
-    def load_images(filepaths: tuple[str, str], index: int):
+    fail_fast: bool,
+) -> tuple[
+    Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], Path, Path
+]:
+    def load_images(filepaths: tuple[Path, Path], index: int):
         path_a, path_b = filepaths
         img_a, img_dir_a, basename_a = load_image_node(path_a)
         img_b, img_dir_b, basename_b = load_image_node(path_b)
@@ -69,8 +78,8 @@ def load_image_pairs_node(
 
     supported_filetypes = get_available_image_formats()
 
-    image_files_a: list[str] = list_all_files_sorted(directory_a, supported_filetypes)
-    image_files_b: list[str] = list_all_files_sorted(directory_b, supported_filetypes)
+    image_files_a: list[Path] = list_all_files_sorted(directory_a, supported_filetypes)
+    image_files_b: list[Path] = list_all_files_sorted(directory_b, supported_filetypes)
 
     assert len(image_files_a) == len(image_files_b), (
         "Number of images in directories A and B must be equal. "
@@ -84,4 +93,8 @@ def load_image_pairs_node(
 
     image_files = list(zip(image_files_a, image_files_b))
 
-    return Iterator.from_list(image_files, load_images), directory_a, directory_b
+    return (
+        Iterator.from_list(image_files, load_images, fail_fast),
+        directory_a,
+        directory_b,
+    )

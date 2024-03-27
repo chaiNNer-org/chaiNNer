@@ -3,10 +3,13 @@ from __future__ import annotations
 from enum import Enum
 
 from spandrel import ImageModelDescriptor
-from spandrel.architectures.SCUNet import SCUNet
 
+from api import NodeContext
 from nodes.impl.onnx.model import OnnxGeneric
-from nodes.impl.pytorch.convert_to_onnx_impl import convert_to_onnx_impl
+from nodes.impl.pytorch.convert_to_onnx_impl import (
+    convert_to_onnx_impl,
+    is_onnx_supported,
+)
 from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
@@ -51,23 +54,35 @@ OPSET_LABELS: dict[Opset, str] = {
     outputs=[
         OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
+        TextOutput(
+            "Opset",
+            """
+                let opset = Input2;
+                match opset {
+                    Opset::Opset14 => "opset14",
+                    Opset::Opset15 => "opset15",
+                    Opset::Opset16 => "opset16",
+                    Opset::Opset17 => "opset17",
+                }
+            """,
+        ),
     ],
+    node_context=True,
 )
 def convert_to_onnx_node(
-    model: ImageModelDescriptor, is_fp16: int, opset: Opset
-) -> tuple[OnnxGeneric, str]:
-    assert not isinstance(
-        model.model, SCUNet
-    ), "SCUNet is not supported for ONNX conversion at this time."
+    context: NodeContext, model: ImageModelDescriptor, is_fp16: int, opset: Opset
+) -> tuple[OnnxGeneric, str, str]:
+    assert is_onnx_supported(
+        model
+    ), f"{model.architecture} is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
-    exec_options = get_settings()
+    exec_options = get_settings(context)
     device = exec_options.device
     if fp16:
         assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
-    model.model.eval()
-    model = model.to(device)
+    model.eval().to(device)
 
     use_half = fp16 and model.supports_half
 
@@ -80,4 +95,4 @@ def convert_to_onnx_node(
 
     fp_mode = "fp16" if use_half else "fp32"
 
-    return OnnxGeneric(onnx_model_bytes), fp_mode
+    return OnnxGeneric(onnx_model_bytes), fp_mode, f"opset{opset.value}"

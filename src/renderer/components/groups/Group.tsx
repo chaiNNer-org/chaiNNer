@@ -4,7 +4,9 @@ import { InputItem } from '../../../common/group-inputs';
 import { NodeState } from '../../helpers/nodeState';
 import { ConditionalGroup } from './ConditionalGroup';
 import { FromToDropdownsGroup } from './FromToDropdownsGroup';
+import { IconSetGroup } from './IconSetGroup';
 import { LinkedInputsGroup } from './LinkedInputsGroup';
+import { MenuIconRowGroup } from './MenuIconRowGroup';
 import { NcnnFileInputsGroup } from './NcnnFileInputsGroup';
 import { OptionalInputsGroup } from './OptionalInputsGroup';
 import { GroupProps, InputItemRenderer } from './props';
@@ -21,6 +23,8 @@ const GroupComponents: {
     'optional-list': OptionalInputsGroup,
     seed: SeedGroup,
     'linked-inputs': LinkedInputsGroup,
+    'icon-set': IconSetGroup,
+    'menu-icon-row': MenuIconRowGroup,
 };
 
 interface GroupElementProps {

@@ -59,14 +59,22 @@ interface InputBase {
     readonly description?: string;
     readonly hint: boolean;
     readonly fused?: IOFusion | null;
+    readonly suggest: boolean;
 }
 export interface InputOption {
-    option: string;
-    value: InputSchemaValue;
-    type?: ExpressionJson;
+    readonly option: string;
+    readonly value: InputSchemaValue;
+    readonly icon?: string | null;
+    readonly type?: ExpressionJson;
+    readonly condition?: Condition | null;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs';
+export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs' | 'icons';
+export interface DropdownGroup {
+    readonly label?: string | null;
+    readonly startAt: InputSchemaValue;
+}
+export type LabelStyle = 'default' | 'inline' | 'hidden';
 
 export interface GenericInput extends InputBase {
     readonly kind: 'generic';
@@ -76,6 +84,8 @@ export interface DropDownInput extends InputBase {
     readonly def: string | number;
     readonly options: readonly InputOption[];
     readonly preferredStyle: DropDownStyle;
+    readonly labelStyle: LabelStyle;
+    readonly groups: readonly DropdownGroup[];
 }
 export interface FileInput extends InputBase {
     readonly kind: 'file';
@@ -85,7 +95,7 @@ export interface FileInput extends InputBase {
 }
 export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle;
 }
 export interface TextInput extends InputBase {
     readonly kind: 'text';
@@ -95,7 +105,7 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
     readonly allowEmptyString?: boolean;
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle | undefined;
 }
 export interface NumberInput extends InputBase {
     readonly kind: 'number';
@@ -107,7 +117,7 @@ export interface NumberInput extends InputBase {
     readonly unit?: string | null;
     readonly noteExpression?: string | null;
     readonly hideTrailingZeros: boolean;
-    readonly hideLabel: boolean;
+    readonly labelStyle: LabelStyle;
 }
 export interface SliderInput extends InputBase {
     readonly kind: 'slider';
@@ -129,6 +139,12 @@ export interface ColorInput extends InputBase {
     readonly def: string;
     readonly channels?: readonly number[] | null;
 }
+
+export interface StaticValueInput extends InputBase {
+    readonly kind: 'static';
+    readonly value: 'execution_number';
+}
+
 export type InputKind = Input['kind'];
 export type Input =
     | GenericInput
@@ -138,7 +154,8 @@ export type Input =
     | DropDownInput
     | SliderInput
     | NumberInput
-    | ColorInput;
+    | ColorInput
+    | StaticValueInput;
 
 export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
 
@@ -153,6 +170,7 @@ export interface Output {
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
     readonly description?: string | null;
+    readonly suggest: boolean;
 }
 
 export type Condition = AndCondition | OrCondition | NotCondition | EnumCondition | TypeCondition;
@@ -171,7 +189,7 @@ export interface NotCondition {
 export interface EnumCondition {
     readonly kind: 'enum';
     readonly enum: InputId;
-    readonly values: readonly InputSchemaValue[] | InputSchemaValue;
+    readonly values: readonly InputSchemaValue[];
 }
 export interface TypeCondition {
     readonly kind: 'type';
@@ -222,6 +240,16 @@ interface LinkedInputsGroup extends GroupBase {
     readonly kind: 'linked-inputs';
     readonly options: Readonly<Record<string, never>>;
 }
+interface IconSetGroup extends GroupBase {
+    readonly kind: 'icon-set';
+    readonly options: {
+        readonly label: string;
+    };
+}
+interface MenuIconRowGroup extends GroupBase {
+    readonly kind: 'menu-icon-row';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
 export type Group =
     | NcnnFileInputGroup
@@ -230,7 +258,9 @@ export type Group =
     | ConditionalGroup
     | RequiredGroup
     | SeedGroup
-    | LinkedInputsGroup;
+    | LinkedInputsGroup
+    | IconSetGroup
+    | MenuIconRowGroup;
 
 export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> = T extends {
     readonly kind: Kind;
@@ -238,14 +268,36 @@ export type OfKind<T extends { readonly kind: string }, Kind extends T['kind']> 
     ? T
     : never;
 
-export type NodeType = 'regularNode' | 'newIterator' | 'collector';
+export type NodeKind = 'regularNode' | 'newIterator' | 'collector';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputHeight = Readonly<Record<InputId, number>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
-export type GroupState = Readonly<Record<GroupId, unknown>>;
+
+export interface IteratorInputInfo {
+    readonly inputs: readonly InputId[];
+    readonly lengthType: ExpressionJson;
+}
+export interface IteratorOutputInfo {
+    readonly outputs: readonly OutputId[];
+    readonly lengthType: ExpressionJson;
+}
+
+export type KeyInfo = EnumKeyInfo | NumberKeyInfo | TypeKeyInfo;
+export interface EnumKeyInfo {
+    readonly kind: 'enum';
+    readonly inputId: InputId;
+}
+export interface NumberKeyInfo {
+    readonly kind: 'number';
+    readonly inputId: InputId;
+}
+export interface TypeKeyInfo {
+    readonly kind: 'type';
+    readonly expression: ExpressionJson;
+}
 
 export interface NodeSchema {
     readonly name: string;
@@ -254,10 +306,13 @@ export interface NodeSchema {
     readonly description: string;
     readonly seeAlso: readonly SchemaId[];
     readonly icon: string;
-    readonly nodeType: NodeType;
+    readonly kind: NodeKind;
     readonly inputs: readonly Input[];
     readonly outputs: readonly Output[];
     readonly groupLayout: readonly (InputId | Group)[];
+    readonly iteratorInputs: readonly IteratorInputInfo[];
+    readonly iteratorOutputs: readonly IteratorOutputInfo[];
+    readonly keyInfo?: KeyInfo | null;
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
@@ -276,13 +331,10 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
-    readonly groupState?: GroupState;
     readonly inputHeight?: InputHeight;
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
-    readonly invalid?: boolean;
-    readonly minWidth?: number;
-    readonly minHeight?: number;
+    readonly isCollapsed?: boolean;
 }
 export interface EdgeData {
     sourceX?: number;
@@ -462,5 +514,5 @@ export interface RgbaColorJson {
 }
 
 export interface PackageSettings {
-    [packageName: string]: Record<string, SettingValue>;
+    [packageName: string]: Partial<Record<string, SettingValue>> | undefined;
 }

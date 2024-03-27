@@ -2,9 +2,11 @@ import { Input, InputData, InputId, NodeSchema } from '../common-types';
 import { FunctionInstance } from '../types/function';
 import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from '../types/mismatch';
 import { withoutNull } from '../types/util';
+import { assertNever } from '../util';
 import { VALID, Validity, invalid } from '../Validity';
 import { testInputCondition } from './condition';
-import { getRequireConditions } from './required';
+import { getRequireConditions } from './groupStacks';
+import { ChainLineage, Lineage } from './lineage';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
@@ -15,12 +17,16 @@ export interface CheckNodeValidityOptions {
     inputData: InputData;
     connectedInputs: ReadonlySet<InputId>;
     functionInstance: FunctionInstance | undefined;
+    chainLineage: ChainLineage | undefined;
+    nodeId: string;
 }
 export const checkNodeValidity = ({
     schema,
     inputData,
     connectedInputs,
     functionInstance,
+    chainLineage,
+    nodeId,
 }: CheckNodeValidityOptions): Validity => {
     const isOptional = (input: Input): boolean => {
         if (input.kind !== 'generic' || !input.optional) {
@@ -37,6 +43,7 @@ export const checkNodeValidity = ({
         return !testInputCondition(
             condition,
             inputData,
+            schema,
             (id) => functionInstance?.inputs.get(id),
             (id) => connectedInputs.has(id)
         );
@@ -60,6 +67,7 @@ export const checkNodeValidity = ({
         return invalid(formatMissingInputs(missingInputs));
     }
 
+    // Type check
     if (functionInstance) {
         for (const { inputId, assignedType, inputType } of functionInstance.inputErrors) {
             const input = schema.inputs.find((i) => i.id === inputId)!;
@@ -84,12 +92,31 @@ export const checkNodeValidity = ({
         }
 
         // eslint-disable-next-line no-unreachable-loop
-        for (const { outputId } of functionInstance.outputErrors) {
-            const output = schema.outputs.find((o) => o.id === outputId)!;
+        for (const { message } of functionInstance.outputErrors) {
+            return invalid(`Some inputs are incompatible with each other. ${message ?? ''}`);
+        }
+    }
 
-            return invalid(
-                `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`
-            );
+    // Lineage check
+    if (chainLineage) {
+        for (const input of schema.inputs) {
+            const sourceLineage = chainLineage.getConnectedOutputLineage({
+                nodeId,
+                inputId: input.id,
+            });
+            if (sourceLineage !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                const lineageValid = checkAssignedLineage(
+                    sourceLineage,
+                    nodeId,
+                    input.id,
+                    schema,
+                    chainLineage
+                );
+                if (!lineageValid.isValid) {
+                    return lineageValid;
+                }
+            }
         }
     }
 
@@ -121,4 +148,64 @@ export const checkRequiredInputs = (schema: NodeSchema, inputData: InputData): V
         isValid: false,
         reason: formatMissingInputs(missingInputs),
     };
+};
+
+export const checkAssignedLineage = (
+    sourceLineage: Lineage | null,
+    nodeId: string,
+    inputId: InputId,
+    schema: NodeSchema,
+    chainLineage: ChainLineage
+): Validity => {
+    const input = schema.inputs.find((i) => i.id === inputId)!;
+
+    const differentLineage = () =>
+        invalid("Cannot connect node to 2 sequences that don't share the same source node.");
+    const nonIteratorInput = () =>
+        invalid(`Input ${input.label} cannot be connected to a sequence.`);
+
+    switch (schema.kind) {
+        case 'regularNode': {
+            // regular is auto-iterated, so it has to be treated separately
+            if (sourceLineage) {
+                const targetLineage = chainLineage.getInputLineage(nodeId, {
+                    exclude: new Set([inputId]),
+                });
+                if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                    return differentLineage();
+                }
+            } else {
+                // it's always valid connect a node with no lineage
+            }
+            break;
+        }
+        case 'newIterator': {
+            if (sourceLineage) {
+                return nonIteratorInput();
+            }
+            break;
+        }
+        case 'collector': {
+            const isIterated = schema.iteratorInputs[0].inputs.includes(inputId);
+            if (isIterated) {
+                if (!sourceLineage) {
+                    return invalid(`Input ${input.label} expects a sequence.`);
+                }
+
+                const targetLineage = chainLineage.getInputLineage(nodeId, {
+                    exclude: new Set([inputId]),
+                });
+                if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                    return differentLineage();
+                }
+            } else if (sourceLineage) {
+                return nonIteratorInput();
+            }
+            break;
+        }
+        default:
+            return assertNever(schema.kind);
+    }
+
+    return VALID;
 };

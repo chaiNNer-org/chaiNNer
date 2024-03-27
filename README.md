@@ -49,7 +49,7 @@ All the other Python dependencies are automatically installed, and chaiNNer even
 
 Then, all you have to do is drag and drop (or double click) node names in the selection panel to bring them into the editor. Then, drag from one node handle to another to connect the nodes. Each handle is color-coded to its specific type, and while connecting will show you only the compatible connections. This makes it very easy to know what to connect where.
 
-Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively. Note: pressing stop is usually unable to kill an in-progress upscale during the actual upscaling step. This is a known issue without a workaround at the moment, so just be patient and wait for it to finish or restart chaiNNer.
+Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively.
 
 <p align="center">
     <img src="docs/assets/screenshot.png" width="540" />
@@ -61,32 +61,30 @@ Don't forget, there are plenty of non-upscaling tasks you can do with chaiNNer a
 
 To select multiple nodes, hold down shift and drag around all the nodes you want to be selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
 
-To batch upscale, create an Image Iterator node and drag the nodes you want to use into the iterator's editor area. You can expand the iterator by clicking and dragging the bottom right corner outwards (like you would a UI window). Simply wire up a chain in an iterator the same as you would normally, and when you click run it will run on every image in the folder you chose. You also can select an entire existing chain, and drag it into the iterator's editor area to essentially convert the entire thing into an iterable chain.
+To perform batch processing on a folder of images, use the "Load Images" node. To process videos, use the "Load Video" node. It's important to note however that you cannot use both "Load Images" and "Load Video" nodes (or any two nodes that perform batch iteration) together in a chain. You can however combine the output (collector) nodes in the chain, for example using "Save Image" with "Load Video", and "Save Video" with "Load Images".
 
 You can right-click in the editor viewport to show an inline nodes list to select from. You also can get this menu by dragging a connection out to the editor rather than making an actual connection, and it will show compatible nodes to automatically create a connection with.
 
 ### Helpful Resources
 
-- [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
-  - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
-- [OpenModelDB Model Database](https://openmodeldb.info/)
-  - A nice collection of Super-Resolution models that have been trained by the community.
-- [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
-  - A more outdated collection of mostly ESRGAN models.
-- [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
-  - An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
+-   [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
+    -   A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
+-   [OpenModelDB Model Database](https://openmodeldb.info/)
+    -   A nice collection of Super-Resolution models that have been trained by the community.
+-   [Interactive Visual Comparison of Upscaling Models](https://phhofm.github.io/upscale/multimodels.html)
+    -   An online comparison of different models. The author also provides a list of [favorites](https://phhofm.github.io/upscale/favorites.html).
 
 ## Compatibility Notes
 
-- MacOS versions 10.x and below are not supported.
+-   MacOS versions 10.x and below are not supported.
 
-- Windows versions 8.1 and below are also not supported.
+-   Windows versions 8.1 and below are also not supported.
 
-- Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
+-   Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
 
-- Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
+-   Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
-- To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
+-   To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
 
 ## GPU Support
 
@@ -102,53 +100,26 @@ For Nvidia GPUs, ONNX is also an option to be used. ONNX will use CPU mode on no
 
 ChaiNNer currently supports a limited amount of neural network architectures. More architectures will be supported in the future.
 
-### Pytorch
+### PyTorch
 
-#### Single Image Super Resolution
-
-- [ESRGAN](https://github.com/xinntao/ESRGAN) (RRDBNet)
-  - This includes regular [ESRGAN](https://github.com/xinntao/ESRGAN), [ESRGAN+](https://github.com/ncarraz/ESRGANplus), "new-arch ESRGAN" ([RealSR](https://github.com/jixiaozhong/RealSR), [BSRGAN](https://github.com/cszn/BSRGAN)), [SPSR](https://github.com/Maclory/SPSR), and [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
-  - Models: [Community ESRGAN](https://upscale.wiki/wiki/Model_Database) | [ESRGAN+](https://drive.google.com/drive/folders/1lNky9afqEP-qdxrAwDFPJ1g0ui4x7Sin) | [BSRGAN](https://github.com/cszn/BSRGAN/tree/main/model_zoo) | [RealSR](https://github.com/jixiaozhong/RealSR#pre-trained-models) | [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN/blob/master/docs/model_zoo.md)
-- [Real-ESRGAN Compact](https://github.com/xinntao/Real-ESRGAN) (SRVGGNet) | [Models](https://github.com/xinntao/Real-ESRGAN/blob/master/docs/model_zoo.md)
-- [Swift-SRGAN](https://github.com/Koushik0901/Swift-SRGAN) | [Models](https://github.com/Koushik0901/Swift-SRGAN/releases/tag/v0.1)
-- [SwinIR](https://github.com/JingyunLiang/SwinIR) | [Models](https://github.com/JingyunLiang/SwinIR/releases/tag/v0.0)
-- [Swin2SR](https://github.com/mv-lab/swin2sr) | [Models](https://github.com/mv-lab/swin2sr/releases/tag/v0.0.1)
-- [HAT](https://github.com/XPixelGroup/HAT) | [Models](https://drive.google.com/drive/folders/1HpmReFfoUqUbnAOQ7rvOeNU3uf_m69w0)
-- [Omni-SR](https://github.com/Francis0625/Omni-SR) | [Models](https://github.com/Francis0625/Omni-SR#preparation)
-- [SRFormer](https://github.com/HVision-NKU/SRFormer) | [Models](https://github.com/HVision-NKU/SRFormer#pretrain-models)
-- [DAT](https://github.com/zhengchen1999/DAT) | [Models](https://github.com/zhengchen1999/DAT#testing)
-
-#### Face Restoration
-
-- [GFPGAN](https://github.com/TencentARC/GFPGAN) | [1.2](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth), [1.3](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth), [1.4](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth)
-- [RestoreFormer](https://github.com/wzhouxiff/RestoreFormer) | [Model](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/RestoreFormer.pth)
-- [CodeFormer](https://github.com/sczhou/CodeFormer) | [Model](https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth)
-
-#### Inpainting
-
-- [LaMa](https://github.com/advimman/lama) | [Model](https://github.com/Sanster/models/releases/download/add_big_lama/big-lama.pt)
-- [MAT](https://github.com/fenglinglwb/MAT) | [Model](https://github.com/Sanster/models/releases/download/add_mat/Places_512_FullData_G.pth)
-
-#### Denoising
-
-- [SCUNet](https://github.com/cszn/SCUNet) | [GAN Model](https://github.com/cszn/KAIR/releases/download/v1.0/scunet_color_real_gan.pth) | [PSNR Model](https://github.com/cszn/KAIR/releases/download/v1.0/scunet_color_real_psnr.pth)
+As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.com/chaiNNer-org/spandrel) to support Pytorch model architectures. For a list of what's supported, [check out the list there](https://github.com/chaiNNer-org/spandrel#model-architecture-support).
 
 ### NCNN
 
 #### Single Image Super Resolution
 
-- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN (and its variants) and with Waifu2x.
+-   Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN (and its variants) and with Waifu2x.
 
 ### ONNX
 
 #### Single Image Super Resolution
 
-- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN.
+-   Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure. However, I have only tested with ESRGAN.
 
 #### Background Removal
 
-- [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
-- [isnet](https://github.com/xuebinqin/DIS) | [isnet](https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx)
+-   [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
+-   [isnet](https://github.com/xuebinqin/DIS) | [isnet](https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx)
 
 ## Troubleshooting
 

@@ -4,16 +4,16 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from subprocess import Popen
-from typing import Any
+from typing import Any, Literal
 
-import cv2
 import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector, IteratorInputInfo
+from api import Collector, IteratorInputInfo, KeyInfo
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.image_utils import to_uint8
+from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -21,14 +21,6 @@ from nodes.properties.inputs import (
     ImageInput,
     SliderInput,
     TextInput,
-    VideoContainer,
-    VideoEncoder,
-    VideoEncoderDropdown,
-    VideoFfv1ContainerDropdown,
-    VideoH264ContainerDropdown,
-    VideoH265ContainerDropdown,
-    VideoPresetDropdown,
-    VideoVp9ContainerDropdown,
 )
 from nodes.properties.inputs.generic_inputs import AudioStreamInput
 from nodes.properties.inputs.numeric_inputs import NumberInput
@@ -36,15 +28,66 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
 
-ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
-PARAMETERS: dict[VideoEncoder, list] = {
-    VideoEncoder.H264: ["preset", "crf"],
-    VideoEncoder.H265: ["preset", "crf"],
-    VideoEncoder.VP9: ["crf"],
-    VideoEncoder.FFV1: [],
-}
+class VideoFormat(Enum):
+    MKV = "mkv"
+    MP4 = "mp4"
+    MOV = "mov"
+    WEBM = "webm"
+    AVI = "avi"
+    GIF = "gif"
+
+    @property
+    def ext(self) -> str:
+        return self.value
+
+    @property
+    def encoders(self) -> tuple[VideoEncoder, ...]:
+        if self == VideoFormat.MKV:
+            return (
+                VideoEncoder.H264,
+                VideoEncoder.H265,
+                VideoEncoder.VP9,
+                VideoEncoder.FFV1,
+            )
+        elif self == VideoFormat.MP4:
+            return VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9
+        elif self == VideoFormat.MOV:
+            return VideoEncoder.H264, VideoEncoder.H265
+        elif self == VideoFormat.WEBM:
+            return (VideoEncoder.VP9,)
+        elif self == VideoFormat.AVI:
+            return (VideoEncoder.H264,)
+        elif self == VideoFormat.GIF:
+            return ()
+        else:
+            raise ValueError(f"Unknown container: {self}")
+
+
+class VideoEncoder(Enum):
+    H264 = "libx264"
+    H265 = "libx265"
+    VP9 = "libvpx-vp9"
+    FFV1 = "ffv1"
+
+    @property
+    def formats(self) -> tuple[VideoFormat, ...]:
+        formats: list[VideoFormat] = []
+        for format in VideoFormat:
+            if self in format.encoders:
+                formats.append(format)
+        return tuple(formats)
+
+
+class VideoPreset(Enum):
+    ULTRA_FAST = "ultrafast"
+    SUPER_FAST = "superfast"
+    VERY_FAST = "veryfast"
+    FAST = "fast"
+    MEDIUM = "medium"
+    SLOW = "slow"
+    SLOWER = "slower"
+    VERY_SLOW = "veryslow"
 
 
 class AudioSettings(Enum):
@@ -53,24 +96,113 @@ class AudioSettings(Enum):
     TRANSCODE = "transcode"
 
 
-class AudioReducedSettings(Enum):
-    AUTO = AudioSettings.AUTO.value
-    TRANSCODE = AudioSettings.TRANSCODE.value
-
-
-AUDIO_SETTINGS_DOC = """The first audio stream can be discarded, copied or transcoded at 320 kb/s.
-Some audio formats are not supported by selected container, thus copying the audio may fail.
-Some players may not output the audio stream if its format is not supported.
-If it isn't working for you, verify compatibility or use FFMPEG to mux the audio externally."""
+PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
+    VideoEncoder.H264: ["preset", "crf"],
+    VideoEncoder.H265: ["preset", "crf"],
+    VideoEncoder.VP9: ["crf"],
+    VideoEncoder.FFV1: [],
+}
 
 
 @dataclass
 class Writer:
+    container: VideoFormat
+    encoder: VideoEncoder | None
+    fps: float
+    audio: object | None
+    audio_settings: AudioSettings
+    save_path: str
+    output_params: dict[str, str | float]
+    global_params: list[str]
     out: Popen | None = None
-    video_save_path: str | None = None
-    container: VideoContainer = VideoContainer.MP4
-    video_encoder: VideoEncoder = VideoEncoder.H264
-    audio_settings: AudioSettings = AudioSettings.AUTO
+
+    def start(self, width: int, height: int):
+        # Create the writer and run process
+        if self.out is None:
+            # Verify some parameters
+            if self.encoder in (VideoEncoder.H264, VideoEncoder.H265):
+                assert (
+                    height % 2 == 0 and width % 2 == 0
+                ), f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
+
+            try:
+                self.out = (
+                    ffmpeg.input(
+                        "pipe:",
+                        format="rawvideo",
+                        pix_fmt="bgr24",
+                        s=f"{width}x{height}",
+                        r=self.fps,
+                        loglevel="error",
+                    )
+                    .output(**self.output_params, loglevel="error")
+                    .overwrite_output()
+                    .global_args(*self.global_params)
+                    .run_async(pipe_stdin=True, pipe_stdout=False, cmd=FFMPEG_PATH)
+                )
+
+            except Exception as e:
+                logger.warning("Failed to open video writer", exc_info=e)
+
+    def write_frame(self, img: np.ndarray):
+        # Create the writer and run process
+        if self.out is None:
+            h, w, _ = get_h_w_c(img)
+            self.start(w, h)
+
+        out_frame = to_uint8(img, normalized=True)
+        if self.out is not None and self.out.stdin is not None:
+            self.out.stdin.write(out_frame.tobytes())
+        else:
+            raise RuntimeError("Failed to open video writer")
+
+    def close(self):
+        if self.out is not None:
+            if self.out.stdin is not None:
+                self.out.stdin.close()
+            self.out.wait()
+
+        if self.audio is not None:
+            video_path = self.save_path
+            base, ext = os.path.splitext(video_path)
+            audio_video_path = f"{base}_av{ext}"
+
+            # Default and auto -> copy
+            output_params = {
+                "vcodec": "copy",
+                "acodec": "copy",
+            }
+            if self.container == VideoFormat.WEBM:
+                if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
+                    output_params["acodec"] = "libopus"
+                    output_params["b:a"] = "320k"
+                else:
+                    raise ValueError(f"WebM does not support {self.audio_settings}")
+            elif self.audio_settings == AudioSettings.TRANSCODE:
+                output_params["acodec"] = "aac"
+                output_params["b:a"] = "320k"
+
+            try:
+                video_stream = ffmpeg.input(video_path)
+                output_video = ffmpeg.output(
+                    self.audio,
+                    video_stream,
+                    audio_video_path,
+                    **output_params,
+                ).overwrite_output()
+                ffmpeg.run(output_video)
+                # delete original, rename new
+                os.remove(video_path)
+                os.rename(audio_video_path, video_path)
+            except Exception:
+                logger.warning(
+                    "Failed to copy audio to video, input file probably contains "
+                    "no audio or audio stream is supported by this container. Ignoring audio settings."
+                )
+                try:
+                    os.remove(audio_video_path)
+                except Exception:
+                    pass
 
 
 @video_frames_group.register(
@@ -84,32 +216,46 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput("Output Video Directory", has_handle=True),
-        TextInput("Output Video Name"),
-        VideoEncoderDropdown().with_docs("Encoder").with_id(3),
-        if_enum_group(3, VideoEncoder.H264)(
-            VideoH264ContainerDropdown().with_docs("Container").with_id(4)
-        ),
-        if_enum_group(3, (VideoEncoder.H265))(
-            VideoH265ContainerDropdown().with_docs("Container").with_id(5)
-        ),
-        if_enum_group(3, VideoEncoder.FFV1)(
-            VideoFfv1ContainerDropdown().with_docs("Container").with_id(6)
-        ),
-        if_enum_group(3, VideoEncoder.VP9)(
-            VideoVp9ContainerDropdown().with_docs("Container").with_id(7)
-        ),
+        DirectoryInput(create=True),
+        TextInput("Video Name"),
+        EnumInput(
+            VideoFormat,
+            label="Video Format",
+            option_labels={
+                VideoFormat.MKV: "mkv",
+                VideoFormat.MP4: "mp4",
+                VideoFormat.MOV: "mov",
+                VideoFormat.WEBM: "WebM",
+                VideoFormat.AVI: "avi",
+                VideoFormat.GIF: "GIF",
+            },
+        ).with_id(4),
+        EnumInput(
+            VideoEncoder,
+            label="Encoder",
+            option_labels={
+                VideoEncoder.H264: "H.264 (AVC)",
+                VideoEncoder.H265: "H.265 (HEVC)",
+                VideoEncoder.VP9: "VP9",
+                VideoEncoder.FFV1: "FFV1",
+            },
+            conditions={
+                VideoEncoder.H264: Condition.enum(4, VideoEncoder.H264.formats),
+                VideoEncoder.H265: Condition.enum(4, VideoEncoder.H265.formats),
+                VideoEncoder.VP9: Condition.enum(4, VideoEncoder.VP9.formats),
+                VideoEncoder.FFV1: Condition.enum(4, VideoEncoder.FFV1.formats),
+            },
+        )
+        .with_id(3)
+        .wrap_with_conditional_group(),
         if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
-            VideoPresetDropdown()
+            EnumInput(VideoPreset, default=VideoPreset.MEDIUM)
             .with_docs(
                 "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
             )
             .with_id(8),
         ),
-        if_enum_group(
-            3,
-            (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9),
-        )(
+        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9))(
             SliderInput(
                 "Quality (CRF)",
                 precision=0,
@@ -134,7 +280,7 @@ class Writer:
             TextInput(
                 "Additional parameters",
                 multiline=True,
-                hide_label=True,
+                label_style="hidden",
                 allow_empty_string=True,
                 has_handle=False,
             )
@@ -142,95 +288,71 @@ class Writer:
             .with_id(13)
         ),
         NumberInput(
-            "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=2
+            "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=4
         ).with_id(14),
-        AudioStreamInput().make_optional().with_id(15),
-        if_group(
-            (
-                ~Condition.enum(7, VideoContainer.WEBM)
-                | ~Condition.enum(3, VideoEncoder.VP9)
-            )
-            & Condition.type(15, "AudioStream")
-        )(
-            EnumInput(label="Audio", enum=AudioSettings, default=AudioSettings.AUTO)
-            .with_docs(AUDIO_SETTINGS_DOC)
-            .with_id(10)
-        ),
-        if_group(
-            Condition.enum(7, VideoContainer.WEBM)
-            & Condition.enum(3, VideoEncoder.VP9)
-            & Condition.type(15, "AudioStream")
-        )(
-            EnumInput(
-                label="Audio",
-                enum=AudioReducedSettings,
-                default=AudioReducedSettings.AUTO,
-            )
-            .with_docs(AUDIO_SETTINGS_DOC)
-            .with_id(11)
+        if_group(~Condition.enum(4, VideoFormat.GIF))(
+            AudioStreamInput().make_optional().with_id(15).suggest(),
+            if_group(Condition.type(15, "AudioStream"))(
+                EnumInput(
+                    AudioSettings,
+                    label="Audio",
+                    default=AudioSettings.AUTO,
+                    conditions={
+                        AudioSettings.COPY: ~Condition.enum(4, VideoFormat.WEBM)
+                    },
+                )
+                .with_docs(
+                    "The first audio stream can be discarded, copied or transcoded at 320 kb/s."
+                    " Some audio formats are not supported by selected container, thus copying the audio may fail."
+                    " Some players may not output the audio stream if its format is not supported."
+                    " If it isn't working for you, verify compatibility or use FFMPEG to mux the audio externally."
+                )
+                .with_id(10)
+            ),
         ),
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
     outputs=[],
-    node_type="collector",
+    key_info=KeyInfo.enum(4),
+    kind="collector",
     side_effects=True,
 )
 def save_video_node(
     _: None,
     save_dir: str,
     video_name: str,
-    video_encoder: VideoEncoder,
-    h264_container: VideoContainer,
-    h265_container: VideoContainer,
-    ffv1_container: VideoContainer,
-    vp9_container: VideoContainer,
-    video_preset: str,
+    container: VideoFormat,
+    encoder: VideoEncoder,
+    video_preset: VideoPreset,
     crf: int,
     advanced: bool,
     additional_parameters: str | None,
     fps: float,
     audio: Any,
     audio_settings: AudioSettings,
-    audio_reduced_settings: AudioReducedSettings,
 ) -> Collector[np.ndarray, None]:
-    encoder = VideoEncoder(video_encoder)
-    container = None
-
-    # Determine video container
-    if encoder == VideoEncoder.H264:
-        container = VideoContainer(h264_container)
-    elif encoder == VideoEncoder.H265:
-        container = VideoContainer(h265_container)
-    elif encoder == VideoEncoder.FFV1:
-        container = VideoContainer(ffv1_container)
-    elif encoder == VideoEncoder.VP9:
-        container = VideoContainer(vp9_container)
-
-    if container is None:
-        raise ValueError(f"Invalid container: {container}")
-
-    extension = container.value
-    video_save_path = os.path.join(save_dir, f"{video_name}.{extension}")
+    save_path = os.path.join(save_dir, f"{video_name}.{container.ext}")
 
     # Common output settings
     output_params = {
-        "filename": video_save_path,
+        "filename": save_path,
         "pix_fmt": "yuv420p",
         "r": fps,
         "movflags": "faststart",
     }
 
     # Append parameters
-    output_params["vcodec"] = encoder.value
+    if encoder in container.encoders:
+        output_params["vcodec"] = encoder.value
 
-    parameters = PARAMETERS[encoder]
-    if "preset" in parameters:
-        output_params["preset"] = video_preset
-    if "crf" in parameters:
-        output_params["crf"] = crf
+        parameters = PARAMETERS[encoder]
+        if "preset" in parameters:
+            output_params["preset"] = video_preset.value
+        if "crf" in parameters:
+            output_params["crf"] = crf
 
     # Append additional parameters
-    global_params = []
+    global_params: list[str] = []
     if advanced and additional_parameters is not None:
         additional_parameters = " " + " ".join(additional_parameters.split())
         additional_parameters_array = additional_parameters.split(" -")[1:]
@@ -251,105 +373,25 @@ def save_video_node(
             else:
                 global_params.append(f"-{parameter}")
 
-    # Modify audio settings if needed
-    audio_settings = AudioSettings(audio_settings)
-    if container == VideoContainer.GIF:
+    # Audio
+    if container == VideoFormat.GIF:
         audio = None
-    elif container == VideoContainer.WEBM:
-        audio_settings = AudioSettings(audio_reduced_settings)
 
-    writer = Writer()
+    writer = Writer(
+        container=container,
+        encoder=encoder,
+        fps=fps,
+        audio=audio,
+        audio_settings=audio_settings,
+        save_path=save_path,
+        output_params=output_params,
+        global_params=global_params,
+    )
 
     def on_iterate(img: np.ndarray):
-        # Create the writer and run process
-        if writer.out is None:
-            h, w, _ = get_h_w_c(img)
-
-            # Verify some parameters
-            if encoder in [VideoEncoder.H264, VideoEncoder.H265]:
-                assert (
-                    h % 2 == 0 and w % 2 == 0
-                ), f'The "{encoder.value}" encoder requires an even-number frame resolution.'
-
-            try:
-                writer.out = (
-                    ffmpeg.input(
-                        "pipe:",
-                        format="rawvideo",
-                        pix_fmt="rgb24",
-                        s=f"{w}x{h}",
-                        r=fps,
-                    )
-                    .output(**output_params)
-                    .overwrite_output()
-                    .global_args(*global_params)
-                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
-                )
-                writer.video_save_path = video_save_path
-                writer.container = container
-                writer.video_encoder = encoder
-                writer.audio_settings = audio_settings
-
-                logger.debug(writer.out)
-            except Exception as e:
-                logger.warning(f"Failed to open video writer: {e}")
-
-        out_frame = cv2.cvtColor(to_uint8(img, normalized=True), cv2.COLOR_BGR2RGB)
-        if writer.out is not None and writer.out.stdin is not None:
-            writer.out.stdin.write(out_frame.tobytes())
-        else:
-            raise RuntimeError("Failed to open video writer")
+        writer.write_frame(img)
 
     def on_complete():
-        audio_stream = audio  # It complains if I don't do this
-        if writer.out is not None:
-            if writer.out.stdin is not None:
-                writer.out.stdin.close()
-            writer.out.wait()
-
-        if writer.video_save_path is not None and audio_stream is not None:
-            video_path = writer.video_save_path
-            base, ext = os.path.splitext(video_path)
-            audio_video_path = f"{base}_av{ext}"
-
-            # Default and auto -> copy
-            output_params = {
-                "vcodec": "copy",
-                "acodec": "copy",
-            }
-            if writer.container == VideoContainer.WEBM:
-                if writer.audio_settings in [
-                    AudioSettings.TRANSCODE,
-                    AudioSettings.AUTO,
-                ]:
-                    output_params["acodec"] = "libopus"
-                    output_params["b:a"] = "320k"
-                else:
-                    audio_stream = None
-            elif writer.audio_settings == AudioSettings.TRANSCODE:
-                output_params["acodec"] = "aac"
-                output_params["b:a"] = "320k"
-
-            try:
-                video_stream = ffmpeg.input(video_path)
-                output_video = ffmpeg.output(
-                    audio_stream,
-                    video_stream,
-                    audio_video_path,
-                    **output_params,
-                ).overwrite_output()
-                ffmpeg.run(output_video)
-                # delete original, rename new
-                os.remove(video_path)
-                os.rename(audio_video_path, video_path)
-            except Exception:
-                logger.warning(
-                    "Failed to copy audio to video, input file probably contains "
-                    "no audio or audio stream is supported by this container. Ignoring audio settings."
-                )
-                try:
-                    os.remove(audio_video_path)
-                except Exception:
-                    pass
+        writer.close()
 
     return Collector(on_iterate=on_iterate, on_complete=on_complete)

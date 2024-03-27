@@ -7,10 +7,10 @@ from nodes.impl.image_utils import as_target_channels
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 
-from . import node_group
+from .. import transparency_group
 
 
-@node_group.register(
+@transparency_group.register(
     schema_id="chainner:image:merge_transparency",
     name="Merge Transparency",
     description="Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",
@@ -22,31 +22,30 @@ from . import node_group
     outputs=[
         ImageOutput(
             image_type="""
-                let anyImages = bool::or(Input0 == Image, Input1 == Image);
+                def isImage(i: any) = match i { Image => true, _ => false };
+                let anyImages = bool::or(isImage(Input0), isImage(Input1));
 
-                def getWidth(i: any) = match i { Image => i.width, _ => Image.width };
-                def getHeight(i: any) = match i { Image => i.height, _ => Image.height };
+                if bool::not(anyImages) {
+                    error("At least one input must be an image.")
+                } else {
+                    def getWidth(i: any) = match i { Image => i.width, _ => Image.width };
+                    def getHeight(i: any) = match i { Image => i.height, _ => Image.height };
 
-                let valid = if anyImages { any } else { never };
-
-                valid & Image {
-                    width: getWidth(Input0) & getWidth(Input1),
-                    height: getHeight(Input0) & getHeight(Input1),
+                    Image {
+                        width: getWidth(Input0) & getWidth(Input1),
+                        height: getHeight(Input0) & getHeight(Input1),
+                    }
                 }
             """,
             channels=4,
             assume_normalized=True,
-        ).with_never_reason(
-            "RGB and Alpha must have the same size, and at least one must be an image."
-        )
+        ).with_never_reason("RGB and Alpha must have the same size.")
     ],
 )
 def merge_transparency_node(
     rgb: np.ndarray | Color,
     a: np.ndarray | Color,
 ) -> np.ndarray:
-    """Combine separate channels into a multi-chanel image"""
-
     start_shape = None
 
     # determine shape

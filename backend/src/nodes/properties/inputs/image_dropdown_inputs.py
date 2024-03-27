@@ -9,8 +9,9 @@ from ...impl.color.convert_data import (
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_utils import BorderType
-from ...impl.pil_utils import InterpolationMethod, RotationInterpolationMethod
-from .generic_inputs import DropDownInput, EnumInput
+from ...impl.pil_utils import RotationInterpolationMethod
+from ...impl.resize import ResizeFilter
+from .generic_inputs import DropDownGroup, DropDownInput, EnumInput
 
 
 def ColorSpaceDetectorInput(label: str = "Color Space") -> DropDownInput:
@@ -50,13 +51,19 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
     )
 
 
-def InterpolationInput() -> DropDownInput:
-    """Resize interpolation dropdown"""
+def ResizeFilterInput() -> DropDownInput:
     return EnumInput(
-        InterpolationMethod,
+        ResizeFilter,
+        label="Interpolation Method",
+        categories=[
+            DropDownGroup("Basic", start_at=ResizeFilter.AUTO),
+            DropDownGroup("Advanced", start_at=ResizeFilter.HERMITE),
+        ],
         option_labels={
-            InterpolationMethod.NEAREST: "Nearest Neighbor",
-            InterpolationMethod.BOX: "Area (Box)",
+            ResizeFilter.NEAREST: "Nearest Neighbor",
+            ResizeFilter.BOX: "Area (Box)",
+            ResizeFilter.CATROM: "Cubic",
+            ResizeFilter.BSPLINE: "B-Spline",
         },
     )
 
@@ -92,29 +99,4 @@ def BorderInput() -> DropDownInput:
                 }
             }
         """,
-    )
-
-
-def NormalChannelInvertInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="NormalChannelInvert",
-        label="Invert",
-        options=[
-            {
-                "option": "None",
-                "value": 0,
-            },
-            {
-                "option": "Invert R",
-                "value": 1,
-            },
-            {
-                "option": "Invert G",
-                "value": 2,
-            },
-            {
-                "option": "Invert R and G",
-                "value": 3,
-            },
-        ],
     )

@@ -1,22 +1,27 @@
-import { useMemo } from 'react';
-import { getLocalStorage } from '../../common/util';
+import { useCallback } from 'react';
+import { EMPTY_OBJECT } from '../../common/util';
+import { useStored } from './useStored';
 
 export interface UseLastDirectory {
-    readonly getLastDirectory: () => string | undefined;
+    readonly lastDirectory: string | undefined;
     readonly setLastDirectory: (dir: string) => void;
 }
 
 export const useLastDirectory = (key: string): UseLastDirectory => {
-    return useMemo<UseLastDirectory>(() => {
-        const storage = getLocalStorage();
-        const storageKey = `use-last-directory-${key}`;
-        return {
-            getLastDirectory: () => {
-                return storage.getItem(storageKey) || undefined;
-            },
-            setLastDirectory: (dir) => {
-                storage.setItem(storageKey, dir);
-            },
-        };
-    }, [key]);
+    const [lastDirectories, setLastDirectories] = useStored<Record<string, string | undefined>>(
+        'lastDirectories',
+        EMPTY_OBJECT
+    );
+
+    const setLastDirectory = useCallback(
+        (dir: string) => {
+            setLastDirectories((prev) => ({ ...prev, [key]: dir }));
+        },
+        [setLastDirectories, key]
+    );
+
+    return {
+        lastDirectory: lastDirectories[key],
+        setLastDirectory,
+    };
 };

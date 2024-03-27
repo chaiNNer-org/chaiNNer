@@ -3,14 +3,13 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from sanic.log import logger
 
-from nodes.impl.pil_utils import InterpolationMethod, resize
+from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import (
     EnumInput,
     ImageInput,
-    InterpolationInput,
     NumberInput,
+    ResizeFilterInput,
 )
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c, round_half_up
@@ -99,7 +98,6 @@ def resize_to_side_conditional(
             unit="px",
         ),
         EnumInput(SideSelection, label="Resize To"),
-        InterpolationInput(),
         EnumInput(
             ResizeCondition,
             option_labels={
@@ -107,7 +105,8 @@ def resize_to_side_conditional(
                 ResizeCondition.UPSCALE: "Upscale Only",
                 ResizeCondition.DOWNSCALE: "Downscale Only",
             },
-        ),
+        ).with_id(4),
+        ResizeFilterInput().with_id(3),
     ],
     outputs=[
         ImageOutput(
@@ -166,20 +165,15 @@ def resize_to_side_conditional(
             assume_normalized=True,
         )
     ],
-    limited_to_8bpc=True,
 )
 def resize_to_side_node(
     img: np.ndarray,
     target: int,
     side: SideSelection,
-    interpolation: InterpolationMethod,
     condition: ResizeCondition,
+    filter: ResizeFilter,
 ) -> np.ndarray:
-    """Takes an image and resizes it"""
-
-    logger.debug(f"Resizing image to {side} via {interpolation}")
-
     h, w, _ = get_h_w_c(img)
     out_dims = resize_to_side_conditional(w, h, target, side, condition)
 
-    return resize(img, out_dims, interpolation)
+    return resize(img, out_dims, filter)

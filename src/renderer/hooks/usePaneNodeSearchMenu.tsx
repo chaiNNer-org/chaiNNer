@@ -3,34 +3,37 @@ import {
     Box,
     Center,
     HStack,
+    Icon,
     Input,
     InputGroup,
     InputLeftElement,
     InputRightElement,
     MenuList,
-    Spacer,
     Text,
 } from '@chakra-ui/react';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { Edge, Node, OnConnectStartParams, useReactFlow } from 'reactflow';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { VscLightbulbAutofix } from 'react-icons/vsc';
+import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { CategoryMap } from '../../common/CategoryMap';
 import {
+    Category,
     CategoryId,
-    EdgeData,
     InputId,
-    NodeData,
     NodeSchema,
     OutputId,
     SchemaId,
 } from '../../common/common-types';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
+import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { FunctionDefinition } from '../../common/types/function';
 import {
+    EMPTY_SET,
     assertNever,
     createUniqueId,
     groupBy,
+    isNotNullish,
     parseSourceHandle,
     parseTargetHandle,
     stopPropagation,
@@ -38,62 +41,81 @@ import {
     stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
+import { IfVisible } from '../components/IfVisible';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import {
-    gatherDownstreamIteratorNodes,
-    gatherUpstreamIteratorNodes,
-} from '../helpers/nodeGathering';
+
 import { getMatchingNodes } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
+const clampWithWrap = (min: number, max: number, value: number): number => {
+    if (value < min) {
+        return max;
+    }
+    if (value > max) {
+        return min;
+    }
+    return value;
+};
+
 interface SchemaItemProps {
     schema: NodeSchema;
-    isFavorite?: boolean;
+    isFavorite: boolean;
     accentColor: string;
     onClick: (schema: NodeSchema) => void;
+    isSelected: boolean;
+    scrollRef?: React.RefObject<HTMLDivElement>;
 }
-const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaItemProps) => {
-    const bgColor = useThemeColor('--bg-700');
-    const menuBgColor = useThemeColor('--bg-800');
+const SchemaItem = memo(
+    ({ schema, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
+        const bgColor = useThemeColor('--bg-700');
+        const menuBgColor = useThemeColor('--bg-800');
 
-    const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
-    const gradR = menuBgColor;
-    const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
-    const hoverGradR = bgColor;
+        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+        const gradR = menuBgColor;
+        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+        const hoverGradR = bgColor;
 
-    return (
-        <HStack
-            _hover={{
-                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
-            }}
-            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
-            borderRadius="md"
-            key={schema.schemaId}
-            mx={1}
-            my={0.5}
-            px={2}
-            py={0.5}
-            onClick={() => onClick(schema)}
-        >
-            <IconFactory
-                accentColor="gray.500"
-                icon={schema.icon}
-            />
-            <Text
-                h="full"
-                verticalAlign="middle"
+        return (
+            <HStack
+                _hover={{
+                    bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
+                }}
+                bgGradient={
+                    isSelected
+                        ? `linear(to-r, ${hoverGradL}, ${hoverGradR})`
+                        : `linear(to-r, ${gradL}, ${gradR})`
+                }
+                borderRadius="md"
+                key={schema.schemaId}
+                mx={1}
+                my={0.5}
+                outline={isSelected ? '1px solid' : undefined}
+                px={2}
+                py={0.5}
+                ref={scrollRef}
+                onClick={() => onClick(schema)}
             >
-                {schema.name}
-            </Text>
-            {isFavorite && (
-                <>
-                    <Spacer />
+                <IconFactory
+                    accentColor="gray.500"
+                    icon={schema.icon}
+                />
+                <Text
+                    flex={1}
+                    h="full"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    verticalAlign="middle"
+                    whiteSpace="nowrap"
+                >
+                    {schema.name}
+                </Text>
+                {isFavorite && (
                     <StarIcon
                         aria-label="Favorites"
                         boxSize={2.5}
@@ -102,53 +124,165 @@ const SchemaItem = memo(({ schema, onClick, isFavorite, accentColor }: SchemaIte
                         stroke="gray.500"
                         verticalAlign="middle"
                     />
-                </>
-            )}
-        </HStack>
-    );
-});
+                )}
+            </HStack>
+        );
+    }
+);
 
-type ConnectionTarget =
-    | { type: 'source'; input: InputId }
-    | { type: 'target'; output: OutputId }
-    | { type: 'none' };
+type SchemaGroup = FavoritesSchemaGroup | SuggestedSchemaGroup | CategorySchemaGroup;
+interface SchemaGroupBase {
+    readonly name: string;
+    readonly schemata: readonly NodeSchema[];
+}
+interface FavoritesSchemaGroup extends SchemaGroupBase {
+    type: 'favorites';
+    categoryId?: never;
+}
+
+interface SuggestedSchemaGroup extends SchemaGroupBase {
+    type: 'suggested';
+    categoryId?: never;
+}
+interface CategorySchemaGroup extends SchemaGroupBase {
+    type: 'category';
+    categoryId: CategoryId;
+    category: Category | undefined;
+}
+
+const groupSchemata = (
+    schemata: readonly NodeSchema[],
+    categories: CategoryMap,
+    favorites: ReadonlySet<SchemaId>,
+    suggested: ReadonlySet<SchemaId>
+): readonly SchemaGroup[] => {
+    const cats = [...groupBy(schemata, 'category')].map(
+        ([categoryId, categorySchemata]): CategorySchemaGroup => {
+            const category = categories.get(categoryId);
+            return {
+                type: 'category',
+                name: category?.name ?? categoryId,
+                categoryId,
+                category,
+                schemata: categorySchemata,
+            };
+        }
+    );
+
+    const favs: FavoritesSchemaGroup = {
+        type: 'favorites',
+        name: 'Favorites',
+        schemata: cats.flatMap((c) => c.schemata).filter((n) => favorites.has(n.schemaId)),
+    };
+
+    const suggs: SuggestedSchemaGroup = {
+        type: 'suggested',
+        name: 'Suggested',
+        schemata: schemata.filter((n) => suggested.has(n.schemaId)),
+    };
+
+    return [
+        ...(suggs.schemata.length ? [suggs] : []),
+        ...(favs.schemata.length ? [favs] : []),
+        ...cats,
+    ];
+};
+
+const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
+    switch (group.type) {
+        case 'favorites':
+            return (
+                <StarIcon
+                    boxSize={3}
+                    color="yellow.500"
+                />
+            );
+        case 'suggested':
+            return (
+                <Icon
+                    as={VscLightbulbAutofix}
+                    boxSize={3}
+                    color="cyan.500"
+                />
+            );
+        case 'category':
+            return (
+                <IconFactory
+                    accentColor={getCategoryAccentColor(categories, group.categoryId)}
+                    boxSize={3}
+                    icon={group.category?.icon}
+                />
+            );
+        default:
+            return assertNever(group);
+    }
+};
 
 interface MenuProps {
-    onSelect: (schema: NodeSchema, target: ConnectionTarget) => void;
-    targets: ReadonlyMap<NodeSchema, ConnectionTarget>;
+    onSelect: (schema: NodeSchema) => void;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: CategoryMap;
+    suggestions: ReadonlySet<SchemaId>;
 }
 
-const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {
+const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const byCategories: ReadonlyMap<CategoryId, readonly NodeSchema[]> = useMemo(
-        () => groupBy(getMatchingNodes(searchQuery, schemata, categories), 'category'),
-        [searchQuery, schemata, categories]
-    );
+    const changeSearchQuery = useCallback((query: string) => {
+        setSearchQuery(query);
+        setSelectedIndex(0);
+    }, []);
 
-    const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
-        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    }, [byCategories, favorites]);
-
-    const menuBgColor = useThemeColor('--bg-800');
-    const inputColor = 'var(--fg-300)';
+    const groups = useMemo(() => {
+        return groupSchemata(
+            getMatchingNodes(searchQuery, schemata, categories),
+            categories,
+            favorites,
+            suggestions
+        );
+    }, [searchQuery, schemata, categories, favorites, suggestions]);
+    const flatGroups = useMemo(() => groups.flatMap((group) => group.schemata), [groups]);
 
     const onClickHandler = useCallback(
         (schema: NodeSchema) => {
-            setSearchQuery('');
-            onSelect(schema, targets.get(schema)!);
+            changeSearchQuery('');
+            onSelect(schema);
         },
-        [setSearchQuery, onSelect, targets]
+        [changeSearchQuery, onSelect]
     );
     const onEnterHandler = useCallback(() => {
-        const nodes = [...byCategories.values()].flat();
-        if (nodes.length === 1) {
-            onClickHandler(nodes[0]);
+        if (selectedIndex >= 0 && selectedIndex < flatGroups.length) {
+            onClickHandler(flatGroups[selectedIndex]);
         }
-    }, [byCategories, onClickHandler]);
+    }, [flatGroups, onClickHandler, selectedIndex]);
+
+    const keydownHandler = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                setSelectedIndex((i) => clampWithWrap(0, flatGroups.length - 1, i + 1));
+            } else if (e.key === 'ArrowUp') {
+                setSelectedIndex((i) => clampWithWrap(0, flatGroups.length - 1, i - 1));
+            }
+        },
+        [flatGroups]
+    );
+    useEffect(() => {
+        window.addEventListener('keydown', keydownHandler);
+        return () => window.removeEventListener('keydown', keydownHandler);
+    }, [keydownHandler]);
+
+    const scrollRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({
+            block: 'center',
+            inline: 'nearest',
+        });
+    }, [selectedIndex]);
+
+    const menuBgColor = useThemeColor('--bg-800');
+    const inputColor = 'var(--fg-300)';
 
     return (
         <MenuList
@@ -176,7 +310,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                     type="text"
                     value={searchQuery}
                     variant="filled"
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => changeSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             onEnterHandler();
@@ -191,7 +325,7 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                         display: searchQuery ? undefined : 'none',
                         fontSize: '66%',
                     }}
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => changeSearchQuery('')}
                 >
                     <CloseIcon />
                 </InputRightElement>
@@ -202,61 +336,60 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                 overflowY="scroll"
                 p={1}
             >
-                {favoriteNodes.length > 0 && (
-                    <Box>
-                        <HStack
-                            borderRadius="md"
-                            mx={1}
-                            py={0.5}
-                        >
-                            <StarIcon
-                                boxSize={3}
-                                color="yellow.500"
-                            />
-                            <Text fontSize="xs">Favorites</Text>
-                        </HStack>
-                        {favoriteNodes.map((favorite) => (
-                            <SchemaItem
-                                accentColor={getCategoryAccentColor(categories, favorite.category)}
-                                key={favorite.schemaId}
-                                schema={favorite}
-                                onClick={onClickHandler}
-                            />
-                        ))}
-                    </Box>
-                )}
+                {groups.map((group, groupIndex) => {
+                    const indexOffset = groups
+                        .slice(0, groupIndex)
+                        .reduce((acc, g) => acc + g.schemata.length, 0);
 
-                {byCategories.size > 0 ? (
-                    [...byCategories].map(([categoryId, categorySchemata]) => {
-                        const accentColor = getCategoryAccentColor(categories, categoryId);
-                        const category = categories.get(categoryId);
-                        return (
-                            <Box key={categoryId}>
-                                <HStack
-                                    borderRadius="md"
-                                    mx={1}
-                                    py={0.5}
-                                >
-                                    <IconFactory
-                                        accentColor={accentColor}
-                                        boxSize={3}
-                                        icon={category?.icon}
-                                    />
-                                    <Text fontSize="xs">{category?.name ?? categoryId}</Text>
-                                </HStack>
-                                {categorySchemata.map((schema) => (
-                                    <SchemaItem
-                                        accentColor={accentColor}
-                                        isFavorite={favorites.has(schema.schemaId)}
-                                        key={schema.schemaId}
-                                        schema={schema}
-                                        onClick={onClickHandler}
-                                    />
-                                ))}
-                            </Box>
-                        );
-                    })
-                ) : (
+                    const nodeHeight = 28;
+                    const nodePadding = 2;
+                    const placeholderHeight =
+                        nodeHeight * group.schemata.length +
+                        nodePadding * (group.schemata.length + 1);
+
+                    return (
+                        <Box key={group.categoryId ?? group.type}>
+                            <HStack
+                                borderRadius="md"
+                                mx={1}
+                                py={0.5}
+                            >
+                                {renderGroupIcon(categories, group)}
+                                <Text fontSize="xs">{group.name}</Text>
+                            </HStack>
+
+                            <IfVisible
+                                forceVisible={
+                                    indexOffset <= selectedIndex &&
+                                    selectedIndex < indexOffset + group.schemata.length
+                                }
+                                height={placeholderHeight}
+                            >
+                                {group.schemata.map((schema, schemaIndex) => {
+                                    const index = indexOffset + schemaIndex;
+                                    const isSelected = selectedIndex === index;
+
+                                    return (
+                                        <SchemaItem
+                                            accentColor={getCategoryAccentColor(
+                                                categories,
+                                                schema.category
+                                            )}
+                                            isFavorite={favorites.has(schema.schemaId)}
+                                            isSelected={isSelected}
+                                            key={schema.schemaId}
+                                            schema={schema}
+                                            scrollRef={isSelected ? scrollRef : undefined}
+                                            onClick={onClickHandler}
+                                        />
+                                    );
+                                })}
+                            </IfVisible>
+                        </Box>
+                    );
+                })}
+
+                {groups.length === 0 && (
                     <Center
                         opacity="50%"
                         w="full"
@@ -269,76 +402,74 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
     );
 });
 
-const getConnectionTarget = (
-    connectingFrom: OnConnectStartParams | null,
+type ConnectionStart = ConnectionStartSource | ConnectionStartTarget;
+type ConnectionStartSource = { type: 'source'; nodeId: string; outputId: OutputId };
+type ConnectionStartTarget = { type: 'target'; nodeId: string; inputId: InputId };
+type ConnectionEnd =
+    | { type: 'source'; start: ConnectionStartSource; input: InputId }
+    | { type: 'target'; start: ConnectionStartTarget; output: OutputId };
+
+const parseConnectStartParams = (params: OnConnectStartParams | null): ConnectionStart | null => {
+    if (!params?.handleType || !params.handleId) {
+        return null;
+    }
+
+    switch (params.handleType) {
+        case 'source': {
+            const { nodeId, outputId } = parseSourceHandle(params.handleId);
+            return {
+                type: 'source',
+                nodeId,
+                outputId,
+            };
+        }
+        case 'target': {
+            const { nodeId, inputId } = parseTargetHandle(params.handleId);
+            return {
+                type: 'target',
+                nodeId,
+                inputId,
+            };
+        }
+        default:
+            return assertNever(params.handleType);
+    }
+};
+
+const getConnectionEnd = (
+    start: ConnectionStart,
     schema: NodeSchema,
     typeState: TypeState,
-    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
-    getNode: (id: string) => Node<NodeData> | undefined,
-    nodes: Node<NodeData>[],
-    edges: Edge<EdgeData>[]
-): ConnectionTarget | undefined => {
-    if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
-        return { type: 'none' };
-    }
-    const sourceNode = getNode(connectingFrom.nodeId);
-    switch (connectingFrom.handleType) {
+    chainLineage: ChainLineage,
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
+): ConnectionEnd | undefined => {
+    switch (start.type) {
         case 'source': {
-            const { outputId } = parseSourceHandle(connectingFrom.handleId);
-            const sourceType = typeState.functions
-                .get(connectingFrom.nodeId)
-                ?.outputs.get(outputId);
-            if (!sourceType) {
-                return undefined;
-            }
+            const { nodeId, outputId } = start;
 
+            const sourceType = typeState.functions.get(nodeId)?.outputs.get(outputId);
             const targetFn = functionDefinitions.get(schema.schemaId);
-            if (!targetFn) {
+            if (!sourceType || !targetFn) {
                 return undefined;
             }
 
-            const input = getFirstPossibleInput(targetFn, sourceType);
+            const input = getFirstPossibleInput(
+                targetFn,
+                sourceType,
+                chainLineage.getOutputLineage(start) !== null
+            );
             if (input === undefined) {
                 return undefined;
             }
 
-            // Check for existing iterator lineage
-            const downstreamIters = gatherDownstreamIteratorNodes(
-                getNode(connectingFrom.nodeId)!,
-                nodes,
-                edges
-            );
-            const upstreamIters = gatherUpstreamIteratorNodes(
-                getNode(connectingFrom.nodeId)!,
-                nodes,
-                edges
-            );
-            const hasIteratorLineage =
-                downstreamIters.size > 0 ||
-                upstreamIters.size > 0 ||
-                sourceNode?.type === 'newIterator';
-            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
-                return undefined;
-            }
-
-            return { type: 'source', input };
+            return { type: 'source', start, input };
         }
         case 'target': {
-            if (!sourceNode) {
-                return undefined;
-            }
-            const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
-            if (!sourceFn) {
-                return undefined;
-            }
+            const { nodeId, inputId } = start;
 
-            const { inputId } = parseTargetHandle(connectingFrom.handleId);
-            if (!sourceFn.hasInput(inputId)) {
-                return undefined;
-            }
-
+            const sourceFn = typeState.functions.get(nodeId)?.definition;
             const targetFn = functionDefinitions.get(schema.schemaId);
-            if (!targetFn) {
+            if (!sourceFn || !targetFn) {
                 return undefined;
             }
 
@@ -347,21 +478,10 @@ const getConnectionTarget = (
                 return undefined;
             }
 
-            // Check for existing iterator lineage
-            const downstreamIters = gatherDownstreamIteratorNodes(sourceNode, nodes, edges);
-            const upstreamIters = gatherUpstreamIteratorNodes(sourceNode, nodes, edges);
-            const hasIteratorLineage =
-                downstreamIters.size > 0 ||
-                upstreamIters.size > 0 ||
-                sourceNode.type === 'newIterator';
-            if (hasIteratorLineage && schema.nodeType === 'newIterator') {
-                return undefined;
-            }
-
-            return { type: 'target', output };
+            return { type: 'target', start, output };
         }
         default:
-            return assertNever(connectingFrom.handleType);
+            return assertNever(start);
     }
 };
 
@@ -379,10 +499,9 @@ interface Position {
     readonly y: number;
 }
 
-export const usePaneNodeSearchMenu = (
-    wrapperRef: React.RefObject<HTMLDivElement>
-): UsePaneNodeSearchMenuValue => {
+export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     const typeState = useContextSelector(GlobalVolatileContext, (c) => c.typeState);
+    const chainLineage = useContextSelector(GlobalVolatileContext, (c) => c.chainLineage);
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
     const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
@@ -393,47 +512,38 @@ export const usePaneNodeSearchMenu = (
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
     const [, setGlobalConnectingFrom] = useConnectingFrom;
 
-    const { getNode, project, getNodes, getEdges } = useReactFlow();
+    const { screenToFlowPosition } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
-    const matchingTargets = useMemo(() => {
-        return new Map<NodeSchema, ConnectionTarget>(
-            schemata.schemata.flatMap((schema) => {
-                if (schema.deprecated) return [];
-                const target = getConnectionTarget(
-                    connectingFrom,
-                    schema,
-                    typeState,
-                    functionDefinitions,
-                    getNode,
-                    getNodes(),
-                    getEdges()
-                );
-                if (!target) return [];
+    const matchingEnds = useMemo(() => {
+        const connection = parseConnectStartParams(connectingFrom);
 
-                return [[schema, target] as const];
-            })
+        return new Map<NodeSchema, ConnectionEnd | null>(
+            schemata.schemata
+                .map((schema) => {
+                    if (schema.deprecated) return undefined;
+                    if (!connection) return [schema, null] as const;
+
+                    const end = getConnectionEnd(
+                        connection,
+                        schema,
+                        typeState,
+                        chainLineage,
+                        functionDefinitions
+                    );
+                    if (!end) return undefined;
+
+                    return [schema, end] as const;
+                })
+                .filter(isNotNullish)
         );
-    }, [
-        schemata.schemata,
-        connectingFrom,
-        typeState,
-        functionDefinitions,
-        getNode,
-        getNodes,
-        getEdges,
-    ]);
-    const matchingSchemata = useMemo(() => [...matchingTargets.keys()], [matchingTargets]);
+    }, [schemata.schemata, connectingFrom, typeState, chainLineage, functionDefinitions]);
 
     const onSchemaSelect = useCallback(
-        (schema: NodeSchema, target: ConnectionTarget) => {
-            const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
+        (schema: NodeSchema) => {
             const { x, y } = mousePosition;
-            const projPosition = project({
-                x: x - reactFlowBounds.left,
-                y: y - reactFlowBounds.top,
-            });
+            const projPosition = screenToFlowPosition({ x, y });
             const nodeId = createUniqueId();
             createNode({
                 id: nodeId,
@@ -441,34 +551,33 @@ export const usePaneNodeSearchMenu = (
                 data: {
                     schemaId: schema.schemaId,
                 },
-                nodeType: schema.nodeType,
             });
-            const targetFn = functionDefinitions.get(schema.schemaId);
-            if (connectingFrom && targetFn && target.type !== 'none') {
-                switch (target.type) {
+
+            const end = matchingEnds.get(schema);
+            if (end) {
+                switch (end.type) {
                     case 'source': {
+                        const { start } = end;
                         createConnection({
-                            source: connectingFrom.nodeId,
-                            sourceHandle: connectingFrom.handleId,
+                            source: start.nodeId,
+                            sourceHandle: stringifySourceHandle(start),
                             target: nodeId,
-                            targetHandle: stringifyTargetHandle({ nodeId, inputId: target.input }),
+                            targetHandle: stringifyTargetHandle({ nodeId, inputId: end.input }),
                         });
                         break;
                     }
                     case 'target': {
+                        const { start } = end;
                         createConnection({
                             source: nodeId,
-                            sourceHandle: stringifySourceHandle({
-                                nodeId,
-                                outputId: target.output,
-                            }),
-                            target: connectingFrom.nodeId,
-                            targetHandle: connectingFrom.handleId,
+                            sourceHandle: stringifySourceHandle({ nodeId, outputId: end.output }),
+                            target: start.nodeId,
+                            targetHandle: stringifyTargetHandle(start),
                         });
                         break;
                     }
                     default:
-                        assertNever(target);
+                        assertNever(end);
                 }
             }
 
@@ -478,29 +587,39 @@ export const usePaneNodeSearchMenu = (
         },
         [
             closeContextMenu,
-            connectingFrom,
             createConnection,
             createNode,
-            functionDefinitions,
             mousePosition,
-            project,
+            screenToFlowPosition,
             setGlobalConnectingFrom,
-            wrapperRef,
+            matchingEnds,
         ]
     );
 
-    const menuProps: MenuProps = {
-        onSelect: onSchemaSelect,
-        targets: matchingTargets,
-        schemata: matchingSchemata,
-        favorites,
-        categories,
-    };
+    const suggestions: ReadonlySet<SchemaId> = useMemo(() => {
+        const connection = parseConnectStartParams(connectingFrom);
+        if (!connection) return EMPTY_SET;
 
+        return new Set(
+            [...matchingEnds.entries()]
+                .filter(([schema, end]) => {
+                    if (!end) return false;
+                    return end.type === 'target'
+                        ? schema.outputs.some((o) => o.suggest && o.id === end.output)
+                        : schema.inputs.some((i) => i.suggest && i.id === end.input);
+                })
+                .map(([schema]) => schema.schemaId)
+        );
+    }, [connectingFrom, matchingEnds]);
+
+    const menuSchemata = useMemo(() => [...matchingEnds.keys()], [matchingEnds]);
     const menu = useContextMenu(() => (
         <Menu
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...menuProps}
+            categories={categories}
+            favorites={favorites}
+            schemata={menuSchemata}
+            suggestions={suggestions}
+            onSelect={onSchemaSelect}
         />
     ));
 

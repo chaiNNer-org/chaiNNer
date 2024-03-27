@@ -78,7 +78,6 @@ export const DefaultImageOutput = memo(({ output, id, schema, type }: OutputProp
                             data: {
                                 schemaId: VIEW_SCHEMA_ID,
                             },
-                            nodeType: 'regularNode',
                         });
                         createEdge(
                             { nodeId: id, outputId: output.id },

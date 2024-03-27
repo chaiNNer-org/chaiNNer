@@ -5,6 +5,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -84,13 +85,13 @@ def join_space_case(words: list[str]) -> str:
     return " ".join([smart_capitalize(x) for x in words])
 
 
-def split_file_path(path: str) -> tuple[str, str, str]:
+def split_file_path(path: Path | str) -> tuple[Path, str, str]:
     """
     Returns the base directory, file name, and extension of the given file path.
     """
     base, ext = os.path.splitext(path)
     dirname, basename = os.path.split(base)
-    return dirname, basename, ext
+    return Path(dirname), basename, ext
 
 
 def walk_error_handler(exception_instance: Exception):
@@ -100,9 +101,9 @@ def walk_error_handler(exception_instance: Exception):
 
 
 def list_all_files_sorted(
-    directory: str, ext_filter: list[str] | None = None
-) -> list[str]:
-    just_files: list[str] = []
+    directory: Path, ext_filter: list[str] | None = None
+) -> list[Path]:
+    just_files: list[Path] = []
     for root, dirs, files in os.walk(
         directory, topdown=True, onerror=walk_error_handler
     ):
@@ -111,7 +112,7 @@ def list_all_files_sorted(
             filepath = os.path.join(root, name)
             _base, ext = os.path.splitext(filepath)
             if ext_filter is None or ext.lower() in ext_filter:
-                just_files.append(filepath)
+                just_files.append(Path(filepath))
     return just_files
 
 

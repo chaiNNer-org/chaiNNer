@@ -2,6 +2,9 @@
 	"include": [
 		"backend"
 	],
+	"extraPaths": [
+		"backend/src"
+	],
 	"exclude": [
 		"**/__pycache__"
 	],

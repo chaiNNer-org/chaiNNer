@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from api import KeyInfo
 from nodes.properties.inputs import NumberInput
 from nodes.properties.outputs import NumberOutput
 
@@ -18,12 +19,13 @@ from .. import value_group
             maximum=None,
             precision=100,
             controls_step=1,
-            hide_label=True,
+            label_style="hidden",
         ).make_fused(),
     ],
     outputs=[
-        NumberOutput("Number", output_type="Input0"),
+        NumberOutput("Number", output_type="Input0").suggest(),
     ],
+    key_info=KeyInfo.number(0),
 )
 def number_node(number: float) -> float:
     return number

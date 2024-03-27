@@ -59,7 +59,7 @@ export const parseRgbHex = (hex: string): RgbColor | undefined => {
     if (hex.startsWith('#')) {
         hex = hex.slice(1);
     }
-    if (!/^[0-9a-fA-F]+$/.test(hex)) return undefined;
+    if (!/^[0-9a-f]+$/i.test(hex)) return undefined;
     if (hex.length === 3) {
         const r = Number.parseInt(hex[0], 16) * 17;
         const g = Number.parseInt(hex[1], 16) * 17;

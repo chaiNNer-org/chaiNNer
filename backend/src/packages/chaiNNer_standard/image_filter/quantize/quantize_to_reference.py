@@ -74,22 +74,21 @@ def quantize_image(image: np.ndarray, palette: np.ndarray):
     outputs=[
         ImageOutput(
             image_type="""
-            let valid = bool::and(
-                Input0.width >= Input1.width,
-                number::mod(Input0.width, Input1.width) == 0,
-                Input0.height >= Input1.height,
-                number::mod(Input0.height, Input1.height) == 0,
-                Input0.channels == Input1.channels,
-            );
-
-            Image {
-                width: max(Input0.width, Input1.width),
-                height: max(Input0.height, Input1.height),
-                channels: Input0.channels,
-            } & if valid { any } else { never }""",
+            if Input0.channels != Input1.channels {
+                error("The target image and reference image must have the same number of channels.")
+            } else if bool::or(Input0.width < Input1.width, Input0.height < Input1.height) {
+                error("The target image must be larger than the reference image.")
+            } else if bool::or(number::mod(Input0.width, Input1.width) != 0, number::mod(Input0.height, Input1.height) != 0) {
+                error("The size of the target image must be an integer multiple of the size of the reference image (e.g. 2x, 3x, 4x, 8x).")
+            } else {
+                Image {
+                    width: max(Input0.width, Input1.width),
+                    height: max(Input0.height, Input1.height),
+                    channels: Input0.channels,
+                }
+            }
+            """,
             assume_normalized=True,
-        ).with_never_reason(
-            "Target image must be larger than reference image in both dimensions, must have dimensions that are a multiple of each other, and must have the same number of channels."
         )
     ],
 )

@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import uuid
+from pathlib import Path
 from tempfile import mkdtemp
 
 import numpy as np
@@ -62,7 +63,7 @@ def __run_texconv(args: list[str], error_message: str):
         raise ValueError(f"{error_message}: Code {result.returncode}: {output}")
 
 
-def dds_to_png_texconv(path: str) -> str:
+def dds_to_png_texconv(path: Path) -> Path:
     """
     Converts the given DDS file to PNG by creating a temporary PNG file.
     """
@@ -82,16 +83,16 @@ def dds_to_png_texconv(path: str) -> str:
             prefix,
             "-o",
             tempdir,
-            path,
+            str(path),
         ],
         "Unable to convert DDS",
     )
 
-    return os.path.join(tempdir, prefix + basename + ".png")
+    return (Path(tempdir) / (prefix + basename)).with_suffix(".png")
 
 
 def save_as_dds(
-    path: str,
+    path: Path,
     image: np.ndarray,
     dds_format: DxgiFormat,
     mipmap_levels: int = 0,
@@ -126,7 +127,7 @@ def save_as_dds(
             str(mipmap_levels),
             # use texconv to directly produce the target file
             "-o",
-            target_dir,
+            str(target_dir),
         ]
 
         bc = ""

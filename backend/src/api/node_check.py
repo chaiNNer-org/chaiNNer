@@ -4,11 +4,12 @@ import ast
 import inspect
 import os
 import pathlib
+from collections import OrderedDict
 from enum import Enum
 from typing import Any, Callable, NewType, Tuple, Union, cast, get_args
 
-from .input import BaseInput
-from .output import BaseOutput
+from .node_context import NodeContext
+from .node_data import NodeData
 
 _Ty = NewType("_Ty", object)
 
@@ -146,11 +147,8 @@ def get_type_annotations(fn: Callable) -> dict[str, _Ty]:
     return type_annotations
 
 
-def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
-    if str(return_type).startswith("api.Iterator["):
-        return_type = get_args(return_type)[0]
-    elif str(return_type).startswith("api.Collector["):
-        return_type = get_args(return_type)[1]
+def validate_return_type(return_type: _Ty, node: NodeData):
+    outputs = node.outputs
 
     if len(outputs) == 0:
         if return_type is not None and return_type is not type(None):  # type: ignore
@@ -188,25 +186,41 @@ def validate_return_type(return_type: _Ty, outputs: list[BaseOutput]):
 
 def check_schema_types(
     wrapped_func: Callable,
-    inputs: list[BaseInput],
-    outputs: list[BaseOutput],
+    node: NodeData,
 ):
     """
     Runtime validation for the number of inputs/outputs compared to the type args
     """
 
-    ann = get_type_annotations(wrapped_func)
+    if node.kind != "regularNode":
+        return
+
+    ann = OrderedDict(get_type_annotations(wrapped_func))
 
     # check return type
     if "return" in ann:
-        validate_return_type(ann.pop("return"), outputs)
+        validate_return_type(ann.pop("return"), node)
 
-    # check inputs
-
+    # check arguments
     arg_spec = inspect.getfullargspec(wrapped_func)
     for arg in arg_spec.args:
         if arg not in ann:
             raise CheckFailedError(f"Missing type annotation for '{arg}'")
+
+    if node.node_context:
+        first = arg_spec.args[0]
+        if first != "context":
+            raise CheckFailedError(
+                f"Expected the first parameter to be 'context: NodeContext' but found '{first}'."
+            )
+        context_type = ann.pop(first)
+        if context_type != NodeContext:  # type: ignore
+            raise CheckFailedError(
+                f"Expected type of 'context' to be 'api.NodeContext' but found '{context_type}'"
+            )
+
+    # check inputs
+    inputs = node.inputs
 
     if arg_spec.varargs is not None:
         if arg_spec.varargs not in ann:

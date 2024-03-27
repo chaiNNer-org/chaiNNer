@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 from PIL import Image
-from PIL.Image import Image as PILImage
 from scipy.special import log_softmax
+
+from nodes.impl.image_utils import normalize
+from nodes.utils.utils import get_h_w_c
 
 from .session_base import BaseSession
 
@@ -54,7 +56,8 @@ pallete3 = [
 
 
 class ClothSession(BaseSession):
-    def predict(self, img: PILImage) -> list[PILImage]:
+    def predict(self, img: np.ndarray) -> list[np.ndarray]:
+        h, w, _ = get_h_w_c(img)
         ort_outs = self.inner_session.run(None, self.normalize(img))
 
         pred = ort_outs
@@ -64,23 +67,23 @@ class ClothSession(BaseSession):
         pred = np.squeeze(pred, 0)
 
         mask = Image.fromarray(pred.astype("uint8"), mode="L")
-        mask = mask.resize(img.size, Image.LANCZOS)
+        mask = mask.resize((w, h), Image.LANCZOS)
 
-        masks = []
+        masks: list[np.ndarray] = []
 
         mask1 = mask.copy()
         mask1.putpalette(pallete1)
         mask1 = mask1.convert("RGB").convert("L")
-        masks.append(mask1)
+        masks.append(normalize(np.array(mask1)))
 
         mask2 = mask.copy()
         mask2.putpalette(pallete2)
         mask2 = mask2.convert("RGB").convert("L")
-        masks.append(mask2)
+        masks.append(normalize(np.array(mask2)))
 
         mask3 = mask.copy()
         mask3.putpalette(pallete3)
         mask3 = mask3.convert("RGB").convert("L")
-        masks.append(mask3)
+        masks.append(normalize(np.array(mask3)))
 
         return masks

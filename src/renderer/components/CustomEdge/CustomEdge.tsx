@@ -1,25 +1,67 @@
 import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { TbUnlink } from 'react-icons/tb';
-import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
+import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { useDebouncedCallback } from 'use-debounce';
+import { Circle, Vec2 } from '../../../common/2d';
 import { EdgeData, NodeData } from '../../../common/common-types';
-import { parseSourceHandle } from '../../../common/util';
+import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { ExecutionStatusContext } from '../../contexts/ExecutionContext';
+import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
+import {
+    BREAKPOINT_RADIUS,
+    DEFAULT_CURVATURE,
+    getCircularEdgeParams,
+    getCustomBezierPath,
+} from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
+
+const EDGE_CLASS = {
+    RUNNING: 'running',
+    YET_TO_RUN: 'yet-to-run',
+    COLLIDING: 'colliding',
+    NONE: '',
+};
+
+const getCollidingClass = (isColliding: boolean) => {
+    if (isColliding) {
+        return EDGE_CLASS.COLLIDING;
+    }
+    return EDGE_CLASS.NONE;
+};
+
+const getRunningStateClass = (
+    sourceStatus: NodeExecutionStatus,
+    targetStatus: NodeExecutionStatus,
+    animateChain?: boolean
+) => {
+    if (targetStatus === NodeExecutionStatus.NOT_EXECUTING) {
+        return EDGE_CLASS.NONE;
+    }
+    switch (sourceStatus) {
+        case NodeExecutionStatus.NOT_EXECUTING:
+        case NodeExecutionStatus.FINISHED:
+            return EDGE_CLASS.NONE;
+        case NodeExecutionStatus.RUNNING:
+            return animateChain ? EDGE_CLASS.RUNNING : EDGE_CLASS.YET_TO_RUN;
+        case NodeExecutionStatus.YET_TO_RUN:
+            return EDGE_CLASS.YET_TO_RUN;
+        default:
+            return assertNever(sourceStatus);
+    }
+};
 
 export const CustomEdge = memo(
     ({
         id,
         source,
+        target,
         sourceX: _sourceX,
         sourceY,
         targetX: _targetX,
@@ -28,42 +70,106 @@ export const CustomEdge = memo(
         targetPosition,
         selected,
         sourceHandleId,
-        animated,
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
         const sourceX = _sourceX - 1; // - 8 <- To align it with the node
         const targetX = _targetX + 1; // + 8
 
+        const { screenToFlowPosition } = useReactFlow();
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
-        const { useAnimateChain } = useContext(SettingsContext);
-        const { paused } = useContext(ExecutionStatusContext);
-        const [animateChain] = useAnimateChain;
+        const { paused, getNodeStatus } = useContext(ExecutionContext);
+        const { animateChain } = useSettings();
 
-        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
-            () =>
-                getBezierPath({
-                    sourceX,
-                    sourceY,
-                    sourcePosition,
-                    targetX,
-                    targetY,
-                    targetPosition,
-                }),
-            [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
-        );
+        const sourceStatus = getNodeStatus(source);
+        const targetStatus = getNodeStatus(target);
+        const animated =
+            (sourceStatus === NodeExecutionStatus.RUNNING ||
+                sourceStatus === NodeExecutionStatus.YET_TO_RUN) &&
+            targetStatus !== NodeExecutionStatus.NOT_EXECUTING;
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const edgeParentNode = useMemo(() => getNode(source)!, [source, getNode]);
+        const edgeChildNode = useMemo(() => getNode(target)!, [target, getNode]);
+
+        const isAttachedToBreakPoint =
+            edgeParentNode.type === 'breakPoint' || edgeChildNode.type === 'breakPoint';
+
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(() => {
+            if (edgeParentNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
+                    source: new Vec2(sourceX, sourceY),
+                    sourcePosition,
+                    target: new Vec2(_targetX, targetY),
+                    targetPosition,
+                    curvatures: {
+                        source: DEFAULT_CURVATURE,
+                        target: 0,
+                    },
+                    radii: {
+                        source: 0,
+                        target: BREAKPOINT_RADIUS,
+                    },
+                });
+            }
+            if (edgeChildNode.type !== 'breakPoint' && isAttachedToBreakPoint) {
+                return getCustomBezierPath({
+                    source: new Vec2(_sourceX, sourceY),
+                    sourcePosition,
+                    target: new Vec2(targetX, targetY),
+                    targetPosition,
+                    curvatures: {
+                        source: 0,
+                        target: DEFAULT_CURVATURE,
+                    },
+                    radii: {
+                        source: BREAKPOINT_RADIUS,
+                        target: 0,
+                    },
+                });
+            }
+            if (isAttachedToBreakPoint) {
+                const { s, t } = getCircularEdgeParams(
+                    new Circle(new Vec2(_sourceX, sourceY), BREAKPOINT_RADIUS),
+                    new Circle(new Vec2(_targetX, targetY), BREAKPOINT_RADIUS)
+                );
+
+                return getStraightPath({
+                    sourceX: s.x,
+                    sourceY: s.y,
+                    targetX: t.x,
+                    targetY: t.y,
+                });
+            }
+            return getBezierPath({
+                sourceX,
+                sourceY,
+                sourcePosition,
+                targetX,
+                targetY,
+                targetPosition,
+            });
+        }, [
+            edgeParentNode.type,
+            isAttachedToBreakPoint,
+            edgeChildNode.type,
+            sourceX,
+            sourceY,
+            sourcePosition,
+            targetX,
+            targetY,
+            targetPosition,
+            _sourceX,
+            _targetX,
+        ]);
+
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById } = useContext(GlobalContext);
+        const { removeEdgeById, addEdgeBreakpoint } = useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
-
-        const [isHovered, setIsHovered] = useState(false);
 
         const { outputId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
         const definitionType =
@@ -78,11 +184,6 @@ export const CustomEdge = memo(
 
         const buttonSize = 32;
 
-        // Prevent hovered state from getting stuck
-        const hoverTimeout = useDebouncedCallback(() => {
-            setIsHovered(false);
-        }, 7500);
-
         const showRunning = animated && !paused;
 
         const isColliding = useContextSelector(
@@ -90,9 +191,15 @@ export const CustomEdge = memo(
             (c) => c.collidingEdge === id
         );
 
-        const classModifier = `${isHovered ? 'hovered' : ''} ${
-            showRunning && animateChain ? 'running' : ''
-        } ${isColliding ? 'colliding' : ''}`;
+        const classModifier = useMemo(
+            () =>
+                `${getRunningStateClass(
+                    sourceStatus,
+                    targetStatus,
+                    animateChain
+                )} ${getCollidingClass(isColliding)}`,
+            [sourceStatus, targetStatus, isColliding, animateChain]
+        );
 
         // NOTE: I know that technically speaking this is bad
         // HOWEVER: I don't want to cause a re-render on every edge change by properly settings the edges array
@@ -115,39 +222,47 @@ export const CustomEdge = memo(
 
         const menu = useEdgeMenu(id);
 
+        const altPressed = useKeyPress(['Alt', 'Option']);
+        const onClick = useCallback(
+            (e: React.MouseEvent) => {
+                if (altPressed) {
+                    const adjustedPosition = screenToFlowPosition({
+                        x: e.clientX || 0,
+                        y: e.clientY || 0,
+                    });
+                    addEdgeBreakpoint(id, adjustedPosition);
+                }
+            },
+            [addEdgeBreakpoint, altPressed, id, screenToFlowPosition]
+        );
+
         return (
             <g
+                data-group
                 className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
                     ...style,
                 }}
+                onClick={onClick}
                 onContextMenu={menu.onContextMenu}
                 onDoubleClick={() => removeEdgeById(id)}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseOver={() => hoverTimeout()}
             >
-                <path
-                    className={`edge-chain-links ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
-                    stroke={currentColor}
-                />
+                {showRunning && (
+                    <path
+                        className={`edge-chain-behind ${classModifier}`}
+                        d={edgePath}
+                        fill="none"
+                        id={id}
+                    />
+                )}
                 <path
                     className={`edge-chain ${classModifier}`}
                     d={edgePath}
                     fill="none"
                     id={id}
                     stroke={currentColor}
-                />
-                <path
-                    className={`edge-chain dot ${classModifier}`}
-                    d={edgePath}
-                    fill="none"
-                    id={id}
                 />
                 <path
                     d={edgePath}
@@ -164,7 +279,7 @@ export const CustomEdge = memo(
                     requiredExtensions="http://www.w3.org/1999/xhtml"
                     style={{
                         borderRadius: 100,
-                        opacity: isHovered ? 1 : 0,
+                        display: altPressed ? 'none' : 'block',
                         transitionDuration: '0.15s',
                         transitionProperty: 'opacity, background-color',
                         transitionTimingFunction: 'ease-in-out',
@@ -174,13 +289,17 @@ export const CustomEdge = memo(
                     y={edgeCenterY - buttonSize / 2}
                 >
                     <Center
+                        _groupHover={{
+                            opacity: 1,
+                        }}
                         backgroundColor={currentColor}
                         borderColor="var(--node-border-color)"
                         borderRadius={100}
                         borderWidth={2}
                         h="full"
+                        opacity={0}
                         transitionDuration="0.15s"
-                        transitionProperty="background-color"
+                        transitionProperty="background-color opacity"
                         transitionTimingFunction="ease-in-out"
                         w="full"
                     >

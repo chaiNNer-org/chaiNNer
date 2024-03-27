@@ -4,10 +4,10 @@ import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
 import { useMemoArray } from '../../hooks/useMemo';
 import { DragHandleSVG } from '../CustomIcons';
@@ -54,8 +54,7 @@ export const LargeImageOutput = memo(
 
         const previewImage = last ? pickImage(last.previews, realWidth) : null;
 
-        const { useSnapToGrid } = useContext(SettingsContext);
-        const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+        const { snapToGrid, snapToGridAmount } = useSettings();
 
         const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
@@ -103,7 +102,7 @@ export const LargeImageOutput = memo(
                         topLeft: false,
                     }}
                     grid={useMemoArray<[number, number]>(
-                        isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
+                        snapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
                     )}
                     handleComponent={{
                         bottomRight: (

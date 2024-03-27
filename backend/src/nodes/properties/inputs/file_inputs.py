@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import os
+from pathlib import Path
 from typing import Literal, Union
 
 from api import BaseInput
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
+from .label import LabelStyle
 
 FileInputKind = Union[
     Literal["bin"],
@@ -43,7 +44,7 @@ class FileInput(BaseInput):
             }}
         """
 
-        self.associated_type = str
+        self.associated_type = Path
 
     def to_dict(self):
         return {
@@ -53,10 +54,12 @@ class FileInput(BaseInput):
             "primaryInput": self.primary_input,
         }
 
-    def enforce(self, value: object) -> str:
-        assert isinstance(value, str)
-        assert os.path.exists(value), f"File {value} does not exist"
-        assert os.path.isfile(value), f"The path {value} is not a file"
+    def enforce(self, value: object) -> Path:
+        if isinstance(value, str):
+            value = Path(value)
+        assert isinstance(value, Path)
+        assert value.exists(), f"File {value} does not exist"
+        assert value.is_file(), f"The path {value} is not a file"
         return value
 
 
@@ -115,7 +118,8 @@ class DirectoryInput(BaseInput):
         label: str = "Directory",
         has_handle: bool = True,
         must_exist: bool = True,
-        hide_label: bool = False,
+        create: bool = False,
+        label_style: LabelStyle = "default",
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
 
@@ -127,20 +131,27 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
-        self.hide_label: bool = hide_label
+        self.create: bool = create
+        self.label_style: LabelStyle = label_style
 
-        self.associated_type = str
+        self.associated_type = Path
 
     def to_dict(self):
         return {
             **super().to_dict(),
-            "hideLabel": self.hide_label,
+            "labelStyle": self.label_style,
         }
 
     def enforce(self, value: object):
-        assert isinstance(value, str)
-        if self.must_exist:
-            assert os.path.exists(value), f"Directory {value} does not exist"
+        if isinstance(value, str):
+            value = Path(value)
+        assert isinstance(value, Path)
+
+        if self.create:
+            value.mkdir(parents=True, exist_ok=True)
+        elif self.must_exist:
+            assert value.exists(), f"Directory {value} does not exist"
+
         return value
 
 

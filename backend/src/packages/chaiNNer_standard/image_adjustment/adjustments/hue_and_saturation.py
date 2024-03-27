@@ -71,8 +71,6 @@ def hue_and_saturation_node(
     saturation: float,
     lightness: float,
 ) -> np.ndarray:
-    """Adjust the hue and saturation of an image"""
-
     saturation /= 100
     lightness /= 100
 

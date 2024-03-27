@@ -8,10 +8,10 @@ from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 
-from . import node_group
+from .. import all_group
 
 
-@node_group.register(
+@all_group.register(
     schema_id="chainner:image:merge_channels",
     name="Merge Channels",
     description=(
@@ -52,8 +52,6 @@ def merge_channels_node(
     im3: np.ndarray | None,
     im4: np.ndarray | None,
 ) -> np.ndarray:
-    """Combine separate channels into a multi-chanel image"""
-
     start_shape = im1.shape[:2]
 
     for im in im2, im3, im4:

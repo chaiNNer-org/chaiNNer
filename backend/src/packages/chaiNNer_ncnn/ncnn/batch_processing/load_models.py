@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from sanic.log import logger
 
 from api import Iterator, IteratorOutputInfo
 from nodes.impl.ncnn.model import NcnnModelWrapper
-from nodes.properties.inputs import DirectoryInput
+from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (
     DirectoryOutput,
     NcnnModelOutput,
@@ -30,6 +31,10 @@ from ..io.load_model import load_model_node
     icon="MdLoop",
     inputs=[
         DirectoryInput(),
+        BoolInput("Stop on first error", default=False).with_docs(
+            "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
+            hint=True,
+        ),
     ],
     outputs=[
         NcnnModelOutput(),
@@ -41,21 +46,22 @@ from ..io.load_model import load_model_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    node_type="newIterator",
+    kind="newIterator",
 )
 def load_models_node(
-    directory: str,
-) -> tuple[Iterator[tuple[NcnnModelWrapper, str, str, int]], str]:
+    directory: Path,
+    fail_fast: bool,
+) -> tuple[Iterator[tuple[NcnnModelWrapper, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
-    def load_model(filepath_pairs: tuple[str, str], index: int):
+    def load_model(filepath_pairs: tuple[Path, Path], index: int):
         model, dirname, basename = load_model_node(filepath_pairs[0], filepath_pairs[1])
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(dirname, directory)
         return model, rel_path, basename, index
 
-    param_files: list[str] = list_all_files_sorted(directory, [".param"])
-    bin_files: list[str] = list_all_files_sorted(directory, [".bin"])
+    param_files: list[Path] = list_all_files_sorted(directory, [".param"])
+    bin_files: list[Path] = list_all_files_sorted(directory, [".bin"])
 
     if len(param_files) != len(bin_files):
         raise ValueError(
@@ -76,4 +82,4 @@ def load_models_node(
 
     model_files = list(zip(param_files, bin_files))
 
-    return Iterator.from_list(model_files, load_model), directory
+    return Iterator.from_list(model_files, load_model, fail_fast), directory

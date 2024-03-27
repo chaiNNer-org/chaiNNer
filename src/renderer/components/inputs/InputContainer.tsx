@@ -2,14 +2,15 @@ import { Type } from '@chainner/navi';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
-import { Connection, Node, useReactFlow } from 'reactflow';
+import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData, NodeType } from '../../../common/common-types';
-import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
+import { InputId, LabelStyle } from '../../../common/common-types';
+import { assertNever, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
-import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
+import { InputContext } from '../../contexts/InputContext';
+import { getTypeAccentColors } from '../../helpers/accentColors';
+import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
 import { Handle } from '../Handle';
 import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
@@ -18,7 +19,8 @@ export interface InputHandleProps {
     id: string;
     inputId: InputId;
     connectableType: Type;
-    nodeType: NodeType;
+    isIterated: boolean;
+    isConnected: boolean;
 }
 
 export const InputHandle = memo(
@@ -27,19 +29,10 @@ export const InputHandle = memo(
         id,
         inputId,
         connectableType,
-        nodeType,
+        isIterated,
+        isConnected,
     }: React.PropsWithChildren<InputHandleProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
-            useContext(GlobalVolatileContext);
-        const { getEdges, getNode } = useReactFlow();
-
-        const connectedEdge = useMemo(() => {
-            return getEdges().find(
-                (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
-            );
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [edgeChanges, getEdges, id, inputId]);
-        const isConnected = !!connectedEdge;
+        const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
@@ -71,31 +64,9 @@ export const InputHandle = memo(
             });
         }, [connectingFrom, id, targetHandle, isValidConnection]);
 
-        const { functionDefinitions } = useContext(BackendContext);
-
         const handleColors = getTypeAccentColors(connectableType);
 
-        const sourceTypeColor = useMemo(() => {
-            if (connectedEdge) {
-                const sourceNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
-                const sourceOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
-                if (sourceNode) {
-                    const sourceDef = functionDefinitions.get(sourceNode.data.schemaId);
-                    if (!sourceDef) {
-                        return defaultColor;
-                    }
-                    const sourceType =
-                        typeState.functions.get(sourceNode.id)?.outputs.get(sourceOutputId) ??
-                        sourceDef.outputDefaults.get(sourceOutputId);
-                    if (!sourceType) {
-                        return defaultColor;
-                    }
-                    return getTypeAccentColors(sourceType)[0];
-                }
-                return defaultColor;
-            }
-            return null;
-        }, [connectedEdge, functionDefinitions, typeState, getNode]);
+        const sourceTypeColor = useSourceTypeColor(targetHandle);
 
         return (
             <HStack
@@ -114,8 +85,8 @@ export const InputHandle = memo(
                         }
                         handleColors={handleColors}
                         id={targetHandle}
+                        isIterated={isIterated}
                         isValidConnection={isValidConnectionForRf}
-                        nodeType={nodeType}
                         type="input"
                         validity={validity}
                     />
@@ -148,80 +119,80 @@ export const InputContainer = memo(({ children }: React.PropsWithChildren<InputC
 interface WithLabelProps {
     input: {
         readonly label: string;
-        readonly optional: boolean;
+        readonly optional?: boolean;
         readonly hint?: boolean;
         readonly description?: string;
+        readonly hasHandle?: boolean;
     };
 }
 
-export const WithLabel = memo(
-    ({
-        input: { label, optional, hint, description },
-        children,
-    }: React.PropsWithChildren<WithLabelProps>) => {
-        return (
-            <Box
-                className="with-label"
-                w="full"
+export const WithLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
+    const { conditionallyInactive } = useContext(InputContext);
+
+    const { label, optional = false, hint = false, description } = input;
+
+    return (
+        <Box
+            className="with-label"
+            w="full"
+        >
+            <Center
+                h="1.25rem"
+                px={1}
+                py={0.5}
+                verticalAlign="middle"
             >
-                <Center
-                    h="1.25rem"
-                    px={1}
-                    py={0.5}
-                    verticalAlign="middle"
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    label={
+                        hint ? <Markdown nonInteractive>{description ?? ''}</Markdown> : undefined
+                    }
+                    openDelay={500}
+                    px={2}
+                    py={1}
                 >
-                    <Tooltip
-                        hasArrow
-                        borderRadius={8}
-                        label={
-                            hint ? (
-                                <Markdown nonInteractive>{description ?? ''}</Markdown>
-                            ) : undefined
-                        }
-                        openDelay={500}
-                        px={2}
-                        py={1}
+                    <HStack
+                        m={0}
+                        p={0}
+                        spacing={0}
                     >
-                        <HStack
-                            m={0}
-                            p={0}
-                            spacing={0}
+                        <Text
+                            fontSize="xs"
+                            lineHeight="0.9rem"
+                            opacity={conditionallyInactive ? 0.7 : undefined}
+                            textAlign="center"
+                            textDecoration={conditionallyInactive ? 'line-through' : undefined}
                         >
-                            <Text
-                                fontSize="xs"
-                                lineHeight="0.9rem"
-                                textAlign="center"
+                            {label}
+                        </Text>
+                        {hint && (
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
                             >
-                                {label}
-                            </Text>
-                            {hint && (
-                                <Center
-                                    h="auto"
-                                    m={0}
-                                    p={0}
-                                >
-                                    <QuestionIcon
-                                        boxSize={3}
-                                        ml={1}
-                                    />
-                                </Center>
-                            )}
-                            {optional && (
-                                <Center
-                                    h="1rem"
-                                    verticalAlign="middle"
-                                >
-                                    <TypeTag isOptional>optional</TypeTag>
-                                </Center>
-                            )}
-                        </HStack>
-                    </Tooltip>
-                </Center>
-                <Box pb={1}>{children}</Box>
-            </Box>
-        );
-    }
-);
+                                <QuestionIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        )}
+                        {optional && (
+                            <Center
+                                h="1rem"
+                                verticalAlign="middle"
+                            >
+                                <TypeTag isOptional>optional</TypeTag>
+                            </Center>
+                        )}
+                    </HStack>
+                </Tooltip>
+            </Center>
+            <Box pb={1}>{children}</Box>
+        </Box>
+    );
+});
 
 export const WithoutLabel = memo(
     ({ children }: React.PropsWithChildren<Record<string, unknown>>) => {
@@ -237,13 +208,72 @@ export const WithoutLabel = memo(
     }
 );
 
-interface MaybeLabelProps {
-    input: WithLabelProps['input'] & { hideLabel: boolean };
+export const InlineLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
+    const { conditionallyInactive } = useContext(InputContext);
+
+    const { hasHandle = false, hint = false, description } = input;
+
+    return (
+        <WithoutLabel>
+            <HStack
+                pl={hasHandle ? 0 : 2}
+                spacing={0}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    flexShrink={0}
+                    w="5.4em"
+                >
+                    <Text
+                        opacity={conditionallyInactive ? 0.7 : undefined}
+                        textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                    >
+                        {input.label}
+                    </Text>
+                    {hint && description && (
+                        <Tooltip
+                            hasArrow
+                            borderRadius={8}
+                            label={<Markdown nonInteractive>{description}</Markdown>}
+                            openDelay={500}
+                            px={2}
+                            py={1}
+                        >
+                            <Center
+                                h="auto"
+                                m={0}
+                                p={0}
+                            >
+                                <QuestionIcon
+                                    boxSize={3}
+                                    ml={1}
+                                />
+                            </Center>
+                        </Tooltip>
+                    )}
+                </Box>
+
+                <Box flexGrow={1}>{children}</Box>
+            </HStack>
+        </WithoutLabel>
+    );
+});
+
+interface AutoLabelProps {
+    input: WithLabelProps['input'] & { labelStyle: LabelStyle | undefined };
 }
 
-export const MaybeLabel = memo(({ input, children }: React.PropsWithChildren<MaybeLabelProps>) => {
-    if (input.hideLabel) {
-        return <WithoutLabel>{children}</WithoutLabel>;
+export const AutoLabel = memo(({ input, children }: React.PropsWithChildren<AutoLabelProps>) => {
+    switch (input.labelStyle) {
+        case 'hidden':
+            return <WithoutLabel>{children}</WithoutLabel>;
+        case 'inline':
+            return <InlineLabel input={input}>{children}</InlineLabel>;
+        case 'default':
+        case undefined:
+            return <WithLabel input={input}>{children}</WithLabel>;
+        default:
+            return assertNever(input.labelStyle);
     }
-    return <WithLabel input={input}>{children}</WithLabel>;
 });

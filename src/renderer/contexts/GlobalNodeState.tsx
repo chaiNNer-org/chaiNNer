@@ -7,7 +7,7 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
-    getOutgoers,
+    XYPosition,
     useReactFlow,
     useViewport,
 } from 'reactflow';
@@ -21,19 +21,16 @@ import {
     Mutable,
     NodeData,
     OutputId,
+    SchemaId,
 } from '../../common/common-types';
 import { IdSet } from '../../common/IdSet';
 import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
+import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
-import {
-    generateAssignmentErrorTrace,
-    printErrorTrace,
-    simpleError,
-} from '../../common/types/mismatch';
-import { withoutNull } from '../../common/types/util';
+
 import {
     EMPTY_SET,
     ParsedSourceHandle,
@@ -46,16 +43,14 @@ import {
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
-import { VALID, Validity, invalid } from '../../common/Validity';
+import { Validity, invalid } from '../../common/Validity';
+import { canConnect } from '../helpers/canConnect';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
-import {
-    gatherDownstreamIteratorNodes,
-    gatherUpstreamIteratorNodes,
-} from '../helpers/nodeGathering';
+
 import {
     PngDataUrl,
     saveDataUrlAsFile,
@@ -91,7 +86,7 @@ import {
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
-import { SettingsContext } from './SettingsContext';
+import { useSettings } from './SettingsContext';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
@@ -102,10 +97,11 @@ interface GlobalVolatile {
     getConnected: (id: string) => readonly [IdSet<InputId>, IdSet<OutputId>];
     isValidConnection: (connection: Readonly<Connection>) => Validity;
     effectivelyDisabledNodes: ReadonlySet<string>;
+    chainLineage: ChainLineage;
     zoom: number;
     collidingEdge: string | undefined;
     collidingNode: string | undefined;
-    isAnimated: (nodeId: string) => boolean;
+    isIndividuallyRunning: (node: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
     useConnectingFrom: GetSetState<OnConnectStartParams | null>;
@@ -119,8 +115,8 @@ interface Global {
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
     selectNode: (nodeId: string) => void;
-    animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
-    unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
+    addIndividuallyRunning: (node: string) => void;
+    removeIndividuallyRunning: (node: string) => void;
     createNode: (proto: NodeProto) => void;
     createEdge: (from: ParsedSourceHandle, to: ParsedTargetHandle) => void;
     createConnection: (connection: Connection) => void;
@@ -132,7 +128,8 @@ interface Global {
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
     toggleNodeLock: (id: string) => void;
-    clearNodes: (ids: readonly string[]) => void;
+    resetInputs: (ids: readonly string[]) => void;
+    resetConnections: (ids: readonly string[]) => void;
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setCollidingEdge: (value: string | undefined) => void;
     setCollidingNode: (value: string | undefined) => void;
@@ -140,10 +137,15 @@ interface Global {
     exportViewportScreenshot: () => void;
     exportViewportScreenshotToClipboard: () => void;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
+    clearManualOutputTypes: (nodes: Iterable<string>) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
+    chainLineageRef: Readonly<React.MutableRefObject<ChainLineage>>;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
+    setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
+    addEdgeBreakpoint: (id: string, position: XYPosition) => void;
+    removeEdgeBreakpoint: (id: string) => void;
 }
 
 enum SaveResult {
@@ -167,7 +169,7 @@ export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
-        const { useStartupTemplate, useViewportExportPadding } = useContext(SettingsContext);
+        const { startupTemplate, viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -180,7 +182,7 @@ export const GlobalProvider = memo(
             setNodes: rfSetNodes,
             setEdges: rfSetEdges,
             viewportInitialized,
-            project,
+            screenToFlowPosition,
         } = useReactFlow<NodeData, EdgeData>();
 
         const currentViewport = useViewport();
@@ -234,9 +236,22 @@ export const GlobalProvider = memo(
             },
             [setManualOutputTypes, scope]
         );
+        const clearManualOutputTypes = useCallback(
+            (nodes: Iterable<string>): void => {
+                setManualOutputTypes(({ map }) => {
+                    for (const nodeId of nodes) {
+                        map.delete(nodeId);
+                    }
+                    return { map };
+                });
+            },
+            [setManualOutputTypes]
+        );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
         const typeStateRef = useRef(typeState);
+        const [chainLineage, setChainLineage] = useState(ChainLineage.EMPTY);
+        const chainLineageRef = useRef(chainLineage);
         useEffect(() => {
             const timerId = setTimeout(() => {
                 const nodeMap = new Map(getNodes().map((n) => [n.id, n]));
@@ -259,9 +274,21 @@ export const GlobalProvider = memo(
                 );
                 setTypeState(types);
                 typeStateRef.current = types;
+
+                const newLineage = new ChainLineage(schemata, getNodes(), getEdges());
+                setChainLineage(newLineage);
+                chainLineageRef.current = newLineage;
             }, 100);
             return () => clearTimeout(timerId);
-        }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions, getEdges, getNodes]);
+        }, [
+            nodeChanges,
+            edgeChanges,
+            manualOutputTypes,
+            functionDefinitions,
+            schemata,
+            getEdges,
+            getNodes,
+        ]);
 
         const [outputDataMap, outputDataActions] = useOutputDataStore();
 
@@ -454,8 +481,7 @@ export const GlobalProvider = memo(
                     };
                 });
 
-                const result = await ipcRenderer.invoke('file-save-as-json', saveData, undefined);
-                if (result.kind === 'Canceled') return;
+                await ipcRenderer.invoke('file-save-as-json', saveData, undefined);
             } catch (error) {
                 log.error(error);
 
@@ -533,7 +559,11 @@ export const GlobalProvider = memo(
                                 ...node.data,
                                 inputData: {
                                     ...schemata.getDefaultInput(node.data.schemaId),
-                                    ...node.data.inputData,
+                                    ...Object.fromEntries(
+                                        Object.entries(node.data.inputData).filter(
+                                            ([, v]) => v != null
+                                        )
+                                    ),
                                 },
                             },
                         };
@@ -691,7 +721,6 @@ export const GlobalProvider = memo(
         useIpcRendererListener('file-export-template', exportTemplate);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
-        const [startupTemplate] = useStartupTemplate;
         useAsyncEffect(
             () => async () => {
                 if (firstLoad && startupTemplate) {
@@ -738,6 +767,81 @@ export const GlobalProvider = memo(
         const removeEdgeById = useCallback(
             (id: string) => {
                 changeEdges((edges) => edges.filter((e) => e.id !== id));
+            },
+            [changeEdges]
+        );
+
+        const addEdgeBreakpoint = useCallback(
+            (id: string, position: XYPosition) => {
+                const newId = createUniqueId();
+                const newNode = {
+                    type: 'breakPoint',
+                    id: newId,
+                    position,
+                    data: {
+                        schemaId: 'chainner:utility:pass_through' as SchemaId,
+                        id: newId,
+                        inputData: {},
+                    },
+                };
+                changeNodes((nodes) => [...nodes, newNode]);
+                changeEdges((edges) => {
+                    const edge = edges.find((e) => e.id === id);
+                    if (!edge) return edges;
+                    const leftEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-left`),
+                        source: edge.source,
+                        sourceHandle: edge.sourceHandle,
+                        target: newId,
+                        targetHandle: `${newId}-0`,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const rightEdge: Edge<EdgeData> = {
+                        id: deriveUniqueId(`${id}-right`),
+                        source: newId,
+                        sourceHandle: `${newId}-0`,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: 'main',
+                        animated: false,
+                        data: {},
+                    };
+                    const filteredEdges = edges.filter((e) => e.id !== id);
+                    return [...filteredEdges, leftEdge, rightEdge];
+                });
+            },
+            [changeEdges, changeNodes]
+        );
+
+        const removeEdgeBreakpoint = useCallback(
+            (id: string) => {
+                changeEdges((edges) => {
+                    const edgesConnectedToBreakpoint = edges.filter(
+                        (e) => e.source === id || e.target === id
+                    );
+                    if (edgesConnectedToBreakpoint.length !== 2) {
+                        throw new Error('Breakpoint is not connected to exactly two edges');
+                    }
+                    const leftEdge = edgesConnectedToBreakpoint.find((e) => e.target === id);
+                    const rightEdge = edgesConnectedToBreakpoint.find((e) => e.source === id);
+                    if (!leftEdge || !rightEdge) {
+                        throw new Error(
+                            'Unable to find left or right edge connected to breakpoint'
+                        );
+                    }
+                    const combinedEdge = {
+                        ...leftEdge,
+                        target: rightEdge.target,
+                        targetHandle: rightEdge.targetHandle,
+                    };
+                    const filteredEdges = edges.filter(
+                        (e) => e.id !== leftEdge.id && e.id !== rightEdge.id
+                    );
+                    return [...filteredEdges, combinedEdge];
+                });
+                // We don't need to remove the breakpoint, it will handle removing itself once it's orphaned
             },
             [changeEdges]
         );
@@ -807,148 +911,18 @@ export const GlobalProvider = memo(
 
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>): Validity => {
-                if (source === target) {
-                    return invalid('Cannot connect a node to itself.');
-                }
-
                 if (!source || !target || !sourceHandle || !targetHandle) {
                     return invalid('Invalid connection data.');
                 }
-                const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
-                const targetHandleId = parseTargetHandle(targetHandle).inputId;
 
-                const sourceFn = typeState.functions.get(source);
-                const targetFn = typeState.functions.get(target);
-
-                if (!sourceFn || !targetFn) {
-                    return invalid('Invalid connection data.');
-                }
-
-                const sourceNode = getNode(source);
-                const targetNode = getNode(target);
-                if (!sourceNode || !targetNode) {
-                    return invalid('Invalid node data.');
-                }
-
-                const outputType = sourceFn.outputs.get(sourceHandleId);
-                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType)) {
-                    const schema = schemata.get(targetNode.data.schemaId);
-                    const input = schema.inputs.find((i) => i.id === targetHandleId)!;
-                    const inputType = withoutNull(
-                        targetFn.definition.inputDefaults.get(targetHandleId)!
-                    );
-
-                    const error = simpleError(outputType, inputType);
-                    if (error) {
-                        return invalid(
-                            `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
-                        );
-                    }
-
-                    const traceTree = generateAssignmentErrorTrace(outputType, inputType);
-                    if (!traceTree) throw new Error('Cannot determine assignment error');
-                    const trace = printErrorTrace(traceTree);
-                    return invalid(
-                        `Input ${
-                            input.label
-                        } cannot be connected with an incompatible value. ${trace.join(' ')}`
-                    );
-                }
-
-                const nodes = getNodes();
-                const edges = getEdges();
-
-                const checkTargetChildren = (startNode: Node<NodeData>): boolean => {
-                    const targetChildren = getOutgoers(startNode, nodes, edges);
-                    if (!targetChildren.length) {
-                        return false;
-                    }
-                    return targetChildren.some((childNode) => {
-                        if (childNode.id === sourceNode.id) {
-                            return true;
-                        }
-                        return checkTargetChildren(childNode);
-                    });
-                };
-                const isLoop = checkTargetChildren(targetNode);
-                if (isLoop) return invalid('Connection would create an infinite loop.');
-
-                if (sourceNode.type === 'newIterator' && targetNode.type === 'newIterator') {
-                    return invalid('Cannot connect two iterators.');
-                }
-
-                // Connections cannot be made if:
-                // - The source has iterator lineage AND the target has iterator lineage
-                // Connections CAN be made if:
-                // - the source has iterator lineage AND the target does not
-                // - the target has iterator lineage AND the source does not
-                // - neither the source nor the target have iterator lineage
-                // Iterator lineage is defined as a node have some downstream or upstream connection to a newIterator node
-
-                const sourceDownstreamIterNodes = gatherDownstreamIteratorNodes(
-                    sourceNode,
-                    nodes,
-                    edges
+                return canConnect(
+                    parseSourceHandle(sourceHandle),
+                    parseTargetHandle(targetHandle),
+                    typeState,
+                    chainLineage
                 );
-                const sourceUpstreamIterNodes = gatherUpstreamIteratorNodes(
-                    sourceNode,
-                    nodes,
-                    edges
-                );
-
-                const targetDownstreamIterNodes = gatherDownstreamIteratorNodes(
-                    targetNode,
-                    nodes,
-                    edges
-                );
-                const targetUpstreamIterNodes = gatherUpstreamIteratorNodes(
-                    targetNode,
-                    nodes,
-                    edges
-                );
-
-                const sourceHasIteratorLineage =
-                    sourceDownstreamIterNodes.size > 0 ||
-                    sourceUpstreamIterNodes.size > 0 ||
-                    sourceNode.type === 'newIterator';
-                const targetHasIteratorLineage =
-                    targetDownstreamIterNodes.size > 0 ||
-                    targetUpstreamIterNodes.size > 0 ||
-                    targetNode.type === 'newIterator';
-
-                const sourceIters = new Set([
-                    ...sourceDownstreamIterNodes,
-                    ...sourceUpstreamIterNodes,
-                    ...(sourceNode.type === 'newIterator' ? [sourceNode.id] : []),
-                ]);
-
-                const targetIters = new Set([
-                    ...targetDownstreamIterNodes,
-                    ...targetUpstreamIterNodes,
-                    ...(targetNode.type === 'newIterator' ? [targetNode.id] : []),
-                ]);
-
-                const intersectionSource = new Set(
-                    [...sourceIters].filter((x) => targetIters.has(x))
-                );
-                const intersectionTarget = new Set(
-                    [...targetIters].filter((x) => sourceIters.has(x))
-                );
-
-                const sourceAndTargetShareSameLineage =
-                    intersectionSource.size > 0 && intersectionTarget.size > 0;
-
-                if (
-                    sourceHasIteratorLineage &&
-                    targetHasIteratorLineage &&
-                    !sourceAndTargetShareSameLineage
-                ) {
-                    return invalid('Cannot connect two nodes with unrelated iterator lineage.');
-                }
-
-                return VALID;
             },
-            [typeState.functions, getNode, getNodes, getEdges, schemata]
+            [typeState, chainLineage]
         );
 
         const [inputDataChanges, addInputDataChanges] = useChangeCounter();
@@ -1016,53 +990,21 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
-        const animate = useCallback(
-            (nodes: Iterable<string>, animateEdges = true): void => {
-                const ids = new Set(nodes);
-                setAnimatedNodes((prev) => {
-                    const newSet = new Set(prev);
-                    for (const id of ids) {
-                        newSet.add(id);
-                    }
-                    return newSet;
-                });
-                if (animateEdges) {
-                    setEdgesRef.current((edges) => {
-                        return edges.map((e) => {
-                            if (!ids.has(e.source)) return e;
-                            return e.animated ? e : { ...e, animated: true };
-                        });
-                    });
-                }
-            },
-            [setAnimatedNodes]
-        );
-        const unAnimate = useCallback(
-            (nodes?: Iterable<string>): void => {
-                if (nodes) {
-                    const ids = new Set(nodes);
-                    setAnimatedNodes((prev) => {
-                        const newSet = new Set(prev);
-                        for (const id of ids) {
-                            newSet.delete(id);
-                        }
-                        return newSet;
-                    });
-                    setEdgesRef.current((edges) => {
-                        return edges.map((e) => {
-                            if (!ids.has(e.source)) return e;
-                            return e.animated ? { ...e, animated: false } : e;
-                        });
-                    });
-                } else {
-                    setAnimatedNodes(EMPTY_SET);
-                    setEdgesRef.current((edges) =>
-                        edges.map((e) => (e.animated ? { ...e, animated: false } : e))
-                    );
-                }
-            },
-            [setAnimatedNodes]
+        const [individuallyRunning, setIndividuallyRunning] =
+            useState<ReadonlySet<string>>(EMPTY_SET);
+        const addIndividuallyRunning = useCallback((node: string): void => {
+            setIndividuallyRunning((prev) => new Set(prev).add(node));
+        }, []);
+        const removeIndividuallyRunning = useCallback((node: string): void => {
+            setIndividuallyRunning((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(node);
+                return newSet;
+            });
+        }, []);
+        const isIndividuallyRunning = useCallback(
+            (node: string): boolean => individuallyRunning.has(node),
+            [individuallyRunning]
         );
 
         const toggleNodeLock = useCallback(
@@ -1175,7 +1117,7 @@ export const GlobalProvider = memo(
             [changeNodes, changeEdges]
         );
 
-        const clearNodes = useCallback(
+        const resetInputs = useCallback(
             (ids: readonly string[]) => {
                 ids.forEach((id) => {
                     modifyNode(id, (old) => {
@@ -1193,6 +1135,17 @@ export const GlobalProvider = memo(
             [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
         );
 
+        const resetConnections = useCallback(
+            (ids: readonly string[]) => {
+                changeEdges((edges) => {
+                    return edges.filter((e) => {
+                        return !ids.includes(e.source) && !ids.includes(e.target);
+                    });
+                });
+            },
+            [changeEdges]
+        );
+
         const setNodeDisabled = useCallback(
             (id: string, isDisabled: boolean): void => {
                 modifyNode(id, (n) => {
@@ -1202,7 +1155,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const [viewportExportPadding] = useViewportExportPadding;
+        const setNodeCollapsed = useCallback(
+            (id: string, isCollapsed: boolean): void => {
+                modifyNode(id, (n) => {
+                    return withNewData(n, 'isCollapsed', isCollapsed);
+                });
+            },
+            [modifyNode]
+        );
+
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
                 const currentFlowWrapper = reactFlowWrapper.current;
@@ -1252,8 +1213,14 @@ export const GlobalProvider = memo(
             copyToClipboard(getNodes(), getEdges());
         }, [getNodes, getEdges]);
         const pasteFn = useCallback(() => {
-            pasteFromClipboard(changeNodes, changeEdges, createNode, project, reactFlowWrapper);
-        }, [changeNodes, changeEdges, createNode, project, reactFlowWrapper]);
+            pasteFromClipboard(
+                changeNodes,
+                changeEdges,
+                createNode,
+                screenToFlowPosition,
+                reactFlowWrapper
+            );
+        }, [changeNodes, changeEdges, createNode, screenToFlowPosition, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
@@ -1316,11 +1283,12 @@ export const GlobalProvider = memo(
             typeState,
             getConnected,
             effectivelyDisabledNodes,
+            chainLineage,
             isValidConnection,
             zoom,
             collidingEdge,
             collidingNode,
-            isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
+            isIndividuallyRunning,
             inputHashes: inputHashesRef.current,
             outputDataMap,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
@@ -1335,8 +1303,8 @@ export const GlobalProvider = memo(
             changeNodes,
             changeEdges,
             selectNode,
-            animate,
-            unAnimate,
+            addIndividuallyRunning,
+            removeIndividuallyRunning,
             createNode,
             createEdge,
             createConnection,
@@ -1345,7 +1313,8 @@ export const GlobalProvider = memo(
             setNodeOutputHeight,
             setNodeWidth,
             toggleNodeLock,
-            clearNodes,
+            resetInputs,
+            resetConnections,
             removeNodesById,
             removeEdgeById,
             duplicateNodes,
@@ -1356,10 +1325,15 @@ export const GlobalProvider = memo(
             exportViewportScreenshot,
             exportViewportScreenshotToClipboard,
             setManualOutputType,
+            clearManualOutputTypes,
             typeStateRef,
+            chainLineageRef,
             outputDataActions,
             getInputHash,
             hasRelevantUnsavedChangesRef,
+            setNodeCollapsed,
+            addEdgeBreakpoint,
+            removeEdgeBreakpoint,
         });
 
         return (

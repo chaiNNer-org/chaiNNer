@@ -46,6 +46,7 @@
     "imwrite",
     "jit",
     "Lanczos",
+    "layouted",
     "leakyrelu",
     "localstorage",
     "Luma",
@@ -107,8 +108,12 @@
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true,
-        "source.fixAll": "always"
+      "source.organizeImports": "explicit",
+      "source.fixAll": "always"
     }
-  }
+  },
+  "stylelint.validate": [
+    "css",
+    "scss"
+  ]
 }

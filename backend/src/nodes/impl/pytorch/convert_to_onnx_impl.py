@@ -1,7 +1,13 @@
 from io import BytesIO
 
 import torch
-from spandrel import ModelDescriptor
+from spandrel import ImageModelDescriptor, ModelDescriptor
+from spandrel.architectures.SAFMN import SAFMN
+from spandrel.architectures.SCUNet import SCUNet
+
+
+def is_onnx_supported(model: ModelDescriptor) -> bool:
+    return not isinstance(model.model, (SCUNet, SAFMN))
 
 
 def convert_to_onnx_impl(
@@ -27,15 +33,29 @@ def convert_to_onnx_impl(
             raise ValueError(
                 f"Model of arch {model.architecture} does not support half precision."
             )
-        model.model.half()
+        model.half()
         dummy_input = dummy_input.half()
     else:
-        model.model.float()
+        model.float()
         dummy_input = dummy_input.float()
+
+    m = model.model
+
+    if isinstance(model, ImageModelDescriptor):
+
+        class FakeModel(torch.nn.Module):
+            def __init__(self, model: ImageModelDescriptor):
+                super().__init__()
+                self.model = model
+
+            def forward(self, x: torch.Tensor):
+                return self.model(x)
+
+        m = FakeModel(model)
 
     with BytesIO() as f:
         torch.onnx.export(
-            model.model,
+            m,
             dummy_input,
             f,
             opset_version=opset_version,

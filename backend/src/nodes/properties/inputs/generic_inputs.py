@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Literal, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import numpy as np
 from sanic.log import logger
+from typing_extensions import NotRequired
 
 import navi
-from api import BaseInput, InputConversion
+from api import BaseInput, InputConversion, group
 
+from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.dds.format import DDSFormat
-from ...impl.image_utils import FillColor, normalize
+from ...impl.image_utils import FillColor
 from ...impl.upscale.auto_split_tiles import TileSize
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
@@ -24,23 +27,19 @@ from ...utils.utils import (
     split_pascal_case,
     split_snake_case,
 )
+from .label import LabelStyle
 from .numeric_inputs import NumberInput
 
 
-class UntypedOption(TypedDict):
+class DropDownOption(TypedDict):
     option: str
+    icon: NotRequired[str | None]
     value: str | int
+    type: NotRequired[navi.ExpressionJson]
+    condition: NotRequired[ConditionJson | None]
 
 
-class TypedOption(TypedDict):
-    option: str
-    value: str | int
-    type: navi.ExpressionJson
-
-
-DropDownOption = Union[UntypedOption, TypedOption]
-
-DropDownStyle = Literal["dropdown", "checkbox", "tabs"]
+DropDownStyle = Literal["dropdown", "checkbox", "tabs", "icons"]
 """
 This specified the preferred style in which the frontend may display the dropdown.
 
@@ -48,7 +47,24 @@ This specified the preferred style in which the frontend may display the dropdow
 - `checkbox`: If the dropdown has 2 options, then it will be displayed as a checkbox.
   The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
 - `tabs`: The options are displayed as tab list. The label of the input itself will *not* be displayed.
+- `icons`: The options are displayed as a list of icons. This is only available if all options have icons. Labels are still required for all options.
 """
+
+
+@dataclass
+class DropDownGroup:
+    label: str | None
+    start_at: str | int | Enum
+
+    @staticmethod
+    def divider(start_at: str | int | Enum):
+        return DropDownGroup(None, start_at)
+
+    def to_dict(self):
+        start_at = self.start_at
+        if isinstance(start_at, Enum):
+            start_at = start_at.value
+        return {"label": self.label, "startAt": start_at}
 
 
 class DropDownInput(BaseInput):
@@ -61,6 +77,8 @@ class DropDownInput(BaseInput):
         options: list[DropDownOption],
         default_value: str | int | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        label_style: LabelStyle = "default",
+        groups: list[DropDownGroup] | None = None,
         associated_type: Any = None,
     ):
         super().__init__(input_type, label, kind="dropdown", has_handle=False)
@@ -70,6 +88,8 @@ class DropDownInput(BaseInput):
             default_value if default_value is not None else options[0]["value"]
         )
         self.preferred_style: DropDownStyle = preferred_style
+        self.label_style: LabelStyle = label_style
+        self.groups: list[DropDownGroup] = groups or []
 
         if self.default not in self.accepted_values:
             logger.error(
@@ -87,6 +107,8 @@ class DropDownInput(BaseInput):
             "options": self.options,
             "def": self.default,
             "preferredStyle": self.preferred_style,
+            "labelStyle": self.label_style,
+            "groups": [c.to_dict() for c in self.groups],
         }
 
     def make_optional(self):
@@ -96,9 +118,29 @@ class DropDownInput(BaseInput):
         assert value in self.accepted_values, f"{value} is not a valid option"
         return value
 
+    def wrap_with_conditional_group(self):
+        """
+        Adds a conditional group around the dropdown input according to the conditions of its options.
+
+        Note: Calling this method is only valid if all options have a condition.
+        """
+
+        conditions: list[ConditionJson] = []
+        for option in self.options:
+            c = option.get("condition")
+            if c is None:
+                raise ValueError(
+                    f"wrap_with_conditional is unnecessary, because the {option['option']} option has no condition."
+                )
+            conditions.append(c)
+
+        condition: ConditionJson = {"kind": "or", "items": conditions}
+
+        return group("conditional", {"condition": condition})(self)
+
 
 class BoolInput(DropDownInput):
-    def __init__(self, label: str, default: bool = True):
+    def __init__(self, label: str, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
             label=label,
@@ -108,6 +150,7 @@ class BoolInput(DropDownInput):
                     "option": "Yes",
                     "value": int(True),  # 1
                     "type": "true",
+                    "icon": icon,
                 },
                 {
                     "option": "No",
@@ -157,6 +200,10 @@ class EnumInput(Generic[T], DropDownInput):
         option_labels: dict[T, str] | None = None,
         extra_definitions: str | None = None,
         preferred_style: DropDownStyle = "dropdown",
+        label_style: LabelStyle = "default",
+        categories: list[DropDownGroup] | None = None,
+        conditions: dict[T, Condition] | None = None,
+        icons: dict[T, str] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -164,6 +211,10 @@ class EnumInput(Generic[T], DropDownInput):
             label = join_space_case(split_pascal_case(type_name))
         if option_labels is None:
             option_labels = {}
+        if conditions is None:
+            conditions = {}
+        if icons is None:
+            icons = {}
 
         options: list[DropDownOption] = []
         variant_types: list[str] = []
@@ -177,10 +228,20 @@ class EnumInput(Generic[T], DropDownInput):
             name = split_snake_case(variant.name)
             variant_type = f"{type_name}::{join_pascal_case(name)}"
             option_label = option_labels.get(variant, join_space_case(name))
+            condition = conditions.get(variant)
+            if condition is not None:
+                condition = condition.to_json()
 
             variant_types.append(variant_type)
+
             options.append(
-                {"option": option_label, "value": value, "type": variant_type}
+                {
+                    "option": option_label,
+                    "value": value,
+                    "type": variant_type,
+                    "condition": condition,
+                    "icon": icons.get(variant),
+                }
             )
 
         super().__init__(
@@ -189,6 +250,8 @@ class EnumInput(Generic[T], DropDownInput):
             options=options,
             default_value=default.value if default is not None else None,
             preferred_style=preferred_style,
+            label_style=label_style,
+            groups=categories,
         )
 
         self.type_definitions = (
@@ -219,7 +282,7 @@ class TextInput(BaseInput):
         multiline: bool = False,
         allow_numbers: bool = True,
         default: str | None = None,
-        hide_label: bool = False,
+        label_style: LabelStyle = "default",
         allow_empty_string: bool = False,
     ):
         super().__init__(
@@ -233,7 +296,7 @@ class TextInput(BaseInput):
         self.placeholder = placeholder
         self.default = default
         self.multiline = multiline
-        self.hide_label = hide_label
+        self.label_style: LabelStyle = label_style
         self.allow_empty_string = allow_empty_string
 
         if default is not None:
@@ -272,7 +335,7 @@ class TextInput(BaseInput):
             "placeholder": self.placeholder,
             "multiline": self.multiline,
             "def": self.default,
-            "hideLabel": self.hide_label,
+            "labelStyle": self.label_style,
             "allowEmptyString": self.allow_empty_string,
         }
 
@@ -284,15 +347,23 @@ class ClipboardInput(BaseInput):
         super().__init__(["Image", "string", "number"], label, kind="text")
         self.input_conversions = [InputConversion("Image", '"<Image>"')]
 
+        self.label_style: LabelStyle = "hidden"
+
     def enforce(self, value: object):
         if isinstance(value, np.ndarray):
-            return normalize(value)
+            return value
 
         if isinstance(value, float) and int(value) == value:
             # stringify integers values
             return str(int(value))
 
         return str(value)
+
+    def to_dict(self):
+        return {
+            **super().to_dict(),
+            "labelStyle": self.label_style,
+        }
 
 
 class AnyInput(BaseInput):
@@ -313,6 +384,7 @@ class SeedInput(NumberInput):
             maximum=None,
             precision=0,
             default=0,
+            label_style="default",
         )
         self.has_handle = has_handle
 
@@ -413,144 +485,6 @@ class ColorInput(BaseInput):
         raise ValueError("ColorInput cannot be made optional")
 
 
-class VideoContainer(Enum):
-    MKV = "mkv"
-    MP4 = "mp4"
-    MOV = "mov"
-    WEBM = "webm"
-    AVI = "avi"
-    GIF = "gif"
-
-
-VIDEO_CONTAINERS = {
-    VideoContainer.MKV: "mkv",
-    VideoContainer.MP4: "mp4",
-    VideoContainer.MOV: "mov",
-    VideoContainer.WEBM: "WebM",
-    VideoContainer.AVI: "avi",
-    VideoContainer.GIF: "GIF",
-}
-
-
-VIDEO_FFV1_CONTAINERS: list[VideoContainer] = [VideoContainer.MKV]
-
-
-def VideoFfv1ContainerDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoContainer",
-        label="Container",
-        options=[
-            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
-            for vc in VIDEO_FFV1_CONTAINERS
-        ],
-        associated_type=VideoContainer,
-    )
-
-
-VIDEO_VP9_CONTAINERS: list[VideoContainer] = [
-    VideoContainer.WEBM,
-    VideoContainer.MP4,
-    VideoContainer.MKV,
-]
-
-
-def VideoVp9ContainerDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoContainer",
-        label="Container",
-        options=[
-            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
-            for vc in VIDEO_VP9_CONTAINERS
-        ],
-        associated_type=VideoContainer,
-    )
-
-
-VIDEO_H264_CONTAINERS: list[VideoContainer] = [
-    VideoContainer.MKV,
-    VideoContainer.MP4,
-    VideoContainer.MOV,
-    VideoContainer.AVI,
-]
-
-
-def VideoH264ContainerDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoContainer",
-        label="Container",
-        options=[
-            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
-            for vc in VIDEO_H264_CONTAINERS
-        ],
-        associated_type=VideoContainer,
-    )
-
-
-VIDEO_H265_CONTAINERS: list[VideoContainer] = [
-    VideoContainer.MKV,
-    VideoContainer.MP4,
-    VideoContainer.MOV,
-]
-
-
-def VideoH265ContainerDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoContainer",
-        label="Container",
-        options=[
-            {"option": VIDEO_CONTAINERS[vc], "value": vc.value}
-            for vc in VIDEO_H265_CONTAINERS
-        ],
-        associated_type=VideoContainer,
-    )
-
-
-class VideoEncoder(Enum):
-    H264 = "libx264"
-    H265 = "libx265"
-    VP9 = "libvpx-vp9"
-    FFV1 = "ffv1"
-
-
-VIDEO_ENCODER_LABELS = {
-    VideoEncoder.H264: "H.264 (AVC)",
-    VideoEncoder.H265: "H.265 (HEVC)",
-    VideoEncoder.VP9: "VP9",
-    VideoEncoder.FFV1: "FFV1",
-}
-
-
-def VideoEncoderDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="VideoEncoder",
-        label="Encoder",
-        options=[
-            {"option": label, "value": vc.value}
-            for vc, label in VIDEO_ENCODER_LABELS.items()
-        ],
-        default_value=VideoEncoder.H264.value,
-        associated_type=VideoEncoder,
-    )
-
-
-def VideoPresetDropdown() -> DropDownInput:
-    """Video Type option dropdown"""
-    return DropDownInput(
-        input_type="VideoPreset",
-        label="Preset",
-        options=[
-            {"option": "ultrafast", "value": "ultrafast"},
-            {"option": "superfast", "value": "superfast"},
-            {"option": "veryfast", "value": "veryfast"},
-            {"option": "fast", "value": "fast"},
-            {"option": "medium", "value": "medium"},
-            {"option": "slow", "value": "slow"},
-            {"option": "slower", "value": "slower"},
-            {"option": "veryslow", "value": "veryslow"},
-        ],
-    )
-
-
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return EnumInput(
@@ -558,6 +492,12 @@ def BlendModeDropdown() -> DropDownInput:
         option_labels={
             BlendMode.ADD: "Linear Dodge (Add)",
         },
+        categories=[
+            DropDownGroup.divider(start_at=BlendMode.DARKEN),
+            DropDownGroup.divider(start_at=BlendMode.LIGHTEN),
+            DropDownGroup.divider(start_at=BlendMode.OVERLAY),
+            DropDownGroup.divider(start_at=BlendMode.DIFFERENCE),
+        ],
     )
 
 
@@ -609,9 +549,9 @@ SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
     ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
     ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
     ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
-    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha, Legacy)"),
-    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha, Legacy)"),
-    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha, Legacy)"),
+    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha)"),
+    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha)"),
+    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha)"),
     ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
     ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
     ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
@@ -631,6 +571,11 @@ def DdsFormatDropdown() -> DropDownInput:
         label="DDS Format",
         options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
         associated_type=DDSFormat,
+        groups=[
+            DropDownGroup("Compressed", start_at="BC1_UNORM_SRGB"),
+            DropDownGroup("Uncompressed", start_at="R8G8B8A8_UNORM_SRGB"),
+            DropDownGroup("Legacy Compressed", start_at="DXT1"),
+        ],
     )
 
 

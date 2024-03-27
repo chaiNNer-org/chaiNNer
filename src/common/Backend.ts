@@ -19,7 +19,6 @@ import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
     type: 'success';
-    message: string;
 }
 
 export interface BackendLiteralErrorValue {
@@ -53,7 +52,6 @@ export interface BackendExceptionResponse {
 }
 export interface BackendNoExecutorResponse {
     type: 'no-executor';
-    message: string;
 }
 export interface BackendAlreadyRunningResponse {
     type: 'already-running';
@@ -238,6 +236,24 @@ export class Backend {
     features(): Promise<FeatureState[]> {
         return this.fetchJson('/features', 'GET');
     }
+
+    installPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
+            package: pkg.id,
+        });
+    }
+
+    uninstallPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/uninstall', 'POST', {
+            package: pkg.id,
+        });
+    }
+
+    updatePackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
+            package: pkg.id,
+        });
+    }
 }
 
 const backendCache = new Map<string, Backend>();
@@ -260,30 +276,33 @@ export const getBackend = (url: string): Backend => {
  * All possible events emitted by backend SSE along with the data layout of the event data.
  */
 export interface BackendEventMap {
-    finish: {
-        message: string;
-    };
     'execution-error': {
         message: string;
         source?: BackendExceptionSource | null;
         exception: string;
+        exceptionTrace: string;
     };
-    'node-finish': {
-        nodeId: string;
-        executionTime?: number | null;
-        data?: OutputData | null;
-        types?: OutputTypes | null;
-        progressPercent?: number | null;
+    'chain-start': {
+        nodes: string[];
     };
     'node-start': {
         nodeId: string;
     };
-    'node-progress-update': {
+    'node-progress': {
         nodeId: string;
-        percent: number;
+        progress: number;
         index: number;
         total: number;
         eta: number;
+    };
+    'node-finish': {
+        nodeId: string;
+        executionTime: number;
+    };
+    'node-broadcast': {
+        nodeId: string;
+        data: OutputData;
+        types: OutputTypes;
     };
     'backend-status': {
         message: string;
@@ -291,4 +310,9 @@ export interface BackendEventMap {
         statusProgress?: number | null;
     };
     'backend-ready': null;
+    'package-install-status': {
+        message: string;
+        progress: number;
+        statusProgress?: number | null;
+    };
 }

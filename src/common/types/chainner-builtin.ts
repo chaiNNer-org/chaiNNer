@@ -14,7 +14,10 @@ import {
     handleNumberLiterals,
     intersect,
     literal,
+    union,
+    wrapBinary,
     wrapQuaternary,
+    wrapScopedBinary,
     wrapScopedUnary,
     wrapTernary,
 } from '@chainner/navi';
@@ -22,8 +25,6 @@ import path from 'path';
 import { ColorJson } from '../common-types';
 import { log } from '../log';
 import { RRegex } from '../rust-regex';
-import { assertNever } from '../util';
-import type { Group, Hir } from 'rregex';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -45,7 +46,7 @@ class ReplacementString {
 
         const contentPattern = /^\w+$/;
 
-        const tokenPattern = /(\{\{)|\{([^{}]*)\}/g;
+        const tokenPattern = /\{([^{}]*)\}|\{\{/g;
         let lastIndex = 0;
         let lastStr = '';
         let m;
@@ -54,7 +55,7 @@ class ReplacementString {
             lastStr += pattern.slice(lastIndex, m.index);
             lastIndex = m.index + m[0].length;
 
-            const interpolation = m[2] as string | undefined;
+            const interpolation = m[1] as string | undefined;
             if (interpolation !== undefined) {
                 if (interpolation === '') {
                     throw new Error(
@@ -155,77 +156,20 @@ export const formatTextPattern = (
     return Intrinsic.concat(...concatArgs);
 };
 
-/**
- * Iterates over all groups in the given hir in order.
- */
-function* iterGroups(hir: Hir): Iterable<Group> {
-    const { kind } = hir;
-    if (kind['@variant'] === 'Group') {
-        yield kind['@values'][0];
-    }
-
-    switch (kind['@variant']) {
-        case 'Anchor':
-        case 'Class':
-        case 'Empty':
-        case 'Literal':
-        case 'WordBoundary': {
-            break;
-        }
-        case 'Group':
-        case 'Repetition': {
-            yield* iterGroups(kind['@values'][0].hir);
-            break;
-        }
-        case 'Alternation':
-        case 'Concat': {
-            for (const h of kind['@values'][0]) {
-                yield* iterGroups(h);
-            }
-            break;
-        }
-
-        default:
-            return assertNever(kind);
-    }
-}
-interface CapturingGroupInfo {
-    count: number;
-    names: string[];
-}
-const getCapturingGroupInfo = (regex: RRegex): CapturingGroupInfo => {
-    let count = 0;
-    const names: string[] = [];
-
-    for (const { kind } of iterGroups(regex.syntax())) {
-        if (kind['@variant'] === 'NonCapturing') {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-        if (kind['@variant'] === 'CaptureName') {
-            names.push(kind.name);
-        }
-        count += 1;
-    }
-
-    return { count, names };
-};
 const regexReplaceImpl = (
     text: string,
     regexPattern: string,
     replacementPattern: string,
     count: number
-): string | undefined => {
+): string => {
     // parse and validate before doing actual work
     const regex = new RRegex(regexPattern);
     const replacement = new ReplacementString(replacementPattern);
 
     // check replacement keys
-    const captures = getCapturingGroupInfo(regex);
     const availableNames = new Set<string>([
-        ...captures.names,
-        '0',
-        ...Array.from({ length: captures.count }, (_, i) => String(i + 1)),
+        ...regex.captureNames(),
+        ...Array.from({ length: regex.capturesLength() }, (_, i) => String(i)),
     ]);
     for (const name of replacement.names) {
         if (!availableNames.has(name)) {
@@ -241,39 +185,30 @@ const regexReplaceImpl = (
     if (count === 0) {
         return text;
     }
-    const matches = regex.findAll(text).slice(0, Math.max(0, count || 0));
+    const matches = regex.capturesAll(text).slice(0, Math.max(0, count || 0));
     if (matches.length === 0) {
         return text;
     }
 
-    // rregex doesn't support captures right now, so we can only support {0}
-    // https://github.com/2fd/rregex/issues/32
-    if (replacement.names.size > 0) {
-        const [first] = replacement.names;
-        if (replacement.names.size > 1 || first !== '0') {
-            return undefined;
-        }
-    }
-
     // rregex currently only supports byte offsets in matches. So we have to
     // match spans on UTF8 and then convert it back to Unicode.
-    const utf8 = Buffer.from(text, 'utf8');
-    const toUTF16 = (offset: number) => {
-        return utf8.toString('utf8', 0, offset).length;
-    };
+    const utf8 = new TextEncoder().encode(text);
+    const decoder = new TextDecoder();
 
     let result = '';
-    let lastIndex = 0;
+    let lastByteIndex = 0;
     for (const match of matches) {
-        result += text.slice(lastIndex, toUTF16(match.start));
+        const full = match.get[0];
+        result += decoder.decode(utf8.slice(lastByteIndex, full.start));
 
         const replacements = new Map<string, string>();
-        replacements.set('0', match.value);
+        match.get.forEach((m, i) => replacements.set(String(i), m.value));
+        Object.entries(match.name).forEach(([name, m]) => replacements.set(name, m.value));
         result += replacement.replace(replacements);
 
-        lastIndex = toUTF16(match.end);
+        lastByteIndex = full.end;
     }
-    result += text.slice(lastIndex);
+    result += decoder.decode(utf8.slice(lastByteIndex));
 
     return result;
 };
@@ -297,9 +232,7 @@ export const regexReplace = wrapQuaternary<
                 replacementPattern.value,
                 count.value
             );
-            if (result !== undefined) {
-                return new StringLiteralType(result);
-            }
+            return new StringLiteralType(result);
         } catch (error) {
             log.debug('regexReplaceImpl', error);
             return NeverType.instance;
@@ -428,5 +361,99 @@ export const parseColorJson = wrapScopedUnary(
             return NeverType.instance;
         }
         return createInstance(colorDesc);
+    }
+);
+
+const getParentDirectoryStr = (pathStr: string): string => {
+    return path.dirname(pathStr);
+};
+export const getParentDirectory = wrapBinary<StringPrimitive, Int, StringPrimitive>(
+    (pathStr, times) => {
+        if (times.type === 'literal' && times.value === 0) {
+            return pathStr;
+        }
+        if (pathStr.type === 'literal') {
+            let min;
+            let max;
+            if (times.type === 'literal') {
+                min = times.value;
+                max = times.value;
+            } else {
+                min = times.min;
+                max = times.max;
+            }
+
+            // the basic idea here is that repeatedly getting the parent directory of a path
+            // will eventually converge to the root directory, so we can stop when that happens
+            let p = pathStr.value;
+            for (let i = 0; i < min; i += 1) {
+                const next = getParentDirectoryStr(p);
+                if (next === p) {
+                    return literal(p);
+                }
+                p = next;
+            }
+
+            if (min === max) {
+                return literal(p);
+            }
+
+            const values = new Set<string>();
+            values.add(p);
+            for (let i = min; i < max; i += 1) {
+                p = getParentDirectoryStr(p);
+                if (values.has(p)) {
+                    break;
+                }
+                values.add(p);
+            }
+
+            return union(...[...values].map(literal));
+        }
+        return StringType.instance;
+    }
+);
+
+// eslint-disable-next-line no-control-regex
+const INVALID_PATH_CHARS = /[<>:"|?*\x00-\x1F]/;
+const goIntoDirectoryImpl = (basePath: string, relPath: string): string | Error => {
+    const isAbsolute = /^[/\\]/.test(relPath) || path.isAbsolute(relPath);
+    if (isAbsolute) {
+        return new Error('Absolute paths are not allowed as folders.');
+    }
+
+    const invalid = INVALID_PATH_CHARS.exec(relPath);
+    if (invalid) {
+        return new Error(`Invalid character '${invalid[0]}' in folder name.`);
+    }
+
+    const joined = path.join(basePath, relPath);
+    return path.resolve(joined);
+};
+export const goIntoDirectory = wrapScopedBinary(
+    (
+        scope,
+        basePath: StringPrimitive,
+        relPath: StringPrimitive
+    ): Arg<StringPrimitive | StructInstanceType> => {
+        const errorDesc = getStructDescriptor(scope, 'Error');
+
+        if (basePath.type === 'literal' && relPath.type === 'literal') {
+            try {
+                const result = goIntoDirectoryImpl(basePath.value, relPath.value);
+                if (typeof result === 'string') {
+                    return literal(result);
+                }
+                return createInstance(errorDesc, {
+                    message: literal(result.message),
+                });
+            } catch (e) {
+                return createInstance(errorDesc, {
+                    message: literal(String(e)),
+                });
+            }
+        }
+
+        return union(StringType.instance, errorDesc.default);
     }
 );

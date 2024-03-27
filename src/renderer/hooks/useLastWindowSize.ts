@@ -1,17 +1,10 @@
 import { useCallback, useEffect } from 'react';
-import { WindowSize } from '../../common/common-types';
 import { debounce } from '../../common/util';
+import { useMutSetting } from '../contexts/SettingsContext';
 import { useIpcRendererListener } from './useIpcRendererListener';
-import { useLocalStorage } from './useLocalStorage';
-
-const defaultSize: WindowSize = {
-    maximized: false,
-    width: 1280,
-    height: 720,
-};
 
 export const useLastWindowSize = () => {
-    const [, setSize] = useLocalStorage<WindowSize>('use-last-window-size', defaultSize);
+    const [, setSize] = useMutSetting('lastWindowSize');
 
     useEffect(() => {
         const listener = debounce(() => {

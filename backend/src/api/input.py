@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Literal, Optional, TypedDict, Union
 
 import navi
@@ -17,6 +18,7 @@ InputKind = Literal[
     "file",
     "color",
     "generic",
+    "static",
 ]
 
 
@@ -98,6 +100,7 @@ class BaseInput:
         # Optional documentation
         self.description: str | None = None
         self.hint: bool = False
+        self.should_suggest: bool = False
 
     # This is the method that should be created by each input
     def enforce(self, value: object):
@@ -126,6 +129,9 @@ class BaseInput:
         if isinstance(value, (int, float, str)) or value is None:
             return {"type": "literal", "value": value}
 
+        if isinstance(value, Path):
+            return {"type": "literal", "value": str(value)}
+
         return {
             "type": "unknown",
             "typeName": type(value).__qualname__,
@@ -146,6 +152,7 @@ class BaseInput:
             "hasHandle": self.has_handle,
             "description": self.description,
             "hint": self.hint,
+            "suggest": self.should_suggest,
             "fused": {
                 "outputId": self.fused.output_id,
             }
@@ -160,6 +167,10 @@ class BaseInput:
     def with_docs(self, *description: str, hint: bool = False):
         self.description = "\n\n".join(description)
         self.hint = hint
+        return self
+
+    def suggest(self):
+        self.should_suggest = True
         return self
 
     def make_optional(self):

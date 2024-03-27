@@ -8,18 +8,21 @@ import {
     SchemaId,
 } from './common-types';
 import { log } from './log';
+import { getDefaultValue } from './util';
 
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
     outputs: [],
     groupLayout: [],
+    iteratorInputs: [],
+    iteratorOutputs: [],
     icon: '',
     category: '' as CategoryId,
     nodeGroup: '' as NodeGroupId,
     name: '',
     description: '',
     seeAlso: [],
-    nodeType: 'regularNode',
+    kind: 'regularNode',
     schemaId: '' as SchemaId,
     hasSideEffects: false,
     deprecated: false,
@@ -75,9 +78,7 @@ export class SchemaMap {
         const defaultData: Record<InputId, InputValue> = {};
         const { inputs } = this.get(schemaId);
         inputs.forEach((input) => {
-            if ('def' in input) {
-                defaultData[input.id] = input.def ?? undefined;
-            }
+            defaultData[input.id] = getDefaultValue(input);
         });
         return defaultData;
     }

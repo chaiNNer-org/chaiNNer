@@ -13,7 +13,6 @@ from .chain import (
     FunctionNode,
     NewIteratorNode,
 )
-from .input import EdgeInput, Input, InputMap, ValueInput
 
 
 class JsonEdgeInput(TypedDict):
@@ -48,9 +47,8 @@ class IndexEdge:
         self.to_index = to_index
 
 
-def parse_json(json: list[JsonNode]) -> tuple[Chain, InputMap]:
+def parse_json(json: list[JsonNode]) -> Chain:
     chain = Chain()
-    input_map = InputMap()
 
     index_edges: list[IndexEdge] = []
 
@@ -63,14 +61,12 @@ def parse_json(json: list[JsonNode]) -> tuple[Chain, InputMap]:
             node = FunctionNode(json_node["id"], json_node["schemaId"])
         chain.add_node(node)
 
-        inputs: list[Input] = []
+        inputs = node.data.inputs
         for index, i in enumerate(json_node["inputs"]):
             if i["type"] == "edge":
-                inputs.append(EdgeInput(i["id"], i["index"]))
                 index_edges.append(IndexEdge(i["id"], i["index"], node.id, index))
             else:
-                inputs.append(ValueInput(i["value"]))
-        input_map.set(node.id, inputs)
+                chain.inputs.set(node.id, inputs[index].id, i["value"])
 
     for index_edge in index_edges:
         source_node = chain.nodes[index_edge.from_id].data
@@ -89,4 +85,4 @@ def parse_json(json: list[JsonNode]) -> tuple[Chain, InputMap]:
             )
         )
 
-    return chain, input_map
+    return chain

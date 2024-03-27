@@ -288,6 +288,15 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                               },
                               enabled,
                           },
+                          { type: 'separator' },
+                          {
+                              label: 'Format Chain',
+                              accelerator: 'CmdOrCtrl+Shift+F',
+                              click: () => {
+                                  mainWindow.webContents.send('format-chain');
+                              },
+                              enabled,
+                          },
                       ],
                   },
                   { role: 'windowMenu' },
@@ -358,6 +367,16 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                               registerAccelerator: false,
                               click: () => {
                                   mainWindow.webContents.send('duplicate-with-input-edges');
+                              },
+                              enabled,
+                          },
+                          { type: 'separator' },
+                          {
+                              label: 'Format Chain',
+                              accelerator: 'CmdOrCtrl+Shift+F',
+                              registerAccelerator: false,
+                              click: () => {
+                                  mainWindow.webContents.send('format-chain');
                               },
                               enabled,
                           },

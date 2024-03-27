@@ -4,20 +4,31 @@ import asyncio
 import functools
 import gc
 import time
-import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, List, Union
+from typing import Iterable, List, NewType, Union
 
 from sanic.log import logger
 
-from api import BaseOutput, Collector, InputId, Iterator, NodeData, NodeId, OutputId
+from api import (
+    BaseOutput,
+    Collector,
+    ExecutionOptions,
+    InputId,
+    Iterator,
+    NodeContext,
+    NodeData,
+    NodeId,
+    OutputId,
+    SettingsParser,
+    registry,
+)
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
-from events import Event, EventConsumer, InputsDict
-from progress_controller import Aborted, ProgressController
+from events import EventConsumer, InputsDict
+from progress_controller import Aborted, ProgressController, ProgressToken
 from util import timed_supplier
 
 Output = List[object]
@@ -130,9 +141,9 @@ def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutpu
 
 
 def run_node(
-    node: NodeData, inputs: list[object], node_id: NodeId
+    node: NodeData, context: NodeContext, inputs: list[object], node_id: NodeId
 ) -> NodeOutput | CollectorOutput:
-    if node.type == "collector":
+    if node.kind == "collector":
         ignored_inputs = node.single_iterator_input.inputs
     else:
         ignored_inputs = []
@@ -140,15 +151,18 @@ def run_node(
     enforced_inputs = enforce_inputs(inputs, node, node_id, ignored_inputs)
 
     try:
-        raw_output = node.run(*enforced_inputs)
+        if node.node_context:
+            raw_output = node.run(context, *enforced_inputs)
+        else:
+            raw_output = node.run(*enforced_inputs)
 
-        if node.type == "collector":
+        if node.kind == "collector":
             assert isinstance(raw_output, Collector)
             return CollectorOutput(raw_output)
-        if node.type == "newIterator":
+        if node.kind == "newIterator":
             return enforce_iterator_output(raw_output, node)
 
-        assert node.type == "regularNode"
+        assert node.kind == "regularNode"
         return enforce_output(raw_output, node)
     except Aborted:
         raise
@@ -263,6 +277,37 @@ class CollectorOutput:
 
 NodeOutput = Union[RegularOutput, IteratorOutput]
 
+ExecutionId = NewType("ExecutionId", str)
+
+
+class _ExecutorNodeContext(NodeContext):
+    def __init__(self, progress: ProgressToken, settings: SettingsParser) -> None:
+        super().__init__()
+
+        self.progress = progress
+        self.__settings = settings
+
+    @property
+    def aborted(self) -> bool:
+        return self.progress.aborted
+
+    @property
+    def paused(self) -> bool:
+        time.sleep(0.001)
+        return self.progress.paused
+
+    def set_progress(self, progress: float) -> None:
+        self.check_aborted()
+
+        # TODO: send progress event
+
+    @property
+    def settings(self) -> SettingsParser:
+        """
+        Returns the settings of the current node execution.
+        """
+        return self.__settings
+
 
 class Executor:
     """
@@ -271,35 +316,31 @@ class Executor:
 
     def __init__(
         self,
+        id: ExecutionId,
         chain: Chain,
-        inputs: InputMap,
         send_broadcast_data: bool,
+        options: ExecutionOptions,
         loop: asyncio.AbstractEventLoop,
         queue: EventConsumer,
         pool: ThreadPoolExecutor,
         parent_cache: OutputCache[NodeOutput] | None = None,
     ):
-        self.execution_id: str = uuid.uuid4().hex
+        self.id: ExecutionId = id
         self.chain = chain
-        self.inputs = inputs
+        self.inputs: InputMap = InputMap.from_chain(chain)
         self.send_broadcast_data: bool = send_broadcast_data
+        self.options: ExecutionOptions = options
         self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)
         self.__broadcast_tasks: list[asyncio.Task[None]] = []
+        self.__context_cache: dict[str, _ExecutorNodeContext] = {}
 
         self.progress = ProgressController()
-
-        self.completed_node_ids = set()
 
         self.loop: asyncio.AbstractEventLoop = loop
         self.queue: EventConsumer = queue
         self.pool: ThreadPoolExecutor = pool
 
         self.cache_strategy: dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
-
-    @property
-    def completed_percentage(self) -> float:
-        completed = self.cache.keys().union(self.completed_node_ids)
-        return len(completed) / len(self.chain.nodes)
 
     async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
@@ -317,10 +358,36 @@ class Executor:
         except Exception as e:
             raise NodeExecutionError(node.id, node.data, str(e), {}) from e
 
-    async def process_regular_node(self, node_id: NodeId) -> RegularOutput:
-        assert self.chain.nodes[node_id].data.type == "regularNode"
-        result = await self.process(node_id)
+    async def process_regular_node(self, node: FunctionNode) -> RegularOutput:
+        """
+        Processes the given regular node.
+
+        This will run all necessary node events.
+        """
+        result = await self.process(node.id)
         assert isinstance(result, RegularOutput)
+        return result
+
+    async def process_iterator_node(self, node: NewIteratorNode) -> IteratorOutput:
+        """
+        Processes the given iterator node.
+
+        This will **not** iterate the returned iterator. Only `node-start` and
+        `node-broadcast` events will be sent.
+        """
+        result = await self.process(node.id)
+        assert isinstance(result, IteratorOutput)
+        return result
+
+    async def process_collector_node(self, node: CollectorNode) -> CollectorOutput:
+        """
+        Processes the given iterator node.
+
+        This will **not** iterate the returned collector. Only a `node-start` event
+        will be sent.
+        """
+        result = await self.process(node.id)
+        assert isinstance(result, CollectorOutput)
         return result
 
     async def __get_node_output(self, node_id: NodeId, output_index: int) -> object:
@@ -379,13 +446,10 @@ class Executor:
 
         return inputs
 
-    async def __gather_collector_inputs(self, node: Node) -> list[object]:
+    async def __gather_collector_inputs(self, node: CollectorNode) -> list[object]:
         """
         Returns the input values to be consumed by `Collector.on_iterate`.
         """
-
-        assert isinstance(node, CollectorNode)
-        assert node.data.type == "collector"
 
         iterator_input = node.data.single_iterator_input
 
@@ -400,6 +464,17 @@ class Executor:
 
         return inputs
 
+    def __get_node_context(self, node: Node) -> _ExecutorNodeContext:
+        context = self.__context_cache.get(node.data.schema_id, None)
+        if context is None:
+            package_id = registry.get_package(node.data.schema_id).id
+            settings = self.options.get_package_settings(package_id)
+
+            context = _ExecutorNodeContext(self.progress, settings)
+            self.__context_cache[node.data.schema_id] = context
+
+        return context
+
     async def __process(self, node: Node) -> NodeOutput | CollectorOutput:
         """
         Process a single node.
@@ -411,23 +486,27 @@ class Executor:
         logger.debug(f"node: {node}")
         logger.debug(f"Running node {node.id}")
 
-        await self.queue.put(self.__create_node_start(node.id))
-        await self.progress.suspend()
-
         inputs = await self.__gather_inputs(node)
+        context = self.__get_node_context(node)
 
+        await self.progress.suspend()
+        await self.__send_node_start(node)
         await self.progress.suspend()
 
         output, execution_time = await self.loop.run_in_executor(
             self.pool,
-            timed_supplier(functools.partial(run_node, node.data, inputs, node.id)),
+            timed_supplier(
+                functools.partial(run_node, node.data, context, inputs, node.id)
+            ),
         )
         await self.progress.suspend()
 
         if isinstance(output, RegularOutput):
-            await self.__broadcast_data(node, execution_time, output.output)
+            await self.__send_node_broadcast(node, output.output)
+            await self.__send_node_finish(node, execution_time)
         elif isinstance(output, IteratorOutput):
-            await self.__broadcast_data(node, execution_time, output.partial_output)
+            await self.__send_node_broadcast(node, output.partial_output)
+            # TODO: execution time
 
         # Cache the output of the node
         if not isinstance(output, CollectorOutput):
@@ -436,61 +515,6 @@ class Executor:
         await self.progress.suspend()
 
         return output
-
-    async def __broadcast_data(
-        self,
-        node: Node,
-        execution_time: float,
-        output: Output,
-    ):
-        self.completed_node_ids.add(node.id)
-
-        async def send_broadcast():
-            data, types = await self.loop.run_in_executor(
-                self.pool, lambda: compute_broadcast(output, node.data.outputs)
-            )
-            await self.queue.put(
-                {
-                    "event": "node-finish",
-                    "data": {
-                        "nodeId": node.id,
-                        "executionTime": execution_time,
-                        "data": data,
-                        "types": types,
-                        "progressPercent": self.completed_percentage,
-                    },
-                }
-            )
-
-        # Only broadcast the output if the node has outputs and the output is not cached
-        if (
-            self.send_broadcast_data
-            and len(node.data.outputs) > 0
-            and not self.cache.has(node.id)
-        ):
-            # broadcasts are done is parallel, so don't wait
-            self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
-        else:
-            await self.queue.put(
-                {
-                    "event": "node-finish",
-                    "data": {
-                        "nodeId": node.id,
-                        "executionTime": execution_time,
-                        "data": None,
-                        "types": None,
-                        "progressPercent": self.completed_percentage,
-                    },
-                }
-            )
-
-    def __create_node_start(self, node_id: NodeId) -> Event:
-        return {
-            "event": "node-start",
-            "data": {
-                "nodeId": node_id,
-            },
-        }
 
     def __get_iterated_nodes(
         self, node: NewIteratorNode
@@ -533,10 +557,9 @@ class Executor:
         return collectors, output_nodes, seen
 
     def __iterator_fill_partial_output(
-        self, node: NodeData, partial_output: Output, values: object
+        self, node: NewIteratorNode, partial_output: Output, values: object
     ) -> Output:
-        assert node.type == "newIterator"
-        iterator_output = node.single_iterator_output
+        iterator_output = node.data.single_iterator_output
 
         values_list: list[object] = []
         if len(iterator_output.outputs) == 1:
@@ -548,18 +571,17 @@ class Executor:
         assert len(values_list) == len(iterator_output.outputs)
 
         output: Output = partial_output.copy()
-        for index, o in enumerate(node.outputs):
+        for index, o in enumerate(node.data.outputs):
             if o.id in iterator_output.outputs:
                 output[index] = o.enforce(values_list.pop(0))
 
         return output
 
-    async def __process_iterator_node(self, node: NewIteratorNode):
+    async def __iterate_iterator_node(self, node: NewIteratorNode):
         await self.progress.suspend()
 
         # run the iterator node itself before anything else
-        iterator_output = await self.process(node.id)
-        assert isinstance(iterator_output, IteratorOutput)
+        iterator_output = await self.process_iterator_node(node)
 
         collector_nodes, output_nodes, all_iterated_nodes = self.__get_iterated_nodes(
             node
@@ -574,7 +596,7 @@ class Executor:
         def fill_partial_output(values: object) -> RegularOutput:
             return RegularOutput(
                 self.__iterator_fill_partial_output(
-                    node.data, iterator_output.partial_output, values
+                    node, iterator_output.partial_output, values
                 )
             )
 
@@ -584,7 +606,7 @@ class Executor:
             await self.progress.suspend()
             timer = _Timer()
             with timer.run():
-                collector_output = await self.process(collector_node.id)
+                collector_output = await self.process_collector_node(collector_node)
             assert isinstance(collector_output, CollectorOutput)
             collectors.append((collector_output.collector, timer, collector_node))
 
@@ -598,51 +620,72 @@ class Executor:
             times.append(time.time() - last_time[0])
             iterations = len(times)
             last_time[0] = time.time()
-            await self.__update_progress(
-                node.id, times, iterations, max(expected_length, iterations)
+            await self.__send_node_progress(
+                node,
+                times,
+                iterations,
+                max(expected_length, iterations),
             )
 
         # iterate
-        await self.__update_progress(node.id, times, 0, expected_length)
+        await self.__send_node_progress(node, times, 0, expected_length)
 
+        deferred_errors: list[str] = []
         for values in iterator_output.iterator.iter_supplier():
-            # write current values to cache
-            iter_output = fill_partial_output(values)
-            self.cache.set(node.id, iter_output, StaticCaching)
+            try:
+                if isinstance(values, Exception):
+                    raise values
 
-            # broadcast
-            # TODO: Execution time. I just don't think any values makes sense here
-            await self.__broadcast_data(node, 0, iter_output.output)
+                # write current values to cache
+                iter_output = fill_partial_output(values)
+                self.cache.set(node.id, iter_output, StaticCaching)
 
-            # run each of the output nodes
-            for output_node in output_nodes:
-                await self.process(output_node.id)
+                # broadcast
+                await self.__send_node_broadcast(node, iter_output.output)
 
-            # run each of the collector nodes
-            for collector, timer, collector_node in collectors:
+                # run each of the output nodes
+                for output_node in output_nodes:
+                    await self.process_regular_node(output_node)
+
+                # run each of the collector nodes
+                for collector, timer, collector_node in collectors:
+                    await self.progress.suspend()
+                    iterate_inputs = await self.__gather_collector_inputs(
+                        collector_node
+                    )
+                    await self.progress.suspend()
+                    with timer.run():
+                        run_collector_iterate(collector_node, iterate_inputs, collector)
+
+                # clear cache for next iteration
+                self.cache.delete_many(all_iterated_nodes)
+
                 await self.progress.suspend()
-                iterate_inputs = await self.__gather_collector_inputs(collector_node)
+                await update_progress()
+                # cooperative yield so the event loop can run
+                # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
+                await asyncio.sleep(0)
                 await self.progress.suspend()
-                with timer.run():
-                    run_collector_iterate(collector_node, iterate_inputs, collector)
-
-            # clear cache for next iteration
-            self.cache.delete_many(all_iterated_nodes)
-
-            await self.progress.suspend()
-            await update_progress()
-            await self.progress.suspend()
+            except Aborted:
+                raise
+            except Exception as e:
+                if iterator_output.iterator.fail_fast:
+                    raise e
+                else:
+                    deferred_errors.append(str(e))
 
         # reset cached value
         self.cache.delete_many(all_iterated_nodes)
         self.cache.set(node.id, iterator_output, self.cache_strategy[node.id])
 
         # re-broadcast final value
+        # TODO: Why?
+        await self.__send_node_broadcast(node, iterator_output.partial_output)
+
+        # finish iterator
         iterations = len(times)
-        await self.__finish_progress(node.id, iterations)
-        await self.__broadcast_data(
-            node, time.time() - start_time, iterator_output.partial_output
-        )
+        await self.__send_node_progress_done(node, iterations)
+        await self.__send_node_finish(node, time.time() - start_time)
 
         # finalize collectors
         for collector, timer, collector_node in collectors:
@@ -652,10 +695,9 @@ class Executor:
                     collector.on_complete(), collector_node.data
                 )
 
+            await self.__send_node_broadcast(collector_node, collector_output.output)
             # TODO: execution time
-            await self.__broadcast_data(
-                collector_node, timer.duration, collector_output.output
-            )
+            await self.__send_node_finish(collector_node, timer.duration)
 
             self.cache.set(
                 collector_node.id,
@@ -663,12 +705,18 @@ class Executor:
                 self.cache_strategy[collector_node.id],
             )
 
+        if len(deferred_errors) > 0:
+            error_string = "- " + "\n- ".join(deferred_errors)
+            raise Exception(f"Errors occurred during iteration:\n{error_string}")
+
     async def __process_nodes(self):
+        await self.__send_chain_start()
+
         # we first need to run iterator nodes in topological order
         for node_id in self.chain.topological_order():
             node = self.chain.nodes[node_id]
             if isinstance(node, NewIteratorNode):
-                await self.__process_iterator_node(node)
+                await self.__iterate_iterator_node(node)
 
         # now the output nodes outside of iterators
 
@@ -680,7 +728,7 @@ class Executor:
         ]
         for output_node in non_iterator_output_nodes:
             await self.progress.suspend()
-            await self.process(output_node.id)
+            await self.process_regular_node(output_node)
 
         # clear cache after the chain is done
         self.cache.clear()
@@ -692,56 +740,131 @@ class Executor:
             await task
 
     async def run(self):
-        logger.debug(f"Running executor {self.execution_id}")
+        logger.debug(f"Running executor {self.id}")
         try:
             await self.__process_nodes()
         finally:
             gc.collect()
 
-    def __get_eta(self, times: list[float], index: int, total: int) -> float:
-        if len(times) == 0:
-            return 0
-        return (sum(times) / len(times)) * (total - index)
-
-    async def __update_progress(
-        self, node_id: NodeId, times: list[float], index: int, length: int
-    ):
-        await self.queue.put(
-            {
-                "event": "node-progress-update",
-                "data": {
-                    "percent": index / length,
-                    "index": index,
-                    "total": length,
-                    "eta": self.__get_eta(times, index, length),
-                    "nodeId": node_id,
-                },
-            }
-        )
-
-    async def __finish_progress(self, node_id: NodeId, length: int):
-        await self.queue.put(
-            {
-                "event": "node-progress-update",
-                "data": {
-                    "percent": 1,
-                    "index": length,
-                    "total": length,
-                    "eta": 0,
-                    "nodeId": node_id,
-                },
-            }
-        )
-
     def resume(self):
-        logger.debug(f"Resuming executor {self.execution_id}")
+        logger.debug(f"Resuming executor {self.id}")
         self.progress.resume()
 
     def pause(self):
-        logger.debug(f"Pausing executor {self.execution_id}")
+        logger.debug(f"Pausing executor {self.id}")
         self.progress.pause()
         gc.collect()
 
     def kill(self):
-        logger.debug(f"Killing executor {self.execution_id}")
+        logger.debug(f"Killing executor {self.id}")
         self.progress.abort()
+
+    # events
+
+    async def __send_chain_start(self):
+        # all nodes except the cached ones
+        nodes = set(self.chain.nodes.keys())
+        nodes.difference_update(self.cache.keys())
+
+        await self.queue.put(
+            {
+                "event": "chain-start",
+                "data": {
+                    "nodes": list(nodes),
+                },
+            }
+        )
+
+    async def __send_node_start(self, node: Node):
+        await self.queue.put(
+            {
+                "event": "node-start",
+                "data": {
+                    "nodeId": node.id,
+                },
+            }
+        )
+
+    async def __send_node_progress(
+        self, node: Node, times: list[float], index: int, length: int
+    ):
+        def get_eta() -> float:
+            if len(times) == 0:
+                return 0
+            return (sum(times) / len(times)) * (length - index)
+
+        await self.queue.put(
+            {
+                "event": "node-progress",
+                "data": {
+                    "nodeId": node.id,
+                    "progress": 1 if length == 0 else index / length,
+                    "index": index,
+                    "total": length,
+                    "eta": get_eta(),
+                },
+            }
+        )
+
+    async def __send_node_progress_done(self, node: Node, length: int):
+        await self.queue.put(
+            {
+                "event": "node-progress",
+                "data": {
+                    "nodeId": node.id,
+                    "progress": 1,
+                    "index": length,
+                    "total": length,
+                    "eta": 0,
+                },
+            }
+        )
+
+    async def __send_node_broadcast(
+        self,
+        node: Node,
+        output: Output,
+    ):
+        def compute_broadcast_data():
+            if self.progress.aborted:
+                # abort the broadcast if the chain was aborted
+                return None
+            return compute_broadcast(output, node.data.outputs)
+
+        async def send_broadcast():
+            # TODO: Add the time it takes to compute the broadcast data to the execution time
+            result = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
+            if result is None or self.progress.aborted:
+                return
+
+            data, types = result
+            await self.queue.put(
+                {
+                    "event": "node-broadcast",
+                    "data": {
+                        "nodeId": node.id,
+                        "data": data,
+                        "types": types,
+                    },
+                }
+            )
+
+        # Only broadcast the output if the node has outputs
+        if self.send_broadcast_data and len(node.data.outputs) > 0:
+            # broadcasts are done is parallel, so don't wait
+            self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
+
+    async def __send_node_finish(
+        self,
+        node: Node,
+        execution_time: float,
+    ):
+        await self.queue.put(
+            {
+                "event": "node-finish",
+                "data": {
+                    "nodeId": node.id,
+                    "executionTime": execution_time,
+                },
+            }
+        )

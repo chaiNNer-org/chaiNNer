@@ -2,21 +2,17 @@ from __future__ import annotations
 
 import importlib
 import os
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import (
+    Any,
     Awaitable,
     Callable,
     Generic,
     Iterable,
-    NewType,
-    TypedDict,
     TypeVar,
-    Union,
 )
 
 from sanic.log import logger
-
-import navi
 
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
@@ -28,9 +24,10 @@ from .node_check import (
     check_naming_conventions,
     check_schema_types,
 )
+from .node_data import IteratorInputInfo, IteratorOutputInfo, KeyInfo, NodeData
 from .output import BaseOutput
-from .settings import SettingsJson, get_execution_options
-from .types import InputId, NodeId, NodeType, OutputId, RunFn
+from .settings import Setting
+from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
 
 KB = 1024**1
 MB = 1024**2
@@ -74,71 +71,6 @@ def _process_outputs(base_outputs: Iterable[BaseOutput]):
     return outputs
 
 
-class DefaultNode(TypedDict):
-    schemaId: str
-
-
-class IteratorInputInfo:
-    def __init__(
-        self,
-        inputs: int | InputId | list[int] | list[InputId] | list[int | InputId],
-        length_type: navi.ExpressionJson = "uint",
-    ) -> None:
-        self.inputs: list[InputId] = (
-            [InputId(x) for x in inputs]
-            if isinstance(inputs, list)
-            else [InputId(inputs)]
-        )
-        self.length_type: navi.ExpressionJson = length_type
-
-
-class IteratorOutputInfo:
-    def __init__(
-        self,
-        outputs: int | OutputId | list[int] | list[OutputId] | list[int | OutputId],
-        length_type: navi.ExpressionJson = "uint",
-    ) -> None:
-        self.outputs: list[OutputId] = (
-            [OutputId(x) for x in outputs]
-            if isinstance(outputs, list)
-            else [OutputId(outputs)]
-        )
-        self.length_type: navi.ExpressionJson = length_type
-
-
-@dataclass(frozen=True)
-class NodeData:
-    schema_id: str
-    description: str
-    see_also: list[str]
-    name: str
-    icon: str
-    type: NodeType
-
-    inputs: list[BaseInput]
-    outputs: list[BaseOutput]
-    group_layout: list[InputId | NestedIdGroup]
-
-    iterator_inputs: list[IteratorInputInfo]
-    iterator_outputs: list[IteratorOutputInfo]
-
-    side_effects: bool
-    deprecated: bool
-    features: list[FeatureId]
-
-    run: RunFn
-
-    @property
-    def single_iterator_input(self) -> IteratorInputInfo:
-        assert len(self.iterator_inputs) == 1
-        return self.iterator_inputs[0]
-
-    @property
-    def single_iterator_output(self) -> IteratorOutputInfo:
-        assert len(self.iterator_outputs) == 1
-        return self.iterator_outputs[0]
-
-
 T = TypeVar("T", bound=RunFn)
 S = TypeVar("S")
 
@@ -171,7 +103,7 @@ class NodeGroup:
         inputs: list[BaseInput | NestedGroup],
         outputs: list[BaseOutput],
         icon: str = "BsQuestionCircleFill",
-        node_type: NodeType = "regularNode",
+        kind: NodeKind = "regularNode",
         side_effects: bool = False,
         deprecated: bool = False,
         decorators: list[Callable] | None = None,
@@ -180,6 +112,8 @@ class NodeGroup:
         limited_to_8bpc: bool | str = False,
         iterator_inputs: list[IteratorInputInfo] | IteratorInputInfo | None = None,
         iterator_outputs: list[IteratorOutputInfo] | IteratorOutputInfo | None = None,
+        node_context: bool = False,
+        key_info: KeyInfo | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -207,9 +141,9 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if node_type == "collector":
+        if kind == "collector":
             assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        elif node_type == "newIterator":
+        elif kind == "newIterator":
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
         else:
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
@@ -230,15 +164,7 @@ class NodeGroup:
             p_inputs, group_layout = _process_inputs(inputs)
             p_outputs = _process_outputs(outputs)
 
-            if node_type == "regularNode":
-                run_check(
-                    TYPE_CHECK_LEVEL,
-                    lambda _: check_schema_types(wrapped_func, p_inputs, p_outputs),
-                )
-            run_check(
-                NAME_CHECK_LEVEL,
-                lambda fix: check_naming_conventions(wrapped_func, name, fix),
-            )
+            original_fn = wrapped_func
 
             if decorators is not None:
                 for decorator in decorators:
@@ -250,16 +176,27 @@ class NodeGroup:
                 description=description,
                 see_also=see_also,
                 icon=icon,
-                type=node_type,
+                kind=kind,
                 inputs=p_inputs,
                 group_layout=group_layout,
                 outputs=p_outputs,
                 iterator_inputs=iterator_inputs,
                 iterator_outputs=iterator_outputs,
+                key_info=key_info,
                 side_effects=side_effects,
                 deprecated=deprecated,
+                node_context=node_context,
                 features=features,
                 run=wrapped_func,
+            )
+
+            run_check(
+                TYPE_CHECK_LEVEL,
+                lambda _: check_schema_types(original_fn, node),
+            )
+            run_check(
+                NAME_CHECK_LEVEL,
+                lambda fix: check_naming_conventions(original_fn, name, fix),
             )
 
             self.add_node(node)
@@ -306,7 +243,7 @@ class Dependency:
     pypi_name: str
     version: str
     size_estimate: int | float
-    auto_update: bool = False
+    auto_update: bool = True
     extra_index_url: str | None = None
 
     import_name: str | None = None
@@ -321,8 +258,16 @@ class Dependency:
             "findLink": self.extra_index_url,
         }
 
-
-FeatureId = NewType("FeatureId", str)
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Dependency:
+        return Dependency(
+            display_name=data["displayName"],
+            pypi_name=data["pypiName"],
+            version=data["version"],
+            size_estimate=data["sizeEstimate"],
+            auto_update=data["autoUpdate"],
+            extra_index_url=data["findLink"],
+        )
 
 
 @dataclass
@@ -346,6 +291,14 @@ class Feature:
             "description": self.description,
         }
 
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Feature:
+        return Feature(
+            id=data["id"],
+            name=data["name"],
+            description=data["description"],
+        )
+
 
 @dataclass
 class FeatureBehavior:
@@ -364,89 +317,6 @@ class FeatureState:
     @staticmethod
     def disabled(details: str | None = None) -> FeatureState:
         return FeatureState(is_enabled=False, details=details)
-
-
-@dataclass
-class ToggleSetting:
-    label: str
-    key: str
-    description: str
-    default: bool = False
-    disabled: bool = False
-    type: str = "toggle"
-
-
-class DropdownOption(TypedDict):
-    label: str
-    value: str
-
-
-@dataclass
-class DropdownSetting:
-    label: str
-    key: str
-    description: str
-    options: list[DropdownOption]
-    default: str
-    disabled: bool = False
-    type: str = "dropdown"
-
-
-@dataclass
-class NumberSetting:
-    label: str
-    key: str
-    description: str
-    min: float
-    max: float
-    default: float = 0
-    disabled: bool = False
-    type: str = "number"
-
-
-@dataclass
-class CacheSetting:
-    label: str
-    key: str
-    description: str
-    directory: str
-    default: str = ""
-    disabled: bool = False
-    type: str = "cache"
-
-
-Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
-
-
-class SettingsParser:
-    def __init__(self, raw: SettingsJson) -> None:
-        self.__settings = raw
-
-    def get_bool(self, key: str, default: bool) -> bool:
-        value = self.__settings.get(key, default)
-        if isinstance(value, bool):
-            return value
-        raise ValueError(f"Invalid bool value for {key}: {value}")
-
-    def get_int(self, key: str, default: int, parse_str: bool = False) -> int:
-        value = self.__settings.get(key, default)
-        if parse_str and isinstance(value, str):
-            return int(value)
-        if isinstance(value, int) and not isinstance(value, bool):
-            return value
-        raise ValueError(f"Invalid str value for {key}: {value}")
-
-    def get_str(self, key: str, default: str) -> str:
-        value = self.__settings.get(key, default)
-        if isinstance(value, str):
-            return value
-        raise ValueError(f"Invalid str value for {key}: {value}")
-
-    def get_cache_location(self, key: str) -> str | None:
-        value = self.__settings.get(key)
-        if isinstance(value, str) or value is None:
-            return value or None
-        raise ValueError(f"Invalid cache location value for {key}: {value}")
 
 
 @dataclass
@@ -501,8 +371,33 @@ class Package:
         self.features.append(feature)
         return feature
 
-    def get_settings(self) -> SettingsParser:
-        return SettingsParser(get_execution_options().get_package_settings(self.id))
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "icon": self.icon,
+            "color": self.color,
+            "dependencies": [d.to_dict() for d in self.dependencies],
+            "features": [f.to_dict() for f in self.features],
+            "settings": [asdict(x) for x in self.settings],
+        }
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> Package:
+        """This is really only for dependency purposes, so it's not feature-complete"""
+        return Package(
+            where=data.get("where", "unknown"),
+            id=data["id"],
+            name=data["name"],
+            description=data["description"],
+            icon=data["icon"],
+            color=data["color"],
+            dependencies=[Dependency.from_dict(d) for d in data["dependencies"]],
+            categories=[],
+            features=[Feature.from_dict(f) for f in data["features"]],
+            settings=[],
+        )
 
 
 def _iter_py_files(directory: str):
@@ -527,6 +422,9 @@ class PackageRegistry:
 
     def get_node(self, schema_id: str) -> NodeData:
         return self.nodes[schema_id][0]
+
+    def get_package(self, schema_id: str) -> Package:
+        return self.nodes[schema_id][1].category.package
 
     def add(self, package: Package) -> Package:
         # assert package.where not in self.packages
@@ -605,17 +503,22 @@ L = TypeVar("L")
 
 @dataclass
 class Iterator(Generic[I]):
-    iter_supplier: Callable[[], Iterable[I]]
+    iter_supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
+    fail_fast: bool = True
 
     @staticmethod
     def from_iter(
-        iter_supplier: Callable[[], Iterable[I]], expected_length: int
+        iter_supplier: Callable[[], Iterable[I | Exception]],
+        expected_length: int,
+        fail_fast: bool = True,
     ) -> Iterator[I]:
-        return Iterator(iter_supplier, expected_length)
+        return Iterator(iter_supplier, expected_length, fail_fast=fail_fast)
 
     @staticmethod
-    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Iterator[I]:
+    def from_list(
+        l: list[L], map_fn: Callable[[L, int], I], fail_fast: bool = True
+    ) -> Iterator[I]:
         """
         Creates a new iterator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
@@ -623,12 +526,17 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i, x in enumerate(l):
-                yield map_fn(x, i)
+                try:
+                    yield map_fn(x, i)
+                except Exception as e:
+                    yield e
 
-        return Iterator(supplier, len(l))
+        return Iterator(supplier, len(l), fail_fast=fail_fast)
 
     @staticmethod
-    def from_range(count: int, map_fn: Callable[[int], I]) -> Iterator[I]:
+    def from_range(
+        count: int, map_fn: Callable[[int], I], fail_fast: bool = True
+    ) -> Iterator[I]:
         """
         Creates a new iterator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
@@ -637,9 +545,12 @@ class Iterator(Generic[I]):
 
         def supplier():
             for i in range(count):
-                yield map_fn(i)
+                try:
+                    yield map_fn(i)
+                except Exception as e:
+                    yield e
 
-        return Iterator(supplier, count)
+        return Iterator(supplier, count, fail_fast=fail_fast)
 
 
 N = TypeVar("N")

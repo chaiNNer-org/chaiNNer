@@ -23,7 +23,6 @@ from .. import batch_processing_group
             controls_step=1,
             minimum=1,
             default=1,
-            has_handle=False,
         ).with_docs(
             "The number of rows to split the image into. The height of the image must be a multiple of this number."
         ),
@@ -32,7 +31,6 @@ from .. import batch_processing_group
             controls_step=1,
             minimum=1,
             default=1,
-            has_handle=False,
         ).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
@@ -48,7 +46,7 @@ from .. import batch_processing_group
             }"""
         )
     ],
-    node_type="collector",
+    kind="collector",
 )
 def merge_spritesheet_node(
     _: None,

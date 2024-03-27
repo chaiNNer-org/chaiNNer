@@ -128,7 +128,7 @@ def _exact_split_without_padding(
     upscale: Callable[[np.ndarray, Region], np.ndarray],
     overlap: int,
 ) -> np.ndarray:
-    h, w, c = get_h_w_c(img)
+    h, w, _ = get_h_w_c(img)
     exact_w, exact_h = exact_size
     assert w >= exact_w and h >= exact_h
 
@@ -139,6 +139,7 @@ def _exact_split_without_padding(
     # and we only get to know this factor after the first successful upscale.
     result: TileBlender | None = None
     scale: int = 0
+    out_channels: int = 0
 
     regions = _exact_split_into_regions(w, h, exact_w, exact_h, overlap)
     for row in regions:
@@ -152,7 +153,7 @@ def _exact_split_without_padding(
             upscale_result = upscale(padded_tile.read_from(img), padded_tile)
 
             # figure out by how much the image was upscaled by
-            up_h, up_w, _ = get_h_w_c(upscale_result)
+            up_h, up_w, up_c = get_h_w_c(upscale_result)
             current_scale = up_h // exact_h
             assert current_scale > 0
             assert exact_h * current_scale == up_h
@@ -161,10 +162,11 @@ def _exact_split_without_padding(
             if row_result is None:
                 # allocate the result image
                 scale = current_scale
+                out_channels = up_c
                 row_result = TileBlender(
                     width=w * scale,
                     height=exact_h * scale,
-                    channels=c,
+                    channels=out_channels,
                     direction=BlendDirection.X,
                     blend_fn=half_sin_blend_fn,
                 )
@@ -182,7 +184,7 @@ def _exact_split_without_padding(
             result = TileBlender(
                 width=w * scale,
                 height=h * scale,
-                channels=c,
+                channels=out_channels,
                 direction=BlendDirection.Y,
                 blend_fn=half_sin_blend_fn,
             )

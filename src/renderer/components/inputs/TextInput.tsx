@@ -6,13 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { stopPropagation } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { DragHandleSVG } from '../CustomIcons';
-import { MaybeLabel } from './InputContainer';
+import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
 const DEFAULT_SIZE = { width: 240, height: 80 };
@@ -189,7 +188,6 @@ export const TextInput = memo(
                             handleChange(event);
                         }}
                         onContextMenu={menu.onContextMenu}
-                        onKeyDown={stopPropagation}
                     />
                 </Resizable>
             );
@@ -200,6 +198,7 @@ export const TextInput = memo(
                     className="nodrag"
                     disabled={isLocked || isConnected}
                     draggable={false}
+                    htmlSize={1}
                     maxLength={maxLength ?? undefined}
                     placeholder={placeholder ?? label}
                     size="sm"
@@ -209,11 +208,10 @@ export const TextInput = memo(
                         handleChange(event);
                     }}
                     onContextMenu={menu.onContextMenu}
-                    onKeyDown={stopPropagation}
                 />
             );
         }
 
-        return <MaybeLabel input={input}>{inputElement}</MaybeLabel>;
+        return <AutoLabel input={input}>{inputElement}</AutoLabel>;
     }
 );
