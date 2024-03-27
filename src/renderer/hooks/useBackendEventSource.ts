@@ -15,6 +15,12 @@ export const useBackendEventSource = (
     return useEventSource(`${url}/sse`, true);
 };
 
+export const useBackendSetupEventSource = (
+    url: string
+): readonly [BackendEventSource | null, EventSourceStatus] => {
+    return useEventSource(`${url}/setup-sse`, true);
+};
+
 export type BackendEventSourceListener<T extends keyof BackendEventMap> = (
     e: BackendEventMap[T] | undefined,
     event: EventSourceEvent

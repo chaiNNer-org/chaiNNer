@@ -54,10 +54,14 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { OnStdio, getFindLinks, runPipInstall, runPipUninstall } from '../../common/pip';
+import { getFindLinks } from '../../common/pip';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
+import {
+    useBackendEventSourceListener,
+    useBackendSetupEventSource,
+} from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -66,7 +70,6 @@ import { useSettings } from './SettingsContext';
 
 const installModes = {
     NORMAL: 'Normal',
-    DIRECT_PIP: 'Direct Pip',
     MANUAL_COPY: 'Manual/Copy',
 };
 
@@ -136,6 +139,7 @@ const PackageView = memo(
         isRunningShell,
         progress,
         installedPyPi,
+        installingPackage,
         onInstall,
         onUninstall,
         onUpdate,
@@ -144,6 +148,7 @@ const PackageView = memo(
         isRunningShell: boolean;
         progress?: number;
         installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>;
+        installingPackage: Package | null;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
@@ -153,6 +158,8 @@ const PackageView = memo(
             const installed = installedPyPi[d.pypiName];
             return installed && versionGt(d.version, installed);
         });
+
+        const isInstallingThisPackage = installingPackage?.id === p.id;
 
         return (
             <AccordionItem cursor="pointer">
@@ -204,7 +211,7 @@ const PackageView = memo(
                                         <Button
                                             colorScheme="blue"
                                             disabled={isRunningShell}
-                                            isLoading={isRunningShell}
+                                            isLoading={isRunningShell && isInstallingThisPackage}
                                             leftIcon={<DownloadIcon />}
                                             size="sm"
                                             onClick={onUpdate}
@@ -215,7 +222,8 @@ const PackageView = memo(
 
                                     <Button
                                         colorScheme="red"
-                                        disabled={isRunningShell}
+                                        isDisabled={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
                                         onClick={onUninstall}
@@ -230,8 +238,8 @@ const PackageView = memo(
                                 >
                                     <Button
                                         colorScheme="blue"
-                                        disabled={isRunningShell}
-                                        isLoading={isRunningShell}
+                                        isDisabled={isRunningShell}
+                                        isLoading={isRunningShell && isInstallingThisPackage}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
                                         onClick={onInstall}
@@ -389,8 +397,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const { showAlert } = useContext(AlertBoxContext);
     const { useSystemPython } = useSettings();
-    const { backend, pythonInfo, restart, packages, featureStates, refreshFeatureStates } =
-        useContext(BackendContext);
+    const {
+        backend,
+        url,
+        pythonInfo,
+        backendDownRef,
+        packages,
+        featureStates,
+        refreshFeatureStates,
+    } = useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [isConsoleOpen, setIsConsoleOpen] = useState(false);
@@ -412,45 +427,59 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         refetchInterval: false,
     });
 
-    const [installingPackage, setInstallingPackage] = useState<Package | null>(null);
-    const [uninstallingPackage, setUninstallingPackage] = useState<Package | null>(null);
+    const [modifyingPackage, setModifyingPackage] = useState<Package | null>(null);
 
     const consoleRef = useRef<HTMLTextAreaElement | null>(null);
     const [shellOutput, setShellOutput] = useState('');
     const [isRunningShell, setIsRunningShell] = useState(false);
-    const [progress, setProgress] = useState(0);
     const appendToOutput = useCallback(
         (data: string) => {
             setShellOutput((prev) => (prev + data).slice(-10_000));
         },
         [setShellOutput]
     );
-    const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [installMessage, setInstallMessage] = useState<string | null>(null);
+    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
+    const [eventSource] = useBackendSetupEventSource(url);
+    useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
+        if (f) {
+            setOverallProgress(f.progress);
+            setIndividualProgress(
+                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
+            );
+
+            if (f.message) {
+                setInstallMessage(f.message);
+                appendToOutput(f.message);
+            }
+        }
+    });
 
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
         setShellOutput('');
         setIsRunningShell(true);
-        setProgress(0);
+        setOverallProgress(0);
+        setIndividualProgress(null);
+        backendDownRef.current = true;
 
         supplier()
             .catch((error) => {
                 appendToOutput(`${String(error)}\n`);
             })
             .finally(() => {
-                restart()
+                refetchInstalledPyPi()
                     .catch(log.error)
                     .then(() => {
-                        refetchInstalledPyPi()
-                            .catch(log.error)
-                            .then(() => {
-                                setIsRunningShell(false);
-                                setInstallingPackage(null);
-                                setUninstallingPackage(null);
-                                setProgress(0);
-                            })
-                            .catch(log.error);
+                        setIsRunningShell(false);
+                        setModifyingPackage(null);
+                        setOverallProgress(0);
+                        setIndividualProgress(null);
+                        backendDownRef.current = false;
                     })
                     .catch(log.error);
             });
@@ -470,6 +499,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     };
 
     const installPackage = (pkg: Package) => {
+        // TODO: Make this feature get the command from the backend directly
         if (installMode === installModes.MANUAL_COPY) {
             const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
             const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => [
@@ -489,15 +519,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             copyCommandToClipboard(cmd);
             return;
         }
-        setInstallingPackage(pkg);
-        changePackages(() =>
-            runPipInstall(
-                pythonInfo,
-                pkg.dependencies,
-                installMode === installModes.NORMAL ? setProgress : undefined,
-                onStdio
-            )
-        );
+        setOverallProgress(0);
+        setModifyingPackage(pkg);
+        changePackages(() => backend.installPackage(pkg));
     };
 
     const uninstallPackage = (pkg: Package) => {
@@ -508,15 +532,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             copyCommandToClipboard(cmd);
             return;
         }
-        setUninstallingPackage(pkg);
-        changePackages(() =>
-            runPipUninstall(
-                pythonInfo,
-                pkg.dependencies,
-                installMode === installModes.NORMAL ? setProgress : undefined,
-                onStdio
-            )
-        );
+        setOverallProgress(0);
+        setModifyingPackage(pkg);
+        changePackages(() => backend.uninstallPackage(pkg));
     };
 
     useEffect(() => {
@@ -525,9 +543,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
     }, [shellOutput]);
 
-    // whether we are current installing/uninstalling packages or refreshing the list pf installed packages
-    const currentlyProcessingDeps =
-        installedPyPi === undefined || installingPackage !== null || uninstallingPackage !== null;
+    // whether we are current installing/uninstalling packages or refreshing the list of installed packages
+    const currentlyProcessingDeps = installedPyPi === undefined || modifyingPackage !== null;
 
     const availableUpdates = useMemo((): number => {
         if (!installedPyPi) return 0;
@@ -568,7 +585,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     maxW="750px"
                 >
                     <ModalHeader>Dependency Manager</ModalHeader>
-                    <ModalCloseButton disabled={currentlyProcessingDeps} />
+                    <ModalCloseButton isDisabled={currentlyProcessingDeps} />
                     <ModalBody>
                         <VStack w="full">
                             <Flex
@@ -603,7 +620,6 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                         }}
                                                     >
                                                         <option>{installModes.NORMAL}</option>
-                                                        <option>{installModes.DIRECT_PIP}</option>
                                                         <option>{installModes.MANUAL_COPY}</option>
                                                     </Select>
                                                 </PopoverTrigger>
@@ -626,9 +642,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 borderRadius={8}
                                                 label={
                                                     <Markdown nonInteractive>
-                                                        {'The dependency install mode. ChaiNNer supports 3 ways of installing packages:\n\n' +
-                                                            '- Normal: This is the default installation mode. This mode manually downloads packages in order to display download progress.\n' +
-                                                            '- Direct Pip: This will invoke pip more directly, like installing python packages normally. Use this setting when having issues with Normal. Note: this makes it impossible to show installation progress.\n' +
+                                                        {'The dependency install mode. ChaiNNer supports 2 ways of installing packages:\n\n' +
+                                                            '- Normal: This is the default installation mode. This mode will automatically handle the dependency install for you and will report progress along the way.\n' +
                                                             '- Manual/Copy: Copy the pip install command to your clipboard for you to run in your own terminal. You will have to manually restart chaiNner afterwards.'}
                                                     </Markdown>
                                                 }
@@ -698,15 +713,17 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         return (
                                             <PackageView
                                                 installedPyPi={installedPyPi}
+                                                installingPackage={modifyingPackage}
                                                 isRunningShell={isRunningShell}
                                                 key={p.id}
                                                 p={p}
                                                 progress={
                                                     installMode === installModes.NORMAL &&
                                                     isRunningShell &&
-                                                    (installingPackage || uninstallingPackage)
-                                                        ?.id === p.id
-                                                        ? progress
+                                                    modifyingPackage?.id === p.id
+                                                        ? overallProgress * 100 +
+                                                          ((individualProgress ?? 0) * 100) /
+                                                              p.dependencies.length
                                                         : undefined
                                                 }
                                                 onInstall={install}
@@ -813,7 +830,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalFooter>
                         <Button
                             colorScheme="blue"
-                            disabled={currentlyProcessingDeps}
+                            isDisabled={currentlyProcessingDeps}
                             mr={3}
                             variant={currentlyProcessingDeps ? 'ghost' : 'solid'}
                             onClick={onClose}

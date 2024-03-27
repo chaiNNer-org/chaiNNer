@@ -16,7 +16,12 @@ from sanic_cors import CORS
 
 import api
 from custom_types import UpdateProgressFn
-from dependencies.store import DependencyInfo, install_dependencies, installed_packages
+from dependencies.store import (
+    DependencyInfo,
+    install_dependencies,
+    installed_packages,
+    uninstall_dependencies,
+)
 from events import EventQueue
 from gpu import get_nvidia_helper
 from response import error_response, success_response
@@ -169,6 +174,104 @@ async def get_installed_dependencies(request: Request):
 @app.route("/features")
 async def get_features(request: Request):
     return await worker.proxy_request(request)
+
+
+def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
+    return [
+        DependencyInfo(
+            package_name=dep.pypi_name,
+            display_name=dep.display_name,
+            version=dep.version,
+            extra_index_url=dep.extra_index_url,
+        )
+        for dep in deps
+    ]
+
+
+@app.route("/packages/uninstall", methods=["POST"])
+async def uninstall_dependencies_request(request: Request):
+    full_data = dict(request.json)  # type: ignore
+    package_to_uninstall = full_data["package"]
+
+    packages = await worker.get_packages()
+
+    package = next((x for x in packages if x.id == package_to_uninstall), None)
+
+    if package is None:
+        return json(
+            {"status": "error", "message": f"Package {package_to_uninstall} not found"},
+            status=404,
+        )
+
+    def update_progress(
+        message: str, progress: float, status_progress: float | None = None
+    ):
+        return AppContext.get(request.app).setup_queue.put_and_wait(
+            {
+                "event": "package-install-status",
+                "data": {
+                    "message": message,
+                    "progress": progress,
+                    "statusProgress": status_progress,
+                },
+            },
+            timeout=0.01,
+        )
+
+    try:
+        await worker.stop()
+        try:
+            await uninstall_dependencies(
+                deps_to_dep_info(package.dependencies), update_progress, logger
+            )
+        finally:
+            await worker.start()
+        return json({"status": "ok"})
+    except Exception as ex:
+        logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
+        return json({"status": "error", "message": str(ex)}, status=500)
+
+
+@app.route("/packages/install", methods=["POST"])
+async def install_dependencies_request(request: Request):
+    full_data = dict(request.json)  # type: ignore
+    package_to_install = full_data["package"]
+
+    def update_progress(
+        message: str, progress: float, status_progress: float | None = None
+    ):
+        logger.info(f"Progress: {message} {progress} {status_progress}")
+        return AppContext.get(request.app).setup_queue.put_and_wait(
+            {
+                "event": "package-install-status",
+                "data": {
+                    "message": message,
+                    "progress": progress,
+                    "statusProgress": status_progress,
+                },
+            },
+            timeout=0.01,
+        )
+
+    packages = await worker.get_packages()
+    package = next((x for x in packages if x.id == package_to_install), None)
+
+    if package is None:
+        return json(
+            {"status": "error", "message": f"Package {package_to_install} not found"},
+            status=404,
+        )
+
+    try:
+        await worker.stop()
+        await install_dependencies(
+            deps_to_dep_info(package.dependencies), update_progress, logger
+        )
+        await worker.start()
+        return json({"status": "ok"})
+    except Exception as ex:
+        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        return json({"status": "error", "message": str(ex)}, status=500)
 
 
 @app.get("/sse")

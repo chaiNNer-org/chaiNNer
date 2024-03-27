@@ -237,6 +237,24 @@ export class Backend {
     features(): Promise<FeatureState[]> {
         return this.fetchJson('/features', 'GET');
     }
+
+    installPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
+            package: pkg.id,
+        });
+    }
+
+    uninstallPackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/uninstall', 'POST', {
+            package: pkg.id,
+        });
+    }
+
+    updatePackage(pkg: Package): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', {
+            package: pkg.id,
+        });
+    }
 }
 
 const backendCache = new Map<string, Backend>();
@@ -293,4 +311,9 @@ export interface BackendEventMap {
         statusProgress?: number | null;
     };
     'backend-ready': null;
+    'package-install-status': {
+        message: string;
+        progress: number;
+        statusProgress?: number | null;
+    };
 }
