@@ -40,6 +40,7 @@ const deletePycFiles = async (directory) => {
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
     packagerConfig: {
+        asar: true,
         executableName: process.platform === 'linux' ? packageJson.name : packageJson.productName,
         extraResource: ['./backend/src/', './src/public/icons/mac/file_chn.icns'],
         icon: makerOptions.icon,

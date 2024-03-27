@@ -1,41 +1,24 @@
 import { defineConfig } from 'vite';
+import { pluginExposeRenderer } from './vite.base.config';
+import type { ConfigEnv, UserConfig } from 'vite';
 
 // https://vitejs.dev/config
-export default defineConfig({
-    // build: {
-    //     //     rollupOptions: {
-    //     //         external: ['url', 'path', 'fs', 'fs/promises'],
-    //     //     },
-    //     // },
-    //     rollupOptions: {
-    //         external: [
-    //             'node:util',
-    //             'node:buffer',
-    //             'node:stream',
-    //             'node:net',
-    //             'node:url',
-    //             'node:fs',
-    //             'node:path',
-    //             'util',
-    //             'buffer',
-    //             'stream',
-    //             'net',
-    //             'url',
-    //             'fs',
-    //             'path',
-    //             'perf_hooks',
-    //         ],
-    //         output: {
-    //             globals: {
-    //                 'node:stream': 'stream',
-    //                 'node:buffer': 'buffer',
-    //                 'node:util': 'util',
-    //                 'node:net': 'net',
-    //                 'node:url': 'url',
-    //                 perf_hooks: 'perf_hooks',
-    //             },
-    //             inlineDynamicImports: true,
-    //         },
-    //     },
-    // },
+export default defineConfig((env) => {
+    const forgeEnv = env as ConfigEnv<'renderer'>;
+    const { root, mode, forgeConfigSelf } = forgeEnv;
+    const name = forgeConfigSelf.name ?? '';
+
+    return {
+        root,
+        mode,
+        base: './',
+        build: {
+            outDir: `.vite/renderer/${name}`,
+        },
+        plugins: [pluginExposeRenderer(name)],
+        resolve: {
+            preserveSymlinks: true,
+        },
+        clearScreen: false,
+    } as UserConfig;
 });
