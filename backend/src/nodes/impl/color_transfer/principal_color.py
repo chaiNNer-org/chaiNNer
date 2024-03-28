@@ -14,8 +14,8 @@ __link__ = "https://github.com/dstein64/colortrans"
 def principal_color_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
-    valid_indices: np.ndarray | tuple[np.ndarray, ...],
-    ref_valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    valid_indices: np.ndarray,
+    ref_valid_indices: np.ndarray,
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image using

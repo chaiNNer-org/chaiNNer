@@ -41,7 +41,7 @@ def image_stats(img: np.ndarray):
 
 def min_max_scale(
     img: np.ndarray,
-    valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    valid_indices: np.ndarray,
     new_range: tuple[float, float] = (0, 255),
 ):
     """Perform min-max scaling to a NumPy array"""
@@ -65,7 +65,7 @@ def min_max_scale(
 def scale_array(
     arr: np.ndarray,
     overflow_method: OverflowMethod,
-    valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    valid_indices: np.ndarray,
     clip_min: int = 0,
     clip_max: int = 255,
 ) -> np.ndarray:
@@ -91,8 +91,8 @@ def mean_std_transfer(
     ref_img: np.ndarray,
     colorspace: TransferColorSpace,
     overflow_method: OverflowMethod,
-    valid_indices: np.ndarray | tuple[np.ndarray, ...],
-    ref_valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    valid_indices: np.ndarray,
+    ref_valid_indices: np.ndarray,
     reciprocal_scale: bool = True,
 ) -> np.ndarray:
     """

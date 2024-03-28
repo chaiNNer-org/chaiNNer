@@ -88,13 +88,11 @@ def color_transfer_node(
     # such RGB data is indeterminate.
     valid_rgb_indices = np.ones(img.shape[:-1], dtype=bool)
     if alpha is not None:
-        valid_rgb_mask = alpha > 0
-        valid_rgb_indices = np.nonzero(valid_rgb_mask)
+        valid_rgb_indices = alpha > 0
 
     ref_valid_rgb_indices = np.ones(ref_img.shape[:-1], dtype=bool)
     if ref_alpha is not None:
-        ref_valid_rgb_mask = ref_alpha > 0
-        ref_valid_rgb_indices = np.nonzero(ref_valid_rgb_mask)
+        ref_valid_rgb_indices = ref_alpha > 0
 
     transfer = bgr_img
     if algorithm == TransferColorAlgorithm.MEAN_STD:

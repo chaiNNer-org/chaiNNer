@@ -19,8 +19,8 @@ def matrix_sqrt(x: np.ndarray):
 def linear_histogram_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
-    valid_indices: np.ndarray | tuple[np.ndarray, ...],
-    ref_valid_indices: np.ndarray | tuple[np.ndarray, ...],
+    valid_indices: np.ndarray,
+    ref_valid_indices: np.ndarray,
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image
