@@ -34,7 +34,6 @@ def linear_histogram_transfer(
 
     # Convert HxWxC image to a (H*W)xC matrix.
     content = img.reshape(-1, shape[-1])
-    ref_img.reshape(-1, shape[-1])
 
     valid_content = img[valid_indices]
     valid_reference = ref_img[ref_valid_indices]
