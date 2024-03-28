@@ -1,7 +1,7 @@
 
 # Wavelet color fix from "sd-webui-stablesr" https://github.com/pkuliyi2015/sd-webui-stablesr/blob/master/srmodule/colorfix.py
 
-# Node by tepete ('Enhance Everything!' Discord Server)
+# Node by tepete/pifroggi ('Enhance Everything!' Discord Server)
 
 import torch
 import torch.nn.functional as F
