@@ -8,6 +8,7 @@ import {
     ipcMain as unsafeIpcMain,
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
+import { MakeDirectoryOptions } from 'fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 import { ChainnerSettings } from './settings/settings';
@@ -50,6 +51,15 @@ export interface InvokeChannels {
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;
     'set-settings': ChannelInfo<void, [settings: ChainnerSettings]>;
+
+    // fs
+    'fs-read-file': ChannelInfo<string, [path: string]>;
+    'fs-write-file': ChannelInfo<void, [path: string, content: string | Buffer]>;
+    'fs-exists': ChannelInfo<boolean, [path: string]>;
+    'fs-mkdir': ChannelInfo<string | undefined, [path: string, options: MakeDirectoryOptions]>;
+    'fs-readdir': ChannelInfo<string[], [path: string]>;
+    'fs-unlink': ChannelInfo<void, [path: string]>;
+    'fs-access': ChannelInfo<void, [path: string]>;
 }
 
 export interface SendChannels {
