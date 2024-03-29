@@ -198,9 +198,9 @@ const registerEventHandlerPreSetup = (
     }
 
     // Handle filesystem
-    ipcMain.handle('fs-read-file', async (event, path) => fs.readFile(path, { encoding: 'utf8' }));
-    ipcMain.handle('fs-write-file', async (event, path, content) =>
-        fs.writeFile(path, content, { encoding: 'utf8' })
+    ipcMain.handle('fs-read-file', async (event, path, options) => fs.readFile(path, options));
+    ipcMain.handle('fs-write-file', async (event, path, content, options) =>
+        fs.writeFile(path, content, options)
     );
     ipcMain.handle('fs-exists', async (event, path) => {
         try {
