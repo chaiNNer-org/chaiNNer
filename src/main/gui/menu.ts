@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import { isMac } from '../../common/env';
 import { links } from '../../common/links';
-import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
+import { BrowserWindowWithSafeIpc } from '../../common/safeIpcCommon';
 import { openSaveFile } from '../../common/SaveFile';
 import { getLogsFolder } from '../platform';
 import { getCpuInfo, getGpuInfo } from '../systemInfo';

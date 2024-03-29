@@ -3,7 +3,7 @@ import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
 import { memo, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
-import { ipcRenderer } from '../common/safeIpc';
+import { ipcRenderer } from '../common/safeIpcRenderer';
 import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';

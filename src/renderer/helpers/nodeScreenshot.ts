@@ -2,7 +2,7 @@ import { toPng } from 'html-to-image';
 import { Node, ReactFlowInstance } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { delay } from '../../common/util';
 
 interface Rect {

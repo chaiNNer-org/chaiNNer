@@ -54,7 +54,7 @@ import {
 } from '../../common/common-types';
 import { log } from '../../common/log';
 import { getFindLinks } from '../../common/pip';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';

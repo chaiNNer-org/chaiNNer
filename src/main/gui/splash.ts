@@ -1,6 +1,6 @@
 import { BrowserWindow, MessageBoxOptions, app, dialog, shell } from 'electron';
 import { log } from '../../common/log';
-import { BrowserWindowWithSafeIpc } from '../../common/safeIpc';
+import { BrowserWindowWithSafeIpc } from '../../common/safeIpcCommon';
 import { Progress, ProgressMonitor } from '../../common/ui/progress';
 import { assertNever } from '../../common/util';
 
