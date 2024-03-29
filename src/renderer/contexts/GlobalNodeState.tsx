@@ -1192,7 +1192,7 @@ export const GlobalProvider = memo(
                 createNode,
                 screenToFlowPosition,
                 reactFlowWrapper
-            );
+            ).catch(log.error);
         }, [changeNodes, changeEdges, createNode, screenToFlowPosition, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));

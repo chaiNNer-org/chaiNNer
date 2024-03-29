@@ -1,9 +1,10 @@
 import { isNumericLiteral } from '@chainner/navi';
 import { HStack, MenuItem, MenuList } from '@chakra-ui/react';
-import { clipboard } from 'electron';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
+import { log } from '../../../common/log';
+import { ipcRenderer } from '../../../common/safeIpc';
 import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
@@ -58,7 +59,7 @@ export const NumberInput = memo(
                     icon={<MdContentCopy />}
                     isDisabled={!displayString}
                     onClick={() => {
-                        clipboard.writeText(displayString);
+                        ipcRenderer.invoke('clipboard-writeText', displayString).catch(log.error);
                     }}
                 >
                     {t('inputs.number.copyText', 'Copy Number')}
@@ -66,14 +67,19 @@ export const NumberInput = memo(
                 <MenuItem
                     icon={<MdContentPaste />}
                     onClick={() => {
-                        const n = Number(clipboard.readText());
-                        if (
-                            !Number.isNaN(n) &&
-                            (min == null || min <= n) &&
-                            (max == null || max >= n)
-                        ) {
-                            setValue(n);
-                        }
+                        ipcRenderer
+                            .invoke('clipboard-readText')
+                            .then((clipboardValue) => {
+                                const n = Number(clipboardValue);
+                                if (
+                                    !Number.isNaN(n) &&
+                                    (min == null || min <= n) &&
+                                    (max == null || max >= n)
+                                ) {
+                                    setValue(n);
+                                }
+                            })
+                            .catch(log.error);
                     }}
                 >
                     {t('inputs.number.paste', 'Paste')}

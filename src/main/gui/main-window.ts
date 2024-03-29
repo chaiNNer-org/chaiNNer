@@ -1,4 +1,13 @@
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import {
+    BrowserWindow,
+    app,
+    clipboard,
+    dialog,
+    nativeImage,
+    nativeTheme,
+    powerSaveBlocker,
+    shell,
+} from 'electron';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
@@ -219,6 +228,21 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
     ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
     ipcMain.handle('app-quit', () => app.quit());
+    ipcMain.handle('clipboard-writeText', (event, text) => clipboard.writeText(text));
+    ipcMain.handle('clipboard-readText', () => clipboard.readText());
+    ipcMain.handle('clipboard-writeBuffer', (event, format, buffer, type) =>
+        clipboard.writeBuffer(format, buffer, type)
+    );
+    ipcMain.handle('clipboard-readBuffer', (event, format) => clipboard.readBuffer(format));
+    ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
+    ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
+    ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
+    ipcMain.handle('clipboard-readImage', () => clipboard.readImage());
+    ipcMain.handle('clipboard-writeImage', (event, image) => clipboard.writeImage(image));
+    ipcMain.handle('clipboard-writeImageFromURL', (event, url) => {
+        const image = nativeImage.createFromDataURL(url);
+        clipboard.writeImage(image);
+    });
 };
 
 const registerEventHandlerPostSetup = (
