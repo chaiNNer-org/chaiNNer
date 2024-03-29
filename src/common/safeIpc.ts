@@ -91,6 +91,10 @@ export interface InvokeChannels {
     'fs-readdir': ChannelInfo<string[], [path: string]>;
     'fs-unlink': ChannelInfo<void, [path: string]>;
     'fs-access': ChannelInfo<void, [path: string]>;
+
+    // Electron
+    'shell-showItemInFolder': ChannelInfo<void, [fullPath: string]>;
+    'shell-openPath': ChannelInfo<string, [fullPath: string]>;
 }
 
 export interface SendChannels {

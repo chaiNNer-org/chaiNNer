@@ -9,11 +9,12 @@ import {
     MenuList,
     Tooltip,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron';
+import { clipboard } from 'electron';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
+import { log } from '../../../common/log';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -79,7 +80,9 @@ export const DirectoryInput = memo(
                     isDisabled={!displayDirectory}
                     onClick={() => {
                         if (displayDirectory) {
-                            shell.showItemInFolder(displayDirectory);
+                            ipcRenderer
+                                .invoke('shell-showItemInFolder', displayDirectory)
+                                .catch(log.error);
                         }
                     }}
                 >

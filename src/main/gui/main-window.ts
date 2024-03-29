@@ -214,6 +214,10 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
     ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
     ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+
+    // Handle electron
+    ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
+    ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
 };
 
 const registerEventHandlerPostSetup = (
