@@ -278,11 +278,13 @@ async def install_dependencies_request(request: Request):
 async def sse(request: Request):
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
+    if response is None:
+        return
+
     while True:
         try:
             async for data in worker.get_sse(request):
-                if response is not None:
-                    await response.send(data)
+                await response.send(data)
         except Exception:
             break
 
@@ -292,12 +294,15 @@ async def setup_sse(request: Request):
     ctx = AppContext.get(request.app)
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
+    if response is None:
+        return
+
     while True:
         try:
             message = await ctx.setup_queue.get()
-            if response is not None:
-                await response.send(f"event: {message['event']}\n")
-                await response.send(f"data: {stringify(message['data'])}\n\n")
+            await response.send(
+                f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            )
         except Exception:
             break
 
