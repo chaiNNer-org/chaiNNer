@@ -1,5 +1,6 @@
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
+import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
@@ -195,6 +196,24 @@ const registerEventHandlerPreSetup = (
             })().catch(log.error);
         });
     }
+
+    // Handle filesystem
+    ipcMain.handle('fs-read-file', async (event, path) => fs.readFile(path, { encoding: 'utf8' }));
+    ipcMain.handle('fs-write-file', async (event, path, content) =>
+        fs.writeFile(path, content, { encoding: 'utf8' })
+    );
+    ipcMain.handle('fs-exists', async (event, path) => {
+        try {
+            await fs.access(path, constants.F_OK);
+            return true;
+        } catch {
+            return false;
+        }
+    });
+    ipcMain.handle('fs-mkdir', async (event, path, options) => fs.mkdir(path, options));
+    ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
+    ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
+    ipcMain.handle('fs-access', async (event, path) => fs.access(path));
 };
 
 const registerEventHandlerPostSetup = (
