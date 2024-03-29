@@ -98,6 +98,17 @@ export interface InvokeChannels {
     'app-quit': ChannelInfo<void>;
     'clipboard-writeText': ChannelInfo<void, [text: string]>;
     'clipboard-readText': ChannelInfo<string>;
+    'clipboard-writeBuffer': ChannelInfo<
+        void,
+        [format: string, buffer: Buffer, type?: 'selection' | 'clipboard' | undefined]
+    >;
+    'clipboard-readBuffer': ChannelInfo<Buffer, [format: string]>;
+    'clipboard-availableFormats': ChannelInfo<string[]>;
+    'clipboard-readHTML': ChannelInfo<string>;
+    'clipboard-readRTF': ChannelInfo<string>;
+    'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
+    'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
+    'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
 }
 
 export interface SendChannels {
