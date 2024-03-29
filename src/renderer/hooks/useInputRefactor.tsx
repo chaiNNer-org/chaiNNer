@@ -17,7 +17,7 @@ import {
 } from '../../common/common-types';
 import { createInputOverrideId } from '../../common/input-override-common';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { createUniqueId } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';

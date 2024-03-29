@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { ipcRenderer } from '../../../common/safeIpcRenderer';
 import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';

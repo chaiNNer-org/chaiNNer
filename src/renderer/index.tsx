@@ -3,7 +3,7 @@ import path from 'path';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { LEVEL_NAME, log } from '../common/log';
-import { ipcRenderer } from '../common/safeIpc';
+import { ipcRenderer } from '../common/safeIpcRenderer';
 import { App } from './app';
 
 ipcRenderer

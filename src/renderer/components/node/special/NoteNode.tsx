@@ -23,7 +23,7 @@ import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { InputId, NodeData, Size } from '../../../../common/common-types';
 import { log } from '../../../../common/log';
-import { ipcRenderer } from '../../../../common/safeIpc';
+import { ipcRenderer } from '../../../../common/safeIpcRenderer';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { useNodeStateFromData } from '../../../helpers/nodeState';
 import { useContextMenu } from '../../../hooks/useContextMenu';

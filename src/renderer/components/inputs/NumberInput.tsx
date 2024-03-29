@@ -4,7 +4,7 @@ import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { ipcRenderer } from '../../../common/safeIpcRenderer';
 import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
