@@ -9,6 +9,7 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { MakeDirectoryOptions } from 'fs';
+import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 import { ChainnerSettings } from './settings/settings';
@@ -53,8 +54,38 @@ export interface InvokeChannels {
     'set-settings': ChannelInfo<void, [settings: ChainnerSettings]>;
 
     // fs
-    'fs-read-file': ChannelInfo<string, [path: string]>;
-    'fs-write-file': ChannelInfo<void, [path: string, content: string | Buffer]>;
+    'fs-read-file': ChannelInfo<
+        string,
+        // Mostly copied this from the original fs.readFile, but had to remove some bits due to being unable to import the types
+        [
+            path: PathLike,
+            options:
+                | {
+                      encoding: BufferEncoding;
+                      flag?: OpenMode | undefined;
+                  }
+                | BufferEncoding
+        ]
+    >;
+    'fs-write-file': ChannelInfo<
+        void,
+        // Mostly copied this from the original fs.writeFile, but had to remove some bits due to being unable to import the types
+        [
+            file: PathLike,
+            data:
+                | string
+                | NodeJS.ArrayBufferView
+                | Iterable<string | NodeJS.ArrayBufferView>
+                | AsyncIterable<string | NodeJS.ArrayBufferView>,
+            options?:
+                | (ObjectEncodingOptions & {
+                      mode?: Mode | undefined;
+                      flag?: OpenMode | undefined;
+                  })
+                | BufferEncoding
+                | null
+        ]
+    >;
     'fs-exists': ChannelInfo<boolean, [path: string]>;
     'fs-mkdir': ChannelInfo<string | undefined, [path: string, options: MakeDirectoryOptions]>;
     'fs-readdir': ChannelInfo<string[], [path: string]>;
