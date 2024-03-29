@@ -440,11 +440,14 @@ async def sse(request: Request):
     ctx = AppContext.get(request.app)
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
+    if response is None:
+        return
+
     while True:
         message = await ctx.queue.get()
-        if response is not None:
-            await response.send(f"event: {message['event']}\n")
-            await response.send(f"data: {stringify(message['data'])}\n\n")
+        await response.send(
+            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+        )
 
 
 async def import_packages(
