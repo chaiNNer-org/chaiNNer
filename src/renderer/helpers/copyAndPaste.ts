@@ -1,11 +1,11 @@
 import { clipboard } from 'electron';
-import { writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { Edge, Node, Project } from 'reactflow';
 import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
+import { ipcRenderer } from '../../common/safeIpc';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
@@ -108,7 +108,8 @@ export const pasteFromClipboard = (
                 case 'image/png': {
                     const imgData = clipboard.readImage().toPNG();
                     const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
-                    writeFile(imgPath, imgData)
+                    ipcRenderer
+                        .invoke('fs-write-file', imgPath, imgData)
                         .then(() => {
                             log.debug('Clipboard image', imgPath);
                             let positionX = 0;
