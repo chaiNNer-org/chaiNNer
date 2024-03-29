@@ -16,7 +16,7 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
-import { app, clipboard, shell } from 'electron';
+import { app, clipboard } from 'electron';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -182,9 +182,11 @@ const getButtons = (
                             ipcRenderer
                                 .invoke('get-appdata')
                                 .then((appDataPath) => {
-                                    shell.openPath(path.join(appDataPath, 'logs')).catch(() => {
-                                        log.error('Failed to open logs folder');
-                                    });
+                                    ipcRenderer
+                                        .invoke('shell-openPath', path.join(appDataPath, 'logs'))
+                                        .catch(() => {
+                                            log.error('Failed to open logs folder');
+                                        });
                                 })
                                 .catch(() => {
                                     log.error('Failed to get appdata path');
