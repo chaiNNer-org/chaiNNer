@@ -1,18 +1,11 @@
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
 import { EdgeData, InputData, InputId, InputValue, Mutable, NodeData } from './common-types';
+import { InputOverrideId } from './input-override-common';
 import { log } from './log';
 import { SchemaMap } from './SchemaMap';
 import { joinEnglish } from './util';
 import type { Edge, Node } from 'reactflow';
-
-export type InputOverrideId = string & { readonly __input_override_id?: never };
-
-export const createInputOverrideId = (nodeId: string, inputId: InputId): InputOverrideId => {
-    if (nodeId.length !== 36)
-        throw new Error('Expected node id to be a 36 character hexadecimal UUID.');
-    return `#${nodeId}:${inputId}`;
-};
 
 const isValidInputOverrideId = (id: InputOverrideId) => /^#[a-f0-9-]{36}:\d+$/.test(id);
 export const parseInputOverrideId = (id: InputOverrideId): { nodeId: string; inputId: InputId } => {
