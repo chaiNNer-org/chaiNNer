@@ -95,6 +95,7 @@ export interface InvokeChannels {
     // Electron
     'shell-showItemInFolder': ChannelInfo<void, [fullPath: string]>;
     'shell-openPath': ChannelInfo<string, [fullPath: string]>;
+    'app-quit': ChannelInfo<void>;
 }
 
 export interface SendChannels {

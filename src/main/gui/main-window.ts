@@ -218,6 +218,7 @@ const registerEventHandlerPreSetup = (
     // Handle electron
     ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
     ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
+    ipcMain.handle('app-quit', () => app.quit());
 };
 
 const registerEventHandlerPostSetup = (
