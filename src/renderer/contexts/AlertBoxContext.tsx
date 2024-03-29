@@ -16,7 +16,6 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -319,7 +318,11 @@ const AlertBoxDialog = memo(
                                 background="transparent"
                                 icon={<CopyIcon />}
                                 title="Copy to Clipboard"
-                                onClick={() => clipboard.writeText(copyText)}
+                                onClick={() => {
+                                    ipcRenderer
+                                        .invoke('clipboard-writeText', copyText)
+                                        .catch(log.error);
+                                }}
                             />
                             <HStack
                                 justifyContent="flex-end"

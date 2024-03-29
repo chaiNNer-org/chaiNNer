@@ -96,6 +96,8 @@ export interface InvokeChannels {
     'shell-showItemInFolder': ChannelInfo<void, [fullPath: string]>;
     'shell-openPath': ChannelInfo<string, [fullPath: string]>;
     'app-quit': ChannelInfo<void>;
+    'clipboard-writeText': ChannelInfo<void, [text: string]>;
+    'clipboard-readText': ChannelInfo<string>;
 }
 
 export interface SendChannels {

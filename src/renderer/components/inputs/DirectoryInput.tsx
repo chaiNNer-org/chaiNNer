@@ -9,7 +9,6 @@ import {
     MenuList,
     Tooltip,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
@@ -93,7 +92,9 @@ export const DirectoryInput = memo(
                     isDisabled={!displayDirectory}
                     onClick={() => {
                         if (displayDirectory) {
-                            clipboard.writeText(displayDirectory);
+                            ipcRenderer
+                                .invoke('clipboard-writeText', displayDirectory)
+                                .catch(log.error);
                         }
                     }}
                 >

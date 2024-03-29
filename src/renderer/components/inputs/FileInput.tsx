@@ -9,7 +9,6 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
 import path from 'path';
 import { DragEvent, memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -132,7 +131,9 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(path.parse(filePath).name);
+                            ipcRenderer
+                                .invoke('clipboard-writeText', path.parse(filePath).name)
+                                .catch(log.error);
                         }
                     }}
                 >
@@ -143,7 +144,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(filePath);
+                            ipcRenderer.invoke('clipboard-writeText', filePath).catch(log.error);
                         }
                     }}
                 >

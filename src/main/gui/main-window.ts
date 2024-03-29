@@ -1,4 +1,12 @@
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import {
+    BrowserWindow,
+    app,
+    clipboard,
+    dialog,
+    nativeTheme,
+    powerSaveBlocker,
+    shell,
+} from 'electron';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
@@ -219,6 +227,8 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
     ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
     ipcMain.handle('app-quit', () => app.quit());
+    ipcMain.handle('clipboard-writeText', (event, text) => clipboard.writeText(text));
+    ipcMain.handle('clipboard-readText', () => clipboard.readText());
 };
 
 const registerEventHandlerPostSetup = (
