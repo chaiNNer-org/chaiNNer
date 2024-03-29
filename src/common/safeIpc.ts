@@ -39,7 +39,7 @@ export interface InvokeChannels {
         FileSaveResult,
         [saveData: SaveData, defaultPath: string | undefined]
     >;
-    'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
+    'get-auto-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
     'owns-backend': ChannelInfo<boolean>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;

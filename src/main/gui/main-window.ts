@@ -151,10 +151,13 @@ const registerEventHandlerPreSetup = (
         if (globalThis.startupFile) {
             // Open file with chaiNNer on other platforms
             const result = openSaveFile(globalThis.startupFile);
-            ipcMain.handle('get-cli-open', () => result);
+            ipcMain.handle('get-auto-open', () => result);
             globalThis.startupFile = null;
+        } else if (settings.startupTemplate) {
+            const result = openSaveFile(settings.startupTemplate);
+            ipcMain.handle('get-auto-open', () => result);
         } else {
-            ipcMain.handle('get-cli-open', () => undefined);
+            ipcMain.handle('get-auto-open', () => undefined);
         }
         // We remove the event we created in main.ts earlier on
         app.removeAllListeners('open-file');
@@ -171,9 +174,12 @@ const registerEventHandlerPreSetup = (
         if (args.file) {
             // Open file with chaiNNer on other platforms
             const result = openSaveFile(args.file);
-            ipcMain.handle('get-cli-open', () => result);
+            ipcMain.handle('get-auto-open', () => result);
+        } else if (settings.startupTemplate) {
+            const result = openSaveFile(settings.startupTemplate);
+            ipcMain.handle('get-auto-open', () => result);
         } else {
-            ipcMain.handle('get-cli-open', () => undefined);
+            ipcMain.handle('get-auto-open', () => undefined);
         }
 
         app.on('second-instance', (_event, commandLine) => {
