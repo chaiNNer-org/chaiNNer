@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../renderer/safeIpc';
 import { EMPTY_ARRAY } from '../../common/util';
 import { useIpcRendererListener } from './useIpcRendererListener';
 import { useStored } from './useStored';

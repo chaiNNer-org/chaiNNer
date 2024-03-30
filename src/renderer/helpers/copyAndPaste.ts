@@ -5,7 +5,7 @@ import { Edge, Node, Project } from 'reactflow';
 import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../renderer/safeIpc';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';

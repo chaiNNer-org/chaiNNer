@@ -1,5 +1,5 @@
+import { app } from 'electron';
 import electronLog from 'electron-log';
-import { app } from 'electron/main';
 import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';

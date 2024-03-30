@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useState } from 'react';
 import { createContext } from 'use-context-selector';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../renderer/safeIpc';
 import { noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
 

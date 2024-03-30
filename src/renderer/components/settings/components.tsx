@@ -14,7 +14,7 @@ import { memo, useEffect, useMemo } from 'react';
 import { Setting } from '../../../common/common-types';
 import { getCacheLocation } from '../../../common/env';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { ipcRenderer } from '../../../renderer/safeIpc';
 import { SettingsProps } from './props';
 import { SettingContainer } from './SettingContainer';
 

@@ -31,7 +31,7 @@ import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { isMac } from '../../common/env';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer } from '../../renderer/safeIpc';
 import { BackendContext } from '../contexts/BackendContext';
 import { useMutSetting } from '../contexts/SettingsContext';
 import { IconFactory } from './CustomIcons';

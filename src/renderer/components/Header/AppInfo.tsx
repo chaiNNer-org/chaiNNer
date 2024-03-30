@@ -26,7 +26,7 @@ import {
 import { memo, useEffect, useRef, useState } from 'react';
 import semver from 'semver';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { ipcRenderer } from '../../../renderer/safeIpc';
 import logo from '../../../public/icons/png/256x256.png';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
