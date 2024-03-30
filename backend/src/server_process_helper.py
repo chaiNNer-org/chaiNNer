@@ -185,7 +185,7 @@ class WorkerServer:
             "/sse",
             headers=request.headers,
             data=request.body,
-            timeout=5,
+            timeout=aiohttp.ClientTimeout(total=60 * 60, connect=5),
         ) as resp:
             async for data, _ in resp.content.iter_chunks():
                 yield data

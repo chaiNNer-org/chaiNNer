@@ -1,11 +1,13 @@
 import { memo, useEffect } from 'react';
 import { log } from '../../../common/log';
-import { checkFileExists, getInputValue } from '../../../common/util';
+import { ipcRenderer } from '../../../common/safeIpc';
+import { getInputValue } from '../../../common/util';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 
 const ifExists = (file: string, then: () => void) => {
-    checkFileExists(file)
+    ipcRenderer
+        .invoke('fs-exists', file)
         .then((exists) => {
             if (exists) {
                 then();

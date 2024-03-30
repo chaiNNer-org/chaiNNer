@@ -29,7 +29,7 @@ import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
 import { ipcRenderer } from '../../common/safeIpc';
-import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
+import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
     EMPTY_SET,
@@ -169,7 +169,7 @@ export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
-        const { startupTemplate, viewportExportPadding } = useSettings();
+        const { viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -669,7 +669,7 @@ export const GlobalProvider = memo(
 
         useAsyncEffect(
             () => async () => {
-                const result = await ipcRenderer.invoke('get-cli-open');
+                const result = await ipcRenderer.invoke('get-auto-open');
                 if (result) {
                     if (result.kind === 'Success') {
                         await setStateFromJSONRef.current(result.saveData, result.path, true);
@@ -719,33 +719,6 @@ export const GlobalProvider = memo(
         );
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         useIpcRendererListener('file-export-template', exportTemplate);
-
-        const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
-        useAsyncEffect(
-            () => async () => {
-                if (firstLoad && startupTemplate) {
-                    try {
-                        const saveFile = await openSaveFile(startupTemplate);
-                        if (saveFile.kind === 'Success') {
-                            await setStateFromJSONRef.current(saveFile.saveData, '', true);
-                        } else {
-                            sendAlert({
-                                type: AlertType.ERROR,
-                                message: `Unable to open file ${startupTemplate}: ${saveFile.error}`,
-                            });
-                        }
-                    } catch (error) {
-                        log.error(error);
-                        sendAlert({
-                            type: AlertType.ERROR,
-                            message: `Unable to open file ${startupTemplate}`,
-                        });
-                    }
-                    setFirstLoad(false);
-                }
-            },
-            [firstLoad, sendAlert, setFirstLoad, startupTemplate]
-        );
 
         const removeNodesById = useCallback(
             (ids: readonly string[]) => {

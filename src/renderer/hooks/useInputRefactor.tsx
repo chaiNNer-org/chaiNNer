@@ -16,7 +16,7 @@ import {
     PartialBy,
     SchemaId,
 } from '../../common/common-types';
-import { createInputOverrideId } from '../../common/input-override';
+import { createInputOverrideId } from '../../common/input-override-common';
 import { createUniqueId } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';

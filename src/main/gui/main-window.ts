@@ -1,5 +1,6 @@
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import EventSource from 'eventsource';
+import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
@@ -151,10 +152,13 @@ const registerEventHandlerPreSetup = (
         if (globalThis.startupFile) {
             // Open file with chaiNNer on other platforms
             const result = openSaveFile(globalThis.startupFile);
-            ipcMain.handle('get-cli-open', () => result);
+            ipcMain.handle('get-auto-open', () => result);
             globalThis.startupFile = null;
+        } else if (settings.startupTemplate) {
+            const result = openSaveFile(settings.startupTemplate);
+            ipcMain.handle('get-auto-open', () => result);
         } else {
-            ipcMain.handle('get-cli-open', () => undefined);
+            ipcMain.handle('get-auto-open', () => undefined);
         }
         // We remove the event we created in main.ts earlier on
         app.removeAllListeners('open-file');
@@ -171,9 +175,12 @@ const registerEventHandlerPreSetup = (
         if (args.file) {
             // Open file with chaiNNer on other platforms
             const result = openSaveFile(args.file);
-            ipcMain.handle('get-cli-open', () => result);
+            ipcMain.handle('get-auto-open', () => result);
+        } else if (settings.startupTemplate) {
+            const result = openSaveFile(settings.startupTemplate);
+            ipcMain.handle('get-auto-open', () => result);
         } else {
-            ipcMain.handle('get-cli-open', () => undefined);
+            ipcMain.handle('get-auto-open', () => undefined);
         }
 
         app.on('second-instance', (_event, commandLine) => {
@@ -189,6 +196,24 @@ const registerEventHandlerPreSetup = (
             })().catch(log.error);
         });
     }
+
+    // Handle filesystem
+    ipcMain.handle('fs-read-file', async (event, path, options) => fs.readFile(path, options));
+    ipcMain.handle('fs-write-file', async (event, path, content, options) =>
+        fs.writeFile(path, content, options)
+    );
+    ipcMain.handle('fs-exists', async (event, path) => {
+        try {
+            await fs.access(path, constants.F_OK);
+            return true;
+        } catch {
+            return false;
+        }
+    });
+    ipcMain.handle('fs-mkdir', async (event, path, options) => fs.mkdir(path, options));
+    ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
+    ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
+    ipcMain.handle('fs-access', async (event, path) => fs.access(path));
 };
 
 const registerEventHandlerPostSetup = (
