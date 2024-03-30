@@ -67,7 +67,7 @@ export const pasteFromClipboard = async (
                 'clipboard-readBuffer',
                 'application/chainner.chain'
             );
-            const chain = JSON.parse(clipboardData.toString()) as ClipboardChain;
+            const chain = JSON.parse(Buffer.from(clipboardData).toString()) as ClipboardChain;
 
             const duplicationId = createUniqueId();
             const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
