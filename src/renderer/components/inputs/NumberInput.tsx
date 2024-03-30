@@ -1,6 +1,6 @@
 import { isNumericLiteral } from '@chainner/navi';
 import { HStack, MenuItem, MenuList } from '@chakra-ui/react';
-import { clipboard } from 'electron';
+import { clipboard } from 'electron/common';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';

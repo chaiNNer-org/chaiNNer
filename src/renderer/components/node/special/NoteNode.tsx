@@ -14,7 +14,7 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
+import { clipboard } from 'electron/common';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';

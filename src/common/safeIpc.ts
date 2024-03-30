@@ -7,7 +7,7 @@ import {
     WebContents,
     ipcMain as unsafeIpcMain,
     ipcRenderer as unsafeIpcRenderer,
-} from 'electron';
+} from 'electron/common';
 import { MakeDirectoryOptions } from 'fs';
 import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
@@ -91,6 +91,9 @@ export interface InvokeChannels {
     'fs-readdir': ChannelInfo<string[], [path: string]>;
     'fs-unlink': ChannelInfo<void, [path: string]>;
     'fs-access': ChannelInfo<void, [path: string]>;
+
+    // Electron
+    'app-quit': ChannelInfo<void>;
 }
 
 export interface SendChannels {

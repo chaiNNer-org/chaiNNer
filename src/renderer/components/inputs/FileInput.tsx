@@ -9,7 +9,7 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron';
+import { clipboard, shell } from 'electron/common';
 import path from 'path';
 import { DragEvent, memo } from 'react';
 import { useTranslation } from 'react-i18next';

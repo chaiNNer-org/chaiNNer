@@ -1,4 +1,4 @@
-import { clipboard, nativeImage } from 'electron';
+import { clipboard, nativeImage } from 'electron/common';
 import { toPng } from 'html-to-image';
 import { Node, ReactFlowInstance } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';

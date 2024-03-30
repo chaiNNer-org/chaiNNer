@@ -9,7 +9,7 @@ import {
     MenuList,
     Tooltip,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron';
+import { clipboard, shell } from 'electron/common';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';

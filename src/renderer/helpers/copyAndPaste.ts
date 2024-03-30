@@ -1,4 +1,4 @@
-import { clipboard } from 'electron';
+import { clipboard } from 'electron/common';
 import os from 'os';
 import path from 'path';
 import { Edge, Node, Project } from 'reactflow';

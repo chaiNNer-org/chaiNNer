@@ -38,7 +38,7 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
+import { clipboard } from 'electron/common';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';

@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app } from 'electron/main';
 import EventSource from 'eventsource';
 import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
 import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';

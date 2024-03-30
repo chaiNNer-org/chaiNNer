@@ -16,7 +16,7 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
-import { app, clipboard, shell } from 'electron';
+import { clipboard, shell } from 'electron/common';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
@@ -203,7 +203,7 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => {
                             window.close();
-                            app.quit();
+                            ipcRenderer.invoke('app-quit').catch(log.error);
                         }}
                     >
                         Exit Application

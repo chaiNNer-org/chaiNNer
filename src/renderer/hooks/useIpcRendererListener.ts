@@ -1,4 +1,4 @@
-import { IpcRendererEvent } from 'electron';
+import { IpcRendererEvent } from 'electron/renderer';
 import { useEffect } from 'react';
 import { ChannelArgs, SendChannels, ipcRenderer } from '../../common/safeIpc';
 

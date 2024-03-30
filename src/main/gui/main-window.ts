@@ -1,4 +1,5 @@
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import { shell } from 'electron/common';
+import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
@@ -214,6 +215,8 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
     ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
     ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+
+    ipcMain.handle('app-quit', () => app.quit());
 };
 
 const registerEventHandlerPostSetup = (

@@ -1,5 +1,5 @@
 import { MenuDivider, MenuItem } from '@chakra-ui/react';
-import { clipboard } from 'electron';
+import { clipboard } from 'electron/common';
 import { useTranslation } from 'react-i18next';
 import { CgArrowsExpandUpLeft } from 'react-icons/cg';
 import { MdContentCopy } from 'react-icons/md';
