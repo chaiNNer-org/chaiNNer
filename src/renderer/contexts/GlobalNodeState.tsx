@@ -28,7 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
