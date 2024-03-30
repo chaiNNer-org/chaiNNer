@@ -9,13 +9,14 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron/common';
 import path from 'path';
 import { DragEvent, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
+import { log } from '../../../common/log';
+
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -120,7 +121,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            shell.showItemInFolder(filePath);
+                            ipcRenderer.invoke('shell-showItemInFolder', filePath).catch(log.error);
                         }
                     }}
                 >
@@ -131,7 +132,9 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(path.parse(filePath).name);
+                            ipcRenderer
+                                .invoke('clipboard-writeText', path.parse(filePath).name)
+                                .catch(log.error);
                         }
                     }}
                 >
@@ -142,7 +145,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(filePath);
+                            ipcRenderer.invoke('clipboard-writeText', filePath).catch(log.error);
                         }
                     }}
                 >

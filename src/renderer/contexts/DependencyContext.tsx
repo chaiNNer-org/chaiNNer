@@ -38,7 +38,6 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron/common';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsQuestionCircle, BsTerminalFill } from 'react-icons/bs';
 import { HiOutlineRefresh } from 'react-icons/hi';
@@ -55,6 +54,7 @@ import {
 } from '../../common/common-types';
 import { log } from '../../common/log';
 import { getFindLinks } from '../../common/pip';
+
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
@@ -63,6 +63,7 @@ import {
     useBackendSetupEventSource,
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -491,11 +492,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         onClose: onPopoverClose,
     } = useDisclosure();
     const copyCommandToClipboard = (command: string) => {
-        clipboard.writeText(command);
-        onPopoverToggle();
-        setTimeout(() => {
-            onPopoverClose();
-        }, 5000);
+        ipcRenderer
+            .invoke('clipboard-writeText', command)
+            .then(() => {
+                onPopoverToggle();
+                setTimeout(() => {
+                    onPopoverClose();
+                }, 5000);
+            })
+            .catch(log.error);
     };
 
     const installPackage = (pkg: Package) => {

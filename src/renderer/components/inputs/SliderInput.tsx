@@ -1,16 +1,18 @@
 import { isNumericLiteral } from '@chainner/navi';
 import { HStack, MenuItem, MenuList, Text, VStack } from '@chakra-ui/react';
-import { clipboard } from 'electron/common';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, OfKind } from '../../../common/common-types';
+import { log } from '../../../common/log';
+
 import { assertNever } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { InputContext } from '../../contexts/InputContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
+import { ipcRenderer } from '../../safeIpc';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import {
     LINEAR_SCALE,
@@ -152,7 +154,9 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentCopy />}
                     onClick={() => {
-                        clipboard.writeText(String(displaySliderValue));
+                        ipcRenderer
+                            .invoke('clipboard-writeText', String(displaySliderValue))
+                            .catch(log.error);
                     }}
                 >
                     {t('inputs.number.copyText', 'Copy Number')}
@@ -160,10 +164,15 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentPaste />}
                     onClick={() => {
-                        const n = Number(clipboard.readText());
-                        if (!Number.isNaN(n) && min <= n && max >= n) {
-                            setValue(n);
-                        }
+                        ipcRenderer
+                            .invoke('clipboard-readText')
+                            .then((clipboardValue) => {
+                                const n = Number(clipboardValue);
+                                if (!Number.isNaN(n) && min <= n && max >= n) {
+                                    setValue(n);
+                                }
+                            })
+                            .catch(log.error);
                     }}
                 >
                     {t('inputs.number.paste', 'Paste')}

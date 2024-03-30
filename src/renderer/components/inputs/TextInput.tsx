@@ -1,15 +1,17 @@
 import { Center, Input, MenuItem, MenuList, Textarea } from '@chakra-ui/react';
-import { clipboard } from 'electron/common';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { log } from '../../../common/log';
+
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
+import { ipcRenderer } from '../../safeIpc';
 import { DragHandleSVG } from '../CustomIcons';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -90,7 +92,7 @@ export const TextInput = memo(
                     isDisabled={!displayText}
                     onClick={() => {
                         if (displayText !== undefined) {
-                            clipboard.writeText(displayText);
+                            ipcRenderer.invoke('clipboard-writeText', displayText).catch(log.error);
                         }
                     }}
                 >
@@ -100,12 +102,19 @@ export const TextInput = memo(
                     icon={<MdContentPaste />}
                     isDisabled={isConnected}
                     onClick={() => {
-                        let text = clipboard.readText();
-                        // replace new lines
-                        text = text.replace(/\r?\n|\r/g, multiline ? '\n' : ' ');
-                        if (text) {
-                            inputValue(text, false);
-                        }
+                        ipcRenderer
+                            .invoke('clipboard-readText')
+                            .then((clipboardValue) => {
+                                // replace new lines
+                                const text = clipboardValue.replace(
+                                    /\r?\n|\r/g,
+                                    multiline ? '\n' : ' '
+                                );
+                                if (text) {
+                                    inputValue(text, false);
+                                }
+                            })
+                            .catch(log.error);
                     }}
                 >
                     {t('inputs.text.paste', 'Paste')}

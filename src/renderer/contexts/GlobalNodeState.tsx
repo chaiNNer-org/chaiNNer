@@ -28,6 +28,7 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
+
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
@@ -1191,7 +1192,7 @@ export const GlobalProvider = memo(
                 createNode,
                 screenToFlowPosition,
                 reactFlowWrapper
-            );
+            ).catch(log.error);
         }, [changeNodes, changeEdges, createNode, screenToFlowPosition, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));

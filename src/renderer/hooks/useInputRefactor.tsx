@@ -1,5 +1,4 @@
 import { MenuDivider, MenuItem } from '@chakra-ui/react';
-import { clipboard } from 'electron/common';
 import { useTranslation } from 'react-i18next';
 import { CgArrowsExpandUpLeft } from 'react-icons/cg';
 import { MdContentCopy } from 'react-icons/md';
@@ -17,10 +16,13 @@ import {
     SchemaId,
 } from '../../common/common-types';
 import { createInputOverrideId } from '../../common/input-override-common';
+import { log } from '../../common/log';
+
 import { createUniqueId } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
+import { ipcRenderer } from '../safeIpc';
 
 const valueNodeMap = {
     number: 'chainner:utility:number' as SchemaId,
@@ -108,7 +110,9 @@ export const useInputRefactor = (
                 icon={<MdContentCopy />}
                 key="copy override"
                 onClick={() => {
-                    clipboard.writeText(createInputOverrideId(nodeId, inputId));
+                    ipcRenderer
+                        .invoke('clipboard-writeText', createInputOverrideId(nodeId, inputId))
+                        .catch(log.error);
                 }}
             >
                 {t('inputs.copyInputOverrideId', 'Copy Input Override Id')}
