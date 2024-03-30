@@ -54,7 +54,6 @@ import {
 } from '../../common/common-types';
 import { log } from '../../common/log';
 import { getFindLinks } from '../../common/pip';
-
 import { noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
