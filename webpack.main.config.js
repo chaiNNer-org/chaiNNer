@@ -5,6 +5,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 /** @type {import("webpack").Configuration} */
 module.exports = {
+    target: 'electron-main',
     /**
      * This is the main entry point for your application, it's the first file
      * that runs in the main process.
@@ -26,4 +27,5 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.ts'],
     },
+    externals: ['electron/common', 'electron/main'],
 };

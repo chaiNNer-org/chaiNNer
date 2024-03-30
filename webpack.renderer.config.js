@@ -20,6 +20,7 @@ rules.push(
 
 /** @type {import("webpack").Configuration} */
 module.exports = {
+    target: 'electron-renderer',
     // Put your normal webpack config below here
     module: {
         rules,
@@ -36,9 +37,7 @@ module.exports = {
                 resourceRegExp: /^fsevents$/,
             }),
     ].filter(Boolean),
-    externals: {
-        fsevents: "require('fsevents')",
-    },
+    externals: ['electron/common', 'electron/renderer', 'fsevents'],
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
