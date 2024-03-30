@@ -14,11 +14,11 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
-import { ipcRenderer } from '../../../renderer/safeIpc';
 import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { ipcRenderer } from '../../safeIpc';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 

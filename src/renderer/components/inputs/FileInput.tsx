@@ -16,12 +16,12 @@ import { useTranslation } from 'react-i18next';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
-import { ipcRenderer } from '../../../renderer/safeIpc';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { ipcRenderer } from '../../safeIpc';
 import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 

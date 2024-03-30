@@ -28,7 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ipcRenderer } from '../../renderer/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
@@ -84,6 +83,7 @@ import {
     useOutputDataStore,
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';

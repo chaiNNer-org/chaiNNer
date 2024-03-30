@@ -21,9 +21,9 @@ import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../renderer/safeIpc';
 import { assertNever, noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { ContextMenuContext } from './ContextMenuContext';
 import { HotkeysContext } from './HotKeyContext';
 
