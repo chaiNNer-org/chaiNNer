@@ -93,9 +93,7 @@ export const DirectoryInput = memo(
                     isDisabled={!displayDirectory}
                     onClick={() => {
                         if (displayDirectory) {
-                            ipcRenderer
-                                .invoke('clipboard-writeText', displayDirectory)
-                                .catch(log.error);
+                            navigator.clipboard.writeText(displayDirectory).catch(log.error);
                         }
                     }}
                 >

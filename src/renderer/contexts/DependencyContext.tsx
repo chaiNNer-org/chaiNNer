@@ -62,7 +62,6 @@ import {
     useBackendSetupEventSource,
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
-import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -491,8 +490,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         onClose: onPopoverClose,
     } = useDisclosure();
     const copyCommandToClipboard = (command: string) => {
-        ipcRenderer
-            .invoke('clipboard-writeText', command)
+        navigator.clipboard
+            .writeText(command)
             .then(() => {
                 onPopoverToggle();
                 setTimeout(() => {

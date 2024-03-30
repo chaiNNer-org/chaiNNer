@@ -154,9 +154,7 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentCopy />}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-writeText', String(displaySliderValue))
-                            .catch(log.error);
+                        navigator.clipboard.writeText(String(displaySliderValue)).catch(log.error);
                     }}
                 >
                     {t('inputs.number.copyText', 'Copy Number')}

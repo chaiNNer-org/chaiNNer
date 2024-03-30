@@ -129,9 +129,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                 icon={<MdContentCopy />}
                 onClick={() => {
                     if (value !== undefined) {
-                        ipcRenderer
-                            .invoke('clipboard-writeText', value.toString())
-                            .catch(log.error);
+                        navigator.clipboard.writeText(value.toString()).catch(log.error);
                     }
                 }}
             >

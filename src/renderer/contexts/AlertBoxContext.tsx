@@ -319,8 +319,8 @@ const AlertBoxDialog = memo(
                                 icon={<CopyIcon />}
                                 title="Copy to Clipboard"
                                 onClick={() => {
-                                    ipcRenderer
-                                        .invoke('clipboard-writeText', copyText)
+                                    navigator.clipboard
+                                        .writeText(copyText.toString())
                                         .catch(log.error);
                                 }}
                             />

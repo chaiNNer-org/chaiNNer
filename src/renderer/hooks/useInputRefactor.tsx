@@ -21,7 +21,6 @@ import { createUniqueId } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
-import { ipcRenderer } from '../safeIpc';
 
 const valueNodeMap = {
     number: 'chainner:utility:number' as SchemaId,
@@ -109,8 +108,8 @@ export const useInputRefactor = (
                 icon={<MdContentCopy />}
                 key="copy override"
                 onClick={() => {
-                    ipcRenderer
-                        .invoke('clipboard-writeText', createInputOverrideId(nodeId, inputId))
+                    navigator.clipboard
+                        .writeText(createInputOverrideId(nodeId, inputId))
                         .catch(log.error);
                 }}
             >
