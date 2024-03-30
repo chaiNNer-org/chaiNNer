@@ -3,7 +3,7 @@
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE
 
-# Modifications to use Rife for Image Alignment by tepete ('Enhance Everything!' Discord Server)
+# Modifications to use Rife for Image Alignment by tepete/pifroggi ('Enhance Everything!' Discord Server)
 
 # Additional helpful github issues
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
@@ -143,26 +143,6 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
     result_img = result_img[top_pad:top_pad+source_h, left_pad:left_pad+source_w]
 
     return result_img
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
