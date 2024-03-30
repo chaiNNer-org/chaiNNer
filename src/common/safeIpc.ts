@@ -1,6 +1,3 @@
-// eslint-disable-next-line import/no-duplicates
-import { type BrowserWindow, type MessagePortMain, type WebContents } from 'electron';
-// eslint-disable-next-line import/no-duplicates
 import { type FileFilter, type OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
 import { MakeDirectoryOptions } from 'fs';
 import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
@@ -143,22 +140,3 @@ export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (Invo
     SendChannels)[C]['args'];
 export type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['returnType'];
-
-interface WebContentsWithSafeIcp extends WebContents {
-    invoke<C extends keyof SendChannels>(
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): Promise<ChannelReturn<C>>;
-    postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePortMain[]): void;
-    send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): ChannelReturn<C>;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
-    sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-}
-export interface BrowserWindowWithSafeIpc extends BrowserWindow {
-    webContents: WebContentsWithSafeIcp;
-}
