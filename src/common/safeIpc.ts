@@ -1,5 +1,7 @@
+// eslint-disable-next-line import/no-duplicates
 import { type BrowserWindow, type MessagePortMain, type WebContents } from 'electron';
-import { type FileFilter, type OpenDialogReturnValue } from 'electron/common';
+// eslint-disable-next-line import/no-duplicates
+import { type FileFilter, type OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
 import { MakeDirectoryOptions } from 'fs';
 import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
