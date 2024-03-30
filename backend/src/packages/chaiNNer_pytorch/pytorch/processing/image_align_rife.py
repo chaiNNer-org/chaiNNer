@@ -3,7 +3,7 @@
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE
 
-# Modifications to use Rife for Image Alignment by tepete/pifroggi ('Enhance Everything!' Discord Server)
+# Modifications to use Rife for Image Alignment by tepete ('Enhance Everything!' Discord Server)
 
 # Additional helpful github issues
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
@@ -20,6 +20,9 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import cv2
+import requests
+import zipfile
+from pathlib import Path
 from api import NodeContext
 from nodes.properties.inputs import ImageInput, EnumInput, NumberInput, BoolInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -54,7 +57,38 @@ def calculate_padding(height, width, precision_mode):
     pad_width = (pad_value - width % pad_value) % pad_value
     return pad_height, pad_width
 
-def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precision_mode, model_path=os.path.join('processing', 'rife'), model_file='flownet_v4.14.pkl', multiplier=1, alignment_passes=1, blur_strength=0, ensemble=True) -> np.ndarray:
+def download_model(download_url, model_path, model_file, zip_inner_path):
+    model_dir = Path(model_path)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    zip_path = model_dir / "model.zip"
+
+    if not (model_dir / model_file).exists():
+        try:
+            response = requests.get(download_url)
+            response.raise_for_status()
+            with open(zip_path, 'wb') as f:
+                f.write(response.content)
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                specific_file_path = zip_inner_path + '/' + model_file
+                zip_ref.extract(specific_file_path, model_dir)
+            extracted_file_path = model_dir / specific_file_path
+            final_path = model_dir / model_file
+            if extracted_file_path != final_path:
+                extracted_file_path.rename(final_path)
+
+            #cleanup
+            train_log_dir = model_dir / zip_inner_path
+            train_log_dir.rmdir()
+            
+            zip_path.unlink()
+        except requests.RequestException as e:
+            print(f"Failed to download the model. Error: {e}")
+
+def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precision_mode, model_path='python/models/rife_v4.14', model_file='flownet.pkl', multiplier=1, alignment_passes=1, blur_strength=0, ensemble=True) -> np.ndarray:
+    download_url = "https://drive.usercontent.google.com/download?id=1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy&export=download&authuser=0"
+    zip_inner_path = 'train_log'
+    download_model(download_url, model_path, model_file, zip_inner_path)
+    
     source_h, source_w, _ = get_h_w_c(source_img)
     target_h, target_w, _ = get_h_w_c(target_img)
 
@@ -87,7 +121,7 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
     device = exec_options.device
 
     #load model
-    model_full_path = os.path.join(project_root, model_path, model_file)
+    model_full_path = os.path.join(model_path, model_file)
     model = IFNet().to(device)#.half()
     state_dict = torch.load(model_full_path, map_location=device)
     new_state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
@@ -109,6 +143,23 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
     result_img = result_img[top_pad:top_pad+source_h, left_pad:left_pad+source_w]
 
     return result_img
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
