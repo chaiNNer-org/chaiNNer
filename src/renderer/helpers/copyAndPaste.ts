@@ -96,7 +96,7 @@ export const pasteFromClipboard = async (
             log.debug('Clipboard format', format);
             switch (format) {
                 case 'text/plain':
-                    log.debug('Clipboard text', ipcRenderer.invoke('clipboard-readText'));
+                    log.debug('Clipboard text', navigator.clipboard.readText());
                     break;
                 case 'text/html':
                     log.debug('Clipboard html', ipcRenderer.invoke('clipboard-readHTML'));

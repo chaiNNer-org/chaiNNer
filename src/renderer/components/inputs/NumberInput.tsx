@@ -7,7 +7,6 @@ import { log } from '../../../common/log';
 import { areApproximatelyEqual } from '../../../common/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
-import { ipcRenderer } from '../../safeIpc';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -59,7 +58,7 @@ export const NumberInput = memo(
                     icon={<MdContentCopy />}
                     isDisabled={!displayString}
                     onClick={() => {
-                        ipcRenderer.invoke('clipboard-writeText', displayString).catch(log.error);
+                        navigator.clipboard.writeText(displayString).catch(log.error);
                     }}
                 >
                     {t('inputs.number.copyText', 'Copy Number')}
@@ -67,8 +66,8 @@ export const NumberInput = memo(
                 <MenuItem
                     icon={<MdContentPaste />}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-readText')
+                        navigator.clipboard
+                            .readText()
                             .then((clipboardValue) => {
                                 const n = Number(clipboardValue);
                                 if (

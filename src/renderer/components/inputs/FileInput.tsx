@@ -143,7 +143,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            ipcRenderer.invoke('clipboard-writeText', filePath).catch(log.error);
+                            navigator.clipboard.writeText(filePath).catch(log.error);
                         }
                     }}
                 >

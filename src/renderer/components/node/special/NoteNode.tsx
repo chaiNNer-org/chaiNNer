@@ -28,7 +28,6 @@ import { useNodeStateFromData } from '../../../helpers/nodeState';
 import { useContextMenu } from '../../../hooks/useContextMenu';
 import { useDisabled } from '../../../hooks/useDisabled';
 import { useNodeMenu } from '../../../hooks/useNodeMenu';
-import { ipcRenderer } from '../../../safeIpc';
 import { DragHandleSVG, IconFactory } from '../../CustomIcons';
 import { Markdown } from '../../Markdown';
 
@@ -138,8 +137,8 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
             <MenuItem
                 icon={<MdContentPaste />}
                 onClick={() => {
-                    ipcRenderer
-                        .invoke('clipboard-readText')
+                    navigator.clipboard
+                        .readText()
                         .then((clipboardValue) => {
                             // replace new lines
                             const text = clipboardValue.replace(/\r?\n|\r/g, '\n');

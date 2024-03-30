@@ -10,7 +10,6 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
-import { ipcRenderer } from '../../safeIpc';
 import { DragHandleSVG } from '../CustomIcons';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
@@ -91,7 +90,7 @@ export const TextInput = memo(
                     isDisabled={!displayText}
                     onClick={() => {
                         if (displayText !== undefined) {
-                            ipcRenderer.invoke('clipboard-writeText', displayText).catch(log.error);
+                            navigator.clipboard.writeText(displayText).catch(log.error);
                         }
                     }}
                 >
@@ -101,8 +100,8 @@ export const TextInput = memo(
                     icon={<MdContentPaste />}
                     isDisabled={isConnected}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-readText')
+                        navigator.clipboard
+                            .readText()
                             .then((clipboardValue) => {
                                 // replace new lines
                                 const text = clipboardValue.replace(

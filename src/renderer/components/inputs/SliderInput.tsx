@@ -12,7 +12,6 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { InputContext } from '../../contexts/InputContext';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
-import { ipcRenderer } from '../../safeIpc';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import {
     LINEAR_SCALE,
@@ -162,8 +161,8 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentPaste />}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-readText')
+                        navigator.clipboard
+                            .readText()
                             .then((clipboardValue) => {
                                 const n = Number(clipboardValue);
                                 if (!Number.isNaN(n) && min <= n && max >= n) {
