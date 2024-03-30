@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const CopyPlugin = require('copy-webpack-plugin');
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 /** @type {import("webpack").Configuration} */
 module.exports = {
     /**
@@ -10,6 +12,7 @@ module.exports = {
     entry: {
         main: './src/main/main.ts',
     },
+    mode: isDevelopment ? 'development' : 'production',
     // Put your normal webpack config below here
     module: {
         // eslint-disable-next-line global-require
@@ -21,6 +24,6 @@ module.exports = {
         }),
     ],
     resolve: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        extensions: ['.js', '.ts'],
     },
 };
