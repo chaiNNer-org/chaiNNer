@@ -39,7 +39,7 @@ jobs:
             - name: install setuptools (macos)
               if: matrix.os == 'macos-13'
               run: python3 -m pip install setuptools
-            - run: npm ci
+            - run: npm ci --loglevel verbose
             - name: publish --dry-run
               shell: bash
               run: |
