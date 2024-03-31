@@ -1,5 +1,5 @@
-import { app } from 'electron';
 import electronLog from 'electron-log';
+import { app } from 'electron/main';
 import { log } from '../../common/log';
 import { Exit } from './exit';
 

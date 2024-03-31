@@ -1,4 +1,5 @@
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import { clipboard, nativeImage, shell } from 'electron/common';
+import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
@@ -6,7 +7,6 @@ import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
-import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
@@ -15,6 +15,7 @@ import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { getRootDirSync } from '../platform';
+import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
 import { addSplashScreen } from './splash';
@@ -214,6 +215,26 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
     ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
     ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+
+    // Handle electron
+    ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
+    ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
+    ipcMain.handle('app-quit', () => app.quit());
+    ipcMain.handle('clipboard-writeText', (event, text) => clipboard.writeText(text));
+    ipcMain.handle('clipboard-readText', () => clipboard.readText());
+    ipcMain.handle('clipboard-writeBuffer', (event, format, buffer, type) =>
+        clipboard.writeBuffer(format, buffer, type)
+    );
+    ipcMain.handle('clipboard-readBuffer', (event, format) => clipboard.readBuffer(format));
+    ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
+    ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
+    ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
+    ipcMain.handle('clipboard-readImage', () => clipboard.readImage());
+    ipcMain.handle('clipboard-writeImage', (event, image) => clipboard.writeImage(image));
+    ipcMain.handle('clipboard-writeImageFromURL', (event, url) => {
+        const image = nativeImage.createFromDataURL(url);
+        clipboard.writeImage(image);
+    });
 };
 
 const registerEventHandlerPostSetup = (

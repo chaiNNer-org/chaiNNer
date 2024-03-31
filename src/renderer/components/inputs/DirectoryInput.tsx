@@ -9,16 +9,17 @@ import {
     MenuList,
     Tooltip,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { log } from '../../../common/log';
+
 import { getFields, isDirectory } from '../../../common/types/util';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { ipcRenderer } from '../../safeIpc';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -79,7 +80,9 @@ export const DirectoryInput = memo(
                     isDisabled={!displayDirectory}
                     onClick={() => {
                         if (displayDirectory) {
-                            shell.showItemInFolder(displayDirectory);
+                            ipcRenderer
+                                .invoke('shell-showItemInFolder', displayDirectory)
+                                .catch(log.error);
                         }
                     }}
                 >
@@ -90,7 +93,7 @@ export const DirectoryInput = memo(
                     isDisabled={!displayDirectory}
                     onClick={() => {
                         if (displayDirectory) {
-                            clipboard.writeText(displayDirectory);
+                            navigator.clipboard.writeText(displayDirectory).catch(log.error);
                         }
                     }}
                 >

@@ -14,7 +14,6 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +22,7 @@ import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { InputId, NodeData, Size } from '../../../../common/common-types';
+import { log } from '../../../../common/log';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { useNodeStateFromData } from '../../../helpers/nodeState';
 import { useContextMenu } from '../../../hooks/useContextMenu';
@@ -128,7 +128,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                 icon={<MdContentCopy />}
                 onClick={() => {
                     if (value !== undefined) {
-                        clipboard.writeText(value.toString());
+                        navigator.clipboard.writeText(value.toString()).catch(log.error);
                     }
                 }}
             >
@@ -137,12 +137,16 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
             <MenuItem
                 icon={<MdContentPaste />}
                 onClick={() => {
-                    let text = clipboard.readText();
-                    // replace new lines
-                    text = text.replace(/\r?\n|\r/g, '\n');
-                    if (text) {
-                        setInputValue(textInputId, text);
-                    }
+                    navigator.clipboard
+                        .readText()
+                        .then((clipboardValue) => {
+                            // replace new lines
+                            const text = clipboardValue.replace(/\r?\n|\r/g, '\n');
+                            if (text) {
+                                setInputValue(textInputId, text);
+                            }
+                        })
+                        .catch(log.error);
                 }}
             >
                 {t('inputs.text.paste', 'Paste')}

@@ -1,5 +1,5 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { app } from 'electron';
+import { app } from 'electron/main';
 import { existsSync } from 'fs';
 import path from 'path';
 import { getBackend } from '../../common/Backend';

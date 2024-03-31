@@ -9,19 +9,20 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { clipboard, shell } from 'electron';
 import path from 'path';
 import { DragEvent, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { log } from '../../../common/log';
+
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { ipcRenderer } from '../../safeIpc';
 import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -120,7 +121,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            shell.showItemInFolder(filePath);
+                            ipcRenderer.invoke('shell-showItemInFolder', filePath).catch(log.error);
                         }
                     }}
                 >
@@ -131,7 +132,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(path.parse(filePath).name);
+                            navigator.clipboard.writeText(filePath).catch(log.error);
                         }
                     }}
                 >
@@ -142,7 +143,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            clipboard.writeText(filePath);
+                            navigator.clipboard.writeText(filePath).catch(log.error);
                         }
                     }}
                 >
