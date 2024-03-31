@@ -37,7 +37,7 @@ import { UseDisabled, useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
 import { useValidity } from '../../hooks/useValidity';
-import { useWatchFiles } from '../../hooks/useWatchFiles';
+import { ListenEventType, useWatchFiles } from '../../hooks/useWatchFiles';
 import { CollapsedHandles } from './CollapsedHandles';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
@@ -278,7 +278,18 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         if (files.length === 0) return EMPTY_ARRAY;
         return files;
     }, [startingNode, data.inputData, schema]);
-    useWatchFiles(filesToWatch, reload);
+
+    const onChange = useCallback(
+        (type: ListenEventType) => {
+            if (type === 'unlink' && fileInput?.id != null) {
+                setInputValue(fileInput.id, undefined);
+            } else {
+                reload();
+            }
+        },
+        [fileInput?.id, reload, setInputValue]
+    );
+    useWatchFiles(filesToWatch, onChange);
 
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });

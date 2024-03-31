@@ -2,12 +2,14 @@ import { FSWatcher } from 'chokidar';
 import { useEffect } from 'react';
 import { log } from '../../common/log';
 
-const listeners = new Set<(file: string) => void>();
-const callListeners = (file: string) => {
+export type ListenEventType = 'add' | 'change' | 'unlink';
+
+const listeners = new Set<(file: string, type: ListenEventType) => void>();
+const callListeners = (file: string, type: ListenEventType) => {
     log.info(file);
     for (const l of listeners) {
         try {
-            l(file);
+            l(file, type);
         } catch (error) {
             log.error(error);
         }
@@ -21,17 +23,20 @@ const watcher = new FSWatcher({
     persistent: false,
 });
 watcher.on('error', (e) => log.error(e));
-watcher.on('add', callListeners);
-watcher.on('change', callListeners);
-watcher.on('unlink', callListeners);
+watcher.on('add', (file) => callListeners(file, 'add'));
+watcher.on('change', (file) => callListeners(file, 'change'));
+watcher.on('unlink', (file) => callListeners(file, 'unlink'));
 
-export const useWatchFiles = (files: readonly string[], onChange: () => void): void => {
+export const useWatchFiles = (
+    files: readonly string[],
+    onChange: (type: ListenEventType) => void
+): void => {
     useEffect(() => {
         if (files.length === 0) return;
 
-        const l = (f: string) => {
+        const l = (f: string, type: ListenEventType) => {
             if (files.includes(f)) {
-                onChange();
+                onChange(type);
             }
         };
 
