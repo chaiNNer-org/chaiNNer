@@ -42,6 +42,7 @@ class _WorkerProcess:
             stdin=None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            encoding="utf-8",
         )
         self._stop_event = threading.Event()
 
@@ -63,7 +64,7 @@ class _WorkerProcess:
         for line in self._process.stdout:
             if self._stop_event.is_set():
                 break
-            stripped_line = line.decode().rstrip()
+            stripped_line = line.rstrip()
             match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
             if match_obj is not None:
                 log_level, message = match_obj.groups()
