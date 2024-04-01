@@ -165,13 +165,14 @@ async def install_dependencies(
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        encoding="utf-8",
     )
     installing_name = "Unknown"
     while True:
         nextline = process.stdout.readline()  # type: ignore
-        if nextline == b"" and process.poll() is not None:
+        if process.poll() is not None:
             break
-        line = nextline.decode("utf-8").strip()
+        line = nextline.strip()
         if not line:
             continue
 
@@ -298,13 +299,14 @@ async def uninstall_dependencies(
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        encoding="utf-8",
     )
     uninstalling_name = "Unknown"
     while True:
         nextline = process.stdout.readline()  # type: ignore
-        if nextline == b"" and process.poll() is not None:
+        if process.poll() is not None:
             break
-        line = nextline.decode("utf-8").strip()
+        line = nextline.strip()
         if not line:
             continue
 
