@@ -40,6 +40,10 @@
     }
 }
 
+:root {
+    --toast-z-index: 6001;
+}
+
 html {
     overflow: hidden;
 }
