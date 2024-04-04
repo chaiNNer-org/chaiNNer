@@ -92,10 +92,16 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             const dataString = String(data);
             // Remove unneeded timestamp
             const fixedData = dataString.split('] ').slice(1).join('] ');
-            log.info(`Backend: ${removedTrailingNewLine(fixedData)}`);
+            const message = removedTrailingNewLine(fixedData);
+            if (message) {
+                log.info(`Backend: ${message}`);
+            }
         });
         backend.stderr.on('data', (data) => {
-            log.error(`Backend: ${removedTrailingNewLine(String(data))}`);
+            const message = removedTrailingNewLine(String(data));
+            if (message) {
+                log.error(`Backend: ${message}`);
+            }
         });
 
         return backend;
