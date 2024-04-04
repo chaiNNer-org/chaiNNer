@@ -40,8 +40,12 @@
     }
 }
 
-body {
+html {
     overflow: hidden;
+}
+
+body {
+    overflow: clip;
 }
 
 .react-flow__attribution {
