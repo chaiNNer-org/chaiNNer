@@ -55,7 +55,6 @@ interface BackendContextState {
     backendDownRef: React.MutableRefObject<boolean>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
-    backendReady: boolean;
 }
 
 export const BackendContext = createContext<Readonly<BackendContextState>>(
@@ -230,7 +229,6 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
         scope,
         refreshNodes,
         connectionState,
-        backendReady,
     };
 };
 
@@ -293,8 +291,10 @@ export const BackendProvider = memo(
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
 
-        const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState, backendReady } =
-            useNodes(backend, backendDownRef);
+        const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
+            backend,
+            backendDownRef
+        );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
         const featureStatesMaps = useMemo((): ReadonlyMap<FeatureId, FeatureState> => {
@@ -373,7 +373,6 @@ export const BackendProvider = memo(
             backendDownRef,
             restart,
             connectionState,
-            backendReady,
         });
 
         return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
