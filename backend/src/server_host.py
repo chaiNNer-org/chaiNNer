@@ -60,6 +60,7 @@ class SSEFilter(logging.Filter):
 worker: WorkerServer = WorkerServer()
 
 setup_task = None
+backend_ready = False
 
 access_logger.addFilter(SSEFilter())
 
@@ -307,6 +308,11 @@ async def setup_sse(request: Request):
             break
 
 
+@app.get("/status")
+async def status(request: Request):
+    return json({"ready": backend_ready})
+
+
 async def import_packages(
     config: ServerConfig,
     update_progress_cb: UpdateProgressFn,
@@ -366,6 +372,7 @@ async def import_packages(
 
 
 async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
+    global backend_ready
     setup_queue = AppContext.get(sanic_app).setup_queue
 
     async def update_progress(
@@ -400,20 +407,14 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # Now we can load all the nodes
     await import_packages(AppContext.get(sanic_app).config, update_progress)
 
-    logger.info("Sending backend ready...")
+    logger.info("Backend almost ready...")
 
     await update_progress("Loading Nodes...", 1.0, None)
 
-    # Wait to send backend-ready until nodes are loaded
+    # Wait to set backend-ready until nodes are loaded
     await worker.wait_for_ready()
 
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-ready",
-            "data": None,
-        },
-        timeout=1,
-    )
+    backend_ready = True
 
     logger.info("Done.")
 

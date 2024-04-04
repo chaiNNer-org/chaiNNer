@@ -9,7 +9,6 @@ import {
 } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
-import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
 import { isMac } from '../../common/env';
@@ -505,29 +504,6 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
                     totalProgress: data.progress,
                     statusProgress: data.statusProgress ?? undefined,
                 });
-            }
-        });
-
-        ipcMain.handle('is-backend-ready', () => false);
-
-        sse.addEventListener('backend-ready', () => {
-            progressController.submitProgress({
-                totalProgress: 1,
-                status: t('splash.loadingApp', 'Loading main application...'),
-            });
-
-            mainWindow.webContents.send('backend-ready');
-
-            ipcMain.removeHandler('is-backend-ready');
-            ipcMain.handle('is-backend-ready', () => true);
-
-            if (mainWindow.isDestroyed()) {
-                dialog.showMessageBoxSync({
-                    type: 'error',
-                    title: 'Unable to start application',
-                    message: 'The main window was closed before the backend was ready.',
-                });
-                app.quit();
             }
         });
 

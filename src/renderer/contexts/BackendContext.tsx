@@ -32,7 +32,6 @@ import { getChainnerScope } from '../../common/types/chainner-scope';
 import { FunctionDefinition } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_MAP, delay } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoObject } from '../hooks/useMemo';
 import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertId, AlertType } from './AlertBoxContext';
@@ -55,6 +54,7 @@ interface BackendContextState {
     backendDownRef: React.MutableRefObject<boolean>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
+    isBackendReady: boolean;
 }
 
 export const BackendContext = createContext<Readonly<BackendContextState>>(
@@ -90,15 +90,17 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     };
 };
 
-const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<boolean>>) => {
+const useNodes = (
+    backend: Backend,
+    backendDownRef: Readonly<MutableRefObject<boolean>>,
+    isBackendReady: boolean
+) => {
     const isBackendIntentionallyDown = backendDownRef.current;
 
     const { t } = useTranslation();
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo>();
-
-    const [backendReady, setBackendReady] = useState(false);
 
     const queryClient = useQueryClient();
     const refreshNodes = useCallback(() => {
@@ -181,7 +183,7 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
                 return prev;
             });
         }
-    }, [nodesQuery.status, nodesQuery.data, backendReady, sendAlert, forgetLastErrorAlert, t]);
+    }, [nodesQuery.status, nodesQuery.data, isBackendReady, sendAlert, forgetLastErrorAlert, t]);
 
     useEffect(() => {
         if (nodeQueryError && !isBackendIntentionallyDown) {
@@ -198,14 +200,12 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
         }
     }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t, isBackendIntentionallyDown]);
 
-    useIpcRendererListener('backend-ready', () => {
-        // Refresh the nodes once the backend is ready
-        refreshNodes();
-        if (!backendReady) {
-            setBackendReady(true);
-            ipcRenderer.send('backend-ready');
+    useEffect(() => {
+        if (isBackendReady) {
+            // Refresh the nodes once the backend is ready
+            refreshNodes();
         }
-    });
+    }, [isBackendReady, refreshNodes]);
 
     const scope = useMemo(() => {
         // function definitions all use the same scope, so just pick any one of them
@@ -291,9 +291,42 @@ export const BackendProvider = memo(
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
 
+        const [isBackendReady, setIsBackendReady] = useState(false);
+        const statusQuery = useQuery({
+            queryKey: ['status', backend.url],
+            queryFn: async (): Promise<{ ready: boolean }> => {
+                try {
+                    // spin until we're no longer restarting
+                    while (backendDownRef.current) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await delay(100);
+                    }
+
+                    return await backend.status();
+                } catch (error) {
+                    log.error(error);
+                    throw error;
+                }
+            },
+            cacheTime: 0,
+            retry: 25,
+            refetchOnWindowFocus: true,
+            refetchInterval: isBackendReady ? undefined : 1000,
+        });
+
+        useEffect(() => {
+            if (statusQuery.status === 'success') {
+                const { ready } = statusQuery.data;
+                if (ready) {
+                    setIsBackendReady(true);
+                }
+            }
+        }, [statusQuery.status, statusQuery.data]);
+
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            backendDownRef
+            backendDownRef,
+            isBackendReady
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
@@ -373,6 +406,7 @@ export const BackendProvider = memo(
             backendDownRef,
             restart,
             connectionState,
+            isBackendReady,
         });
 
         return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

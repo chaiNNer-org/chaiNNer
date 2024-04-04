@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeKind } from '../common/common-types';
-import { log } from '../common/log';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge/CustomEdge';
 import { Header } from './components/Header/Header';
@@ -37,7 +36,7 @@ const edgeTypes: EdgeTypes = {
 export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
-    const { connectionState, schemata } = useContext(BackendContext);
+    const { connectionState, schemata, isBackendReady } = useContext(BackendContext);
     const settings = useSettings();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -77,20 +76,22 @@ export const Main = memo(() => {
                 setStatus(progress.status);
             }
         });
-
-        ipcRenderer
-            .invoke('is-backend-ready')
-            .then((r) => {
-                if (r) {
-                    setOverallProgress(1);
-                }
-            })
-            .catch(log.error);
     }, []);
+
+    useEffect(() => {
+        if (isBackendReady) {
+            setOverallProgress(1);
+        }
+    }, [isBackendReady]);
 
     if (connectionState === 'failed') return null;
 
-    if (connectionState === 'connecting' || !ready || schemata.schemata.length === 0) {
+    if (
+        connectionState === 'connecting' ||
+        !ready ||
+        !isBackendReady ||
+        schemata.schemata.length === 0
+    ) {
         return (
             <Box
                 h="100vh"
