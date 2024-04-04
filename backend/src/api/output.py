@@ -59,12 +59,6 @@ class BaseOutput:
         self.should_suggest = True
         return self
 
-    def __repr__(self):
-        return str(self.to_dict())
-
-    def __iter__(self):
-        yield from self.to_dict().items()
-
     def get_broadcast_data(self, _value: object):
         return None
 
