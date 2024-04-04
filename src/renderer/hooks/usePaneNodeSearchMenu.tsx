@@ -287,9 +287,11 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
     return (
         <MenuList
             bgColor={menuBgColor}
+            borderRadius="md"
             borderWidth={0}
             className="nodrag"
             overflow="hidden"
+            p={0}
             onContextMenu={stopPropagation}
         >
             <InputGroup
@@ -304,7 +306,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
                 </InputLeftElement>
                 <Input
                     autoFocus
-                    borderRadius={0}
+                    borderRadius="md"
                     placeholder="Search..."
                     spellCheck={false}
                     type="text"
@@ -332,7 +334,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories, suggestions }: M
             </InputGroup>
             <Box
                 h="auto"
-                maxH={400}
+                maxH="calc(min(400px, 50vh - 50px))"
                 overflowY="scroll"
                 p={1}
             >
