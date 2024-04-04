@@ -1,5 +1,6 @@
 import time
 from abc import ABC, abstractmethod
+from typing import Literal
 
 from .settings import SettingsParser
 
@@ -8,7 +9,7 @@ class Aborted(Exception):
     pass
 
 
-class NodeProgress(ABC):
+class Progress(ABC):
     @property
     @abstractmethod
     def aborted(self) -> bool:
@@ -51,8 +52,73 @@ class NodeProgress(ABC):
         Raises an `Aborted` exception if the current operation was aborted.
         """
 
+    def sub_progress(self, offset: float, length: float) -> "Progress":
+        """
+        Returns a new `NodeProgress` object that represents a sub-progress of the current operation.
 
-class NodeContext(NodeProgress, ABC):
+        The progress range of the sub-progress is defined by `offset` and `length`. `offset` must be a value between 0
+        and 1, and `length` must be a positive value such that `offset + length <= 1`.
+
+        The real progress of the sub-progress is calculated as `offset + progress * length`, where `progress` is the
+        progress value passed to `set_progress` of the sub-progress.
+        """
+        return _SubProgress(self, offset, length)
+
+
+class _NopProgress(Progress):
+    @property
+    def aborted(self) -> Literal[False]:
+        return False
+
+    @property
+    def paused(self) -> Literal[False]:
+        return False
+
+    def check_aborted(self) -> None:
+        pass
+
+    def suspend(self) -> None:
+        pass
+
+    def set_progress(self, progress: float) -> None:
+        pass
+
+    def sub_progress(self, offset: float, length: float) -> "Progress":
+        return _NopProgress()
+
+
+class _SubProgress(Progress):
+    def __init__(self, parent: Progress, offset: float, length: float):
+        self._parent = parent
+        self._offset = offset
+        self._length = length
+
+    @property
+    def aborted(self) -> bool:
+        return self._parent.aborted
+
+    @property
+    def paused(self) -> bool:
+        return self._parent.paused
+
+    def check_aborted(self) -> None:
+        self._parent.check_aborted()
+
+    def suspend(self) -> None:
+        self._parent.suspend()
+
+    def set_progress(self, progress: float) -> None:
+        self._parent.set_progress(self._offset + progress * self._length)
+
+    def sub_progress(self, offset: float, length: float) -> "_SubProgress":
+        return _SubProgress(
+            self._parent,
+            offset=self._offset + offset * self._length,
+            length=length * self._length,
+        )
+
+
+class NodeContext(Progress, ABC):
     """
     The execution context of the current node.
     """
