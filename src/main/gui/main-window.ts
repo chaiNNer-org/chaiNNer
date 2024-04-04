@@ -408,10 +408,8 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     //    so it's hard to say when we should re-send the last progress.
     // 2. The splash screen sometimes randomly reloads which resets the displayed progress.
     const intervalId = setInterval(() => {
-        console.log('interval');
         if (progressFinished || mainWindow.isDestroyed()) {
             clearInterval(intervalId);
-            console.log('cleared interval');
             return;
         }
 
