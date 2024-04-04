@@ -1,5 +1,12 @@
 import { clipboard, nativeImage, shell } from 'electron/common';
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker } from 'electron/main';
+import {
+    BrowserWindow,
+    MessageBoxOptions,
+    app,
+    dialog,
+    nativeTheme,
+    powerSaveBlocker,
+} from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
 import { t } from 'i18next';
@@ -10,7 +17,8 @@ import { log } from '../../common/log';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
-import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
+import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
+import { assertNever } from '../../common/util';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
@@ -18,7 +26,6 @@ import { getRootDirSync } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
-import { addSplashScreen } from './splash';
 
 const version = app.getVersion() as Version;
 
@@ -392,7 +399,84 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     });
 
     const progressController = new ProgressController();
-    addSplashScreen(progressController);
+
+    let progressFinished = false;
+    let lastProgress: Progress | undefined;
+
+    // This is a hack that solves 2 problems at one:
+    // 1. Even after 'ready-to-show', React might still not be ready,
+    //    so it's hard to say when we should re-send the last progress.
+    // 2. The splash screen sometimes randomly reloads which resets the displayed progress.
+    const intervalId = setInterval(() => {
+        console.log('interval');
+        if (progressFinished || mainWindow.isDestroyed()) {
+            clearInterval(intervalId);
+            console.log('cleared interval');
+            return;
+        }
+
+        if (lastProgress) {
+            mainWindow.webContents.send('setup-progress', lastProgress);
+        }
+    }, 100);
+
+    progressController.addProgressListener((progress) => {
+        lastProgress = { ...progress };
+
+        if (progress.totalProgress === 1) {
+            progressFinished = true;
+        }
+    });
+
+    progressController.addInterruptListener(async (interrupt) => {
+        const options = interrupt.options ?? [];
+
+        let messageBoxOptions: MessageBoxOptions;
+        if (interrupt.type === 'critical error') {
+            if (!mainWindow.isDestroyed()) {
+                mainWindow.hide();
+            }
+
+            messageBoxOptions = {
+                type: 'error',
+                title: interrupt.title ?? 'Critical error occurred',
+                buttons: [...options.map((o) => o.title), 'Exit'],
+                defaultId: options.length,
+                message: interrupt.message,
+            };
+        } else {
+            messageBoxOptions = {
+                type: 'warning',
+                title: interrupt.title ?? 'Critical error occurred',
+                buttons: [...options.map((o) => o.title), 'Ok'],
+                defaultId: options.length,
+                message: interrupt.message,
+            };
+        }
+
+        const { response } = await dialog.showMessageBox(messageBoxOptions);
+        if (response < options.length) {
+            const { action } = options[response];
+
+            try {
+                switch (action.type) {
+                    case 'open-url': {
+                        await shell.openExternal(action.url);
+                        break;
+                    }
+                    default:
+                        return assertNever(action.type);
+                }
+            } catch (error) {
+                log.error(`Failed to execute action of type ${action.type}`, error);
+            }
+        }
+
+        if (interrupt.type === 'critical error') {
+            progressFinished = true;
+            app.exit(1);
+        }
+    });
 
     try {
         registerEventHandlerPreSetup(mainWindow, args, settings);
@@ -426,12 +510,18 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             }
         });
 
-        let opened = false;
+        ipcMain.handle('is-backend-ready', () => false);
+
         sse.addEventListener('backend-ready', () => {
             progressController.submitProgress({
                 totalProgress: 1,
                 status: t('splash.loadingApp', 'Loading main application...'),
             });
+
+            mainWindow.webContents.send('backend-ready');
+
+            ipcMain.removeHandler('is-backend-ready');
+            ipcMain.handle('is-backend-ready', () => true);
 
             if (mainWindow.isDestroyed()) {
                 dialog.showMessageBoxSync({
@@ -440,21 +530,19 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
                     message: 'The main window was closed before the backend was ready.',
                 });
                 app.quit();
-                return;
-            }
-
-            if (!opened) {
-                mainWindow.show();
-                if (settings.lastWindowSize.maximized) {
-                    mainWindow.maximize();
-                }
-                opened = true;
             }
         });
 
         if (mainWindow.isDestroyed()) {
             return;
         }
+
+        mainWindow.once('ready-to-show', () => {
+            mainWindow.show();
+            if (settings.lastWindowSize.maximized) {
+                mainWindow.maximize();
+            }
+        });
 
         // and load the index.html of the app.
         mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);

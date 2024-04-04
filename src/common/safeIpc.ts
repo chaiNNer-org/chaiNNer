@@ -35,6 +35,7 @@ export interface InvokeChannels {
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
+    'is-backend-ready': ChannelInfo<boolean>;
 
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;
@@ -99,7 +100,7 @@ export interface InvokeChannels {
 }
 
 export interface SendChannels {
-    'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
+    'setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-ready': SendChannelInfo;
     'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
