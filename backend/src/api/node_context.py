@@ -64,8 +64,15 @@ class Progress(ABC):
         """
         return _SubProgress(self, offset, length)
 
+    @staticmethod
+    def noop_progress() -> "Progress":
+        """
+        Returns a `Progress` object that does nothing. It is never paused or aborted and does not report any progress.
+        """
+        return _NoopProgress()
 
-class _NopProgress(Progress):
+
+class _NoopProgress(Progress):
     @property
     def aborted(self) -> Literal[False]:
         return False
@@ -84,7 +91,7 @@ class _NopProgress(Progress):
         pass
 
     def sub_progress(self, offset: float, length: float) -> "Progress":
-        return _NopProgress()
+        return _NoopProgress()
 
 
 class _SubProgress(Progress):
