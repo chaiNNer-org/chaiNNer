@@ -259,13 +259,13 @@ const registerEventHandlerPostSetup = (
 
         app.on('before-quit', () => {
             backend.clearErrorListeners();
-            return backend.tryKill();
+            backend.tryKill().catch(log.error);
         });
     }
 
-    ipcMain.handle('restart-backend', () => {
+    ipcMain.handle('restart-backend', async () => {
         if (backend.owned) {
-            backend.restart();
+            await backend.restart();
         } else {
             log.warn('Tried to restart non-owned backend');
         }
@@ -284,10 +284,14 @@ const registerEventHandlerPostSetup = (
 
     const restartChainner = (): void => {
         if (backend.owned) {
-            backend.tryKill();
+            backend
+                .tryKill()
+                .then(() => {
+                    app.relaunch();
+                    app.exit();
+                })
+                .catch(log.error);
         }
-        app.relaunch();
-        app.exit();
     };
 
     ipcMain.on('reboot-after-save', () => {

@@ -134,9 +134,9 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     /**
      * Kills the current backend process.
      *
-     * @throws If the backend process could n
+     * @throws If the backend process couldn't exit
      */
-    kill() {
+    async kill() {
         log.info('Attempting to kill backend...');
 
         if (!this.process) {
@@ -151,16 +151,11 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             return;
         }
 
-        fetch(`${this.url}/shutdown`, { method: 'POST' })
-            .then(() => {
-                if (this.process?.kill()) {
-                    this.process = undefined;
-                    log.info('Successfully killed backend.');
-                }
-            })
-            .catch((error) => {
-                throw error;
-            });
+        await fetch(`${this.url}/shutdown`, { method: 'POST' });
+        if (this.process.kill()) {
+            this.process = undefined;
+            log.info('Successfully killed backend.');
+        }
     }
 
     /**
@@ -168,16 +163,16 @@ export class OwnedBackendProcess implements BaseBackendProcess {
      *
      * This function is guaranteed to throw no errors, it will only log errors if any occur.
      */
-    tryKill() {
+    async tryKill() {
         try {
-            this.kill();
+            await this.kill();
         } catch (error) {
             log.error('Error killing backend.', error);
         }
     }
 
-    restart() {
-        this.tryKill();
+    async restart() {
+        await this.tryKill();
 
         const backend = OwnedBackendProcess.spawnProcess(this.port, this.python, this.env);
         this.setNewProcess(backend);
