@@ -308,6 +308,12 @@ async def setup_sse(request: Request):
             break
 
 
+@app.post("/shutdown")
+async def shutdown(request: Request):
+    await close_server(request.app)
+    return json(success_response())
+
+
 @app.get("/status")
 async def status(request: Request):
     return json({"ready": backend_ready})

@@ -256,6 +256,10 @@ export class Backend {
         });
     }
 
+    shutdown(): Promise<void> {
+        return this.fetchJson('/shutdown', 'POST');
+    }
+
     status(): Promise<{ ready: boolean }> {
         return this.fetchJson('/status', 'GET');
     }
