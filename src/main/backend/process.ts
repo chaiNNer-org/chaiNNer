@@ -157,7 +157,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             return;
         }
 
-        await fetch(`${this.url}/shutdown`, { method: 'POST' });
+        await getBackend(this.url).shutdown();
         if (this.process.kill()) {
             this.process = undefined;
             log.info('Successfully killed backend.');
