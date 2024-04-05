@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import atexit
 import logging
-import signal
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
@@ -60,20 +58,6 @@ class SSEFilter(logging.Filter):
 
 
 worker: WorkerServer = WorkerServer()
-
-async def sigterm_handler(signal, frame):
-    logger.info("SIGTERM received. Running cleanup code...")
-    # Add your cleanup code here
-    # For example, closing files, releasing resources, etc.
-    logger.info("Cleanup complete. Exiting.")
-    await worker.stop()
-    sys.exit(0)
-
-# Register the signal handler
-signal.signal(signal.SIGTERM, sigterm_handler)
-signal.signal(signal.SIGINT, sigterm_handler)
-atexit.register(lambda: sigterm_handler(None, None))
-
 
 setup_task = None
 
@@ -322,10 +306,12 @@ async def setup_sse(request: Request):
         except Exception:
             break
 
+
 @app.post("/shutdown")
 async def shutdown(request: Request):
     await close_server(request.app)
     return json(success_response())
+
 
 async def import_packages(
     config: ServerConfig,
@@ -487,8 +473,8 @@ def main():
     config = ServerConfig.parse_argv()
     AppContext.get(app).config = config
     app.run(port=config.port, single_process=True)
-    # if exit_code != 0:
-    #     sys.exit(exit_code)
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":
