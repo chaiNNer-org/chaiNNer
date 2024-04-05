@@ -67,7 +67,7 @@ class _WorkerProcess:
     def _read_output(self):
         if self._process is None or self._process.stdout is None:
             return
-        for line in iter(self._process.stdout):
+        for line in self._process.stdout:
             if self._stop_event.is_set():
                 break
             stripped_line = line.rstrip()
