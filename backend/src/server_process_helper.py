@@ -58,14 +58,10 @@ class _WorkerProcess:
     def close(self):
         logger.info("Closing worker process...")
         self._stop_event.set()
-        if self._process:
-            self._process.terminate()
-        if self._process:
-            self._process.kill()
-        if self._process:
-            del self._process
-        if self.t1:
-            del self.t1
+        self._process.terminate()
+        self._process.kill()
+        del self._process
+        del self.t1
 
     def _read_output(self):
         if self._process.stdout is None:

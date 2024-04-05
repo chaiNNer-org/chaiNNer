@@ -441,7 +441,6 @@ async def close_server(sanic_app: Sanic):
 
     await worker.stop()
     sanic_app.stop()
-    sys.exit(exit_code)
 
 
 @app.after_server_stop
