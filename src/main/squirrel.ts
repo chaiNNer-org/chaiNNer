@@ -44,7 +44,7 @@ const onUninstall = () => {
     // delete all folders + their content
     for (const folder of foldersToCleanUp) {
         const p = path.join(getRootDir(), folder);
-        log.info('Deleting folder: ', p);
+        log.info(`Deleting folder: ${p}`);
         try {
             if (existsSync(p)) {
                 rmdirSync(p, { recursive: true });
