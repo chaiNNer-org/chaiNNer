@@ -1,5 +1,4 @@
 import {
-    CheckIcon,
     ChevronRightIcon,
     CloseIcon,
     CopyIcon,
@@ -9,20 +8,16 @@ import {
     UnlockIcon,
 } from '@chakra-ui/icons';
 import {
-    Divider,
     HStack,
-    IconButton,
     Input,
     InputGroup,
-    InputRightElement,
     MenuDivider,
     MenuItem,
     MenuList,
     Spacer,
     Text,
-    VStack,
 } from '@chakra-ui/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { BiRename } from 'react-icons/bi';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
@@ -61,11 +56,6 @@ export const useNodeMenu = (
     const resetMenuParentRef = useRef<HTMLButtonElement>(null);
 
     const [isRenaming, setIsRenaming] = useState(false);
-    const [tempName, setTempName] = useState(state.nickname);
-
-    useEffect(() => {
-        setTempName(state.nickname);
-    }, [state.nickname]);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -177,20 +167,20 @@ export const useNodeMenu = (
                     <Input
                         maxWidth="full"
                         placeholder={state.schema.name}
-                        value={tempName}
+                        value={state.nickname || ''}
                         width="auto"
-                        onBlur={() => {
-                            setIsRenaming(false);
-                        }}
-                        onChange={(e) => setTempName(e.target.value)}
+                        // onBlur={() => {
+                        //     setIsRenaming(false);
+                        // }}
+                        onChange={(e) => state.setNickname(e.target.value || undefined)}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            e.stopPropagation();
+                            if (e.key === 'Enter' || e.key === 'Escape') {
                                 setIsRenaming(false);
-                                state.setNickname(tempName);
                             }
                         }}
                     />
-                    <InputRightElement
+                    {/* <InputRightElement
                         m={0}
                         overflow="hidden"
                         p={0}
@@ -222,11 +212,11 @@ export const useNodeMenu = (
                                 variant="solid"
                                 onClick={() => {
                                     setIsRenaming(false);
-                                    setTempName(undefined);
+                                    setTempName(state.nickname);
                                 }}
                             />
                         </VStack>
-                    </InputRightElement>
+                    </InputRightElement> */}
                 </InputGroup>
             ) : (
                 <MenuItem
