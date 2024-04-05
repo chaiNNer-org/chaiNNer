@@ -286,7 +286,7 @@ const registerEventHandlerPostSetup = (
         if (backend.owned) {
             backend
                 .tryKill()
-                .then(() => {
+                .finally(() => {
                     app.relaunch();
                     app.exit();
                 })
